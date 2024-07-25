@@ -32,11 +32,15 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BasicStroke;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ListProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.plot.ValueMarker;
 
 public class IntegrationPlotController extends FxController<IntegrationPlotModel> {
+
+  private static final Logger logger = Logger.getLogger(IntegrationPlotController.class.getName());
 
   protected final SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
   private IntegrationPlotViewBuilder builder = new IntegrationPlotViewBuilder(model,
@@ -81,7 +85,7 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
     final Double start = model.getCurrentStartTime();
     final Double end = model.getCurrentEndTime();
-
+    logger.finest("Finish feature pressed. %.2f-%.2f".formatted(start, end));
     if (start != null && end != null) {
       final IntensityTimeSeries currentTimeSeries = model.getCurrentTimeSeries();
 
@@ -96,23 +100,26 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   }
 
   void onAbortPressed() {
+    logger.finest("Abort integration pressed");
     onSetLeftPressed();
     clearIntegration();
   }
 
   private void clearIntegration() {
+    logger.finest("Clear integration pressed");
     model.setIntegrating(false);
     model.setCurrentStartTime(null);
     model.setCurrentEndTime(null);
   }
 
   void onEditPressed() {
+    logger.finest("Edit feature pressed");
     final IntensityTimeSeries feature = model.getSelectedFeature();
     assert feature != null;
     model.getIntegratedFeatures().remove(feature);
 
     model.setCurrentStartTime((double) feature.getRetentionTime(0));
-    model.setCurrentEndTime((double) feature.getRetentionTime(feature.getNumberOfValues()) - 1);
+    model.setCurrentEndTime((double) feature.getRetentionTime(feature.getNumberOfValues() - 1));
     model.setNextBoundary(Boundary.LEFT);
   }
 
@@ -140,5 +147,9 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     }
 
     model.setIntegratedFeatures((List<IntensityTimeSeries>) integratedFeatures);
+  }
+
+  public ListProperty<IntensityTimeSeries> integratedFeaturesProperty() {
+    return model.integratedFeaturesProperty();
   }
 }

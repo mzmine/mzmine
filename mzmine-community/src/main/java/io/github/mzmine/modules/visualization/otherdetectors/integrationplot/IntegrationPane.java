@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.javafx.components.factories.FxButtons;
@@ -39,9 +40,12 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.BorderPane;
@@ -58,7 +62,8 @@ public class IntegrationPane extends BorderPane {
   private ObjectProperty<@Nullable RawDataFile> rawFile = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable OtherDataFile> otherFile = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable OtherTimeSeries> timeSeries = new SimpleObjectProperty<>();
-  private IntegrationPlotController plot;
+  private final IntegrationPlotController plot = new IntegrationPlotController();
+  private final BooleanProperty saveAllowedProperty = new SimpleBooleanProperty(false);
 
   private IntegrationPane() {
     final ComboBox<RawDataFile> rawFileCombo = FxComboBox.createComboBox(
@@ -67,24 +72,12 @@ public class IntegrationPane extends BorderPane {
             .toList(), rawFileProperty());
     final ComboBox<@Nullable OtherDataFile> otherFileCombo = createOtherFileCombo();
     final ComboBox<@Nullable OtherTimeSeries> timeSeriesCombo = createTimeSeriesCombo();
-    final Button saveButton = FxButtons.createSaveButton("Save", () -> {
-      if (timeSeries.get() != null) {
-        var data = timeSeries.get().getTimeSeriesData();
-        data.setProcessedFeatures(
-            plot.getIntegratedFeatures().stream().filter(ts -> ts instanceof OtherTimeSeries)
-                .map(ts -> {
-                  final OtherFeature f = new OtherFeatureImpl();
-                  f.set(OtherFeatureDataType.class, (OtherTimeSeries) ts);
-                  return f;
-                }).toList());
-      }
-    });
-
-    plot = new IntegrationPlotController();
+    final Button saveButton = createSaveButton();
 
     initializeListeners(otherFileCombo, timeSeriesCombo);
 
-    final VBox vbox = FxLayout.newVBox(rawFileCombo, otherFileCombo, timeSeriesCombo, saveButton);
+    final VBox vbox = FxLayout.newVBox(Pos.TOP_LEFT, rawFileCombo, otherFileCombo, timeSeriesCombo,
+        saveButton);
 //    rawFileCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
 //    otherFileCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
 //    timeSeriesCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
@@ -98,6 +91,44 @@ public class IntegrationPane extends BorderPane {
 
     maxHeight(400);
     minHeight(200);
+  }
+
+  private @NotNull Button createSaveButton() {
+    final Button saveButton = FxButtons.createSaveButton("Save", () -> {
+      if (!saveAllowedProperty.get()) {
+        return;
+      }
+      saveAllowedProperty.set(false);
+      if (timeSeries.get() != null) {
+        var data = timeSeries.get().getTimeSeriesData();
+        data.setProcessedFeaturesForSeries(timeSeries.get(),
+            plot.getIntegratedFeatures().stream().filter(ts -> ts instanceof OtherTimeSeries)
+                .map(ts -> {
+                  final OtherFeature f = new OtherFeatureImpl();
+                  f.set(OtherFeatureDataType.class, (OtherTimeSeries) ts);
+                  return f;
+                }).toList());
+      }
+    });
+    saveButton.disableProperty().bind(saveAllowedProperty.not());
+    plot.integratedFeaturesProperty()
+        .addListener((_, _, _) -> saveAllowedProperty.set(isPlotFeaturesMatchSavedFeatures()));
+    return saveButton;
+  }
+
+  private boolean isPlotFeaturesMatchSavedFeatures() {
+    final OtherTimeSeries series = timeSeries.get();
+    if (series == null) {
+      return false;
+    }
+
+    final OtherTimeSeriesData data = series.getTimeSeriesData();
+    final List<OtherTimeSeries> processed = data.getProcessedFeaturesForSeries(series)
+        .stream().map(OtherFeature::getFeatureData).toList();
+    if (processed.equals(plot.getIntegratedFeatures())) {
+      return false;
+    }
+    return true;
   }
 
   public IntegrationPane(RawDataFile file) {
@@ -199,10 +230,10 @@ public class IntegrationPane extends BorderPane {
       plot.setIntegratedFeatures(List.of());
       if (ts != null) {
         plot.setOtherTimeSeries(ts);
-        plot.setIntegratedFeatures(
-            ts.getTimeSeriesData().processedFeatures().stream().map(OtherFeature::getFeatureData)
-                .toList());
+        plot.setIntegratedFeatures(ts.getTimeSeriesData().getProcessedFeaturesForSeries(ts).stream()
+            .map(OtherFeature::getFeatureData).toList());
       }
+      saveAllowedProperty.set(isPlotFeaturesMatchSavedFeatures());
     });
   }
 

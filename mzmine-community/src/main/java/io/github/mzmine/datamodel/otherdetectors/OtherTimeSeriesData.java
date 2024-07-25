@@ -27,7 +27,8 @@ package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import java.util.List;
-import javafx.beans.property.ReadOnlyListProperty;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 
 public interface OtherTimeSeriesData {
@@ -59,15 +60,27 @@ public interface OtherTimeSeriesData {
   @NotNull
   ChromatogramType getChromatogramType();
 
-  List<OtherFeature> getProcessedFeatures();
+  /**
+   * @return The processed features for the given series, may be empty. The list is modifiable.
+   */
+  @NotNull
+  ObservableList<OtherFeature> getProcessedFeaturesForSeries(OtherTimeSeries series);
 
-  void setProcessedFeatures(@NotNull List<OtherFeature> processedFeatures);
+  void addProcessedFeatureForSeries(@NotNull OtherTimeSeries series,
+      @NotNull OtherFeature otherFeature);
 
-  void addProcessedFeature(@NotNull OtherFeature otherFeature);
+  boolean removeProcessedFeatureForSeries(@NotNull OtherTimeSeries series,
+      @NotNull OtherFeature otherFeature);
 
-  void clearProcessedFeatures();
+  void setProcessedFeaturesForSeries(@NotNull OtherTimeSeries series,
+      @NotNull List<OtherFeature> otherFeatures);
 
-  ReadOnlyListProperty<OtherFeature> processedFeatures();
+  void clearProcessedFeaturesForSeries(OtherTimeSeries series);
 
-  boolean removeProcessedFeature(@NotNull OtherFeature otherFeature);
+  /**
+   * A read only copy of the observable map of this data. The map is read only to prevent addition
+   * of {@link OtherTimeSeries} that do not belong to this {@link OtherTimeSeriesData}.
+   */
+  @NotNull
+  ObservableMap<OtherTimeSeries, ObservableList<OtherFeature>> getProcessedFeatures();
 }

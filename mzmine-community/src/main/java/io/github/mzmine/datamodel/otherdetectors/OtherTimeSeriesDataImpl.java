@@ -30,8 +30,9 @@ import static io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl.DEFAUL
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.beans.property.ReadOnlyListProperty;
-import javafx.beans.property.ReadOnlyListWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +40,7 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
   private final OtherDataFile otherDataFile;
   private final List<OtherTimeSeries> timeSeries = new ArrayList<>();
-  private final ReadOnlyListWrapper<OtherFeature> processedFeatures = new ReadOnlyListWrapper<>();
+  private final ObservableMap<OtherTimeSeries, ObservableList<OtherFeature>> processedFeatures = FXCollections.observableHashMap();
 
   public @Nullable ChromatogramType chromatogramType = ChromatogramType.UNKNOWN;
   private @Nullable String timeSeriesDomainLabel = "Retention time";
@@ -115,36 +116,54 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
     this.chromatogramType = chromatogramType;
   }
 
-  /**
-   * @return A read only list of results.
-   */
   @Override
-  public List<OtherFeature> getProcessedFeatures() {
-    return processedFeatures.getReadOnlyProperty();
+  @NotNull
+  public ObservableList<OtherFeature> getProcessedFeaturesForSeries(OtherTimeSeries series) {
+    checkOrThrow(series);
+    return processedFeatures.computeIfAbsent(series, _ -> FXCollections.observableArrayList());
   }
 
   @Override
-  public void setProcessedFeatures(@NotNull List<OtherFeature> processedFeatures) {
-    this.processedFeatures.setAll(processedFeatures);
+  public void addProcessedFeatureForSeries(@NotNull OtherTimeSeries series,
+      @NotNull OtherFeature otherFeature) {
+    checkOrThrow(series);
+    processedFeatures.computeIfAbsent(series, _ -> FXCollections.observableArrayList())
+        .add(otherFeature);
   }
 
   @Override
-  public void addProcessedFeature(@NotNull OtherFeature otherFeature) {
-    processedFeatures.add(otherFeature);
+  public boolean removeProcessedFeatureForSeries(@NotNull OtherTimeSeries series,
+      @NotNull OtherFeature otherFeature) {
+    checkOrThrow(series);
+    return processedFeatures.computeIfAbsent(series, _ -> FXCollections.observableArrayList())
+        .remove(otherFeature);
   }
 
   @Override
-  public void clearProcessedFeatures() {
-    processedFeatures.clear();
+  public void setProcessedFeaturesForSeries(@NotNull OtherTimeSeries series,
+      @NotNull List<OtherFeature> otherFeatures) {
+    checkOrThrow(series);
+    processedFeatures.computeIfAbsent(series, _ -> FXCollections.observableArrayList())
+        .setAll(otherFeatures);
   }
 
   @Override
-  public ReadOnlyListProperty<OtherFeature> processedFeatures() {
-    return processedFeatures.getReadOnlyProperty();
+  public void clearProcessedFeaturesForSeries(OtherTimeSeries series) {
+    checkOrThrow(series);
+    processedFeatures.computeIfAbsent(series, _ -> FXCollections.observableArrayList()).clear();
   }
 
   @Override
-  public boolean removeProcessedFeature(@NotNull OtherFeature otherFeature) {
-    return processedFeatures.remove(otherFeature);
+  @NotNull
+  public ObservableMap<OtherTimeSeries, ObservableList<OtherFeature>> getProcessedFeatures() {
+    return FXCollections.unmodifiableObservableMap(processedFeatures);
+  }
+
+  private void checkOrThrow(OtherTimeSeries series) {
+    if (!processedFeatures.containsKey(series) && !timeSeries.contains(series)) {
+      throw new IllegalArgumentException(
+          "Time series %s is not a raw time series in this OtherTimeSeriesData".formatted(
+              series.getName()));
+    }
   }
 }

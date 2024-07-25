@@ -206,7 +206,7 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
         "Finish current integration and save the feature", onFinishPressed);
     Button abortFeature = FxButtons.createButton("Abort feature", FxIcons.CANCEL,
         "Abort integration of the selected feature", onAbortPressed);
-    Button editSelected = FxButtons.createButton("Edit feature", "Edit the selected feature",
+    Button editSelected = FxButtons.createButton("Edit feature", FxIcons.EDIT, "Edit the selected feature",
         onEditPressed);
     final FlowPane buttonBar = FxLayout.newFlowPane(setLeftBoundary, setRightBoundary, finish,
         abortFeature, editSelected);
