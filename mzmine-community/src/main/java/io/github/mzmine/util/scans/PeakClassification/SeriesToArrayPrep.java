@@ -27,8 +27,8 @@ public class SeriesToArrayPrep {
         final int rightRangeIndex = BinarySearch.binarySearch(end, DefaultTo.CLOSEST_VALUE, fullSeries.getNumberOfValues(), i ->fullSeries.getRetentionTime(i));
 
         //calculates the size (in indices) of the range to the left and right of peak
-        int relativeOffsetLeft = maximumIndexFull - leftRangeIndex;
-        int relativeOffsetRight = rightRangeIndex - maximumIndexFull;
+        int relativeOffsetLeft = Math.min(maximumIndexFull - leftRangeIndex, 32);
+        int relativeOffsetRight = Math.min(rightRangeIndex - maximumIndexFull,32);
 
         //caluclates left and right bound for the region in full series
         //offset in case +-32 is out of bounds
