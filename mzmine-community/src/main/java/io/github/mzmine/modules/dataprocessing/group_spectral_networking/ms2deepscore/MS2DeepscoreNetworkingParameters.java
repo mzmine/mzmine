@@ -69,7 +69,9 @@ public class MS2DeepscoreNetworkingParameters extends SimpleParameterSet {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(ms2deepscoreModelFile, minSignals, minScore);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
+        ms2deepscoreModelFile, minSignals, minScore);
   }
 
   /**

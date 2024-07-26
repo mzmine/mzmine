@@ -49,7 +49,9 @@ public class MainSpectralNetworkingParameters extends SimpleParameterSet {
       "Algorithm", "Select the similarity algorithm", SpectralNetworkingOptions.MODIFIED_COSINE);
 
   public MainSpectralNetworkingParameters() {
-    super(featureLists, algorithms);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
+        featureLists, algorithms);
   }
 
   @NotNull

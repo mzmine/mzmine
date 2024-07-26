@@ -46,8 +46,7 @@ import org.jetbrains.annotations.NotNull;
 public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterSet {
 
   // MZ-tolerance: deisotoping, adducts
-  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
-      "m/z tolerance (MS2)",
+  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter("m/z tolerance",
       "Tolerance value of the m/z difference between MS2 signals (add absolute tolerance to cover small neutral losses (5 ppm on m=18 is insufficient))",
       0.003, 10);
 
@@ -77,7 +76,9 @@ public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterS
       """, new SignalFiltersParameters());
 
   public ModifiedCosineSpectralNetworkingParameters() {
-    super(MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, MAX_MZ_DELTA, MIN_MATCH, MIN_COSINE_SIMILARITY,
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
+        MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, MAX_MZ_DELTA, MIN_MATCH, MIN_COSINE_SIMILARITY,
         CHECK_NEUTRAL_LOSS_SIMILARITY, signalFilters);
   }
 
