@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
+import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -42,6 +44,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.MaldiSpotType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.annotations.FeatureRatingType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
@@ -53,6 +56,14 @@ import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
+import io.github.mzmine.util.scans.PeakClassification.SeriesToArrayPrep;
+import io.github.mzmine.util.scans.PeakClassification.PeakClassifierModel;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.List;
 import java.util.logging.Level;
@@ -101,6 +112,50 @@ public class FeatureResolverTask extends AbstractTask {
     processedRows = 0;
     totalRows = 0;
     this.mzCenterFunction = mzCenterFunction;
+  }
+
+  private static void exportFeatureToTsv(List<IonTimeSeries<? extends Scan>> resolvedSeries,
+      ModularFeature originalFeature, FeatureDataAccess access) {
+    final File dir = new File(
+        "D:/export/max_features/%s".formatted(originalFeature.getRawDataFile().getName()));
+    dir.mkdirs();
+    final float maxHeight = originalFeature.getHeight();
+    if (!resolvedSeries.isEmpty()) {
+      try (var writer = Files.newBufferedWriter(new File(
+          "D:/export/max_features/%s".formatted(originalFeature.getRawDataFile().getName()),
+          "feature_%d_full.tsv".formatted(originalFeature.getRow().getID())).toPath(),
+          StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+        writer.write("x\ty\tfactor=%f".formatted(maxHeight));
+        writer.newLine();
+        for (int i = 0; i < access.getNumberOfValues(); i++) {
+          writer.write("%f".formatted(access.getRetentionTime(i)));
+          writer.write("\t");
+          writer.write("%f".formatted(access.getIntensity(i) / maxHeight));
+          writer.newLine();
+        }
+      } catch (IOException e) {
+        //
+      }
+      try (var writer = Files.newBufferedWriter(new File(
+          "D:/export/max_features/%s".formatted(originalFeature.getRawDataFile().getName()),
+          "feature_%d_ranges.tsv".formatted(originalFeature.getRow().getID())).toPath(),
+          StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+        writer.write("start\tend\tmax");
+        writer.newLine();
+        for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
+          writer.write("%f".formatted(resolved.getRetentionTime(0)));
+          writer.write("\t");
+          writer.write(
+              "%f".formatted(resolved.getRetentionTime(resolved.getNumberOfValues() - 1)));
+          writer.write("\t");
+          writer.write("%f".formatted(
+              resolved.getRetentionTime(FeatureDataUtils.getMostIntenseIndex(resolved))));
+          writer.newLine();
+        }
+      } catch (IOException e) {
+        //
+      }
+    }
   }
 
   @Override
@@ -202,37 +257,52 @@ public class FeatureResolverTask extends AbstractTask {
 
     int c = 0;
 
+    final PeakClassifierModel model = new PeakClassifierModel();
+
     while (access.hasNextFeature()) {
       final ModularFeature originalFeature = (ModularFeature) access.nextFeature();
       final List<IonTimeSeries<? extends Scan>> resolvedSeries = resolver.resolve(access,
           getMemoryMapStorage());
 
-      for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
-        final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
-            peakId++);
-        final ModularFeature f = new ModularFeature(resolvedFeatureList,
-            originalFeature.getRawDataFile(), resolved, originalFeature.getFeatureStatus());
+      if(resolvedSeries.size()>0){
+        //creates new batch and predicts probabilities
+        final List<double[][]> batchedStandardRegions = SeriesToArrayPrep.extractFeatureBatch((FeatureFullDataAccess) access, resolvedSeries);
+        final List<double[]> predictions = model.predictFromBatch(batchedStandardRegions);
+      
+        for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
+          int i =0;
+          final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
+              peakId++);
+          final ModularFeature f = new ModularFeature(resolvedFeatureList,
+              originalFeature.getRawDataFile(), resolved, originalFeature.getFeatureStatus());
 
-        if (originalFeature.getMobilityUnit() != null) {
-          f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
+          if (originalFeature.get(MaldiSpotType.class) != null) {
+            f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
+          }
+          if (originalFeature.get(ImageType.class) != null) {
+            f.set(ImageType.class, true);
+          }
+          if (originalFeature.get(MaldiSpotType.class) != null) {
+            f.set(MaldiSpotType.class, originalFeature.get(MaldiSpotType.class));
+          }
+
+          //currently only displays first probability (measuring whether there is any peak or not)
+          f.set(FeatureRatingType.class, predictions.get(i)[0]);
+          i++;
+
+          newRow.addFeature(originalFeature.getRawDataFile(), f);
+          resolvedFeatureList.addRow(newRow);
+          if (resolved.getSpectra().size() <= 3) {
+            c++;
+          }
         }
-        if (originalFeature.get(ImageType.class) != null) {
-          f.set(ImageType.class, true);
-        }
-        if(originalFeature.get(MaldiSpotType.class) != null) {
-          f.set(MaldiSpotType.class, originalFeature.get(MaldiSpotType.class));
-        }
-        newRow.addFeature(originalFeature.getRawDataFile(), f);
-        resolvedFeatureList.addRow(newRow);
-        if (resolved.getSpectra().size() <= 3) {
-          c++;
-        }
-      }
+      } 
       processedRows++;
     }
+    model.closeModel();
     logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
         + " have less than 4 scans (frames for IMS data)");
-    //    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
+    // QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters,
@@ -246,31 +316,34 @@ public class FeatureResolverTask extends AbstractTask {
     super.cancel();
   }
 
-
   private ModularFeatureList createNewFeatureList(ModularFeatureList originalFeatureList) {
     if (originalFeatureList.getRawDataFiles().size() > 1) {
       throw new IllegalArgumentException("Resolving cannot be applied to aligned feature lists.");
     }
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
 
-    // create a new feature list and don't copy. Previous annotations of features are invalidated
+    // create a new feature list and don't copy. Previous annotations of features
+    // are invalidated
     // during resolution
     final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
         originalFeatureList.getName() + " " + parameters.getParameter(
-            GeneralResolverParameters.SUFFIX).getValue(), storage, dataFile);
+            GeneralResolverParameters.SUFFIX).getValue(),
+        storage, dataFile);
 
-    //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+    // DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 
     // since we dont create a copy, we have to copy manually
     originalFeatureList.getAppliedMethods()
         .forEach(m -> resolvedFeatureList.getAppliedMethods().add(m));
-    // the new method is added later, since we don't know here which resolver module is used.
+    // the new method is added later, since we don't know here which resolver module
+    // is used.
 
-    // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
-    final Feature exampleFeature =
-        originalFeatureList.getNumberOfRows() > 0 ? originalFeatureList.getRow(0).getBestFeature()
-            : null;
+    // check the actual feature data. IMSRawDataFiles can also be built as classic
+    // lc-ms features
+    final Feature exampleFeature = originalFeatureList.getNumberOfRows() > 0
+        ? originalFeatureList.getRow(0).getBestFeature()
+        : null;
 
     boolean isImagingFile = (originalFeatureList.getRawDataFile(0) instanceof ImagingRawDataFile);
     if (exampleFeature != null
