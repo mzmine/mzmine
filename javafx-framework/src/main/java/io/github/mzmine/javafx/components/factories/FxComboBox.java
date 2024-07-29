@@ -57,7 +57,7 @@ public class FxComboBox {
   }
 
   private static <T, COMBO extends ComboBox<T>> @NotNull COMBO addContent(final String tooltip,
-      final List<T> values, final Property<T> selectedItem, final COMBO combo) {
+      final Collection<T> values, final Property<T> selectedItem, final COMBO combo) {
     if (values instanceof ObservableList<T> ov) {
       combo.setItems(ov);
     } else if (values instanceof List<T> list) {
