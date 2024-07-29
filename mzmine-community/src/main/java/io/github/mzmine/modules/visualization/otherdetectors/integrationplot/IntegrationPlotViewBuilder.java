@@ -215,9 +215,11 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
             if (change.wasRemoved()) {
               final List<? extends IntensityTimeSeries> removed = change.getRemoved();
               chromPlot.getDatasetRenderers().keySet().stream().filter(
-                  ds -> ds instanceof ColoredXYDataset cds
-                      && cds.getValueProvider() instanceof IntensityTimeSeriesToXYProvider its
-                      && removed.contains(its.getTimeSeries())).forEach(chromPlot::removeDataset);
+                      ds -> ds instanceof ColoredXYDataset cds
+                          && cds.getValueProvider() instanceof IntensityTimeSeriesToXYProvider its
+                          && removed.contains(its.getTimeSeries()))
+                  .toList() // terminal operation prior to remove (concurrent mod otherwise)
+                  .forEach(chromPlot::removeDataset);
             }
           }
         });
@@ -225,22 +227,22 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
 
   private void addMarkerListeners(ChromatogramPlotController chromPlot) {
     model.currentEndMarkerProperty().addListener((_, prevMarker, newMarker) -> {
-        if (prevMarker != null) {
-          chromPlot.removeDomainMarker(prevMarker);
-        }
-        if (newMarker != null) {
-          chromPlot.addDomainMarker(newMarker);
-        }
-      });
+      if (prevMarker != null) {
+        chromPlot.removeDomainMarker(prevMarker);
+      }
+      if (newMarker != null) {
+        chromPlot.addDomainMarker(newMarker);
+      }
+    });
 
-      model.currentStartMarkerProperty().addListener((_, prevMarker, newMarker) -> {
-        if (prevMarker != null) {
-          chromPlot.removeDomainMarker(prevMarker);
-        }
-        if (newMarker != null) {
-          chromPlot.addDomainMarker(newMarker);
-        }
-      });
+    model.currentStartMarkerProperty().addListener((_, prevMarker, newMarker) -> {
+      if (prevMarker != null) {
+        chromPlot.removeDomainMarker(prevMarker);
+      }
+      if (newMarker != null) {
+        chromPlot.addDomainMarker(newMarker);
+      }
+    });
   }
 
   private FlowPane createButtonBar() {

@@ -99,12 +99,12 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
   void onAbortPressed() {
     logger.finest("Abort integration pressed");
-    onSetLeftPressed();
     clearIntegration();
   }
 
+
   private void clearIntegration() {
-    logger.finest("Clear integration pressed");
+    logger.finest("Clearing integration");
     model.setState(State.NOT_INTEGRATING);
     model.setCurrentStartTime(null);
     model.setCurrentEndTime(null);
@@ -126,9 +126,11 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   }
 
   public void setOtherTimeSeries(IntensityTimeSeries otherTimeSeries) {
-    model.integratedFeaturesProperty().clear();
     onAbortPressed();
-    model.getChromatogramPlot().clearPlot();
+    model.integratedFeaturesProperty().clear();
+
+    // do not clear chromPlot manually like this, all done via listeners!
+//    model.getChromatogramPlot().clearPlot();
     model.setCurrentTimeSeries(otherTimeSeries);
   }
 
