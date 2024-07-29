@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.ModularDataRecord;
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.analysis.IsLikelyISFType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1FragmentedIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1FragmentedLikelyISFPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1FragmentedSignalsPercentType;
@@ -46,16 +47,27 @@ import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public record SignalsResults(double ms1FragmentedLikelyISFPercent, int ms1Count, int ms1Fragmented,
-                             double ms1FragmentedPercent, double ms1IntensityFragmentedPercent,
-                             int ms1Matched, double ms1MatchedPercent,
-                             double ms1IntensityMatchedPercent, int ms2Count, int ms2Matched,
-                             double ms2MatchedPercent, double ms2IntensityMatchedPercent) implements
-    ModularDataRecord {
+public record SignalsResults(boolean isLikelyISF, double ms1FragmentedLikelyISFPercent,
+                             int ms1Count, int ms1Fragmented, double ms1FragmentedPercent,
+                             double ms1IntensityFragmentedPercent, int ms1Matched,
+                             double ms1MatchedPercent, double ms1IntensityMatchedPercent,
+                             int ms2Count, int ms2Matched, double ms2MatchedPercent,
+                             double ms2IntensityMatchedPercent) implements ModularDataRecord {
+
+  // Constructor without isLikelyISF
+  public SignalsResults(double ms1FragmentedLikelyISFPercent, int ms1Count, int ms1Fragmented,
+      double ms1FragmentedPercent, double ms1IntensityFragmentedPercent, int ms1Matched,
+      double ms1MatchedPercent, double ms1IntensityMatchedPercent, int ms2Count, int ms2Matched,
+      double ms2MatchedPercent, double ms2IntensityMatchedPercent) {
+    this(false, ms1FragmentedLikelyISFPercent, ms1Count, ms1Fragmented, ms1FragmentedPercent,
+        ms1IntensityFragmentedPercent, ms1Matched, ms1MatchedPercent, ms1IntensityMatchedPercent,
+        ms2Count, ms2Matched, ms2MatchedPercent, ms2IntensityMatchedPercent);
+  }
 
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
-    return DataTypes.getAll(Ms1FragmentedLikelyISFPercentType.class, //
+    return DataTypes.getAll(IsLikelyISFType.class, //
+        Ms1FragmentedLikelyISFPercentType.class, //
         Ms1SignalsType.class, //
         Ms1FragmentedSignalsType.class, //
         Ms1FragmentedSignalsPercentType.class, //
@@ -69,11 +81,11 @@ public record SignalsResults(double ms1FragmentedLikelyISFPercent, int ms1Count,
         Ms2MatchedSignalsPercentType.class, //
         Ms2MatchedIntensityPercentType.class //
     );
-
   }
 
   public static SignalsResults create(final @NotNull SimpleModularDataModel values) {
     return new SignalsResults( //
+        requireNonNullElse(values.get(IsLikelyISFType.class), false),
         requireNonNullElse(values.get(Ms1FragmentedLikelyISFPercentType.class), -1f),
         requireNonNullElse(values.get(Ms1SignalsType.class), -1),
         requireNonNullElse(values.get(Ms1FragmentedSignalsType.class), -1),
@@ -89,6 +101,13 @@ public record SignalsResults(double ms1FragmentedLikelyISFPercent, int ms1Count,
         requireNonNullElse(values.get(Ms2MatchedIntensityPercentType.class), -1f));
   }
 
+  // Method to create a new instance with updated isLikelyISF
+  public SignalsResults withIsLikelyISF(boolean isLikelyISF) {
+    return new SignalsResults(isLikelyISF, this.ms1FragmentedLikelyISFPercent, this.ms1Count,
+        this.ms1Fragmented, this.ms1FragmentedPercent, this.ms1IntensityFragmentedPercent,
+        this.ms1Matched, this.ms1MatchedPercent, this.ms1IntensityMatchedPercent, this.ms2Count,
+        this.ms2Matched, this.ms2MatchedPercent, this.ms2IntensityMatchedPercent);
+  }
 
   /**
    * Provides data for data types
@@ -99,6 +118,7 @@ public record SignalsResults(double ms1FragmentedLikelyISFPercent, int ms1Count,
   @Override
   public Object getValue(final DataType sub) {
     return switch (sub) {
+      case IsLikelyISFType _ -> isLikelyISF;
       case Ms1FragmentedLikelyISFPercentType _ -> ms1FragmentedLikelyISFPercent;
       case Ms1SignalsType _ -> ms1Count;
       case Ms1FragmentedIntensityPercentType _ -> ms1IntensityFragmentedPercent;
