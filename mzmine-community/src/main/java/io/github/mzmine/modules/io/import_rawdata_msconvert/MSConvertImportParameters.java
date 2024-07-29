@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,23 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.histogram;
+package io.github.mzmine.modules.io.import_rawdata_msconvert;
 
-public enum HistogramDataType {
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.util.files.ExtensionFilters;
 
-  MASS("m/z"), //
-  HEIGHT("Height"), //
-  AREA("Area"), //
-  RT("Retention time");
+public class MSConvertImportParameters extends SimpleParameterSet {
 
-  private String text;
+  public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
+      ExtensionFilters.MS_RAW_DATA);
 
-  HistogramDataType(String text) {
-    this.text = text;
+  public MSConvertImportParameters() {
+    super(fileNames);
   }
-
-  public String toString() {
-    return text;
-  }
-
 }

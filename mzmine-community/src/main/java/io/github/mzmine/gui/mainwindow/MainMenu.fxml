@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2024 The MZmine Development Team
+  ~ Copyright (c) 2004-2024 The mzmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -134,8 +134,6 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule"/>
       <MenuItem text="Crop filter" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule"/>
-      <MenuItem text="Baseline correction" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule"/>
       <MenuItem text="Align scans (MS1)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
       <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
@@ -238,8 +236,6 @@
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule"/>
       <!--<MenuItem text="ADAP resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule"/>-->
-      <MenuItem text="Baseline resolver" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverModule"/>
       <MenuItem text="Noise amplitude resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule"/>
       <MenuItem text="Savitzky Golay resolver" onAction="#runModule"
@@ -558,8 +554,8 @@
 
       <MenuItem text="Scatter plot" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule"/>
-      <MenuItem text="Histogram plot" onAction="#runModule"
-        userData="io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModule"/>
+      <MenuItem text="Feature histogram plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule"/>
       <MenuItem text="Feature intensity plot" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule"/>
 

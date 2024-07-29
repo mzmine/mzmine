@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,8 @@ import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -92,6 +94,11 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
   public static final AdvancedParametersParameter<AdvancedCorrelateGroupingParameters> advanced = new AdvancedParametersParameter<>(
       new AdvancedCorrelateGroupingParameters(), true);
 
+  // keep is the initial state that we used
+  // some workflows depend on the intial list to be there
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      true, OriginalFeatureListOption.KEEP);
+
   // Constructor
   public CorrelateGroupingParameters() {
     super(
@@ -104,7 +111,7 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
         // intensity max correlation
         IMAX_CORRELATION,
         // suffix or auto suffix
-        SUFFIX, advanced);
+        SUFFIX, handleOriginal, advanced);
   }
 
   @Override

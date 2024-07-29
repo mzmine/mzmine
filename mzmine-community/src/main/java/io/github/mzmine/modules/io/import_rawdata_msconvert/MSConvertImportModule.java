@@ -23,56 +23,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.scan_histogram;
+package io.github.mzmine.modules.io.import_rawdata_msconvert;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.impl.AbstractProcessingModule;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class ScanHistogramModule implements MZmineRunnableModule {
+public class MSConvertImportModule extends AbstractProcessingModule {
 
-  private static final String MODULE_NAME = "Scan histograms";
-  private static final String MODULE_DESCRIPTION = "This module plots all values of all selected scans into one histogram and offers a Gaussian fit.";
-
-  @Override
-  public @NotNull String getName() {
-    return MODULE_NAME;
+  public MSConvertImportModule() {
+    super("Raw data import (MSConvert)", MSConvertImportParameters.class, MZmineModuleCategory.RAWDATAIMPORT,
+        "Import native raw data using MSConvert as an intermediate step.");
   }
 
-  @Override
-  public @NotNull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
 
   @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
 
-    RawDataFile[] dataFiles = parameters.getParameter(ScanHistogramParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
+    final File[] files = parameters.getValue(MSConvertImportParameters.fileNames);
+    if (files == null || files.length == 0) {
+      return ExitCode.ERROR;
+    }
 
-    Task newTask = new ScanHistogramTask(dataFiles, parameters.cloneParameterSet(), moduleCallDate);
-    tasks.add(newTask);
+    for (File file : files) {
+      tasks.add(new MSConvertImportTask(moduleCallDate, file, ScanImportProcessorConfig.createDefault(), project, this.getClass(),
+          parameters));
+    }
 
     return ExitCode.OK;
   }
-
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.VISUALIZATIONRAWDATA;
-  }
-
-  @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return ScanHistogramParameters.class;
-  }
-
 }

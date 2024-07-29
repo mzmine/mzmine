@@ -160,10 +160,10 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionMod
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
+import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
-import io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModule;
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
@@ -432,9 +432,9 @@ public class BatchModeModulesList {
       FeatureCorrelationHistogramModule.class, //
       RawDataSummaryModule.class, //
       ScanHistogramModule.class, //
+      FeatureHistogramPlotModule.class, //
       InjectTimeAnalysisModule.class, //
       ScatterPlotVisualizerModule.class, //
-      HistogramVisualizerModule.class, //
       IntensityPlotModule.class, //
       KendrickMassPlotModule.class, //
       VanKrevelenDiagramModule.class, //

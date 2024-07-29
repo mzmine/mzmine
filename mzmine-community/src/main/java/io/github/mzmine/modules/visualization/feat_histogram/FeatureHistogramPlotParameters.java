@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,48 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.histogram;
+package io.github.mzmine.modules.visualization.feat_histogram;
 
-import org.jfree.chart.axis.NumberAxis;
+import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import org.jetbrains.annotations.NotNull;
 
-public class HistogramDomainAxis extends NumberAxis {
+public class FeatureHistogramPlotParameters extends CurrentProjectNoDialogParameterSet {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private int visibleCount;
-  private double lowerTickValue, upperTickValue;
+  public static final FeatureListsParameter flist = new FeatureListsParameter();
 
-  public HistogramDomainAxis() {
-    super();
-  }
-
-  public void setVisibleTickCount(int numOfTicks) {
-    this.visibleCount = numOfTicks;
-  }
-
-  public void setLowerTickValue(double lowerTickValue) {
-    this.lowerTickValue = lowerTickValue;
-  }
-
-  public void setUpperTickValue(double upperTickValue) {
-    this.upperTickValue = upperTickValue;
+  public FeatureHistogramPlotParameters() {
+    super(flist);
   }
 
   @Override
-  protected int calculateVisibleTickCount() {
-    return this.visibleCount;
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
-
-  @Override
-  protected double calculateLowestVisibleTickValue() {
-    return this.lowerTickValue;
-  }
-
-  @Override
-  protected double calculateHighestVisibleTickValue() {
-    return this.upperTickValue;
-  }
-
 }
