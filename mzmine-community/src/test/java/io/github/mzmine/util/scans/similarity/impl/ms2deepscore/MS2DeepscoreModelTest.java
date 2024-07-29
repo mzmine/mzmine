@@ -37,11 +37,13 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import org.junit.jupiter.api.AfterAll;
@@ -52,7 +54,7 @@ import org.junit.jupiter.api.Test;
 class MS2DeepscoreModelTest {
 
   private static MS2DeepscoreModel model;
-  private static SimpleScan[] testSpectra;
+  private static List<SimpleScan> testSpectra;
 
   @BeforeAll
   static void setUp() throws ModelNotFoundException, MalformedModelException, IOException {
@@ -67,13 +69,16 @@ class MS2DeepscoreModelTest {
 
     RawDataFile dummyFile = new RawDataFileImpl("testfile", null, null,
         javafx.scene.paint.Color.BLACK);
-    testSpectra = new SimpleScan[]{
-        new SimpleScan(dummyFile, -1, 2, 0.1F, new DDAMsMsInfoImpl(600.0, 1, 2),
+    testSpectra = List.of(new SimpleScan(dummyFile, -1, 2, 0.1F, new DDAMsMsInfoImpl(600.0, 1, 2),
             new double[]{100.1, 200.1, 300.1, 400.1, 500.1}, new double[]{0.2, 0.4, 0.6, 0.8, 1.0},
             MassSpectrumType.ANY, PolarityType.POSITIVE, "Pseudo", null),
         new SimpleScan(dummyFile, -1, 2, 0.1F, new DDAMsMsInfoImpl(1000.0, 1, 2),
             new double[]{600.1, 700.1, 800.1, 900.1, 1000.1}, new double[]{0.2, 0.4, 0.6, 0.8, 1.0},
-            MassSpectrumType.ANY, PolarityType.POSITIVE, "Pseudo", null)};
+            MassSpectrumType.ANY, PolarityType.POSITIVE, "Pseudo", null));
+
+    for (final SimpleScan scan : testSpectra) {
+      scan.addMassList(new ScanPointerMassList(scan));
+    }
   }
 
 
