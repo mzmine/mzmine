@@ -51,19 +51,15 @@ public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterS
       0.003, 10);
 
   public static final DoubleParameter MIN_COSINE_SIMILARITY = new DoubleParameter(
-      "Min cosine similarity", "Minimum spectral cosine similarity",
+      "Min cosine similarity", "Minimum spectral cosine similarity (scaled 0-1). Default is 0.7",
       MZmineCore.getConfiguration().getScoreFormat(), 0.7, 0d, 1d);
 
   public static final BooleanParameter ONLY_BEST_MS2_SCAN = new BooleanParameter(
       "Only best MS2 scan", "Compares only the best MS2 scan (or all MS2 scans)", true);
 
   public static final IntegerParameter MIN_MATCH = new IntegerParameter("Minimum matched signals",
-      "Minimum matched signals or neutral losses (m/z differences)", 4);
-
-//  public static final OptionalModuleParameter<NeutralLossSimilarityParameters> CHECK_NEUTRAL_LOSS_SIMILARITY = new OptionalModuleParameter<>(
-//      "Check MS2 neutral loss similarity",
-//      "Generates a list of m/z differences and calculates cosine similarity",
-//      new NeutralLossSimilarityParameters(), false);
+      "Minimum matched signals or neutral losses (m/z differences). Default is 4 for small molecules but the higher the more confident.",
+      4);
 
   public static final OptionalParameter<DoubleParameter> MAX_MZ_DELTA = new OptionalParameter<>(
       new DoubleParameter("Max precursor m/z delta",

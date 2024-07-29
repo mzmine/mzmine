@@ -43,6 +43,7 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpe
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.similarity.impl.ms2deepscore.MS2DeepscoreModel;
 import java.io.File;
 import java.io.IOException;
@@ -121,16 +122,21 @@ public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
       if (scan == null) {
         continue;
       }
+      if (scan.getMassList() == null) {
+        throw new MissingMassListException(scan);
+      }
+
       if (scan.getMassList().getNumberOfDataPoints() >= minSignals) {
+        // add scan here because the model needs precursor mz and scan polarity
+        // later it will extract mass list again for signals
         scanList.add(scan);
         featureListRows.add(row);
       }
     }
-    Scan[] scans = scanList.toArray(new Scan[0]);
 
     float[][] similarityMatrix;
     try {
-      similarityMatrix = model.predictMatrixSymmetric(scans);
+      similarityMatrix = model.predictMatrixSymmetric(scanList);
     } catch (TranslateException e) {
       throw new RuntimeException(e);
     }

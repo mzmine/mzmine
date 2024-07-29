@@ -39,7 +39,8 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Downloads a MS2Deepscore model and runs molecular networking
+ * This module runs molecular networking based on different algorithms listed in
+ * {@link SpectralNetworkingOptions}.
  */
 public class MainSpectralNetworkingModule extends AbstractProcessingModule {
 

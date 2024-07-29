@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,7 +92,7 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity implements AutoC
   }
 
   @Override
-  public NDArray predictEmbedding(MassSpectrum[] scans) throws TranslateException {
+  public NDArray predictEmbedding(List<? extends MassSpectrum> scans) throws TranslateException {
     TensorizedSpectra tensorizedSepctra = spectrumTensorizer.tensorizeSpectra(scans);
     return predictEmbeddingFromTensors(tensorizedSepctra);
   }

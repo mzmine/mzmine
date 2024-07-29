@@ -54,7 +54,8 @@ import org.jetbrains.annotations.NotNull;
 public class MS2DeepscoreNetworkingParameters extends SimpleParameterSet {
 
   public static final IntegerParameter minSignals = new IntegerParameter("Minimum signals",
-      "The minimum number of fragments for using a spectrum (minimum = 3)", 4, 3, null);
+      "The minimum number of fragments for using a spectrum (minimum = 3, default = 4)", 4, 3,
+      null);
 
   public static final PercentParameter minScore = new PercentParameter("Min similarity",
       "The minimum similarity score to store the MS2Deepscore prediction", 0.9, 0.0, 1.0);

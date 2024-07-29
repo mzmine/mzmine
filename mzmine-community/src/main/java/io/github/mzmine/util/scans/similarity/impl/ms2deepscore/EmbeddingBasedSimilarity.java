@@ -30,19 +30,22 @@ import static ai.djl.ndarray.types.DataType.FLOAT32;
 import ai.djl.ndarray.NDArray;
 import ai.djl.translate.TranslateException;
 import io.github.mzmine.datamodel.MassSpectrum;
+import java.util.List;
 
 public abstract class EmbeddingBasedSimilarity {
 
-  public abstract NDArray predictEmbedding(MassSpectrum[] scans) throws TranslateException;
+  public abstract NDArray predictEmbedding(List<? extends MassSpectrum> scans)
+      throws TranslateException;
 
-  public float[][] predictMatrixSymmetric(MassSpectrum[] scans) throws TranslateException {
+  public float[][] predictMatrixSymmetric(List<? extends MassSpectrum> scans)
+      throws TranslateException {
     NDArray embeddings1 = predictEmbedding(scans);
 
     return dotProduct(embeddings1, embeddings1);
   }
 
-  public float[][] predictMatrix(MassSpectrum[] scan1, MassSpectrum[] scan2)
-      throws TranslateException {
+  public float[][] predictMatrix(List<? extends MassSpectrum> scan1,
+      List<? extends MassSpectrum> scan2) throws TranslateException {
     NDArray embeddings1 = predictEmbedding(scan1);
     NDArray embeddings2 = predictEmbedding(scan2);
 

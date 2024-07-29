@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,24 +106,23 @@ public class MS2DeepscoreSpectrumTensorizer {
    * Only works on scans or {@link SpectralLibraryEntry} with precursor mz
    */
   @NotNull
-  public TensorizedSpectra tensorizeSpectra(@NotNull MassSpectrum[] scans) {
-    int originalSize = scans.length;
+  public TensorizedSpectra tensorizeSpectra(@NotNull List<? extends MassSpectrum> scans) {
+    int originalSize = scans.size();
 
     // requires precursor mz
-    scans = Arrays.stream(scans).filter(scan -> ScanUtils.getPrecursorMz(scan) != null)
-        .toArray(MassSpectrum[]::new);
+    scans = scans.stream().filter(scan -> ScanUtils.getPrecursorMz(scan) != null).toList();
 
-    if (originalSize > scans.length) {
+    if (originalSize > scans.size()) {
       logger.info(
           "List contained spectra without precursor m/z, those were filtered out. Remaining: %d; Total: %d".formatted(
-              scans.length, originalSize));
+              scans.stream(), originalSize));
     }
 
-    float[][] metadataVectors = new float[scans.length][numBins];
-    float[][] fragmentVectors = new float[scans.length][numBins];
+    float[][] metadataVectors = new float[scans.size()][numBins];
+    float[][] fragmentVectors = new float[scans.size()][numBins];
 
-    for (int i = 0; i < scans.length; i++) {
-      MassSpectrum spectrum = scans[i];
+    for (int i = 0; i < scans.size(); i++) {
+      MassSpectrum spectrum = scans.get(i);
 
       Double precursorMz = ScanUtils.getPrecursorMz(spectrum);
       PolarityType polarity = ScanUtils.getPolarity(spectrum);
