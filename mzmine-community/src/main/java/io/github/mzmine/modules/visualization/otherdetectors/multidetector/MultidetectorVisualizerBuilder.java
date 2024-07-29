@@ -29,14 +29,17 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.IntegrationPane;
 import io.github.mzmine.project.ProjectService;
 import java.util.Optional;
+import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -44,8 +47,11 @@ import javafx.scene.layout.VBox;
 
 public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorVisualizerModel> {
 
+  private static final Logger logger = Logger.getLogger(
+      MultidetectorVisualizerBuilder.class.getName());
+
+  private BorderPane main;
   private VBox content;
-  private ScrollPane scrollPane;
 
   protected MultidetectorVisualizerBuilder(MultidetectorVisualizerModel model) {
     super(model);
@@ -53,17 +59,22 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
 
   @Override
   public Region build() {
-    scrollPane = new ScrollPane();
-    content = FxLayout.newVBox();
-    scrollPane.setFitToWidth(true);
-    scrollPane.setFitToHeight(true);
+    content = FxLayout.newVBox(new Insets(0));
 
     final Button addButton = FxButtons.createButton(null, FxIcons.ADD, "Add another trace",
         this::addNewDetector);
+    addButton.disableProperty().bind(
+        Bindings.createBooleanBinding(() -> content.getChildren().size() >= 4,
+            content.getChildren()));
     final HBox addWrapper = FxLayout.newHBox(Pos.TOP_RIGHT, addButton);
     final VBox contentWrapper = FxLayout.newVBox(content, addWrapper);
-    scrollPane.setContent(contentWrapper);
-    return new BorderPane(scrollPane);
+
+    main = new BorderPane(contentWrapper);
+
+//    main.addEventFilter(KeyEvent.KEY_PRESSED, event -> logger.finest("main " + event.toString()));
+//    contentWrapper.addEventFilter(KeyEvent.KEY_PRESSED, event -> logger.finest("wrapper " + event.toString()));
+//    content.addEventFilter(KeyEvent.KEY_PRESSED, event -> logger.finest("content " + event.toString()));
+    return main;
   }
 
   private void addNewDetector() {
@@ -75,7 +86,11 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
     }
 
     final IntegrationPane pane = new IntegrationPane(file.get());
-    pane.minHeightProperty().bind(scrollPane.heightProperty().subtract(10).divide(4));
+    pane.minHeightProperty()
+        .bind(main.heightProperty().subtract(FxIconUtil.DEFAULT_ICON_SIZE + 8).divide(3.8));
+    pane.maxHeightProperty()
+        .bind(main.heightProperty().subtract(FxIconUtil.DEFAULT_ICON_SIZE + 8).divide(3.8));
+//    pane.addEventFilter(KeyEvent.KEY_PRESSED, event -> logger.finest("pane " + event.toString()));
     content.getChildren().add(pane);
   }
 }

@@ -46,14 +46,19 @@ import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.Ch
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.Button;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 
 public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotModel> {
+
+  private static final Logger logger = Logger.getLogger(IntegrationPlotViewBuilder.class.getName());
 
   private final Runnable onSetLeftPressed;
   private final Runnable onSetRightPressed;
@@ -76,6 +81,22 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
   public Region build() {
     BorderPane pane = new BorderPane();
     pane.setCenter(model.getChromatogramPlot().buildView());
+
+//    pane.getCenter().addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+//      if (e.getCode() == KeyCode.SPACE && e.isShortcutDown() && model.isCurrentIntegrationValid()) {
+//        e.consume();
+//        onFinishPressed.run();
+//      }
+//    });
+
+    pane.setFocusTraversable(true);
+    pane.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
+      pane.getCenter().requestFocus();
+    });
+    pane.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+      logger.finest("Integration plot pane key pressed " + e.getCode());
+    });
+
 
     var chromPlot = model.getChromatogramPlot();
 
@@ -100,14 +121,24 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     addFeatureListeners(chromPlot);
 
     chromPlot.cursorPositionProperty().addListener((_, _, pos) -> {
-      if (!model.isIntegrating() || pos == null) {
+      // ctrl while clicking allows boundary setting
+      if (pos == null || (pos.getMouseEvent() != null && !pos.getMouseEvent().isControlDown()
+          && !model.isIntegrating())) {
         return;
       }
 
-      if (model.getNextBoundary() == Boundary.LEFT) {
-        model.setCurrentStartTime(pos.getDomainValue());
-      } else if (model.getNextBoundary() == Boundary.RIGHT) {
-        model.setCurrentEndTime(pos.getDomainValue());
+      if (pos.getMouseEvent() == null || !pos.getMouseEvent().isControlDown()) {
+        if (model.getNextBoundary() == Boundary.LEFT) {
+          model.setCurrentStartTime(pos.getDomainValue());
+        } else if (model.getNextBoundary() == Boundary.RIGHT) {
+          model.setCurrentEndTime(pos.getDomainValue());
+        }
+      } else if (pos.getMouseEvent() != null && pos.getMouseEvent().isControlDown()) {
+        if (pos.getMouseEvent().isShiftDown()) { // ctrl + shift for right boundary
+          model.setCurrentEndTime(pos.getDomainValue());
+        } else {
+          model.setCurrentStartTime(pos.getDomainValue());
+        }
       }
     });
 
@@ -155,26 +186,26 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
   private void addFeatureListeners(ChromatogramPlotController chromPlot) {
     model.integratedFeaturesProperty()
         .addListener((ListChangeListener<IntensityTimeSeries>) change -> {
-      while (change.next()) {
-        if (change.wasAdded()) {
-          final List<? extends IntensityTimeSeries> added = change.getAddedSubList();
-          final SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
-          final List<DatasetAndRenderer> datasets = added.stream().map(
-              feature -> new DatasetAndRenderer(new ColoredXYDataset(
-                  new IntensityTimeSeriesToXYProvider(feature, palette.getNextColorAWT()),
+          while (change.next()) {
+            if (change.wasAdded()) {
+              final List<? extends IntensityTimeSeries> added = change.getAddedSubList();
+              final SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
+              final List<DatasetAndRenderer> datasets = added.stream().map(
+                  feature -> new DatasetAndRenderer(new ColoredXYDataset(
+                      new IntensityTimeSeriesToXYProvider(feature, palette.getNextColorAWT()),
                       RunOption.THIS_THREAD), new ColoredAreaShapeRenderer())).toList();
-          chromPlot.addDatasets(datasets);
-        }
+              chromPlot.addDatasets(datasets);
+            }
 
-        if (change.wasRemoved()) {
-          final List<? extends IntensityTimeSeries> removed = change.getRemoved();
-          chromPlot.getDatasetRenderers().keySet().stream().filter(
-              ds -> ds instanceof ColoredXYDataset cds
-                  && cds.getValueProvider() instanceof IntensityTimeSeriesToXYProvider its
-                  && removed.contains(its.getTimeSeries())).forEach(chromPlot::removeDataset);
-        }
-      }
-    });
+            if (change.wasRemoved()) {
+              final List<? extends IntensityTimeSeries> removed = change.getRemoved();
+              chromPlot.getDatasetRenderers().keySet().stream().filter(
+                  ds -> ds instanceof ColoredXYDataset cds
+                      && cds.getValueProvider() instanceof IntensityTimeSeriesToXYProvider its
+                      && removed.contains(its.getTimeSeries())).forEach(chromPlot::removeDataset);
+            }
+          }
+        });
   }
 
   private void addMarkerListeners(ChromatogramPlotController chromPlot) {
@@ -199,15 +230,15 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
 
   private FlowPane createButtonBar() {
     Button setLeftBoundary = FxButtons.createButton("Set left", FxIcons.ARROW_LEFT,
-        "Set the left boundary of a feature.", onSetLeftPressed);
+        "Set the left boundary of a feature (CTRL + left click).", onSetLeftPressed);
     Button setRightBoundary = FxButtons.createButton("Set right", FxIcons.ARROW_RIGHT,
-        "Set the right boundary of a feature.", onSetRightPressed);
+        "Set the right boundary of a feature. (CTRL + SHIFT + left click)", onSetRightPressed);
     Button finish = FxButtons.createButton("Finish feature", FxIcons.CHECK_CIRCLE,
-        "Finish current integration and save the feature", onFinishPressed);
+        "Finish current integration and save the feature.", onFinishPressed);
     Button abortFeature = FxButtons.createButton("Abort feature", FxIcons.CANCEL,
         "Abort integration of the selected feature", onAbortPressed);
-    Button editSelected = FxButtons.createButton("Edit feature", FxIcons.EDIT, "Edit the selected feature",
-        onEditPressed);
+    Button editSelected = FxButtons.createButton("Edit feature", FxIcons.EDIT,
+        "Edit the selected feature", onEditPressed);
     final FlowPane buttonBar = FxLayout.newFlowPane(setLeftBoundary, setRightBoundary, finish,
         abortFeature, editSelected);
 
