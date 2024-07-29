@@ -26,9 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore;
 
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
-import static io.github.mzmine.javafx.components.factories.FxTexts.ms2deepscorePaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -112,7 +112,8 @@ public class MS2DeepscoreNetworkingParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
-        text("When using MS2Deepscore please cite:"), linebreak(), ms2deepscorePaper);
+        text("When using MS2Deepscore please cite:"), linebreak(),
+        ArticleReferences.MS2DEEPSCORE.hyperlinkText());
 
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
