@@ -36,7 +36,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FilenameUtils;
@@ -52,7 +51,7 @@ public class FileDownloader {
   private static final long PACKAGE_BYTE_SIZE = 10_000_000L;
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(FileDownloader.class);
   private final String downloadUrl;
-  private final String localFile;
+  private final File localFile;
   private final DownloadProgressCallback progressCallback;
   private DownloadStatus status = DownloadStatus.WAITING;
 
@@ -63,17 +62,27 @@ public class FileDownloader {
    */
   public FileDownloader(String downloadUrl, String localDirectory,
       DownloadProgressCallback progressCallback) {
+    this(downloadUrl, new File(localDirectory), progressCallback);
+  }
+
+  /**
+   * @param downloadUrl      remote file URL to download
+   * @param localDirectory   local file directory to copy file into
+   * @param progressCallback called on each progress change
+   */
+  public FileDownloader(String downloadUrl, File localDirectory,
+      DownloadProgressCallback progressCallback) {
     this.downloadUrl = downloadUrl;
 
     // strip query parameters from URL with split at ?
     String fileName = FilenameUtils.getName(downloadUrl).split("\\?")[0];
-    this.localFile = Path.of(localDirectory, fileName).toString();
+    this.localFile = new File(localDirectory, fileName);
     this.progressCallback = progressCallback;
   }
 
   public void downloadFileBlocking() {
     try {
-      FileAndPathUtil.createDirectory(new File(localFile).getParentFile());
+      FileAndPathUtil.createDirectory(localFile.getParentFile());
       URL url = URI.create(downloadUrl).toURL();
       long totalBytes = contentLength(url);
       try (var rbc = new CountingByteChannel(Channels.newChannel(url.openStream()), totalBytes,
@@ -106,10 +115,10 @@ public class FileDownloader {
     }
   }
 
-  private void tryCleanLocalFile(final String localFile) {
+  private void tryCleanLocalFile(final File localFile) {
     try {
       // clean up file if download was interrupted
-      Files.deleteIfExists(Path.of(localFile));
+      Files.deleteIfExists(localFile.toPath());
       logger.info(
           "Successfully deleted temporary download file after download was stopped: " + status);
     } catch (Exception e) {
@@ -117,7 +126,7 @@ public class FileDownloader {
     }
   }
 
-  public String getLocalFile() {
+  public File getLocalFile() {
     return localFile;
   }
 

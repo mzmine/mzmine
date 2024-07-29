@@ -34,6 +34,7 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskService;
+import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -60,7 +61,7 @@ public class DownloadAssetButton extends HBox {
   private final DoubleProperty progress = new SimpleDoubleProperty(0);
   private final ButtonBase downloadButton;
 
-  private Consumer<String> onDownloadFinished;
+  private Consumer<File> onDownloadFinished;
   private FileDownloadTask task;
 
 
@@ -99,7 +100,7 @@ public class DownloadAssetButton extends HBox {
   /**
    * Action called once download is finished
    */
-  public void setOnDownloadFinished(final Consumer<String> onDownloadFinished) {
+  public void setOnDownloadFinished(final Consumer<File> onDownloadFinished) {
     this.onDownloadFinished = onDownloadFinished;
   }
 
@@ -142,7 +143,7 @@ public class DownloadAssetButton extends HBox {
         task.getDownloadedFiles().stream().filter(
                 file -> asset.mainFileName() == null || file.getName()
                     .equalsIgnoreCase(asset.mainFileName())).findFirst()
-            .ifPresent(file -> onDownloadFinished.accept(file.getAbsolutePath()));
+            .ifPresent(file -> onDownloadFinished.accept(file));
       }
     });
     TaskService.getController().addTask(task, TaskPriority.HIGH);

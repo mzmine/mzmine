@@ -112,7 +112,7 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
     }
     if (extAsset != null) {
       var downloadButton = new DownloadAssetButton(extAsset, downloadLinks);
-      downloadButton.setOnDownloadFinished(file -> setValue(new File(file)));
+      downloadButton.setOnDownloadFinished(file -> setValue(file));
       getChildren().add(downloadButton);
     }
 

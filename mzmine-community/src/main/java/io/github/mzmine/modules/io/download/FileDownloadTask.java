@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
 public class FileDownloadTask extends AbstractTask implements DownloadProgressCallback {
 
   private final String downloadUrl;
-  private final String localDirectory;
+  private final File localDirectory;
   @Nullable
   private DownloadAsset asset;
 
@@ -68,15 +68,15 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
    * @param downloadUrl    URL defines file to download
    * @param localDirectory this is the local path, a directory.
    */
-  public FileDownloadTask(String downloadUrl, File localDirectory) {
-    this(downloadUrl, localDirectory.getAbsolutePath());
+  public FileDownloadTask(String downloadUrl, String localDirectory) {
+    this(downloadUrl, new File(localDirectory));
   }
 
   /**
    * @param downloadUrl    URL defines file to download
    * @param localDirectory this is the local path, a directory.
    */
-  public FileDownloadTask(String downloadUrl, String localDirectory) {
+  public FileDownloadTask(String downloadUrl, File localDirectory) {
     super(Instant.now());
     this.downloadUrl = downloadUrl;
     this.localDirectory = localDirectory;
@@ -118,7 +118,7 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
     fileDownloader.downloadFileBlocking();
 
     if (fileDownloader.getStatus() == DownloadStatus.SUCCESS) {
-      downloadedFiles = List.of(new File(fileDownloader.getLocalFile()));
+      downloadedFiles = List.of(fileDownloader.getLocalFile());
 
       // requires unzip?
       if (asset != null && asset.requiresUnzip()) {
@@ -127,20 +127,20 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
 
       setStatus(TaskStatus.FINISHED);
     } else if (fileDownloader.getStatus() == DownloadStatus.ERROR_REMOVE) {
-      error("Error while downloading file " + localDirectory + " from " + downloadUrl);
+      error("Error while downloading file " + localDirectory.getAbsolutePath() + " from "
+            + downloadUrl);
     }
   }
 
   private void unzipFile() {
-    String fileName = fileDownloader.getLocalFile();
+    File fileName = fileDownloader.getLocalFile();
     if (fileName == null) {
       return;
     }
 
     description = "Unzipping file " + fileName;
 
-    File zipFile = new File(fileName);
-    File directory = zipFile.getParentFile();
+    File directory = fileName.getParentFile();
 
     try (var zis = new ZipInputStream(new FileInputStream(fileName))) {
       downloadedFiles = ZipUtils.unzipStream(zis, directory);
@@ -153,7 +153,7 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
     }
 
     // remove original file
-    zipFile.delete();
+    fileName.delete();
   }
 
   @Override

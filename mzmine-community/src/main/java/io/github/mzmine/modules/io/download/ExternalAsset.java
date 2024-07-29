@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
  * Fixed details on external assets. See also {@link DownloadAsset} to define new downloads.
  */
 public enum ExternalAsset {
+  // cannot download those assets directly but only provide link
   ThermoRawFileParser, MSCONVERT,
 
   // spectral libraries
@@ -58,6 +59,9 @@ public enum ExternalAsset {
     };
   }
 
+  /**
+   * The website with download instructions
+   */
   @Nullable
   public String getDownloadInfoPage() {
     return switch (this) {
@@ -69,6 +73,9 @@ public enum ExternalAsset {
     };
   }
 
+  /**
+   * @return list of download options. Empty list if no direct download is possible
+   */
   @NotNull
   public List<DownloadAsset> getDownloadAssets() {
     return DownloadAssets.ASSETS.stream().filter(a -> a.extAsset() == this).toList();

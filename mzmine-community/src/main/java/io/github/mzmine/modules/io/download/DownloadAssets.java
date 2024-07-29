@@ -39,14 +39,12 @@ public class DownloadAssets {
    */
   public static final List<DownloadAsset> ASSETS = new ArrayList<>(List.of(
       // tools
-      new DownloadAsset(ExternalAsset.ThermoRawFileParser, "1.4.4", true, "ThermoRawFileParser.exe",
-          "https://github.com/compomics/ThermoRawFileParser/releases/download/v1.4.4/ThermoRawFileParser1.4.4.zip"),
       // libraries
       new DownloadAsset(ExternalAsset.MSnLib, "20240411-full", true,
           "https://zenodo.org/api/records/11163381/files-archive"),
-      new DownloadAsset(ExternalAsset.MSnLib, "20240411-ms2", true,
+      new DownloadAsset(ExternalAsset.MSnLib, "20240411-ms2", false,
           "https://zenodo.org/records/11163381/files/20231031_nihnp_library_neg_all_lib_MS2.mgf?download=1"),
-      new DownloadAsset(ExternalAsset.MSnLib, "20240411-msn", true,
+      new DownloadAsset(ExternalAsset.MSnLib, "20240411-msn", false,
           "https://zenodo.org/records/11163381/files/20231031_nihnp_library_neg_all_lib_MSn.mgf?download=1")
       // models
 
