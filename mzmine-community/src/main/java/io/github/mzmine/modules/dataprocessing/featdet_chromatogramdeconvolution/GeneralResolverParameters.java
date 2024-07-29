@@ -30,6 +30,7 @@ import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParame
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -62,7 +63,11 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter(
       "Minimum scans (data points)", "Minimum number of data points on a feature", 3, true);
 
-  public GeneralResolverParameters(Parameter[] parameters) {
+  public static final BooleanParameter CLASSIFY_FEATURES = new BooleanParameter("Classify feature shapes",
+      "Employs a machine learning model to distinguish feature shapes.", false);
+
+  public GeneralResolverParameters(
+      Parameter[] parameters) {
     this(parameters, null);
   }
 
@@ -74,7 +79,8 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   public Map<String, Parameter<?>> getNameParameterMap() {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
-    // we use the same parameters here so no need to increment the version. Loading will work fine
+    // we use the same parameters here so no need to increment the version. Loading
+    // will work fine
     nameParameterMap.put("Min # of data points", MIN_NUMBER_OF_DATAPOINTS);
     return nameParameterMap;
   }

@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "PeakClassifierModel",
+            "request": "launch",
+            "mainClass": "io.github.mzmine.util.scans.PeakClassification.PeakClassifierModel",
+            "projectName": "mzmine-community"
+        },
+        {
+            "type": "java",
+            "name": "MZmineCore",
+            "request": "launch",
+            "mainClass": "io.github.mzmine.main.MZmineCore",
+            "projectName": "mzmine-community"
+        },
+        {
+            "vmArgs": "--enable-preview"
+        }
+    ]
+}
