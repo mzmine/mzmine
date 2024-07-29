@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,48 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.histogram;
+package io.github.mzmine.modules.io.download;
 
-import org.jfree.chart.axis.NumberAxis;
-
-public class HistogramDomainAxis extends NumberAxis {
-
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private int visibleCount;
-  private double lowerTickValue, upperTickValue;
-
-  public HistogramDomainAxis() {
-    super();
-  }
-
-  public void setVisibleTickCount(int numOfTicks) {
-    this.visibleCount = numOfTicks;
-  }
-
-  public void setLowerTickValue(double lowerTickValue) {
-    this.lowerTickValue = lowerTickValue;
-  }
-
-  public void setUpperTickValue(double upperTickValue) {
-    this.upperTickValue = upperTickValue;
-  }
+public enum AssetGroup {
+  TOOLS, SPECTRAL_LIBRARIES;
 
   @Override
-  protected int calculateVisibleTickCount() {
-    return this.visibleCount;
+  public String toString() {
+    return super.toString().toLowerCase();
   }
-
-  @Override
-  protected double calculateLowestVisibleTickValue() {
-    return this.lowerTickValue;
-  }
-
-  @Override
-  protected double calculateHighestVisibleTickValue() {
-    return this.upperTickValue;
-  }
-
 }

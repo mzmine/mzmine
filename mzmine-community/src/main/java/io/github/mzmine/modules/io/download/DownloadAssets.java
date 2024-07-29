@@ -23,36 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.components;
+package io.github.mzmine.modules.io.download;
 
-import static javafx.beans.binding.Bindings.createStringBinding;
-
-import javafx.beans.binding.Bindings;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.TableCell;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Has a progress bar Pattern of implementation found on
- * https://www.pragmaticcoding.ca/javafx/elements/tableview-data
+ * Definition of hard coded download assets. The list of assets may be extended by additional assets
+ * from an external list of assets in the future.
  */
-public class LabeledProgressBarCell<S> extends TableCell<S, Number> {
+public class DownloadAssets {
 
-  public LabeledProgressBarCell() {
-    LabeledProgressBar progressBar = new LabeledProgressBar(itemProperty().map(Number::doubleValue),
-        createStringBinding(this::getFormattedProgress, itemProperty()));
+  /**
+   * May be changed from outside to account for more downloadable assets
+   */
+  public static final List<DownloadAsset> ASSETS = new ArrayList<>(List.of(
+      // tools
+      // libraries
+      new DownloadAsset(ExternalAsset.MSnLib, "20240411-full", true,
+          "https://zenodo.org/api/records/11163381/files-archive"),
+      new DownloadAsset(ExternalAsset.MSnLib, "20240411-ms2", false,
+          "https://zenodo.org/records/11163381/files/20231031_nihnp_library_neg_all_lib_MS2.mgf?download=1"),
+      new DownloadAsset(ExternalAsset.MSnLib, "20240411-msn", false,
+          "https://zenodo.org/records/11163381/files/20231031_nihnp_library_neg_all_lib_MSn.mgf?download=1")
+      // models
 
-    // show or hide pane
-    graphicProperty().bind(
-        Bindings.createObjectBinding(() -> !isEmpty() ? progressBar : null, emptyProperty()));
-    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-  }
-
-  private String getFormattedProgress() {
-    var item = getItem();
-    if (item == null || item.doubleValue() < 0) {
-      return "";
-    }
-    return "%.0f %%".formatted(item.doubleValue() * 100.0);
-  }
+      //
+  ));
 
 }

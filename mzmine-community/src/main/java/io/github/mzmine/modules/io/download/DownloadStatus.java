@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,23 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.histogram;
+package io.github.mzmine.modules.io.download;
 
-public enum HistogramDataType {
+public enum DownloadStatus {
+  WAITING, DOWNLOADING, CANCEL_REMOVE, ERROR_REMOVE, SUCCESS;
 
-  MASS("m/z"), //
-  HEIGHT("Height"), //
-  AREA("Area"), //
-  RT("Retention time");
-
-  private String text;
-
-  HistogramDataType(String text) {
-    this.text = text;
+  public boolean isRemove() {
+    return switch (this) {
+      case SUCCESS, WAITING, DOWNLOADING -> false;
+      case ERROR_REMOVE, CANCEL_REMOVE -> true;
+    };
   }
-
-  public String toString() {
-    return text;
-  }
-
 }
