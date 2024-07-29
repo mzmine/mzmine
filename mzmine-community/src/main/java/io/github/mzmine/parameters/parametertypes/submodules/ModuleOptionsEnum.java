@@ -29,10 +29,48 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.Optional;
 
 public interface ModuleOptionsEnum {
 
   Class<? extends MZmineModule> getModuleClass();
+
+  /**
+   * Stable ID for save and load. Should not change
+   *
+   * @return a readable ID
+   */
+  String getStableId();
+
+  /**
+   * @param enumClass the enum class
+   * @param id        {@link ModuleOptionsEnum#getStableId()}
+   * @return an optional of the enum option with matching stable ID
+   */
+  static <T extends Enum<?> & ModuleOptionsEnum> Optional<T> parse(Class<T> enumClass, String id) {
+    T[] enumConstants = enumClass.getEnumConstants();
+    for (T e : enumConstants) {
+      if (e.getStableId().equalsIgnoreCase(id)) {
+        return Optional.of(e);
+      }
+    }
+    return Optional.empty();
+  }
+
+
+  /**
+   * @param id {@link ModuleOptionsEnum#getStableId()}
+   * @return an optional of the enum option with matching stable ID
+   */
+  default Optional<ModuleOptionsEnum> parse(String id) {
+    ModuleOptionsEnum[] enumConstants = getClass().getEnumConstants();
+    for (ModuleOptionsEnum e : enumConstants) {
+      if (e.getStableId().equalsIgnoreCase(id)) {
+        return Optional.of(e);
+      }
+    }
+    return Optional.empty();
+  }
 
   default MZmineModule getModuleInstance() {
     return MZmineCore.getModuleInstance(getModuleClass());

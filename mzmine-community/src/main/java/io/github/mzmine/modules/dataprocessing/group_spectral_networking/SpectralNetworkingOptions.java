@@ -36,11 +36,17 @@ public enum SpectralNetworkingOptions implements ModuleOptionsEnum {
 
   @Override
   public String toString() {
+    return getStableId();
+  }
+
+  @Override
+  public String getStableId() {
     return switch (this) {
       case MS2_DEEPSCORE -> "MS2Deepscore";
       case MODIFIED_COSINE -> "Modified cosine";
     };
   }
+
 
   @Override
   public Class<? extends MZmineModule> getModuleClass() {

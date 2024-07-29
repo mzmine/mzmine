@@ -45,8 +45,9 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
     UserParameter<EnumType, ModuleOptionsEnumComponent<EnumType>>,
     EmbeddedParameterSet<ParameterSet, EnumType> {
 
-  private static final String optionElement = "option";
-  private static final String nameAttribute = "name";
+  private static final String MODULE_ELEMENT = "module"; // same as old ModuleComboParameter
+  private static final String NAME_ATTRIBUTE = "name";
+  private static final String SELECTED_ATTRIBUTE = "selected_item";
 
   private final String name;
   private final String description;
@@ -153,16 +154,16 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    String selectedAttr = xmlElement.getAttribute("selected");
+    String selectedAttr = xmlElement.getAttribute(SELECTED_ATTRIBUTE);
 
     var childNodes = xmlElement.getChildNodes();
     for (int i = 0; i < childNodes.getLength(); i++) {
-      if (!(childNodes.item(i) instanceof Element nextElement) || !optionElement.equals(
+      if (!(childNodes.item(i) instanceof Element nextElement) || !MODULE_ELEMENT.equals(
           nextElement.getTagName())) {
         continue;
       }
 
-      String optionName = nextElement.getAttribute(nameAttribute);
+      String optionName = nextElement.getAttribute(NAME_ATTRIBUTE);
       getOptionByName(optionName).ifPresent(option -> {
         var parameters = parametersMap.get(option);
         if (parameters == null) {
@@ -175,19 +176,21 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
     getOptionByName(selectedAttr).ifPresent(this::setValue);
   }
 
-  private @NotNull Optional<EnumType> getOptionByName(final String name) {
-    return parametersMap.keySet().stream().filter(key -> key.name().equals(name)).findFirst();
+  private @NotNull Optional<EnumType> getOptionByName(final String id) {
+    // find by stable ID
+    return parametersMap.keySet().stream().filter(key -> key.getStableId().equals(id)).findFirst();
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    xmlElement.setAttribute("selected", selectedValue.name());
+    xmlElement.setAttribute(SELECTED_ATTRIBUTE, selectedValue.getStableId());
 
     var document = xmlElement.getOwnerDocument();
 
     for (final var entry : parametersMap.entrySet()) {
-      Element paramElement = document.createElement(optionElement);
-      paramElement.setAttribute(nameAttribute, entry.getKey().name());
+      Element paramElement = document.createElement(MODULE_ELEMENT);
+      // save with stable ID which should not change even if module name changes
+      paramElement.setAttribute(NAME_ATTRIBUTE, entry.getKey().getStableId());
       xmlElement.appendChild(paramElement);
       var parameterSet = entry.getValue();
       parameterSet.saveValuesToXML(paramElement);
