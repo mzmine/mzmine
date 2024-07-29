@@ -62,6 +62,8 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
@@ -95,6 +97,8 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
   @FXML
   public TitledPane pnParams;
   public BorderPane mainPane;
+  public TabPane tabPane;
+  public Tab tabNeutralLoss;
   // components
   @FXML
   private BorderPane pnMirror;
@@ -145,9 +149,9 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
   private ParameterSetupPane parameterSetupPane;
 
   // last spectra
-  private double precursorMZA;
+  private Double precursorMZA;
   private DataPoint[] dpsA;
-  private double precursorMZB;
+  private Double precursorMZB;
   private DataPoint[] dpsB;
 
   public MirrorScanWindowController() {
@@ -232,21 +236,25 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     };
   }
 
-  public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB,
+  public void setScans(Double precursorMZA, DataPoint[] dpsA, Double precursorMZB,
       DataPoint[] dpsB) {
     setScans(precursorMZA, dpsA, precursorMZB, dpsB, "", "");
   }
 
-  public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB, DataPoint[] dpsB,
+  public void setScans(Double precursorMZA, DataPoint[] dpsA, Double precursorMZB, DataPoint[] dpsB,
       String labelA, String labelB) {
     this.precursorMZA = precursorMZA;
     this.dpsA = dpsA;
     this.precursorMZB = precursorMZB;
     this.dpsB = dpsB;
 
+    boolean hasPrecursorMz = precursorMZA != null && precursorMZB != null;
+
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    String precursorString = MessageFormat.format(": m/z {0}↔{1}; top↔bottom",
-        mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
+    String precursorString =
+        !hasPrecursorMz ? MessageFormat.format(": m/z {0}↔{1}; top↔bottom", labelA, labelB)
+            : MessageFormat.format(": m/z {0}↔{1}; top↔bottom",
+                mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
 
     pnMirror.setCenter(null);
     pnNLMirror.setCenter(null);
@@ -256,19 +264,19 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, true, dpsA,
         precursorMZA, dpsB, precursorMZB);
     pnMirror.setCenter(mirrorSpecrumPlot);
-    lbTitleCos.setText("Modified cosine mirror" + precursorString);
+    lbTitleCos.setText("Fragment spectrum mirror" + precursorString);
 
     // create neutral loss spec
-    if (precursorMZA > 0 && precursorMZB > 0) {
+    if (precursorMZA != null && precursorMZA > 0 && precursorMZB != null && precursorMZB > 0) {
       lbTitleNL.setText("Neutral loss mirror" + precursorString);
       neutralLossMirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, false,
           ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA,
           ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);
       pnNLMirror.setCenter(neutralLossMirrorSpecrumPlot);
 
-      //
-      calcSpectralSimilarity(dpsA, precursorMZA, dpsB, precursorMZB);
     }
+    //
+    calcSpectralSimilarity(dpsA, precursorMZA, dpsB, precursorMZB);
   }
 
   private MZTolerance getMzTolerance() {
@@ -276,9 +284,12 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     return parameters.getValue(MirrorScanParameters.mzTol);
   }
 
-  private void calcSpectralSimilarity(DataPoint[] dpsA, double precursorMZA, DataPoint[] dpsB,
-      double precursorMZB) {
+  private void calcSpectralSimilarity(DataPoint[] dpsA, Double precursorMZA, DataPoint[] dpsB,
+      Double precursorMZB) {
 
+    lbMirrorStats.setText("");
+    lbNeutralLossStats.setText("");
+    lbMirrorModifiedStats.setText("");
     tableMirror.getItems().clear();
     tableNLMIrror.getItems().clear();
 
@@ -304,15 +315,19 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     }
 
     //modified cosine
+    if (precursorMZA != null && precursorMZB != null) {
     cosine = ModifiedCosineSpectralNetworkingTask.createMS2SimModificationAware(mzTol, weights,
         dpsA, dpsB, 2, ModifiedCosineSpectralNetworkingTask.SIZE_OVERLAP, precursorMZA,
         precursorMZB);
+      if (cosine != null) {
+        lbMirrorModifiedStats.setText(String.format(
+            "modified=%1.3f; matched signals=%d; top/bottom: explained intensity=%1.3f/%1.3f; matched signals=%1.3f/%1.3f",
+            cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
+            cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
+            cosine.overlap() / (double) cosine.sizeA()));
+      }
+    }
     if (cosine != null) {
-      lbMirrorModifiedStats.setText(String.format(
-          "modified=%1.3f; matched signals=%d; top/bottom: explained intensity=%1.3f/%1.3f; matched signals=%1.3f/%1.3f",
-          cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
-          cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
-          cosine.overlap() / (double) cosine.sizeA()));
 
       // get contributions of all data points
       final CosinePairContributions contributions = ModifiedCosineSpectralNetworkingTask.calculateModifiedCosineSimilarityContributions(
@@ -338,6 +353,12 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
       lbMirrorModifiedStats.setText("");
     }
 
+    var tabs = tabPane.getTabs();
+    if (precursorMZA == null || precursorMZB == null) {
+      tabs.remove(tabNeutralLoss);
+      return;
+    }
+
     // neutral loss
     final DataPoint[] nlA = ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA);
     final DataPoint[] nlB = ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB);
@@ -354,7 +375,7 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
 
       // get contributions of all data points
       final CosinePairContributions contributions = ModifiedCosineSpectralNetworkingTask.calculateModifiedCosineSimilarityContributions(
-          mzTol, weights, nlA, nlB, -1, -1);
+          mzTol, weights, nlA, nlB, null, null);
 
       if (contributions != null) {
         List<TableData> data = new ArrayList<>(contributions.size());
@@ -372,6 +393,10 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
         tableNLMIrror.getItems().addAll(data);
         colContribution1.setSortType(SortType.DESCENDING);
         tableNLMIrror.getSortOrder().setAll(colContribution1);
+
+        if (!tabs.contains(tabNeutralLoss)) {
+          tabs.add(tabNeutralLoss);
+        }
       }
 
     } else {
@@ -389,8 +414,8 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
       clearScans();
       return;
     }
-    setScans(scan.getPrecursorMz(), ScanUtils.extractDataPoints(scan.getMassList()),
-        mirror.getPrecursorMz(), ScanUtils.extractDataPoints(mirror.getMassList()));
+    setScans(scan.getPrecursorMz(), ScanUtils.extractDataPoints(scan, true),
+        mirror.getPrecursorMz(), ScanUtils.extractDataPoints(mirror, true));
   }
 
   public void clearScans() {

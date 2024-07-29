@@ -306,7 +306,7 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
    */
   public static CosinePairContributions calculateModifiedCosineSimilarityContributions(
       MZTolerance mzTol, Weights weights, DataPoint[] sortedA, DataPoint[] sortedB,
-      double precursorMzA, double precursorMzB) {
+      @Nullable Double precursorMzA, @Nullable Double precursorMzB) {
     // align
     final List<DataPoint[]> aligned = alignDataPoints(precursorMzA, precursorMzB, mzTol, sortedB,
         sortedA);
@@ -340,10 +340,10 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
   }
 
   @NotNull
-  private static List<DataPoint[]> alignDataPoints(double precursorMzA, double precursorMzB,
-      MZTolerance mzTol, DataPoint[] sortedB, DataPoint[] sortedA) {
+  private static List<DataPoint[]> alignDataPoints(@Nullable Double precursorMzA,
+      @Nullable Double precursorMzB, MZTolerance mzTol, DataPoint[] sortedB, DataPoint[] sortedA) {
     final List<DataPoint[]> aligned;
-    if (precursorMzA > 0 && precursorMzB > 0) {
+    if (precursorMzA != null && precursorMzA > 0 && precursorMzB != 0 && precursorMzB > 0) {
       aligned = ScanAlignment.alignOfSortedModAware(mzTol, sortedB, sortedA, precursorMzB,
           precursorMzA);
     } else {
