@@ -143,18 +143,22 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
           // Check the shape of the peak.
           if (numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
               && currentRegionHeight >= peakMinLeft * minRatio
-              && currentRegionHeight >= peakMinRight * minRatio && xRange
-              .contains(x[currentRegionEnd] - x[currentRegionStart])) {
+              && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
+              x[currentRegionEnd] - x[currentRegionStart])) {
 
+            // adjust start and end points of signals to produce better peak shapes
+            // (e.g. include 0 intensity points on the edges.), as start and end points of this
+            // resolver will never be 0.
             int start;
-            if(y[currentRegionStart] != 0 && y[Math.max(currentRegionStart - 1, 0)] == 0.0) {
+            if (y[currentRegionStart] != 0 && y[Math.max(currentRegionStart - 1, 0)] == 0.0) {
               start = currentRegionStart - 1;
             } else {
               start = currentRegionStart;
             }
 
             int end;
-            if(y[currentRegionEnd] != 0 && y[Math.min(currentRegionEnd + 1, y.length - 1)] == 0.0) {
+            if (y[currentRegionEnd] != 0
+                && y[Math.min(currentRegionEnd + 1, y.length - 1)] == 0.0) {
               end = currentRegionEnd + 1;
             } else {
               end = currentRegionEnd;
@@ -217,8 +221,8 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
             // Check the shape of the peak.
             if (numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
                 && currentRegionHeight >= peakMinLeft * minRatio
-                && currentRegionHeight >= peakMinRight * minRatio && xRange
-                .contains(x[currentRegionEnd] - x[currentRegionStart])) {
+                && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
+                x[currentRegionEnd] - x[currentRegionStart])) {
 
               resolved.add(Range.closed(x[currentRegionStart], x[currentRegionEnd]));
             }
