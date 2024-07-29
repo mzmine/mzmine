@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -82,10 +82,14 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
             chart.addDataset(key, added);
           }
           if (change.wasRemoved()) {
-            final XYItemRenderer removed = change.getValueRemoved();
-            final XYDataset key = change.getKey();
-            chart.getAllDatasets().entrySet().stream().filter(e -> e.getValue() == key).findFirst()
-                .ifPresent(e -> chart.removeDataSet(e.getKey()));
+            if(change.getMap().isEmpty()) {
+              chart.removeAllDatasets();
+            } else {
+              final XYItemRenderer removed = change.getValueRemoved();
+              final XYDataset key = change.getKey();
+              chart.getAllDatasets().entrySet().stream().filter(e -> e.getValue() == key).findFirst()
+                  .ifPresent(e -> chart.removeDataSet(e.getKey()));
+            }
           }
         });
   }
