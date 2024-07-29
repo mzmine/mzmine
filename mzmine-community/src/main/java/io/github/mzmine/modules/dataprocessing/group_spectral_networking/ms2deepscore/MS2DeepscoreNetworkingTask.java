@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore;
 
-import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.ModifiedCosineSpectralNetworkingTask.addNetworkStatisticsToRows;
+import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask.addNetworkStatisticsToRows;
 
 import ai.djl.MalformedModelException;
 import ai.djl.repository.zoo.ModelNotFoundException;

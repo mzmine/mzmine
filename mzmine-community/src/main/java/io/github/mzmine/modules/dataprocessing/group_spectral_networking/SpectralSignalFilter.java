@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;

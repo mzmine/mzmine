@@ -34,8 +34,8 @@ import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.CosinePairContributions;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalAlignmentAnnotation;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
@@ -316,9 +316,9 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
 
     //modified cosine
     if (precursorMZA != null && precursorMZB != null) {
-    cosine = ModifiedCosineSpectralNetworkingTask.createMS2SimModificationAware(mzTol, weights,
-        dpsA, dpsB, 2, ModifiedCosineSpectralNetworkingTask.SIZE_OVERLAP, precursorMZA,
-        precursorMZB);
+      cosine = ModifiedCosineSpectralNetworkingTask.createMS2SimModificationAware(mzTol, weights,
+          dpsA, dpsB, 2, ModifiedCosineSpectralNetworkingTask.SIZE_OVERLAP, precursorMZA,
+          precursorMZB);
       if (cosine != null) {
         lbMirrorModifiedStats.setText(String.format(
             "modified=%1.3f; matched signals=%d; top/bottom: explained intensity=%1.3f/%1.3f; matched signals=%1.3f/%1.3f",

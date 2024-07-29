@@ -23,10 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine;
 
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;

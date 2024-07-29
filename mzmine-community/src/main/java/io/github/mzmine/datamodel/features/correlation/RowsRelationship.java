@@ -28,7 +28,7 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ModifiedCosineSpectralNetworkingTask;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportTask;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityTask;
 import io.github.mzmine.util.CorrelationGroupingUtils;

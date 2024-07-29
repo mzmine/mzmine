@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine;
 
 
 import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_ID;
@@ -46,6 +46,10 @@ import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.CosinePairContributions;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalAlignmentAnnotation;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkGenerator;
 import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
 import io.github.mzmine.parameters.ParameterSet;

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingModule;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 

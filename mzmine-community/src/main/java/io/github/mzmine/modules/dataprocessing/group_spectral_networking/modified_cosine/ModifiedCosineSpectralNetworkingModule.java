@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine;
 
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;

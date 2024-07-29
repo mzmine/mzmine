@@ -441,7 +441,7 @@
             <parameter name="Crop spectra to m/z overlap">false</parameter>
         </parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.group_spectral_networking.ModifiedCosineSpectralNetworkingModule" parameter_version="1">
+    <batchstep method="io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingModule" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="m/z tolerance (MS2)">
             <absolutetolerance>0.003</absolutetolerance>
