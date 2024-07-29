@@ -82,7 +82,7 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpe
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingOptions;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingParameters;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
@@ -659,6 +659,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(IonNetworkingModule.class).cloneParameterSet();
     param.setParameter(IonNetworkingParameters.MIN_HEIGHT, 0d);
+    param.setParameter(IonNetworkingParameters.CHECK_MODE, CheckMode.ONE_FEATURE);
     param.setParameter(IonNetworkingParameters.MZ_TOLERANCE, mzTolFeaturesIntraSample);
     param.setParameter(IonNetworkingParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
