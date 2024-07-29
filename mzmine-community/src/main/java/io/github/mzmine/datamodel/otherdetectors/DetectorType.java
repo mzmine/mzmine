@@ -23,36 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.preferences;
+package io.github.mzmine.datamodel.otherdetectors;
 
-public enum UnitFormat {
+public enum DetectorType {
 
-  ROUND_BRACKED("Label (unit)"), SQUARE_BRACKET("Label [unit]"), DIVIDE("Label / unit");
+  OTHER("Other", "Other"), //
+  PDA("PDA", "Photo diode array detector"), //
+  UV_VIS("UV/VIS", "UV/VIS"), //
+  PUMP_PRESSURE("p", "pressure"),//
+  COMPOSITION("composition", "composition"),
+  MS("MS", "Mass spectrometry");//
 
-  private final String representativeString;
+  String abbreviation;
+  String fullName;
 
-  UnitFormat(String representativeString) {
-    this.representativeString = representativeString;
+  DetectorType(String abbreviation, String fullName) {
+    this.abbreviation = abbreviation;
+    this.fullName = fullName;
   }
 
-  public String format(String label, String unit) {
-    if (unit == null || unit.isBlank()) {
-      return label;
-    }
-    switch (this) {
-      case SQUARE_BRACKET:
-        return label + " [" + unit + "]";
-      case ROUND_BRACKED:
-        return label + " (" + unit + ")";
-      case DIVIDE:
-        return label + " / " + unit;
-      default:
-        return label + " / " + unit;
-    }
+  public String getAbbreviation() {
+    return abbreviation;
   }
 
-  @Override
-  public String toString() {
-    return representativeString;
+  public String getFullName() {
+    return fullName;
   }
 }

@@ -23,36 +23,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.preferences;
+package io.github.mzmine.datamodel.otherdetectors;
 
-public enum UnitFormat {
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-  ROUND_BRACKED("Label (unit)"), SQUARE_BRACKET("Label [unit]"), DIVIDE("Label / unit");
+public interface OtherTimeSeriesData {
 
-  private final String representativeString;
+  OtherDataFile getOtherDataFile();
 
-  UnitFormat(String representativeString) {
-    this.representativeString = representativeString;
+  String getTimeSeriesDomainLabel();
+
+  String getTimeSeriesDomainUnit();
+
+  String getTimeSeriesRangeLabel();
+
+  String getTimeSeriesRangeUnit();
+
+  @NotNull
+  List<@NotNull OtherTimeSeries> getTimeSeries();
+
+  default int getNumberOfTimeSeries() {
+    return getTimeSeries().size();
   }
 
-  public String format(String label, String unit) {
-    if (unit == null || unit.isBlank()) {
-      return label;
-    }
-    switch (this) {
-      case SQUARE_BRACKET:
-        return label + " [" + unit + "]";
-      case ROUND_BRACKED:
-        return label + " (" + unit + ")";
-      case DIVIDE:
-        return label + " / " + unit;
-      default:
-        return label + " / " + unit;
-    }
-  }
+  @NotNull
+  OtherTimeSeries getTimeSeries(int index);
 
-  @Override
-  public String toString() {
-    return representativeString;
-  }
+  /**
+   * @return The chromatograms in this data file or null if this file does not contain
+   * chromatograms.
+   */
+  @NotNull
+  ChromatogramType getChromatogramType();
 }

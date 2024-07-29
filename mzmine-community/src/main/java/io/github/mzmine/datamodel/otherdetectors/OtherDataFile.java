@@ -23,36 +23,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.preferences;
+package io.github.mzmine.datamodel.otherdetectors;
 
-public enum UnitFormat {
+import io.github.mzmine.datamodel.RawDataFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-  ROUND_BRACKED("Label (unit)"), SQUARE_BRACKET("Label [unit]"), DIVIDE("Label / unit");
+public interface OtherDataFile {
 
-  private final String representativeString;
+  @NotNull
+  RawDataFile getCorrespondingRawDataFile();
 
-  UnitFormat(String representativeString) {
-    this.representativeString = representativeString;
+  default boolean hasTimeSeries() {
+    return getNumberOfTimeSeries() != 0;
   }
 
-  public String format(String label, String unit) {
-    if (unit == null || unit.isBlank()) {
-      return label;
-    }
-    switch (this) {
-      case SQUARE_BRACKET:
-        return label + " [" + unit + "]";
-      case ROUND_BRACKED:
-        return label + " (" + unit + ")";
-      case DIVIDE:
-        return label + " / " + unit;
-      default:
-        return label + " / " + unit;
-    }
+  default boolean hasSpectra() {
+    return getNumberOfSpectra() != 0;
   }
 
-  @Override
-  public String toString() {
-    return representativeString;
+  default int getNumberOfSpectra() {
+    return getOtherSpectralData() != null ? getOtherSpectralData().getOtherDataFile()
+        .getNumberOfSpectra() : 0;
   }
+
+  default int getNumberOfTimeSeries() {
+    return getOtherTimeSeries() != null ? getOtherTimeSeries().getNumberOfTimeSeries() : 0;
+  }
+
+  @Nullable
+  OtherTimeSeriesData getOtherTimeSeries();
+
+  @Nullable
+  OtherSpectralData getOtherSpectralData();
+
+  @NotNull
+  String getDescription();
+
+  DetectorType getDetectorType();
 }

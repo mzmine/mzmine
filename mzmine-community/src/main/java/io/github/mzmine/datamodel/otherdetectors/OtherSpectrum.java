@@ -23,45 +23,49 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
+package io.github.mzmine.datamodel.otherdetectors;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.stream.Collectors;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.RawDataFile;
 
 /**
- * Enumeration of different types of arrays which are parsed by the MzML Parser
+ * Basic interface of spectral data. Does not have to be mass spectral data.
  */
-public enum MzMLArrayType {
-  MZ("MS:1000514"), // m/z values array
-  INTENSITY("MS:1000515"), // Intensity values array
-  TIME("MS:1000595"), // Retention time values array
-  WAVELENGTH("MS:1000617"); // wavelength array, eg. PDA detector
+public interface OtherSpectrum {
 
-  private static final Map<String, MzMLArrayType> map = Arrays.stream(MzMLArrayType.values()).collect(
-      Collectors.toMap(MzMLArrayType::getAccession, v -> v));
+  double getDomainValue(int index);
 
-  private final String accession;
+  double getRangeValue(int index);
 
-  MzMLArrayType(String accession) {
-    this.accession = accession;
+  int getNumberOfValues();
+
+  MassSpectrumType getSpectrumType();
+
+  float getRetentionTime();
+
+  default String getDomainUnit() {
+    return getOtherSpectralData().getSpectraDomainUnit();
   }
 
-  public static MzMLArrayType ofAccession(String accession) {
-    return map.get(accession);
+  default String getRangeUnit() {
+    return getOtherSpectralData().getSpectraRangeUnit();
   }
 
-  public static boolean isArrayTypeAccession(String accession) {
-    return map.containsKey(accession);
+  default String getRangeLabel() {
+    return getOtherSpectralData().getSpectraRangeLabel();
   }
 
-  /**
-   * <p>Getter for the field <code>accession</code>.</p>
-   *
-   * @return the CV Parameter accession of the binary data array type as {@link String
-   *         String}
-   */
-  public String getAccession() {
-    return accession;
+  default String getDomainLabel() {
+    return getOtherSpectralData().getSpectraDomainLabel();
   }
+
+  default RawDataFile getMsRawDataFile() {
+    return getOtherDataFile().getCorrespondingRawDataFile();
+  }
+
+  default OtherDataFile getOtherDataFile() {
+    return getOtherSpectralData().getOtherDataFile();
+  }
+
+  OtherSpectralData getOtherSpectralData();
 }

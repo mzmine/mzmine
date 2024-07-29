@@ -23,36 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.preferences;
+package io.github.mzmine.datamodel.featuredata;
 
-public enum UnitFormat {
+public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
 
-  ROUND_BRACKED("Label (unit)"), SQUARE_BRACKET("Label [unit]"), DIVIDE("Label / unit");
-
-  private final String representativeString;
-
-  UnitFormat(String representativeString) {
-    this.representativeString = representativeString;
-  }
-
-  public String format(String label, String unit) {
-    if (unit == null || unit.isBlank()) {
-      return label;
-    }
-    switch (this) {
-      case SQUARE_BRACKET:
-        return label + " [" + unit + "]";
-      case ROUND_BRACKED:
-        return label + " (" + unit + ")";
-      case DIVIDE:
-        return label + " / " + unit;
-      default:
-        return label + " / " + unit;
-    }
-  }
-
-  @Override
-  public String toString() {
-    return representativeString;
-  }
 }
