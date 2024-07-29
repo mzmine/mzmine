@@ -527,9 +527,49 @@ public class FileAndPathUtil {
     }
   }
 
+  /**
+   * The Path of the Jar.
+   *
+   * @return jar path
+   */
+  @Nullable
+  public static File getPathOfJar() {
+    /*
+     * File f = new File(System.getProperty("java.class.path")); File dir =
+     * f.getAbsoluteFile().getParentFile(); return dir;
+     */
+    try {
+      File jar = new File(
+          FileAndPathUtil.class.getProtectionDomain().getCodeSource().getLocation().toURI()
+              .getPath());
+      return jar.getParentFile();
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
+  /**
+   * The main directory. Only tested on windows
+   *
+   * @return
+   */
+  @Nullable
+  public static File getSoftwareMainDirectory() {
+    File pathOfJar = FileAndPathUtil.getPathOfJar();
+    return pathOfJar == null ? null : pathOfJar.getParentFile();
+  }
+
+
   @Nullable
   public static File getMzmineDir() {
     return USER_MZMINE_DIR;
+  }
+
+  /**
+   * Directory for external resources
+   */
+  public static File resolveInDownloadResourcesDir(String name) {
+    return new File(resolveInMzmineDir("external_resources"), name);
   }
 
   @Nullable

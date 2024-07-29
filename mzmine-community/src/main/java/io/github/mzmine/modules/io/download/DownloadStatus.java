@@ -23,36 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.components;
+package io.github.mzmine.modules.io.download;
 
-import static javafx.beans.binding.Bindings.createStringBinding;
+public enum DownloadStatus {
+  WAITING, DOWNLOADING, CANCEL_REMOVE, ERROR_REMOVE, SUCCESS;
 
-import javafx.beans.binding.Bindings;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.TableCell;
-
-/**
- * Has a progress bar Pattern of implementation found on
- * https://www.pragmaticcoding.ca/javafx/elements/tableview-data
- */
-public class LabeledProgressBarCell<S> extends TableCell<S, Number> {
-
-  public LabeledProgressBarCell() {
-    LabeledProgressBar progressBar = new LabeledProgressBar(itemProperty().map(Number::doubleValue),
-        createStringBinding(this::getFormattedProgress, itemProperty()));
-
-    // show or hide pane
-    graphicProperty().bind(
-        Bindings.createObjectBinding(() -> !isEmpty() ? progressBar : null, emptyProperty()));
-    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+  public boolean isRemove() {
+    return switch (this) {
+      case SUCCESS, WAITING, DOWNLOADING -> false;
+      case ERROR_REMOVE, CANCEL_REMOVE -> true;
+    };
   }
-
-  private String getFormattedProgress() {
-    var item = getItem();
-    if (item == null || item.doubleValue() < 0) {
-      return "";
-    }
-    return "%.0f %%".formatted(item.doubleValue() * 100.0);
-  }
-
 }

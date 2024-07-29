@@ -41,6 +41,13 @@ public class ExtensionFilters {
       "*.mzmwizard");
 
   /*
+   * General
+   */
+  public static final ExtensionFilter ZIP = new ExtensionFilter("zip compressed", "*.zip");
+  public static final ExtensionFilter EXE = new ExtensionFilter("Microsoft Windows executable",
+      "*.exe");
+
+  /*
    * CSV and TSV import export
    */
   public static final ExtensionFilter CSV = new ExtensionFilter("comma-separated data", "*.csv");
@@ -49,11 +56,6 @@ public class ExtensionFilters {
   public static final ExtensionFilter ALL_FILES = new ExtensionFilter("All files", "*.*");
   public static final ExtensionFilter CSV_OR_TSV = new ExtensionFilter("CSV or TSV data", "*.csv",
       "*.tsv");
-
-  /**
-   * Executables
-   */
-  public static final ExtensionFilter EXE = new ExtensionFilter("Executable", "*.exe");
 
   // LISTS
   public static final List<ExtensionFilter> CSV_TSV_IMPORT = List.of(CSV_OR_TSV, CSV, TSV,

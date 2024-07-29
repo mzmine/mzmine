@@ -25,13 +25,16 @@
 
 package io.github.mzmine.modules.example.export_coding_demo;
 
+import io.github.mzmine.modules.io.download.ExternalAsset;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithDownloadParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
+import java.util.List;
 
 /**
  * Define any parameters here (see io.github.mzmine.parameters for parameter types) static is needed
@@ -53,11 +56,21 @@ public class CodingDemoParameters extends SimpleParameterSet {
   public static final OptionalParameter<RTRangeParameter> rtRange = new OptionalParameter<>(
       new RTRangeParameter());
 
+
+  public static final FileNameWithDownloadParameter testDownload = new FileNameWithDownloadParameter(
+      "Test download", "Try out the new download file parameter", List.of(ExtensionFilters.ZIP),
+      ExternalAsset.ThermoRawFileParser);
+
+
+  public static final FileNameWithDownloadParameter testDownloadLibrary = new FileNameWithDownloadParameter(
+      "Test download", "Try out the new download file parameter", List.of(ExtensionFilters.MGF),
+      ExternalAsset.MSnLib);
+
   public CodingDemoParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(featureLists, outFile, mzRange, rtRange);
+    super(featureLists, outFile, mzRange, rtRange, testDownload, testDownloadLibrary);
   }
 
 }
