@@ -33,7 +33,6 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import org.jetbrains.annotations.NotNull;
@@ -60,15 +59,15 @@ public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterS
   public static final IntegerParameter MIN_MATCH = new IntegerParameter("Minimum matched signals",
       "Minimum matched signals or neutral losses (m/z differences)", 4);
 
-  public static final OptionalModuleParameter<NeutralLossSimilarityParameters> CHECK_NEUTRAL_LOSS_SIMILARITY = new OptionalModuleParameter<>(
-      "Check MS2 neutral loss similarity",
-      "Generates a list of m/z differences and calculates cosine similarity",
-      new NeutralLossSimilarityParameters(), false);
+//  public static final OptionalModuleParameter<NeutralLossSimilarityParameters> CHECK_NEUTRAL_LOSS_SIMILARITY = new OptionalModuleParameter<>(
+//      "Check MS2 neutral loss similarity",
+//      "Generates a list of m/z differences and calculates cosine similarity",
+//      new NeutralLossSimilarityParameters(), false);
 
   public static final OptionalParameter<DoubleParameter> MAX_MZ_DELTA = new OptionalParameter<>(
       new DoubleParameter("Max precursor m/z delta",
           "Maximum allowed m/z delta between precursor ions to be tested. This can speed up the process",
-          MZmineCore.getConfiguration().getMZFormat(), 500d), true);
+          MZmineCore.getConfiguration().getMZFormat(), 600d), true);
 
   public static final ParameterSetParameter<SignalFiltersParameters> signalFilters = new ParameterSetParameter<>(
       "Signal filters", """
@@ -79,7 +78,7 @@ public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterS
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
         MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, MAX_MZ_DELTA, MIN_MATCH, MIN_COSINE_SIMILARITY,
-        CHECK_NEUTRAL_LOSS_SIMILARITY, signalFilters);
+        signalFilters);
   }
 
   @Override

@@ -96,11 +96,12 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
   private final boolean onlyBestMS2Scan;
   private final @Nullable ModularFeatureList featureList;
   // target
-  private final boolean checkNeutralLoss;
   private final SpectralSignalFilter signalFilter;
   private final double maxMzDelta;
   private final List<FeatureListRow> rows;
   private long totalMaxPairs = 0;
+  // this is always off for now. Could be reintroduced as separate similarity metric
+  private final boolean checkNeutralLoss;
 
   public ModifiedCosineSpectralNetworkingTask(final ParameterSet mainParameters,
       @Nullable ModularFeatureList featureList, @NotNull Instant moduleCallDate,
@@ -129,17 +130,9 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
         ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY);
     onlyBestMS2Scan = subParams.getValue(
         ModifiedCosineSpectralNetworkingParameters.ONLY_BEST_MS2_SCAN);
-    // check neutral loss similarity?
-    checkNeutralLoss = subParams.getValue(
-        ModifiedCosineSpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY);
-    if (checkNeutralLoss) {
-      final NeutralLossSimilarityParameters nlossParam = subParams.getParameter(
-              ModifiedCosineSpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY)
-          .getEmbeddedParameters();
-      maxDPForDiff = nlossParam.getValue(NeutralLossSimilarityParameters.MAX_DP_FOR_DIFF);
-    } else {
-      maxDPForDiff = 0;
-    }
+    // check neutral loss similarity was removed for now. Could be turned into other score
+    checkNeutralLoss = false;
+    maxDPForDiff = 0;
     // embedded signal filters
     signalFilter = subParams.getValue(ModifiedCosineSpectralNetworkingParameters.signalFilters)
         .createFilter();

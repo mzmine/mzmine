@@ -1148,8 +1148,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     param.setParameter(ModifiedCosineSpectralNetworkingParameters.MAX_MZ_DELTA, true, 500d);
     param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH, 4);
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY,
-        false);
     param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY, 0.7);
     param.setParameter(ModifiedCosineSpectralNetworkingParameters.ONLY_BEST_MS2_SCAN, true);
     param.setParameter(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE, mzTolScans);
