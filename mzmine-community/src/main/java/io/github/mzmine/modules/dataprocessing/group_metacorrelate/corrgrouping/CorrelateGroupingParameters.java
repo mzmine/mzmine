@@ -94,8 +94,10 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
   public static final AdvancedParametersParameter<AdvancedCorrelateGroupingParameters> advanced = new AdvancedParametersParameter<>(
       new AdvancedCorrelateGroupingParameters(), true);
 
+  // keep is the initial state that we used
+  // some workflows depend on the intial list to be there
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
-      true, OriginalFeatureListOption.REMOVE);
+      true, OriginalFeatureListOption.KEEP);
 
   // Constructor
   public CorrelateGroupingParameters() {
