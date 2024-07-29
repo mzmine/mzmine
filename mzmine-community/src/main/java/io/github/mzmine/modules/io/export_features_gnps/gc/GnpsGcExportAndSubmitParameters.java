@@ -37,13 +37,12 @@
 package io.github.mzmine.modules.io.export_features_gnps.gc;
 
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
-import static io.github.mzmine.javafx.components.factories.FxTexts.gnpsPaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
-import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters.MzMode;
@@ -105,7 +104,8 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
         text("and please cite"), linebreak(), boldText("FBMN-GC paper: "), hyperlinkText(
             "Aksenov, A.A., Laponogov, I., Zhang, Z. et al. Nat Biotechnol 39, 169–173 (2021)",
             "https://www.nature.com/articles/s41587-020-0700-3"), linebreak(),
-        boldText("GNPS paper: "), gnpsPaper, linebreak(), boldText("mzmine paper: "), mzminePaper);
+        boldText("GNPS paper: "), ArticleReferences.GNPS.hyperlinkText(), linebreak(),
+        boldText("mzmine paper: "), ArticleReferences.MZMINE3.hyperlinkText());
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();

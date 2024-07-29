@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -37,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Filter used before spectral matching to reduce number of signals, see
- * {@link SignalFiltersParameters} and {@link SpectralNetworkingTask}
+ * {@link SignalFiltersParameters} and {@link ModifiedCosineSpectralNetworkingTask}
  *
  * @param isRemovePrecursor                        remove precursor signals
  * @param removePrecursorMz                        range to remove around the precursor +-

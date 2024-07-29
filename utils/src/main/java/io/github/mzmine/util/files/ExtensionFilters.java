@@ -40,6 +40,11 @@ public class ExtensionFilters {
   public static final ExtensionFilter MZ_WIZARD = new ExtensionFilter("mzmine mzwizard",
       "*.mzmwizard");
 
+  /**
+   * PyTorch DJL specific
+   */
+  public static final ExtensionFilter PT = new ExtensionFilter("PyTorch script", "*.pt");
+
   /*
    * General
    */
