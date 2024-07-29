@@ -6,12 +6,12 @@ import ai.djl.translate.Translator;
 import ai.djl.inference.Predictor;
 import ai.djl.translate.TranslateException;
 import java.util.List;
-import java.nio.file.*;
-import java.nio.file.Path;
+import java.io.InputStream;
+
 
 
 public class PeakClassifierModel {
-    private static final Path modelDir = Paths.get("mzmine-community/src/main/resources/MLModels");
+    private static final String modelDir = "/MLModels/traced_model_float64.pt";
     private final Model model;
     private final NDManager manager;
     private final Translator<double[][], double[]> translator;
@@ -21,7 +21,8 @@ public class PeakClassifierModel {
     public PeakClassifierModel() {
         this.model = Model.newInstance("PeakClassifier");
         try {
-            model.load(modelDir, "traced_model_float64");
+            final InputStream resourceAsStream = this.getClass().getResourceAsStream(modelDir);
+            model.load(resourceAsStream);
         } catch (Exception e) {
             System.out.println("Encountered exception when loading the model.");
             e.printStackTrace();
