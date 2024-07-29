@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,13 @@
 
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
-enum Boundary {
-  LEFT, RIGHT
+enum State {
+  SETTING_LEFT, SETTING_RIGHT, NOT_INTEGRATING;
+
+  boolean isIntegrating() {
+    return switch (this) {
+      case SETTING_LEFT, SETTING_RIGHT -> true;
+      case NOT_INTEGRATING -> false;
+    };
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -97,7 +97,6 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
       logger.finest("Integration plot pane key pressed " + e.getCode());
     });
 
-
     var chromPlot = model.getChromatogramPlot();
 
     model.currentTimeSeriesProperty().addListener((_, _, series) -> {
@@ -122,15 +121,27 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
 
     chromPlot.cursorPositionProperty().addListener((_, _, pos) -> {
       // ctrl while clicking allows boundary setting
-      if (pos == null || (pos.getMouseEvent() != null && !pos.getMouseEvent().isControlDown()
-          && !model.isIntegrating())) {
+      if (pos == null) {
         return;
       }
 
-      if (pos.getMouseEvent() == null || !pos.getMouseEvent().isControlDown()) {
-        if (model.getNextBoundary() == Boundary.LEFT) {
+      // set selected feature
+      model.getIntegratedFeatures().stream().filter(
+              s -> s.getRetentionTime(0) < pos.getDomainValue()
+                  && s.getRetentionTime(s.getNumberOfValues() - 1) > pos.getDomainValue()).findFirst()
+          .ifPresent(model::setSelectedFeature);
+
+      if (pos.getMouseEvent() != null && !(pos.getMouseEvent().isControlDown()
+          || pos.getMouseEvent().isAltDown()) && model.getState() == State.NOT_INTEGRATING) {
+        return;
+      }
+
+      // only handle regular click if no modifier is down.
+      if (pos.getMouseEvent() == null || !(pos.getMouseEvent().isControlDown()
+          || pos.getMouseEvent().isAltDown())) {
+        if (model.getState() == State.SETTING_LEFT) {
           model.setCurrentStartTime(pos.getDomainValue());
-        } else if (model.getNextBoundary() == Boundary.RIGHT) {
+        } else if (model.getState() == State.SETTING_RIGHT) {
           model.setCurrentEndTime(pos.getDomainValue());
         }
       } else if (pos.getMouseEvent() != null && pos.getMouseEvent().isControlDown()) {
@@ -138,6 +149,10 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
           model.setCurrentEndTime(pos.getDomainValue());
         } else {
           model.setCurrentStartTime(pos.getDomainValue());
+        }
+      } else if (pos.getMouseEvent() != null && pos.getMouseEvent().isAltDown()) {
+        if (model.isCurrentIntegrationValid()) {
+          onFinishPressed.run();
         }
       }
     });
@@ -210,22 +225,22 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
 
   private void addMarkerListeners(ChromatogramPlotController chromPlot) {
     model.currentEndMarkerProperty().addListener((_, prevMarker, newMarker) -> {
-      if (prevMarker != null) {
-        chromPlot.removeDomainMarker(prevMarker);
-      }
-      if (newMarker != null) {
-        chromPlot.addDomainMarker(newMarker);
-      }
-    });
+        if (prevMarker != null) {
+          chromPlot.removeDomainMarker(prevMarker);
+        }
+        if (newMarker != null) {
+          chromPlot.addDomainMarker(newMarker);
+        }
+      });
 
-    model.currentStartMarkerProperty().addListener((_, prevMarker, newMarker) -> {
-      if (prevMarker != null) {
-        chromPlot.removeDomainMarker(prevMarker);
-      }
-      if (newMarker != null) {
-        chromPlot.addDomainMarker(newMarker);
-      }
-    });
+      model.currentStartMarkerProperty().addListener((_, prevMarker, newMarker) -> {
+        if (prevMarker != null) {
+          chromPlot.removeDomainMarker(prevMarker);
+        }
+        if (newMarker != null) {
+          chromPlot.addDomainMarker(newMarker);
+        }
+      });
   }
 
   private FlowPane createButtonBar() {
@@ -246,7 +261,10 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     editSelected.disableProperty().bind(
         Bindings.createBooleanBinding(() -> model.getSelectedFeature() == null,
             model.selectedFeatureProperty()));
-    abortFeature.disableProperty().bind(model.isIntegratingProperty().not());
+
+    abortFeature.disableProperty().bind(Bindings.createBooleanBinding(
+        () -> model.getCurrentStartTime() == null && model.getCurrentEndTime() == null,
+        model.stateProperty(), model.currentStartTimeProperty(), model.currentEndTimeProperty()));
 
     return buttonBar;
   }

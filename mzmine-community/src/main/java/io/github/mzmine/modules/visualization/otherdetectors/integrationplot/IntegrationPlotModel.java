@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,11 +51,9 @@ public class IntegrationPlotModel {
   private ObjectProperty<@Nullable IntensityTimeSeries> currentTimeSeries = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable Double> currentStartTime = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable Double> currentEndTime = new SimpleObjectProperty<>();
-  private ObjectProperty<@NotNull Boundary> nextBoundary = new SimpleObjectProperty<>(
-      Boundary.LEFT);
+  private ObjectProperty<@NotNull State> state = new SimpleObjectProperty<>(State.NOT_INTEGRATING);
   private ObjectProperty<@Nullable ValueMarker> currentStartMarker = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable ValueMarker> currentEndMarker = new SimpleObjectProperty<>();
-  private BooleanProperty isIntegrating = new SimpleBooleanProperty(false);
 
   public ChromatogramPlotController getChromatogramPlot() {
     return chromatogramPlot.get();
@@ -103,18 +101,6 @@ public class IntegrationPlotModel {
 
   public ObjectProperty<@Nullable Double> currentEndTimeProperty() {
     return currentEndTime;
-  }
-
-  public @NotNull Boundary getNextBoundary() {
-    return nextBoundary.get();
-  }
-
-  public void setNextBoundary(@NotNull Boundary nextBoundary) {
-    this.nextBoundary.set(nextBoundary);
-  }
-
-  public ObjectProperty<@NotNull Boundary> nextBoundaryProperty() {
-    return nextBoundary;
   }
 
   public ObservableList<IntensityTimeSeries> getIntegratedFeatures() {
@@ -181,15 +167,15 @@ public class IntegrationPlotModel {
     return currentEndMarker;
   }
 
-  public boolean isIntegrating() {
-    return isIntegrating.get();
+  public @NotNull State getState() {
+    return state.get();
   }
 
-  public void setIntegrating(boolean isIntegrating) {
-    this.isIntegrating.set(isIntegrating);
+  public ObjectProperty<@NotNull State> stateProperty() {
+    return state;
   }
 
-  public BooleanProperty isIntegratingProperty() {
-    return isIntegrating;
+  public void setState(@NotNull State state) {
+    this.state.set(state);
   }
 }

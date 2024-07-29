@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -71,13 +71,11 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   }
 
   void onSetLeftPressed() {
-    model.setNextBoundary(Boundary.LEFT);
-    model.setIntegrating(true);
+    model.setState(State.SETTING_LEFT);
   }
 
   void onSetRightPressed() {
-    model.setNextBoundary(Boundary.RIGHT);
-    model.setIntegrating(true);
+    model.setState(State.SETTING_RIGHT);
   }
 
   void onFinishPressed() {
@@ -107,7 +105,7 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
   private void clearIntegration() {
     logger.finest("Clear integration pressed");
-    model.setIntegrating(false);
+    model.setState(State.NOT_INTEGRATING);
     model.setCurrentStartTime(null);
     model.setCurrentEndTime(null);
   }
@@ -120,7 +118,7 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
     model.setCurrentStartTime((double) feature.getRetentionTime(0));
     model.setCurrentEndTime((double) feature.getRetentionTime(feature.getNumberOfValues() - 1));
-    model.setNextBoundary(Boundary.LEFT);
+    model.setState(State.SETTING_LEFT);
   }
 
   public IntensityTimeSeries getOtherTimeSeries() {
@@ -130,6 +128,7 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   public void setOtherTimeSeries(IntensityTimeSeries otherTimeSeries) {
     model.integratedFeaturesProperty().clear();
     onAbortPressed();
+    model.getChromatogramPlot().clearPlot();
     model.setCurrentTimeSeries(otherTimeSeries);
   }
 
