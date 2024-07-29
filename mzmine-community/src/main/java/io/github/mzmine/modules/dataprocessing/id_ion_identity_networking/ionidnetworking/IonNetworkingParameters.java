@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,22 +60,21 @@ public class IonNetworkingParameters extends SimpleParameterSet {
   public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
       ToleranceType.INTRA_SAMPLE);
 
-  public static final ComboParameter<CheckMode> CHECK_MODE =
-      new ComboParameter<CheckMode>("Check",
-          "The modes to check for adduct identities. Average compares only the average m/z values (without min. height).\n "
-          + "ALL features and SINGLE feature compares the m/z values of features with height>minHeight in raw data files",
-          CheckMode.values(), CheckMode.ALL_FEATURES);
+  public static final ComboParameter<CheckMode> CHECK_MODE = new ComboParameter<CheckMode>("Check",
+      "The modes to check for adduct identities. Average compares only the average m/z values (without min. height).\n "
+      + "ALL features and SINGLE feature compares the m/z values of features with height>minHeight in raw data files",
+      CheckMode.values(), CheckMode.ONE_FEATURE);
 
   public static final DoubleParameter MIN_HEIGHT = new DoubleParameter("Min height",
       "Minimum height of feature shape (not used for average mode)",
-      MZmineCore.getConfiguration().getIntensityFormat());
+      MZmineCore.getConfiguration().getIntensityFormat(), 0d);
 
 
   // adduct finder parameter - taken from the adduct finder
   // search for adducts? Bonus for correlation?
-  public static final SubModuleParameter<IonLibraryParameterSet> LIBRARY =
-      new SubModuleParameter<>("Ion identity library", "Adducts, in-source fragments and multimers",
-          new IonLibraryParameterSet());
+  public static final SubModuleParameter<IonLibraryParameterSet> LIBRARY = new SubModuleParameter<>(
+      "Ion identity library", "Adducts, in-source fragments and multimers",
+      new IonLibraryParameterSet());
 
   // MS MS
   // check for truth MS/MS
@@ -83,9 +82,8 @@ public class IonNetworkingParameters extends SimpleParameterSet {
   // new OptionalModuleParameter<IonNetworkMSMSCheckParameters>("Check MS/MS",
   // "Check MS/MS for truth of multimers", new IonNetworkMSMSCheckParameters(true));
 
-  public static final OptionalModuleParameter<IonNetworkRefinementParameters> ANNOTATION_REFINEMENTS =
-      new OptionalModuleParameter<IonNetworkRefinementParameters>("Annotation refinement", "",
-          new IonNetworkRefinementParameters(true), true);
+  public static final OptionalModuleParameter<IonNetworkRefinementParameters> ANNOTATION_REFINEMENTS = new OptionalModuleParameter<IonNetworkRefinementParameters>(
+      "Annotation refinement", "", new IonNetworkRefinementParameters(true), true);
 
   // setup
   private final Setup setup;
