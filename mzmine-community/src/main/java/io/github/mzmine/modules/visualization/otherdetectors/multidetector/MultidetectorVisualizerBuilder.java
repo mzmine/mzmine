@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,17 +29,17 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.IntegrationPane;
 import io.github.mzmine.project.ProjectService;
 import java.util.Optional;
 import java.util.logging.Logger;
-import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -63,18 +63,21 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
 
     final Button addButton = FxButtons.createButton(null, FxIcons.ADD, "Add another trace",
         this::addNewDetector);
-    addButton.disableProperty().bind(
-        Bindings.createBooleanBinding(() -> content.getChildren().size() >= 4,
-            content.getChildren()));
     final HBox addWrapper = FxLayout.newHBox(Pos.TOP_RIGHT, addButton);
     final VBox contentWrapper = FxLayout.newVBox(content, addWrapper);
 
     main = new BorderPane(contentWrapper);
+    var scroll = new ScrollPane(main);
+    scroll.setFitToWidth(true);
+    scroll.setFitToHeight(true);
+    scroll.setVbarPolicy(ScrollBarPolicy.ALWAYS);
+
+    addNewDetector();
 
 //    main.addEventFilter(KeyEvent.KEY_PRESSED, event -> logger.finest("main " + event.toString()));
 //    contentWrapper.addEventFilter(KeyEvent.KEY_PRESSED, event -> logger.finest("wrapper " + event.toString()));
 //    content.addEventFilter(KeyEvent.KEY_PRESSED, event -> logger.finest("content " + event.toString()));
-    return main;
+    return scroll;
   }
 
   private void addNewDetector() {
@@ -86,10 +89,7 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
     }
 
     final IntegrationPane pane = new IntegrationPane(file.get());
-    pane.minHeightProperty()
-        .bind(main.heightProperty().subtract(FxIconUtil.DEFAULT_ICON_SIZE + 8).divide(3.8));
-    pane.maxHeightProperty()
-        .bind(main.heightProperty().subtract(FxIconUtil.DEFAULT_ICON_SIZE + 8).divide(3.8));
+    pane.minHeightProperty().set(250);
 //    pane.addEventFilter(KeyEvent.KEY_PRESSED, event -> logger.finest("pane " + event.toString()));
     content.getChildren().add(pane);
   }
