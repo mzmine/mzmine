@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.javafx;
 
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.ConfigService;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
