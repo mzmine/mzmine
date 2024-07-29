@@ -25,27 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.spline;
 
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
-import io.github.mzmine.parameters.ParameterSet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 
-public class SplineBaselineCorrector implements BaselineCorrector, MZmineModule {
+public class LoessBaselineCorrectorParameters extends SimpleParameterSet {
 
-  @Override
-  public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
-    return null;
-  }
-
-  @Override
-  public @NotNull String getName() {
-    return "Spline baseline correction";
-  }
-
-  @Override
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return null;
+  public LoessBaselineCorrectorParameters() {
+    super();
   }
 }
