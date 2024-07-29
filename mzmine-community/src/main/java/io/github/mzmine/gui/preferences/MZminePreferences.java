@@ -30,7 +30,6 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransfo
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -43,12 +42,15 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.color.ColorUtils;
+import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.web.Proxy;
 import io.github.mzmine.util.web.ProxyType;
@@ -56,6 +58,7 @@ import io.github.mzmine.util.web.ProxyUtils;
 import io.mzio.users.gui.fx.UsersController;
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.List;
 import java.util.Map;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -140,24 +143,24 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
       new OptOutParameter("Ion mobility compatibility warnings",
           "Shows a warning message when a module without explicit ion mobility support is "
-          + "used to process ion mobility data."));
+              + "used to process ion mobility data."));
 
   public static final DirectoryParameter tempDirectory = new DirectoryParameter(
       "Temporary file directory", "Directory where temporary files"
-                                  + " will be stored. Directory should be located on a drive with fast read and write "
-                                  + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
-                                  + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
+      + " will be stored. Directory should be located on a drive with fast read and write "
+      + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
+      + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
       System.getProperty("java.io.tmpdir"));
 
   public static final ComboParameter<KeepInMemory> memoryOption = new ComboParameter<>(
       "Keep in memory", String.format(
       "Specifies the objects that are kept in memory rather than memory mapping "
-      + "them into temp files in the temp directory. Parameter is overriden by the program "
-      + "argument --memory. Depending on the read/write speed of the temp directory,"
-      + " memory mapping is a fast and memory efficient way to handle data, therefore, the "
-      + "default is to memory map all spectral data and feature data with the option %s. On "
-      + "systems where memory (RAM) is no concern, viable options are %s and %s, to keep all in memory "
-      + "or to keep mass lists and feauture data in memory, respectively.", KeepInMemory.NONE,
+          + "them into temp files in the temp directory. Parameter is overriden by the program "
+          + "argument --memory. Depending on the read/write speed of the temp directory,"
+          + " memory mapping is a fast and memory efficient way to handle data, therefore, the "
+          + "default is to memory map all spectral data and feature data with the option %s. On "
+          + "systems where memory (RAM) is no concern, viable options are %s and %s, to keep all in memory "
+          + "or to keep mass lists and feauture data in memory, respectively.", KeepInMemory.NONE,
       KeepInMemory.ALL, KeepInMemory.MASSES_AND_FEATURES), KeepInMemory.values(),
       KeepInMemory.NONE);
 
@@ -179,7 +182,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
       "Normalize images",
       "Specifies if displayed images shall be normalized to the average TIC or shown according to the raw data."
-      + "only applies to newly generated plots.", ImageNormalization.values(),
+          + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
 
   public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
@@ -192,6 +195,22 @@ public class MZminePreferences extends SimpleParameterSet {
       new DecimalFormat("0.###"), UnitFormat.DIVIDE);
   private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
   private NumberFormats guiFormat = exportFormat; // default value
+
+  public static final FileNameParameter msConvertPath = new FileNameParameter("MSConvert path",
+      "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
+      List.of(ExtensionFilters.EXE, ExtensionFilters.ALL_FILES), FileSelectionType.OPEN, true);
+
+  public static final BooleanParameter keepConvertedFile = new BooleanParameter(
+      "Keep files converted by MSConvert",
+      "Store the files after conversion by MSConvert to an mzML file.\n"
+          + "This will reduce the import time when re-processing, but require more disc space.",
+      false);
+
+  public static final BooleanParameter applyPeakPicking = new BooleanParameter(
+      "Apply peak picking (recommended)",
+      "Apply vendor peak picking during import of native vendor files with MSConvert.\n"
+          + "Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.",
+      true);
 
   public MZminePreferences() {
     super(// start with performance
@@ -208,7 +227,9 @@ public class MZminePreferences extends SimpleParameterSet {
         imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
         windowSetttings,
         // silent parameters without controls
-        showTempFolderAlert, username);
+        showTempFolderAlert, username,
+        //
+        msConvertPath, keepConvertedFile, applyPeakPicking);
 
     darkModeProperty.subscribe(state -> {
       var oldTheme = getValue(theme);
@@ -232,15 +253,13 @@ public class MZminePreferences extends SimpleParameterSet {
     GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
 
     // add groups
-    dialog.addParameterGroup("General",
-        new Parameter[]{numOfThreads, memoryOption, tempDirectory, proxySettings,
-            /*, applyTimsPressureCompensation*/});
-    dialog.addParameterGroup("Formats",
-        new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
-            scoreFormat, unitFormat});
-    dialog.addParameterGroup("Visuals",
-        new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
-            showPrecursorWindow, imageTransformation, imageNormalization});
+    dialog.addParameterGroup("General", numOfThreads, memoryOption, tempDirectory, proxySettings
+        /*, applyTimsPressureCompensation*/);
+    dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
+        intensityFormat, ppmFormat, scoreFormat, unitFormat);
+    dialog.addParameterGroup("Visuals", defaultColorPalette, defaultPaintScale, chartParam, theme,
+        presentationMode, showPrecursorWindow, imageTransformation, imageNormalization);
+    dialog.addParameterGroup("MS data import", msConvertPath, keepConvertedFile, applyPeakPicking);
 //    dialog.addParameterGroup("Other", new Parameter[]{
     // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
 //    });
@@ -314,8 +333,8 @@ public class MZminePreferences extends SimpleParameterSet {
 
       boolean changeColors = false;
       if (theme.isDark() && (ColorUtils.isDark(bgColor) || ColorUtils.isDark(axisFont.getColor())
-                             || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(
-          titleFont.getColor()) || ColorUtils.isDark(subTitleFont.getColor()))) {
+          || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(titleFont.getColor())
+          || ColorUtils.isDark(subTitleFont.getColor()))) {
         if (MZmineCore.getDesktop().displayConfirmation("""
             MZmine detected that you changed the GUI theme.
             The current chart theme colors might not be readable.
@@ -453,12 +472,12 @@ public class MZminePreferences extends SimpleParameterSet {
     return darkModeProperty.getValue();
   }
 
-  public BooleanProperty darkModeProperty() {
-    return darkModeProperty;
-  }
-
   public void setDarkMode(final boolean dark) {
     darkModeProperty.set(dark);
+  }
+
+  public BooleanProperty darkModeProperty() {
+    return darkModeProperty;
   }
 
   /**
