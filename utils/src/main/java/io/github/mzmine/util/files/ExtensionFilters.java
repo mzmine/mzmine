@@ -57,11 +57,6 @@ public class ExtensionFilters {
   public static final ExtensionFilter CSV_OR_TSV = new ExtensionFilter("CSV or TSV data", "*.csv",
       "*.tsv");
 
-  /**
-   * Executables
-   */
-  public static final ExtensionFilter EXE = new ExtensionFilter("Executable", "*.exe");
-
   // LISTS
   public static final List<ExtensionFilter> CSV_TSV_IMPORT = List.of(CSV_OR_TSV, CSV, TSV,
       ALL_FILES);
