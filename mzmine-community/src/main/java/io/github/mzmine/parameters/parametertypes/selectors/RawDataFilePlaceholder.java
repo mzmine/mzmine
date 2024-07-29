@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.Color;
@@ -298,6 +299,11 @@ public class RawDataFilePlaceholder implements RawDataFile {
   public @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public List<OtherDataFile> getOtherDataFiles() {
+    return List.of();
   }
 
   @Override

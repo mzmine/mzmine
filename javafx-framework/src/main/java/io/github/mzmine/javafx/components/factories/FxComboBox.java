@@ -35,6 +35,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import org.controlsfx.control.SearchableComboBox;
+import org.jetbrains.annotations.NotNull;
 
 public class FxComboBox {
 
@@ -51,7 +53,11 @@ public class FxComboBox {
 
   public static <T> ComboBox<T> createComboBox(String tooltip, Collection<T> values,
       Property<T> selectedItem) {
-    final ComboBox<T> combo = new ComboBox<>();
+    return addContent(tooltip, values, selectedItem, new ComboBox<T>());
+  }
+
+  private static <T, COMBO extends ComboBox<T>> @NotNull COMBO addContent(final String tooltip,
+      final List<T> values, final Property<T> selectedItem, final COMBO combo) {
     if (values instanceof ObservableList<T> ov) {
       combo.setItems(ov);
     } else if (values instanceof List<T> list) {
@@ -68,4 +74,10 @@ public class FxComboBox {
       Property<T> selectedItem) {
     return createComboBox(tooltip, List.of(values), selectedItem);
   }
+
+  public static <T> SearchableComboBox<T> newSearchableComboBox(@NotNull String tooltip,
+      @NotNull List<T> values, @NotNull Property<T> selectedItem) {
+    return addContent(tooltip, values, selectedItem, new SearchableComboBox<>());
+  }
+
 }

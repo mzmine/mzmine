@@ -41,9 +41,9 @@ import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.io.import_rawdata_all.MsDataImportAndMassDetectWrapperTask;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMobilityScanStorage;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMobilityScan;
@@ -145,6 +145,14 @@ public class MSDKmzMLImportTask extends AbstractTask {
     this.module = module;
   }
 
+  private static boolean isExcludedWatersScan(final BuildingMzMLMobilityScan mzMLScan) {
+    final Matcher matcher = watersPattern.matcher(mzMLScan.id());
+    if (matcher.matches() && !matcher.group(1).equals("1")) {
+      return true;
+    }
+    return false;
+  }
+
   @Override
   public void run() {
 
@@ -203,12 +211,19 @@ public class MSDKmzMLImportTask extends AbstractTask {
         totalScansAfterFilter = msdkTaskRes.getMobilityScanData().size();
         newMZmineFile = buildIonMobilityFile(msdkTaskRes);
       } else {
-        totalScansAfterFilter = msdkTaskRes.getScans().size();
+        totalScansAfterFilter = msdkTaskRes.getMsScans().size();
         newMZmineFile = buildLCMSFile(msdkTaskRes);
       }
       if (isCanceled() || newMZmineFile == null) {
         return null;
       }
+
+      final List<OtherDataFile> otherDataFiles = ConversionUtils.convertOtherSpectra(newMZmineFile,
+          msdkTaskRes.getOtherSpectra());
+      final List<OtherDataFile> otherTraceFiles = ConversionUtils.convertOtherTraces(newMZmineFile,
+          msdkTaskRes.getChromatograms());
+      newMZmineFile.addOtherDataFiles(otherDataFiles);
+      newMZmineFile.addOtherDataFiles(otherTraceFiles);
 
       newMZmineFile.setStartTimeStamp(startTimeStamp);
       logger.info("Finished parsing " + file + ", parsed " + convertedScansAfterFilter + " scans");
@@ -233,13 +248,12 @@ public class MSDKmzMLImportTask extends AbstractTask {
     }
   }
 
-
   public RawDataFileImpl buildLCMSFile(MzMLRawDataFile file) throws IOException {
     String descriptionTemplate = description = "Importing %s, total / parsed is %d / ".formatted(
         this.file.getName(), totalScansAfterFilter);
     RawDataFileImpl newMZmineFile = new RawDataFileImpl(this.file.getName(),
         this.file.getAbsolutePath(), storage);
-    for (BuildingMzMLMsScan mzMLScan : file.getScans()) {
+    for (BuildingMzMLMsScan mzMLScan : file.getMsScans()) {
       if (isCanceled()) {
         return newMZmineFile;
       }
@@ -337,11 +351,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
       int storageOffset = frameStorage.getStorageOffset(scanIndex);
       int basePeakIndex = frameStorage.getBasePeakIndex(scanIndex);
 
-
       // fill in missing scans
       // I'm not proud of this piece of code, but some manufactures or conversion tools leave out
       // empty scans. Looking at you, Agilent. however, we need that info for proper processing ~SteffenHeu
-      Integer newScanId = mappedMobilities.get( mzMLScan.mobility());
+      Integer newScanId = mappedMobilities.get(mzMLScan.mobility());
       final int missingScans = newScanId - mobilityScanNumberCounter;
       // might be negative in case of tims, but for now we assume that no scans missing for tims
       for (int i = 0; i < missingScans; i++) {
@@ -351,8 +364,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
         mobilityScanNumberCounter++;
       }
 
-      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos, frameNumber,
-          mobilityScanNumberCounter);
+      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
+          frameNumber, mobilityScanNumberCounter);
       storageOffsets[mobilityScanNumberCounter] = storageOffset;
       basePeakIndices[mobilityScanNumberCounter] = basePeakIndex;
       mobilityScanNumberCounter++;
@@ -436,14 +449,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
     }
 
     return realMobilities;
-  }
-
-  private static boolean isExcludedWatersScan(final BuildingMzMLMobilityScan mzMLScan) {
-    final Matcher matcher = watersPattern.matcher(mzMLScan.id());
-    if (matcher.matches() && !matcher.group(1).equals("1")) {
-      return true;
-    }
-    return false;
   }
 
   @Override

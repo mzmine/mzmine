@@ -555,6 +555,8 @@
 
       <MenuItem text="Scatter plot" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule"/>
+      <MenuItem text="Feature histogram plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule"/>
       <MenuItem text="Histogram plot" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModule"/>
       <MenuItem text="Feature intensity plot" onAction="#runModule"
