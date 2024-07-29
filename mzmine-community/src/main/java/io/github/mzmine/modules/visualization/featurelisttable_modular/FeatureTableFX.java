@@ -80,6 +80,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -498,6 +499,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * @param flist a summary RowData instance with all present {@link DataType}
    */
   public void addColumns(FeatureList flist) {
+    if (flist == null) {
+      return;
+    }
     //    logger.info("Adding columns to table");
     // for all data columns available in "data"
     assert flist instanceof ModularFeatureList : "Feature list is not modular";
@@ -955,35 +959,48 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   private void initFeatureListListener() {
     featureListProperty().addListener((observable, oldValue, newValue) -> {
       FxThread.runLater(() -> {
-        // Clear old rows and old columns
-        getRoot().getChildren().clear();
-        getColumns().clear();
-        rowItems.clear();
-
-        // remove the old listener
-        if (oldValue != null) {
-          oldValue.getRows().removeListener(this);
-        }
-        addColumns(newValue);
-        // first check if feature list is too large
-        applyDefaultColumnVisibilities();
-        if (newValue.getNumberOfRawDataFiles() > getMaximumSamplesForVisibleShapes()) {
-          showCompactChromatographyColumns();
-        }
-
-        // add rows
-        for (FeatureListRow row : newValue.getRows()) {
-          final ModularFeatureListRow mrow = (ModularFeatureListRow) row;
-          rowItems.add(new TreeItem<>(mrow));
-        }
-
-        TreeItem<ModularFeatureListRow> root = getRoot();
-        root.getChildren().addAll(filteredRowItems);
-
-        // reflect the changes to the feature list in the table
-        newValue.getRows().addListener(this);
+        updateFeatureList(oldValue, newValue);
       });
     });
+  }
+
+  /**
+   * Removes the listener to the old feature list, clears the table and adds the new feature list,
+   * builds the columns and adds required listeners.
+   */
+  private void updateFeatureList(@Nullable ModularFeatureList oldFeatureList,
+      @Nullable ModularFeatureList newFeatureList) {
+    getSelectionModel().clearSelection(); // leads to npe or index out of bound
+    // Clear old rows and old columns
+    getRoot().getChildren().clear();
+    getColumns().clear();
+    rowItems.clear();
+
+    // remove the old listener
+    if (oldFeatureList != null) {
+      oldFeatureList.getRows().removeListener(this);
+    }
+    if (newFeatureList == null) {
+      return;
+    }
+    addColumns(newFeatureList);
+    // first check if feature list is too large
+    applyDefaultColumnVisibilities();
+    if (newFeatureList.getNumberOfRawDataFiles() > getMaximumSamplesForVisibleShapes()) {
+      showCompactChromatographyColumns();
+    }
+
+    // add rows
+    for (FeatureListRow row : newFeatureList.getRows()) {
+      final ModularFeatureListRow mrow = (ModularFeatureListRow) row;
+      rowItems.add(new TreeItem<>(mrow));
+    }
+
+    TreeItem<ModularFeatureListRow> root = getRoot();
+    root.getChildren().addAll(filteredRowItems);
+
+    // reflect the changes to the feature list in the table
+    newFeatureList.getRows().addListener(this);
   }
 
   /**
@@ -992,8 +1009,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    */
   public void rebuild() {
     final ModularFeatureList flist = getFeatureList();
-    setFeatureList(null);
-    setFeatureList(flist);
+    final ModularFeatureListRow row = getSelectedRow();
+    getSelectionModel().clearSelection();
+    updateFeatureList(flist, flist);
+    FeatureTableFXUtil.selectAndScrollTo(row, this);
   }
 
   /**

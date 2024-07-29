@@ -123,7 +123,7 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
     initDragDropped();
   }
 
-  private File openSelectDialog(final List<File> lastFiles, final FileSelectionType type,
+  public File openSelectDialog(final List<File> lastFiles, final FileSelectionType type,
       final List<ExtensionFilter> filters) {
     // Create chooser.
     FileChooser fileChooser = new FileChooser();

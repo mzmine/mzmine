@@ -605,6 +605,11 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         .getModuleParameters(CorrelateGroupingModule.class).cloneParameterSet();
     param.setParameter(CorrelateGroupingParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+
+    // for now we set this to keep as this was the initial state before handle original parameter was added
+    // some workflows depend on the inital feature list to be present
+    param.setParameter(CorrelateGroupingParameters.handleOriginal, OriginalFeatureListOption.KEEP);
+
     param.setParameter(CorrelateGroupingParameters.RT_TOLERANCE,
         Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
     param.setParameter(CorrelateGroupingParameters.MIN_HEIGHT, 0d);

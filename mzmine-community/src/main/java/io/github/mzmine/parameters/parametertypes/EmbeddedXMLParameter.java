@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,48 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.histogram;
+package io.github.mzmine.parameters.parametertypes;
 
-import org.jfree.chart.axis.NumberAxis;
+import org.w3c.dom.CDATASection;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-public class HistogramDomainAxis extends NumberAxis {
+public class EmbeddedXMLParameter extends TextParameter {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private int visibleCount;
-  private double lowerTickValue, upperTickValue;
-
-  public HistogramDomainAxis() {
-    super();
-  }
-
-  public void setVisibleTickCount(int numOfTicks) {
-    this.visibleCount = numOfTicks;
-  }
-
-  public void setLowerTickValue(double lowerTickValue) {
-    this.lowerTickValue = lowerTickValue;
-  }
-
-  public void setUpperTickValue(double upperTickValue) {
-    this.upperTickValue = upperTickValue;
+  public EmbeddedXMLParameter(String name, String description) {
+    super(name, description);
   }
 
   @Override
-  protected int calculateVisibleTickCount() {
-    return this.visibleCount;
+  public void saveValueToXML(Element xmlElement) {
+    final Document doc = xmlElement.getOwnerDocument();
+    final CDATASection cdata = doc.createCDATASection(value);
+    xmlElement.appendChild(cdata);
   }
 
   @Override
-  protected double calculateLowestVisibleTickValue() {
-    return this.lowerTickValue;
+  public void loadValueFromXML(Element xmlElement) {
+    final NodeList childNodes = xmlElement.getChildNodes();
+    for (int i = 0; i < childNodes.getLength(); i++) {
+      final Node item = childNodes.item(i);
+      if (item instanceof CDATASection cdataSection) {
+        final String embeddedXML = cdataSection.getData();
+        value = embeddedXML;
+      }
+    }
   }
-
-  @Override
-  protected double calculateHighestVisibleTickValue() {
-    return this.upperTickValue;
-  }
-
 }

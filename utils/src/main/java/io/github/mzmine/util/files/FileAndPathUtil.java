@@ -560,6 +560,7 @@ public class FileAndPathUtil {
   }
 
 
+  @Nullable
   public static File getMzmineDir() {
     return USER_MZMINE_DIR;
   }
@@ -571,10 +572,10 @@ public class FileAndPathUtil {
     return new File(resolveInMzmineDir("external_resources"), name);
   }
 
+  @Nullable
   public static File resolveInMzmineDir(String name) {
     return new File(USER_MZMINE_DIR, name);
   }
-
 
   public static File getUniqueFilename(final File parent, final String fileName) {
     final File dir = parent.isDirectory() ? parent : parent.getParentFile();
@@ -694,5 +695,9 @@ public class FileAndPathUtil {
    */
   public static Path createTempDirectory(String name) throws IOException {
     return Files.createTempDirectory(MZMINE_TEMP_DIR.toPath(), name);
+  }
+
+  public static Path getWorkingDirectory() {
+    return Paths.get("").toAbsolutePath();
   }
 }

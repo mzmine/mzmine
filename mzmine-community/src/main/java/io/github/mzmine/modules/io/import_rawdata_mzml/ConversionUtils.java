@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
+import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -36,20 +37,38 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.otherdetectors.DetectorType;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
+import io.github.mzmine.datamodel.otherdetectors.OtherSpectralData;
+import io.github.mzmine.datamodel.otherdetectors.OtherSpectralDataImpl;
+import io.github.mzmine.datamodel.otherdetectors.OtherSpectrum;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
+import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
+import io.github.mzmine.datamodel.otherdetectors.WavelengthSpectrum;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV.DetectorCVs;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLChromatogram;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
 import java.nio.DoubleBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class ConversionUtils {
@@ -69,6 +88,21 @@ public class ConversionUtils {
 
   public static double[] convertFloatsToDoubles(float[] input) {
     return convertFloatsToDoubles(input, input.length);
+  }
+
+  public static float[] convertDoublesToFloats(double[] input, int length) {
+    if (input == null) {
+      return null; // Or throw an exception - your choice
+    }
+    float[] output = new float[length];
+    for (int i = 0; i < length; i++) {
+      output[i] = (float) input[i];
+    }
+    return output;
+  }
+
+  public static float[] convertDoublesToFloats(double[] input) {
+    return convertDoublesToFloats(input, input.length);
   }
 
   public static double[] convertIntsToDoubles(int[] input) {
@@ -113,6 +147,107 @@ public class ConversionUtils {
     };
   }
 
+  /**
+   * Convert other spectra to {@link OtherDataFile}s, creating one {@link OtherDataFile} per
+   * detector type. Currently, only absorption spectra are supported.
+   */
+  public static List<OtherDataFile> convertOtherSpectra(RawDataFile file,
+      List<BuildingMzMLMsScan> scans) {
+    if (scans.isEmpty()) {
+      return List.of();
+    }
+
+    final Map<String, DetectorCVs> accessions = Arrays.stream(DetectorCVs.values())
+        .collect(Collectors.toMap(DetectorCVs::getAccession, v -> v));
+
+    scans.stream().filter(Objects::nonNull);
+    final Map<DetectorCVs, List<BuildingMzMLMsScan>> accessionToScansMap = accessions.keySet()
+        .stream().collect(Collectors.toMap(accession -> accessions.get(accession), accession -> {
+          return scans.stream().<BuildingMzMLMsScan>mapMulti((scan, c) -> {
+            if (scan.getCVParams().getCVParamsList().stream()
+                .anyMatch(cvParam -> cvParam.getAccession().equals(accession))) {
+              c.accept(scan);
+            }
+          }).toList();
+        }));
+
+    if (accessionToScansMap.isEmpty()) {
+      logger.finest(() -> "No other detectors found in file %s".formatted(file.getName()));
+      return List.of();
+    }
+
+    List<OtherDataFile> otherDataFiles = new ArrayList<>();
+    for (Entry<DetectorCVs, List<BuildingMzMLMsScan>> accessionScansEntry : accessionToScansMap.entrySet()) {
+      switch (accessionScansEntry.getKey()) { // add more detectors here
+        case UV_SPECTRUM -> {
+          final OtherDataFile uvFile = createUvFile(file, accessionScansEntry.getValue());
+          if (uvFile != null) {
+            otherDataFiles.add(uvFile);
+          }
+        }
+        case FLUORESCENCE -> {
+          logger.warning(
+              () -> "Fluorescence spectra detected. Don't know how to parse yet. Please share this file with the developers.");
+        }
+      }
+    }
+    return otherDataFiles;
+  }
+
+  private static OtherDataFile createUvFile(RawDataFile file, List<BuildingMzMLMsScan> scans) {
+    if (scans.isEmpty()) {
+      return null;
+    }
+
+    final OtherDataFileImpl otherDataFile = new OtherDataFileImpl(file);
+    otherDataFile.setDescription("UV spectra");
+    otherDataFile.setDetectorType(DetectorType.PDA);
+
+    final BuildingMzMLMsScan scan = scans.getFirst();
+    final Optional<MzMLCVParam> cvLowestWavelength = scan.getCVParam(
+        MzMLCV.cvLowestObservedWavelength);
+    final Boolean isNanometer = cvLowestWavelength.map(
+        p -> p.getUnitAccession().orElse("").equals(MzMLCV.cvUnitsNanometer)).orElse(false);
+    final OtherSpectralDataImpl spectralData = new OtherSpectralDataImpl(otherDataFile);
+    spectralData.setSpectraDomainLabel("Wavelength");
+    if (isNanometer) {
+      spectralData.setSpectraDomainUnit("nm");
+    }
+
+    final Optional<MzMLCVParam> highestWavelength = scan.getCVParam(
+        MzMLCV.cvhighestObservedWavelength);
+    if (cvLowestWavelength.isPresent() && highestWavelength.isPresent()) {
+      otherDataFile.setDescription(
+          "UV spectra %s - %s %s".formatted(cvLowestWavelength.get().getValue(),
+              highestWavelength.get().getValue(), isNanometer ? "nm" : ""));
+    }
+
+    scans.stream().map(s -> toWavelengthSpectrum(spectralData, s)).filter(Objects::nonNull)
+        .forEach(spectralData::addSpectrum);
+    otherDataFile.setOtherSpectralData(spectralData);
+    return otherDataFile;
+  }
+
+  public static OtherSpectrum toWavelengthSpectrum(OtherSpectralData spectralData,
+      BuildingMzMLMsScan scan) {
+    if (!scan.isUVSpectrum()) {
+      throw new RuntimeException("Spectrum is not an UV spectrum");
+    }
+    if (!scan.getCVParams().getCVParamsList().stream()
+        .anyMatch(param -> param.getAccession().equals(MzMLCV.cvUVSpectrum))) {
+      throw new RuntimeException("CV param for UV spectra not found.");
+    }
+
+    final MassSpectrumType spectrumType = scan.getSpectrumType();
+
+    final DoubleBuffer wavelengthValues = scan.getWavelengthValues();
+    final DoubleBuffer intensityValues = scan.getDoubleBufferIntensityValues();
+
+    final WavelengthSpectrum spectrum = new WavelengthSpectrum(spectralData, wavelengthValues,
+        intensityValues, spectrumType, scan.getRetentionTime());
+
+    return spectrum;
+  }
 
   public static Scan mzmlScanToSimpleScan(final RawDataFile dataFile,
       final BuildingMzMLMsScan scan) {
@@ -236,6 +371,61 @@ public class ConversionUtils {
         }
       }
     }
+  }
+
+  /**
+   * Converts chromatograms from the MZML and groups them into one {@link OtherDataFile} per
+   * chromatogram type. E.g. all pressure, all PDA or all UV chromatograms will be in one file.
+   *
+   */
+  public static List<OtherDataFile> convertOtherTraces(RawDataFile file,
+      List<Chromatogram> chromatograms) {
+
+    final Map<ChromatogramType, List<MzMLChromatogram>> groupedChromatograms = chromatograms.stream()
+        .filter(c -> c instanceof MzMLChromatogram).map(c -> (MzMLChromatogram) c)
+        .collect(Collectors.groupingBy(ConversionUtils::getChromatogramType));
+
+    List<OtherDataFile> otherFiles = new ArrayList<>();
+
+    for (Entry<ChromatogramType, List<MzMLChromatogram>> grouped : groupedChromatograms.entrySet()) {
+      final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
+      final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
+      otherFile.setDetectorType(DetectorType.OTHER);
+
+      timeSeriesData.setChromatogramType(grouped.getKey());
+      otherFile.setDescription(grouped.getKey().getDescription());
+
+      for (MzMLChromatogram chrom : grouped.getValue()) {
+        final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
+            file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
+            chrom.getId(), timeSeriesData);
+
+        timeSeriesData.addTimeSeries(timeSeries);
+
+        final String unitAccession = chrom.getIntensityBinaryDataInfo().getUnitAccession();
+        final MzMLUnits unit = MzMLUnits.ofAccession(unitAccession);
+        final String currentUnit = timeSeriesData.getTimeSeriesRangeUnit();
+        if (!currentUnit.equals(OtherDataFileImpl.DEFAULT_UNIT) && !currentUnit.equals(
+            unit.getSign())) {
+          logger.severe(
+              () -> "Chromatogram units in file %s do not match.".formatted(file.getName()));
+        } else {
+          timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
+          timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
+        }
+      }
+      otherFile.setOtherTimeSeriesData(timeSeriesData);
+      otherFiles.add(otherFile);
+    }
+
+    return otherFiles;
+  }
+
+  private static @NotNull ChromatogramType getChromatogramType(MzMLChromatogram c) {
+    return c.getCVParams().getCVParamsList().stream()
+        .filter(cv -> ChromatogramType.ofAccession(cv.getAccession()) != ChromatogramType.UNKNOWN)
+        .map(cv -> ChromatogramType.ofAccession(cv.getAccession())).findFirst()
+        .orElse(ChromatogramType.UNKNOWN);
   }
 
 

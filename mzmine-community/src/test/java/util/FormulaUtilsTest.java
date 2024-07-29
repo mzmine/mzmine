@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -81,11 +81,11 @@ public class FormulaUtilsTest {
         MolecularFormulaManipulator.getString(n3));
 
     final IMolecularFormula n4 = FormulaUtils.neutralizeFormulaWithHydrogen(
-        FormulaUtils.getFomulaFromSmiles("OC(O1)C(O)C(O)C(O)C1CO"));
+        FormulaUtils.getFormulaFromSmiles("OC(O1)C(O)C(O)C(O)C1CO"));
     final IMolecularFormula n5 = FormulaUtils.neutralizeFormulaWithHydrogen(
-        FormulaUtils.getFomulaFromSmiles("OC(O1)C(O)C(O)C([OH2+])C1CO"));
+        FormulaUtils.getFormulaFromSmiles("OC(O1)C(O)C(O)C([OH2+])C1CO"));
     final IMolecularFormula n6 = FormulaUtils.neutralizeFormulaWithHydrogen(
-        FormulaUtils.getFomulaFromSmiles("OC(O1)C(O)C(O)C([O-])C1CO"));
+        FormulaUtils.getFormulaFromSmiles("OC(O1)C(O)C(O)C([O-])C1CO"));
 
     Assertions.assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
         MolecularFormulaManipulator.getString(n4));

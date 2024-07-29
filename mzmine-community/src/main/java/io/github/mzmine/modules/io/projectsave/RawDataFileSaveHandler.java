@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.ZipUtils;
@@ -105,6 +106,11 @@ public class RawDataFileSaveHandler extends AbstractTask {
 
   public static String getZipPath(@NotNull RawDataFile file, @Nullable String prefix,
       @Nullable String suffix) {
+    return getZipPath(file.getAbsoluteFilePath(), prefix, suffix);
+  }
+
+  public static String getZipPath(@NotNull File file, @Nullable String prefix,
+      @Nullable String suffix) {
     StringBuilder path = new StringBuilder();
     if (prefix != null) {
       path.append(prefix);
@@ -121,6 +127,10 @@ public class RawDataFileSaveHandler extends AbstractTask {
   }
 
   public static String getZipPath(RawDataFile file) {
+    return getZipPath(file, null, null);
+  }
+
+  public static String getZipPath(File file) {
     return getZipPath(file, null, null);
   }
 
@@ -198,23 +208,35 @@ public class RawDataFileSaveHandler extends AbstractTask {
       if (f.isDirectory()) {
         ZipUtils.zipDirectory(zipStream, f, getZipPath(file));
       } else {
-        String zipPath = getZipPath(file);
         try {
-          zipStream.putNextEntry(new ZipEntry(zipPath));
+          String zipPath = getZipPath(file);
+          copyToZip(file.getAbsoluteFilePath(), zipPath);
+
+          for (File additional : RawDataFileType.getAdditionalRequiredFiles(file)) {
+            if (!additional.exists() || !additional.canRead()) {
+              throw new RuntimeException(
+                  "Required file %s for raw file %s does not exist.".formatted(
+                      additional.getAbsolutePath(), file.getAbsolutePath()));
+            }
+            copyToZip(additional, getZipPath(additional));
+          }
         } catch (ZipException e) {
           // this might happen in case fo duplicate files
           logger.info(e::getMessage);
           continue;
         }
-
-        FileInputStream inputStream = new FileInputStream(file.getAbsolutePath());
-        StreamCopy cpy = new StreamCopy();
-        cpy.copy(inputStream, zipStream);
-        inputStream.close();
       }
 
       progress += stepProgress;
     }
+  }
+
+  private void copyToZip(File actualFile, String zipPath) throws IOException {
+    zipStream.putNextEntry(new ZipEntry(zipPath));
+    FileInputStream inputStream = new FileInputStream(actualFile);
+    StreamCopy cpy = new StreamCopy();
+    cpy.copy(inputStream, zipStream);
+    inputStream.close();
   }
 
   /**
