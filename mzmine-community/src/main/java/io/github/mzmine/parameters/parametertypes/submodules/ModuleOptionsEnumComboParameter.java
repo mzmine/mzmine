@@ -226,4 +226,14 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
     return ParameterUtils.equalValues(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(),
         false, false);
   }
+
+  /**
+   * @return method to retrieve value and parameters
+   */
+  public ValueWithParameters<EnumType> getValueWithParameters() {
+    var value = getValue();
+    var params = getEmbeddedParameters();
+    return new ValueWithParameters<>(value, params);
+  }
+
 }

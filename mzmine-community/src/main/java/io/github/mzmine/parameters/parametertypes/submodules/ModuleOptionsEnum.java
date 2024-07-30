@@ -31,9 +31,9 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.Optional;
 
-public interface ModuleOptionsEnum {
+public interface ModuleOptionsEnum<MODULE extends MZmineModule> {
 
-  Class<? extends MZmineModule> getModuleClass();
+  Class<? extends MODULE> getModuleClass();
 
   /**
    * Stable ID for save and load. Should not change
@@ -72,7 +72,7 @@ public interface ModuleOptionsEnum {
     return Optional.empty();
   }
 
-  default MZmineModule getModuleInstance() {
+  default MODULE getModuleInstance() {
     return MZmineCore.getModuleInstance(getModuleClass());
   }
 

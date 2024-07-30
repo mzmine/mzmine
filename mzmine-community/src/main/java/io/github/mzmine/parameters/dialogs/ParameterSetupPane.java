@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComponent;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -227,12 +228,19 @@ public class ParameterSetupPane extends BorderPane {
 
   /**
    * Embedded parameter setup pane without scroll pane and with all components initialized
+   *
+   * @param onParametersChanged run this method if parameters change through their components
    */
   @NotNull
   public static ParameterSetupPane createEmbedded(final boolean valueCheckRequired,
-      final ParameterSet parameters) {
+      final ParameterSet parameters, Runnable onParametersChanged) {
     return new ParameterSetupPane(valueCheckRequired, parameters, false, false, null, true, false,
-        false);
+        false) {
+      @Override
+      protected void parametersChanged() {
+        onParametersChanged.run();
+      }
+    };
   }
 
   public BorderPane getCenterPane() {
@@ -432,26 +440,22 @@ public class ParameterSetupPane extends BorderPane {
     if (node instanceof TextField textField) {
       textField.textProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
-    }
-    if (node instanceof ComboBox<?> comboComp) {
+    } else if (node instanceof ComboBox<?> comboComp) {
       comboComp.valueProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
-    }
-    if (node instanceof ChoiceBox) {
+    } else if (node instanceof ChoiceBox) {
       ChoiceBox<?> choiceBox = (ChoiceBox) node;
       choiceBox.valueProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
-    }
-    if (node instanceof CheckBox checkBox) {
+    } else if (node instanceof CheckBox checkBox) {
       checkBox.selectedProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
-    }
-    if (node instanceof ListView listview) {
+    } else if (node instanceof ListView listview) {
       listview.getItems().addListener((ListChangeListener) change -> parametersChanged());
-    }
-    if (node instanceof Region panelComp) {
-      for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
-        Node child = panelComp.getChildrenUnmodifiable().get(i);
+    } else if (node instanceof ModuleOptionsEnumComponent<?> options) {
+      options.addSubParameterChangedListener(this::parametersChanged);
+    } else if (node instanceof Region panelComp) {
+      for (final Node child : panelComp.getChildrenUnmodifiable()) {
         addListenersToNode(child);
       }
     }

@@ -50,7 +50,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderMo
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
@@ -917,8 +916,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     // use factor of lowest or auto mass detector
     // factor of lowest only works on centroid for now
-    MZmineProcessingStep<MassDetector> massDetectorStep = massDetectorOption.getValueType()
-        .createMassDetectorStep(getNoiseLevelForMsLevel(msLevel, scanTypes));
+    var mdParams = massDetectorOption.getValueType()
+        .createMassDetectorParameters(getNoiseLevelForMsLevel(msLevel, scanTypes));
 
     // set the main parameters
     final ParameterSet param = MZmineCore.getConfiguration()
@@ -940,7 +939,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
           .setValue(true, new ScanSelection(MsLevelFilter.ALL_LEVELS));
     }
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
-    param.setParameter(MassDetectionParameters.massDetector, massDetectorStep);
+    param.getParameter(MassDetectionParameters.massDetector)
+        .setValue(mdParams.value(), mdParams.parameters());
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MassDetectionModule.class),
         param));
