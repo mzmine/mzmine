@@ -54,10 +54,10 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.FeatureSmoothingOptions;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolaySmoothing;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
@@ -996,9 +996,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         .getModuleParameters(SmoothingModule.class).cloneParameterSet();
     param.setParameter(SmoothingParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(SmoothingParameters.handleOriginal, handleOriginalFeatureLists);
+    param.setParameter(SmoothingParameters.suffix, "sm");
 
-    ParameterSet sgParam = MZmineCore.getConfiguration()
-        .getModuleParameters(SavitzkyGolaySmoothing.class).cloneParameterSet();
+    param.getParameter(SmoothingParameters.smoothingAlgorithm)
+        .setValue(FeatureSmoothingOptions.SAVITZKY_GOLAY);
+
+    var sgParam = param.getEmbeddedParameterValue(SmoothingParameters.smoothingAlgorithm);
     sgParam.setParameter(SavitzkyGolayParameters.rtSmoothing, rt);
     sgParam.getParameter(SavitzkyGolayParameters.rtSmoothing).getEmbeddedParameter()
         .setValue(minRtDataPoints < 6 ? 5 : Math.min(21, minRtDataPoints / 2 * 2 + 1));
@@ -1006,12 +1010,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // next odd number
     sgParam.getParameter(SavitzkyGolayParameters.mobilitySmoothing).getEmbeddedParameter()
         .setValue(minImsDataPoints < 6 ? 5 : Math.min(21, minImsDataPoints / 2 * 2 + 1));
-
-    param.getParameter(SmoothingParameters.smoothingAlgorithm).setValue(
-        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SavitzkyGolaySmoothing.class),
-            sgParam));
-    param.setParameter(SmoothingParameters.handleOriginal, handleOriginalFeatureLists);
-    param.setParameter(SmoothingParameters.suffix, "sm");
 
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SmoothingModule.class), param);

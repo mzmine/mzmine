@@ -82,7 +82,6 @@ public class ParameterSetupPane extends BorderPane {
   protected final Region footerMessage;
   // the centerPane is empty and used as the main container for all parameter components
   protected final BorderPane mainPane;
-  protected final ScrollPane mainScrollPane;
   protected final BorderPane centerPane;
   // If true, the dialog won't allow the OK button to proceed, unless all
   // parameters pass the value check. This is undesirable in the BatchMode
@@ -130,6 +129,16 @@ public class ParameterSetupPane extends BorderPane {
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
       boolean addOkButton, boolean addCancelButton, Region message, boolean addParamComponents,
       boolean addHelp) {
+    this(valueCheckRequired, parameters, addOkButton, addCancelButton, message, addParamComponents,
+        addHelp, true);
+  }
+
+  /**
+   * Method to display setup dialog with a html-formatted footer message at the bottom.
+   */
+  public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
+      boolean addOkButton, boolean addCancelButton, Region message, boolean addParamComponents,
+      boolean addHelp, boolean addScrollPane) {
     this.valueCheckRequired = valueCheckRequired;
     this.parameterSet = parameters;
     this.helpURL = parameters.getClass().getResource("help/help.html");
@@ -143,12 +152,16 @@ public class ParameterSetupPane extends BorderPane {
 
     centerPane = new BorderPane();
 
-    mainScrollPane = new ScrollPane(centerPane);
-    // mainScrollPane.setStyle("-fx-border-color: red;");
-    mainScrollPane.setFitToWidth(true);
-    mainScrollPane.setFitToHeight(true);
-    mainScrollPane.setPadding(new Insets(10.0));
-    mainPane.setCenter(mainScrollPane);
+    if (addScrollPane) {
+      ScrollPane mainScrollPane = new ScrollPane(centerPane);
+      // mainScrollPane.setStyle("-fx-border-color: red;");
+      mainScrollPane.setFitToWidth(true);
+      mainScrollPane.setFitToHeight(true);
+      mainScrollPane.setPadding(new Insets(10.0));
+      mainPane.setCenter(mainScrollPane);
+    } else {
+      mainPane.setCenter(centerPane);
+    }
 
     // Add buttons to the ButtonBar
     pnlButtons = new ButtonBar();
@@ -210,6 +223,16 @@ public class ParameterSetupPane extends BorderPane {
 
 //    setMinWidth(500.0);
 //    setMinHeight(400.0);
+  }
+
+  /**
+   * Embedded parameter setup pane without scroll pane and with all components initialized
+   */
+  @NotNull
+  public static ParameterSetupPane createEmbedded(final boolean valueCheckRequired,
+      final ParameterSet parameters) {
+    return new ParameterSetupPane(valueCheckRequired, parameters, false, false, null, true, false,
+        false);
   }
 
   public BorderPane getCenterPane() {
@@ -322,7 +345,7 @@ public class ParameterSetupPane extends BorderPane {
       rowConstraints.setVgrow(up.getComponentVgrowPriority());
       if (comp instanceof FullColumnComponent) {
         paramsPane.add(comp, 0, rowCounter, 2, 1);
-//        rowConstraints.setVgrow(Priority.SOMETIMES);
+//        rowConstraints.setVgrow(Priority.NEVER);
       } else {
         paramsPane.add(label, 0, rowCounter);
         paramsPane.add(comp, 1, rowCounter, 1, 1);

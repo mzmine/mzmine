@@ -84,7 +84,7 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
 
       var embeddedParameters = parametersMap.get(newValue);
       // use internal parameter pane
-      paramPane = new ParameterSetupPane(true, embeddedParameters, false, false, null, true, false);
+      paramPane = ParameterSetupPane.createEmbedded(true, embeddedParameters);
       paramHolder.setCenter(paramPane);
     });
 
