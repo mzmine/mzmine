@@ -25,21 +25,31 @@
 
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
-import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule;
+import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerParameters;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.Comparators;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
@@ -47,21 +57,49 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.Weights;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public class DatabaseIsotopeRefinerScanBased {
+public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
 
 
   private static final Logger logger = Logger.getLogger(
       DatabaseIsotopeRefinerScanBased.class.getName());
+  /**
+   * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
+   *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
+   *                       stored in ram. For now, one storage should be created per module call in
+   *                       {@link
+   *                       MZmineRunnableModule(MZmineProject,
+   *                       ParameterSet, Instant)}.
+   * @param moduleCallDate
+   */
+  protected DatabaseIsotopeRefinerScanBased(@Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
+  }
+
+  @Override
+  public Instant getModuleCallDate() {
+    return super.getModuleCallDate();
+  }
+  public class ModuleDate {
+    public void getModuleCallDate (){
+      getModuleCallDate();
+    }
+  }
+  private final ModuleDate date = new ModuleDate();
+
 
   /**
    * Apply isotope scoring to filter annotations. Uses cosine similarity to match predicted and
@@ -81,14 +119,34 @@ public class DatabaseIsotopeRefinerScanBased {
     }
   }
 
-  public static void refineAnnotationsByIsotopesDifferentResolutions(List<FeatureListRow> rows, MZTolerance mzTolerance,
-      double minIntensity, double minIsotopeScore) {
-    Map<IMolecularFormula, Map<Double,IsotopePattern>> ionIsotopePatternMap = new HashMap<>();
-    for (final FeatureListRow row : rows) {
-      refineAnnotationsByIsotopesDifferentResolutions(row, mzTolerance, minIntensity, minIsotopeScore,
-          ionIsotopePatternMap);
+  public void refineAnnotationsByIsotopesDifferentResolutions(ParameterSet parameters,
+      MZmineProject project, FeatureList peakList, List<FeatureListRow> rows,
+      MZTolerance mzTolerance, io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance rtTolerance, double minIntensity, double minIsotopeScore, boolean removeIsotopes, String suffix) {
+    TreeMap<Integer, FeatureListRow> reducedList = new TreeMap<>();
+    Map<IMolecularFormula, Map<Double, IsotopePattern>> ionIsotopePatternMap = new HashMap<>();
+    for ( FeatureListRow row : rows){
+      reducedList.put(row.getID(),row);
     }
+
+    for ( FeatureListRow row : rows) {
+      refineAnnotationsByIsotopesDifferentResolutions(row, mzTolerance, minIntensity,
+          minIsotopeScore, ionIsotopePatternMap);
+    }
+    for ( FeatureListRow row : rows) {
+      if (removeIsotopes){
+        reducedList = removeIsotopes(reducedList, row, rtTolerance);
+      }
+    }
+    ModularFeatureList resultPeakList = new ModularFeatureList(peakList.getName() + " " + suffix,getMemoryMapStorage(),peakList.getRawDataFiles() );
+    for (Integer key : reducedList.keySet()) {
+      ModularFeatureListRow bestRow = new ModularFeatureListRow(resultPeakList, key, (ModularFeatureListRow) reducedList.get(key), true);
+      resultPeakList.addRow(bestRow);
+    }
+    addResultToProject(resultPeakList, project, parameters);
+
   }
+
+
 
   /**
    * Apply isotope scoring to filter annotations. Uses cosine similarity to match predicted and
@@ -165,9 +223,9 @@ public class DatabaseIsotopeRefinerScanBased {
     row.setCompoundAnnotations(remainingAnnotations);
   }
 
-  public static void refineAnnotationsByIsotopesDifferentResolutions(FeatureListRow row, MZTolerance mzTolerance,
-      double minIntensity, double minIsotopeScore,
-      Map<IMolecularFormula, Map <Double,IsotopePattern>> ionIsotopePatternMap) {
+  public static void refineAnnotationsByIsotopesDifferentResolutions(FeatureListRow row,
+      MZTolerance mzTolerance, double minIntensity, double minIsotopeScore,
+      Map<IMolecularFormula, Map<Double, IsotopePattern>> ionIsotopePatternMap) {
     var measuredPattern = row.getBestIsotopePattern();
     // patterns might be split by charge
     Int2ObjectMap<DataPoint[]> chargeIsotopeMap = new Int2ObjectArrayMap<>();
@@ -301,6 +359,62 @@ public class DatabaseIsotopeRefinerScanBased {
     annotation.put(IsotopePatternScoreType.class, finalScore);
     return finalScore;
   }
+
+  // Removes the features of the isotopic signals from database matches, so that only the
+  // monoisotopic signals of the found components are listed
+  public static TreeMap <Integer, FeatureListRow> removeIsotopes  (TreeMap <Integer, FeatureListRow> rows, FeatureListRow row, RTTolerance RTTolerance) {
+    TreeMap <Integer, FeatureListRow > newList = new TreeMap <>();
+
+    if(row.getBestFeature().getIsotopePattern() ==null || row.getCompoundAnnotations().isEmpty()){
+      return rows;
+    }
+
+    for (int actualRow: rows.keySet()){
+      if (row.getBestFeature().getIsotopePattern().getDataPointMZRange().contains(rows.get(actualRow).getAverageMZ())&&
+          RTTolerance.checkWithinTolerance(rows.get(actualRow).getAverageRT(), row.getAverageRT())&& rows.get(actualRow).getCompoundAnnotations().isEmpty()
+      ) {
+        continue;
+      }
+      newList.put(actualRow, rows.get(actualRow));
+    }
+    return newList;
+  }
+
+  public void addResultToProject(ModularFeatureList resultPeakList, MZmineProject project,
+      ParameterSet parameters) {
+    // Add new peakList to the project
+    project.addFeatureList(resultPeakList);
+
+    //   Load previous applied methods
+    for (FeatureListAppliedMethod proc : resultPeakList.getAppliedMethods()) {
+      resultPeakList.addDescriptionOfAppliedTask(proc);
+    }
+
+    // Add task description to peakList
+    resultPeakList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("IsotopePeakScanner", IsotopePeakScannerModule.class,
+            parameters, moduleCallDate));
+  }
+
+
+  @Override
+  public String getTaskDescription() {
+    return null;
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return 0;
+  }
+
+  @Override
+  public void run() {
+
+  }
+  public MemoryMapStorage getMemoryMapStorage() {
+    return storage;
+  }
+
 }
 
 

@@ -25,12 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -40,8 +43,11 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDa
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
@@ -53,11 +59,14 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.IsotopesUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.scans.SpectraMerging;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -83,6 +92,7 @@ class IsotopeFinderTask extends AbstractTask {
   private final MZTolerance isoMzTolerance;
   private final int isotopeMaxCharge;
   private final List<Element> isotopeElements;
+  private final Boolean mergedMobilityScans;
   private final String isotopes;
   private final ScanRange scanRange;
   private int processedRows, totalRows;
@@ -100,6 +110,7 @@ class IsotopeFinderTask extends AbstractTask {
     isotopeMaxCharge = parameters.getValue(IsotopeFinderParameters.maxCharge);
     isoMzTolerance = parameters.getValue(IsotopeFinderParameters.isotopeMzTolerance);
     isotopes = isotopeElements.stream().map(Objects::toString).collect(Collectors.joining(","));
+    mergedMobilityScans = parameters.getValue(IsotopeFinderParameters.mergedMobilityScan);
   }
 
   @Override
@@ -177,7 +188,12 @@ class IsotopeFinderTask extends AbstractTask {
         }
 
         double mz = feature.getMZ();
-        scan = findBestScanOrMobilityScan(scans, mobScans, feature);
+        if (mergedMobilityScans){
+          scan = findBestScanOrMergedMobilityScan(scans, Objects.requireNonNull(feature), isoMzTolerance);
+        }
+        else {
+          scan = findBestScanOrMobilityScan(scans, mobScans, feature);
+        }
 
         // find candidate isotope pattern in max scan
         // for each charge state to determine best charge
@@ -331,14 +347,14 @@ class IsotopeFinderTask extends AbstractTask {
   private Scan findBestScanOrMobilityScan(ScanDataAccess scans, MobilityScanDataAccess mobScans,
       Feature feature) {
 
-    final Scan maxScan = feature.getRepresentativeScan();
-    final int scanIndex = scans.indexOf(maxScan);
+    Scan maxScan = feature.getRepresentativeScan();
+    int scanIndex = scans.indexOf(maxScan);
     scans.jumpToIndex(scanIndex);
 
-    final boolean mobility = feature.getMobility() != null;
+    boolean mobility = feature.getMobility() != null;
     MobilityScan mobilityScan = null;
     if (mobility && mobScans != null) {
-      final MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(feature);
+      MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(feature);
       if (bestMobilityScan != null) {
         mobilityScan = mobScans.jumpToMobilityScan(bestMobilityScan);
       }
@@ -346,6 +362,48 @@ class IsotopeFinderTask extends AbstractTask {
 
     return mobilityScan != null ? mobScans : scans;
   }
+
+  private Scan findBestScanOrMergedMobilityScan(ScanDataAccess scans,
+      Feature feature, MZTolerance mzTolerance) {
+
+
+    final Scan maxScan = feature.getRepresentativeScan();
+    final int scanIndex = scans.indexOf(maxScan);
+    scans.jumpToIndex(scanIndex);
+    final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
+    final boolean mobility = feature.getMobility() != null;
+    ModularFeature modFeature = new ModularFeature(featureList, feature);
+
+        if (mobility && featureData instanceof IonMobilogramTimeSeries imsData) {
+          MergedMassSpectrum mergedMobilityScan = null;
+          final Range<Float> mobilityFWHM = IonMobilityUtils.getMobilityFWHM(imsData.getSummedMobilogram());
+          final List <MobilityScan> mobilityScans = imsData.getMobilograms().stream()
+              .flatMap(s -> ( s.getSpectra().stream()))
+              .filter(m -> {
+                assert mobilityFWHM != null;
+                return mobilityFWHM.contains((float) m.getMobility());
+              }).toList();
+          if (!mobilityScans.isEmpty()) {
+            mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans, mzTolerance,
+                MergingType.ALL_ENERGIES, null);
+            return mergedMobilityScan;
+          }
+//          if (mobilityFWHM != null && feature.getRawDataFile() != null) {
+//            MemoryMapStorage storage = MemoryMapStorage.create();
+//            final MergedMassSpectrum mergedMobilityScan = SpectraMerging.extractSummedMobilityScan(modFeature, mzTolerance,
+//                mobilityFWHM, rtTolerance.getToleranceRange(feature.getRT()), storage);
+//            if (mergedMobilityScan != null) {
+//              return mergedMobilityScan;
+//            }
+//          }
+        }
+
+    return scans;
+  }
+
+
+
+
 
   @Nullable
   private MobilityScanDataAccess initMobilityScanDataAccess(RawDataFile raw) {

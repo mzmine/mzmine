@@ -56,6 +56,7 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
   private double minIntensity;
   private XYSeries above;
   private XYSeries below;
+
   private double width;
   private List<String> descrBelow, descrAbove;
   private IntervalXYDelegate intervalDelegate;
@@ -104,6 +105,46 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
         assignment[i].id = i;
         above.add(pattern.getMzValue(i), pattern.getIntensityValue(i));
         descrAbove.add(pattern.getIsotopeComposition(i));
+      }
+    }
+
+    this.intervalDelegate = new IntervalXYDelegate(this);
+    this.intervalDelegate.setFixedIntervalWidth(width);
+    super.addSeries(above);
+    super.addSeries(below);
+  }
+  int allDataPoints=0;
+  int counter =0;
+  public ExtendedIsotopePatternDataSet(SimpleIsotopePattern [] patterns, double minIntensity,
+      double width) {
+    // super(pattern.getDescription(), pattern.getDataPoints());
+    above = new XYSeries("Above minimum intensity");
+    below = new XYSeries("Below minimum intensity");
+    descrBelow = new ArrayList<String>();
+    descrAbove = new ArrayList<String>();
+    for (SimpleIsotopePattern pattern:patterns ) {
+      this.pattern =pattern;
+      this.setMinIntensity(minIntensity);
+      allDataPoints+=pattern.getNumberOfDataPoints();
+    }
+    assignment = new Assignment[allDataPoints];
+    for (int i = 0; i < assignment.length; i++) {
+      assignment[i] = new Assignment();
+    }
+    for (SimpleIsotopePattern pattern:patterns ) {
+      for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
+        if (pattern.getIntensityValue(i) < minIntensity) {
+          assignment[counter].ab = AB.BELOW;
+          assignment[counter].id = counter;
+          below.add(pattern.getMzValue(i), pattern.getIntensityValue(i));
+          descrBelow.add(pattern.getIsotopeComposition(i));
+        } else {
+          assignment[counter].ab = AB.ABOVE;
+          assignment[counter].id = counter;
+          above.add(pattern.getMzValue(i), pattern.getIntensityValue(i));
+          descrAbove.add(pattern.getIsotopeComposition(i));
+        }
+        counter+=1;
       }
     }
 

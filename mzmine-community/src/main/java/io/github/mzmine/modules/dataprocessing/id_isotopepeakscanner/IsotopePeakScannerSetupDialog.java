@@ -75,9 +75,10 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private NumberFormat intFormat = new DecimalFormat("0.00 %");
 
-  private double minIntensity, mergeWidth;
+  private double minIntensity, mergeWidth, minIsotopePatternScore;
   private int charge, minSize, minC, maxC;
   private String element;
+  private String [] elements;
   private boolean autoCarbon;
 
   private EChartViewer pnlChart;
@@ -100,7 +101,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
   // relevant parameters
   private IntegerParameter pMinC, pMaxC, pMinSize, pCharge;
   private StringParameter pElement;
-  private DoubleParameter pMinIntensity, pMergeWidth;
+  private DoubleParameter pMinIntensity, pMergeWidth, pminIsotopePatternScore;
   private OptionalModuleParameter pAutoCarbon;
 
   private ExtendedIsotopePatternDataSet dataset;
@@ -151,6 +152,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     pMinC = autoCarbonParameters.getParameter(AutoCarbonParameters.minCarbon);
     pMaxC = autoCarbonParameters.getParameter(AutoCarbonParameters.maxCarbon);
     pMinSize = autoCarbonParameters.getParameter(AutoCarbonParameters.minPatternSize);
+    pminIsotopePatternScore = parameterSet.getParameter(IsotopePeakScannerParameters.minIsotopePatternScore);
 
     // set up gui
     /*
@@ -206,11 +208,10 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
 
   }
 
-
-  @Override
-  protected void parametersChanged() {
-    updatePreview();
-  }
+//   @Override
+//  protected void parametersChanged() {
+//    updatePreview();
+//  }
 
   // -----------------------------------------------------
   // methods
@@ -222,18 +223,18 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
       return;
     }
 
-    SimpleIsotopePattern pattern = calculateIsotopePattern();
-    if (pattern == null) {
+    SimpleIsotopePattern [] patterns = calculateIsotopePattern();
+    if (patterns== null) {
       logger.warning("Could not calculate isotope pattern. Please check the parameters.");
       return;
     }
-
-    updateChart(pattern);
+    updateChart(patterns);
   }
 
-  private void updateChart(SimpleIsotopePattern pattern) {
-    dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
+  private void updateChart(SimpleIsotopePattern [] patterns) {
+    dataset = new ExtendedIsotopePatternDataSet(patterns, minIntensity, mergeWidth);
     chart.getXYPlot().setDataset(dataset);
+
     formatChart();
 //    pnlChart.setChart(chart);
   }
@@ -246,10 +247,16 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
       logger.info("updateParameters() failed due to invalid input.");
       return false;
     }
-
     element = pElement.getValue();
+    if (element.contains(",")) {
+      elements = element.split(",");
+    } else {
+      elements = new String[1];
+      elements[0] = element;
+    }
     mergeWidth = pMergeWidth.getValue();
     minIntensity = pMinIntensity.getValue();
+    minIsotopePatternScore = pminIsotopePatternScore.getValue();
     charge = pCharge.getValue();
 
     if (autoCarbon) {
@@ -281,14 +288,19 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
 
   private boolean checkParameters() {
     if (/* pElement.getValue().equals("") */pElement.getValue() == null || (
-        pElement.getValue().equals("") && !autoCarbon) || pElement.getValue().contains(" ")
-        || !FormulaUtils.checkMolecularFormula(pElement.getValue())) {
+        pElement.getValue().equals("") && !autoCarbon) || pElement.getValue().contains(" ")){
+//        || !FormulaUtils.checkMolecularFormula(pElement.getValue())) {
       logger.info("Invalid input or Element == \"\" and no autoCarbon or invalid formula.");
       return false;
     }
     if (pMinIntensity.getValue() == null || pMinIntensity.getValue() > 1.0d
         || pMinIntensity.getValue() < 0.0d) {
       logger.info("Minimum intensity invalid. " + pMinIntensity.getValue());
+      return false;
+    }
+    if (pminIsotopePatternScore.getValue() == null || pminIsotopePatternScore.getValue() > 1.0d
+        || pMinIntensity.getValue() < 0.0d) {
+      logger.info("Minimum score invalid. " + pminIsotopePatternScore.getValue());
       return false;
     }
     if (pCharge.getValue() == null || pCharge.getValue() == 0) {
@@ -304,37 +316,41 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     return true;
   }
 
-  private SimpleIsotopePattern calculateIsotopePattern() {
+  private SimpleIsotopePattern [] calculateIsotopePattern() {
     if (!checkParameters()) {
       return null;
     }
+    SimpleIsotopePattern[] patterns = new SimpleIsotopePattern[elements.length];
+    int i = 0;
+    for (String element : elements) {
+      String strPattern = "";
+      int currentCarbonPattern = Integer.parseInt(txtCurrentPatternIndex.getText());
 
-    String strPattern = "";
-    int currentCarbonPattern = Integer.parseInt(txtCurrentPatternIndex.getText());
+      if (autoCarbon) {
+        strPattern = "C" + String.valueOf(currentCarbonPattern) + element;
+      } else {
+        strPattern = element;
+      }
 
-    if (autoCarbon) {
-      strPattern = "C" + String.valueOf(currentCarbonPattern) + element;
-    } else {
-      strPattern = element;
+      if (strPattern.equals("")) {
+        return null;
+      }
+      logger.info("Calculating isotope pattern: " + strPattern);
+
+      SimpleIsotopePattern pattern;
+      PolarityType pol = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
+      charge = (charge > 0) ? charge : charge * -1;
+      try {
+        // *0.2 so the user can see the peaks below the threshold
+        pattern = (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(strPattern, minIntensity * 0.1, mergeWidth, charge, pol, true);
+      } catch (Exception e) {
+        logger.warning("The entered Sum formula is invalid.");
+        return null;
+      }
+      patterns[i] = pattern;
+      i += 1;
     }
-
-    if (strPattern.equals("")) {
-      return null;
-    }
-    logger.info("Calculating isotope pattern: " + strPattern);
-
-    SimpleIsotopePattern pattern;
-    PolarityType pol = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
-    charge = (charge > 0) ? charge : charge * -1;
-    try {
-      // *0.2 so the user can see the peaks below the threshold
-      pattern = (SimpleIsotopePattern) IsotopePatternCalculator
-          .calculateIsotopePattern(strPattern, minIntensity * 0.1, mergeWidth, charge, pol, true);
-    } catch (Exception e) {
-      logger.warning("The entered Sum formula is invalid.");
-      return null;
-    }
-    return pattern;
+    return patterns;
   }
 
   private void formatChart() {
