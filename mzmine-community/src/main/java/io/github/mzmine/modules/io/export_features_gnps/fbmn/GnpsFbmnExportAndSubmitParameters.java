@@ -37,15 +37,12 @@
 package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
-import static io.github.mzmine.javafx.components.factories.FxTexts.fbmnPaper;
-import static io.github.mzmine.javafx.components.factories.FxTexts.gnpsPaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
-import static io.github.mzmine.javafx.components.factories.FxTexts.iimnPaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
-import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -114,9 +111,11 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
             "https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/"),
         text("or a "), hyperlinkText("youtube playlist",
             "https://www.youtube.com/watch?v=vFcGG7T_44E&list=PL4L2Xw5k8ITzd9hx5XIP94vFPxj1sSafB&index=4&t=146s"),
-        text("and"), boldText("please cite:\n"), boldText("IIMN paper: "), iimnPaper, linebreak(),
-        boldText("FBMN paper: "), fbmnPaper, linebreak(), boldText("GNPS paper: "), gnpsPaper,
-        linebreak(), boldText("mzmine paper: "), mzminePaper);
+        text("and"), boldText("please cite:\n"), boldText("IIMN paper: "),
+        ArticleReferences.IIMN.hyperlinkText(), linebreak(), boldText("FBMN paper: "),
+        ArticleReferences.FBMN.hyperlinkText(), linebreak(), boldText("GNPS paper: "),
+        ArticleReferences.GNPS.hyperlinkText(), linebreak(), boldText("mzmine paper: "),
+        ArticleReferences.MZMINE3.hyperlinkText());
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
