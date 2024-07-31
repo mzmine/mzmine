@@ -39,7 +39,8 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
- * Simplifies the {@link ModuleComboParameter}
+ * Simplifies the creating multiple options of algorithms or filters using a
+ * {@link ModuleOptionsEnum}
  */
 public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & ModuleOptionsEnum> implements
     UserParameter<EnumType, ModuleOptionsEnumComponent<EnumType>>,
