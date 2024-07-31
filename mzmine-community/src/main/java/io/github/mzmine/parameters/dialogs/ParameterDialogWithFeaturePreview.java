@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -133,7 +132,9 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
   }
 
   /**
-   * @param datasets The new datasets.
+   * This method is executed on the fx thread and updates the chart with the respective datasets.
+   *
+   * @param datasets The new datasets. May be empty.
    * @param chart    The chart of the preview.
    */
   protected abstract void updateChart(@NotNull List<DatasetAndRenderer> datasets,
