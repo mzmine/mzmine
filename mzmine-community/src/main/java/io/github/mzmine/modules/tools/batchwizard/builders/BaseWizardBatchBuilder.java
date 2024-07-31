@@ -158,7 +158,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -171,9 +170,8 @@ import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
-import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import io.github.mzmine.util.scans.similarity.Weights;
-import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarityParameters;
 import java.io.File;
 import java.util.Arrays;
@@ -1199,22 +1197,14 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(SpectralLibrarySearchParameters.removePrecursor, true);
     param.setParameter(SpectralLibrarySearchParameters.minMatch, 4);
     // similarity
-    ModuleComboParameter<SpectralSimilarityFunction> simFunction = param.getParameter(
-        SpectralLibrarySearchParameters.similarityFunction);
-
-    ParameterSet weightedCosineParam = MZmineCore.getConfiguration()
-        .getModuleParameters(WeightedCosineSpectralSimilarity.class).cloneParameterSet();
-    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.weight,
-        Weights.SQRT);
-    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.minCosine, 0.7);
-    weightedCosineParam.setParameter(WeightedCosineSpectralSimilarityParameters.handleUnmatched,
+    var simFunction = param.getParameter(SpectralLibrarySearchParameters.similarityFunction);
+    simFunction.setValue(SpectralSimilarityFunctions.WEIGHTED_COSINE);
+    var simParam = simFunction.getEmbeddedParameters();
+    simParam.setParameter(WeightedCosineSpectralSimilarityParameters.weight, Weights.SQRT);
+    simParam.setParameter(WeightedCosineSpectralSimilarityParameters.minCosine, 0.7);
+    simParam.setParameter(WeightedCosineSpectralSimilarityParameters.handleUnmatched,
         HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
 
-    SpectralSimilarityFunction weightedCosineModule = SpectralSimilarityFunction.weightedCosine;
-    var libMatchStep = new MZmineProcessingStepImpl<>(weightedCosineModule, weightedCosineParam);
-
-    // finally set the libmatch module plus parameters as step
-    simFunction.setValue(libMatchStep);
     // advanced off
     param.setParameter(SpectralLibrarySearchParameters.advanced, false);
     var advanced = param.getEmbeddedParameterValue(SpectralLibrarySearchParameters.advanced);

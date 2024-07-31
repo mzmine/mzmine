@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,12 +33,14 @@ import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanAlignment;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -136,6 +138,15 @@ public class SpectralSimilarity {
     }
   }
 
+  /**
+   * For now a workaround to show spectral library entries as matches against itself.
+   */
+  public static SpectralSimilarity ofMatchIdentity(final @NotNull SpectralLibraryEntry entry) {
+    var dps = entry.getDataPoints();
+    var aligned = Arrays.stream(dps).map(dp -> new DataPoint[]{dp, dp}).toList();
+    return new SpectralSimilarity("library_identity", 1d, dps.length, dps, dps, aligned);
+  }
+
   public static SpectralSimilarity loadFromXML(XMLStreamReader reader) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Cannot read spectral similarity. Wrong element.");
@@ -159,8 +170,8 @@ public class SpectralSimilarity {
       switch (reader.getLocalName()) {
         case XML_FUNCTION_ELEMENT -> function = reader.getElementText();
         case XML_SCORE_ELEMENT -> score = Double.parseDouble(reader.getElementText());
-        case XML_EXPLAINED_LIB_INTENSITY_ELEMENT -> explainedLibraryIntensity = Double
-            .parseDouble(reader.getElementText());
+        case XML_EXPLAINED_LIB_INTENSITY_ELEMENT ->
+            explainedLibraryIntensity = Double.parseDouble(reader.getElementText());
         case XML_OVERLAPPING_PEAKS_ELEMENT -> overlap = Integer.parseInt(reader.getElementText());
         case XML_LIBRARY_SEPCTRUM_ELEMENT -> library = parseDatapointArray(reader);
         case XML_QUERY_SEPCTRUM_ELEMENT -> query = parseDatapointArray(reader);
@@ -179,8 +190,8 @@ public class SpectralSimilarity {
 
   private static DataPoint[][] parseAlignedSpetra(XMLStreamReader reader)
       throws XMLStreamException {
-    final int numSpectra = Integer
-        .parseInt(reader.getAttributeValue(null, CONST.XML_NUM_VALUES_ATTR));
+    final int numSpectra = Integer.parseInt(
+        reader.getAttributeValue(null, CONST.XML_NUM_VALUES_ATTR));
 
     DataPoint[][] aligned = new DataPoint[numSpectra][];
     int index = 0;
@@ -222,10 +233,10 @@ public class SpectralSimilarity {
         continue;
       }
       switch (reader.getLocalName()) {
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
       }
 
       if (mzs != null && intensities != null) {
@@ -338,9 +349,8 @@ public class SpectralSimilarity {
       writer.writeStartElement(XML_LIBRARY_SEPCTRUM_ELEMENT);
 
       writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
-      writer.writeCharacters(ParsingUtils
-          .doubleArrayToString(Arrays.stream(library).filter(Objects::nonNull)
-              .mapToDouble(DataPoint::getMZ).toArray()));
+      writer.writeCharacters(ParsingUtils.doubleArrayToString(
+          Arrays.stream(library).filter(Objects::nonNull).mapToDouble(DataPoint::getMZ).toArray()));
       writer.writeEndElement();
 
       writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
@@ -356,10 +366,8 @@ public class SpectralSimilarity {
       writer.writeStartElement(XML_QUERY_SEPCTRUM_ELEMENT);
 
       writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
-      writer.writeCharacters(ParsingUtils
-          .doubleArrayToString(
-              Arrays.stream(query).filter(Objects::nonNull).mapToDouble(DataPoint::getMZ)
-                  .toArray()));
+      writer.writeCharacters(ParsingUtils.doubleArrayToString(
+          Arrays.stream(query).filter(Objects::nonNull).mapToDouble(DataPoint::getMZ).toArray()));
       writer.writeEndElement();
 
       writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
@@ -408,10 +416,9 @@ public class SpectralSimilarity {
     }
     SpectralSimilarity that = (SpectralSimilarity) o;
     return Double.compare(that.getScore(), getScore()) == 0 && getOverlap() == that.getOverlap()
-           && Objects.equals(funcitonName, that.funcitonName) && Arrays
-               .equals(getLibrary(), that.getLibrary()) && Arrays
-               .equals(getQuery(), that.getQuery())
-           && Arrays.deepEquals(aligned, that.aligned);
+           && Objects.equals(funcitonName, that.funcitonName) && Arrays.equals(getLibrary(),
+        that.getLibrary()) && Arrays.equals(getQuery(), that.getQuery()) && Arrays.deepEquals(
+        aligned, that.aligned);
   }
 
   @Override
