@@ -28,14 +28,17 @@ package io.github.mzmine.parameters.dialogs;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.javafx.SortableFeatureComboBox;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
@@ -49,6 +52,7 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
   protected final NumberFormats formats = ConfigService.getGuiFormats();
   private final SimpleXYChart<? extends PlotXYDataProvider> chart;
   private SortableFeatureComboBox featureBox;
+  private final DialogController controller = new DialogController();
 
   protected abstract @NotNull SimpleXYChart<PlotXYDataProvider> createChart();
 
@@ -76,7 +80,32 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
    */
   private void updatePreview() {
     updateParameterSetFromComponents();
-    updateChart(featureBox.getSelectedFeature(), chart);
+
+    var task = new FxUpdateTask<>("update baseline preview", new Object()) {
+      private List<DatasetAndRenderer> datasetAndRenderers;
+
+      @Override
+      public String getTaskDescription() {
+        return "Updating preview";
+      }
+
+      @Override
+      public double getFinishedPercentage() {
+        return 0;
+      }
+
+      @Override
+      protected void process() {
+        datasetAndRenderers = calculateNewDatasets(featureBox.getSelectedFeature());
+      }
+
+      @Override
+      protected void updateGuiModel() {
+        updateChart(datasetAndRenderers, chart);
+      }
+    };
+
+    controller.onTaskThreadDelayed(task);
   }
 
   private void addPreviewPane() {
@@ -104,9 +133,17 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
   }
 
   /**
-   * @param selectedFeature The selected feature, may be null
-   * @param chart           The chart of the preview.
+   * @param datasets The new datasets.
+   * @param chart    The chart of the preview.
    */
-  protected abstract void updateChart(@Nullable final Feature selectedFeature,
+  protected abstract void updateChart(@NotNull List<DatasetAndRenderer> datasets,
       @NotNull final SimpleXYChart<? extends PlotXYDataProvider> chart);
+
+  /**
+   * Calculate the new datasets after the feature changed. Parameters are update. This calculation
+   * is run on a separate thread. The datasets are added to the chart in
+   * {@link ParameterDialogWithFeaturePreview#updateChart(List, SimpleXYChart)} )}.
+   */
+  protected abstract @NotNull List<@NotNull DatasetAndRenderer> calculateNewDatasets(
+      @Nullable final Feature feature);
 }
