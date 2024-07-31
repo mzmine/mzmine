@@ -229,7 +229,7 @@ public class JoinRowAlignScorer implements FeatureRowAlignScorer {
    * @return positive match with similarity or null if criteria was not met
    */
   private SpectralSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
-    return simFunction.getSimilarity(mzTolerance, 0, library, query);
+    return simFunction.getSimilarity(mzToleranceSpectralSim, 0, library, query);
   }
 
   /**
