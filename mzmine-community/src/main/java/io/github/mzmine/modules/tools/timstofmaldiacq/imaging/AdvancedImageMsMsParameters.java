@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,29 +27,23 @@
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.MaldiMs2AcqusitionWriter;
-import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.SingleSpotMs2Parameters;
+import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.MaldiMs2AcquisitionWriters;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.SingleSpotMs2Writer;
-import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.TripleSpotMs2Writer;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import java.text.DecimalFormat;
 
 public class AdvancedImageMsMsParameters extends SimpleParameterSet {
 
   public static final SingleSpotMs2Writer single = MZmineCore.getModuleInstance(
       SingleSpotMs2Writer.class);
-  public static final TripleSpotMs2Writer triple = MZmineCore.getModuleInstance(
-      TripleSpotMs2Writer.class);
 
-  public static final MaldiMs2AcqusitionWriter[] acquisitionModules = new MaldiMs2AcqusitionWriter[]{
-      single, triple};
-  public static final OptionalParameter<ModuleComboParameter<MaldiMs2AcqusitionWriter>> ms2ImagingMode = new OptionalParameter(
-      new ModuleComboParameter<>("MS2 acquisition mode", "", acquisitionModules, single));
-  public static final SingleSpotMs2Parameters defaultSpotWriterParam = new SingleSpotMs2Parameters(
-      false, 0, false, 0);
+  public static final OptionalParameter<ModuleOptionsEnumComboParameter<MaldiMs2AcquisitionWriters>> ms2ImagingMode = new OptionalParameter<>(
+      new ModuleOptionsEnumComboParameter<>("MS2 acquisition mode", "",
+          MaldiMs2AcquisitionWriters.SINGLE_SPOT));
+
   public static final double MIN_MOBILITY_WIDTH = 0.02;
   public static final OptionalParameter<DoubleParameter> minMobilityWidth = new OptionalParameter<>(
       new DoubleParameter("Minimum mobility window", """

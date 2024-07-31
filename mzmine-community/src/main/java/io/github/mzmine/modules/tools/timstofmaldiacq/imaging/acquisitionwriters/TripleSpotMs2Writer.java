@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,9 +42,22 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TripleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
+public class TripleSpotMs2Writer implements MaldiMs2AcquisitionWriter {
 
   private static final Logger logger = Logger.getLogger(TripleSpotMs2Writer.class.getName());
+
+  private final int stageOffsetX;
+  private final int stageOffsetY;
+
+  public TripleSpotMs2Writer() {
+    stageOffsetX = 50;
+    stageOffsetY = 0;
+  }
+
+  public TripleSpotMs2Writer(final ParameterSet parameters) {
+    stageOffsetX = parameters.getValue(TripleSpotMs2Parameters.stageOffsetX);
+    stageOffsetY = parameters.getValue(TripleSpotMs2Parameters.stageOffsetY);
+  }
 
   @Override
   public @NotNull String getName() {
@@ -58,13 +71,7 @@ public class TripleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
 
   @Override
   public boolean writeAcqusitionFile(File acquisitionFile, List<ImagingSpot> spots,
-      CeSteppingTables tables, ParameterSet parameters, BooleanSupplier isCanceled,
-      File savePathDir) {
-
-    final Integer stageOffsetX = parameters.getParameter(TripleSpotMs2Parameters.stageOffsetY)
-        .getValue();
-    final Integer stageOffsetY = parameters.getParameter(TripleSpotMs2Parameters.stageOffsetX)
-        .getValue();
+      CeSteppingTables tables, BooleanSupplier isCanceled, File savePathDir) {
 
     final Map<Double, File> ceTableMap = new HashMap<>();
     for (CeSteppingTable table : tables.asList()) {
