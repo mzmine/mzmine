@@ -25,10 +25,12 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.ParameterSet;
@@ -40,31 +42,41 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class ParameterDialogWithFeaturePreview extends ParameterSetupDialogWithPreview {
+public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDialogWithPreview {
 
-  private final NumberFormats formats = ConfigService.getGuiFormats();
+  protected final NumberFormats formats = ConfigService.getGuiFormats();
+  private final SimpleXYChart<? extends PlotXYDataProvider> chart;
+  private SortableFeatureComboBox featureBox;
 
-  private final SimpleXYChart<PlotXYDataProvider> chart = createChart();
-
-  private @NotNull SimpleXYChart<PlotXYDataProvider> createChart() {
-    return new SimpleXYChart<>("Preview", formats.unit("Retention time", "min"),
-        formats.unit("Intensity", "a.u."));
-  }
+  protected abstract @NotNull SimpleXYChart<PlotXYDataProvider> createChart();
 
   public ParameterDialogWithFeaturePreview(boolean valueCheckRequired, ParameterSet parameters,
       Region message) {
     super(valueCheckRequired, parameters, message);
+    chart = createChart();
+    addPreviewPane();
   }
 
   public ParameterDialogWithFeaturePreview(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
+    chart = createChart();
+    addPreviewPane();
   }
 
   @Override
   protected void parametersChanged() {
     super.parametersChanged();
+    updatePreview();
+  }
+
+  /**
+   * Called if the parameters or the selected feature change.
+   */
+  private void updatePreview() {
     updateParameterSetFromComponents();
+    updateChart(featureBox.getSelectedFeature(), chart);
   }
 
   private void addPreviewPane() {
@@ -74,8 +86,27 @@ public class ParameterDialogWithFeaturePreview extends ParameterSetupDialogWithP
         ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
     ComboBox<FeatureList> flistBox = new ComboBox<>(flists);
-    SortableFeatureComboBox featureBox = new SortableFeatureComboBox();
+    featureBox = new SortableFeatureComboBox();
 
     GridPane controls = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
+    controls.add(FxLabels.newLabel("Feature list: "), 0, 0);
+    controls.add(FxLabels.newLabel("Feature: "), 0, 1);
+    controls.add(flistBox, 0, 1);
+    controls.add(featureBox, 0, 2);
+
+    flistBox.valueProperty().addListener((_, _, flist) -> {
+      featureBox.setItems(flist.getFeatures(flist.getRawDataFile(0)));
+    });
+
+    featureBox.selectedFeatureProperty().addListener((_, _, _) -> updatePreview());
+
+    previewWrapperPane.setBottom(controls);
   }
+
+  /**
+   * @param selectedFeature The selected feature, may be null
+   * @param chart           The chart of the preview.
+   */
+  protected abstract void updateChart(@Nullable final Feature selectedFeature,
+      @NotNull final SimpleXYChart<? extends PlotXYDataProvider> chart);
 }
