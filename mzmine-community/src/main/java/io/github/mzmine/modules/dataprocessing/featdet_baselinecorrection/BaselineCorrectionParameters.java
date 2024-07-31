@@ -26,14 +26,17 @@
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
+import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
 public class BaselineCorrectionParameters extends SimpleParameterSet {
@@ -72,5 +75,17 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    assert Platform.isFxApplicationThread();
+
+    if ((parameters == null) || (parameters.length == 0)) {
+      return ExitCode.OK;
+    }
+    ParameterSetupDialog dialog = new BaselineResolverSetupDialog(valueCheckRequired, this, null);
+    dialog.showAndWait();
+    return dialog.getExitCode();
   }
 }
