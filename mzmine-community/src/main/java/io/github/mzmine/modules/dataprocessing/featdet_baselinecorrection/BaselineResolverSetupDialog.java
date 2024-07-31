@@ -5,12 +5,14 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithFeaturePreview;
+import java.util.List;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,11 +31,20 @@ public class BaselineResolverSetupDialog extends ParameterDialogWithFeaturePrevi
   }
 
   @Override
-  protected void updateChart(@Nullable Feature selectedFeature,
+  protected void updateChart(@NotNull List<DatasetAndRenderer> datasets,
       @NotNull SimpleXYChart<? extends PlotXYDataProvider> chart) {
-    if (selectedFeature == null) {
+    chart.applyWithNotifyChanges(false, () -> {
       chart.removeAllDatasets();
-      return;
+      datasets.forEach(dsr -> chart.addDataset(dsr.dataset(), dsr.renderer()));
+    });
+  }
+
+  @Override
+  protected @NotNull List<@NotNull DatasetAndRenderer> calculateNewDatasets(
+      @Nullable Feature feature) {
+
+    if (feature == null) {
+      return List.of();
     }
 
     final BaselineCorrectors enumValue = parameterSet.getParameter(
@@ -42,17 +53,15 @@ public class BaselineResolverSetupDialog extends ParameterDialogWithFeaturePrevi
         (BaselineCorrectionParameters) parameterSet, null);
 
     IonTimeSeries<? extends Scan> corrected = baselineCorrector.correctBaseline(
-        selectedFeature.getFeatureData());
+        feature.getFeatureData());
 
-    chart.applyWithNotifyChanges(false, () -> {
-      chart.removeAllDatasets();
-      chart.addDataset(new ColoredXYDataset(
-          new IonTimeSeriesToXYProvider(corrected, selectedFeature.toString() + " corrected",
-              selectedFeature.getRawDataFile().getColor())), new ColoredAreaShapeRenderer());
-      chart.addDataset(new ColoredXYDataset(
-              new IonTimeSeriesToXYProvider(selectedFeature.getFeatureData(),
-                  selectedFeature.toString(), selectedFeature.getRawDataFile().getColor())),
-          new ColoredXYLineRenderer());
-    });
+    return List.of(new DatasetAndRenderer(new ColoredXYDataset(
+            new IonTimeSeriesToXYProvider(corrected, feature.toString() + " corrected",
+                feature.getRawDataFile().getColor())), new ColoredAreaShapeRenderer()),
+
+        new DatasetAndRenderer(new ColoredXYDataset(
+            new IonTimeSeriesToXYProvider(feature.getFeatureData(), feature.toString(),
+                feature.getRawDataFile().getColor())), new ColoredXYLineRenderer()));
+
   }
 }
