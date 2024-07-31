@@ -26,17 +26,26 @@
 package io.github.mzmine.gui.framework.fx.components;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import java.util.List;
 import javafx.collections.FXCollections;
-import javafx.scene.control.ComboBox;
+import javafx.collections.ObservableList;
 import javafx.util.StringConverter;
 
-public class PolarityFilterComboBox extends ComboBox<PolarityType> {
+public class PolarityFilterComboBox extends ComboComponent<PolarityType> {
 
   public PolarityFilterComboBox(boolean includeAny) {
-    super(FXCollections.observableList(
-        includeAny ? List.of(PolarityType.ANY, PolarityType.POSITIVE, PolarityType.NEGATIVE)
-            : List.of(PolarityType.POSITIVE, PolarityType.NEGATIVE)));
+    this(FXCollections.observableList(
+            includeAny ? List.of(PolarityType.ANY, PolarityType.POSITIVE, PolarityType.NEGATIVE)
+                : List.of(PolarityType.POSITIVE, PolarityType.NEGATIVE)),
+        includeAny ? PolarityType.ANY : PolarityType.POSITIVE);
+
+  }
+
+  public PolarityFilterComboBox(final ObservableList<PolarityType> choices,
+      final PolarityType value) {
+    super(choices);
+    setValue(value);
 
     setConverter(new StringConverter<>() {
       @Override

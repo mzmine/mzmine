@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
@@ -350,4 +351,5 @@ public interface RawDataFile {
   default void setStartTimeStamp(@Nullable LocalDateTime localDateTime) {
   }
 
+  List<OtherDataFile> getOtherDataFiles();
 }

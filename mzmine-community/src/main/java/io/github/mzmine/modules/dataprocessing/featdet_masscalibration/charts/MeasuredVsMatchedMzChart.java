@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassPeakMatch;
+import java.util.List;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
@@ -37,8 +38,6 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
-import java.util.List;
 
 /**
  * Chart for measured mz vs matched mz plots (xy scatter plot of measured mz vs matched mz)
@@ -85,6 +84,7 @@ public class MeasuredVsMatchedMzChart extends EChartViewer {
 
     XYDataset dataset = createChartDataset(matches);
     plot.setDataset(dataset);
+    plot.setRenderer(new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES));
   }
 
   protected XYDataset createChartDataset(List<MassPeakMatch> matches) {

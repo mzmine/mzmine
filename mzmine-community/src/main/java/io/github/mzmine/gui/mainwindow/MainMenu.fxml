@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2024 The MZmine Development Team
+  ~ Copyright (c) 2004-2024 The mzmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -134,8 +134,6 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule"/>
       <MenuItem text="Crop filter" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule"/>
-      <MenuItem text="Baseline correction" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule"/>
       <MenuItem text="Align scans (MS1)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
       <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
@@ -238,8 +236,6 @@
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule"/>
       <!--<MenuItem text="ADAP resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule"/>-->
-      <MenuItem text="Baseline resolver" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverModule"/>
       <MenuItem text="Noise amplitude resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule"/>
       <MenuItem text="Savitzky Golay resolver" onAction="#runModule"
@@ -331,11 +327,11 @@
     </Menu>
 
     <Menu text="Isotopes">
-      <MenuItem onAction="#runModule" text="13C isotope filter (formerly: isotope grouper)"
+      <MenuItem onAction="#runModule" text="13C isotope feature filter (formerly: isotope grouper)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule"/>
-      <MenuItem onAction="#runModule" text="Isotope pattern finder"
+      <MenuItem onAction="#runModule" text="Isotopic signal finder (In scans)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule"/>
-      <MenuItem text="Isotope peak scanner" onAction="#runModule"
+      <MenuItem text="Isotope feature scanner" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
     </Menu>
 
@@ -344,8 +340,8 @@
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
       <MenuItem text="Ion identity networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"/>
-      <MenuItem text="MS/MS spectral networking" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule"/>
+      <MenuItem text="Spectral / Molecular Networking" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingModule"/>
       <MenuItem text="Add more ion identities" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule"/>
       <MenuItem text="Refine ion identities" onAction="#runModule"
@@ -433,9 +429,9 @@
     </Menu>
 
     <Menu text="Normalization">
-      <MenuItem text="Retention time calibration"
+      <MenuItem text="Retention time correction"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule"/>
       <MenuItem text="Linear normalizer" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule"/>
       <MenuItem text="Standard compound normalizer"
@@ -555,14 +551,14 @@
 
       <MenuItem text="Scatter plot" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule"/>
-      <MenuItem text="Histogram plot" onAction="#runModule"
-        userData="io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModule"/>
+      <MenuItem text="Feature histogram plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule"/>
       <MenuItem text="Feature intensity plot" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule"/>
 
       <SeparatorMenuItem/>
 
-      <MenuItem text="Kendrick mass plot" onAction="#runModule"
+      <MenuItem text="4D feature plot (Kendrick)" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule"/>
       <MenuItem text="Van Krevelen diagram" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule"/>
@@ -605,8 +601,8 @@
     </Menu>
   </Menu>
 
-  <Menu text="Processing wizard">
-    <MenuItem text="Processing wizard" onAction="#showWizardTab"
+  <Menu text="mzwizard">
+    <MenuItem text="Open mzwizard" onAction="#showWizardTab"
       userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="W"
@@ -650,7 +646,7 @@
         <KeyCodeCombination alt="UP" code="U" control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
-    <MenuItem text="Sing in / Sign up" onAction="#showUserSignUp"/>
+    <MenuItem text="Sign in / Sign up" onAction="#showUserSignUp"/>
     <MenuItem text="Remove user" fx:id="itemRemoveUser" onAction="#removeLocalUser"/>
     <MenuItem text="Open users directory" onAction="#openUsersDirectory"/>
     <MenuItem text="Manage user online" onAction="#openUserAccountConsole"/>

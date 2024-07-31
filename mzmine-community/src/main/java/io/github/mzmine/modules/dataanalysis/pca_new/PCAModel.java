@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
@@ -63,6 +64,9 @@ public class PCAModel {
 
   private final ObjectProperty<@NotNull ImputationFunctions> imputationFunction = new SimpleObjectProperty<>(
       ImputationFunctions.OneFifthOfMinimum);
+  private final ObjectProperty<SampleTypeFilter> sampleTypeFilter = new SimpleObjectProperty<>(
+      SampleTypeFilter.sample());
+
 
   public ObservableList<Integer> getAvailablePCs() {
     return availablePCs;
@@ -198,5 +202,17 @@ public class PCAModel {
 
   public ObjectProperty<@NotNull ImputationFunctions> imputationFunctionProperty() {
     return imputationFunction;
+  }
+
+  public SampleTypeFilter getSampleTypeFilter() {
+    return sampleTypeFilter.get();
+  }
+
+  public ObjectProperty<SampleTypeFilter> sampleTypeFilterProperty() {
+    return sampleTypeFilter;
+  }
+
+  public void setSampleTypeFilter(@NotNull SampleTypeFilter filter) {
+    sampleTypeFilter.set(filter);
   }
 }

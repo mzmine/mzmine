@@ -148,8 +148,7 @@ public class BatchSpeedTestMain {
             StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
 
           var tsvMapper = new CsvMapper();
-          var schema = tsvMapper.schemaFor(SpeedMeasurement.class)
-              .withUseHeader(!exists);
+          var schema = tsvMapper.schemaFor(SpeedMeasurement.class).withUseHeader(!exists);
           ObjectWriter tsvObjectWriter = tsvMapper.writer(schema);
 
           ObjectMapper jsonMapper = new ObjectMapper();
@@ -183,8 +182,8 @@ public class BatchSpeedTestMain {
 
     File batch = getFileOrResource(batchFile);
 
-    BatchTask task = BatchModeModule.runBatch(ProjectService.getProject(), batch, files, new File[0],
-        Instant.now());
+    BatchTask task = BatchModeModule.runBatch(ProjectService.getProject(), batch, files,
+        new File[0], null, Instant.now());
 
     Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus());
 

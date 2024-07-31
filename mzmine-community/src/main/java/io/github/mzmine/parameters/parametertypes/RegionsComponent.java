@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,18 +25,63 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import static io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper.REGION_FILE_EXTENSION;
+
+import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
+import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.MZmineCore;
+import java.awt.geom.Point2D;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javax.validation.constraints.NotNull;
 
 public class RegionsComponent extends FlowPane {
 
-//  private final TextField tfPoint;
-//  private final TreeView<Point2D> tvPoints;
+  private final Label label;
+  private ObservableList<List<Point2D>> value = FXCollections.observableArrayList();
+
 
   public RegionsComponent() {
 //    tvPoints = new TreeView<>();
 //    TreeItem<String> regions = new TreeItem<>("Regions");
 //    tvPoints.setRoot(tvPoints);
-    getChildren().add(new Label("See preview"));
+    setAlignment(Pos.TOP_LEFT);
+    setHgap(FxLayout.DEFAULT_SPACE);
+
+    label = new Label();
+    label.textProperty().bind(Bindings.createStringBinding(
+        () -> STR."\{value != null && !value.isEmpty() ? value.size() : 0} region(s) selected",
+        value));
+
+    final Button loadButton = FxButtons.createLoadButton(() -> {
+      FxThread.runLater(() -> {
+        final FileChooser chooser = new FileChooser();
+        chooser.getExtensionFilters()
+            .add(new ExtensionFilter("mzmine regions file", REGION_FILE_EXTENSION));
+        final File file = chooser.showOpenDialog(MZmineCore.getDesktop().getMainWindow());
+        value.setAll(RegionSelectionWrapper.loadRegionsFromFile(file));
+      });
+    });
+    getChildren().addAll(loadButton, label);
+  }
+
+  public List<List<Point2D>> getValue() {
+    return new ArrayList<>(value);
+  }
+
+  public void setValue(@NotNull List<List<Point2D>> value) {
+    this.value.setAll(value);
   }
 }

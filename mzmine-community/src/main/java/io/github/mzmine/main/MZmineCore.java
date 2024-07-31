@@ -56,6 +56,7 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.web.ProxyChangedEvent;
+import io.github.mzmine.util.web.ProxyUtils;
 import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
@@ -166,6 +167,12 @@ public final class MZmineCore {
         }
       }
 
+      //set proxy to config
+      if (argsParser.getFullProxy() != null) {
+        // proxy was already set
+        preferences.setProxy(ProxyUtils.getSelectedSystemProxy());
+      }
+
       if (argsParser.getUserFile() == null) {
         // listen for user changes so that the latest user is saved
         String username = ConfigService.getPreference(MZminePreferences.username);
@@ -274,6 +281,7 @@ public final class MZmineCore {
       }
 
       // change input in batch?
+      String outBaseFile = argsParser.getOutBaseFile();
       File[] overrideDataFiles = argsParser.getOverrideDataFiles();
       File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
       boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
@@ -320,7 +328,7 @@ public final class MZmineCore {
 
           // run batch file
           batchTask = BatchModeModule.runBatch(ProjectService.getProject(), batchFile,
-              overrideDataFiles, overrideSpectralLibraryFiles, Instant.now());
+              overrideDataFiles, overrideSpectralLibraryFiles, outBaseFile, Instant.now());
         }
 
         // option to keep MZmine running after the batch is finished

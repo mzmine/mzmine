@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
@@ -299,6 +300,11 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   @Override
   public @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
     return originalFile.getAppliedMethods();
+  }
+
+  @Override
+  public List<OtherDataFile> getOtherDataFiles() {
+    return List.of();
   }
 
   public RawDataFile getOriginalFile() {

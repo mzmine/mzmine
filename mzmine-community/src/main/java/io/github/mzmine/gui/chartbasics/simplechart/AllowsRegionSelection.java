@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,15 +31,13 @@ public interface AllowsRegionSelection {
 
   /**
    * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
-   * added to a region. Region selection can be finished by {@link SimpleXYZScatterPlot#finishPath()}.
+   * added to a region. Region selection can be finished by {@link #finishPath()}.
    */
   public void startRegion();
 
   /**
-   * The {@link RegionSelectionListener} of the current selection. The path/points can be retrieved
-   * from the listener object.
-   *
-   * @return
+   * @return The {@link RegionSelectionListener} of the current selection. The path/points can be
+   * retrieved from the listener object.
    */
   public RegionSelectionListener finishPath();
 

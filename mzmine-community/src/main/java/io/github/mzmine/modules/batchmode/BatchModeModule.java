@@ -26,12 +26,12 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.time.Instant;
@@ -66,7 +66,7 @@ public class BatchModeModule implements MZmineProcessingModule {
   @Nullable
   public static BatchTask runBatch(@NotNull MZmineProject project, File batchFile,
       @NotNull Instant moduleCallDate) {
-    return runBatch(project, batchFile, null, null, moduleCallDate);
+    return runBatch(project, batchFile, null, null, null, moduleCallDate);
   }
 
   /**
@@ -75,11 +75,14 @@ public class BatchModeModule implements MZmineProcessingModule {
    * @param batchFile                    local file
    * @param overrideDataFiles            change the data import to those files if not null
    * @param overrideSpectralLibraryFiles change the spectral libraries imported
+   * @param overrideOutBaseFile          change all output files with this out path and base
+   *                                     filename
    * @return the batch task if successful or null on error
    */
   @Nullable
   public static BatchTask runBatch(@NotNull MZmineProject project, File batchFile,
-      @Nullable File[] overrideDataFiles, final File[] overrideSpectralLibraryFiles, @NotNull Instant moduleCallDate) {
+      @Nullable File[] overrideDataFiles, final File[] overrideSpectralLibraryFiles,
+      @Nullable final String overrideOutBaseFile, @NotNull Instant moduleCallDate) {
     if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Cannot run a second batch while the current batch is not finished.");
@@ -106,7 +109,7 @@ public class BatchModeModule implements MZmineProcessingModule {
       }
 
       // change input files and spectral libraries, e.g., by command line arguments
-      if (overrideDataFiles != null || overrideSpectralLibraryFiles !=null) {
+      if (overrideDataFiles != null || overrideSpectralLibraryFiles != null) {
         if (!newQueue.setImportFiles(overrideDataFiles, overrideSpectralLibraryFiles)) {
           if (overrideDataFiles != null) {
             logger.log(Level.SEVERE,
@@ -116,12 +119,16 @@ public class BatchModeModule implements MZmineProcessingModule {
           }
           if (overrideSpectralLibraryFiles != null) {
             logger.log(Level.SEVERE,
-                "Could not change the import spectral library files to " + Arrays.stream(overrideSpectralLibraryFiles)
+                "Could not change the import spectral library files to " + Arrays.stream(
+                        overrideSpectralLibraryFiles)
                     .map(file -> file != null ? file.getAbsolutePath() : "null")
                     .collect(Collectors.joining("\n")));
           }
           return null;
         }
+      }
+      if (overrideOutBaseFile != null) {
+        newQueue.setOutputBaseFile(overrideOutBaseFile);
       }
 
       ParameterSet parameters = new BatchModeParameters();
@@ -158,7 +165,9 @@ public class BatchModeModule implements MZmineProcessingModule {
 
     final BatchTask newTask;
     // check if advanced
-    if (parameters.getValue(BatchModeParameters.advanced)) {
+//    boolean useAdvanced = parameters.getValue(BatchModeParameters.advanced);
+    boolean useAdvanced = false;
+    if (useAdvanced) {
       AdvancedBatchModeParameters params = parameters.getParameter(BatchModeParameters.advanced)
           .getEmbeddedParameters();
       File parentDir = params.getValue(AdvancedBatchModeParameters.processingParentDir);

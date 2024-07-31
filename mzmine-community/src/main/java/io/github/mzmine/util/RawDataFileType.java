@@ -25,23 +25,78 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
+
 /**
  * Enum of supported data file formats
  */
 public enum RawDataFileType {
 
-  MZML, //
-  IMZML, //
-  MZML_IMS, //
-  MZXML, //
-  MZDATA, //
-  NETCDF, //
-  THERMO_RAW, //
-//  WATERS_RAW, //
-  MZML_ZIP, //
-  MZML_GZIP, //
-  ICPMSMS_CSV, //
-  BRUKER_TDF, //
-  BRUKER_TSF, //
-  AIRD //
+  MZML(ExtensionFilters.MZML, false), //
+  IMZML(ExtensionFilters.IMZML, false), //
+  MZML_IMS(ExtensionFilters.MZML, false), //
+  MZXML(ExtensionFilters.MZXML, false), //
+  MZDATA(ExtensionFilters.MZDATA, false), //
+  NETCDF(ExtensionFilters.NETCDF, false), //
+  THERMO_RAW(ExtensionFilters.THERMO_RAW, false), //
+  //  WATERS_RAW(ExtensionFilters.WATERS_RAW, true), //
+  MZML_ZIP(ExtensionFilters.MZML_ZIP_GZIP, false), //
+  MZML_GZIP(ExtensionFilters.MZML_ZIP_GZIP, false), //
+  ICPMSMS_CSV(ExtensionFilters.CSV, false), //
+  BRUKER_TDF(ExtensionFilters.BRUKER_D, true), //
+  BRUKER_TSF(ExtensionFilters.BRUKER_D, true), //
+  BRUKER_BAF(ExtensionFilters.BRUKER_D, true), //
+  //  AIRD, //
+  SCIEX_WIFF(ExtensionFilters.WIFF, false), //
+  SCIEX_WIFF2(ExtensionFilters.WIFF2, false), //
+  AGILENT_D(ExtensionFilters.AGILENT_D, true);
+
+
+  private final ExtensionFilter extensionFilter;
+  private final boolean isFolder;
+
+  RawDataFileType(ExtensionFilter extensionFilter, boolean isFolder) {
+    this.extensionFilter = extensionFilter;
+    this.isFolder = isFolder;
+  }
+
+  public static List<RawDataFileType> getAllFolderTypes() {
+    return Arrays.stream(values()).filter(RawDataFileType::isFolder).toList();
+  }
+
+  public static List<RawDataFileType> getAllNonFolderTypes() {
+    return Arrays.stream(values()).filter(rawDataFileType -> !rawDataFileType.isFolder()).toList();
+  }
+
+  public static List<File> getAdditionalRequiredFiles(RawDataFile raw) {
+    final File file = raw.getAbsoluteFilePath();
+    final RawDataFileType type = RawDataFileTypeDetector.detectDataFileType(file);
+
+    return switch (type) {
+      case MZML, MZXML, MZML_IMS, MZDATA, NETCDF, THERMO_RAW, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV,
+           BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, AGILENT_D -> List.of();
+      case IMZML -> {
+        final String extension = FileAndPathUtil.getExtension(file.getName());
+        yield List.of(new File(file.getParent(), file.getName().replace(extension, "ibd")));
+      }
+      case SCIEX_WIFF, SCIEX_WIFF2 -> {
+        final String extension = FileAndPathUtil.getExtension(file.getName());
+        yield List.of(new File(file.getParent(), file.getName().replace(extension, "wiff.scan")));
+      }
+    };
+  }
+
+  public ExtensionFilter getExtensionFilter() {
+    return extensionFilter;
+  }
+
+  public boolean isFolder() {
+    return isFolder;
+  }
 }

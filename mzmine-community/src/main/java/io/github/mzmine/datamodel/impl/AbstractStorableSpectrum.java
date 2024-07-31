@@ -31,6 +31,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleS
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,9 +41,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
-  private static final Logger logger = Logger.getLogger(AbstractStorableSpectrum.class.getName());
   public static final DoubleBuffer EMPTY_BUFFER = DoubleBuffer.wrap(new double[0]);
-
+  public static final FloatBuffer EMPTY_FLOAT_BUFFER = FloatBuffer.wrap(new float[0]);
+  private static final Logger logger = Logger.getLogger(AbstractStorableSpectrum.class.getName());
   protected DoubleBuffer mzValues;
   protected DoubleBuffer intensityValues;
 

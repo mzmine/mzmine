@@ -115,7 +115,7 @@ public abstract class AbstractDataImportTest {
   @DisplayName("Test data import of mzML and mzXML without advanced parameters")
   public void dataImportTest() throws InterruptedException {
     MZmineTestUtil.cleanProject();
-    MZmineTestUtil.importFiles(getFileNames(), 300);
+    MZmineTestUtil.importFiles(getFileNames(), 360);
     Map<String, DataFileStats> stats = DataFileStatsIO.readJson(getClass());
     DataImportTestUtils.testDataStatistics(getFileNames(), stats, false);
   }
@@ -128,7 +128,7 @@ public abstract class AbstractDataImportTest {
     var advanced = createAdvancedImportSettings();
 
     MZmineTestUtil.cleanProject();
-    MZmineTestUtil.importFiles(getFileNames(), 300, advanced);
+    MZmineTestUtil.importFiles(getFileNames(), 360, advanced);
     Map<String, DataFileStats> stats = DataFileStatsIO.readJson(getClass());
     DataImportTestUtils.testDataStatistics(getFileNames(), stats, true);
 

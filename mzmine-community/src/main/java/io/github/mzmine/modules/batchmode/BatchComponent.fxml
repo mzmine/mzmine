@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~ Copyright (c) 2004-2024 The MZmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -40,7 +40,7 @@
 <?import io.github.mzmine.modules.batchmode.BatchModuleTreePane?>
 <?import org.kordamp.ikonli.javafx.FontIcon?><AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.batchmode.BatchComponentController">
-  <GridPane hgap="5.0" prefHeight="600.0" prefWidth="708.0" vgap="5.0" AnchorPane.bottomAnchor="0.0"
+  <GridPane hgap="5.0" prefHeight="700.0" prefWidth="850.0" vgap="5.0" AnchorPane.bottomAnchor="0.0"
     AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
     <FlowPane alignment="TOP_CENTER" GridPane.columnIndex="2">
       <Label styleClass="title-label" text="Batch queue"/>
@@ -50,6 +50,7 @@
       <Button fx:id="btnSetParameters" mnemonicParsing="false" onAction="#setParametersPressed"
         text="Set parameters"/>
       <Button fx:id="btnClear" mnemonicParsing="false" onAction="#clearPressed" text="Clear"/>
+      <Button mnemonicParsing="false" onAction="#changeOutputFiles" text="Redefine outputs"/>
       <GridPane.margin>
         <Insets/>
       </GridPane.margin>
@@ -57,7 +58,7 @@
         <Insets/>
       </opaqueInsets>
       <padding>
-        <Insets top="5.0"/>
+        <Insets top="5.0" bottom="5"/>
       </padding>
     </FlowPane>
     <FlowPane alignment="TOP_CENTER" hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="5.0"
@@ -76,7 +77,7 @@
       GridPane.rowIndex="1"/>
 
     <BatchModuleTreePane includeTools="false" fx:id="tvModules" prefWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="2"/>
-    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0"
+    <VBox alignment="CENTER" spacing="5.0"
       GridPane.columnIndex="1" GridPane.rowIndex="1">
       <Button fx:id="btnAddModule" mnemonicParsing="false" onAction="#onAddModulePressed">
         <graphic>
@@ -102,7 +103,7 @@
     </FlowPane>
     <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-      <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0"/>
+      <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
     </columnConstraints>
     <rowConstraints>

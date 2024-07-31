@@ -32,7 +32,9 @@ import static io.github.mzmine.util.RangeUtils.isBounded;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -56,8 +58,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import org.jetbrains.annotations.NotNull;
@@ -615,5 +620,55 @@ public class FeatureListUtils {
     FeatureListUtils.transferRowTypes(newFlist, List.of(featureList));
     FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
     return newFlist;
+  }
+
+  /**
+   * Get the polarity of the feature list. Only checks a single row
+   *
+   * @return polarity or {@link PolarityType#UNKNOWN}
+   */
+  public static @NotNull PolarityType getPolarity(final FeatureList featureList) {
+    return getPolarity(featureList, PolarityType.UNKNOWN);
+  }
+
+  /**
+   * Get the polarity of the feature list. Only checks a single row
+   *
+   * @return polarity or default value if missing
+   */
+  public static @NotNull PolarityType getPolarity(final FeatureList featureList,
+      @NotNull final PolarityType defaultValue) {
+    return featureList.stream().findFirst().map(FeatureListRow::getBestFeature)
+        .map(Feature::getRepresentativeScan).map(Scan::getPolarity).orElse(defaultValue);
+  }
+
+  public static String rowsToIdString(List<? extends FeatureListRow> rows) {
+    return rows.stream().map(FeatureListRow::getID).map(Object::toString)
+        .collect(Collectors.joining(","));
+  }
+
+  public static List<FeatureListRow> idStringToRows(ModularFeatureList flist, String str) {
+    final Set<Integer> ids = Arrays.stream(str.split(",")).map(s -> {
+      if (s == null) {
+        return null;
+      }
+      final String stripped = s.strip();
+      try {
+        return Integer.valueOf(stripped);
+      } catch (NumberFormatException e) {
+        return null;
+      }
+    }).filter(Objects::nonNull).collect(Collectors.toSet());
+    final List<FeatureListRow> list = flist.stream().filter(row -> ids.contains(row.getID()))
+        .sorted(Comparator.comparingInt(FeatureListRow::getID)).toList();
+
+    if (list.size() != ids.size()) {
+      throw new RuntimeException(
+          "Number of found rows does not match number of ids. Is this the correct feature list? Found: %s, Searched: %s".formatted(
+              list.stream().map(FeatureListRow::getID).map(Object::toString)
+                  .collect(Collectors.joining(",")),
+              ids.stream().map(Object::toString).collect(Collectors.joining(","))));
+    }
+    return list;
   }
 }

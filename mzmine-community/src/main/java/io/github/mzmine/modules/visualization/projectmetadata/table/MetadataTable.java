@@ -26,14 +26,17 @@
 package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.DATE_HEADER;
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_TYPE_HEADER;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.io.TableIOUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.io.WideTableIOUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -109,9 +112,30 @@ public class MetadataTable {
         dateCol = new DateMetadataColumn(DATE_HEADER, "Run start time stamp of the sample");
       }
       setValue(dateCol, newFile, newFile.getStartTimeStamp());
+
+      assignSampleType(newFile);
     } catch (Exception ignored) {
-      logger.warning("Cannot set date " + newFile.getStartTimeStamp().toString());
+      logger.warning("Cannot set date " + newFile.getStartTimeStamp());
     }
+  }
+
+  private void assignSampleType(RawDataFile newFile) {
+    final MetadataColumn<String> sampleTypeColumn = getSampleTypeColumn();
+    setValue(sampleTypeColumn, newFile, SampleType.ofFile(newFile).toString());
+  }
+
+  public MetadataColumn<String> getSampleTypeColumn() {
+    final MetadataColumn<?> col = getColumnByName(SAMPLE_TYPE_HEADER);
+    if (col == null) {
+      final StringMetadataColumn sampleType = new StringMetadataColumn(SAMPLE_TYPE_HEADER,
+          "The type of the sample");
+      addColumn(sampleType);
+      // column was just created, add default sample types
+      data.values().stream().flatMap(m -> m.keySet().stream()).distinct()
+          .forEach(this::assignSampleType);
+      return sampleType;
+    }
+    return (MetadataColumn<String>) col;
   }
 
   /**
@@ -221,7 +245,15 @@ public class MetadataTable {
    * @return was the import successful?
    */
   public boolean importMetadata(File file, final boolean skipColOnError) {
-    return tableIOUtils.importFrom(file, skipColOnError);
+    final boolean b = tableIOUtils.importFrom(file, skipColOnError);
+
+    if (b) {
+      if (getColumnByName(SAMPLE_TYPE_HEADER) == null) {
+        getSampleTypeColumn(); // return value does not matter, but this also creates the default mappings.
+      }
+    }
+
+    return b;
   }
 
   /**

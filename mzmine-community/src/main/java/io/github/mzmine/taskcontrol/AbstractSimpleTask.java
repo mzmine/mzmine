@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class AbstractSimpleTask extends AbstractTask {
 
-  private final ParameterSet parameters;
+  protected final ParameterSet parameters;
   private final Class<? extends MZmineModule> moduleClass;
   protected long totalItems;
   protected AtomicLong finishedItems = new AtomicLong(0);
@@ -131,5 +131,13 @@ public abstract class AbstractSimpleTask extends AbstractTask {
     for (final var raw : getProcessedDataFiles()) {
       raw.getAppliedMethods().add(appliedMethod);
     }
+  }
+
+  public ParameterSet getParameters() {
+    return parameters;
+  }
+
+  public Class<? extends MZmineModule> getModuleClass() {
+    return moduleClass;
   }
 }

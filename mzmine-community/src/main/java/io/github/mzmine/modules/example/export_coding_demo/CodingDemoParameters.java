@@ -25,14 +25,16 @@
 
 package io.github.mzmine.modules.example.export_coding_demo;
 
+import io.github.mzmine.modules.io.download.ExternalAsset;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithDownloadParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
+import java.util.List;
 
 /**
  * Define any parameters here (see io.github.mzmine.parameters for parameter types) static is needed
@@ -45,8 +47,8 @@ public class CodingDemoParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   // those are just example parameters and should be exchanged
-  public static final FileNameParameter outFile = new FileNameParameter("Export file",
-      "Save results to csv file", ExtensionFilters.CSV_TSV_EXPORT, FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter outFile = new FileNameSuffixExportParameter(
+      "Export file", "Save results to csv file", ExtensionFilters.CSV_TSV_EXPORT, "coding_demo");
 
   // optional parameters just add a checkbox in front of another parameter
   public static final OptionalParameter<MZRangeParameter> mzRange = new OptionalParameter<>(
@@ -54,11 +56,21 @@ public class CodingDemoParameters extends SimpleParameterSet {
   public static final OptionalParameter<RTRangeParameter> rtRange = new OptionalParameter<>(
       new RTRangeParameter());
 
+
+  public static final FileNameWithDownloadParameter testDownload = new FileNameWithDownloadParameter(
+      "Test download", "Try out the new download file parameter", List.of(ExtensionFilters.ZIP),
+      ExternalAsset.ThermoRawFileParser);
+
+
+  public static final FileNameWithDownloadParameter testDownloadLibrary = new FileNameWithDownloadParameter(
+      "Test download", "Try out the new download file parameter", List.of(ExtensionFilters.MGF),
+      ExternalAsset.MSnLib);
+
   public CodingDemoParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(featureLists, outFile, mzRange, rtRange);
+    super(featureLists, outFile, mzRange, rtRange, testDownload, testDownloadLibrary);
   }
 
 }

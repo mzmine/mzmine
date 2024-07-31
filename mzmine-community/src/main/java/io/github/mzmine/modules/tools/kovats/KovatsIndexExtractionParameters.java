@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.kovats;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -39,7 +40,6 @@ import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -76,8 +76,8 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
       "Show Kovats indexes from min", 8, 1, 49);
   public static final IntegerParameter maxKovats = new IntegerParameter("Max Kovats",
       "Show Kovats indexes until max (inclusive)", 24, 2, 50);
-  public static final MultiChoiceParameter<KovatsIndex> kovats = new MultiChoiceParameter<KovatsIndex>(
-      "Kovats", "Choice of Kovats indexes", KovatsIndex.values(), null);
+  public static final MultiChoiceParameter<KovatsIndex> kovats = new MultiChoiceParameter<>(
+      "Kovats", "Choice of Kovats indexes", KovatsIndex.values());
 
   public KovatsIndexExtractionParameters() {
     super(lastSavedFile, pickedKovatsValues,

@@ -77,8 +77,10 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -196,7 +198,13 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       }
     });
 
-
+    addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+      if (event.getCode() == KeyCode.DELETE) {
+        final List<ModularFeatureListRow> rows = getSelectedRows();
+        getSelectionModel().clearSelection();
+        DeleteRowsModule.deleteWithConfirmation(featureListProperty.get(), rows);
+      }
+    });
   }
 
   /**
@@ -465,6 +473,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   /**
    * Listens to update the table if a row is added/removed to/from the feature list.
    */
+  @Override
   public void onChanged(final Change<? extends FeatureListRow> c) {
     c.next();
     if (!(c.wasAdded() || c.wasRemoved())) {
@@ -490,6 +499,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * @param flist a summary RowData instance with all present {@link DataType}
    */
   public void addColumns(FeatureList flist) {
+    if (flist == null) {
+      return;
+    }
     //    logger.info("Adding columns to table");
     // for all data columns available in "data"
     assert flist instanceof ModularFeatureList : "Feature list is not modular";
@@ -947,35 +959,60 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   private void initFeatureListListener() {
     featureListProperty().addListener((observable, oldValue, newValue) -> {
       FxThread.runLater(() -> {
-        // Clear old rows and old columns
-        getRoot().getChildren().clear();
-        getColumns().clear();
-        rowItems.clear();
-
-        // remove the old listener
-        if (oldValue != null) {
-          oldValue.getRows().removeListener(this);
-        }
-        addColumns(newValue);
-        // first check if feature list is too large
-        applyDefaultColumnVisibilities();
-        if (newValue.getNumberOfRawDataFiles() > getMaximumSamplesForVisibleShapes()) {
-          showCompactChromatographyColumns();
-        }
-
-        // add rows
-        for (FeatureListRow row : newValue.getRows()) {
-          final ModularFeatureListRow mrow = (ModularFeatureListRow) row;
-          rowItems.add(new TreeItem<>(mrow));
-        }
-
-        TreeItem<ModularFeatureListRow> root = getRoot();
-        root.getChildren().addAll(filteredRowItems);
-
-        // reflect the changes to the feature list in the table
-        newValue.getRows().addListener(this);
+        updateFeatureList(oldValue, newValue);
       });
     });
+  }
+
+  /**
+   * Removes the listener to the old feature list, clears the table and adds the new feature list,
+   * builds the columns and adds required listeners.
+   */
+  private void updateFeatureList(@Nullable ModularFeatureList oldFeatureList,
+      @Nullable ModularFeatureList newFeatureList) {
+    getSelectionModel().clearSelection(); // leads to npe or index out of bound
+    // Clear old rows and old columns
+    getRoot().getChildren().clear();
+    getColumns().clear();
+    rowItems.clear();
+
+    // remove the old listener
+    if (oldFeatureList != null) {
+      oldFeatureList.getRows().removeListener(this);
+    }
+    if (newFeatureList == null) {
+      return;
+    }
+    addColumns(newFeatureList);
+    // first check if feature list is too large
+    applyDefaultColumnVisibilities();
+    if (newFeatureList.getNumberOfRawDataFiles() > getMaximumSamplesForVisibleShapes()) {
+      showCompactChromatographyColumns();
+    }
+
+    // add rows
+    for (FeatureListRow row : newFeatureList.getRows()) {
+      final ModularFeatureListRow mrow = (ModularFeatureListRow) row;
+      rowItems.add(new TreeItem<>(mrow));
+    }
+
+    TreeItem<ModularFeatureListRow> root = getRoot();
+    root.getChildren().addAll(filteredRowItems);
+
+    // reflect the changes to the feature list in the table
+    newFeatureList.getRows().addListener(this);
+  }
+
+  /**
+   * Repopulates the feature table. Also re-creates columns, eg. after a new data type was added
+   * from the gui.
+   */
+  public void rebuild() {
+    final ModularFeatureList flist = getFeatureList();
+    final ModularFeatureListRow row = getSelectedRow();
+    getSelectionModel().clearSelection();
+    updateFeatureList(flist, flist);
+    FeatureTableFXUtil.selectAndScrollTo(row, this);
   }
 
   /**
@@ -1032,7 +1069,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       @Nullable Class<? extends DataType<?>> subtype, boolean visible) {
     final DataType<?> subType = subtype != null ? DataTypes.get(subtype) : null;
     final DataType<?> parentType = DataTypes.get(parentClass);
-    setVisible(columnType, parentType.getUniqueID(), subType != null ? subType.getUniqueID() : null, visible);
+    setVisible(columnType, parentType.getUniqueID(), subType != null ? subType.getUniqueID() : null,
+        visible);
   }
 
   public void closeTable() {

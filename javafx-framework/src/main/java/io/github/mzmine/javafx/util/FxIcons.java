@@ -27,22 +27,26 @@ package io.github.mzmine.javafx.util;
 
 public enum FxIcons implements IconCodeSupplier {
   // status
-  CHECK_CIRCLE, X_CIRCLE, EXCLAMATION_TRIANGLE,
+  CHECK_CIRCLE, X, X_CIRCLE, EXCLAMATION_TRIANGLE,
 
   // control flow
   ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN,
 
   // UI
-  DARK_MODE_SWITCH,
+  DARK_MODE_SWITCH, BATCH,
 
   //
-  USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, ROCKET;
+  USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, ROCKET,
+
+  // ACTIONS
+  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD;
 
 
   @Override
   public String getIconCode() {
     return switch (this) {
       case CHECK_CIRCLE -> "bi-check2-circle";
+      case X -> "bi-x";
       case X_CIRCLE -> "bi-x-circle";
       case EXCLAMATION_TRIANGLE -> "bi-exclamation-triangle";
       case DARK_MODE_SWITCH -> "bi-mask";
@@ -60,6 +64,16 @@ public enum FxIcons implements IconCodeSupplier {
       case BOOK -> "bi-book";
       case DOCUMENTATION -> "bi-book";
       case ROCKET -> "las-rocket";
+      case SAVE -> "bi-box-arrow-down";
+      case LOAD -> "bi-box-arrow-in-up";
+      case CANCEL -> "bi-x-circle";
+      case FILTER -> "bi-funnel";
+      case CLEAR -> "bi-dash-circle-dotted";
+      case START -> "bi-play-circle";
+      case STOP -> "bi-stop-circle";
+      case DRAW_REGION -> "bi-bounding-box";
+      case BATCH -> "bi-layout-split";
+      case DOWNLOAD -> "bi-download";
     };
   }
 }

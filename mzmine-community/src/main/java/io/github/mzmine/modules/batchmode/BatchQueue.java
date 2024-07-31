@@ -30,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
@@ -272,4 +273,14 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
     }
   }
 
+  /**
+   * Change all output files to this base file by adding a module specific suffix
+   */
+  public void setOutputBaseFile(final String overrideOutBaseFile) {
+    logger.info("Changing all output files with path and base filename: " + overrideOutBaseFile);
+    File baseFile = new File(overrideOutBaseFile);
+
+    ChangeOutputFilesUtils.applyTo(this, baseFile);
+    logger.info("Done changing output file paths.");
+  }
 }

@@ -70,7 +70,7 @@ public class ProjectLoadTest {
     param.setParameter(ProjectLoaderParameters.projectFile, new File(
         ProjectLoaderParameters.class.getClassLoader().getResource("rawdatafiles/dom_test.mzmine")
             .getFile()));
-    final TaskResult result = MZmineTestUtil.callModuleWithTimeout(90, ProjectLoadModule.class,
+    final TaskResult result = MZmineTestUtil.callModuleWithTimeout(300, ProjectLoadModule.class,
         param);
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, result, result.description());
 

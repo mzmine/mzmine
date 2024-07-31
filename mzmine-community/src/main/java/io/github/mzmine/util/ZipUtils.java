@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -43,12 +45,14 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ZipUtils {
 
-  public static void unzipStream(ZipInputStream zipStream, File destinationFolder)
+  public static List<File> unzipStream(ZipInputStream zipStream, File destinationFolder)
       throws IOException {
 
     if (!destinationFolder.exists()) {
       destinationFolder.mkdirs();
     }
+
+    List<File> files = new ArrayList<>();
 
     ZipEntry entry;
     int readLen;
@@ -65,8 +69,10 @@ public class ZipUtils {
         }
         outputStream.close();
         extractedFile.setExecutable(true);
+        files.add(extractedFile);
       }
     }
+    return files;
   }
 
   /**
@@ -122,7 +128,7 @@ public class ZipUtils {
       }
 
       File extractedFile = new File(destinationFolder, entry.getName());
-      if(!extractedFile.toPath().normalize().startsWith(destinationFolder.toPath())) {
+      if (!extractedFile.toPath().normalize().startsWith(destinationFolder.toPath())) {
         throw new IllegalArgumentException("Bad zip entry.");
       }
 

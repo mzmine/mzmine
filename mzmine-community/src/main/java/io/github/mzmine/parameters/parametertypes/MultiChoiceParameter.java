@@ -30,10 +30,14 @@ import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.Objects;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.scene.layout.Priority;
 import org.controlsfx.control.CheckListView;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -48,6 +52,8 @@ public class MultiChoiceParameter<ValueType> implements
   private final String name, description;
   private final int minNumber;
   private ValueType[] choices, values;
+  @NotNull
+  private Comparator<ValueType> comparator = Comparator.comparing(Objects::toString);
 
   /**
    * We need the choices parameter non-null even when the length may be 0. We need it to determine
@@ -72,6 +78,21 @@ public class MultiChoiceParameter<ValueType> implements
     this.choices = choices;
     this.values = values;
     this.minNumber = minNumber;
+  }
+
+  public MultiChoiceParameter(final String name, final String description,
+      final ValueType[] choices, @NotNull final Comparator<ValueType> comparator) {
+    this(name, description, choices);
+    this.comparator = comparator;
+  }
+
+  public void setComparator(@NotNull final Comparator<ValueType> comparator) {
+    this.comparator = comparator;
+  }
+
+  @NotNull
+  public Comparator<ValueType> getComparator() {
+    return comparator;
   }
 
   /**
@@ -107,7 +128,8 @@ public class MultiChoiceParameter<ValueType> implements
   public CheckListView<ValueType> createEditingComponent() {
     final ObservableList<ValueType> choicesList = FXCollections.observableArrayList(
         Arrays.asList(choices));
-    final CheckListView<ValueType> comp = new CheckListView<>(choicesList);
+    SortedList<ValueType> sortedList = new SortedList<>(choicesList, comparator);
+    final CheckListView<ValueType> comp = new CheckListView<>(sortedList);
     comp.setPrefHeight(200);
     return comp;
   }
@@ -142,7 +164,8 @@ public class MultiChoiceParameter<ValueType> implements
   }
 
   @Override
-  public void setValueToComponent(CheckListView<ValueType> component, @Nullable ValueType[] newValue) {
+  public void setValueToComponent(CheckListView<ValueType> component,
+      @Nullable ValueType[] newValue) {
     component.getSelectionModel().clearSelection();
     component.getCheckModel().clearChecks();
     if (newValue == null) {

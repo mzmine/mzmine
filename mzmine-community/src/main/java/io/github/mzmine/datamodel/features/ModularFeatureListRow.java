@@ -711,7 +711,6 @@ public class ModularFeatureListRow implements FeatureListRow {
       case FeatureAnnotation ann -> ann.getCompoundName();
       case ManualAnnotation ann -> ann.getCompoundName();
       case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
-      case MatchedLipid lipid -> lipid.getLipidAnnotation().getAnnotation();
       case null -> null;
       default -> throw new IllegalStateException("Unexpected value: " + annotation);
     };
