@@ -25,13 +25,31 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection;
 
-import io.github.mzmine.modules.MZmineModule;
-import java.util.Collection;
-import java.util.List;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 
-public interface PrecursorSelectionModule extends MZmineModule {
+public enum TimsTOFPrecursorSelectionOptions implements
+    ModuleOptionsEnum<PrecursorSelectionModule> {
+  TOP_N;
 
-  public List<List<MaldiTimsPrecursor>> getPrecursorList(Collection<MaldiTimsPrecursor> precursors,
-      final double mobilityGap);
+  public static PrecursorSelectionModule createSelector(
+      final ValueWithParameters<TimsTOFPrecursorSelectionOptions> param) {
+    return switch (param.value()) {
+      case TOP_N -> new TopNSelectionModule(param.parameters());
+    };
+  }
 
+  @Override
+  public Class<? extends PrecursorSelectionModule> getModuleClass() {
+    return switch (this) {
+      case TOP_N -> TopNSelectionModule.class;
+    };
+  }
+
+  @Override
+  public String getStableId() {
+    return switch (this) {
+      case TOP_N -> "Top N Precursor selection module";
+    };
+  }
 }
