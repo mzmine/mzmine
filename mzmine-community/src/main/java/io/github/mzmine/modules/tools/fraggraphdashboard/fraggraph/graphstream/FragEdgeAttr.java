@@ -23,12 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.id_fraggraph.graphstream;
+package io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 import org.graphstream.graph.Edge;
 
 /**

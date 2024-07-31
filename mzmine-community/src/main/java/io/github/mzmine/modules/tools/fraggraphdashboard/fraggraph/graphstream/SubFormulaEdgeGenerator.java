@@ -23,9 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.id_fraggraph.graphstream;
+package io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream;
 
-import io.github.mzmine.util.FormulaUtils;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Comparator;

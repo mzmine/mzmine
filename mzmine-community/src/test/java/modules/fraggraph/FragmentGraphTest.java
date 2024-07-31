@@ -26,28 +26,8 @@
 package modules.fraggraph;
 
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
-import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardModel;
-import io.github.mzmine.modules.tools.fraggraphdashboard.FragGraphPrecursorFormulaTask;
-import io.github.mzmine.modules.tools.id_fraggraph.FragmentUtils;
-import io.github.mzmine.modules.tools.id_fraggraph.SignalWithFormulae;
-import io.github.mzmine.modules.tools.id_fraggraph.graphstream.FragmentGraphGenerator;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.FormulaWithExactMz;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.openscience.cdk.formula.MolecularFormulaGenerator;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FragmentGraphTest {
 

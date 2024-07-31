@@ -23,9 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.id_fraggraph.graphstream;
+package io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream;
 
-import io.github.mzmine.modules.tools.id_fraggraph.SignalWithFormulae;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.SignalWithFormulae;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;

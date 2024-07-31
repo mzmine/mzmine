@@ -25,11 +25,9 @@
 
 package io.github.mzmine.modules.tools.fraggraphdashboard.nodetable;
 
-import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.logging.Logger;
-import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableCell;
 import javafx.util.StringConverter;

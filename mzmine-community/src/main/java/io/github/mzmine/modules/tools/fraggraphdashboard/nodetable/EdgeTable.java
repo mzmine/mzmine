@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.fraggraphdashboard.nodetable;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SubFormulaEdge;
 import java.text.ParseException;
 import java.util.Comparator;
 import javafx.beans.property.ReadOnlyObjectWrapper;

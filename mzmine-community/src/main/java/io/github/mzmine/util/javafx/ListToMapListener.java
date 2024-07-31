@@ -19,7 +19,6 @@
 
 package io.github.mzmine.util.javafx;
 
-import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
