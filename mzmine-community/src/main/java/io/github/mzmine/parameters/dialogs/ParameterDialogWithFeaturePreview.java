@@ -91,8 +91,8 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
     GridPane controls = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
     controls.add(FxLabels.newLabel("Feature list: "), 0, 0);
     controls.add(FxLabels.newLabel("Feature: "), 0, 1);
-    controls.add(flistBox, 0, 1);
-    controls.add(featureBox, 0, 2);
+    controls.add(flistBox, 1, 0);
+    controls.add(featureBox, 1, 1);
 
     flistBox.valueProperty().addListener((_, _, flist) -> {
       featureBox.setItems(flist.getFeatures(flist.getRawDataFile(0)));
