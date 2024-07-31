@@ -125,6 +125,14 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
     this.selectedValue = value;
   }
 
+  /**
+   * @return parameters of selected option
+   */
+  public ParameterSet setOptionGetParameters(EnumType option) {
+    setValue(option);
+    return getEmbeddedParameters(option);
+  }
+
   @Override
   public ModuleOptionsEnumComboParameter<EnumType> cloneParameter() {
     EnumMap<EnumType, ParameterSet> copy = new EnumMap<>(parametersMap);
