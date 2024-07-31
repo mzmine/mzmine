@@ -26,8 +26,12 @@
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.util.MemoryMapStorage;
 
 public interface BaselineCorrector {
 
-  public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries);
+  <T extends IntensityTimeSeries> T correctBaseline(T timeSeries);
+
+  public BaselineCorrector newInstance(BaselineCorrectionParameters parameters,
+      MemoryMapStorage storage);
 }

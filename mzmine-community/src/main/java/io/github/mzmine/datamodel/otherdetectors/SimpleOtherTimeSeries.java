@@ -78,4 +78,16 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
   public OtherTimeSeriesData getTimeSeriesData() {
     return timeSeriesData;
   }
+
+  @Override
+  public OtherTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newIntensities,
+      String newName) {
+    if (getNumberOfValues() != newIntensities.length) {
+      throw new IllegalArgumentException("The number of intensities does not match number of rts.");
+    }
+
+    final float[] rts = new float[getNumberOfValues()];
+    timeBuffer.get(rts);
+    return new SimpleOtherTimeSeries(storage, rts, newIntensities, newName, getTimeSeriesData());
+  }
 }

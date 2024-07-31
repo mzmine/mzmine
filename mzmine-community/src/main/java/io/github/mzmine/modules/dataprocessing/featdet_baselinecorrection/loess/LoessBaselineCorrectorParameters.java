@@ -23,13 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.spline;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.loess;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
 
 public class LoessBaselineCorrectorParameters extends SimpleParameterSet {
 
+  public static final IntegerParameter numSamples = new IntegerParameter(
+      "Number of baseline samples", """
+      The number of samples taken from the chromatogram to fit the baseline.
+      Higher values may increase the processing time but also lead to better results.
+      """, 50, 2, Integer.MAX_VALUE);
+
+  public static final PercentParameter bandwidth = new PercentParameter("Bandwidth",
+      "The bandwidth of the LOESS filter.", LoessInterpolator.DEFAULT_BANDWIDTH, 0d, 1d);
+
+  public static final IntegerParameter iterations = new IntegerParameter("Iterations",
+      "The number of iterations for the LOESS filter.", LoessInterpolator.DEFAULT_ROBUSTNESS_ITERS,
+      1, 10);
+
   public LoessBaselineCorrectorParameters() {
-    super();
+    super(numSamples, bandwidth, iterations);
   }
 }

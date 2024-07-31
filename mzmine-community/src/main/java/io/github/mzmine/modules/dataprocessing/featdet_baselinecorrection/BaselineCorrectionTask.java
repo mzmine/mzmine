@@ -25,11 +25,23 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.List;
@@ -37,6 +49,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BaselineCorrectionTask extends AbstractSimpleTask {
+
+  private final FeatureList originalFlist;
+  private final BaselineCorrector corrector;
+  private final String suffix;
+  private OriginalFeatureListOption handleOriginal;
+  private final MZmineProject project;
+  private ModularFeatureList newFlist;
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -48,19 +67,50 @@ public class BaselineCorrectionTask extends AbstractSimpleTask {
    */
   protected BaselineCorrectionTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
-      @NotNull Class<? extends MZmineModule> moduleClass) {
+      @NotNull Class<? extends MZmineModule> moduleClass, FeatureList flist,
+      MZmineProject project) {
     super(storage, moduleCallDate, parameters, moduleClass);
 
+    this.originalFlist = flist;
+    handleOriginal = parameters.getValue(BaselineCorrectionParameters.handleOriginal);
+    this.project = project;
+    final BaselineCorrectors value = parameters.getValue(
+        BaselineCorrectionParameters.correctionAlgorithm);
+    corrector = ((BaselineCorrector) value.getModuleInstance()).newInstance(
+        (BaselineCorrectionParameters) parameters, getMemoryMapStorage());
+    suffix = parameters.getValue(BaselineCorrectionParameters.suffix);
+    totalItems = flist.getNumberOfRows();
   }
 
   @Override
   protected void process() {
+    if (originalFlist.getNumberOfRawDataFiles() > 1) {
+      error("More than one raw file in feature list + " + originalFlist.getName());
+    }
 
+    newFlist = FeatureListUtils.createCopy(originalFlist, suffix, getMemoryMapStorage());
+
+    final RawDataFile rawDataFile = originalFlist.getRawDataFile(0);
+    for (FeatureListRow row : originalFlist.getRows()) {
+      final Feature feature = row.getFeature(rawDataFile);
+      final IonTimeSeries<? extends Scan> its = corrector.correctBaseline(feature.getFeatureData());
+
+      final ModularFeatureListRow newRow = new ModularFeatureListRow(newFlist,
+          (ModularFeatureListRow) row, false);
+      final ModularFeature newFeature = new ModularFeature(newFlist, feature);
+      newFeature.set(FeatureDataType.class, its);
+      FeatureDataUtils.recalculateIonSeriesDependingTypes(newFeature);
+      newRow.addFeature(rawDataFile, newFeature);
+      newFlist.addRow(newRow);
+      finishedItems.getAndIncrement();
+    }
+
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, newFlist, originalFlist);
   }
 
   @Override
   protected @NotNull List<FeatureList> getProcessedFeatureLists() {
-    return List.of();
+    return List.of(newFlist);
   }
 
   @Override
@@ -70,6 +120,6 @@ public class BaselineCorrectionTask extends AbstractSimpleTask {
 
   @Override
   public String getTaskDescription() {
-    return "";
+    return "Correcting baseline for feature list " + originalFlist.getName();
   }
 }

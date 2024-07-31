@@ -25,14 +25,52 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class BaselineCorrectionParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
+  public static final StringParameter suffix = new StringParameter("Suffix",
+      "Suffix for the new feature list.");
+
+  public static final ModuleOptionsEnumComboParameter<BaselineCorrectors> correctionAlgorithm = new ModuleOptionsEnumComboParameter<>(
+      "Baseline corrector", "Select the baseline correction algorithm.", BaselineCorrectors.LOESS);
+
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      false);
+
   public BaselineCorrectionParameters() {
-    super();
+    super(flists, suffix, correctionAlgorithm, handleOriginal);
+  }
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    boolean value = super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+
+    final @NotNull ModularFeatureList[] flists = getValue(
+        BaselineCorrectionParameters.flists).getMatchingFeatureLists();
+    final String error = Arrays.stream(flists).filter(flist -> flist.getNumberOfRawDataFiles() > 1)
+        .map(ModularFeatureList::getName).collect(Collectors.joining(", "));
+
+    if (error != null && !error.isBlank()) {
+      errorMessages.add("Feature lists " + error
+          + " contain more than one raw file. This module is intended to be used directly after chromatogram detection, not after alignment.");
+    }
+
+    if (!value || !errorMessages.isEmpty()) {
+      return false;
+    }
+    return true;
   }
 }

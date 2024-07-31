@@ -26,11 +26,13 @@
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +48,18 @@ public class BaselineCorrectionModule extends AbstractProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    return null;
+
+    final @NotNull ModularFeatureList[] flists = parameters.getValue(
+        BaselineCorrectionParameters.flists).getMatchingFeatureLists();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
+
+    for (final @NotNull ModularFeatureList flist : flists) {
+      tasks.add(new BaselineCorrectionTask(storage, moduleCallDate, parameters,
+          BaselineCorrectionModule.class, flist, project));
+    }
+
+    return ExitCode.OK;
   }
+
+
 }
