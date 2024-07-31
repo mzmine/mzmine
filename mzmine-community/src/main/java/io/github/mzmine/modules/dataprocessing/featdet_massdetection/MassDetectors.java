@@ -127,17 +127,6 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
   }
 
   /**
-   * Without AUTO mass detector as this only works when spectrum type is known. List of modules that
-   * contain the name and parameter class. Used by the parameters. use
-   * {@link MassDetector#create(ParameterSet)} to create the instance for processing
-   */
-  @NotNull
-  public static List<MassDetector> listModulesNoAuto() {
-    return Arrays.stream(values()).filter(md -> md != AUTO).map(MassDetectors::getModuleInstance)
-        .toList();
-  }
-
-  /**
    * Derive a mass detector with the following parameters
    *
    * @param parameters the parameter set of the sub parameters for this detector
