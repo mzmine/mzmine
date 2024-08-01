@@ -23,13 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.spline;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.akimaspline;
 
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrectorParameters;
 
-public class SplineBaselineCorrectorParameters extends UnivariateBaselineCorrectorParameters {
+public class AkimaSplineCorrectorParameters extends UnivariateBaselineCorrectorParameters {
 
-  public SplineBaselineCorrectorParameters() {
+  public AkimaSplineCorrectorParameters() {
     super(applyPeakRemoval, numSamples);
   }
 }

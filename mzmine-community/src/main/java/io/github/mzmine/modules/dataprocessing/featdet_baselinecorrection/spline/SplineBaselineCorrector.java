@@ -25,99 +25,46 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.spline;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrector;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.akimaspline.AkimaSplineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.BinarySearch;
-import io.github.mzmine.util.collections.IndexRange;
-import java.util.List;
+import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
+import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SplineBaselineCorrector implements BaselineCorrector {
-
-  private final MinimumSearchFeatureResolver resolver;
-  private final int numSamples;
-  private double[] xBuffer = new double[0];
-  private double[] yBuffer = new double[0];
-
-  private double[] xBufferRemovedPeaks = new double[0];
-  private double[] yBufferRemovedPeaks = new double[0];
+public class SplineBaselineCorrector extends UnivariateBaselineCorrector {
 
   public SplineBaselineCorrector() {
-    resolver = null;
-    numSamples = 2;
+    super();
   }
 
-  public SplineBaselineCorrector(int numSamples, MinimumSearchFeatureResolver resolver) {
-    this.numSamples = numSamples;
-    this.resolver = resolver;
-  }
-
-  @Override
-  public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
-    final int numValues = timeSeries.getNumberOfValues();
-    if (yBuffer.length < numValues) {
-      xBuffer = new double[numValues];
-      yBuffer = new double[numValues];
-      xBufferRemovedPeaks = new double[numValues];
-      yBufferRemovedPeaks = new double[numValues];
-    }
-
-    extractDataIntoBuffer(timeSeries, xBuffer, yBuffer);
-
-    final List<Range<Double>> resolved = resolver.resolve(xBuffer, yBuffer);
-    final List<IndexRange> indices = resolved.stream().map(
-        range -> BinarySearch.indexRange(range, timeSeries.getNumberOfValues(),
-            timeSeries::getRetentionTime)).toList();
-    final int sum = indices.stream().mapToInt(r -> r.maxExclusive() - r.min()).sum();
-
-    for (int i = 0; i < indices.size(); i++) {
-
-    }
-
-    return null;
+  public SplineBaselineCorrector(MemoryMapStorage storage, int numSamples, String suffix,
+      MinimumSearchFeatureResolver resolver) {
+    super(storage, numSamples, suffix, resolver);
   }
 
   @Override
   public BaselineCorrector newInstance(BaselineCorrectionParameters parameters,
       MemoryMapStorage storage, FeatureList flist) {
 
-    final ParameterSet resolverParam = ConfigService.getConfiguration()
-        .getModuleParameters(MinimumSearchFeatureResolverModule.class).cloneParameterSet();
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
-        new FeatureListsSelection((ModularFeatureList) flist));
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, false);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.dimension,
-        ResolvingDimension.RETENTION_TIME);
-    resolverParam.setParameter(
-        MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL, 0.70);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE, 0.04);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT, 0d);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT, 0d);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RATIO, 3d);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION,
-        Range.closed(0d, 5d));
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS, 5);
-
-    final MinimumSearchFeatureResolver resolver = new MinimumSearchFeatureResolver(resolverParam,
-        (ModularFeatureList) flist);
-
+    final String suffix = parameters.getValue(BaselineCorrectionParameters.suffix);
     final ParameterSet embedded = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();
-    return new SplineBaselineCorrector(
-        embedded.getValue(SplineBaselineCorrectorParameters.numSamples), resolver);
+    final Integer numSamples = embedded.getValue(UnivariateBaselineCorrectorParameters.numSamples);
+    final MinimumSearchFeatureResolver resolver =
+        embedded.getValue(UnivariateBaselineCorrectorParameters.applyPeakRemoval)
+            ? UnivariateBaselineCorrector.initializeLocalMinResolver((ModularFeatureList) flist)
+            : null;
+
+    return new AkimaSplineCorrector(storage, numSamples, suffix, resolver);
   }
 
   @Override
@@ -128,5 +75,10 @@ public class SplineBaselineCorrector implements BaselineCorrector {
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
     return SplineBaselineCorrectorParameters.class;
+  }
+
+  @Override
+  public UnivariateInterpolator initializeInterpolator() {
+    return new SplineInterpolator();
   }
 }

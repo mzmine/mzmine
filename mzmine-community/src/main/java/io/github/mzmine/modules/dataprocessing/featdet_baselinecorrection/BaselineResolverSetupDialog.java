@@ -44,15 +44,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class BaselineResolverSetupDialog extends ParameterDialogWithFeaturePreview {
 
+  public BaselineResolverSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
+      Region message) {
+    super(valueCheckRequired, parameters, message);
+  }
+
   @Override
   protected @NotNull SimpleXYChart<PlotXYDataProvider> createChart() {
     return new SimpleXYChart<>("Preview", formats.unit("Retention time", "min"),
         formats.unit("Intensity", "a.u."));
-  }
-
-  public BaselineResolverSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
-      Region message) {
-    super(valueCheckRequired, parameters, message);
   }
 
   @Override
@@ -75,7 +75,7 @@ public class BaselineResolverSetupDialog extends ParameterDialogWithFeaturePrevi
     final BaselineCorrectors enumValue = parameterSet.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getValue();
     final BaselineCorrector baselineCorrector = ((BaselineCorrector) enumValue.getModuleInstance()).newInstance(
-        (BaselineCorrectionParameters) parameterSet, null, );
+        (BaselineCorrectionParameters) parameterSet, null, feature.getFeatureList());
 
     IonTimeSeries<? extends Scan> corrected = baselineCorrector.correctBaseline(
         feature.getFeatureData());

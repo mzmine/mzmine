@@ -23,25 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.assymmetric;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.neville;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import java.text.DecimalFormat;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrectorParameters;
 
-public class AsymmetricRegressionBaselineCorrectorParameters extends SimpleParameterSet {
+public class NevilleBaselineCorrectorParameters extends UnivariateBaselineCorrectorParameters {
 
-  public static final DoubleParameter lambda = new DoubleParameter("Lambda", "",
-      new DecimalFormat("0.0E0"), 1E6);
-
-  public static final DoubleParameter p = new DoubleParameter("p", "", new DecimalFormat("0.000"),
-      0.001);
-
-  public static final IntegerParameter maxIterations = new IntegerParameter("Maximum iterations",
-      "", 10);
-
-  public AsymmetricRegressionBaselineCorrectorParameters() {
-    super(lambda, p, maxIterations);
+  public NevilleBaselineCorrectorParameters() {
+    super(applyPeakRemoval, numSamples);
   }
 }

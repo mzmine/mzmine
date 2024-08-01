@@ -34,6 +34,28 @@ import io.github.mzmine.util.MemoryMapStorage;
 
 public interface BaselineCorrector extends MZmineModule {
 
+  static double[] subsample(double[] array, int numValues, int numSamples, boolean check) {
+    if (numSamples >= numValues) {
+      var reduced = new double[numValues];
+      System.arraycopy(array, 0, reduced, 0, numValues);
+      return reduced;
+    }
+
+    final int increment = numValues / numSamples;
+
+    final double[] result = new double[numSamples + 1];
+    for (int i = 0; i < numSamples; i++) {
+      result[i] = array[i * increment];
+      if (check && result[Math.max(i - 1, 0)] > result[i]) {
+        throw new IllegalStateException();
+      }
+    }
+
+    result[numSamples] = array[numValues - 1];
+
+    return result;
+  }
+
   <T extends IntensityTimeSeries> T correctBaseline(T timeSeries);
 
   public BaselineCorrector newInstance(BaselineCorrectionParameters parameters,

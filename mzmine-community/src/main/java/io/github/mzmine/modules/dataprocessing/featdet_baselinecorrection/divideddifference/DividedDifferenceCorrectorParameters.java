@@ -23,13 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.spline;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.divideddifference;
 
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrectorParameters;
 
-public class SplineBaselineCorrectorParameters extends UnivariateBaselineCorrectorParameters {
+public class DividedDifferenceCorrectorParameters extends UnivariateBaselineCorrectorParameters {
 
-  public SplineBaselineCorrectorParameters() {
+  public DividedDifferenceCorrectorParameters() {
     super(applyPeakRemoval, numSamples);
   }
 }

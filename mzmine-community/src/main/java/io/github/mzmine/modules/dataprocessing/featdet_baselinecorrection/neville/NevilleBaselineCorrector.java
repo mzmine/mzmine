@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.loess;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.neville;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -34,59 +34,48 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Univar
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
-import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
+import org.apache.commons.math3.analysis.interpolation.NevilleInterpolator;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LoessBaselineCorrector extends UnivariateBaselineCorrector {
+public class NevilleBaselineCorrector extends UnivariateBaselineCorrector {
 
-  private final MemoryMapStorage storage;
-  private final double bandwidth;
-  private final int iterations;
-
-  public LoessBaselineCorrector() {
-    this(null, 50, LoessInterpolator.DEFAULT_BANDWIDTH, LoessInterpolator.DEFAULT_ROBUSTNESS_ITERS,
-        "baseline", null);
+  public NevilleBaselineCorrector() {
   }
 
-  public LoessBaselineCorrector(MemoryMapStorage storage, int baselineSamples, double bandwidth,
-      int iterations, String suffix, MinimumSearchFeatureResolver resolver) {
-    super(storage, baselineSamples, suffix, resolver);
-    this.storage = storage;
-    this.bandwidth = bandwidth;
-    this.iterations = iterations;
+  public NevilleBaselineCorrector(MemoryMapStorage storage, int numSamples, String suffix,
+      MinimumSearchFeatureResolver resolver) {
+    super(storage, numSamples, suffix, resolver);
   }
 
   @Override
   protected UnivariateInterpolator initializeInterpolator() {
-    return new LoessInterpolator(bandwidth, iterations);
+    return new NevilleInterpolator();
   }
 
   @Override
   public BaselineCorrector newInstance(BaselineCorrectionParameters parameters,
       MemoryMapStorage storage, FeatureList flist) {
+    final String suffix = parameters.getValue(BaselineCorrectionParameters.suffix);
     final ParameterSet embedded = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();
+    final Integer numSamples = embedded.getValue(UnivariateBaselineCorrectorParameters.numSamples);
     final MinimumSearchFeatureResolver resolver =
         embedded.getValue(UnivariateBaselineCorrectorParameters.applyPeakRemoval)
             ? UnivariateBaselineCorrector.initializeLocalMinResolver((ModularFeatureList) flist)
             : null;
 
-    return new LoessBaselineCorrector(storage,
-        embedded.getValue(LoessBaselineCorrectorParameters.numSamples),
-        embedded.getValue(LoessBaselineCorrectorParameters.bandwidth),
-        embedded.getValue(LoessBaselineCorrectorParameters.iterations),
-        parameters.getValue(BaselineCorrectionParameters.suffix), resolver);
+    return new NevilleBaselineCorrector(storage, numSamples, suffix, resolver);
   }
 
   @Override
   public @NotNull String getName() {
-    return "Spline baseline correction";
+    return "Neville corrector";
   }
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return LoessBaselineCorrectorParameters.class;
+    return NevilleBaselineCorrectorParameters.class;
   }
 }
