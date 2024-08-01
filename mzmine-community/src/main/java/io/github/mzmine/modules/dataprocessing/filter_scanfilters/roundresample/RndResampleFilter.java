@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,21 +38,33 @@ import org.jetbrains.annotations.NotNull;
 
 public class RndResampleFilter implements ScanFilter {
 
-  @Override
-  public Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters) {
+  private final boolean sum_duplicates;
+  private final boolean remove_zero_intensity;
 
-    boolean sum_duplicates =
-        parameters.getParameter(RndResampleFilterParameters.SUM_DUPLICATES).getValue();
-    boolean remove_zero_intensity =
-        parameters.getParameter(RndResampleFilterParameters.REMOVE_ZERO_INTENSITY).getValue();
+  // requires default constructor for config
+  public RndResampleFilter() {
+    sum_duplicates = false;
+    remove_zero_intensity = false;
+  }
+
+  public RndResampleFilter(final ParameterSet parameters) {
+    sum_duplicates = parameters.getParameter(RndResampleFilterParameters.SUM_DUPLICATES).getValue();
+    remove_zero_intensity = parameters.getParameter(
+        RndResampleFilterParameters.REMOVE_ZERO_INTENSITY).getValue();
+  }
+
+  @Override
+  public Scan filterScan(RawDataFile newFile, Scan scan) {
 
     // If CENTROIDED scan, use it as-is
     DataPoint dps[];
-    if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED)
+    if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
       dps = ScanUtils.extractDataPoints(scan);
+    }
     // Otherwise, detect local maxima
-    else
+    else {
       dps = LocMaxCentroidingAlgorithm.centroidScan(ScanUtils.extractDataPoints(scan));
+    }
 
     // Cleanup first: Remove zero intensity data points (if requested)
     // Reuse dps array
@@ -117,7 +129,7 @@ public class RndResampleFilter implements ScanFilter {
     double[][] newDp = new double[2][];
     newDp[0] = new double[newNumOfDataPoints];
     newDp[1] = new double[newNumOfDataPoints];
-    for(int i = 0; i < newNumOfDataPoints; i++) {
+    for (int i = 0; i < newNumOfDataPoints; i++) {
       newDp[0][i] = dps[i].getMZ();
       newDp[1][i] = dps[i].getIntensity();
     }

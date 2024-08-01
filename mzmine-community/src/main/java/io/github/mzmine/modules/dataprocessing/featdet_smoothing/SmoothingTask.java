@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,12 +49,10 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,7 +74,8 @@ public class SmoothingTask extends AbstractTask {
   private final OriginalFeatureListOption handleOriginal;
 
   public SmoothingTask(@NotNull MZmineProject project, @NotNull ModularFeatureList flist,
-      @Nullable MemoryMapStorage storage, @NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
+      @Nullable MemoryMapStorage storage, @NotNull ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.flist = flist;
@@ -113,24 +112,24 @@ public class SmoothingTask extends AbstractTask {
       return;
     }
 
-    final ModularFeatureList smoothedList = flist
-        .createCopy(flist.getName() + " " + suffix, getMemoryMapStorage(), false);
+    final ModularFeatureList smoothedList = flist.createCopy(flist.getName() + " " + suffix,
+        getMemoryMapStorage(), false);
     DataTypeUtils.copyTypes(flist, smoothedList, true, true);
     // init a new smoother instance, since the parameters have to be stored in the smoother itself.
-    final SmoothingAlgorithm smoother = initialiseSmoother();
+    final SmoothingAlgorithm smoother = FeatureSmoothingOptions.createSmoother(parameters);
     if (smoother == null) {
       return;
     }
 
     // include zeros
-    final FeatureDataAccess dataAccess = EfficientDataAccess
-        .of(smoothedList, FeatureDataType.INCLUDE_ZEROS);
+    final FeatureDataAccess dataAccess = EfficientDataAccess.of(smoothedList,
+        FeatureDataType.INCLUDE_ZEROS);
 
     while (dataAccess.hasNextFeature()) {
       final ModularFeature feature = (ModularFeature) dataAccess.nextFeature();
 
-      final IonTimeSeries<? extends Scan> smoothedSeries = smoother
-          .smoothFeature(getMemoryMapStorage(), dataAccess, feature, zht);
+      final IonTimeSeries<? extends Scan> smoothedSeries = smoother.smoothFeature(
+          getMemoryMapStorage(), dataAccess, feature, zht);
       feature.set(io.github.mzmine.datamodel.features.types.FeatureDataType.class, smoothedSeries);
       FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
 
@@ -148,23 +147,6 @@ public class SmoothingTask extends AbstractTask {
     handleOriginal.reflectNewFeatureListToProject(suffix, project, smoothedList, flist);
 
     setStatus(TaskStatus.FINISHED);
-  }
-
-  @Nullable
-  private SmoothingAlgorithm initialiseSmoother() {
-    final SmoothingAlgorithm smoother;
-    try {
-      smoother = parameters.getParameter(SmoothingParameters.smoothingAlgorithm).getValue()
-          .getModule().getClass().getDeclaredConstructor(ParameterSet.class).newInstance(
-              parameters.getParameter(SmoothingParameters.smoothingAlgorithm).getValue()
-                  .getParameterSet());
-    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-      logger.log(Level.SEVERE, e.getMessage(), e);
-      setErrorMessage(e.getMessage());
-      setStatus(TaskStatus.ERROR);
-      return null;
-    }
-    return smoother;
   }
 
   // -----------------------------
