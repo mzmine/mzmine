@@ -23,29 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.assymmetric;
 
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.assymmetric.AsymmetricRegressionBaselineCorrector;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.loess.LoessBaselineCorrector;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import java.text.DecimalFormat;
 
-public enum BaselineCorrectors implements ModuleOptionsEnum {
-  LOESS, ASYMMETRIC;
+public class AsymmetricRegressionBaselineCorrectorParameters extends SimpleParameterSet {
 
-  @Override
-  public Class<? extends MZmineModule> getModuleClass() {
-    return switch (this) {
-      case LOESS -> LoessBaselineCorrector.class;
-      case ASYMMETRIC -> AsymmetricRegressionBaselineCorrector.class;
-    };
-  }
+  public static final DoubleParameter lambda = new DoubleParameter("Lambda", "",
+      new DecimalFormat("0.0E0"), 1E6);
 
-  @Override
-  public String getStableId() {
-    return switch (this) {
-      case LOESS -> "loess_baseline_corrector";
-      case ASYMMETRIC -> "asymmetric_baseline_corrector";
-    };
+  public static final DoubleParameter p = new DoubleParameter("p", "", new DecimalFormat("0.000"),
+      0.001);
+
+  public static final IntegerParameter maxIterations = new IntegerParameter("Maximum iterations",
+      "", 10);
+
+  public AsymmetricRegressionBaselineCorrectorParameters() {
+    super(lambda, p, maxIterations);
   }
 }

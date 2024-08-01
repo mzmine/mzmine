@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,11 +28,12 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -53,8 +54,8 @@ public class BaselineCorrectionTask extends AbstractSimpleTask {
   private final FeatureList originalFlist;
   private final BaselineCorrector corrector;
   private final String suffix;
-  private OriginalFeatureListOption handleOriginal;
   private final MZmineProject project;
+  private OriginalFeatureListOption handleOriginal;
   private ModularFeatureList newFlist;
 
   /**
@@ -77,7 +78,7 @@ public class BaselineCorrectionTask extends AbstractSimpleTask {
     final BaselineCorrectors value = parameters.getValue(
         BaselineCorrectionParameters.correctionAlgorithm);
     corrector = ((BaselineCorrector) value.getModuleInstance()).newInstance(
-        (BaselineCorrectionParameters) parameters, getMemoryMapStorage());
+        (BaselineCorrectionParameters) parameters, getMemoryMapStorage(), flist);
     suffix = parameters.getValue(BaselineCorrectionParameters.suffix);
     totalItems = flist.getNumberOfRows();
   }
@@ -91,12 +92,16 @@ public class BaselineCorrectionTask extends AbstractSimpleTask {
     newFlist = FeatureListUtils.createCopy(originalFlist, suffix, getMemoryMapStorage());
 
     final RawDataFile rawDataFile = originalFlist.getRawDataFile(0);
-    for (FeatureListRow row : originalFlist.getRows()) {
-      final Feature feature = row.getFeature(rawDataFile);
-      final IonTimeSeries<? extends Scan> its = corrector.correctBaseline(feature.getFeatureData());
+    final FeatureDataAccess access = EfficientDataAccess.of(originalFlist,
+        EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, rawDataFile);
+
+    while (access.hasNextFeature()) {
+      final Feature feature = access.nextFeature();
+
+      final IonTimeSeries<? extends Scan> its = corrector.correctBaseline(access);
 
       final ModularFeatureListRow newRow = new ModularFeatureListRow(newFlist,
-          (ModularFeatureListRow) row, false);
+          (ModularFeatureListRow) feature.getRow(), false);
       final ModularFeature newFeature = new ModularFeature(newFlist, feature);
       newFeature.set(FeatureDataType.class, its);
       FeatureDataUtils.recalculateIonSeriesDependingTypes(newFeature);

@@ -23,8 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.loess;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.assymmetric;
 
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -34,56 +35,78 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Baseli
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Arrays;
-import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.ArrayRealVector;
+import org.apache.commons.math3.linear.DecompositionSolver;
+import org.apache.commons.math3.linear.LUDecomposition;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LoessBaselineCorrector implements BaselineCorrector {
+public class AsymmetricRegressionBaselineCorrector implements BaselineCorrector {
 
   private final MemoryMapStorage storage;
-  private final double bandwidth;
-  private final int iterations;
+  private final double lambda;
+  private final double p;
+  private final int maxIter;
   private final String suffix;
   private double[] xBuffer = new double[0];
   private double[] yBuffer = new double[0];
 
-  private int numSamples;
-
-  public LoessBaselineCorrector() {
-    this(null, 50, LoessInterpolator.DEFAULT_BANDWIDTH, LoessInterpolator.DEFAULT_ROBUSTNESS_ITERS,
-        "baseline");
+  public AsymmetricRegressionBaselineCorrector() {
+    this(null, 1E6, 0.001, 1, "");
   }
 
-  public LoessBaselineCorrector(MemoryMapStorage storage, int baselineSamples, double bandwidth,
-      int iterations, String suffix) {
+  public AsymmetricRegressionBaselineCorrector(MemoryMapStorage storage, double lambda, double p,
+      int maxIter, String suffix) {
     this.storage = storage;
-    this.bandwidth = bandwidth;
-    this.iterations = iterations;
+    this.lambda = lambda;
+    this.p = p;
+    this.maxIter = maxIter;
     this.suffix = suffix;
-    numSamples = baselineSamples;
   }
 
-  private static double[] subsample(double[] array, int numValues, int numSamples, boolean check) {
-    if (numSamples >= numValues) {
-      var reduced = new double[numValues];
-      System.arraycopy(array, 0, reduced, 0, numValues);
-      return reduced;
+  public static double[] asymmetricLeastSquares(double[] y, double lambda, double p, int maxIter) {
+    int n = y.length;
+    RealMatrix D = new Array2DRowRealMatrix(n, n);
+
+    // Building the finite difference matrix D
+    for (int i = 0; i < n - 2; i++) {
+      D.setEntry(i, i, 1);
+      D.setEntry(i, i + 1, -2);
+      D.setEntry(i, i + 2, 1);
     }
 
-    final int increment = numValues / numSamples;
+    RealMatrix DTD = D.transpose().multiply(D).scalarMultiply(lambda);
+    RealVector w = new ArrayRealVector(n, 1.0);
+    RealVector z = new ArrayRealVector(y);
 
-    final double[] result = new double[numSamples + 1];
-    for (int i = 0; i < numSamples; i++) {
-      result[i] = array[i * increment];
-//      if (check && result[Math.max(i - 1, 0)] > result[i]) {
-//        throw new IllegalStateException();
-//      }
+    for (int iter = 0; iter < maxIter; iter++) {
+      RealMatrix W = new Array2DRowRealMatrix(n, n);
+      for (int i = 0; i < n; i++) {
+        W.setEntry(i, i, w.getEntry(i));
+      }
+
+      RealMatrix A = W.add(DTD);
+      RealVector b = W.operate(z);
+
+      DecompositionSolver solver = new LUDecomposition(A).getSolver();
+      RealVector x = solver.solve(b);
+
+      for (int i = 0; i < n; i++) {
+        double residual = z.getEntry(i) - x.getEntry(i);
+        w.setEntry(i, residual > 0 ? p : 1 - p);
+      }
     }
 
-    result[numSamples] = array[numValues - 1];
+    double[] baselineArray = w.toArray();
+    double[] corrected = new double[n];
+    for (int i = 0; i < n; i++) {
+      corrected[i] = y[i] - baselineArray[i];
+    }
 
-    return result;
+    return corrected;
   }
 
   @Override
@@ -94,23 +117,29 @@ public class LoessBaselineCorrector implements BaselineCorrector {
       yBuffer = new double[numValues];
     }
 
-    extractDataIntoBuffer(timeSeries, xBuffer, yBuffer);
-
-    final double[] subSampleX = subsample(xBuffer, numValues, numSamples, true);
-    final double[] subSampleY = subsample(yBuffer, numValues, numSamples, false);
-    var interpolator = new LoessInterpolator(bandwidth, iterations - 1);
-    final PolynomialSplineFunction function = interpolator.interpolate(subSampleX, subSampleY);
-
     for (int i = 0; i < numValues; i++) {
-      yBuffer[i] = Math.max(0, yBuffer[i] - function.value(xBuffer[i]));
+      xBuffer[i] = timeSeries.getRetentionTime(i);
+      if (xBuffer[i] < xBuffer[Math.max(i - 1, 0)]) {
+        throw new IllegalStateException();
+      }
     }
+
+    if (timeSeries instanceof FeatureDataAccess access) {
+      for (int i = 0; i < access.getNumberOfValues(); i++) {
+        yBuffer[i] = access.getIntensity(i);
+      }
+    } else {
+      yBuffer = timeSeries.getIntensityValues(yBuffer);
+    }
+
+    final double[] corrected = asymmetricLeastSquares(yBuffer, lambda, p, maxIter);
 
     return switch (timeSeries) {
       case IonSpectrumSeries<?> s -> (T) s.copyAndReplace(storage, s.getMzValues(new double[0]),
-          Arrays.copyOfRange(yBuffer, 0, numValues));
+          Arrays.copyOfRange(corrected, 0, numValues));
       case OtherTimeSeries o -> (T) o.copyAndReplace(
           o.getTimeSeriesData().getOtherDataFile().getCorrespondingRawDataFile()
-              .getMemoryMapStorage(), Arrays.copyOfRange(yBuffer, 0, numValues),
+              .getMemoryMapStorage(), Arrays.copyOfRange(corrected, 0, numValues),
           o.getName() + " " + suffix);
       default -> throw new IllegalStateException(
           "Unexpected time series: " + timeSeries.getClass().getName());
@@ -122,20 +151,20 @@ public class LoessBaselineCorrector implements BaselineCorrector {
       MemoryMapStorage storage, FeatureList flist) {
     final ParameterSet embedded = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();
-    return new LoessBaselineCorrector(storage,
-        embedded.getValue(LoessBaselineCorrectorParameters.numSamples),
-        embedded.getValue(LoessBaselineCorrectorParameters.bandwidth),
-        embedded.getValue(LoessBaselineCorrectorParameters.iterations),
+    return new AsymmetricRegressionBaselineCorrector(storage,
+        embedded.getValue(AsymmetricRegressionBaselineCorrectorParameters.lambda),
+        embedded.getValue(AsymmetricRegressionBaselineCorrectorParameters.p),
+        embedded.getValue(AsymmetricRegressionBaselineCorrectorParameters.maxIterations),
         parameters.getValue(BaselineCorrectionParameters.suffix));
   }
 
   @Override
   public @NotNull String getName() {
-    return "Spline baseline correction";
+    return "Asymmetric regression baseline correction";
   }
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return LoessBaselineCorrectorParameters.class;
+    return AsymmetricRegressionBaselineCorrectorParameters.class;
   }
 }

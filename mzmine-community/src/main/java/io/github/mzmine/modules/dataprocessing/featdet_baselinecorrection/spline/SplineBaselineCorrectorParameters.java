@@ -23,29 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.spline;
 
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.assymmetric.AsymmetricRegressionBaselineCorrector;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.loess.LoessBaselineCorrector;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-public enum BaselineCorrectors implements ModuleOptionsEnum {
-  LOESS, ASYMMETRIC;
+public class SplineBaselineCorrectorParameters extends SimpleParameterSet {
 
-  @Override
-  public Class<? extends MZmineModule> getModuleClass() {
-    return switch (this) {
-      case LOESS -> LoessBaselineCorrector.class;
-      case ASYMMETRIC -> AsymmetricRegressionBaselineCorrector.class;
-    };
-  }
+  public static final IntegerParameter numSamples = new IntegerParameter(
+      "Number of baseline samples", """
+      The number of samples taken from the chromatogram to fit the baseline.
+      Higher values may increase the processing time but also lead to better results.
+      """, 50, 2, Integer.MAX_VALUE);
 
-  @Override
-  public String getStableId() {
-    return switch (this) {
-      case LOESS -> "loess_baseline_corrector";
-      case ASYMMETRIC -> "asymmetric_baseline_corrector";
-    };
+  public SplineBaselineCorrectorParameters() {
+    super(numSamples);
   }
 }
