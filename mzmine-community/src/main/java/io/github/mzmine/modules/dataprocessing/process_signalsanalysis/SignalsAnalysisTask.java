@@ -147,14 +147,14 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
 
     SignalsAnalysisResult analysisResult = countUniqueSignalsBetweenMs1AndMs2(ms1Scans, ms2Scans,
         tolerance);
-    SignalsResults results = analysisResult.results();
+    InSourceFragmentAnalysisResults results = analysisResult.results();
     List<Double> isfPrecursorMzs = analysisResult.likelyISFPrecursorMzs();
 
     double rowMz = row.getAverageMZ();
     boolean isLikelyISF = isfPrecursorMzs.stream()
         .anyMatch(precursorMz -> tolerance.checkWithinTolerance(rowMz, precursorMz));
 
-    SignalsResults updatedResults = results.withIsLikelyISF(isLikelyISF);
+    InSourceFragmentAnalysisResults updatedResults = results.withIsLikelyISF(isLikelyISF);
     row.set(InSourceFragmentsAnalysisType.class, updatedResults);
 
     return new GroupedSignalScans(row, ms1Scans, ms2Scans);
@@ -265,11 +265,11 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     List<Double> likelyISFPrecursorMzs = ms1FragmentedSignalMatchesMs2.stream()
         .map(UniqueSignal::mz).collect(Collectors.toList());
 
-    SignalsResults results = new SignalsResults(ms1SignalsFragmentedLikelyISFPercent,
-        ms1SignalsTotal, ms1SignalsFragmented, ms1SignalsFragmentedPercent,
-        ms1IntensityFragmentedPercent, ms1SignalsMatched, ms1SignalsMatchedPercent,
-        ms1IntensityMatchedPercent, ms2SignalsTotal, ms2SignalsMatched, ms2SignalsMatchedPercent,
-        ms2IntensityMatchedPercent);
+    InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(
+        ms1SignalsFragmentedLikelyISFPercent, ms1SignalsTotal, ms1SignalsFragmented,
+        ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent, ms1SignalsMatched,
+        ms1SignalsMatchedPercent, ms1IntensityMatchedPercent, ms2SignalsTotal, ms2SignalsMatched,
+        ms2SignalsMatchedPercent, ms2IntensityMatchedPercent);
 
     return new SignalsAnalysisResult(results, likelyISFPrecursorMzs);
   }
@@ -344,7 +344,8 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     return new ArrayList<>(uniquePrecursors);
   }
 
-  private record SignalsAnalysisResult(SignalsResults results, List<Double> likelyISFPrecursorMzs) {
+  private record SignalsAnalysisResult(InSourceFragmentAnalysisResults results,
+                                       List<Double> likelyISFPrecursorMzs) {
 
   }
 

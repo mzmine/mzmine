@@ -37,6 +37,6 @@ public class Ms1FragmentedLikelyISFPercentType extends PercentType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS1 fragmented likely ISF";
+    return "MS1 fragmented likely in-source fragment";
   }
 }

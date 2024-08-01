@@ -29,14 +29,17 @@ import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.modules.dataprocessing.process_signalsanalysis.SignalsResults;
+import io.github.mzmine.modules.dataprocessing.process_signalsanalysis.InSourceFragmentAnalysisResults;
 import java.util.List;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
-public class InSourceFragmentsAnalysisType extends SimpleSubColumnsType<SignalsResults> implements
-    SubColumnsFactory {
+/**
+ * Type of {@link InSourceFragmentAnalysisResults}
+ */
+public class InSourceFragmentsAnalysisType extends
+    SimpleSubColumnsType<InSourceFragmentAnalysisResults> implements SubColumnsFactory {
 
   @NotNull
   @Override
@@ -53,22 +56,22 @@ public class InSourceFragmentsAnalysisType extends SimpleSubColumnsType<SignalsR
 
   @Override
   public @NotNull List<DataType> getSubDataTypes() {
-    return SignalsResults.getSubTypes();
+    return InSourceFragmentAnalysisResults.getSubTypes();
   }
 
   @Override
-  public Property<SignalsResults> createProperty() {
+  public Property<InSourceFragmentAnalysisResults> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
   @Override
-  protected SignalsResults createRecord(final SimpleModularDataModel model) {
-    return SignalsResults.create(model);
+  protected InSourceFragmentAnalysisResults createRecord(final SimpleModularDataModel model) {
+    return InSourceFragmentAnalysisResults.create(model);
   }
 
   @Override
-  public Class<SignalsResults> getValueClass() {
-    return SignalsResults.class;
+  public Class<InSourceFragmentAnalysisResults> getValueClass() {
+    return InSourceFragmentAnalysisResults.class;
   }
 
   @Override

@@ -28,6 +28,10 @@ package io.github.mzmine.datamodel.features.types.analysis;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * How many of the MS1 signals in the corresponding MS1 scans were fragmented? Measured by their
+ * intensity
+ */
 public class Ms1FragmentedIntensityPercentType extends PercentType {
 
   @Override

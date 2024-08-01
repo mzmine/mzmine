@@ -28,7 +28,10 @@ package io.github.mzmine.datamodel.features.types.analysis;
 import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
 import org.jetbrains.annotations.NotNull;
 
-public class IsLikelyISFType extends BooleanType {
+/**
+ * Flag if signal is most likely in source fragment
+ */
+public class IsLikelyISFragmentType extends BooleanType {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -37,6 +40,6 @@ public class IsLikelyISFType extends BooleanType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Is Likely ISF";
+    return "Likely in-source fragment";
   }
 }
