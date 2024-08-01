@@ -51,8 +51,8 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -226,15 +226,16 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     List<UniqueSignal> ms2SignalMatchesMs1 = ms2Signals.stream()
         .filter(signal -> ms1SignalMap.get(signal.mz()) != null).toList();
 
-    List<UniqueSignal> ms1SignalMatchesMs2Precursors = filterUniquePrecursors(ms1Signals, ms2Scans,
-        tolerance);
+    // TODO this is the MS2 scans of one row so all of them have the same m/z - maybe this should be done globally for all rows?
+    // you could build a RangeMap<Double, UniqueSignal> of all rows with fragment spectra (precursor m/z)
+    // before looping over all rows and pass it into this method
+    List<UniqueSignal> ms1SignalMatchesMs2Precursors = filterUniquePrecursors(ms1SignalMap,
+        ms2Scans);
     Set<Double> precursorMzSet = ms1SignalMatchesMs2Precursors.stream().map(UniqueSignal::mz)
         .collect(Collectors.toSet());
     List<UniqueSignal> ms1FragmentedSignalMatchesMs2 = ms1Signals.stream()
-        .filter(signal -> precursorMzSet.contains(signal.mz())).filter(
-            signal -> ms2SignalMap.asMapOfRanges().values().stream()
-                .anyMatch(ms2Signal -> tolerance.checkWithinTolerance(signal.mz(), ms2Signal.mz())))
-        .toList();
+        .filter(signal -> precursorMzSet.contains(signal.mz()))
+        .filter(signal -> ms2SignalMap.get(signal.mz()) != null).toList();
 
     double ms1IntensityTotal = calcSumIntensity(ms1Signals);
     double ms1IntensityFragmentedPercent =
@@ -326,22 +327,12 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
    *
    * @param ms1Signals The MS1 signals.
    * @param ms2Scans   The MS2 scans.
-   * @param tolerance  The MZ tolerance.
    * @return A list of unique MS1 signals that match MS2 precursors.
    */
-  private List<UniqueSignal> filterUniquePrecursors(List<UniqueSignal> ms1Signals,
-      List<Scan> ms2Scans, MZTolerance tolerance) {
-    Set<UniqueSignal> uniquePrecursors = new HashSet<>();
-    for (Scan scan : ms2Scans) {
-      double precursorMz = scan.getPrecursorMz();
-      for (UniqueSignal signal : ms1Signals) {
-        if (tolerance.checkWithinTolerance(signal.mz(), precursorMz)) {
-          uniquePrecursors.add(signal);
-          break;
-        }
-      }
-    }
-    return new ArrayList<>(uniquePrecursors);
+  private List<UniqueSignal> filterUniquePrecursors(RangeMap<Double, UniqueSignal> ms1Signals,
+      List<Scan> ms2Scans) {
+    return ms2Scans.stream().map(Scan::getPrecursorMz).filter(Objects::nonNull)
+        .map(precursormz -> ms1Signals.get(precursormz)).filter(Objects::nonNull).toList();
   }
 
   private record SignalsAnalysisResult(InSourceFragmentAnalysisResults results,
