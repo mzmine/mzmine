@@ -30,6 +30,7 @@ import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
 import io.github.mzmine.javafx.components.factories.MenuItems;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -132,6 +133,16 @@ public class DownloadAssetButton extends HBox {
       logger.fine("Already downloading");
       return;
     }
+    // check if file exists
+    File finalFile = asset.getEstimatedFinalFile();
+    if (finalFile.exists()) {
+      if (DialogLoggerUtil.showDialogYesNo("File already exists",
+          "Use existing file (yes) or download again (no)")) {
+        onDownloadFinished.accept(finalFile);
+        return;
+      }
+    }
+
     isDownloading.set(true);
     task = new FileDownloadTask(asset);
     task.addTaskStatusListener((_, _, _) -> {

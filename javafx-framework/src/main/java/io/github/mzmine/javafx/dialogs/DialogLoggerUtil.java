@@ -99,6 +99,13 @@ public class DialogLoggerUtil {
   public static boolean showDialogYesNo(String title, String message) {
     Alert alert = new Alert(AlertType.CONFIRMATION, message, ButtonType.YES, ButtonType.NO);
     alert.setTitle(title);
+    alert.setHeaderText(title);
+    // seems like a good size for the dialog message when an old batch is loaded into new version
+    Text label = new Text(message);
+    label.setWrappingWidth(415);
+    HBox box = new HBox(label);
+    box.setPadding(new Insets(5));
+    alert.getDialogPane().setContent(box);
     Optional<ButtonType> result = alert.showAndWait();
     return (result.isPresent() && result.get() == ButtonType.YES);
   }

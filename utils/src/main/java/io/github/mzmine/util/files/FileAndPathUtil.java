@@ -700,4 +700,11 @@ public class FileAndPathUtil {
   public static Path getWorkingDirectory() {
     return Paths.get("").toAbsolutePath();
   }
+
+  /**
+   * strip query parameters from URL with split at ?
+   */
+  public static String getFileNameFromUrl(final String downloadUrl) {
+    return FilenameUtils.getName(downloadUrl).split("\\?")[0];
+  }
 }
