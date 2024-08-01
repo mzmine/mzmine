@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
@@ -42,9 +43,9 @@ import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BaselineResolverSetupDialog extends ParameterDialogWithFeaturePreview {
+public class BaselineCorrectorSetupDialog extends ParameterDialogWithFeaturePreview {
 
-  public BaselineResolverSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
+  public BaselineCorrectorSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
       Region message) {
     super(valueCheckRequired, parameters, message);
   }
@@ -77,15 +78,17 @@ public class BaselineResolverSetupDialog extends ParameterDialogWithFeaturePrevi
     final BaselineCorrector baselineCorrector = ((BaselineCorrector) enumValue.getModuleInstance()).newInstance(
         (BaselineCorrectionParameters) parameterSet, null, feature.getFeatureList());
 
-    IonTimeSeries<? extends Scan> corrected = baselineCorrector.correctBaseline(
-        feature.getFeatureData());
+    final IonTimeSeries<Scan> full = IonTimeSeriesUtils.remapRtAxis(feature.getFeatureData(),
+        feature.getFeatureList().getSeletedScans(feature.getRawDataFile()));
+
+    IonTimeSeries<? extends Scan> corrected = baselineCorrector.correctBaseline(full);
 
     return List.of(new DatasetAndRenderer(new ColoredXYDataset(
             new IonTimeSeriesToXYProvider(corrected, feature.toString() + " corrected",
                 feature.getRawDataFile().getColor())), new ColoredAreaShapeRenderer()),
 
         new DatasetAndRenderer(new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider(feature.getFeatureData(), feature.toString(),
+            new IonTimeSeriesToXYProvider(full, feature.toString(),
                 feature.getRawDataFile().getColor())), new ColoredXYLineRenderer()));
 
   }

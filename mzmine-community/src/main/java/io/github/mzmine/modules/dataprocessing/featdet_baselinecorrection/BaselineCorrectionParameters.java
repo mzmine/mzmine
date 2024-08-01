@@ -84,7 +84,7 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new BaselineResolverSetupDialog(valueCheckRequired, this, null);
+    ParameterSetupDialog dialog = new BaselineCorrectorSetupDialog(valueCheckRequired, this, null);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
