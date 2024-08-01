@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,13 +27,10 @@ package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.List;
 
 public interface SpectralDeconvolutionAlgorithm extends MZmineModule {
-
-  SpectralDeconvolutionAlgorithm create(ParameterSet parameters);
 
   List<List<ModularFeature>> groupFeatures(List<ModularFeature> features);
 

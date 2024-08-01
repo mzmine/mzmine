@@ -39,10 +39,10 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.layout.Region;
@@ -86,9 +86,9 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
       "Minimum number of matched signals in masslist and spectral library entry (within mz tolerance)",
       4);
 
-  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction = new ModuleComboParameter<>(
+  public static final ModuleOptionsEnumComboParameter<SpectralSimilarityFunctions> similarityFunction = new ModuleOptionsEnumComboParameter<>(
       "Similarity", "Algorithm to calculate similarity and filter matches",
-      SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
+      SpectralSimilarityFunctions.WEIGHTED_COSINE);
 
   public SpectralLibrarySearchParameters() {
     super(new Parameter[]{peakLists, libraries, scanMatchingSelection, mzTolerancePrecursor,

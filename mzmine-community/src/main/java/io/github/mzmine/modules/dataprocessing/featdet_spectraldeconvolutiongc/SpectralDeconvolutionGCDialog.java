@@ -113,8 +113,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     previewWrapperPane = new BorderPane();
     pseudoSpectrumPaneWrapper = new BorderPane();
     scatterPlot = new SpectralDeconvolutionPreviewPlot("Spectral Deconvolution",
-        GUI_FORMATS.unit("Retention time", "min"),
-        "m/z");
+        GUI_FORMATS.unit("Retention time", "min"), "m/z");
     NumberAxis domainAxis = (NumberAxis) scatterPlot.getChart().getXYPlot().getDomainAxis();
     domainAxis.setNumberFormatOverride(ConfigService.getGuiFormats().rtFormat());
 
@@ -204,8 +203,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
 
   private Feature findClosestFeatureGroup(double rtValue, double mzValue) {
     Feature closestFeature = allFeatures.stream().min(Comparator.comparingDouble(
-            feature -> calculateEuclideanDistance(feature, rtValue, mzValue)))
-        .orElse(null);
+        feature -> calculateEuclideanDistance(feature, rtValue, mzValue))).orElse(null);
 
     if (closestFeature != null) {
       List<Range<Double>> adjustedRanges = SpectralDeconvolutionUtils.getAdjustedRanges(
@@ -248,7 +246,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
       return;
     }
     if (parameters.getValue(SpectralDeconvolutionGCParameters.FEATURE_LISTS)
-        .getMatchingFeatureLists().length > 0) {
+            .getMatchingFeatureLists().length > 0) {
 
       initializeParameters();
 
@@ -288,10 +286,10 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     featureList = parameters.getParameter(SpectralDeconvolutionGCParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists()[0];
     allFeatures = featureList.getFeatures(featureList.getRawDataFile(0));
-    var spectralDeconvolutionAlgorithmMZmineProcessingStep = parameters.getValue(
-        SpectralDeconvolutionGCParameters.SPECTRAL_DECONVOLUTION_ALGORITHM);
-    spectralDeconvolutionAlgorithm = SpectralDeconvolutionUtils.createSpectralDeconvolutionAlgorithm(
-        spectralDeconvolutionAlgorithmMZmineProcessingStep);
+    var deconParams = parameters.getParameter(
+            SpectralDeconvolutionGCParameters.SPECTRAL_DECONVOLUTION_ALGORITHM)
+        .getValueWithParameters();
+    spectralDeconvolutionAlgorithm = SpectralDeconvolutionAlgorithms.createOption(deconParams);
     if (parameters.getParameter(SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE).getValue()) {
       mzValuesToIgnore = parameters.getParameter(
           SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE).getEmbeddedParameter().getValue();

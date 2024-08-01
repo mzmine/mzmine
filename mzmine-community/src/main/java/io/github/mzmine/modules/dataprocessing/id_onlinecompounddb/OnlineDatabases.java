@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.Pub
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.YMDBGateway;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
  * is only here as reference point
  */
 @Deprecated
-public enum OnlineDatabases implements MZmineModule {
+public enum OnlineDatabases implements MZmineModule, ModuleOptionsEnum<OnlineDatabases> {
 
   KEGG("KEGG", KEGGGateway.class), //
   PubChem("PubChem", PubChemGateway.class), //
@@ -75,6 +76,17 @@ public enum OnlineDatabases implements MZmineModule {
     this(name, gatewayClass, SimpleParameterSet.class);
   }
 
+
+  @Override
+  public Class<? extends OnlineDatabases> getModuleClass() {
+    return OnlineDatabases.class;
+  }
+
+  @Override
+  public String getStableId() {
+    return dbName;
+  }
+
   public Class<? extends DBGateway> getGatewayClass() {
     return gatewayClass;
   }
@@ -99,4 +111,5 @@ public enum OnlineDatabases implements MZmineModule {
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return parametersClass;
   }
+
 }

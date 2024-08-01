@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.loess.LoessSmoothing;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolaySmoothing;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -35,23 +32,14 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.util.ExitCode;
 import org.jetbrains.annotations.NotNull;
 
 public class SmoothingParameters extends SimpleParameterSet {
 
-  public static final SmoothingAlgorithm sgSmoothing = MZmineCore.getModuleInstance(
-      SavitzkyGolaySmoothing.class);
-
-  public static final SmoothingAlgorithm loessSmoothing = MZmineCore.getModuleInstance(
-      LoessSmoothing.class);
-
-  public static final SmoothingAlgorithm[] smoothingAlgorithms = new SmoothingAlgorithm[]{
-      sgSmoothing, loessSmoothing};
-  public static final ModuleComboParameter<SmoothingAlgorithm> smoothingAlgorithm = new ModuleComboParameter<SmoothingAlgorithm>(
-      "Smoothing algorithm", "Please select a smoothing algorithm.", smoothingAlgorithms,
-      sgSmoothing);
+  public static final ModuleOptionsEnumComboParameter<FeatureSmoothingOptions> smoothingAlgorithm = new ModuleOptionsEnumComboParameter<>(
+      "Smoothing algorithm", "Please select a smoothing algorithm.", FeatureSmoothingOptions.LOESS);
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
   public static final OriginalFeatureListHandlingParameter handleOriginal = //
       new OriginalFeatureListHandlingParameter(false);

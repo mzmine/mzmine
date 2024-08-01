@@ -42,8 +42,16 @@ public class RtGroupingAndShapeCorrelationAlgorithm implements SpectralDeconvolu
   private final int minNumberOfSignals;
   private final double minR;
 
+  // needs default constructor for config
   public RtGroupingAndShapeCorrelationAlgorithm() {
     this(null, 1, 0.8);
+  }
+
+  public RtGroupingAndShapeCorrelationAlgorithm(ParameterSet parameters) {
+    this.rtTolerance = parameters.getValue(RtGroupingAndShapeCorrelationParameters.RT_TOLERANCE);
+    this.minNumberOfSignals = parameters.getValue(
+        RtGroupingAndShapeCorrelationParameters.MIN_NUMBER_OF_SIGNALS);
+    this.minR = parameters.getValue(RtGroupingAndShapeCorrelationParameters.MIN_R);
   }
 
   public RtGroupingAndShapeCorrelationAlgorithm(RTTolerance rtTolerance, int minNumberOfSignals,
@@ -51,15 +59,6 @@ public class RtGroupingAndShapeCorrelationAlgorithm implements SpectralDeconvolu
     this.rtTolerance = rtTolerance;
     this.minNumberOfSignals = minNumberOfSignals;
     this.minR = minR;
-  }
-
-  @Override
-  public SpectralDeconvolutionAlgorithm create(ParameterSet parameters) {
-    var rtTolerance = parameters.getValue(RtGroupingAndShapeCorrelationParameters.RT_TOLERANCE);
-    var minNumberOfSignals = parameters.getValue(
-        RtGroupingAndShapeCorrelationParameters.MIN_NUMBER_OF_SIGNALS);
-    var minR = parameters.getValue(RtGroupingAndShapeCorrelationParameters.MIN_R);
-    return new RtGroupingAndShapeCorrelationAlgorithm(rtTolerance, minNumberOfSignals, minR);
   }
 
   @Override
