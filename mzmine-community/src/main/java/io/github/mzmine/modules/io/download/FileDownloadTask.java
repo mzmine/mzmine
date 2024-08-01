@@ -29,12 +29,10 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ZipUtils;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
-import java.util.zip.ZipInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,8 +140,8 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
 
     File directory = fileName.getParentFile();
 
-    try (var zis = new ZipInputStream(new FileInputStream(fileName))) {
-      downloadedFiles = ZipUtils.unzipStream(zis, directory);
+    try {
+      downloadedFiles = ZipUtils.unzipFile(fileName, directory);
     } catch (FileNotFoundException e) {
       error("File not found Error while unzipping file " + fileName + " from " + downloadUrl, e);
       return;
