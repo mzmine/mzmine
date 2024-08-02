@@ -146,16 +146,9 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     }
 
     SignalsAnalysisResult analysisResult = countUniqueSignalsBetweenMs1AndMs2(ms1Scans, ms2Scans,
-        tolerance);
-    InSourceFragmentAnalysisResults results = analysisResult.results();
-    List<Double> isfPrecursorMzs = analysisResult.likelyISFPrecursorMzs();
+        tolerance, row.getAverageMZ());
 
-    double rowMz = row.getAverageMZ();
-    boolean isLikelyISF = isfPrecursorMzs.stream()
-        .anyMatch(precursorMz -> tolerance.checkWithinTolerance(rowMz, precursorMz));
-
-    InSourceFragmentAnalysisResults updatedResults = results.withIsLikelyISF(isLikelyISF);
-    row.set(InSourceFragmentsAnalysisType.class, updatedResults);
+    row.set(InSourceFragmentsAnalysisType.class, analysisResult.results);
 
     return new GroupedSignalScans(row, ms1Scans, ms2Scans);
   }
@@ -205,13 +198,14 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
   /**
    * Counts unique signals between MS1 and MS2 scans.
    *
-   * @param ms1Scans  The MS1 scans.
-   * @param ms2Scans  The MS2 scans.
-   * @param tolerance The MZ tolerance.
+   * @param ms1Scans    The MS1 scans.
+   * @param ms2Scans    The MS2 scans.
+   * @param tolerance   The MZ tolerance.
+   * @param precursorMz
    * @return The results of the signal count.
    */
   private SignalsAnalysisResult countUniqueSignalsBetweenMs1AndMs2(List<Scan> ms1Scans,
-      List<Scan> ms2Scans, MZTolerance tolerance) {
+      List<Scan> ms2Scans, MZTolerance tolerance, final Double precursorMz) {
     // require signal to be in 90% of MS1 scans
     int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);
     var ms1SignalMap = filterMap(collectUniqueSignalsFromScans(ms1Scans, tolerance), minMs1Scans);
@@ -220,12 +214,9 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     var ms2SignalMap = collectUniqueSignalsFromScans(ms2Scans, tolerance);
 
     List<UniqueSignal> ms1Signals = mapToList(ms1SignalMap);
-    List<UniqueSignal> ms2Signals = mapToList(ms2SignalMap);
 
     List<UniqueSignal> ms1SignalMatchesMs2 = ms1Signals.stream()
         .filter(signal -> ms2SignalMap.get(signal.mz()) != null).toList();
-    List<UniqueSignal> ms2SignalMatchesMs1 = ms2Signals.stream()
-        .filter(signal -> ms1SignalMap.get(signal.mz()) != null).toList();
 
     // TODO this is the MS2 scans of one row so all of them have the same m/z - maybe this should be done globally for all rows?
     // you could build a RangeMap<Double, UniqueSignal> of all rows with fragment spectra (precursor m/z)
@@ -244,17 +235,27 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
         calcSumIntensity(ms1SignalMatchesMs2Precursors) / ms1IntensityTotal;
     double ms1IntensityMatched = calcSumIntensity(ms1SignalMatchesMs2);
     double ms1IntensityMatchedPercent = ms1IntensityMatched / ms1IntensityTotal;
-    double ms2IntensityTotal = calcSumIntensity(ms2Signals);
-    double ms2IntensityMatched = calcSumIntensity(ms2SignalMatchesMs1);
-    double ms2IntensityMatchedPercent = ms2IntensityMatched / ms2IntensityTotal;
 
     int ms1SignalsTotal = ms1Signals.size();
     int ms1SignalsFragmented = ms1SignalMatchesMs2Precursors.size();
     double ms1SignalsFragmentedPercent = ms1SignalsFragmented / (double) ms1SignalsTotal;
-    int signalsMatched = ms2SignalMatchesMs1.size();
+    int signalsMatched = ms1SignalMatchesMs2.size();
     double ms1SignalsMatchedPercent = signalsMatched / (double) ms1SignalsTotal;
+
+    // for all precursor ions
+    int ms2SignalsAllPrecursors = mapToList(ms2SignalMap).size();
+
+    // for this precursor ion
+    List<UniqueSignal> ms2Signals = mapToList(ms2SignalMap).stream()
+        .filter(signal -> originatesFromPrecursorIon(signal, tolerance, precursorMz)).toList();
+    List<UniqueSignal> ms2SignalMatchesMs1 = ms2Signals.stream()
+        .filter(signal -> ms1SignalMap.get(signal.mz()) != null).toList();
+
     int ms2SignalsTotal = ms2Signals.size();
     double ms2SignalsMatchedPercent = signalsMatched / (double) ms2SignalsTotal;
+    double ms2IntensityMatched = calcSumIntensity(ms2SignalMatchesMs1);
+    double ms2IntensityTotal = calcSumIntensity(ms2Signals);
+    double ms2IntensityMatchedPercent = ms2IntensityMatched / ms2IntensityTotal;
 
     /*
      * The precursor with the highest m/z will never be recognized as ISF.
@@ -267,13 +268,23 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     List<Double> likelyISFPrecursorMzs = ms1FragmentedSignalMatchesMs2.stream()
         .map(UniqueSignal::mz).collect(Collectors.toList());
 
-    InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(
-        ms1SignalsFragmentedLikelyISFPercent, signalsMatched, ms1SignalsTotal, ms1SignalsFragmented,
-        ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent, ms1SignalsMatchedPercent,
-        ms1IntensityMatchedPercent, ms2SignalsTotal, ms2SignalsMatchedPercent,
-        ms2IntensityMatchedPercent);
+    //
+    boolean isLikelyISF = likelyISFPrecursorMzs.stream()
+        .anyMatch(mz -> tolerance.checkWithinTolerance(precursorMz, mz));
+
+    InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(isLikelyISF,
+        ms1SignalsFragmentedLikelyISFPercent, signalsMatched, ms1SignalsTotal,
+        ms2SignalsAllPrecursors, ms1SignalsFragmented, ms1SignalsFragmentedPercent,
+        ms1IntensityFragmentedPercent, ms1SignalsMatchedPercent, ms1IntensityMatchedPercent,
+        ms2SignalsTotal, ms2SignalsMatchedPercent, ms2IntensityMatchedPercent);
 
     return new SignalsAnalysisResult(results, likelyISFPrecursorMzs);
+  }
+
+  private static boolean originatesFromPrecursorIon(final UniqueSignal signal,
+      final MZTolerance tolerance, final Double precursorMz) {
+    return signal.streamPrecursorMzs()
+        .anyMatch(mz -> tolerance.checkWithinTolerance(precursorMz, mz));
   }
 
   private List<UniqueSignal> mapToList(final RangeMap<Double, UniqueSignal> map) {

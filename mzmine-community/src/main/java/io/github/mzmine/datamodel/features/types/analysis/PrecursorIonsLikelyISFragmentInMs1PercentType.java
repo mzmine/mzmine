@@ -28,7 +28,10 @@ package io.github.mzmine.datamodel.features.types.analysis;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
-public class LikelyISFragmentInMs1PercentType extends PercentType {
+/**
+ * Number of precursor ions that match fragment signals in any MS2 scan in RT range
+ */
+public class PrecursorIonsLikelyISFragmentInMs1PercentType extends PercentType {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -37,6 +40,6 @@ public class LikelyISFragmentInMs1PercentType extends PercentType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Likely in-source fragments in MS1";
+    return "Precursor ions likely in-source fragments in MS1";
   }
 }

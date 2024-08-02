@@ -30,7 +30,9 @@ import io.github.mzmine.datamodel.Scan;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public record UniqueSignal(double mz, List<DataPoint> dps, Set<Scan> scans) {
 
@@ -50,5 +52,9 @@ public record UniqueSignal(double mz, List<DataPoint> dps, Set<Scan> scans) {
   public void add(final DataPoint dp, final Scan scan) {
     dps.add(dp);
     scans.add(scan);
+  }
+
+  public Stream<Double> streamPrecursorMzs() {
+    return scans.stream().map(Scan::getPrecursorMz).filter(Objects::nonNull);
   }
 }
