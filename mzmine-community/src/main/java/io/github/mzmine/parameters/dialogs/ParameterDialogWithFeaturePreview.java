@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,10 +51,8 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
 
   protected final NumberFormats formats = ConfigService.getGuiFormats();
   private final SimpleXYChart<? extends PlotXYDataProvider> chart;
-  private SortableFeatureComboBox featureBox;
   private final DialogController controller = new DialogController();
-
-  protected abstract @NotNull SimpleXYChart<PlotXYDataProvider> createChart();
+  private SortableFeatureComboBox featureBox;
 
   public ParameterDialogWithFeaturePreview(boolean valueCheckRequired, ParameterSet parameters,
       Region message) {
@@ -68,6 +66,8 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
     chart = createChart();
     addPreviewPane();
   }
+
+  protected abstract @NotNull SimpleXYChart<PlotXYDataProvider> createChart();
 
   @Override
   protected void parametersChanged() {

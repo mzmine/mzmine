@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,12 +51,12 @@ public abstract class AbstractBaselineCorrector implements  BaselineCorrector {
   protected final int numSamples;
   protected final MemoryMapStorage storage;
   protected final String suffix;
+  protected final List<PlotXYDataProvider> additionalData = new ArrayList<>();
   protected double[] xBuffer = new double[0];
   protected double[] yBuffer = new double[0];
   protected double[] xBufferRemovedPeaks = new double[0];
   protected double[] yBufferRemovedPeaks = new double[0];
   boolean preview = false;
-  protected final List<PlotXYDataProvider> additionalData = new ArrayList<>();
 
   public AbstractBaselineCorrector(MemoryMapStorage storage, int numSamples, String suffix,
       MinimumSearchFeatureResolver resolver) {
@@ -172,5 +172,10 @@ public abstract class AbstractBaselineCorrector implements  BaselineCorrector {
 
   public void setPreview(boolean preview) {
     this.preview = preview;
+  }
+
+  @Override
+  public List<PlotXYDataProvider> getAdditionalPreviewData() {
+    return additionalData;
   }
 }

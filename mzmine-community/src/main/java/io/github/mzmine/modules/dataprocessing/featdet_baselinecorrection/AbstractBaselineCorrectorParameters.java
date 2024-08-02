@@ -30,7 +30,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-public class UnivariateBaselineCorrectorParameters extends SimpleParameterSet {
+public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
 
   public static final BooleanParameter applyPeakRemoval = new BooleanParameter("Apply peak removal",
       "Attempts to remove peaks prior to baseline correction.");
@@ -41,19 +41,19 @@ public class UnivariateBaselineCorrectorParameters extends SimpleParameterSet {
       Higher values may increase the processing time but also lead to better results.
       """, 50, 2, Integer.MAX_VALUE);
 
-  public UnivariateBaselineCorrectorParameters() {
+  public AbstractBaselineCorrectorParameters() {
     super();
   }
 
-  public UnivariateBaselineCorrectorParameters(Parameter<?>... parameters) {
+  public AbstractBaselineCorrectorParameters(Parameter<?>... parameters) {
     this(parameters, null);
   }
 
-  public UnivariateBaselineCorrectorParameters(String onlineHelpUrl, Parameter<?>... parameters) {
+  public AbstractBaselineCorrectorParameters(String onlineHelpUrl, Parameter<?>... parameters) {
     super(onlineHelpUrl, parameters);
   }
 
-  public UnivariateBaselineCorrectorParameters(Parameter<?>[] parameters, String onlineHelpUrl) {
+  public AbstractBaselineCorrectorParameters(Parameter<?>[] parameters, String onlineHelpUrl) {
     super(onlineHelpUrl, parameters);
   }
 }

@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.divideddifference;
 
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
 
-public class DividedDifferenceCorrectorParameters extends UnivariateBaselineCorrectorParameters {
+public class DividedDifferenceCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
   public DividedDifferenceCorrectorParameters() {
-    super(applyPeakRemoval, numSamples);
+    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter());
   }
 }

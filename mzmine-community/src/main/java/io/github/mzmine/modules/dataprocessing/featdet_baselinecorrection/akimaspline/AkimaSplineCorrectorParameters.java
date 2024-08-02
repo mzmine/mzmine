@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.akimaspline;
 
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
 
-public class AkimaSplineCorrectorParameters extends UnivariateBaselineCorrectorParameters {
+public class AkimaSplineCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
   public AkimaSplineCorrectorParameters() {
-    super(applyPeakRemoval, numSamples);
+    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter());
   }
 }

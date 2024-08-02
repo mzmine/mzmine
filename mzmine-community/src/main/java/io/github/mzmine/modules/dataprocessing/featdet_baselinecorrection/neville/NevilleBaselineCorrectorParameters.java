@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.neville;
 
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
 
-public class NevilleBaselineCorrectorParameters extends UnivariateBaselineCorrectorParameters {
+public class NevilleBaselineCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
   public NevilleBaselineCorrectorParameters() {
-    super(applyPeakRemoval, numSamples);
+    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter());
   }
 }

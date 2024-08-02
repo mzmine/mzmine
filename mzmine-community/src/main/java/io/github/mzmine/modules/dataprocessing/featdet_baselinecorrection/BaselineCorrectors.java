@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,11 +31,12 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.chang.
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.divideddifference.DividedDifferenceCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.loess.LoessBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.neville.NevilleBaselineCorrector;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.polynomial.PolynomialBaselineCorrection;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.spline.SplineBaselineCorrector;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 
 public enum BaselineCorrectors implements ModuleOptionsEnum {
-  LOESS, SPLINE, AKIMA, DIVIDED_DIFFERENCE, NEVILLE, CHANG;
+  LOESS, SPLINE, AKIMA, DIVIDED_DIFFERENCE, NEVILLE, CHANG, POLYNOMIAL;
 
   @Override
   public Class<? extends MZmineModule> getModuleClass() {
@@ -46,6 +47,7 @@ public enum BaselineCorrectors implements ModuleOptionsEnum {
       case DIVIDED_DIFFERENCE -> DividedDifferenceCorrector.class;
       case NEVILLE -> NevilleBaselineCorrector.class;
       case CHANG -> ChangBaselineCorrector.class;
+      case POLYNOMIAL -> PolynomialBaselineCorrection.class;
     };
   }
 
@@ -58,6 +60,7 @@ public enum BaselineCorrectors implements ModuleOptionsEnum {
       case DIVIDED_DIFFERENCE -> "divided_difference_corrector";
       case NEVILLE -> "neville_corrector";
       case CHANG -> "chang_corrector";
+      case POLYNOMIAL -> "polynomial_corrector";
     };
   }
 }

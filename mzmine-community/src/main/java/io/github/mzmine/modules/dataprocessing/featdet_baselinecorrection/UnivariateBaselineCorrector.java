@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -60,7 +59,8 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
     UnivariateFunction splineFunction = interpolator.interpolate(subsampleX, subsampleY);
 
     for (int i = 0; i < numValues; i++) {
-      yBuffer[i] = yBuffer[i] - splineFunction.value(xBuffer[i]);
+      // must be above zero, but not bigger than the original value.
+      yBuffer[i] = Math.min(Math.max(yBuffer[i] - splineFunction.value(xBuffer[i]), 0), yBuffer[i]);
     }
 
     if (isPreview()) {
@@ -102,10 +102,5 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
   }
 
   protected abstract UnivariateInterpolator initializeInterpolator();
-
-  @Override
-  public List<PlotXYDataProvider> getAdditionalPreviewData() {
-    return additionalData;
-  }
 
 }

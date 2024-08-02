@@ -25,13 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.loess;
 
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import java.util.Collection;
 import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
 
-public class LoessBaselineCorrectorParameters extends UnivariateBaselineCorrectorParameters {
+public class LoessBaselineCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
   public static final PercentParameter bandwidth = new PercentParameter("Bandwidth",
       "The bandwidth of the LOESS filter.", LoessInterpolator.DEFAULT_BANDWIDTH, 0d, 1d);
@@ -41,7 +41,7 @@ public class LoessBaselineCorrectorParameters extends UnivariateBaselineCorrecto
       1, 10);
 
   public LoessBaselineCorrectorParameters() {
-    super(applyPeakRemoval, numSamples, bandwidth, iterations);
+    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter(), bandwidth, iterations);
   }
 
   @Override

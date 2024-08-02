@@ -23,13 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.spline;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.polynomial;
 
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-public class SplineBaselineCorrectorParameters extends AbstractBaselineCorrectorParameters {
+public class PolynomialBaselineCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
-  public SplineBaselineCorrectorParameters() {
-    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter());
+  public static final IntegerParameter degree = new IntegerParameter("Degree of polynomial",
+      "The degree of the polynomial to fit the baseline.", 4, 1, Integer.MAX_VALUE);
+
+  public PolynomialBaselineCorrectorParameters() {
+    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter(), degree);
   }
 }

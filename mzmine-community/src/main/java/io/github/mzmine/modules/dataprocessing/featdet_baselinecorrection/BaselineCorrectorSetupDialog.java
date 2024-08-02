@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -70,7 +70,7 @@ public class BaselineCorrectorSetupDialog extends ParameterDialogWithFeaturePrev
   protected @NotNull List<@NotNull DatasetAndRenderer> calculateNewDatasets(
       @Nullable Feature feature) {
 
-    if (feature == null) {
+    if (feature == null || !checkParameterValues(false, false)) {
       return List.of();
     }
 
@@ -78,7 +78,7 @@ public class BaselineCorrectorSetupDialog extends ParameterDialogWithFeaturePrev
         BaselineCorrectionParameters.correctionAlgorithm).getValue();
     final BaselineCorrector baselineCorrector = ((BaselineCorrector) enumValue.getModuleInstance()).newInstance(
         (BaselineCorrectionParameters) parameterSet, null, feature.getFeatureList());
-    if(baselineCorrector instanceof UnivariateBaselineCorrector uv) {
+    if (baselineCorrector instanceof AbstractBaselineCorrector uv) {
       uv.setPreview(true);
     }
 
@@ -86,7 +86,6 @@ public class BaselineCorrectorSetupDialog extends ParameterDialogWithFeaturePrev
         feature.getFeatureList().getSeletedScans(feature.getRawDataFile()));
 
     IonTimeSeries<? extends Scan> corrected = baselineCorrector.correctBaseline(full);
-
     final List<PlotXYDataProvider> additionalPreviewData = baselineCorrector.getAdditionalPreviewData();
 
     final ArrayList<DatasetAndRenderer> data = new ArrayList<>();
