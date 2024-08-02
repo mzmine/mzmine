@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -50,10 +51,8 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
 
   protected final NumberFormats formats = ConfigService.getGuiFormats();
   private final SimpleXYChart<? extends PlotXYDataProvider> chart;
-  private SortableFeatureComboBox featureBox;
   private final DialogController controller = new DialogController();
-
-  protected abstract @NotNull SimpleXYChart<PlotXYDataProvider> createChart();
+  private SortableFeatureComboBox featureBox;
 
   public ParameterDialogWithFeaturePreview(boolean valueCheckRequired, ParameterSet parameters,
       Region message) {
@@ -68,6 +67,8 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
     addPreviewPane();
   }
 
+  protected abstract @NotNull SimpleXYChart<PlotXYDataProvider> createChart();
+
   @Override
   protected void parametersChanged() {
     super.parametersChanged();
@@ -80,7 +81,9 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
   private void updatePreview() {
     updateParameterSetFromComponents();
 
-    var task = new FxUpdateTask<>("update baseline preview", new Object()) {
+    var task = new FxUpdateTask<>("updating %s preview".formatted(
+        parameterSet.getModuleNameAttribute() != null ? parameterSet.getModuleNameAttribute()
+            : "parameter"), new Object()) {
       private List<DatasetAndRenderer> datasetAndRenderers;
 
       @Override
