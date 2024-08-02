@@ -25,18 +25,18 @@
 
 package io.github.mzmine.datamodel.features.types.analysis;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
-public class Ms1MatchedIntensityPercentType extends PercentType {
+public class PrecursorIonsCountType extends IntegerType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms1_matched_intensity_percent";
+    return "precursor_ion_count";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS1 matched intensity";
+    return "Precursor ions";
   }
 }

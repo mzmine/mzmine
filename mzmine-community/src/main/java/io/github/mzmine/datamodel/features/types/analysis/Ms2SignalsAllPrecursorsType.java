@@ -25,18 +25,21 @@
 
 package io.github.mzmine.datamodel.features.types.analysis;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
-public class Ms2MatchedSignalsPercentType extends PercentType {
+/**
+ * All scans of all precursors in mz and RT range
+ */
+public class Ms2SignalsAllPrecursorsType extends IntegerType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms2_matched_signals_percent";
+    return "ms2_signals_all_precursors";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS2 matched signals";
+    return "MS2 signals of all precursors";
   }
 }

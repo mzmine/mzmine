@@ -164,7 +164,8 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
    * Processes a single feature.
    *
    * @param feature The feature to process.
-   * @return The list of exported scans.
+   * @return The list of exported scans. The representative MS1 and all MS2 scans that match the
+   * retention time range of this feature and any MS1 signal in best MS1
    */
   private List<Scan> processFeature(final Feature feature) {
     List<Scan> scansToExport = new ArrayList<>();
@@ -188,7 +189,7 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     }
     feature.getAllMS2FragmentScans().stream().filter(scan -> scan.getMSLevel() == 2)
         .forEach(scansToExport::add);
-    return scansToExport;
+    return scansToExport.stream().distinct().toList();
   }
 
   @Override
@@ -250,11 +251,10 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     int ms1SignalsTotal = ms1Signals.size();
     int ms1SignalsFragmented = ms1SignalMatchesMs2Precursors.size();
     double ms1SignalsFragmentedPercent = ms1SignalsFragmented / (double) ms1SignalsTotal;
-    int ms1SignalsMatched = ms1SignalMatchesMs2.size();
-    double ms1SignalsMatchedPercent = ms1SignalsMatched / (double) ms1SignalsTotal;
+    int signalsMatched = ms2SignalMatchesMs1.size();
+    double ms1SignalsMatchedPercent = signalsMatched / (double) ms1SignalsTotal;
     int ms2SignalsTotal = ms2Signals.size();
-    int ms2SignalsMatched = ms2SignalMatchesMs1.size();
-    double ms2SignalsMatchedPercent = ms2SignalsMatched / (double) ms2SignalsTotal;
+    double ms2SignalsMatchedPercent = signalsMatched / (double) ms2SignalsTotal;
 
     /*
      * The precursor with the highest m/z will never be recognized as ISF.
@@ -268,10 +268,10 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
         .map(UniqueSignal::mz).collect(Collectors.toList());
 
     InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(
-        ms1SignalsFragmentedLikelyISFPercent, ms1SignalsTotal, ms1SignalsFragmented,
-        ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent, ms1SignalsMatched,
-        ms1SignalsMatchedPercent, ms1IntensityMatchedPercent, ms2SignalsTotal, ms2SignalsMatched,
-        ms2SignalsMatchedPercent, ms2IntensityMatchedPercent);
+        ms1SignalsFragmentedLikelyISFPercent, signalsMatched, ms1SignalsTotal, ms1SignalsFragmented,
+        ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent, ms1SignalsMatchedPercent,
+        ms1IntensityMatchedPercent, ms2SignalsTotal, ms2SignalsMatchedPercent,
+        ms2IntensityMatchedPercent);
 
     return new SignalsAnalysisResult(results, likelyISFPrecursorMzs);
   }
@@ -333,7 +333,8 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
   private List<UniqueSignal> filterUniquePrecursors(RangeMap<Double, UniqueSignal> ms1Signals,
       List<Scan> ms2Scans) {
     return ms2Scans.stream().map(Scan::getPrecursorMz).filter(Objects::nonNull)
-        .map(precursormz -> ms1Signals.get(precursormz)).filter(Objects::nonNull).toList();
+        .map(precursormz -> ms1Signals.get(precursormz)).filter(Objects::nonNull).distinct()
+        .toList();
   }
 
   private record SignalsAnalysisResult(InSourceFragmentAnalysisResults results,

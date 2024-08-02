@@ -28,15 +28,15 @@ package io.github.mzmine.datamodel.features.types.analysis;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
-public class Ms1FragmentedLikelyISFPercentType extends PercentType {
+public class LikelyISFragmentInMs1PercentType extends PercentType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms1_fragmented_likely_isf_percent";
+    return "likely_isf_in_ms1_percent";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS1 fragmented likely in-source fragment";
+    return "Likely in-source fragments in MS1";
   }
 }

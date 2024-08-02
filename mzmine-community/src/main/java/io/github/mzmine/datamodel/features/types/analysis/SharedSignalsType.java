@@ -25,22 +25,18 @@
 
 package io.github.mzmine.datamodel.features.types.analysis;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * How many of the MS1 signals in the corresponding MS1 scans were fragmented? Measured by their
- * intensity
- */
-public class Ms1FragmentedIntensityPercentType extends PercentType {
+public class SharedSignalsType extends IntegerType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms1_fragmented_intensity_percent";
+    return "shared_signals";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS1 fragmented intensity";
+    return "Shared signals";
   }
 }

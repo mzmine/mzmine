@@ -28,15 +28,15 @@ package io.github.mzmine.datamodel.features.types.analysis;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
-public class Ms2MatchedIntensityPercentType extends PercentType {
+public class Ms1SharedSignalsPercentType extends PercentType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms2_matched_intensity_percent";
+    return "ms1_shared_signals_percent";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS2 matched intensity";
+    return "MS1 shared signals";
   }
 }
