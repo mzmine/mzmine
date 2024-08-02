@@ -67,9 +67,10 @@ import org.jetbrains.annotations.Nullable;
  * MS2 signals present in all the fragment scans corresponding to precursors corresponding to MS1
  * signals.
  */
-class SignalsAnalysisTask extends AbstractFeatureListTask {
+class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
 
-  private static final Logger logger = Logger.getLogger(SignalsAnalysisTask.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      SharedMs1Ms2FragmentsAnalysisTask.class.getName());
   private final List<FeatureList> featureLists;
   private final boolean useMassList;
   private final MZTolerance tolerance;
@@ -84,15 +85,15 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
    * @param moduleCallDate The date the module was called.
    * @param moduleClass    The class of the calling module.
    */
-  public SignalsAnalysisTask(MZmineProject project, List<FeatureList> featureLists,
+  public SharedMs1Ms2FragmentsAnalysisTask(MZmineProject project, List<FeatureList> featureLists,
       ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.featureLists = featureLists;
     this.totalItems = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).sum();
-    var scanDataType = parameters.getValue(SignalsAnalysisParameters.scanDataType);
+    var scanDataType = parameters.getValue(SharedMs1Ms2FragmentsAnalysisParameters.scanDataType);
     this.useMassList = scanDataType == ScanDataType.MASS_LIST;
-    this.tolerance = parameters.getValue(SignalsAnalysisParameters.tolerance);
+    this.tolerance = parameters.getValue(SharedMs1Ms2FragmentsAnalysisParameters.tolerance);
   }
 
   private static double calcSumIntensity(final List<UniqueSignal> ms1SignalMatchesMs2) {

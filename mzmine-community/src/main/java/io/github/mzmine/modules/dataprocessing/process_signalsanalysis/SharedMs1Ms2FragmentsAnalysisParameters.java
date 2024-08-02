@@ -37,7 +37,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  * <p>
  * var flists = parameters.getValue(EmptyFeatureListParameters.featureLists);
  */
-public class SignalsAnalysisParameters extends SimpleParameterSet {
+public class SharedMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
@@ -46,10 +46,10 @@ public class SignalsAnalysisParameters extends SimpleParameterSet {
   public static final ComboParameter<ScanDataType> scanDataType = new ComboParameter<>(
       "MS data selection",
       "Show either raw data or filtered centroid data (after mass detection and other filters).\n"
-          + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
+      + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
       ScanDataType.values(), ScanDataType.MASS_LIST);
 
-  public SignalsAnalysisParameters() {
+  public SharedMs1Ms2FragmentsAnalysisParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */

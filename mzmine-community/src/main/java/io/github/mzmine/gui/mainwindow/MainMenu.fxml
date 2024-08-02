@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2024 The mzmine Development Team
+  ~ Copyright (c) 2004-2024 The MZmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -308,7 +308,7 @@
       <MenuItem onAction="#runModule" text="Assign MALDI MS2 to features"
         userData="io.github.mzmine.modules.dataprocessing.filter_maldigroupms2.MaldiGroupMS2Module"/>
       <MenuItem text="Fragments analysis" onAction="#runModule"
-                userData="io.github.mzmine.modules.dataprocessing.process_signalsanalysis.SignalsAnalysisModule"/>
+                userData="io.github.mzmine.modules.dataprocessing.process_signalsanalysis.SharedMs1Ms2FragmentsAnalysisModule"/>
       <MenuItem onAction="#runModule" text="Refine IMS-MS2 spectra"
         userData="io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement.ImsMs2RefinementModule"/>
       <MenuItem onAction="#runModule" text="Refine fragmentation scans of features"
