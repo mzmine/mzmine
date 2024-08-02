@@ -34,6 +34,7 @@ import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
+import io.github.mzmine.javafx.mvci.LatestTaskScheduler;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
@@ -51,8 +52,8 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
 
   protected final NumberFormats formats = ConfigService.getGuiFormats();
   private final SimpleXYChart<? extends PlotXYDataProvider> chart;
-  private final DialogController controller = new DialogController();
   private SortableFeatureComboBox featureBox;
+  private final LatestTaskScheduler scheduler = new LatestTaskScheduler();
 
   public ParameterDialogWithFeaturePreview(boolean valueCheckRequired, ParameterSet parameters,
       Region message) {
@@ -107,7 +108,7 @@ public abstract class ParameterDialogWithFeaturePreview extends ParameterSetupDi
       }
     };
 
-    controller.onTaskThreadDelayed(task);
+    scheduler.onTaskThreadDelayed(task, LatestTaskScheduler.DEFAULT_DELAY);
   }
 
   private void addPreviewPane() {
