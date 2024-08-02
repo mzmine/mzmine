@@ -229,6 +229,7 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     // TODO this is the MS2 scans of one row so all of them have the same m/z - maybe this should be done globally for all rows?
     // you could build a RangeMap<Double, UniqueSignal> of all rows with fragment spectra (precursor m/z)
     // before looping over all rows and pass it into this method
+    // Or maybe we need to accumulate all MS2 fragment signals over all scans?
     List<UniqueSignal> ms1SignalMatchesMs2Precursors = filterUniquePrecursors(ms1SignalMap,
         ms2Scans);
     Set<Double> precursorMzSet = ms1SignalMatchesMs2Precursors.stream().map(UniqueSignal::mz)
