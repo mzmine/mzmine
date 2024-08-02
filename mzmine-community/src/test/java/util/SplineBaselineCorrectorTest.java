@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,7 @@
 
 package util;
 
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrector;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrector;
 import io.github.mzmine.util.collections.SimpleIndexRange;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -40,7 +40,7 @@ public class SplineBaselineCorrectorTest {
     final double[] src = new double[]{3, 1, 1, 2, 2, 2, 2, 2, 2, 2};
     final double[] dst = new double[10];
 
-    final int remaining = UnivariateBaselineCorrector.removeRangesFromArray(List.of(r), 10, src,
+    final int remaining = AbstractBaselineCorrector.removeRangesFromArray(List.of(r), 10, src,
         dst);
 
     Assertions.assertEquals(7, remaining);
@@ -54,7 +54,7 @@ public class SplineBaselineCorrectorTest {
     final double[] src = new double[]{2, 2, 2, 2, 2, 2, 2, 1, 1, 3};
     final double[] dst = new double[10];
 
-    final int remaining = UnivariateBaselineCorrector.removeRangesFromArray(List.of(r), 10, src,
+    final int remaining = AbstractBaselineCorrector.removeRangesFromArray(List.of(r), 10, src,
         dst);
 
     Assertions.assertEquals(8, remaining);
@@ -68,7 +68,7 @@ public class SplineBaselineCorrectorTest {
     final double[] src = new double[]{2, 2, 2, 2, 1, 1, 1, 2, 2, 2};
     final double[] dst = new double[10];
 
-    final int remaining = UnivariateBaselineCorrector.removeRangesFromArray(List.of(r), 10, src,
+    final int remaining = AbstractBaselineCorrector.removeRangesFromArray(List.of(r), 10, src,
         dst);
 
     Assertions.assertEquals(7, remaining);
@@ -83,7 +83,7 @@ public class SplineBaselineCorrectorTest {
     final double[] src = new double[]{3, 1, 2, 2, 1, 1, 1, 4, 4, 4};
     final double[] dst = new double[10];
 
-    final int remaining = UnivariateBaselineCorrector.removeRangesFromArray(List.of(r1, r2), 10,
+    final int remaining = AbstractBaselineCorrector.removeRangesFromArray(List.of(r1, r2), 10,
         src, dst);
 
     Assertions.assertEquals(6, remaining);
@@ -98,7 +98,7 @@ public class SplineBaselineCorrectorTest {
     final double[] src = new double[]{2, 2, 2, 2, 1, 1, 1, 2, 4, 3};
     final double[] dst = new double[10];
 
-    final int remaining = UnivariateBaselineCorrector.removeRangesFromArray(List.of(r1, r2), 10,
+    final int remaining = AbstractBaselineCorrector.removeRangesFromArray(List.of(r1, r2), 10,
         src, dst);
 
     Assertions.assertEquals(6, remaining);

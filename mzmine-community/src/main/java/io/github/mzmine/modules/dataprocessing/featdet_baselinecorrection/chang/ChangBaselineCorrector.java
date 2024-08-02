@@ -26,9 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.chang;
 
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
 import io.github.mzmine.parameters.ParameterSet;
@@ -36,8 +36,8 @@ import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.collections.SimpleIndexRange;
+import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.DoubleStream;
@@ -45,10 +45,12 @@ import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ChangBaselineCorrector implements BaselineCorrector {
+/**
+ * https://rdrr.io/bioc/TargetSearch/man/baselineCorrection.html
+ */
+public class ChangBaselineCorrector extends AbstractBaselineCorrector {
 
   protected final MemoryMapStorage storage = null;
-  protected final String suffix = "";
   protected double[] xBuffer = new double[0];
   protected double[] yBuffer = new double[0];
   private final double alpha;
@@ -58,30 +60,33 @@ public class ChangBaselineCorrector implements BaselineCorrector {
   private final double threshold;
 
   public ChangBaselineCorrector() {
-    this(0.95, 100, 0.2, 10, 0.5);
+    this(null, null, 0.95, 100, 0.2, 10, 0.5);
   }
 
-  public ChangBaselineCorrector(double alpha, int maxSegments, double baselineFraction,
-      int windowSize, double threshold) {
+  public ChangBaselineCorrector(MemoryMapStorage storage, String suffix, double alpha,
+      int maxSegments, double baselineFraction, int windowSize, double threshold) {
+    super(storage, 0, null, null);
     this.alpha = alpha;
     this.maxSegments = maxSegments;
     this.baselineFraction = baselineFraction;
     this.windowSize = windowSize;
     this.threshold = threshold;
+
   }
 
   @Override
   public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
+    additionalData.clear();
     final int numValues = timeSeries.getNumberOfValues();
     if (yBuffer.length < numValues) {
       xBuffer = new double[numValues];
       yBuffer = new double[numValues];
     }
 
+    extractDataIntoBuffer(timeSeries, xBuffer, yBuffer);
+
     // minimum 5 points per segment
     final int numSegments = Math.min(maxSegments, (int) Math.ceil((double) numValues / 5));
-
-    extractDataIntoBuffer(timeSeries, xBuffer, yBuffer);
 
     final double[] filtered = highPassFilter(yBuffer, alpha);
     final int numPerSegment = numValues / numSegments;
@@ -91,7 +96,7 @@ public class ChangBaselineCorrector implements BaselineCorrector {
       IndexRange indexRange = new SimpleIndexRange(i * numPerSegment,
           Math.min((i + 1) * numPerSegment - 1, numValues - 1));
       indices.add(indexRange);
-      if(indexRange.maxExclusive() >= numValues) {
+      if (indexRange.maxExclusive() >= numValues) {
         break;
       }
     }
@@ -127,20 +132,18 @@ public class ChangBaselineCorrector implements BaselineCorrector {
             .toArray(), xBuffer);
 
     for (int i = 0; i < numValues; i++) {
-      yBuffer[i] = /*Math.max(0,*/
-          yBuffer[i] - backgroundSignal[i] + 2 * (threshold * 0.5) * 2 * backgroundSDev/*)*/;
+      yBuffer[i] = Math.max(0,
+          yBuffer[i] - backgroundSignal[i] + 2 * (threshold * 0.5) * 2 * backgroundSDev);
     }
 
-    return switch (timeSeries) {
-      case IonSpectrumSeries<?> s -> (T) s.copyAndReplace(storage, s.getMzValues(new double[0]),
-          Arrays.copyOfRange(yBuffer, 0, numValues));
-      case OtherTimeSeries o -> (T) o.copyAndReplace(
-          o.getTimeSeriesData().getOtherDataFile().getCorrespondingRawDataFile()
-              .getMemoryMapStorage(), Arrays.copyOfRange(yBuffer, 0, numValues),
-          o.getName() + " " + suffix);
-      default -> throw new IllegalStateException(
-          "Unexpected time series: " + timeSeries.getClass().getName());
-    };
+    if (isPreview()) {
+      additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer[i],
+          i -> backgroundSignal[i] + 2 * (threshold * 0.5) * 2 * backgroundSDev));
+      additionalData.add(new AnyXYProvider(Color.BLUE, "background", numValues, i -> xBuffer[i],
+          i -> backgroundSignal[i]));
+    }
+
+    return createNewTimeSeries(timeSeries, numValues, yBuffer);
   }
 
   // Method for linear interpolation
@@ -171,7 +174,9 @@ public class ChangBaselineCorrector implements BaselineCorrector {
     final Double threshold = embedded.getValue(ChangBaselineCorrectorParameters.threshold);
     final Integer windowWidth = embedded.getValue(ChangBaselineCorrectorParameters.signalWindow);
 
-    return new ChangBaselineCorrector(alpha, numSegments, baselineFraction, windowWidth, threshold);
+    return new ChangBaselineCorrector(storage,
+        parameters.getValue(BaselineCorrectionParameters.suffix), alpha, numSegments,
+        baselineFraction, windowWidth, threshold);
   }
 
   @Override

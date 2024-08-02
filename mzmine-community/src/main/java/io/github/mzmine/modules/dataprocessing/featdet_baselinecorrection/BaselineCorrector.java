@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,8 +29,10 @@ import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.List;
 
 public interface BaselineCorrector extends MZmineModule {
 
@@ -81,5 +83,9 @@ public interface BaselineCorrector extends MZmineModule {
     } else {
       yBuffer = timeSeries.getIntensityValues(yBuffer);
     }
+  }
+
+  default List<PlotXYDataProvider> getAdditionalPreviewData() {
+    return List.of();
   }
 }

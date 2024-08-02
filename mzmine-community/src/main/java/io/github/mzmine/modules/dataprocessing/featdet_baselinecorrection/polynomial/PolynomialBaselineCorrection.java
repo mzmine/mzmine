@@ -23,62 +23,57 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.akimaspline;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.polynomial;
 
+import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrector;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
-import org.apache.commons.math3.analysis.interpolation.AkimaSplineInterpolator;
-import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
+import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AkimaSplineCorrector extends UnivariateBaselineCorrector {
+public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
 
-  public AkimaSplineCorrector() {
-    super();
-  }
+  private final PolynomialCurveFitter fitter;
 
-  public AkimaSplineCorrector(MemoryMapStorage storage, int numSamples, String suffix,
-      MinimumSearchFeatureResolver resolver) {
+  public PolynomialBaselineCorrection(MemoryMapStorage storage, int numSamples, String suffix,
+      MinimumSearchFeatureResolver resolver, int numPoints) {
     super(storage, numSamples, suffix, resolver);
+    fitter = PolynomialCurveFitter.create(numPoints).withMaxIterations(3);
   }
 
   @Override
-  protected UnivariateInterpolator initializeInterpolator() {
-    return new AkimaSplineInterpolator();
+  public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
+    final int numValues = timeSeries.getNumberOfValues();
+    if (yBuffer.length < numValues) {
+      xBuffer = new double[numValues];
+      yBuffer = new double[numValues];
+      xBufferRemovedPeaks = new double[numValues];
+      yBufferRemovedPeaks = new double[numValues];
+    }
+    extractDataIntoBuffer(timeSeries, xBuffer, yBuffer);
+
+    return null;
   }
 
   @Override
   public BaselineCorrector newInstance(BaselineCorrectionParameters parameters,
       MemoryMapStorage storage, FeatureList flist) {
-
-    final String suffix = parameters.getValue(BaselineCorrectionParameters.suffix);
-    final ParameterSet embedded = parameters.getParameter(
-        BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();
-    final Integer numSamples = embedded.getValue(UnivariateBaselineCorrectorParameters.numSamples);
-    final MinimumSearchFeatureResolver resolver =
-        embedded.getValue(UnivariateBaselineCorrectorParameters.applyPeakRemoval)
-            ? AbstractBaselineCorrector.initializeLocalMinResolver((ModularFeatureList) flist)
-            : null;
-
-    return new AkimaSplineCorrector(storage, numSamples, suffix, resolver);
+    return null;
   }
 
   @Override
   public @NotNull String getName() {
-    return "Akima spline";
+    return "";
   }
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return AkimaSplineCorrectorParameters.class;
+    return null;
   }
 }

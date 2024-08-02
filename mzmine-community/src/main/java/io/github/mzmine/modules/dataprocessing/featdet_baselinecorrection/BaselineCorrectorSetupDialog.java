@@ -38,6 +38,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRe
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithFeaturePreview;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
@@ -77,19 +78,29 @@ public class BaselineCorrectorSetupDialog extends ParameterDialogWithFeaturePrev
         BaselineCorrectionParameters.correctionAlgorithm).getValue();
     final BaselineCorrector baselineCorrector = ((BaselineCorrector) enumValue.getModuleInstance()).newInstance(
         (BaselineCorrectionParameters) parameterSet, null, feature.getFeatureList());
+    if(baselineCorrector instanceof UnivariateBaselineCorrector uv) {
+      uv.setPreview(true);
+    }
 
     final IonTimeSeries<Scan> full = IonTimeSeriesUtils.remapRtAxis(feature.getFeatureData(),
         feature.getFeatureList().getSeletedScans(feature.getRawDataFile()));
 
     IonTimeSeries<? extends Scan> corrected = baselineCorrector.correctBaseline(full);
 
-    return List.of(new DatasetAndRenderer(new ColoredXYDataset(
+    final List<PlotXYDataProvider> additionalPreviewData = baselineCorrector.getAdditionalPreviewData();
+
+    final ArrayList<DatasetAndRenderer> data = new ArrayList<>();
+
+    data.addAll(List.of(new DatasetAndRenderer(new ColoredXYDataset(
             new IonTimeSeriesToXYProvider(corrected, feature.toString() + " corrected",
                 feature.getRawDataFile().getColor())), new ColoredAreaShapeRenderer()),
-
         new DatasetAndRenderer(new ColoredXYDataset(
             new IonTimeSeriesToXYProvider(full, feature.toString(),
-                feature.getRawDataFile().getColor())), new ColoredXYLineRenderer()));
+                feature.getRawDataFile().getColor())), new ColoredXYLineRenderer())));
 
+    additionalPreviewData.forEach(a -> data.add(
+        new DatasetAndRenderer(new ColoredXYDataset(a), new ColoredXYLineRenderer())));
+
+    return data;
   }
 }

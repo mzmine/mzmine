@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.nevil
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrector;
@@ -63,7 +64,7 @@ public class NevilleBaselineCorrector extends UnivariateBaselineCorrector {
     final Integer numSamples = embedded.getValue(UnivariateBaselineCorrectorParameters.numSamples);
     final MinimumSearchFeatureResolver resolver =
         embedded.getValue(UnivariateBaselineCorrectorParameters.applyPeakRemoval)
-            ? UnivariateBaselineCorrector.initializeLocalMinResolver((ModularFeatureList) flist)
+            ? AbstractBaselineCorrector.initializeLocalMinResolver((ModularFeatureList) flist)
             : null;
 
     return new NevilleBaselineCorrector(storage, numSamples, suffix, resolver);
