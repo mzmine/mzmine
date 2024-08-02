@@ -246,14 +246,14 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     // for all precursor ions
     int ms2SignalsAllPrecursors = mapToList(ms2SignalMap).size();
 
-    // for this precursor ion
+    // only for this precursor ion
     List<UniqueSignal> ms2Signals = mapToList(ms2SignalMap).stream()
         .filter(signal -> originatesFromPrecursorIon(signal, tolerance, precursorMz)).toList();
     List<UniqueSignal> ms2SignalMatchesMs1 = ms2Signals.stream()
         .filter(signal -> ms1SignalMap.get(signal.mz()) != null).toList();
 
     int ms2SignalsTotal = ms2Signals.size();
-    double ms2SignalsMatchedPercent = signalsMatched / (double) ms2SignalsTotal;
+    double ms2SignalsMatchedPercent = ms2SignalMatchesMs1.size() / (double) ms2SignalsTotal;
     double ms2IntensityMatched = calcSumIntensity(ms2SignalMatchesMs1);
     double ms2IntensityTotal = calcSumIntensity(ms2Signals);
     double ms2IntensityMatchedPercent = ms2IntensityMatched / ms2IntensityTotal;
@@ -279,7 +279,7 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         ms1IntensityFragmentedPercent, ms1SignalsMatchedPercent, ms1IntensityMatchedPercent,
         ms2SignalsTotal, ms2SignalsMatchedPercent, ms2IntensityMatchedPercent);
 
-    return new SignalsAnalysisResult(results, likelyISFPrecursorMzs);
+    return new SignalsAnalysisResult(results);
   }
 
   private static boolean originatesFromPrecursorIon(final UniqueSignal signal,
@@ -349,8 +349,7 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         .toList();
   }
 
-  private record SignalsAnalysisResult(InSourceFragmentAnalysisResults results,
-                                       List<Double> likelyISFPrecursorMzs) {
+  private record SignalsAnalysisResult(InSourceFragmentAnalysisResults results) {
 
   }
 
