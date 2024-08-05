@@ -82,13 +82,13 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
             chart.addDataset(key, added);
           }
           if (change.wasRemoved()) {
-            if(change.getMap().isEmpty()) {
+            if (change.getMap().isEmpty()) {
               chart.removeAllDatasets();
             } else {
               final XYItemRenderer removed = change.getValueRemoved();
               final XYDataset key = change.getKey();
-              chart.getAllDatasets().entrySet().stream().filter(e -> e.getValue() == key).findFirst()
-                  .ifPresent(e -> chart.removeDataSet(e.getKey()));
+              chart.getAllDatasets().entrySet().stream().filter(e -> e.getValue() == key)
+                  .findFirst().ifPresent(e -> chart.removeDataSet(e.getKey()));
             }
           }
         });
@@ -96,37 +96,35 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
 
   private void initializeValueListener(SimpleXYChart<PlotXYDataProvider> chart) {
     model.domainAxisMarkersProperty().addListener((ListChangeListener<ValueMarker>) c -> {
-      while (c.next()) {
-        if (c.wasAdded()) {
-          final List<? extends ValueMarker> added = c.getAddedSubList();
-          chart.applyWithNotifyChanges(false,
-              () -> added.forEach(m -> chart.getXYPlot().addDomainMarker(m)));
+      chart.applyWithNotifyChanges(false, () -> {
+        while (c.next()) {
+          if (c.wasAdded()) {
+            final List<? extends ValueMarker> added = c.getAddedSubList();
+            added.forEach(m -> chart.getXYPlot().addDomainMarker(m));
+          }
+          if (c.wasRemoved()) {
+            final List<? extends ValueMarker> removed = c.getRemoved();
+            removed.forEach(m -> chart.getXYPlot().removeDomainMarker(m));
+          }
         }
-        if (c.wasRemoved()) {
-          final List<? extends ValueMarker> removed = c.getRemoved();
-          chart.applyWithNotifyChanges(false,
-              () -> removed.forEach(m -> chart.getXYPlot().removeDomainMarker(m)));
-        }
-      }
+      });
     });
   }
 
   private void initializeAnnotationListener(SimpleXYChart<PlotXYDataProvider> chart) {
     model.annotationsProperty().addListener((ListChangeListener<XYAnnotation>) c -> {
-      while (c.next()) {
-        if (c.wasAdded()) {
-          final List<? extends XYAnnotation> added = c.getAddedSubList();
-          chart.applyWithNotifyChanges(false, () -> {
+      chart.applyWithNotifyChanges(false, () -> {
+        while (c.next()) {
+          if (c.wasAdded()) {
+            final List<? extends XYAnnotation> added = c.getAddedSubList();
             added.forEach(a -> chart.getXYPlot().addAnnotation(a));
-          });
-        }
-        if (c.wasRemoved()) {
-          final List<? extends XYAnnotation> removed = c.getRemoved();
-          chart.applyWithNotifyChanges(true, () -> {
+          }
+          if (c.wasRemoved()) {
+            final List<? extends XYAnnotation> removed = c.getRemoved();
             removed.forEach(a -> chart.getXYPlot().removeAnnotation(a));
-          });
+          }
         }
-      }
+      });
     });
   }
 }
