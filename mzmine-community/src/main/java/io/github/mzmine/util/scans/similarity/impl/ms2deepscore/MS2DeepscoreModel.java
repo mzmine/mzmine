@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -82,7 +82,9 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity implements AutoC
     this.predictor = model.newPredictor();
   }
 
-
+  /*
+   * Predicts an MS2Deepscore embedding from a tensorized spectrum.
+   */
   public NDArray predictEmbeddingFromTensors(TensorizedSpectra tensorizedSpectra)
       throws TranslateException {
     NDList predictions = predictor.predict(
@@ -91,6 +93,9 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity implements AutoC
     return predictions.getFirst();
   }
 
+  /*
+   * Predicts an MS2Deepscore embedding from a MassSpectrum.
+   */
   @Override
   public NDArray predictEmbedding(List<? extends MassSpectrum> scans) throws TranslateException {
     TensorizedSpectra tensorizedSepctra = spectrumTensorizer.tensorizeSpectra(scans);
