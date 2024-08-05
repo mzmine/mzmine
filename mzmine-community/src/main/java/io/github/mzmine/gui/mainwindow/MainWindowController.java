@@ -37,6 +37,7 @@ import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
@@ -448,11 +449,10 @@ public class MainWindowController {
         RawDataFile clickedFile = MZmineGUI.getSelectedRawDataFiles().get(0);
         if (clickedFile instanceof IMSRawDataFile) {
           if (clickedFile instanceof ImagingRawDataFile) {
-            if (MZmineCore.getDesktop().displayConfirmation(
-                "Warning!\n" + "You are trying to open an IMS MS imaging file.\n"
-                    + "The amount of information may crash MZmine.\n"
-                    + "Would you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
-                == ButtonType.NO) {
+            if (!DialogLoggerUtil.showDialogYesNo(AlertType.WARNING, "Warning!", """
+                You are trying to open an IMS MS imaging file.
+                The amount of information may crash MZmine.
+                Would you like to open the overview anyway?""")) {
               return;
             }
           }
