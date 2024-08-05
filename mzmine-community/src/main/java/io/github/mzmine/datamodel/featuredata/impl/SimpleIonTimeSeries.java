@@ -29,6 +29,7 @@ import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
+import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MzSeries;
@@ -84,6 +85,23 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
     this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValues);
     this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
+  }
+
+  public SimpleIonTimeSeries(DoubleBuffer mzValues, DoubleBuffer intensityValues,
+      @NotNull List<? extends Scan> scans) {
+    if (mzValues.limit() != intensityValues.limit() || mzValues.limit() != scans.size()) {
+      throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
+    }
+    for (int i = 1; i < scans.size(); i++) {
+      if (scans.get(i).getRetentionTime() < scans.get(i - 1).getRetentionTime()) {
+        throw new IllegalArgumentException(
+            "Scans not sorted in retention time dimension! Cannot create chromatogram.");
+      }
+    }
+
+    this.mzValues = mzValues;
+    this.intensityValues = intensityValues;
+    this.scans = scans;
   }
 
   public static SimpleIonTimeSeries loadFromXML(XMLStreamReader reader, MemoryMapStorage storage,
@@ -157,6 +175,16 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
     }
 
     return new SimpleIonTimeSeries(storage, mzs, intensities, subset);
+  }
+
+  @Override
+  public IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+      int endIndexExclusive) {
+
+    return new SimpleIonTimeSeries(
+        mzValues.slice(startIndexInclusive, endIndexExclusive - startIndexInclusive),
+        intensityValues.slice(startIndexInclusive, endIndexExclusive - startIndexInclusive),
+        scans.subList(startIndexInclusive, endIndexExclusive));
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -34,6 +35,7 @@ import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
+import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -208,5 +210,28 @@ public class IonMobilogramTimeSeriesFactory {
 
     return IonMobilogramTimeSeriesFactory.of(storage, mzs, intensities, mobilograms,
         summedMobilogram);
+  }
+
+  static MobilogramStorageResult storeMobilograms(SimpleIonMobilogramTimeSeries trace,
+      @Nullable MemoryMapStorage storage, List<IonMobilitySeries> mobilograms) {
+    final int[] offsets = new int[mobilograms.size()];
+    final DoubleBuffer[] stored = StorageUtils.storeIonSeriesToSingleBuffer(storage, mobilograms,
+        offsets);
+
+    List<IonMobilitySeries> storedMobilograms = new ArrayList<>();
+    for (int i = 0; i < offsets.length; i++) {
+      IonMobilitySeries mobilogram = mobilograms.get(i);
+      List<MobilityScan> spectra;
+      if (mobilogram instanceof ModifiableSpectra) {
+        spectra = ((ModifiableSpectra) mobilogram).getSpectraModifiable();
+      } else {
+        spectra = mobilogram.getSpectra();
+      }
+
+      storedMobilograms.add(
+          new StorableIonMobilitySeries(trace, offsets[i], mobilogram.getNumberOfValues(),
+              spectra));
+    }
+    return new MobilogramStorageResult(storedMobilograms, stored[0], stored[1]);
   }
 }
