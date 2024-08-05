@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,6 +51,14 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
     this.name = name;
   }
 
+  public SimpleOtherTimeSeries(@NotNull FloatBuffer rtValues, @NotNull DoubleBuffer intensityValues,
+      String name, @NotNull OtherTimeSeriesData timeSeriesData) {
+    this.timeSeriesData = timeSeriesData;
+    intensityBuffer = intensityValues;
+    timeBuffer = rtValues;
+    this.name = name;
+  }
+
   @Override
   public DoubleBuffer getIntensityValueBuffer() {
     return intensityBuffer;
@@ -94,13 +102,11 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
   @Override
   public IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
       int endIndexExclusive) {
-    final double[] intensities = new double[endIndexExclusive - startIndexInclusive];
-    final float[] rts = new float[endIndexExclusive - startIndexInclusive];
 
-    intensityBuffer.get(startIndexInclusive, intensities, 0, intensities.length);
-    timeBuffer.get(startIndexInclusive, rts, 0, rts.length);
-
-    return new SimpleOtherTimeSeries(storage, rts, intensities, name, timeSeriesData);
+    return new SimpleOtherTimeSeries(
+        timeBuffer.slice(startIndexInclusive, endIndexExclusive - startIndexInclusive),
+        intensityBuffer.slice(startIndexInclusive, endIndexExclusive - startIndexInclusive), name,
+        timeSeriesData);
   }
 
   @Override
