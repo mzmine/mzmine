@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,11 +53,13 @@ public abstract class EmbeddingBasedSimilarity {
   }
 
   /**
-   * TODO add documentation
+   * Calculates the dot product between two embeddings.
    *
-   * @param embedding1
-   * @param embedding2
-   * @return
+   * @param embedding1 An embedding (1D vector), predicted by a neural net from a spectrum. For
+   *                   instance an MS2Deepscore embedding.
+   * @param embedding2 An embedding (1D vector), predicted by a neural net from a spectrum. For
+   *                   instance an MS2Deepscore embedding.
+   * @return The dot product between two embeddings.
    */
   public static float[][] dotProduct(NDArray embedding1, NDArray embedding2) {
     NDArray norm1 = embedding1.norm(new int[]{1});
@@ -68,10 +70,10 @@ public abstract class EmbeddingBasedSimilarity {
   }
 
   /**
-   * TODO add documentation
+   * Converts a 2D NDArray into a float matrix.
    *
-   * @param ndArray
-   * @return
+   * @param ndArray A 2D NDArray.
+   * @return An 2D float matrix.
    */
   public static float[][] convertNDArrayToFloatMatrix(NDArray ndArray) {
     long[] shape = ndArray.getShape().getShape();
