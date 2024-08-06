@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.ExternalTool;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
@@ -53,23 +54,18 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ThermoRawImportTask extends AbstractTask {
 
+  public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
   private static final Logger logger = Logger.getLogger(ThermoRawImportTask.class.getName());
-
   private final File fileToOpen;
   private final MZmineProject project;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
   private final ScanImportProcessorConfig scanProcessorConfig;
-
   private Process dumper = null;
-
   private String taskDescription;
   private int parsedScans = 0;
-
   private MSDKmzMLImportTask msdkTask;
   private int convertedScans;
-  public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
-
 
   public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -100,7 +96,8 @@ public class ThermoRawImportTask extends AbstractTask {
 
     // Unzip ThermoRawFileParser
     try {
-      final File thermoRawFileParserDir = unzipThermoRawFileParser();
+//      final File thermoRawFileParserDir = unzipThermoRawFileParser();
+      final File thermoRawFileParserDir = ExternalTool.THERMO_RAW_PARSER.getExternalToolPath();
       taskDescription = "Opening file " + fileToOpen;
       String thermoRawFileParserCommand;
 
@@ -119,7 +116,7 @@ public class ThermoRawImportTask extends AbstractTask {
         return;
       }
 
-      final String cmdLine[] = new String[]{ //
+      final String[] cmdLine = new String[]{ //
           thermoRawFileParserCommand, // program to run
           "-s", // output mzML to stdout
           "-p", // no peak picking
