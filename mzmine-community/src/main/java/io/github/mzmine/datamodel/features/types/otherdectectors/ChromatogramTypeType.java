@@ -23,30 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.otherdetectors;
+package io.github.mzmine.datamodel.features.types.otherdectectors;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
 
-public class OtherFeatureImpl implements OtherFeature {
+public class ChromatogramTypeType extends DataType<ChromatogramType> {
 
-  public final ObservableMap<DataType, Object> map = FXCollections.observableHashMap();
-
-  public OtherFeatureImpl() {
-  }
-
-  public OtherFeatureImpl(OtherTimeSeries series) {
-    set(OtherFileType.class, series.getOtherDataFile());
-    set(OtherFeatureDataType.class, series);
-    set(ChromatogramTypeType.class, series.getChromatoogramType());
+  @Override
+  public @NotNull String getUniqueID() {
+    return "other_chromatogram_type";
   }
 
   @Override
-  public ObservableMap<DataType, Object> getMap() {
-    return map;
+  public @NotNull String getHeaderString() {
+    return "Chromatogram type";
+  }
+
+  @Override
+  public Property<ChromatogramType> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<ChromatogramType> getValueClass() {
+    return ChromatogramType.class;
   }
 }

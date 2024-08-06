@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,9 +27,9 @@ package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
-import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -61,7 +61,7 @@ public class IntegrationPane extends BorderPane {
   private final NumberFormats formats = ConfigService.getGuiFormats();
   private ObjectProperty<@Nullable RawDataFile> rawFile = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable OtherDataFile> otherFile = new SimpleObjectProperty<>();
-  private ObjectProperty<@Nullable OtherTimeSeries> timeSeries = new SimpleObjectProperty<>();
+  private ObjectProperty<@Nullable OtherFeature> rawTrace = new SimpleObjectProperty<>();
   private final IntegrationPlotController plot = new IntegrationPlotController();
   private final BooleanProperty saveAllowedProperty = new SimpleBooleanProperty(false);
 
@@ -71,7 +71,7 @@ public class IntegrationPane extends BorderPane {
             .filter(f -> f.getOtherDataFiles().stream().anyMatch(OtherDataFile::hasTimeSeries))
             .toList(), rawFileProperty());
     final ComboBox<@Nullable OtherDataFile> otherFileCombo = createOtherFileCombo();
-    final ComboBox<@Nullable OtherTimeSeries> timeSeriesCombo = createTimeSeriesCombo();
+    final ComboBox<@Nullable OtherFeature> timeSeriesCombo = createTimeSeriesCombo();
     final Button saveButton = createSaveButton();
 
     initializeListeners(otherFileCombo, timeSeriesCombo);
@@ -99,14 +99,14 @@ public class IntegrationPane extends BorderPane {
         return;
       }
       saveAllowedProperty.set(false);
-      if (timeSeries.get() != null) {
-        var data = timeSeries.get().getTimeSeriesData();
-        data.setProcessedFeaturesForSeries(timeSeries.get(),
+      if (rawTrace.get() != null) {
+        var data = rawTrace.get().getFeatureData().getTimeSeriesData();
+        data.replaceProcessedFeaturesForTrace(rawTrace.get(),
             plot.getIntegratedFeatures().stream().filter(ts -> ts instanceof OtherTimeSeries)
                 .map(ts -> {
-                  final OtherFeature f = new OtherFeatureImpl();
-                  f.set(OtherFeatureDataType.class, (OtherTimeSeries) ts);
-                  return f;
+                  final OtherFeature integrated = rawTrace.get().createSubFeature();
+                  integrated.set(OtherFeatureDataType.class, (OtherTimeSeries) ts);
+                  return integrated;
                 }).toList());
       }
     });
@@ -117,14 +117,14 @@ public class IntegrationPane extends BorderPane {
   }
 
   private boolean isPlotFeaturesMatchSavedFeatures() {
-    final OtherTimeSeries series = timeSeries.get();
+    final OtherFeature series = rawTrace.get();
     if (series == null) {
       return false;
     }
 
-    final OtherTimeSeriesData data = series.getTimeSeriesData();
-    final List<OtherTimeSeries> processed = data.getProcessedFeaturesForSeries(series)
-        .stream().map(OtherFeature::getFeatureData).toList();
+    final OtherTimeSeriesData data = series.getFeatureData().getTimeSeriesData();
+    final List<OtherTimeSeries> processed = data.getProcessedFeaturesForTrace(series).stream()
+        .map(OtherFeature::getFeatureData).toList();
     if (processed.equals(plot.getIntegratedFeatures())) {
       return false;
     }
@@ -141,9 +141,9 @@ public class IntegrationPane extends BorderPane {
     setOtherFile(otherFile);
   }
 
-  public IntegrationPane(@NotNull OtherTimeSeries timeSeries) {
+  public IntegrationPane(@NotNull OtherFeature rawTrace) {
     this();
-    setTimeSeries(timeSeries);
+    setRawTrace(rawTrace);
   }
 
   private @NotNull ComboBox<@Nullable OtherDataFile> createOtherFileCombo() {
@@ -166,20 +166,20 @@ public class IntegrationPane extends BorderPane {
     return otherFileCombo;
   }
 
-  private @NotNull ComboBox<@Nullable OtherTimeSeries> createTimeSeriesCombo() {
-    final ComboBox<@Nullable OtherTimeSeries> timeSeriesCombo = FxComboBox.createComboBox(
-        "Select a chromatogram.", List.of(), timeSeries);
+  private @NotNull ComboBox<@Nullable OtherFeature> createTimeSeriesCombo() {
+    final ComboBox<@Nullable OtherFeature> timeSeriesCombo = FxComboBox.createComboBox(
+        "Select a chromatogram.", List.of(), rawTrace);
     timeSeriesCombo.setConverter(new StringConverter<>() {
       @Override
-      public String toString(OtherTimeSeries object) {
+      public String toString(OtherFeature object) {
         if (object == null) {
           return "";
         }
-        return object.getName();
+        return object.getFeatureData().getName();
       }
 
       @Override
-      public OtherTimeSeries fromString(String string) {
+      public OtherFeature fromString(String string) {
         return null;
       }
     });
@@ -187,7 +187,7 @@ public class IntegrationPane extends BorderPane {
   }
 
   private void initializeListeners(ComboBox<@Nullable OtherDataFile> otherFileCombo,
-      ComboBox<@Nullable OtherTimeSeries> timeSeriesCombo) {
+      ComboBox<@Nullable OtherFeature> timeSeriesCombo) {
     rawFile.addListener((_, _, file) -> {
       if (file != null) {
         otherFileCombo.setItems(FXCollections.observableList(
@@ -204,7 +204,7 @@ public class IntegrationPane extends BorderPane {
     otherFile.addListener((_, _, otherFile) -> {
       if (otherFile != null) {
         timeSeriesCombo.setItems(
-            FXCollections.observableList(otherFile.getOtherTimeSeries().getTimeSeries()));
+            FXCollections.observableList(otherFile.getOtherTimeSeries().getRawTraces()));
         if (!timeSeriesCombo.getItems().isEmpty()) {
           timeSeriesCombo.getSelectionModel().selectFirst();
         }
@@ -220,18 +220,19 @@ public class IntegrationPane extends BorderPane {
       }
     });
 
-    timeSeries.addListener((_, _, timeSeries) -> {
-      if (timeSeries != null && timeSeries.getOtherDataFile() != otherFile.get()) {
-        setOtherFile(timeSeries.getOtherDataFile());
+    rawTrace.addListener((_, _, timeSeries) -> {
+      if (timeSeries != null && timeSeries.get(OtherFileType.class) != otherFile.get()) {
+        setOtherFile(timeSeries.get(OtherFileType.class));
       }
     });
 
-    timeSeries.addListener((_, _, ts) -> {
+    rawTrace.addListener((_, _, ts) -> {
       plot.setIntegratedFeatures(List.of());
       if (ts != null) {
-        plot.setOtherTimeSeries(ts);
-        plot.setIntegratedFeatures(ts.getTimeSeriesData().getProcessedFeaturesForSeries(ts).stream()
-            .map(OtherFeature::getFeatureData).toList());
+        plot.setOtherTimeSeries(ts.getFeatureData());
+        plot.setIntegratedFeatures(
+            ts.getFeatureData().getTimeSeriesData().getProcessedFeaturesForTrace(ts).stream()
+                .map(OtherFeature::getFeatureData).toList());
       }
       saveAllowedProperty.set(isPlotFeaturesMatchSavedFeatures());
     });
@@ -265,15 +266,15 @@ public class IntegrationPane extends BorderPane {
     return otherFile;
   }
 
-  public @Nullable OtherTimeSeries getTimeSeries() {
-    return timeSeries.get();
+  public @Nullable OtherFeature getRawTrace() {
+    return rawTrace.get();
   }
 
-  public void setTimeSeries(@Nullable OtherTimeSeries timeSeries) {
-    this.timeSeries.set(timeSeries);
+  public void setRawTrace(@Nullable OtherFeature rawTrace) {
+    this.rawTrace.set(rawTrace);
   }
 
-  public ObjectProperty<@Nullable OtherTimeSeries> timeSeriesProperty() {
-    return timeSeries;
+  public ObjectProperty<@Nullable OtherFeature> rawTraceProperty() {
+    return rawTrace;
   }
 }

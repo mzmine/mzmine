@@ -23,30 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.otherdetectors;
+package io.github.mzmine.datamodel.features.types.otherdectectors;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
+import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
 
-public class OtherFeatureImpl implements OtherFeature {
+/**
+ * Type to link processed {@link OtherFeature} to their original raw data (also an unprocessed
+ * {@link OtherFeature}).
+ */
+public class RawTraceType extends DataType<OtherFeature> implements NoTextColumn, NullColumnType {
 
-  public final ObservableMap<DataType, Object> map = FXCollections.observableHashMap();
-
-  public OtherFeatureImpl() {
-  }
-
-  public OtherFeatureImpl(OtherTimeSeries series) {
-    set(OtherFileType.class, series.getOtherDataFile());
-    set(OtherFeatureDataType.class, series);
-    set(ChromatogramTypeType.class, series.getChromatoogramType());
+  @Override
+  public @NotNull String getUniqueID() {
+    return "raw_trace";
   }
 
   @Override
-  public ObservableMap<DataType, Object> getMap() {
-    return map;
+  public @NotNull String getHeaderString() {
+    return "Raw trace";
+  }
+
+  @Override
+  public Property<OtherFeature> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<OtherFeature> getValueClass() {
+    return OtherFeature.class;
   }
 }

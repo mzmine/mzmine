@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,20 +27,18 @@ package io.github.mzmine.datamodel.otherdetectors;
 
 import static io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl.DEFAULT_UNIT;
 
+import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
   private final OtherDataFile otherDataFile;
-  private final List<OtherTimeSeries> timeSeries = new ArrayList<>();
-  private final ObservableMap<OtherTimeSeries, ObservableList<OtherFeature>> processedFeatures = FXCollections.observableHashMap();
+  private final List<OtherFeature> rawTraces = new ArrayList<>();
+  private final List<OtherFeature> processedFeatures = new ArrayList<>();
 
   public @Nullable ChromatogramType chromatogramType = ChromatogramType.UNKNOWN;
   private @Nullable String timeSeriesDomainLabel = "Retention time";
@@ -53,17 +51,17 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   }
 
   @Override
-  public @NotNull OtherTimeSeries getTimeSeries(int index) {
-    return timeSeries.get(index);
+  public @NotNull OtherFeature getRawTrace(int index) {
+    return rawTraces.get(index);
   }
 
   @Override
-  public @NotNull List<OtherTimeSeries> getTimeSeries() {
-    return timeSeries;
+  public @NotNull List<@NotNull OtherFeature> getRawTraces() {
+    return rawTraces;
   }
 
-  public void addTimeSeries(@NotNull OtherTimeSeries series) {
-    this.timeSeries.add(series);
+  public void addRawTrace(@NotNull OtherFeature series) {
+    this.rawTraces.add(series);
   }
 
   @Override
@@ -112,58 +110,49 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
     return chromatogramType;
   }
 
+  @Override
+  public List<OtherFeature> getProcessedFeatures() {
+    return processedFeatures;
+  }
+
   public void setChromatogramType(@Nullable ChromatogramType chromatogramType) {
     this.chromatogramType = chromatogramType;
   }
 
   @Override
   @NotNull
-  public ObservableList<OtherFeature> getProcessedFeaturesForSeries(OtherTimeSeries series) {
-    checkOrThrow(series);
-    return processedFeatures.computeIfAbsent(series, _ -> FXCollections.observableArrayList());
+  public List<OtherFeature> getProcessedFeaturesForTrace(OtherFeature rawTrace) {
+    return processedFeatures.stream().filter(f -> f.get(RawTraceType.class).equals(rawTrace))
+        .toList();
   }
 
   @Override
-  public void addProcessedFeatureForSeries(@NotNull OtherTimeSeries series,
-      @NotNull OtherFeature otherFeature) {
-    checkOrThrow(series);
-    processedFeatures.computeIfAbsent(series, _ -> FXCollections.observableArrayList())
-        .add(otherFeature);
-  }
-
-  @Override
-  public boolean removeProcessedFeatureForSeries(@NotNull OtherTimeSeries series,
-      @NotNull OtherFeature otherFeature) {
-    checkOrThrow(series);
-    return processedFeatures.computeIfAbsent(series, _ -> FXCollections.observableArrayList())
-        .remove(otherFeature);
-  }
-
-  @Override
-  public void setProcessedFeaturesForSeries(@NotNull OtherTimeSeries series,
-      @NotNull List<OtherFeature> otherFeatures) {
-    checkOrThrow(series);
-    processedFeatures.computeIfAbsent(series, _ -> FXCollections.observableArrayList())
-        .setAll(otherFeatures);
-  }
-
-  @Override
-  public void clearProcessedFeaturesForSeries(OtherTimeSeries series) {
-    checkOrThrow(series);
-    processedFeatures.computeIfAbsent(series, _ -> FXCollections.observableArrayList()).clear();
-  }
-
-  @Override
-  @NotNull
-  public ObservableMap<OtherTimeSeries, ObservableList<OtherFeature>> getProcessedFeatures() {
-    return FXCollections.unmodifiableObservableMap(processedFeatures);
-  }
-
-  private void checkOrThrow(OtherTimeSeries series) {
-    if (!processedFeatures.containsKey(series) && !timeSeries.contains(series)) {
-      throw new IllegalArgumentException(
-          "Time series %s is not a raw time series in this OtherTimeSeriesData".formatted(
-              series.getName()));
+  public void replaceProcessedFeaturesForTrace(OtherFeature rawTrace,
+      @NotNull List<OtherFeature> newFeatures) {
+    if (newFeatures.stream().anyMatch(f -> f.get(RawTraceType.class) == null)) {
+      throw new IllegalStateException("RawTraceType is null for some new features.");
     }
+    if (!newFeatures.stream().allMatch(f -> f.get(RawTraceType.class).equals(rawTrace))) {
+      throw new IllegalStateException("Not all features belong to the requiredTrace");
+    }
+
+    final List<OtherFeature> currentFeatures = getProcessedFeaturesForTrace(rawTrace);
+    processedFeatures.removeAll(currentFeatures);
+    processedFeatures.addAll(newFeatures);
+  }
+
+  @Override
+  public void addProcessedFeature(@NotNull OtherFeature newFeature) {
+    final OtherFeature rawTrace = newFeature.get(RawTraceType.class);
+    if (rawTrace == null) {
+      throw new IllegalStateException("The new feature does not have an associated raw trace.");
+    }
+
+    if (!rawTraces.stream().anyMatch(f -> f.equals(rawTrace))) {
+      throw new IllegalStateException(
+          "The newly added feature does not belong to this time series data.");
+    }
+
+    processedFeatures.add(newFeature);
   }
 }
