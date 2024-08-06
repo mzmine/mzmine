@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,7 +65,7 @@ public class LoessBaselineCorrector extends UnivariateBaselineCorrector {
   }
 
   @Override
-  public BaselineCorrector newInstance(BaselineCorrectionParameters parameters,
+  public BaselineCorrector newInstance(ParameterSet parameters,
       MemoryMapStorage storage, FeatureList flist) {
     final ParameterSet embedded = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();

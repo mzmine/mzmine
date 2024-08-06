@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
 
@@ -60,8 +61,8 @@ public interface BaselineCorrector extends MZmineModule {
 
   <T extends IntensityTimeSeries> T correctBaseline(T timeSeries);
 
-  public BaselineCorrector newInstance(BaselineCorrectionParameters parameters,
-      MemoryMapStorage storage, FeatureList flist);
+  BaselineCorrector newInstance(ParameterSet parameters, MemoryMapStorage storage,
+      FeatureList flist);
 
   default <T extends IntensityTimeSeries> void extractDataIntoBuffer(T timeSeries, double[] xBuffer,
       double[] yBuffer) {

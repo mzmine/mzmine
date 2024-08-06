@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -77,8 +77,8 @@ public class BaselineCorrectionTask extends AbstractSimpleTask {
     this.project = project;
     final BaselineCorrectors value = parameters.getValue(
         BaselineCorrectionParameters.correctionAlgorithm);
-    corrector = ((BaselineCorrector) value.getModuleInstance()).newInstance(
-        (BaselineCorrectionParameters) parameters, getMemoryMapStorage(), flist);
+    corrector = value.getModuleInstance().newInstance(
+        parameters, getMemoryMapStorage(), flist);
     suffix = parameters.getValue(BaselineCorrectionParameters.suffix);
     totalItems = flist.getNumberOfRows();
   }

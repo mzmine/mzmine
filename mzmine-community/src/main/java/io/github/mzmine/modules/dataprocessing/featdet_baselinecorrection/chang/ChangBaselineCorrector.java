@@ -161,8 +161,8 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
   }
 
   @Override
-  public BaselineCorrector newInstance(BaselineCorrectionParameters parameters,
-      MemoryMapStorage storage, FeatureList flist) {
+  public BaselineCorrector newInstance(ParameterSet parameters, MemoryMapStorage storage,
+      FeatureList flist) {
 
     final ParameterSet embedded = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();

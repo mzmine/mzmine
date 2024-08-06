@@ -86,8 +86,8 @@ public class BaselineCorrectionPreview extends FeaturePreviewPane {
 
     final BaselineCorrectors enumValue = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getValue();
-    final BaselineCorrector baselineCorrector = ((BaselineCorrector) enumValue.getModuleInstance()).newInstance(
-        (BaselineCorrectionParameters) parameters, null, feature.getFeatureList());
+    final BaselineCorrector baselineCorrector = enumValue.getModuleInstance().newInstance(
+        parameters, null, feature.getFeatureList());
     if (baselineCorrector instanceof AbstractBaselineCorrector uv) {
       uv.setPreview(true);
     }
