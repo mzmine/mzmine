@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,29 +36,33 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.dialogs.ParameterDialogWithFeaturePreview;
+import io.github.mzmine.parameters.dialogs.previewpane.FeaturePreviewPane;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.scene.layout.Region;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BaselineCorrectorSetupDialog extends ParameterDialogWithFeaturePreview {
+public class BaselineCorrectionPreview extends FeaturePreviewPane {
 
-  public BaselineCorrectorSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
-      Region message) {
-    super(valueCheckRequired, parameters, message);
+  public BaselineCorrectionPreview(ParameterSet parameterSet) {
+    super(parameterSet);
   }
 
   @Override
-  protected @NotNull SimpleXYChart<PlotXYDataProvider> createChart() {
-    return new SimpleXYChart<>("Preview", formats.unit("Retention time", "min"),
-        formats.unit("Intensity", "a.u."));
+  public @NotNull SimpleXYChart<PlotXYDataProvider> createChart() {
+    final SimpleXYChart<PlotXYDataProvider> c = new SimpleXYChart<>("Preview",
+        formats.unit("Retention time", "min"), formats.unit("Intensity", "a.u."));
+    c.setMinWidth(100);
+    c.setMinHeight(200);
+    return c;
   }
 
   @Override
-  protected void updateChart(@NotNull List<DatasetAndRenderer> datasets,
+  public void updateChart(@NotNull List<DatasetAndRenderer> datasets,
       @NotNull SimpleXYChart<? extends PlotXYDataProvider> chart) {
     chart.applyWithNotifyChanges(false, () -> {
       chart.removeAllDatasets();
@@ -67,17 +71,23 @@ public class BaselineCorrectorSetupDialog extends ParameterDialogWithFeaturePrev
   }
 
   @Override
-  protected @NotNull List<@NotNull DatasetAndRenderer> calculateNewDatasets(
+  public @NotNull List<@NotNull DatasetAndRenderer> calculateNewDatasets(
       @Nullable Feature feature) {
 
-    if (feature == null || !checkParameterValues(false, false)) {
+    final List<String> errorMessages = new ArrayList<>();
+    if (feature == null || !parameters.checkParameterValues(errorMessages, true)) {
+      if (!errorMessages.isEmpty()) {
+        FxThread.runLater(() -> DialogLoggerUtil.showMessageDialog("Invalid parameter settings",
+            "Please double check parameters: " + errorMessages.stream()
+                .collect(Collectors.joining(", "))));
+      }
       return List.of();
     }
 
-    final BaselineCorrectors enumValue = parameterSet.getParameter(
+    final BaselineCorrectors enumValue = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getValue();
     final BaselineCorrector baselineCorrector = ((BaselineCorrector) enumValue.getModuleInstance()).newInstance(
-        (BaselineCorrectionParameters) parameterSet, null, feature.getFeatureList());
+        (BaselineCorrectionParameters) parameters, null, feature.getFeatureList());
     if (baselineCorrector instanceof AbstractBaselineCorrector uv) {
       uv.setPreview(true);
     }
@@ -88,7 +98,7 @@ public class BaselineCorrectorSetupDialog extends ParameterDialogWithFeaturePrev
     IonTimeSeries<? extends Scan> corrected = baselineCorrector.correctBaseline(full);
     final List<PlotXYDataProvider> additionalPreviewData = baselineCorrector.getAdditionalPreviewData();
 
-    final ArrayList<DatasetAndRenderer> data = new ArrayList<>();
+    final List<DatasetAndRenderer> data = new ArrayList<>();
 
     data.addAll(List.of(new DatasetAndRenderer(new ColoredXYDataset(
             new IonTimeSeriesToXYProvider(corrected, feature.toString() + " corrected",

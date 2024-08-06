@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -44,7 +45,7 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
   public static final StringParameter suffix = new StringParameter("Suffix",
-      "Suffix for the new feature list.");
+      "Suffix for the new feature list.", "bl");
 
   public static final ModuleOptionsEnumComboParameter<BaselineCorrectors> correctionAlgorithm = new ModuleOptionsEnumComboParameter<>(
       "Baseline corrector", "Select the baseline correction algorithm.",
@@ -86,7 +87,8 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new BaselineCorrectorSetupDialog(valueCheckRequired, this, null);
+    ParameterSetupDialog dialog = new ParameterDialogWithPreviewPanes(valueCheckRequired, this,
+        BaselineCorrectionPreview::new);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
