@@ -97,8 +97,8 @@ public class ExtensionFilters {
       "*.raw", "*.RAW");
   public static final ExtensionFilter MZDATA = new ExtensionFilter("mzData MS data", "*.mzData",
       "*.mzdata");
-  //  public static final ExtensionFilter AIRD = new ExtensionFilter("aird MS data", "*.aird",
-//      "*.Aird", "*.AIRD");
+    public static final ExtensionFilter AIRD = new ExtensionFilter("aird MS data", "*.aird",
+      "*.Aird", "*.AIRD");
   public static final ExtensionFilter NETCDF = new ExtensionFilter("netCDF", "*.cdf", "*.CDF",
       "*.netcdf", "*.NETCDF", "*.nc", "*.NC");
   public static final ExtensionFilter MZML_ZIP_GZIP = new ExtensionFilter("zip", "*.zip", "*.gz");
@@ -106,7 +106,7 @@ public class ExtensionFilters {
   public static final ExtensionFilter WIFF2 = new ExtensionFilter("wiff2", "*.wiff2");
   public static final ExtensionFilter ALL_MS_DATA_FILTER = new ExtensionFilter("MS data", "*.mzML",
       "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml", "*.d", "*.tdf", "*.tsf", "*.raw",
-      "*.RAW", "*.mzData", "*.netcdf", "*.mzdata", /*"*.aird",*/ "*.wiff", "*.wiff2");
+      "*.RAW", "*.mzData", "*.netcdf", "*.mzdata", "*.aird", "*.wiff", "*.wiff2");
   public static final List<ExtensionFilter> MS_RAW_DATA = List.of( //
       ALL_MS_DATA_FILTER, //
       MZML, //
@@ -116,7 +116,7 @@ public class ExtensionFilters {
       THERMO_RAW, //
       WATERS_RAW, //
       MZDATA, //
-//      AIRD, //
+      AIRD, //
       NETCDF, //
       MZML_ZIP_GZIP, //
       WIFF, //
