@@ -39,6 +39,7 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,10 +79,8 @@ public class DialogLoggerUtil {
       return null;
     }
     Alert alert = new Alert(AlertType.INFORMATION, null);
-    if (DesktopService.getDesktop() instanceof JavaFxDesktop fx) {
-      alert.getDialogPane().getScene().getStylesheets()
-          .setAll(fx.getMainWindow().getScene().getStylesheets());
-    }
+    applyMainWindowStyle(alert);
+
     alert.setTitle(title);
     alert.setHeaderText(title);
     // seems like a good size for the dialog message when an old batch is loaded into new version
@@ -96,6 +95,17 @@ public class DialogLoggerUtil {
       alert.show();
     }
     return alert;
+  }
+
+  public static void applyMainWindowStyle(final Alert alert) {
+    if (DesktopService.getDesktop() instanceof JavaFxDesktop fx) {
+      var alertScene = alert.getDialogPane().getScene();
+      alertScene.getStylesheets().setAll(fx.getMainWindow().getScene().getStylesheets());
+
+      if (alertScene.getWindow() instanceof Stage alertStage) {
+        alertStage.getIcons().setAll(fx.getMainWindow().getIcons());
+      }
+    }
   }
 
   /**
@@ -126,10 +136,7 @@ public class DialogLoggerUtil {
   public static Optional<ButtonType> showDialog(AlertType type, String title, String message,
       ButtonType... buttons) {
     Alert alert = new Alert(type, message, buttons);
-    if (DesktopService.getDesktop() instanceof JavaFxDesktop fx) {
-      alert.getDialogPane().getScene().getStylesheets()
-          .setAll(fx.getMainWindow().getScene().getStylesheets());
-    }
+    applyMainWindowStyle(alert);
 
     alert.setTitle(title);
     alert.setHeaderText(title);
@@ -152,10 +159,6 @@ public class DialogLoggerUtil {
   public static void showMessageDialogForTime(String title, String message, long timeMillis) {
     FxThread.runLater(() -> {
       Alert alert = showMessageDialog(title, message, false);
-      if (DesktopService.getDesktop() instanceof JavaFxDesktop fx) {
-        alert.getDialogPane().getScene().getStylesheets()
-            .setAll(fx.getMainWindow().getScene().getStylesheets());
-      }
       if (alert == null) {
         return;
       }

@@ -145,18 +145,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   public static void requestQuit() {
     FxThread.runLater(() -> {
-      Alert alert = new Alert(AlertType.CONFIRMATION);
-      Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-      stage.getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      stage.getIcons().add(mzMineIcon);
-      alert.setTitle("Confirmation");
-      alert.setHeaderText("Exit mzmine");
-      String s = "Are you sure you want to exit?";
-      alert.setContentText(s);
-      Optional<ButtonType> result = alert.showAndWait();
-
-      if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
+      if (DialogLoggerUtil.showDialogYesNo("Exit mzmine", "Are you sure you want to exit?")) {
         // Quit the JavaFX thread
         Platform.exit();
         // Call System.exit() because there are probably some background
