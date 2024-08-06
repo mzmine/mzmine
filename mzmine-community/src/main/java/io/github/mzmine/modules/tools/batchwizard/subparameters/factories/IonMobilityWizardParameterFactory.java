@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,8 +80,11 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
    */
   public MassSpectrometerWizardParameterFactory[] getMatchingMassSpectrometerPresets() {
     return switch (this) {
-      case TIMS, TWIMS, DTIMS ->
+      case TWIMS, DTIMS ->
           new MassSpectrometerWizardParameterFactory[]{MassSpectrometerWizardParameterFactory.QTOF};
+      case TIMS ->
+          new MassSpectrometerWizardParameterFactory[]{MassSpectrometerWizardParameterFactory.QTOF,
+              MassSpectrometerWizardParameterFactory.FTICR};
       case NO_IMS, IMS -> MassSpectrometerWizardParameterFactory.values();
     };
   }

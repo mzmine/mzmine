@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,11 +39,11 @@ import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -70,7 +70,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private final Double minIsotopeScore;
   private final Double isotopeNoiseLevel;
   private final MZTolerance isotopeMZTolerance;
-  private final MZmineProcessingStep<OnlineDatabases> db;
+  private final ValueWithParameters<OnlineDatabases> db;
   private final double searchedMass;
   private final MZTolerance mzTolerance;
   private final int charge;
@@ -94,10 +94,10 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     this.peakListRow = peakListRow;
 
-    db = parameters.getParameter(DATABASE).getValue();
+    db = parameters.getParameter(DATABASE).getValueWithParameters();
 
     try {
-      gateway = db.getModule().getGatewayClass().newInstance();
+      gateway = db.value().getGatewayClass().newInstance();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -155,13 +155,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
     IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
     if ((isotopeFilter) && (detectedPattern == null)) {
       final String msg = "Cannot calculate isotope pattern scores, because selected"
-          + " peak does not have any isotopes. Have you run the isotope peak grouper?";
+                         + " peak does not have any isotopes. Have you run the isotope peak grouper?";
       MZmineCore.getDesktop().displayMessage(null, msg);
     }
 
     try {
       String[] compoundIDs = gateway.findCompounds(searchedMass, mzTolerance, numOfResults,
-          db.getParameterSet());
+          db.parameters());
 
       // Get the number of results
       numItems = compoundIDs.length;
@@ -179,7 +179,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
           return;
         }
 
-        CompoundDBAnnotation compound = gateway.getCompound(compoundIDs[i], db.getParameterSet());
+        CompoundDBAnnotation compound = gateway.getCompound(compoundIDs[i], db.parameters());
 
         // In case we failed to retrieve data, skip this compound
         if (compound == null) {
@@ -195,7 +195,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
           logger.finest(
               "Calculating isotope pattern for compound formula " + formula + " adjusted to "
-                  + MolecularFormulaManipulator.getString(ionizedFormula));
+              + MolecularFormulaManipulator.getString(ionizedFormula));
 
           // Generate IsotopePattern for this compound
           IsotopePattern compoundIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
@@ -207,7 +207,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
           // If required, check isotope score
           if (isotopeFilter && (rawDataIsotopePattern != null) && (compoundIsotopePattern
-              != null)) {
+                                                                   != null)) {
 
             double score = IsotopePatternScoreCalculator.getSimilarityScore(rawDataIsotopePattern,
                 compoundIsotopePattern, isotopeMZTolerance, isotopeNoiseLevel);
@@ -231,7 +231,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
           resultWindowFX.setTitle(
               "Searching for " + massFormatter.format(searchedMass) + " amu (" + (finalI + 1) + "/"
-                  + numItems + ")");
+              + numItems + ")");
         });
 
         finishedItems++;

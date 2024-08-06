@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,8 +34,8 @@ import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.datamodel.features.types.numbers.IntraFeatureMs2SimilarityType;
 import io.github.mzmine.datamodel.features.types.numbers.SimpleStatistics;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -227,7 +227,8 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
       DataPoint[] a = filteredGroup.get(i);
       for (int j = i + 1; j < filteredGroup.size(); j++) {
         DataPoint[] b = filteredGroup.get(j);
-        SpectralSimilarity sim = SpectralNetworkingTask.createMS2Sim(mzTol, a, b, 1, Weights.SQRT);
+        SpectralSimilarity sim = ModifiedCosineSpectralNetworkingTask.createMS2Sim(mzTol, a, b, 1,
+            Weights.SQRT);
         similarities.add(sim == null ? 0d : sim.cosine());
       }
     }

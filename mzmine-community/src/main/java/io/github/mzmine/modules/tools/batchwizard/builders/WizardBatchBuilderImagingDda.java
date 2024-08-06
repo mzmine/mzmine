@@ -27,7 +27,6 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
@@ -36,7 +35,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilder
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
@@ -161,14 +159,14 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
           .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
       final AdvancedSpectraImportParameters advancedParam = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
 
-      final MassDetector massDetector = MassDetectors.CENTROID.getDefaultModule();
-      final ParameterSet massDetectorParam = MassDetectors.CENTROID.getParametersCopy();
-      massDetectorParam.setParameter(CentroidMassDetectorParameters.noiseLevel,
-          massDetectorOption.getMs1NoiseLevel());
-      MZmineProcessingStep<MassDetector> massDetectorStep = new MZmineProcessingStepImpl<>(
-          massDetector, massDetectorParam);
+      // set value first and then parameters 
       advancedParam.setParameter(AdvancedSpectraImportParameters.msMassDetection, true,
-          massDetectorStep);
+          MassDetectors.CENTROID);
+      var detectorParams = advancedParam.getParameter(
+              AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
+          .getEmbeddedParameters();
+      detectorParams.setParameter(CentroidMassDetectorParameters.noiseLevel,
+          massDetectorOption.getMs1NoiseLevel());
 
       param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(true);
       param.getParameter(AllSpectralDataImportParameters.advancedImport)

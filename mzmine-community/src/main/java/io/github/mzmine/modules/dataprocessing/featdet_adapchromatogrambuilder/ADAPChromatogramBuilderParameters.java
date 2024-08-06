@@ -28,9 +28,9 @@ package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
-import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
@@ -95,7 +95,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   public static final HiddenParameter<Map<String, Boolean>> allowSingleScans = new HiddenParameter<>(
       new OptOutParameter("Allow single scan chromatograms",
           "Allows selection of single scans as chromatograms. This is useful for "
-              + "feature table generation if MALDI point measurements."));
+          + "feature table generation if MALDI point measurements."));
 
   public ADAPChromatogramBuilderParameters() {
     super(new Parameter[]{dataFiles, scanSelection, minimumConsecutiveScans, minGroupIntensity,
@@ -107,10 +107,11 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     assert Platform.isFxApplicationThread();
 
-    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite", boldText("ADAP Module Disclaimer:\n"),
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        boldText("ADAP Module Disclaimer:\n"),
         text("If you use the ADAP Chromatogram Builder Module, please cite: "), linebreak(),
-        boldText("mzmine paper "), mzminePaper, linebreak(), text("and the following article: "),
-        hyperlinkText(
+        boldText("mzmine paper "), ArticleReferences.MZMINE3.hyperlinkText(), linebreak(),
+        text("and the following article: "), hyperlinkText(
             "Myers OD, Sumner SJ, Li S, Barnes S, Du X, Anal. Chem. 2017, 89, 17, 8696–8703",
             "http://pubs.acs.org/doi/abs/10.1021/acs.analchem.7b00947"));
 
@@ -122,9 +123,9 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   @Override
   public String getRestrictedIonMobilitySupportMessage() {
     return "ADAP chromatogram builder will build two-dimensional chromatograms based on summed "
-        + "frame data (if there is any). Thus, the mobility dimension is not taken into account. "
-        + "The mobility dimension can be added by the IMS expander module after feature resolving. "
-        + "Do you wish to continue?";
+           + "frame data (if there is any). Thus, the mobility dimension is not taken into account. "
+           + "The mobility dimension can be added by the IMS expander module after feature resolving. "
+           + "Do you wish to continue?";
   }
 
   @NotNull
@@ -143,11 +144,11 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
         .get("optoutsinglescancheck");
 
     if (getParameter(minimumConsecutiveScans).getValue() <= 1 && (singleScansOkOptOut == null
-        || !singleScansOkOptOut)) {
+                                                                  || !singleScansOkOptOut)) {
       ButtonType buttonType = MZmineCore.getDesktop()
           .createAlertWithOptOut("Confirmation", "Single consecutive scan selected.",
               "The number of consecutive scans was set to <= 1.\nThis can lead to more noise"
-                  + " detected as EICs.\nDo you want to proceed?", "Do not show again.",
+              + " detected as EICs.\nDo you want to proceed?", "Do not show again.",
               b -> this.getParameter(allowSingleScans).getValue().put("optoutsinglescancheck", b));
       return buttonType.equals(ButtonType.YES);
     }

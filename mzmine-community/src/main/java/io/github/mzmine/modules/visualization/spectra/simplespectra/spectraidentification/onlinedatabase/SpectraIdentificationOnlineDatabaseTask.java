@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
@@ -41,6 +40,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -72,7 +72,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
 
   private int finishedItems = 0, numItems;
 
-  private final MZmineProcessingStep<OnlineDatabases> db;
+  private final ValueWithParameters<OnlineDatabases> db;
   private double searchedMass;
   private final double noiseLevel;
   private final MZTolerance mzTolerance;
@@ -93,9 +93,9 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;
 
-    db = parameters.getParameter(DATABASE).getValue();
+    db = parameters.getParameter(DATABASE).getValueWithParameters();
     try {
-      gateway = db.getModule().getGatewayClass().newInstance();
+      gateway = db.value().getGatewayClass().newInstance();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -154,15 +154,14 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
       searchedMass = massList[0][i] - ionType.getAddedMass();
       try {
         // find candidate compounds
-        String[] compoundIDs = gateway.findCompounds(searchedMass, mzTolerance, 1,
-            db.getParameterSet());
+        String[] compoundIDs = gateway.findCompounds(searchedMass, mzTolerance, 1, db.parameters());
         // Combine strings
         String annotation = "";
         // max number of compounds to top three for visualization
         int counter = 0;
         for (int j = 0; !isCanceled() && j < compoundIDs.length; j++) {
           final CompoundDBAnnotation compound = gateway.getCompound(compoundIDs[j],
-              db.getParameterSet());
+              db.parameters());
 
           // In case we failed to retrieve data, skip this compound
           if (compound == null) {

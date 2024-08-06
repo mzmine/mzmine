@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,11 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorSetupDialog;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.util.ExitCode;
 
 public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
 
@@ -39,14 +37,8 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public LocalMaxMassDetectorParameters() {
-    super(new UserParameter[] {noiseLevel},
+    super(new UserParameter[]{noiseLevel},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#local-maxima");
   }
 
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    MassDetectorSetupDialog dialog =
-        new MassDetectorSetupDialog(valueCheckRequired, LocalMaxMassDetector.class, this);
-    dialog.showAndWait();
-    return dialog.getExitCode();
-  }
 }
