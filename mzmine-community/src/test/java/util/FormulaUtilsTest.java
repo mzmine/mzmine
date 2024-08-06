@@ -107,35 +107,35 @@ public class FormulaUtilsTest {
 
   @Test
   void testGetAllSubformulas() {
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+");
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("C6H6O2N+");
     FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula);
     assert all.length == 293;
   }
 
   @Test
   void testGetAllSubformulasGreater50() {
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+");
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("C6H6O2N+");
     FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 50);
     assert all.length == 191;
   }
 
   @Test
   void testGetAllSubformulasDoubleCharge() {
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+2");
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("C6H6O2N+2");
     FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 1, 10);
     assert all.length == 287;
   }
 
   @Test
   void testGetAllSubformulasGreater200() {
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C3H3O+");
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("C3H3O+");
     FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 200);
     assert all.length == 0;
   }
 
   @Test
   void testFindMzInFormula() {
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C3H4O2N+");
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("C3H4O2N+");
     FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 40);
     assert FormulaUtils.getClosestIndexOfFormula(25, all) == 0;
     assert FormulaUtils.getClosestIndexOfFormula(55, all) == 32;

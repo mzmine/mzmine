@@ -23,46 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util;
+package io.github.mzmine.datamodel.identities;
 
-import io.github.mzmine.main.ConfigService;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-import org.openscience.cdk.interfaces.IMolecularFormula;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Used to cache the formula + mz results
- *
- * @param mz exact mz
- */
-public record FormulaWithExactMz(IMolecularFormula formula, double mz) {
+import org.junit.jupiter.api.Test;
 
-  public FormulaWithExactMz(final IMolecularFormula formula) {
-    this(formula, FormulaUtils.calculateMzRatio(formula));
+class IonUtilsTest {
+
+  @Test
+  void getChargeString() {
+    assertEquals("1+", IonUtils.getChargeString(1));
+    assertEquals("2-", IonUtils.getChargeString(-2));
+    assertEquals("", IonUtils.getChargeString(0));
   }
 
-  @Override
-  public String toString() {
-    var formats = ConfigService.getGuiFormats();
-    String mass = getCharge() == 0 ? "mass" : "m/z";
-    return STR."\{formulaString()}: \{mass}=\{formats.mz(mz)}";
+  @Test
+  void correctByElectronMass() {
+    assertEquals(11.99780568036292, IonUtils.correctByElectronMass(12d, 4), 0.00001);
+    assertEquals(12.00109715981854, IonUtils.correctByElectronMass(12d, -2), 0.00001);
   }
-
-  /**
-   * Add a Δ Delta symbol to the output string
-   */
-  public String toDeltaString() {
-    var formats = ConfigService.getGuiFormats();
-    String mass = getCharge() == 0 ? "Δmass" : "Δm/z";
-    return STR."\{formulaString()}: \{mass}=\{formats.mz(mz)}";
-  }
-
-  public @NotNull String formulaString() {
-    return FormulaUtils.getFormulaString(formula, true);
-  }
-
-  public int getCharge() {
-    return Objects.requireNonNullElse(formula.getCharge(), 0);
-  }
-
 }

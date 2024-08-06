@@ -23,46 +23,48 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util;
+package io.github.mzmine.datamodel.identities;
 
-import io.github.mzmine.main.ConfigService;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 
-/**
- * Used to cache the formula + mz results
- *
- * @param mz exact mz
- */
-public record FormulaWithExactMz(IMolecularFormula formula, double mz) {
+public class IonUtils {
 
-  public FormulaWithExactMz(final IMolecularFormula formula) {
-    this(formula, FormulaUtils.calculateMzRatio(formula));
-  }
+  public static final double ELECTRON_MASS = 5.4857990927E-4;
 
-  @Override
-  public String toString() {
-    var formats = ConfigService.getGuiFormats();
-    String mass = getCharge() == 0 ? "mass" : "m/z";
-    return STR."\{formulaString()}: \{mass}=\{formats.mz(mz)}";
+  /**
+   * Add or remove electron masses depending on charge
+   */
+  public static double correctByElectronMass(double mass, int charge) {
+    // electron
+    return mass - ELECTRON_MASS * charge;
   }
 
   /**
-   * Add a Δ Delta symbol to the output string
+   * @return charge followed by sign like 1+ or 2-. Empty string for charge 0
    */
-  public String toDeltaString() {
-    var formats = ConfigService.getGuiFormats();
-    String mass = getCharge() == 0 ? "Δmass" : "Δm/z";
-    return STR."\{formulaString()}: \{mass}=\{formats.mz(mz)}";
+  @NotNull
+  public static String getChargeString(int charge) {
+    if (charge == 0) {
+      return "";
+    }
+    return Math.abs(charge) + getSign(charge);
   }
 
-  public @NotNull String formulaString() {
-    return FormulaUtils.getFormulaString(formula, true);
+
+  public static String getSign(int number) {
+    return number < 0 ? "-" : "+";
   }
 
-  public int getCharge() {
-    return Objects.requireNonNullElse(formula.getCharge(), 0);
+  public static String getSign(double number) {
+    return number < 0 ? "-" : "+";
+  }
+
+  public static String getSign(float number) {
+    return number < 0 ? "-" : "+";
+  }
+
+  public static String getSign(long number) {
+    return number < 0 ? "-" : "+";
   }
 
 }
