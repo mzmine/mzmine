@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,21 +31,17 @@ import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
-import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractBaselineCorrector implements  BaselineCorrector {
+public abstract class AbstractBaselineCorrector implements BaselineCorrector {
 
   protected final MinimumSearchFeatureResolver resolver;
   protected final int numSamples;
@@ -58,8 +54,8 @@ public abstract class AbstractBaselineCorrector implements  BaselineCorrector {
   protected double[] yBufferRemovedPeaks = new double[0];
   boolean preview = false;
 
-  public AbstractBaselineCorrector(MemoryMapStorage storage, int numSamples, String suffix,
-      MinimumSearchFeatureResolver resolver) {
+  public AbstractBaselineCorrector(@Nullable MemoryMapStorage storage, int numSamples,
+      @NotNull String suffix, MinimumSearchFeatureResolver resolver) {
 
     this.storage = storage;
     this.numSamples = numSamples;
@@ -69,7 +65,9 @@ public abstract class AbstractBaselineCorrector implements  BaselineCorrector {
 
   /**
    * Removes the given list of index ranges from the array, always keeping the first and last value
-   * even if they are contained in one of the ranges.
+   * even if they are contained in one of the ranges. This may be needed for
+   * {@link org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction}, because it will
+   * not extrapolate beyond the sides.
    *
    * @param indices   The list of index ranges. May be empty.
    * @param numValues the number of values in the array. Can be used to limit the search if
@@ -122,25 +120,10 @@ public abstract class AbstractBaselineCorrector implements  BaselineCorrector {
 
   protected static @NotNull MinimumSearchFeatureResolver initializeLocalMinResolver(
       ModularFeatureList flist) {
-    final ParameterSet resolverParam = ConfigService.getConfiguration()
-        .getModuleParameters(MinimumSearchFeatureResolverModule.class).cloneParameterSet();
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
-        new FeatureListsSelection(flist));
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, false);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.dimension,
-        ResolvingDimension.RETENTION_TIME);
-    resolverParam.setParameter(
-        MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL, 0.0);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE, 0.04);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT, 0d);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT, 0d);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RATIO, 3d);
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION,
-        Range.closed(0d, 5d));
-    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS, 5);
 
-    final MinimumSearchFeatureResolver resolver = new MinimumSearchFeatureResolver(resolverParam,
-        flist);
+    final MinimumSearchFeatureResolver resolver = new MinimumSearchFeatureResolver(flist,
+        ResolvingDimension.RETENTION_TIME, 0.5, 0.04, 0, 0, 2.5, Range.closed(0d, 5d), 5);
+
     return resolver;
   }
 
