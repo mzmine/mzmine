@@ -38,7 +38,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.io.FilenameUtils;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -75,7 +74,7 @@ public class FileDownloader {
     this.downloadUrl = downloadUrl;
 
     // strip query parameters from URL with split at ?
-    String fileName = FilenameUtils.getName(downloadUrl).split("\\?")[0];
+    String fileName = FileAndPathUtil.getFileNameFromUrl(downloadUrl);
     this.localFile = new File(localDirectory, fileName);
     this.progressCallback = progressCallback;
   }

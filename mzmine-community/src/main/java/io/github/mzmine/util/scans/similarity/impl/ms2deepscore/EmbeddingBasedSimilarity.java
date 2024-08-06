@@ -34,9 +34,21 @@ import java.util.List;
 
 public abstract class EmbeddingBasedSimilarity {
 
+  /**
+   * Predict embeddings for a list of scans
+   *
+   * @return NDArray of embeddings for each spectrum
+   */
   public abstract NDArray predictEmbedding(List<? extends MassSpectrum> scans)
       throws TranslateException;
 
+  /**
+   * Predict similarity matrix from list of scans. The scans are converted into embeddings and then
+   * compared by similarity, usually cosine similarity but depending on the implementation
+   *
+   * @param scans scans to compare
+   * @return matrix of similarity
+   */
   public float[][] predictMatrixSymmetric(List<? extends MassSpectrum> scans)
       throws TranslateException {
     NDArray embeddings1 = predictEmbedding(scans);
@@ -44,6 +56,15 @@ public abstract class EmbeddingBasedSimilarity {
     return dotProduct(embeddings1, embeddings1);
   }
 
+  /**
+   * Predict similarity matrix from list of scans. The scans are converted into embeddings and then
+   * compared by similarity, usually cosine similarity but depending on the implementation
+   *
+   * @param scan1 first list of scans compared to
+   * @param scan2 second list of scans
+   * @return similarity matrix
+   * @throws TranslateException
+   */
   public float[][] predictMatrix(List<? extends MassSpectrum> scan1,
       List<? extends MassSpectrum> scan2) throws TranslateException {
     NDArray embeddings1 = predictEmbedding(scan1);
@@ -53,11 +74,13 @@ public abstract class EmbeddingBasedSimilarity {
   }
 
   /**
-   * TODO add documentation
+   * Calculates the dot product between two embeddings.
    *
-   * @param embedding1
-   * @param embedding2
-   * @return
+   * @param embedding1 An embedding (1D vector), predicted by a neural net from a spectrum. For
+   *                   instance an MS2Deepscore embedding.
+   * @param embedding2 An embedding (1D vector), predicted by a neural net from a spectrum. For
+   *                   instance an MS2Deepscore embedding.
+   * @return The dot product between two embeddings.
    */
   public static float[][] dotProduct(NDArray embedding1, NDArray embedding2) {
     NDArray norm1 = embedding1.norm(new int[]{1});
@@ -68,10 +91,10 @@ public abstract class EmbeddingBasedSimilarity {
   }
 
   /**
-   * TODO add documentation
+   * Converts a 2D NDArray into a float matrix.
    *
-   * @param ndArray
-   * @return
+   * @param ndArray A 2D NDArray.
+   * @return An 2D float matrix.
    */
   public static float[][] convertNDArrayToFloatMatrix(NDArray ndArray) {
     long[] shape = ndArray.getShape().getShape();

@@ -98,6 +98,7 @@ commons-cli = { group = "commons-cli", name = "commons-cli", version = "1.6.0" }
 commons-math = { group = "org.apache.commons", name = "commons-math", version = "2.2" }
 commons-math3 = { group = "org.apache.commons", name = "commons-math3", version = "3.6.1" }
 commons-lang3 = "org.apache.commons:commons-lang3:3.0"
+commons-compress = "org.apache.commons:commons-compress:1.26.2"
 djl-pytorch-engine = { module = "ai.djl.pytorch:pytorch-engine", version.ref = "djl" }
 djl-api = { module = "ai.djl:api", version.ref = "djl" }
 opencsv = { group = "com.opencsv", name = "opencsv", version = "5.8" }

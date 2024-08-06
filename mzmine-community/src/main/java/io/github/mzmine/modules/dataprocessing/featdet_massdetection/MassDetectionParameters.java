@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -45,7 +45,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.NotNull;
 
 public class MassDetectionParameters extends SimpleParameterSet {
@@ -147,22 +146,19 @@ public class MassDetectionParameters extends SimpleParameterSet {
           Continue anyway?""";
     }
     // open dialog on error
-    if (msg != null
-        && MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO)
-           == ButtonType.NO) {
+    if (msg != null && !DialogLoggerUtil.showDialogYesNo("Confirmation", msg)) {
       return false;
     }
 
     final SelectedScanTypes types = getValue(scanTypes);
     if (types != SelectedScanTypes.SCANS && Arrays.stream(selectedFiles)
         .anyMatch(file -> !(file instanceof IMSRawDataFile))) {
-      final ButtonType buttonType = MZmineCore.getDesktop().displayConfirmation("""
-              The scan types selection is set to "%s" but there are non IMS files selected.This will not add a mass list to the files:
-              %s
-              Do you want to continue anyway?""".formatted(types,
-              Arrays.stream(selectedFiles).map(RawDataFile::getName).collect(Collectors.joining("; "))),
-          ButtonType.YES, ButtonType.NO);
-      if (buttonType == ButtonType.NO) {
+      if (!DialogLoggerUtil.showDialogYesNo("Confirmation", """
+          The scan types selection is set to "%s" but there are non IMS files selected.This will not add a mass list to the files:
+          %s
+          Do you want to continue anyway?""".formatted(types,
+          Arrays.stream(selectedFiles).map(RawDataFile::getName)
+              .collect(Collectors.joining("; "))))) {
         return false;
       }
     }
