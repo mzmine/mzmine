@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,6 +52,10 @@ public class MS2DeepscoreSpectrumTensorizer {
     this.numBins = (int) ((settings.maximumMZ() - settings.minimumMZ()) / settings.binWidth());
   }
 
+  /*
+   * Tensorizes a mass spectrum. The fragments are binned.
+   * The highest intensity of any of the fragments in a bin is used.
+   */
   public float[] tensorizeFragments(MassSpectrum spectrum) {
     float[] vector = new float[numBins];
 
