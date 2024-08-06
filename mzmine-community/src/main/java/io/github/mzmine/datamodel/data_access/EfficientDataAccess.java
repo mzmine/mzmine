@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,8 +44,8 @@ public class EfficientDataAccess {
 
   /**
    * The intended use of this memory access is to loop over all scans in a {@link RawDataFile} and
-   * access data points via {@link ScanDataAccess#getMzValue(int)} and {@link
-   * ScanDataAccess#getIntensityValue(int)}
+   * access data points via {@link ScanDataAccess#getMzValue(int)} and
+   * {@link ScanDataAccess#getIntensityValue(int)}
    *
    * @param dataFile target data file to loop over all scans or mass lists
    * @param type     processed or raw data
@@ -55,9 +55,9 @@ public class EfficientDataAccess {
   }
 
   /**
-   * The intended use of this memory access is to loop over all selected scans in a {@link
-   * RawDataFile} and access data points via {@link ScanDataAccess#getMzValue(int)} and {@link
-   * ScanDataAccess#getIntensityValue(int)}
+   * The intended use of this memory access is to loop over all selected scans in a
+   * {@link RawDataFile} and access data points via {@link ScanDataAccess#getMzValue(int)} and
+   * {@link ScanDataAccess#getIntensityValue(int)}
    *
    * @param dataFile  target data file to loop over all scans or mass lists
    * @param type      processed or raw data
@@ -69,9 +69,9 @@ public class EfficientDataAccess {
   }
 
   /**
-   * The intended use of this memory access is to loop over all selected scans in a {@link
-   * RawDataFile} and access data points via {@link ScanDataAccess#getMzValue(int)} and {@link
-   * ScanDataAccess#getIntensityValue(int)}
+   * The intended use of this memory access is to loop over all selected scans in a
+   * {@link RawDataFile} and access data points via {@link ScanDataAccess#getMzValue(int)} and
+   * {@link ScanDataAccess#getIntensityValue(int)}
    *
    * @param dataFile target data file to loop over all scans or mass lists
    * @param type     processed or raw data
@@ -89,8 +89,7 @@ public class EfficientDataAccess {
    * @param flist target feature list. Loops through all features in all RawDataFiles
    * @param type  defines the data accession type
    */
-  public static FeatureDataAccess of(FeatureList flist,
-      FeatureDataType type) {
+  public static FeatureDataAccess of(FeatureList flist, FeatureDataType type) {
     return of(flist, type, null);
   }
 
@@ -102,8 +101,8 @@ public class EfficientDataAccess {
    * @param type     defines the data accession type
    * @param dataFile define the data file in an aligned feature list
    */
-  public static FeatureDataAccess of(FeatureList flist,
-      FeatureDataType type, RawDataFile dataFile) {
+  public static FeatureDataAccess of(FeatureList flist, FeatureDataType type,
+      RawDataFile dataFile) {
     return switch (type) {
       case ONLY_DETECTED -> new FeatureDetectedDataAccess(flist, dataFile);
       case INCLUDE_ZEROS -> new FeatureFullDataAccess(flist, dataFile);
@@ -120,11 +119,11 @@ public class EfficientDataAccess {
    * less noisy mobilograms.
    *
    * @param dataFile The {@link IMSRawDataFile}.
-   * @param binWidth The bin width (absolute, depends on the {@link io.github.mzmine.datamodel.MobilityType}.
+   * @param binWidth The bin width (absolute, depends on the
+   *                 {@link io.github.mzmine.datamodel.MobilityType}.
    * @return
    */
-  public static BinningMobilogramDataAccess of(final IMSRawDataFile dataFile,
-      final int binWidth) {
+  public static BinningMobilogramDataAccess of(final IMSRawDataFile dataFile, final int binWidth) {
     return new BinningMobilogramDataAccess(dataFile, binWidth);
   }
 
@@ -137,34 +136,50 @@ public class EfficientDataAccess {
    * Different types to handle feature data: {@link #ONLY_DETECTED}: Use only detected data points,
    * currently assigned to the feature. Features might include leading and/or trailing zeros
    * depending on the state of processing. Leading and trailing zeros are added during chromatogram
-   * detection, bit might be removed during feature resolving or other processing steps.; {@link
-   * #INCLUDE_ZEROS}: Fill all missing data points in the chromatogram with zeros;
+   * detection, bit might be removed during feature resolving or other processing steps.;
+   * {@link #INCLUDE_ZEROS}: Fill all missing data points in the chromatogram with zeros;
    */
   public enum FeatureDataType {
     ONLY_DETECTED, INCLUDE_ZEROS
   }
 
   /**
-   * Different types to handle Scan data: {@link #RAW}: Use raw data as imported; {@link #MASS_LIST}:
-   * Use processed centroid data ({@link MassList}
+   * Different types to handle Scan data: {@link #RAW}: Use raw data as imported;
+   * {@link #MASS_LIST}: Use processed centroid data ({@link MassList}
    */
   public enum ScanDataType {
-    RAW, MASS_LIST
+    RAW, MASS_LIST;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case RAW -> "Raw";
+        case MASS_LIST -> "Processed";
+      };
+    }
   }
 
   /**
-   * Different types to handle mobility scan data: {@link #RAW}: Use raw data as imported; {@link
-   * #MASS_LIST}: Use processed centroid data ({@link MassList}
+   * Different types to handle mobility scan data: {@link #RAW}: Use raw data as imported;
+   * {@link #MASS_LIST}: Use processed centroid data ({@link MassList}
    */
   public enum MobilityScanDataType {
     // basically just a copy of ScanDataType, but useful to distinguish the factory methods
-    RAW, MASS_LIST
+    RAW, MASS_LIST;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case RAW -> "Raw";
+        case MASS_LIST -> "Processed";
+      };
+    }
   }
 
   /**
    * {@link #ONLY_DETECTED} will only access data points stored in the mobilograms, which may or may
-   * not contain leading and trailing zeros depending on the state of processing. {@link
-   * #INCLUDE_ZEROS}: fill all missing data points in frame's mobility scans with 0 for the
+   * not contain leading and trailing zeros depending on the state of processing.
+   * {@link #INCLUDE_ZEROS}: fill all missing data points in frame's mobility scans with 0 for the
    * respective mobilogram.
    */
   public enum MobilogramAccessType {

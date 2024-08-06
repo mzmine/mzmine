@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,17 +80,19 @@ public interface SpectralLibraryEntry extends MassList {
   Logger logger = Logger.getLogger(SpectralLibraryEntry.class.getName());
   String XML_ELEMENT_ENTRY = "spectraldatabaseentry";
 
-  static SpectralLibraryEntry create(@Nullable MemoryMapStorage storage, double precursorMZ,
-      DataPoint[] dps) {
+  static SpectralLibraryEntry create(@Nullable MemoryMapStorage storage,
+      @Nullable Double precursorMZ, DataPoint[] dps) {
     double[][] data = DataPointUtils.getDataPointsAsDoubleArray(dps);
     Map<DBEntryField, Object> fields = new HashMap<>();
-    fields.put(DBEntryField.PRECURSOR_MZ, precursorMZ);
     fields.put(DBEntryField.NUM_PEAKS, dps.length);
+    if (precursorMZ != null) {
+      fields.put(DBEntryField.PRECURSOR_MZ, precursorMZ);
+    }
     return new SpectralDBEntry(storage, data[0], data[1], fields);
   }
 
-  static SpectralLibraryEntry create(@Nullable MemoryMapStorage storage, double precursorMZ,
-      int charge, DataPoint[] dps) {
+  static SpectralLibraryEntry create(@Nullable MemoryMapStorage storage,
+      @Nullable Double precursorMZ, @Nullable Integer charge, DataPoint[] dps) {
     SpectralLibraryEntry entry = create(storage, precursorMZ, dps);
     entry.putIfNotNull(DBEntryField.CHARGE, charge);
     return entry;
@@ -104,19 +106,24 @@ public interface SpectralLibraryEntry extends MassList {
 
   /**
    * Create a new spectral library entry from any {@link FeatureAnnotation} but new spectral data
-   * @param scan only used for scan metadata - data is provided through dataPoints
-   * @param match the annotation for additional metadata
+   *
+   * @param scan       only used for scan metadata - data is provided through dataPoints
+   * @param match      the annotation for additional metadata
    * @param dataPoints the actual data
    * @return spectral library entry
    */
   static SpectralLibraryEntry create(final FeatureListRow row, @Nullable MemoryMapStorage storage,
-      final Scan scan, final FeatureAnnotation match, final DataPoint[] dataPoints) {
+      final Scan scan, @Nullable final FeatureAnnotation match, final DataPoint[] dataPoints) {
 
-    Double precursorMZ = Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz());
+    final Double precursorMZ =
+        (match != null && match.getPrecursorMZ() != null) ? // prefer match then scan
+            match.getPrecursorMZ() : scan.getPrecursorMz();
     SpectralLibraryEntry entry = create(storage, precursorMZ, dataPoints);
 
     // transfer match to fields
-    entry.addFeatureAnnotationFields(match);
+    if (match != null) {
+      entry.addFeatureAnnotationFields(match);
+    }
 
     // scan details
     Integer charge = getCharge(match, row, scan);
@@ -159,6 +166,7 @@ public interface SpectralLibraryEntry extends MassList {
 
   /**
    * Add metadata to spectral library entry from feature annotation.
+   *
    * @param match
    */
   default void addFeatureAnnotationFields(FeatureAnnotation match) {
@@ -212,8 +220,8 @@ public interface SpectralLibraryEntry extends MassList {
     }
   }
 
-  static Integer getCharge(FeatureAnnotation match, FeatureListRow row, Scan scan) {
-    IonType adduct = match.getAdductType();
+  static Integer getCharge(@Nullable FeatureAnnotation match, FeatureListRow row, Scan scan) {
+    IonType adduct = match != null ? match.getAdductType() : null;
     if (adduct != null) {
       return adduct.getCharge();
     }
