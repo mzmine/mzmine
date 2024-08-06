@@ -32,8 +32,10 @@ import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
+import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 public class FxIconButtonBuilder {
@@ -42,7 +44,11 @@ public class FxIconButtonBuilder {
   private final ButtonBase button;
   private BooleanExpression flashingProperty;
 
-  private FxIconButtonBuilder(final ButtonBase button, String iconCode) {
+  public FxIconButtonBuilder(@NotNull final ButtonBase button, @NotNull IconCodeSupplier iconCode) {
+    this(button, iconCode.getIconCode());
+  }
+
+  public FxIconButtonBuilder(@NotNull final ButtonBase button, @NotNull String iconCode) {
     icon = new FontIcon(iconCode);
     icon.setIconSize(FxIconUtil.DEFAULT_ICON_SIZE);
     this.button = button;
@@ -62,6 +68,10 @@ public class FxIconButtonBuilder {
   //
   public static FxIconButtonBuilder ofIconButton(IconCodeSupplier iconCode) {
     return new FxIconButtonBuilder(new Button(), iconCode.getIconCode());
+  }
+
+  public static FxIconButtonBuilder ofMenuIconButton(IconCodeSupplier iconCode) {
+    return new FxIconButtonBuilder(new MenuButton(), iconCode.getIconCode());
   }
 
   public static FxIconButtonBuilder ofToggleIconButton(IconCodeSupplier iconCode) {

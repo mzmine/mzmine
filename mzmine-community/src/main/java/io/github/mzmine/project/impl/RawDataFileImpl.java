@@ -33,12 +33,14 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,17 +80,19 @@ public class RawDataFileImpl implements RawDataFile {
   // Temporary file for scan data storage
   private final MemoryMapStorage storageMemoryMap;
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
-  // maximum number of data points and centroid data points in all scans
-  protected int maxRawDataPoints = -1;
   // Name of this raw data file - may be changed by the user
   private final String name;
+  // maximum number of data points and centroid data points in all scans
+  protected int maxRawDataPoints = -1;
+
+  @NotNull
+  protected List<@NotNull OtherDataFile> otherDataFiles = new ArrayList<>();
+
   // track if file contains zero intensity as this might originate from wrong conversion
   // msconvert needs to have the peak picker as first step / not even title maker before that
   private boolean containsZeroIntensity;
-
   private boolean containsEmptyScans;
   private MassSpectrumType spectraType;
-
   @Nullable
   private LocalDateTime startTimeStamp = null;
 
@@ -413,4 +417,17 @@ public class RawDataFileImpl implements RawDataFile {
     return absolutePath;
   }
 
+  @Override
+  public @NotNull List<@NotNull OtherDataFile> getOtherDataFiles() {
+    return ImmutableList.copyOf(otherDataFiles);
+  }
+
+  public void setOtherDataFiles(@NotNull List<@NotNull OtherDataFile> otherDataFiles) {
+    this.otherDataFiles.clear();
+    this.otherDataFiles.addAll(otherDataFiles);
+  }
+
+  public void addOtherDataFiles(@NotNull List<@NotNull OtherDataFile> otherDataFiles) {
+    this.otherDataFiles.addAll(otherDataFiles);
+  }
 }

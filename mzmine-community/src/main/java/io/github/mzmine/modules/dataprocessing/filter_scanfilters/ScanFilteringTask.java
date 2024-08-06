@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -60,7 +59,7 @@ class ScanFilteringTask extends AbstractTask {
   private boolean removeOriginal;
 
   // Raw Data Filter
-  private MZmineProcessingStep<ScanFilter> rawDataFilter;
+  private ScanFilter rawDataFilter;
 
   private ScanSelection select;
   private ParameterSet parameters;
@@ -77,7 +76,9 @@ class ScanFilteringTask extends AbstractTask {
     this.project = project;
     this.dataFile = dataFile;
 
-    rawDataFilter = parameters.getParameter(ScanFiltersParameters.filter).getValue();
+    var filterParam = parameters.getParameter(ScanFiltersParameters.filter)
+        .getValueWithParameters();
+    rawDataFilter = ScanFilters.createFilter(filterParam);
 
     suffix = parameters.getParameter(ScanFiltersParameters.suffix).getValue();
     select = parameters.getParameter(ScanFiltersParameters.scanSelect).getValue();
@@ -137,11 +138,11 @@ class ScanFilteringTask extends AbstractTask {
 
         Scan scan = scanNumbers.get(i);
         Scan newScan = null;
-        if (select.matches(scan))
-          newScan =
-              rawDataFilter.getModule().filterScan(newFile, scan, rawDataFilter.getParameterSet());
-        else
+        if (select.matches(scan)) {
+          newScan = rawDataFilter.filterScan(newFile, scan);
+        } else {
           newScan = scan; // TODO need to create a copy of the scan
+        }
 
         if (newScan != null) {
           newFile.addScan(newScan);
@@ -155,8 +156,9 @@ class ScanFilteringTask extends AbstractTask {
         for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
           newFile.getAppliedMethods().add(appliedMethod);
         }
-        newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            ScanFiltersModule.class, parameters, getModuleCallDate()));
+        newFile.getAppliedMethods().add(
+            new SimpleFeatureListAppliedMethod(ScanFiltersModule.class, parameters,
+                getModuleCallDate()));
 
         project.addFile(newFile);
 

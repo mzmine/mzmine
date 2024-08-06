@@ -32,8 +32,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
-import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -92,7 +90,8 @@ public class SpectralDeconvolutionUtils {
    * @return The first {@link ModularFeature} not within the excluded m/z ranges, or {@code null} if
    * all features are within the excluded ranges.
    */
-  public static ModularFeature getMainFeature(List<ModularFeature> groups, List<Range<Double>> adjustedRanges) {
+  public static ModularFeature getMainFeature(List<ModularFeature> groups,
+      List<Range<Double>> adjustedRanges) {
     for (ModularFeature feature : groups) {
       double mz = feature.getMZ();
       boolean isIgnored = false;
@@ -135,21 +134,6 @@ public class SpectralDeconvolutionUtils {
       }
     }
     return adjustedRanges;
-  }
-
-  /**
-   * Creates a new instance of the {@link SpectralDeconvolutionAlgorithm} using the provided
-   * processing step.
-   *
-   * @param spectralDeconvolutionAlgorithmStep The processing step for creating the spectral
-   *                                           deconvolution algorithm.
-   * @return A new instance of the {@link SpectralDeconvolutionAlgorithm}.
-   */
-  @NotNull
-  public static SpectralDeconvolutionAlgorithm createSpectralDeconvolutionAlgorithm(
-      final MZmineProcessingStep<SpectralDeconvolutionAlgorithm> spectralDeconvolutionAlgorithmStep) {
-    ParameterSet parameterSet = spectralDeconvolutionAlgorithmStep.getParameterSet();
-    return spectralDeconvolutionAlgorithmStep.getModule().create(parameterSet);
   }
 
 }

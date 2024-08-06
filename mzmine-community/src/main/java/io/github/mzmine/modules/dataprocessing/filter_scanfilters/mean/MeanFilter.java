@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,11 +40,20 @@ import org.jetbrains.annotations.NotNull;
 
 public class MeanFilter implements ScanFilter {
 
-  @Override
-  public Scan filterScan(RawDataFile newFile, Scan sc, ParameterSet parameters) {
 
-    double windowLength =
-        parameters.getParameter(MeanFilterParameters.oneSidedWindowLength).getValue();
+  private final double windowLength;
+
+  // requires default constructor for config
+  public MeanFilter() {
+    windowLength = 0;
+  }
+
+  public MeanFilter(final ParameterSet parameters) {
+    windowLength = parameters.getParameter(MeanFilterParameters.oneSidedWindowLength).getValue();
+  }
+
+  @Override
+  public Scan filterScan(RawDataFile newFile, Scan sc) {
 
     // changed to also allow MS2 if selected in ScanSelection
 
@@ -100,10 +109,10 @@ public class MeanFilter implements ScanFilter {
 
     double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(newDataPoints);
     // Create filtered scan
-    SimpleScan newScan =
-        new SimpleScan(newFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
-           sc.getMsMsInfo() != null ? sc.getMsMsInfo().createCopy() : null, dp[0], dp[1], MassSpectrumType.CENTROIDED,
-            sc.getPolarity(), sc.getScanDefinition(), sc.getScanningMZRange());
+    SimpleScan newScan = new SimpleScan(newFile, sc.getScanNumber(), sc.getMSLevel(),
+        sc.getRetentionTime(), sc.getMsMsInfo() != null ? sc.getMsMsInfo().createCopy() : null,
+        dp[0], dp[1], MassSpectrumType.CENTROIDED, sc.getPolarity(), sc.getScanDefinition(),
+        sc.getScanningMZRange());
     return newScan;
 
   }

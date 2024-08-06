@@ -64,10 +64,10 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.project = project;
     this.featureList = featureList;
-    var spectralDeconvolutionAlgorithmMZmineProcessingStep = parameters.getValue(
-        SpectralDeconvolutionGCParameters.SPECTRAL_DECONVOLUTION_ALGORITHM);
-    spectralDeconvolutionAlgorithm = SpectralDeconvolutionUtils.createSpectralDeconvolutionAlgorithm(
-        spectralDeconvolutionAlgorithmMZmineProcessingStep);
+    var deconParam = parameters.getParameter(
+            SpectralDeconvolutionGCParameters.SPECTRAL_DECONVOLUTION_ALGORITHM)
+        .getValueWithParameters();
+    spectralDeconvolutionAlgorithm = SpectralDeconvolutionAlgorithms.createOption(deconParam);
     if (parameters.getParameter(SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE).getValue()) {
       mzValuesToIgnore = parameters.getParameter(
           SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE).getEmbeddedParameter().getValue();

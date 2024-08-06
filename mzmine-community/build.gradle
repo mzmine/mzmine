@@ -164,6 +164,7 @@ dependencies {
     implementation(libs.commons.io)
     implementation(libs.commons.lang3)
     implementation(libs.fastutil)
+    implementation(libs.bundles.djl.pytorch)
     implementation "edu.ucar:netcdf4:4.5.5"
     implementation 'org.jetbrains:annotations:22.0.0'
     implementation 'net.sourceforge.jmol:jmol:14.31.10'
@@ -327,7 +328,7 @@ runtime {
                                 "--win-shortcut",
                                 "--win-dir-chooser",
                                 "--win-upgrade-uuid", "$win_uuid",
-                                "--license-file", "LICENSE.txt"
+//                                "--license-file", "LICENSE.txt"  not required
             ]
         }
         if (OperatingSystem.current().isMacOsX()) {
@@ -336,7 +337,8 @@ runtime {
             // only sign if all needed information is present
             if (!macSigning) {
                 imageOptions = ["--icon", "src/main/resources/mzmineIcon.icns"]
-                installerOptions = ["--license-file", "LICENSE.txt"]
+//                installerOptions = ["--license-file", "LICENSE.txt"] not required
+                installerOptions = []
             } else {
                 imageOptions = ["--icon", "src/main/resources/mzmineIcon.icns",
                                 "--mac-sign",
@@ -346,9 +348,9 @@ runtime {
                                 "--verbose"
                 ]
                 installerOptions = [
-                        "--license-file", "LICENSE.txt",
-                        "--mac-sign",
-                        "--mac-signing-key-user-name", developerID,
+//                        "--license-file", "LICENSE.txt", not required
+"--mac-sign",
+"--mac-signing-key-user-name", developerID,
                 ]
             }
             installerName = "mzmine_macOS_installer"
@@ -361,7 +363,7 @@ runtime {
             imageOptions = ["--icon", "src/main/resources/mzmineIcon.png"]
             installerOptions = ["--linux-shortcut",
                                 "--linux-menu-group", "mzmine",
-                                "--license-file", "LICENSE.txt",
+//                                "--license-file", "LICENSE.txt", not required
                                 "--linux-deb-maintainer", "plusik@gmail.com"]
 
             installerName = "mzmine_Linux_installer"

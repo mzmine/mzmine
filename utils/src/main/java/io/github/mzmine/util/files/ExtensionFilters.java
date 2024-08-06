@@ -34,9 +34,23 @@ public class ExtensionFilters {
    * mzmine specific
    */
   public static final ExtensionFilter MZ_USER = new ExtensionFilter("mzmine user", "*.mzuser");
-  public static final ExtensionFilter MZ_CONFIG = new ExtensionFilter("mzmine config", "*.mzconfig");
+  public static final ExtensionFilter MZ_CONFIG = new ExtensionFilter("mzmine config",
+      "*.mzconfig");
   public static final ExtensionFilter MZ_BATCH = new ExtensionFilter("mzmine batch", "*.mzbatch");
-  public static final ExtensionFilter MZ_WIZARD = new ExtensionFilter("mzmine mzwizard", "*.mzmwizard");
+  public static final ExtensionFilter MZ_WIZARD = new ExtensionFilter("mzmine mzwizard",
+      "*.mzmwizard");
+
+  /**
+   * PyTorch DJL specific
+   */
+  public static final ExtensionFilter PT = new ExtensionFilter("PyTorch script", "*.pt");
+
+  /*
+   * General
+   */
+  public static final ExtensionFilter ZIP = new ExtensionFilter("zip compressed", "*.zip");
+  public static final ExtensionFilter EXE = new ExtensionFilter("Microsoft Windows executable",
+      "*.exe");
 
   /*
    * CSV and TSV import export
@@ -63,36 +77,36 @@ public class ExtensionFilters {
   public static final ExtensionFilter MSP = new ExtensionFilter("msp mass spectra format (NIST)",
       "*.msp");
   public static final ExtensionFilter MGF = new ExtensionFilter("mgf mass spectra format", "*.mgf");
+  public static final ExtensionFilter JDCAMX = new ExtensionFilter("JCAM-DX files", "*.jdx");
+
   /**
    * MASS SPEC formats
    */
-  public static final ExtensionFilter ALL_MS_DATA_FILTER = new ExtensionFilter("MS data", "*.mzML",
-      "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml", "*.d", "*.raw", "*.RAW", "*.mzData",
-      "*.netcdf", "*.mzdata", "*.aird");
-  private static final ExtensionFilter JDCAMX = new ExtensionFilter("JCAM-DX files", "*.jdx");
-  private static final ExtensionFilter ALL_SPECTRAL_LIBRARY_FILTER = new ExtensionFilter(
-      "All spectral libraries", "*.json", "*.msp", "*.mgf", "*.jdx");
-  // LISTS
-  public static final List<ExtensionFilter> ALL_LIBRARY = List.of(ALL_SPECTRAL_LIBRARY_FILTER,
-      JSON_LIBRARY, MGF, MSP, JDCAMX, ALL_FILES);
-  private static final ExtensionFilter MZML = new ExtensionFilter("mzML MS data", "*.mzML",
+  public static final ExtensionFilter MZML = new ExtensionFilter("mzML MS data", "*.mzML",
       "*.mzml");
-  private static final ExtensionFilter MZXML = new ExtensionFilter("mzXML MS data", "*.mzXML",
+  public static final ExtensionFilter MZXML = new ExtensionFilter("mzXML MS data", "*.mzXML",
       "*.mzxml");
-  private static final ExtensionFilter IMZML = new ExtensionFilter("imzML MS imaging data",
+  public static final ExtensionFilter IMZML = new ExtensionFilter("imzML MS imaging data",
       "*.imzML", "*.imzml");
-  private static final ExtensionFilter BRUKER_D = new ExtensionFilter("Bruker tdf files", "*.d");
-  private static final ExtensionFilter THERMO_RAW = new ExtensionFilter("Thermo RAW files", "*.raw",
+  public static final ExtensionFilter BRUKER_D = new ExtensionFilter("Bruker .d files", "*.d",
+      ".tsf", "*.tdf");
+  public static final ExtensionFilter AGILENT_D = new ExtensionFilter("Agilent .d files", "*.d");
+  public static final ExtensionFilter THERMO_RAW = new ExtensionFilter("Thermo RAW files", "*.raw",
       "*.RAW");
-//  private static final ExtensionFilter WATERS_RAW = new ExtensionFilter("Waters RAW folders",
-//      "*.raw", "*.RAW");
-  private static final ExtensionFilter MZDATA = new ExtensionFilter("mzData MS data", "*.mzData",
+  public static final ExtensionFilter WATERS_RAW = new ExtensionFilter("Waters RAW folders",
+      "*.raw", "*.RAW");
+  public static final ExtensionFilter MZDATA = new ExtensionFilter("mzData MS data", "*.mzData",
       "*.mzdata");
-  private static final ExtensionFilter AIRD = new ExtensionFilter("aird MS data", "*.aird",
-      "*.Aird", "*.AIRD");
-  private static final ExtensionFilter NETCDF = new ExtensionFilter("netCDF", "*.cdf", "*.CDF",
+  //  public static final ExtensionFilter AIRD = new ExtensionFilter("aird MS data", "*.aird",
+//      "*.Aird", "*.AIRD");
+  public static final ExtensionFilter NETCDF = new ExtensionFilter("netCDF", "*.cdf", "*.CDF",
       "*.netcdf", "*.NETCDF", "*.nc", "*.NC");
-  private static final ExtensionFilter MZML_ZIP_GZIP = new ExtensionFilter("zip", "*.zip", "*.gz");
+  public static final ExtensionFilter MZML_ZIP_GZIP = new ExtensionFilter("zip", "*.zip", "*.gz");
+  public static final ExtensionFilter WIFF = new ExtensionFilter("wiff", "*.wiff");
+  public static final ExtensionFilter WIFF2 = new ExtensionFilter("wiff2", "*.wiff2");
+  public static final ExtensionFilter ALL_MS_DATA_FILTER = new ExtensionFilter("MS data", "*.mzML",
+      "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml", "*.d", "*.tdf", "*.tsf", "*.raw",
+      "*.RAW", "*.mzData", "*.netcdf", "*.mzdata", /*"*.aird",*/ "*.wiff", "*.wiff2");
   public static final List<ExtensionFilter> MS_RAW_DATA = List.of( //
       ALL_MS_DATA_FILTER, //
       MZML, //
@@ -100,12 +114,19 @@ public class ExtensionFilters {
       IMZML, //
       BRUKER_D, //
       THERMO_RAW, //
-//      WATERS_RAW, //
+      WATERS_RAW, //
       MZDATA, //
-      AIRD, //
+//      AIRD, //
       NETCDF, //
       MZML_ZIP_GZIP, //
+      WIFF, //
+      WIFF2, //
       ALL_FILES);
+  private static final ExtensionFilter ALL_SPECTRAL_LIBRARY_FILTER = new ExtensionFilter(
+      "All spectral libraries", "*.json", "*.msp", "*.mgf", "*.jdx");
+  // LISTS
+  public static final List<ExtensionFilter> ALL_LIBRARY = List.of(ALL_SPECTRAL_LIBRARY_FILTER,
+      JSON_LIBRARY, MGF, MSP, JDCAMX, ALL_FILES);
 
 
   public static String getExtensionName(ExtensionFilter filter) {
