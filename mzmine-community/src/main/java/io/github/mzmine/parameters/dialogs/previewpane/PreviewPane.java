@@ -51,7 +51,8 @@ public interface PreviewPane<T> {
    * is run on a separate thread. The datasets are added to the chart in
    * {@link FeaturePreviewPane#updateChart(List, SimpleXYChart)} )}.
    */
-  @NotNull List<@NotNull DatasetAndRenderer> calculateNewDatasets(@Nullable T valueForPreview);
+  @NotNull
+  List<@NotNull DatasetAndRenderer> calculateNewDatasets(@Nullable T valueForPreview);
 
   void updatePreview();
 
