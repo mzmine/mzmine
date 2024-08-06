@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,9 +34,21 @@ import java.util.List;
 
 public abstract class EmbeddingBasedSimilarity {
 
+  /**
+   * Predict embeddings for a list of scans
+   *
+   * @return NDArray of embeddings for each spectrum
+   */
   public abstract NDArray predictEmbedding(List<? extends MassSpectrum> scans)
       throws TranslateException;
 
+  /**
+   * Predict similarity matrix from list of scans. The scans are converted into embeddings and then
+   * compared by similarity, usually cosine similarity but depending on the implementation
+   *
+   * @param scans scans to compare
+   * @return matrix of similarity
+   */
   public float[][] predictMatrixSymmetric(List<? extends MassSpectrum> scans)
       throws TranslateException {
     NDArray embeddings1 = predictEmbedding(scans);
@@ -44,6 +56,15 @@ public abstract class EmbeddingBasedSimilarity {
     return dotProduct(embeddings1, embeddings1);
   }
 
+  /**
+   * Predict similarity matrix from list of scans. The scans are converted into embeddings and then
+   * compared by similarity, usually cosine similarity but depending on the implementation
+   *
+   * @param scan1 first list of scans compared to
+   * @param scan2 second list of scans
+   * @return similarity matrix
+   * @throws TranslateException
+   */
   public float[][] predictMatrix(List<? extends MassSpectrum> scan1,
       List<? extends MassSpectrum> scan2) throws TranslateException {
     NDArray embeddings1 = predictEmbedding(scan1);
