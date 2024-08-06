@@ -4,10 +4,14 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.csibio.aird.bean.WindowRange;
 import net.csibio.aird.enums.MsLevel;
 
 public class BaseLoader {
+
+  private static final Logger logger = Logger.getLogger(BaseLoader.class.getName());
 
   public static DDAMsMsInfoImpl buildMsMsInfo(String activator, Float energy, WindowRange range,
       Scan parentScan) {
@@ -17,7 +21,7 @@ public class BaseLoader {
     try {
       method = ActivationMethod.valueOf(activator);
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
 
     if (precursorMz == null) {

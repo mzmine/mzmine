@@ -33,7 +33,6 @@ import io.github.mzmine.modules.io.import_rawdata_aird.loader.DDALoader;
 import io.github.mzmine.modules.io.import_rawdata_aird.loader.DIALoader;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -96,7 +95,6 @@ public class AirdImportTask extends AbstractTask {
    */
   @Override
   public void run() {
-    long start = System.currentTimeMillis();
     setStatus(TaskStatus.PROCESSING);
     BaseParser parser = null;
     try {
@@ -110,14 +108,7 @@ public class AirdImportTask extends AbstractTask {
         return;
       }
 
-      if (airdInfo.getMobiInfo() != null && airdInfo.getMobiInfo().getType() != null
-          && !airdInfo.getMobiInfo().getType().isEmpty()) {
-        newMZmineFile = new IMSRawDataFileImpl(this.file.getName(), file.getAbsolutePath(),
-            storage);
-      } else {
-        newMZmineFile = new RawDataFileImpl(this.file.getName(), file.getAbsolutePath(), storage);
-      }
-
+      newMZmineFile = new RawDataFileImpl(this.file.getName(), file.getAbsolutePath(), storage);
       newMZmineFile.setStartTimeStamp(
           DateTimeUtils.parseOrElse(airdInfo.getStartTimeStamp(), null));
       totalScans = airdInfo.getTotalCount().intValue();
@@ -153,7 +144,6 @@ public class AirdImportTask extends AbstractTask {
         .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
     project.addFile(newMZmineFile);
     setStatus(TaskStatus.FINISHED);
-    System.out.println(file.getName() + ":" + (System.currentTimeMillis() - start));
   }
 
   @Override
