@@ -25,45 +25,46 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.hierarchicalclustering.HierarchicalClusteringAlgorithm;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationAlgorithm;
-import io.github.mzmine.parameters.ParameterSet;
-import java.util.Arrays;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 
-public enum SpectralDeconvolutionAlgorithms {
+public enum SpectralDeconvolutionAlgorithms implements
+    ModuleOptionsEnum<SpectralDeconvolutionAlgorithm> {
 
-  RT_GROUPING_AND_SHAPE_CORRELATION(RtGroupingAndShapeCorrelationAlgorithm.class),//
-  HIERARCHICAL_CLUSTERING(HierarchicalClusteringAlgorithm.class); //
+  RT_GROUPING_AND_SHAPE_CORRELATION,//
+  HIERARCHICAL_CLUSTERING; //
 
-  private final SpectralDeconvolutionAlgorithm spectralDeconvolutionAlgorithm;
 
-  SpectralDeconvolutionAlgorithms(
-      final Class<? extends SpectralDeconvolutionAlgorithm> spectralDeconvolutionAlgorithmClass) {
-    this.spectralDeconvolutionAlgorithm = MZmineCore.getModuleInstance(
-        spectralDeconvolutionAlgorithmClass);
+  public static SpectralDeconvolutionAlgorithm createOption(
+      final ValueWithParameters<SpectralDeconvolutionAlgorithms> deconParams) {
+    return switch (deconParams.value()) {
+      case RT_GROUPING_AND_SHAPE_CORRELATION ->
+          new RtGroupingAndShapeCorrelationAlgorithm(deconParams.parameters());
+      case HIERARCHICAL_CLUSTERING -> new HierarchicalClusteringAlgorithm(deconParams.parameters());
+    };
   }
 
-  @NotNull
-  public static List<SpectralDeconvolutionAlgorithm> listModules() {
-    return Arrays.stream(values()).map(SpectralDeconvolutionAlgorithms::getDefaultModule).toList();
+  @Override
+  public Class<? extends SpectralDeconvolutionAlgorithm> getModuleClass() {
+    return switch (this) {
+      case RT_GROUPING_AND_SHAPE_CORRELATION -> RtGroupingAndShapeCorrelationAlgorithm.class;
+      case HIERARCHICAL_CLUSTERING -> HierarchicalClusteringAlgorithm.class;
+    };
   }
 
-  @NotNull
-  public ParameterSet getParametersCopy() {
-    return MZmineCore.getConfiguration()
-        .getModuleParameters(spectralDeconvolutionAlgorithm.getClass()).cloneParameterSet();
-  }
-
-  @NotNull
-  public SpectralDeconvolutionAlgorithm getDefaultModule() {
-    return spectralDeconvolutionAlgorithm;
+  @Override
+  public String getStableId() {
+    return switch (this) {
+      case RT_GROUPING_AND_SHAPE_CORRELATION -> "rt grouping and shape correlation";
+      case HIERARCHICAL_CLUSTERING -> "hierarchical clustering";
+    };
   }
 
   @Override
   public String toString() {
-    return spectralDeconvolutionAlgorithm.getName();
+    return getStableId();
   }
+
 }

@@ -28,7 +28,7 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingTask;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportTask;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityTask;
 import io.github.mzmine.util.CorrelationGroupingUtils;
@@ -36,8 +36,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Relationship between two rows - describes the edge in a network where the nodes are {@link
- * FeatureListRow}
+ * Relationship between two rows - describes the edge in a network where the nodes are
+ * {@link FeatureListRow}
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
@@ -52,6 +52,7 @@ public interface RowsRelationship {
 
   /**
    * Get m/z delta between the two rows
+   *
    * @return b - a
    */
   default double getMzDelta() {
@@ -60,6 +61,7 @@ public interface RowsRelationship {
 
   /**
    * Get absolute m/z delta between the two rows
+   *
    * @return absolute m/z delta
    */
   default double getAbsMzDelta() {
@@ -82,7 +84,8 @@ public interface RowsRelationship {
    *
    * @return the type of this relationship
    */
-  @NotNull String getType();
+  @NotNull
+  String getType();
 
   /**
    * The annotation of this row-2-row relationship
@@ -97,20 +100,21 @@ public interface RowsRelationship {
    *
    * @return the first row
    */
-  @NotNull FeatureListRow getRowA();
+  @NotNull
+  FeatureListRow getRowA();
 
   /**
    * Row b
    *
    * @return the second row
    */
-  @NotNull FeatureListRow getRowB();
+  @NotNull
+  FeatureListRow getRowB();
 
   default FeatureListRow getOtherRow(FeatureListRow correlatedRow) {
-    if(getRowA().equals(correlatedRow)) {
+    if (getRowA().equals(correlatedRow)) {
       return getRowB();
-    }
-    else if(getRowB().equals(correlatedRow)) {
+    } else if (getRowB().equals(correlatedRow)) {
       return getRowA();
     }
     throw new RuntimeException("Given row is not part of this row relationship");
@@ -131,11 +135,11 @@ public interface RowsRelationship {
      */
     ION_IDENTITY_NET,
     /**
-     * MS2 spectral similarity, see {@link SpectralNetworkingTask}
+     * MS2 spectral similarity, see {@link ModifiedCosineSpectralNetworkingTask}
      */
     MS2_COSINE_SIM,
     /**
-     * MS2 similarity of neutral losses see {@link SpectralNetworkingTask}
+     * MS2 similarity of neutral losses see {@link ModifiedCosineSpectralNetworkingTask}
      */
     MS2_NEUTRAL_LOSS_SIM,
     /**
@@ -146,6 +150,10 @@ public interface RowsRelationship {
      * {@link OnlineLcReactivityTask}
      */
     ONLINE_REACTION,
+    /**
+     *
+     */
+    MS2Deepscore,
     /**
      * External or other undefined
      */
@@ -175,6 +183,7 @@ public interface RowsRelationship {
         case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine";
         case MS2_GNPS_COSINE_SIM -> "GNPS mod-cosine";
         case ONLINE_REACTION -> "Online reaction";
+        case MS2Deepscore -> "MS2Deepscore";
         case OTHER -> "Other";
       };
     }

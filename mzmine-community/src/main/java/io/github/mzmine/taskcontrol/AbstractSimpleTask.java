@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class AbstractSimpleTask extends AbstractTask {
 
-  private final ParameterSet parameters;
+  protected final ParameterSet parameters;
   private final Class<? extends MZmineModule> moduleClass;
   protected long totalItems;
   protected AtomicLong finishedItems = new AtomicLong(0);

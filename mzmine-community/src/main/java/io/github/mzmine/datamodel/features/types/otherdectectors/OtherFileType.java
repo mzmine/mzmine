@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,33 +26,30 @@
 package io.github.mzmine.datamodel.features.types.otherdectectors;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
-import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
-public class OriginalTimeSeriesType extends DataType<OtherTimeSeries> implements NoTextColumn,
-    NullColumnType {
+public class OtherFileType extends DataType<OtherDataFile> {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "original_time_series";
+    return "other_file";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Other detector";
+    return "Other file";
   }
 
   @Override
-  public Property<OtherTimeSeries> createProperty() {
+  public Property<OtherDataFile> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
   @Override
-  public Class<OtherTimeSeries> getValueClass() {
-    return OtherTimeSeries.class;
+  public Class<OtherDataFile> getValueClass() {
+    return OtherDataFile.class;
   }
 }

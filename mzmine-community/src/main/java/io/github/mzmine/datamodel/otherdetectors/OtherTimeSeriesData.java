@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,8 +27,6 @@ package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import java.util.List;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 
 public interface OtherTimeSeriesData {
@@ -44,14 +42,14 @@ public interface OtherTimeSeriesData {
   String getTimeSeriesRangeUnit();
 
   @NotNull
-  List<@NotNull OtherTimeSeries> getTimeSeries();
+  List<@NotNull OtherFeature> getRawTraces();
 
   default int getNumberOfTimeSeries() {
-    return getTimeSeries().size();
+    return getRawTraces().size();
   }
 
   @NotNull
-  OtherTimeSeries getTimeSeries(int index);
+  OtherFeature getRawTrace(int index);
 
   /**
    * @return The chromatograms in this data file or null if this file does not contain
@@ -60,27 +58,16 @@ public interface OtherTimeSeriesData {
   @NotNull
   ChromatogramType getChromatogramType();
 
+  List<OtherFeature> getProcessedFeatures();
+
   /**
    * @return The processed features for the given series, may be empty. The list is modifiable.
    */
   @NotNull
-  ObservableList<OtherFeature> getProcessedFeaturesForSeries(OtherTimeSeries series);
+  List<OtherFeature> getProcessedFeaturesForTrace(OtherFeature rawTrace);
 
-  void addProcessedFeatureForSeries(@NotNull OtherTimeSeries series,
-      @NotNull OtherFeature otherFeature);
+  void replaceProcessedFeaturesForTrace(OtherFeature rawTrace,
+      @NotNull List<OtherFeature> newFeatures);
 
-  boolean removeProcessedFeatureForSeries(@NotNull OtherTimeSeries series,
-      @NotNull OtherFeature otherFeature);
-
-  void setProcessedFeaturesForSeries(@NotNull OtherTimeSeries series,
-      @NotNull List<OtherFeature> otherFeatures);
-
-  void clearProcessedFeaturesForSeries(OtherTimeSeries series);
-
-  /**
-   * A read only copy of the observable map of this data. The map is read only to prevent addition
-   * of {@link OtherTimeSeries} that do not belong to this {@link OtherTimeSeriesData}.
-   */
-  @NotNull
-  ObservableMap<OtherTimeSeries, ObservableList<OtherFeature>> getProcessedFeatures();
+  void addProcessedFeature(@NotNull OtherFeature newFeature);
 }

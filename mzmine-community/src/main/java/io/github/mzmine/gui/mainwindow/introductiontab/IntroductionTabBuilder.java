@@ -193,7 +193,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     final VBox box = new VBox(20);
     final Label label = FxLabels.newBoldTitle("New version available!");
     final Button downloadButton = FxButtons.createButton(
-        FxIconUtil.getFontIcon("bi-download", 60, Color.web("3391C1")),
+        FxIconUtil.getFontIcon(FxIcons.DOWNLOAD, 60, Color.web("3391C1")),
         () -> MZmineCore.getDesktop()
             .openWebPage("https://github.com/mzmine/mzmine3/releases/latest"));
     box.getChildren().addAll(label, downloadButton);

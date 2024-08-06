@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,7 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
-import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.PrecursorSelectionModule;
-import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.TopNSelectionModule;
+import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.TimsTOFPrecursorSelectionOptions;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -42,7 +38,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import java.text.DecimalFormat;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -50,16 +46,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
 
-  public static final PrecursorSelectionModule topNModule = MZmineCore.getModuleInstance(
-      TopNSelectionModule.class);
-  public static final MZmineProcessingStep<PrecursorSelectionModule> topNModuleStep = new MZmineProcessingStepImpl<>(
-      topNModule, MZmineCore.getConfiguration().getModuleParameters(TopNSelectionModule.class));
-
-  public static final MZmineProcessingStep<PrecursorSelectionModule>[] precursorSelectionModules = new MZmineProcessingStep[]{
-      topNModuleStep};
-  public static final ModuleComboParameter<PrecursorSelectionModule> precursorSelectionModule = new ModuleComboParameter<PrecursorSelectionModule>(
+  public static final ModuleOptionsEnumComboParameter<TimsTOFPrecursorSelectionOptions> precursorSelectionModule = new ModuleOptionsEnumComboParameter<>(
       "Precursor selection", "Module to handle the precursor ion selection",
-      precursorSelectionModules, topNModuleStep);
+      TimsTOFPrecursorSelectionOptions.TOP_N);
   public static final FeatureListsParameter flists = new FeatureListsParameter();
   public static final DoubleParameter minMobilityWidth = new DoubleParameter(
       "Minimum mobility window", "Minimum width of the mobility isolation window.",
@@ -89,8 +78,8 @@ public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
   public static final OptionalParameter<NumberListParameter> ceStepping = new OptionalParameter<>(
       new NumberListParameter("CE stepping",
           "Acquire MS2 spectra with multiple collision energies.\n"
-              + "Collision energies may be decimals '.' separated by ','.",
-          List.of(20.0, 35.0, 45.0), new DecimalFormat("0.0")));
+          + "Collision energies may be decimals '.' separated by ','.", List.of(20.0, 35.0, 45.0),
+          new DecimalFormat("0.0")));
   public static final DoubleParameter isolationWidth = new DoubleParameter("Isolation width",
       "The isolation width for precursors", new DecimalFormat("0.0"), 1.5d);
   public static final BooleanParameter exportOnly = new BooleanParameter("Export MS/MS lists only",

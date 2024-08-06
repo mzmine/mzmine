@@ -163,7 +163,9 @@ dependencies {
     implementation(libs.commons.cli)
     implementation(libs.commons.io)
     implementation(libs.commons.lang3)
+    implementation(libs.commons.compress)
     implementation(libs.fastutil)
+    implementation(libs.bundles.djl.pytorch)
     implementation "edu.ucar:netcdf4:4.5.5"
     implementation 'org.jetbrains:annotations:22.0.0'
     implementation 'net.sourceforge.jmol:jmol:14.31.10'

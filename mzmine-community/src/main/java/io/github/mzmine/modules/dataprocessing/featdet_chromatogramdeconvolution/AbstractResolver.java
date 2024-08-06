@@ -57,24 +57,23 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Abstract implementation of a {{@link Resolver}}. Does the convenience for every implementation,
  * such as processing the parameters and determining, which dimension shall be resolved. Accepts the
- * ranges returned by {@link Resolver#resolveRt(IntensitySeries)} and {@link
- * Resolver#resolveMobility(IntensitySeries)} and splits the given {@link IonTimeSeries} into
+ * ranges returned by {@link Resolver#resolveRt(IntensitySeries)} and
+ * {@link Resolver#resolveMobility(IntensitySeries)} and splits the given {@link IonTimeSeries} into
  * individual features.
  *
  * @author SteffenHeu https://github.com/SteffenHeu
  */
 public abstract class AbstractResolver implements Resolver {
 
-  private SourceDataType mobilogramDataSource = SourceDataType.NOT_SET;
-  private SourceDataType chromatogramDataSource = SourceDataType.NOT_SET;
-
-  protected double[] xBuffer;
   protected final ParameterSet generalParameters;
   protected final ResolvingDimension dimension;
   protected final ModularFeatureList flist;
   protected final RawDataFile file;
+  protected double[] xBuffer;
   protected BinningMobilogramDataAccess mobilogramDataAccess;
   protected double[] yBuffer;
+  private SourceDataType mobilogramDataSource = SourceDataType.NOT_SET;
+  private SourceDataType chromatogramDataSource = SourceDataType.NOT_SET;
 
   protected AbstractResolver(@NotNull final ParameterSet parameters,
       @NotNull final ModularFeatureList flist) {
@@ -109,9 +108,9 @@ public abstract class AbstractResolver implements Resolver {
           continue;
         }
         if (originalSeries instanceof IonMobilogramTimeSeries trace) {
-          resolved.add((T) trace.subSeries(null, range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue(), getMobilogramDataAccess()));
+          resolved.add((T) trace.subSeries(storage, range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue(), getMobilogramDataAccess()));
         } else if (originalSeries instanceof SimpleIonTimeSeries chrom) {
-          resolved.add((T) chrom.subSeries(null, range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue()));
+          resolved.add((T) chrom.subSeries(storage, range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue()));
         } else {
           throw new IllegalStateException(
               "Resolving behaviour of " + originalSeries.getClass().getName() + " not specified.");
@@ -140,8 +139,8 @@ public abstract class AbstractResolver implements Resolver {
           continue;
         }
 
-        resolved.add((T) IonMobilogramTimeSeriesFactory
-            .of(storage, resolvedMobilograms, getMobilogramDataAccess()));
+        resolved.add((T) IonMobilogramTimeSeriesFactory.of(storage, resolvedMobilograms,
+            getMobilogramDataAccess()));
       }
     } else {
       throw new IllegalStateException(
@@ -243,7 +242,8 @@ public abstract class AbstractResolver implements Resolver {
     }
   }
 
-  private <T extends IntensitySeries & MobilitySeries> boolean validateMobilogramDataSource(T series) {
+  private <T extends IntensitySeries & MobilitySeries> boolean validateMobilogramDataSource(
+      T series) {
     if (mobilogramDataSource == SourceDataType.NOT_SET) {
       mobilogramDataSource =
           series instanceof BinningMobilogramDataAccess ? SourceDataType.DATA_ACCESS
@@ -262,19 +262,17 @@ public abstract class AbstractResolver implements Resolver {
     return false;
   }
 
-  private <T extends IntensitySeries & TimeSeries> boolean validateChromatogramDataSource(T series) {
+  private <T extends IntensitySeries & TimeSeries> boolean validateChromatogramDataSource(
+      T series) {
     if (mobilogramDataSource == SourceDataType.NOT_SET) {
       mobilogramDataSource =
-          series instanceof FeatureDataAccess ? SourceDataType.DATA_ACCESS
-              : SourceDataType.SERIES;
+          series instanceof FeatureDataAccess ? SourceDataType.DATA_ACCESS : SourceDataType.SERIES;
       return true;
     }
-    if (mobilogramDataSource == SourceDataType.DATA_ACCESS
-        && series instanceof FeatureDataAccess) {
+    if (mobilogramDataSource == SourceDataType.DATA_ACCESS && series instanceof FeatureDataAccess) {
       return true;
     }
-    if (mobilogramDataSource == SourceDataType.SERIES
-        && !(series instanceof FeatureDataAccess)) {
+    if (mobilogramDataSource == SourceDataType.SERIES && !(series instanceof FeatureDataAccess)) {
       return true;
     }
 

@@ -40,10 +40,9 @@ package io.github.mzmine.modules.io.export_features_sirius;
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
-import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
-import static io.github.mzmine.javafx.components.factories.FxTexts.sirius4Paper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -114,7 +113,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
     final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
         boldText("SIRIUS Module Disclaimer: "), linebreak(),
         text("If you use the SIRIUS export module, cite:"), linebreak(), boldText("mzmine paper: "),
-        mzminePaper, linebreak(), boldText("SIRIUS 4 paper: "), sirius4Paper, linebreak(),
+        ArticleReferences.MZMINE3.hyperlinkText(), linebreak(), boldText("SIRIUS 4 paper: "),
+        ArticleReferences.SIRIUS4.hyperlinkText(), linebreak(),
         text("Sirius can be downloaded at the following adress: "),
         hyperlinkText("https://bio.informatik.uni-jena.de/software/sirius/"), linebreak(),
         text("Sirius results can be mapped into GNPS molecular networks "),

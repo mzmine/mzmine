@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.PrecursorSelectionModule;
+import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.TimsTOFPrecursorSelectionOptions;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -60,7 +61,6 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
   private final Double maxMobilityWidth;
   private final Double minMobilityWidth;
   private final @NotNull PrecursorSelectionModule precursorSelectionModule;
-  private final @Nullable ParameterSet precursorSelectionParameters;
   private final File acqControl;
   private final Integer initialOffsetY;
   private final Integer incrementOffsetX;
@@ -90,10 +90,9 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
     savePathDir = parameters.getValue(TimsTOFMaldiAcquisitionParameters.savePathDir);
     exportOnly = parameters.getValue(TimsTOFMaldiAcquisitionParameters.exportOnly);
     isolationWidth = parameters.getValue(TimsTOFMaldiAcquisitionParameters.isolationWidth);
-    precursorSelectionModule = parameters.getValue(
-        TimsTOFMaldiAcquisitionParameters.precursorSelectionModule).getModule();
-    precursorSelectionParameters = parameters.getValue(
-        TimsTOFMaldiAcquisitionParameters.precursorSelectionModule).getParameterSet();
+    var precursorSelParam = parameters.getParameter(
+        TimsTOFMaldiAcquisitionParameters.precursorSelectionModule).getValueWithParameters();
+    precursorSelectionModule = TimsTOFPrecursorSelectionOptions.createSelector(precursorSelParam);
     maxXIncrement = parameters.getValue(TimsTOFMaldiAcquisitionParameters.maxIncrementSteps);
     enableCeStepping = parameters.getValue(TimsTOFMaldiAcquisitionParameters.ceStepping);
     if (enableCeStepping) {
@@ -157,9 +156,9 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
 
       final List<MaldiTimsPrecursor> precursors = flist.getRows().stream().filter(
           row -> row.getBestFeature() != null
-              && row.getBestFeature().getFeatureStatus() != FeatureStatus.UNKNOWN
-              && row.getBestFeature().getMobility() != null
-              && row.getBestFeature().getMobilityRange() != null).map(row -> {
+                 && row.getBestFeature().getFeatureStatus() != FeatureStatus.UNKNOWN
+                 && row.getBestFeature().getMobility() != null
+                 && row.getBestFeature().getMobilityRange() != null).map(row -> {
         final Feature f = row.getBestFeature();
         Range<Float> mobilityRange = TimsTOFAcquisitionUtils.adjustMobilityRange(f.getMobility(),
             f.getMobilityRange(), minMobilityWidth, maxMobilityWidth, dataMobilityRange);
@@ -189,7 +188,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
       var spotName = spotNames.get(0);
 
       final List<List<MaldiTimsPrecursor>> precursorLists = precursorSelectionModule.getPrecursorList(
-          precursors, precursorSelectionParameters, mobilityGap);
+          precursors, mobilityGap);
 
       int spotIncrement = 1;
       for (int ceCounter = 0; ceCounter < numCes; ceCounter++) {
@@ -214,7 +213,7 @@ public class TimsTOFMaldiAcquisitionTask extends AbstractTask {
 
           final double precursorListProgress = i / (double) precursorLists.size();
           progress = ceCounter * ceStepProgress + (ceStepProgress * flistStepProgress
-              * precursorListProgress);
+                                                   * precursorListProgress);
 
           List<MaldiTimsPrecursor> precursorList = precursorLists.get(i);
           final String fileName =

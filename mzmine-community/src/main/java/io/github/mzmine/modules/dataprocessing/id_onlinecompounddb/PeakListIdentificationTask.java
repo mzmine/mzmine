@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,18 +33,18 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
@@ -68,13 +68,13 @@ public class PeakListIdentificationTask extends AbstractTask {
   private final Double minIsotopeScore;
   private final Double isotopeNoiseLevel;
   private final MZTolerance isotopeMZTolerance;
-  private final MZmineProcessingStep<OnlineDatabases> db;
   private final MZTolerance mzTolerance;
   private final int numOfResults;
   private final FeatureList peakList;
   private final boolean isotopeFilter;
   private final IonizationType ionType;
   private final ParameterSet parameters;
+  private final ValueWithParameters<OnlineDatabases> db;
   // Counters.
   private int finishedItems;
   private int numItems;
@@ -97,7 +97,8 @@ public class PeakListIdentificationTask extends AbstractTask {
     gateway = null;
     currentRow = null;
 
-    db = parameters.getParameter(SingleRowIdentificationParameters.DATABASE).getValue();
+    db = parameters.getParameter(SingleRowIdentificationParameters.DATABASE)
+        .getValueWithParameters();
     mzTolerance = parameters.getParameter(SingleRowIdentificationParameters.MZ_TOLERANCE)
         .getValue();
     numOfResults = parameters.getParameter(SingleRowIdentificationParameters.MAX_RESULTS)
@@ -133,7 +134,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
     return "Identification of peaks in " + peakList + (currentRow == null ? " using " + db
         : " (" + MZmineCore.getConfiguration().getMZFormat().format(currentRow.getAverageMZ())
-            + " m/z) using " + db);
+          + " m/z) using " + db);
   }
 
   @Override
@@ -145,7 +146,7 @@ public class PeakListIdentificationTask extends AbstractTask {
         setStatus(TaskStatus.PROCESSING);
 
         // Create database gateway.
-        gateway = db.getModule().getGatewayClass().getDeclaredConstructor().newInstance();
+        gateway = db.value().getGatewayClass().getDeclaredConstructor().newInstance();
 
         // Identify the feature list rows starting from the biggest
         // peaks.
@@ -206,12 +207,11 @@ public class PeakListIdentificationTask extends AbstractTask {
 
     // Process each one of the result ID's.
     final String[] findCompounds = gateway.findCompounds(massValue, mzTolerance, numOfResults,
-        db.getParameterSet());
+        db.parameters());
 
     for (int i = 0; !isCanceled() && i < findCompounds.length; i++) {
 
-      final CompoundDBAnnotation compound = gateway.getCompound(findCompounds[i],
-          db.getParameterSet());
+      final CompoundDBAnnotation compound = gateway.getCompound(findCompounds[i], db.parameters());
 
       // In case we failed to retrieve data, skip this compound
       if (compound == null) {
@@ -228,7 +228,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
         logger.finest(
             "Calculating isotope pattern for compound formula " + formula + " adjusted to "
-                + ionizedFormula);
+            + ionizedFormula);
 
         // Generate IsotopePattern for this compound
         final IsotopePattern compoundIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
