@@ -37,7 +37,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ParameterDialogWithPreviewPanes extends ParameterSetupDialogWithPreview {
+public class ParameterDialogWithPreviewPanes extends ParameterSetupDialogWithPreview {
 
   private final ScrollPane scroll = new ScrollPane();
   private final VBox vbox = FxLayout.newVBox(Pos.TOP_CENTER, FxLayout.DEFAULT_PADDING_INSETS);
@@ -54,6 +54,8 @@ public abstract class ParameterDialogWithPreviewPanes extends ParameterSetupDial
     previewWrapperPane.setBottom(
         FxButtons.createButton("Add preview", FxIcons.PLUS, "Add another preview",
             () -> vbox.getChildren().add(createNewPreview.apply(parameters))));
+    previewWrapperPane.setCenter(scroll);
+    vbox.getChildren().add(createNewPreview.apply(parameters));
   }
 
   public ParameterDialogWithPreviewPanes(boolean valueCheckRequired, ParameterSet parameters,
@@ -72,8 +74,8 @@ public abstract class ParameterDialogWithPreviewPanes extends ParameterSetupDial
    */
   private void updatePreview() {
     updateParameterSetFromComponents();
-    vbox.getChildren().stream().filter(n -> n instanceof FeaturePreviewPane).map(n -> (FeaturePreviewPane) n)
-        .forEach(FeaturePreviewPane::updatePreview);
+    vbox.getChildren().stream().filter(n -> n instanceof FeaturePreviewPane)
+        .map(n -> (FeaturePreviewPane) n).forEach(FeaturePreviewPane::updatePreview);
   }
 
 

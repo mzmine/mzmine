@@ -35,6 +35,7 @@ import io.github.mzmine.util.javafx.SortableFeatureComboBox;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 
 public abstract class FeaturePreviewPane extends AbstractPreviewPane<Feature> {
@@ -47,8 +48,6 @@ public abstract class FeaturePreviewPane extends AbstractPreviewPane<Feature> {
   }
 
   private void initialize() {
-    setCenter(chart);
-
     ObservableList<FeatureList> flists = FXCollections.observableArrayList(
         ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
@@ -60,6 +59,8 @@ public abstract class FeaturePreviewPane extends AbstractPreviewPane<Feature> {
     controls.add(FxLabels.newLabel("Feature: "), 0, 1);
     controls.add(flistBox, 1, 0);
     controls.add(featureBox, 1, 1);
+    controls.getColumnConstraints().add(new ColumnConstraints(70));
+    controls.getColumnConstraints().add(new ColumnConstraints(250));
 
     flistBox.valueProperty().addListener((_, _, flist) -> {
       featureBox.setItems(flist.getFeatures(flist.getRawDataFile(0)));

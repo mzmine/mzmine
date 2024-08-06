@@ -46,6 +46,7 @@ public abstract class AbstractPreviewPane<T> extends BorderPane implements Previ
   public AbstractPreviewPane(final ParameterSet parameters) {
     this.parameters = parameters;
     chart = createChart();
+    setCenter(chart);
   }
 
   /**
