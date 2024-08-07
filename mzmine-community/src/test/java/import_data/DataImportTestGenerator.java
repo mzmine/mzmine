@@ -45,7 +45,8 @@ public class DataImportTestGenerator {
     String path = "D:\\git\\mzmine3\\src\\test\\resources\\";
 
     List<AbstractDataImportTest> tests = List.of( //
-        new MzMLImportTest() //
+        new AirdImportTest()
+        , new MzMLImportTest() //
         , new ImzMLImportTest() //
         , new ThermoRawImportTest() //
         , new TimsTofImportTest() //

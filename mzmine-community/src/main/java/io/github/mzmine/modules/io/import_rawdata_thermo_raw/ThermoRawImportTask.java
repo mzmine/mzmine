@@ -94,7 +94,6 @@ public class ThermoRawImportTask extends AbstractTask {
 
   @Override
   public void run() {
-
     setStatus(TaskStatus.PROCESSING);
     logger.info("Opening file " + fileToOpen);
 
@@ -187,7 +186,6 @@ public class ThermoRawImportTask extends AbstractTask {
     logger.info(
         STR."Finished parsing \{fileToOpen}, parsed \{parsedScans} scans and after filtering remained \{convertedScans}");
     setStatus(TaskStatus.FINISHED);
-
   }
 
   @Override
@@ -197,7 +195,8 @@ public class ThermoRawImportTask extends AbstractTask {
 
   private File unzipThermoRawFileParser() throws IOException {
 
-    File thermoRawFileParserFolder = FileAndPathUtil.createTempDirectory(THERMO_RAW_PARSER_DIR).toFile();
+    File thermoRawFileParserFolder = FileAndPathUtil.createTempDirectory(THERMO_RAW_PARSER_DIR)
+        .toFile();
     final File thermoRawFileParserExe = new File(thermoRawFileParserFolder,
         "ThermoRawFileParser.exe");
 
@@ -228,7 +227,8 @@ public class ThermoRawImportTask extends AbstractTask {
     ZipInputStream zipInputStream = new ZipInputStream(zipStream);
     ZipUtils.unzipStream(zipInputStream, thermoRawFileParserFolder);
     zipInputStream.close();
-    logger.finest(STR."Finished unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
+    logger.finest(
+        STR."Finished unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
 
     // Delete the temporary folder on application exit
     FileUtils.forceDeleteOnExit(thermoRawFileParserFolder);

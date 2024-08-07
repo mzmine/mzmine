@@ -34,6 +34,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.io.import_rawdata_aird.AirdImportTask;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MsProcessorList;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -383,11 +384,13 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_BAF ->
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
-//      case AIRD -> throw new IllegalStateException("Unexpected value: " + fileType);
       case /*WATERS_RAW,*/ SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D ->
           new MSConvertImportTask(moduleCallDate, file, scanProcessorConfig, project, module,
               parameters);
-    };
+      case AIRD ->
+          new AirdImportTask(project, file, scanProcessorConfig, module, parameters,
+              moduleCallDate, storage);
+     };
   }
 
   /**
@@ -429,7 +432,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new MSConvertImportTask(moduleCallDate, file, scanProcessorConfig, project, module,
               parameters);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case MZDATA,/* WATERS_RAW,*/ NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
+      case AIRD, MZDATA,/* WATERS_RAW,*/ NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
           createWrappedAdvancedTask(fileType, project, file, newMZmineFile, scanProcessorConfig,
               module, parameters, moduleCallDate, storage);
     };
@@ -452,7 +455,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private RawDataFile createDataFile(RawDataFileType fileType, String absPath, String newName,
       MemoryMapStorage storage) throws IOException {
     return switch (fileType) {
-      case MZXML, MZDATA, THERMO_RAW, /*WATERS_RAW,*/ NETCDF, ICPMSMS_CSV ->
+      case MZXML, MZDATA, THERMO_RAW, /*WATERS_RAW,*/ NETCDF, ICPMSMS_CSV, AIRD ->
           MZmineCore.createNewFile(newName, absPath, storage);
       case MZML, MZML_IMS, MZML_ZIP, MZML_GZIP -> null; // created in Mzml import task
       case IMZML -> MZmineCore.createNewImagingFile(newName, absPath, storage);
