@@ -67,6 +67,7 @@ import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -85,8 +86,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -202,20 +205,20 @@ public class ScanUtils {
           mob.getMsMsInfo() != null ? mob.getMsMsInfo().getActivationEnergy() : null;
       case Scan scan ->
           scan.getMsMsInfo() != null ? scan.getMsMsInfo().getActivationEnergy() : null;
+      case SpectralLibraryEntry entry -> entry.getOrElse(DBEntryField.COLLISION_ENERGY, null);
       default -> null;
     };
   }
 
+  /**
+   * @param spectrum any mass spectrum like {@link MergedMassSpectrum}
+   * @return a list of distinct collision energies of all scans. Flattens the tree of a
+   * {@link MergedMassSpectrum} and returns stream of all
+   * {@link ScanUtils#extractCollisionEnergy(MassSpectrum)}.
+   */
   public static List<Float> extractCollisionEnergies(MassSpectrum spectrum) {
-    return switch (spectrum) {
-      case MergedMassSpectrum merged ->
-          merged.getSourceSpectra().stream().map(ScanUtils::extractCollisionEnergy).distinct()
-              .filter(Objects::nonNull).toList();
-      case Scan scan ->
-          scan.getMsMsInfo() != null && scan.getMsMsInfo().getActivationEnergy() != null ? List.of(
-              scan.getMsMsInfo().getActivationEnergy()) : List.of();
-      default -> List.of();
-    };
+    return streamSourceScans(spectrum).map(ScanUtils::extractCollisionEnergy)
+        .filter(Objects::nonNull).distinct().toList();
   }
 
   /**
@@ -2090,6 +2093,48 @@ public class ScanUtils {
       case SpectralLibraryEntry sc -> sc.getPolarity();
       case null, default -> null;
     };
+  }
+
+
+  /**
+   * @param spectrum any mass spectrum like {@link MergedMassSpectrum}
+   * @return an IntStream of all scan numbers. Flattens the tree of a {@link MergedMassSpectrum} and
+   * returns stream of all {@link Scan#getScanNumber()}. Empty stream if parent or source spectra
+   * are not of type Scan
+   */
+  public static IntStream extractScanNumbers(MassSpectrum spectrum) {
+    return streamSourceScans(spectrum, Scan.class).mapToInt(Scan::getScanNumber).distinct();
+  }
+
+  public static <T extends MassSpectrum> Stream<T> streamSourceScans(final MassSpectrum scan,
+      Class<T> specClass) {
+    return streamSourceScans(scan).filter(specClass::isInstance).map(specClass::cast);
+  }
+
+  /**
+   * This maps a single scan into a stream or more important a {@link MergedMassSpectrum} tree of
+   * source scans into a flat stream. The stream always contains the input scan as well.
+   *
+   * @param scan first parent scan
+   * @return flat stream of all mass spectra, including the original scan and all source scans
+   */
+  public static Stream<MassSpectrum> streamSourceScans(final MassSpectrum scan) {
+    if (!(scan instanceof MergedMassSpectrum merged)) {
+      return Stream.of(scan);
+    }
+
+    return Stream.of(merged).mapMulti((child, consumer) -> addAllChildren(child, consumer));
+  }
+
+  private static void addAllChildren(final MassSpectrum parent,
+      final Consumer<MassSpectrum> consumer) {
+    consumer.accept(parent);
+
+    if (parent instanceof MergedMassSpectrum merged) {
+      for (final MassSpectrum child : merged.getSourceSpectra()) {
+        addAllChildren(child, consumer);
+      }
+    }
   }
 
   /**
