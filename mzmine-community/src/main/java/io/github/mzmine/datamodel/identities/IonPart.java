@@ -41,19 +41,16 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 /**
  * A single part in an IonType: like 2Na or -H
  *
- * @param name                   clear name - often derived from formula or from alternative names
- * @param unchargedSingleFormula uncharged formula without multiplier formula may be null if
- *                               unknown. Formula of a single item - so the count multiplier is not
- *                               added
- * @param singleMass             mass of a single item of this type which is multiplied by count to
- *                               get total mass. Loss if singleMass is negative and addition if mass
- *                               is positive
- * @param singleCharge           this defines the charge of a single item which is multiplied by
- *                               count to get total charge
- * @param count                  the multiplier of this single item, positive non-zero. e.g., 2 for
- *                               2Na
+ * @param name          clear name - often derived from formula or from alternative names
+ * @param singleFormula uncharged formula without multiplier formula may be null if unknown. Formula
+ *                      of a single item - so the count multiplier is not added
+ * @param singleMass    mass of a single item of this type which is multiplied by count to get total
+ *                      mass. Loss if singleMass is negative and addition if mass is positive
+ * @param singleCharge  this defines the charge of a single item which is multiplied by count to get
+ *                      total charge
+ * @param count         the multiplier of this single item, positive non-zero. e.g., 2 for 2Na
  */
-public record IonPart(@NotNull String name, @Nullable IMolecularFormula unchargedSingleFormula,
+public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFormula,
                       double singleMass, int singleCharge, int count) {
 
   /**
@@ -66,11 +63,10 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula uncharge
 
   private static final Logger logger = Logger.getLogger(IonPart.class.getName());
 
-  public IonPart(@NotNull final String name,
-      @Nullable final IMolecularFormula unchargedSingleFormula, final double singleMass,
-      final int singleCharge, final int count) {
+  public IonPart(@NotNull final String name, @Nullable final IMolecularFormula singleFormula,
+      final double singleMass, final int singleCharge, final int count) {
     this.name = name;
-    this.unchargedSingleFormula = unchargedSingleFormula;
+    this.singleFormula = singleFormula;
     this.singleMass = singleMass;
     this.singleCharge = singleCharge;
     this.count = Math.abs(count);
@@ -96,8 +92,7 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula uncharge
   }
 
   public IonPart(@NotNull final IMolecularFormula formula, final int count) {
-    this(FormulaUtils.getFormulaString(formula, false), formula,
-        FormulaUtils.getMonoisotopicMass(formula, formula.getCharge()), formula.getCharge(), count);
+    this(FormulaUtils.getFormulaString(formula, false), formula, formula.getCharge(), count);
   }
 
   /**
@@ -114,6 +109,20 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula uncharge
       final int count) {
     this(name, null, singleMass, singleCharge, count);
   }
+
+  public IonPart(@NotNull String name, @NotNull String formula, final int singleCharge,
+      final int count) {
+    this(name, Objects.requireNonNull(
+            FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula, singleCharge)), singleCharge,
+        count);
+  }
+
+  public IonPart(@NotNull String name, @NotNull IMolecularFormula formula, final int singleCharge,
+      final int count) {
+    this(name, formula, FormulaUtils.getMonoisotopicMass(formula, formula.getCharge()),
+        singleCharge, count);
+  }
+
 
   @Nullable
   public static IonPart parse(@NotNull String part) {
@@ -173,6 +182,15 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula uncharge
   }
 
   /**
+   * Flip mass and charge
+   *
+   * @return Same formula, e.g., conversion from +Na to -Na
+   */
+  public IonPart flipMassAndCharge() {
+    return new IonPart(name, singleFormula, -singleMass, -singleCharge, count);
+  }
+
+  /**
    * @return A merged IonPart if both ions match completely, excluding their count field. Otherwise,
    * null or null if both a and b are null.
    */
@@ -196,7 +214,7 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula uncharge
   }
 
   public IonPart withCount(final int count) {
-    return new IonPart(name, unchargedSingleFormula, singleMass, singleCharge, count);
+    return new IonPart(name, singleFormula, singleMass, singleCharge, count);
   }
 
 
@@ -260,14 +278,14 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula uncharge
     }
 
     return singleCharge == ionPart.singleCharge && Precision.equals(singleMass, ionPart.singleMass,
-        0.0000000) && name.equals(ionPart.name) && Objects.equals(unchargedSingleFormula,
-        ionPart.unchargedSingleFormula);
+        0.0000000) && name.equals(ionPart.name) && Objects.equals(singleFormula,
+        ionPart.singleFormula);
   }
 
   @Override
   public int hashCode() {
     int result = name.hashCode();
-    result = 31 * result + Objects.hashCode(unchargedSingleFormula);
+    result = 31 * result + Objects.hashCode(singleFormula);
     result = 31 * result + Double.hashCode(singleMass);
     result = 31 * result + singleCharge;
     return result;

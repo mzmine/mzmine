@@ -29,11 +29,42 @@ import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModificationType;
 
-public enum PredefinedIonParts {
-  "e", IonUtils.ELECTRON_MASS, -1);
+public class PredefinedIonParts {
+
   public static final IonPart M_MINUS = new IonPart("e", IonUtils.ELECTRON_MASS, -1);
-  public static final IonPart M_PLUS = new IonPart("e", -IonUtils.ELECTRON_MASS, +1);
-  public static final IonPart M_PLUS = new IonPart("e", -IonUtils.ELECTRON_MASS, +1);
+  public static final IonPart H = new IonPart("H", 1);
+  public static final IonPart H2_PLUS = H.withCount(2);
+  public static final IonPart H3_PLUS = H.withCount(3);
+  public static final IonPart NA = new IonPart("Na", 1);
+  public static final IonPart NH4 = new IonPart("NH4", 1);
+  public static final IonPart K = new IonPart("K", 1);
+  public static final IonPart CA = new IonPart("Ca", 2);
+  public static final IonPart MG = new IonPart("Mg", 2);
+  public static final IonPart FE = new IonPart("Fe", 2);
+  // negative
+  public static final IonPart M_PLUS = M_MINUS.flipMassAndCharge();
+  public static final IonPart F = new IonPart("F", -1);
+  public static final IonPart CL = new IonPart("Cl", -1);
+  public static final IonPart BR = new IonPart("Br", -1);
+  public static final IonPart I = new IonPart("I", -1);
+  // complex
+  public static final IonPart FA = new IonPart("HCO2", -1);
+  public static final IonPart ACETATE = new IonPart("HCO2", -1);
+
+  public static final IonPart  = new IonPart("HCO2", 0);
+  public static final IonPart  = new IonPart("", -1);
+  public static final IonPart  = new IonPart("", 1);
+  public static final IonPart  = new IonPart("", 1);
+  public static final IonPart  = new IonPart("", 1);
+  public static final IonPart  = new IonPart("", 1);
+  public static final IonPart  = new IonPart("", 1);
+  public static final IonPart  = new IonPart("", 1);
+  public static final IonPart H2O = new IonPart("H2O", 0);
+  public static final IonPart H2O_2 = H2O.withCount(2);
+  public static final IonPart H2O_3 = H2O.withCount(3);
+  public static final IonPart H2O_4 = H2O.withCount(4);
+  public static final IonPart H2O_5 = H2O.withCount(5);
+  public static final IonPart H_MINUS = H.flipMassAndCharge();
 
   // use combinations of X adducts (2H++; -H+Na2+) and modifications
 //  public static final IonModification M_MINUS = new IonModification(IonModificationType.ADDUCT, "e",
