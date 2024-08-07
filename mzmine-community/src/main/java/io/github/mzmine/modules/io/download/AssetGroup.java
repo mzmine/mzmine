@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.io.download;
 
 public enum AssetGroup {
-  TOOLS, SPECTRAL_LIBRARIES;
+  TOOLS, SPECTRAL_LIBRARIES, MODELS;
 
   @Override
   public String toString() {

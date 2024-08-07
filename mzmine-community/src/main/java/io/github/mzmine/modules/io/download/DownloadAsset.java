@@ -25,6 +25,9 @@
 
 package io.github.mzmine.modules.io.download;
 
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -37,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
  * @param mainFileName  the main file that is selected after unziping. Otherwise the first file
  * @param url           the download URL
  */
-public record DownloadAsset(ExternalAsset extAsset, String version, boolean requiresUnzip,
+public record DownloadAsset(@NotNull ExternalAsset extAsset, String version, boolean requiresUnzip,
                             @Nullable String mainFileName, String url) {
 
   public DownloadAsset(final ExternalAsset extAsset, final String version,
@@ -64,5 +67,22 @@ public record DownloadAsset(ExternalAsset extAsset, String version, boolean requ
       return "%s, %s".formatted(extAsset, url);
     }
     return "%s (%s), %s".formatted(extAsset, version, url);
+  }
+
+  /**
+   * Estimated file name as in download directory of {@link ExternalAsset#getDownloadToDir()} and
+   * mainFileName or url file name. If file is unzipped - then the final file name may be different.
+   * In this case use the mainFileName to determine the final file.
+   *
+   * @return estimated filename based on download directory and mainFileName or URL
+   */
+  @NotNull
+  public File getEstimatedFinalFile() {
+    File dir = extAsset.getDownloadToDir();
+    if (mainFileName != null) {
+      return new File(dir, mainFileName);
+    }
+    var fileName = FileAndPathUtil.getFileNameFromUrl(url);
+    return new File(dir, fileName);
   }
 }

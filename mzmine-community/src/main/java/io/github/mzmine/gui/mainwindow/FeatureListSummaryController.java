@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.gui.mainwindow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -56,7 +57,6 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
@@ -168,11 +168,10 @@ public class FeatureListSummaryController {
   @FXML
   void setAsBatchQueue() {
 
-    ButtonType btn = MZmineCore.getDesktop().displayConfirmation(
-        "Warning: This will overwrite the current batch queue.\nDo you wish to continue?",
-        ButtonType.YES, ButtonType.NO);
+    boolean result = DialogLoggerUtil.showDialogYesNo("Overwriting batch?",
+        "Warning: This will overwrite the current batch queue.\nDo you wish to continue?");
 
-    if (btn != ButtonType.YES) {
+    if (!result) {
       return;
     }
 
@@ -191,7 +190,7 @@ public class FeatureListSummaryController {
         queue.add(step);
       } else {
         logger.warning(() -> "Cannot add module " + item.getModule() + " as a batch step because "
-            + "it is not an instance of MZmineProcessingModule.");
+                             + "it is not an instance of MZmineProcessingModule.");
       }
     }
 
@@ -221,10 +220,9 @@ public class FeatureListSummaryController {
   @FXML
     //Export Record
   void exportRecord() throws IOException {
-    ButtonType btn = MZmineCore.getDesktop()
-        .displayConfirmation("Export Feature Summary List\nDo you wish to continue?",
-            ButtonType.YES, ButtonType.NO);
-    if (btn != ButtonType.YES) {
+    boolean result = DialogLoggerUtil.showDialogYesNo("Export Feature Summary?",
+        "Export Feature Summary List\nDo you wish to continue?");
+    if (!result) {
       return;
     }
     FileChooser fc = new FileChooser();
