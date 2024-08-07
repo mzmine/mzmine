@@ -111,8 +111,7 @@
         <TableColumn fx:id="scanColumn" editable="false" prefWidth="50" minWidth="50" maxWidth="70"
           text="Scan"/>
         <TableColumn fx:id="massDetectionColumn" editable="false" prefWidth="70" minWidth="35"
-          maxWidth="80"
-          text="Masses detected"/>
+          maxWidth="90" text="Processed"/>
         <TableColumn fx:id="rtColumn" editable="false" prefWidth="35" text="RT" minWidth="50"
           maxWidth="60"/>
         <TableColumn fx:id="basePeakColumn" editable="false" prefWidth="80" text="Base peak"
@@ -122,6 +121,7 @@
           text="BP intensity"/>
         <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="45" text="MSn" minWidth="40"
           maxWidth="60"/>
+<!--          precursor mz column has no max width as pasef frames contain multiple precursors -->
         <TableColumn fx:id="precursorMzColumn" editable="false" prefWidth="90" minWidth="80"
           text="Precursor m/z"/>
         <TableColumn fx:id="mzRangeColumn" editable="false" prefWidth="115" maxWidth="130"

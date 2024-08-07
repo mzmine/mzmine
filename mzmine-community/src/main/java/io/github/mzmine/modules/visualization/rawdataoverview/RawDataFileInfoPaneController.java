@@ -134,7 +134,8 @@ public class RawDataFileInfoPaneController {
     definitionColumn.setCellValueFactory(
         p -> new SimpleStringProperty(p.getValue().getScanDefinition()));
     massDetectionColumn.setCellValueFactory(
-        p -> p.getValue().getMassList() != null ? new SimpleObjectProperty<>(MZmineIconUtils.getCheckedIcon())
+        p -> p.getValue().getMassList() != null ? new SimpleObjectProperty<>(
+            MZmineIconUtils.getCheckedIcon())
             : new SimpleObjectProperty<>(MZmineIconUtils.getUncheckedIcon()));
 
     TableColumns.setFormattedCellFactory(basePeakColumn, mzFormat);
@@ -143,7 +144,7 @@ public class RawDataFileInfoPaneController {
     TableColumns.setFormattedCellFactory(injectTimeColumn, rtFormat);
     TableColumns.setFormattedRangeCellFactory(mzRangeColumn, mzFormat);
 
-    rawDataTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+    TableColumns.autoFitLastColumn(rawDataTableView);
   }
 
   /**
@@ -172,27 +173,27 @@ public class RawDataFileInfoPaneController {
       int level = rawDataFile.getMSLevels()[i];
       scansMSLevel =
           scansMSLevel + "MS" + level + " level (" + rawDataFile.getScanNumbers(level).size()
-              + ") ";
+          + ") ";
       lblNumScans.setText(scansMSLevel);
     }
 
     String rtRangeMSLevel = "";
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       rtRangeMSLevel = rtRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
-          + MZminePreferences.rtFormat.getValue()
-          .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint()) + "-"
-          + MZminePreferences.rtFormat.getValue()
-          .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint()) + " [min] ";
+                       + MZminePreferences.rtFormat.getValue()
+                           .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint()) + "-"
+                       + MZminePreferences.rtFormat.getValue()
+                           .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint()) + " [min] ";
       lblRtRange.setText(rtRangeMSLevel);
     }
 
     String mzRangeMSLevel = "";
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       mzRangeMSLevel = mzRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
-          + MZminePreferences.mzFormat.getValue()
-          .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint()) + "-"
-          + MZminePreferences.mzFormat.getValue()
-          .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint()) + " ";
+                       + MZminePreferences.mzFormat.getValue()
+                           .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint()) + "-"
+                       + MZminePreferences.mzFormat.getValue()
+                           .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint()) + " ";
       lblMzRange.setText(mzRangeMSLevel);
     }
 
@@ -208,7 +209,7 @@ public class RawDataFileInfoPaneController {
       // it's not the computation that takes long, it's putting the data into the table.
       // This bricks the MZmine window
       logger.info("Number of entries >500 000 for raw data file " + rawDataFile.getName() + " ("
-          + rawDataFile.getNumOfScans() + ")");
+                  + rawDataFile.getNumOfScans() + ")");
       logger.info("Will not compute table data.");
       return;
     }
