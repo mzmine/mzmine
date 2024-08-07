@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,13 +37,13 @@ import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OtherFeatureProvider implements PlotXYDataProvider {
+public class OtherFeatureDataProvider implements PlotXYDataProvider {
 
   private final OtherFeature feature;
   private final String seriesKey;
   private final Color awt;
 
-  public OtherFeatureProvider(OtherFeature feature, Color awt) {
+  public OtherFeatureDataProvider(OtherFeature feature, Color awt) {
     this.feature = feature;
     final OtherTimeSeries timeSeries = feature.getFeatureData();
     final String name = timeSeries.getName();
@@ -53,7 +53,7 @@ public class OtherFeatureProvider implements PlotXYDataProvider {
     this.awt = awt;
   }
 
-  public OtherFeatureProvider(OtherFeature feature, String seriesKey, Color awt) {
+  public OtherFeatureDataProvider(OtherFeature feature, String seriesKey, Color awt) {
     this.feature = feature;
     this.seriesKey = seriesKey;
     this.awt = awt;
