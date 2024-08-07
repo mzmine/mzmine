@@ -32,7 +32,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.ListDoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.ArrayList;
 
@@ -40,13 +40,9 @@ public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
-  public static final SpectralDeconvolutionAlgorithm[] SPECTRAL_DECONVOLUTION_ALGORITHMS = SpectralDeconvolutionAlgorithms.listModules()
-      .toArray(SpectralDeconvolutionAlgorithm[]::new);
-
-  public static final ModuleComboParameter<SpectralDeconvolutionAlgorithm> SPECTRAL_DECONVOLUTION_ALGORITHM = new ModuleComboParameter<>(
+  public static final ModuleOptionsEnumComboParameter<SpectralDeconvolutionAlgorithms> SPECTRAL_DECONVOLUTION_ALGORITHM = new ModuleOptionsEnumComboParameter<>(
       "Deconvolution algorithm", "Algorithm to use for spectral deconvolution and its parameters.",
-      SPECTRAL_DECONVOLUTION_ALGORITHMS,
-      SpectralDeconvolutionAlgorithms.RT_GROUPING_AND_SHAPE_CORRELATION.getDefaultModule());
+      SpectralDeconvolutionAlgorithms.RT_GROUPING_AND_SHAPE_CORRELATION);
 
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "decon");

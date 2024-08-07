@@ -267,7 +267,7 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
     public static final StringParameter backBoneFormula = new StringParameter(
         "Lipid backbone molecular formula",
         "Enter the backbone molecular formula of the custom lipid class. Include all elements of the original molecular, e.g. in case of glycerol based lipid classes add C3H8O3. "
-            + "For fatty acids start with H2O, for ceramides start with C3H8", "C3H8O3", true);
+        + "For fatty acids start with H2O, for ceramides start with C3H8", "C3H8O3", true);
     public static final ComboParameter<LipidMainClasses> lipidMainClass = new ComboParameter<>(
         "Lipid main class", "Enter the name of the custom lipid class", LipidMainClasses.values(),
         LipidMainClasses.PHOSPHATIDYLCHOLINE);
@@ -299,31 +299,31 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
       if (!lipidCategory.getValue().equals(LipidCategories.SPHINGOLIPIDS) && Arrays.stream(
           lipidChainTypes.getChoices()).anyMatch(lipidChainType ->
           lipidChainType.equals(LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN)
-              || lipidChainType.equals(LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN)
-              || lipidChainType.equals(LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN))) {
-        MZmineCore.getDesktop().displayConfirmation(
+          || lipidChainType.equals(LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN)
+          || lipidChainType.equals(LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN))) {
+        MZmineCore.getDesktop().displayConfirmation("Confirmation",
             "You are using a sphingolipid specific chain for a lipid of the category "
-                + lipidCategory.getValue()
-                + ". This may result in unexpected behaviour and is not recommended. Please select Sphingolipids as lipid category.");
+            + lipidCategory.getValue()
+            + ". This may result in unexpected behaviour and is not recommended. Please select Sphingolipids as lipid category.");
       }
       if (!lipidCategory.getValue().equals(LipidCategories.SPHINGOLIPIDS) && Arrays.stream(
           customLipidClassFragmentationRules.getChoices()).anyMatch(rule ->
           rule.getLipidFragmentationRuleType()
               .equals(LipidFragmentationRuleType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
-              || rule.getLipidFragmentationRuleType()
+          || rule.getLipidFragmentationRuleType()
               .equals(LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
-              || rule.getLipidFragmentationRuleType()
+          || rule.getLipidFragmentationRuleType()
               .equals(LipidFragmentationRuleType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
-              || rule.getLipidFragmentationRuleType().equals(
+          || rule.getLipidFragmentationRuleType().equals(
               LipidFragmentationRuleType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT)
-              || rule.getLipidFragmentationRuleType().equals(
+          || rule.getLipidFragmentationRuleType().equals(
               LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT)
-              || rule.getLipidFragmentationRuleType().equals(
+          || rule.getLipidFragmentationRuleType().equals(
               LipidFragmentationRuleType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT))) {
         MZmineCore.getDesktop().displayMessage(
             "You are using a sphingolipid specific fragmentation rule for a lipid of the category "
-                + lipidCategory.getValue()
-                + ". This may result in unexpected behaviour and is not recommended. Please select Sphingolipids as lipid category.");
+            + lipidCategory.getValue()
+            + ". This may result in unexpected behaviour and is not recommended. Please select Sphingolipids as lipid category.");
       }
       return dialog.getExitCode();
     }

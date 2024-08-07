@@ -629,6 +629,9 @@ public class FeatureTableContextMenu extends ContextMenu {
       var ip = selectedFeature.getIsotopePattern();
       return ip != null ? Optional.of(selectedFeature) : Optional.empty();
     }
+    if (selectedRow == null) {
+      return Optional.empty();
+    }
     // get best isotope pattern feature
     return selectedRow.streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
                                                     && f.getFeatureStatus()

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.projectload;
 
 import com.google.common.io.CountingInputStream;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
@@ -57,7 +58,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javafx.scene.control.ButtonType;
 import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
@@ -135,11 +135,10 @@ public class ProjectOpeningTask extends AbstractTask {
       // Check if existing raw data files are present
       ProjectManager projectManager = ProjectService.getProjectManager();
       if (projectManager.getCurrentProject().getDataFiles().length > 0) {
-        ButtonType confirm = MZmineCore.getDesktop().displayConfirmation(
-            "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?",
-            ButtonType.YES, ButtonType.NO);
+        boolean confirm = DialogLoggerUtil.showDialogYesNo("Replace existing project?",
+            "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?");
 
-        if (confirm != ButtonType.YES) {
+        if (confirm) {
           cancel();
           return;
         }

@@ -52,6 +52,10 @@ public class MS2DeepscoreSpectrumTensorizer {
     this.numBins = (int) ((settings.maximumMZ() - settings.minimumMZ()) / settings.binWidth());
   }
 
+  /**
+   * Tensorizes a mass spectrum. The fragments are binned. The highest intensity of any of the
+   * fragments in a bin is used.
+   */
   public float[] tensorizeFragments(MassSpectrum spectrum) {
     float[] vector = new float[numBins];
 

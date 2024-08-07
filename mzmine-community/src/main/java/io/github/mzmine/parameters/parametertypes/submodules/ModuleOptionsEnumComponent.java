@@ -64,7 +64,8 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
   private final DoubleProperty estimatedWidthProperty = new SimpleDoubleProperty(0);
   private final ObjectProperty<EnumType> selectedValue = new SimpleObjectProperty<>();
   protected final FlowPane topPane;
-
+  @Nullable
+  private Runnable onSubParametersChanged = null;
 
   public ModuleOptionsEnumComponent(String name,
       final EnumMap<EnumType, ParameterSet> parametersMap, final EnumType startValue,
@@ -84,8 +85,18 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
 
       var embeddedParameters = parametersMap.get(newValue);
       // use internal parameter pane
-      paramPane = new ParameterSetupPane(true, embeddedParameters, false, false, null, true, false);
+      paramPane = ParameterSetupPane.createEmbedded(true, embeddedParameters, () -> {
+        if (onSubParametersChanged != null) {
+          // option to pass change events up the chain
+          onSubParametersChanged.run();
+        }
+      });
       paramHolder.setCenter(paramPane);
+
+      // parameters have changed already
+      if (onSubParametersChanged != null) {
+        onSubParametersChanged.run();
+      }
     });
 
     paramHolder.setBottom(new Separator(Orientation.HORIZONTAL));
@@ -159,4 +170,18 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
     return estimatedWidthProperty;
   }
 
+  public ObjectProperty<EnumType> selectedValueProperty() {
+    return selectedValue;
+  }
+
+  public EnumType getSelectedValue() {
+    return selectedValue.get();
+  }
+
+  /**
+   * @param onChange is called on parameter changes through the embedded sub parameters
+   */
+  public void addSubParameterChangedListener(final Runnable onChange) {
+    this.onSubParametersChanged = onChange;
+  }
 }

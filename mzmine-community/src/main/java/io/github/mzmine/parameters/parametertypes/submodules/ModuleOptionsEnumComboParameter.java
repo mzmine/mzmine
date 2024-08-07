@@ -39,7 +39,8 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
- * Simplifies the {@link ModuleComboParameter}
+ * Simplifies the creating multiple options of algorithms or filters using a
+ * {@link ModuleOptionsEnum}
  */
 public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & ModuleOptionsEnum> implements
     UserParameter<EnumType, ModuleOptionsEnumComponent<EnumType>>,
@@ -123,6 +124,14 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
   @Override
   public void setValue(EnumType value) {
     this.selectedValue = value;
+  }
+
+  /**
+   * @return parameters of selected option
+   */
+  public ParameterSet setOptionGetParameters(EnumType option) {
+    setValue(option);
+    return getEmbeddedParameters(option);
   }
 
   @Override
@@ -226,4 +235,14 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
     return ParameterUtils.equalValues(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(),
         false, false);
   }
+
+  /**
+   * @return method to retrieve value and parameters
+   */
+  public ValueWithParameters<EnumType> getValueWithParameters() {
+    var value = getValue();
+    var params = getEmbeddedParameters();
+    return new ValueWithParameters<>(value, params);
+  }
+
 }

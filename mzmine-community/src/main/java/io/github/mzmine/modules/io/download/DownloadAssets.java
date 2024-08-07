@@ -45,8 +45,10 @@ public class DownloadAssets {
       new DownloadAsset(ExternalAsset.MSnLib, "20240411-ms2", false,
           "https://zenodo.org/records/11163381/files/20231031_nihnp_library_neg_all_lib_MS2.mgf?download=1"),
       new DownloadAsset(ExternalAsset.MSnLib, "20240411-msn", false,
-          "https://zenodo.org/records/11163381/files/20231031_nihnp_library_neg_all_lib_MSn.mgf?download=1")
+          "https://zenodo.org/records/11163381/files/20231031_nihnp_library_neg_all_lib_MSn.mgf?download=1"),
       // models
+      new DownloadAsset(ExternalAsset.MS2DEEPSCORE, "20240702-ms2deepscore", true,
+          "ms2deepscore_model_java.pt", "https://zenodo.org/api/records/12628369/files-archive")
 
       //
   ));

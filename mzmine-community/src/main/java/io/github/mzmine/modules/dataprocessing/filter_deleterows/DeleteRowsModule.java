@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataprocessing.filter_deleterows;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
@@ -38,7 +38,6 @@ import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,10 +54,9 @@ public class DeleteRowsModule extends AbstractProcessingModule {
     if (rows == null || rows.isEmpty()) {
       return;
     }
-    final ButtonType btn = DesktopService.getDesktop()
-        .displayConfirmation("Are you sure you want to delete %d rows?".formatted(rows.size()),
-            ButtonType.YES, ButtonType.NO);
-    if (btn == ButtonType.YES) {
+    final boolean result = DialogLoggerUtil.showDialogYesNo("Deleting rows?",
+        "Are you sure you want to delete %d rows?".formatted(rows.size()));
+    if (result) {
       MZmineCore.runMZmineModule(DeleteRowsModule.class, DeleteRowsParameters.of(flist, rows));
     }
   }

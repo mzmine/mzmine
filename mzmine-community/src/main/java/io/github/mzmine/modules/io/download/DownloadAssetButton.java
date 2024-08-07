@@ -30,12 +30,14 @@ import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
 import io.github.mzmine.javafx.components.factories.MenuItems;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskService;
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
@@ -45,8 +47,11 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.BorderPane;
@@ -132,6 +137,21 @@ public class DownloadAssetButton extends HBox {
       logger.fine("Already downloading");
       return;
     }
+    // check if file exists
+    File finalFile = asset.getEstimatedFinalFile();
+    if (finalFile.exists()) {
+      Optional<ButtonType> resultButton = DialogLoggerUtil.showDialog(AlertType.CONFIRMATION,
+          "File already exists", "Use existing file or download again",
+          new ButtonType("Use existing", ButtonData.CANCEL_CLOSE),
+          new ButtonType("Download", ButtonData.APPLY));
+      // cancel or use existing will just set the filename
+      if (resultButton.isEmpty() || resultButton.get().getButtonData() == ButtonData.CANCEL_CLOSE) {
+        onDownloadFinished.accept(finalFile);
+        return;
+      }
+      // otherwise download
+    }
+
     isDownloading.set(true);
     task = new FileDownloadTask(asset);
     task.addTaskStatusListener((_, _, _) -> {

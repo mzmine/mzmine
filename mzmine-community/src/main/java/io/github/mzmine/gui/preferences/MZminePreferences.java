@@ -27,6 +27,7 @@ package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
@@ -64,7 +65,6 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
-import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -143,24 +143,24 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
       new OptOutParameter("Ion mobility compatibility warnings",
           "Shows a warning message when a module without explicit ion mobility support is "
-              + "used to process ion mobility data."));
+          + "used to process ion mobility data."));
 
   public static final DirectoryParameter tempDirectory = new DirectoryParameter(
       "Temporary file directory", "Directory where temporary files"
-      + " will be stored. Directory should be located on a drive with fast read and write "
-      + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
-      + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
+                                  + " will be stored. Directory should be located on a drive with fast read and write "
+                                  + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
+                                  + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
       System.getProperty("java.io.tmpdir"));
 
   public static final ComboParameter<KeepInMemory> memoryOption = new ComboParameter<>(
       "Keep in memory", String.format(
       "Specifies the objects that are kept in memory rather than memory mapping "
-          + "them into temp files in the temp directory. Parameter is overriden by the program "
-          + "argument --memory. Depending on the read/write speed of the temp directory,"
-          + " memory mapping is a fast and memory efficient way to handle data, therefore, the "
-          + "default is to memory map all spectral data and feature data with the option %s. On "
-          + "systems where memory (RAM) is no concern, viable options are %s and %s, to keep all in memory "
-          + "or to keep mass lists and feauture data in memory, respectively.", KeepInMemory.NONE,
+      + "them into temp files in the temp directory. Parameter is overriden by the program "
+      + "argument --memory. Depending on the read/write speed of the temp directory,"
+      + " memory mapping is a fast and memory efficient way to handle data, therefore, the "
+      + "default is to memory map all spectral data and feature data with the option %s. On "
+      + "systems where memory (RAM) is no concern, viable options are %s and %s, to keep all in memory "
+      + "or to keep mass lists and feauture data in memory, respectively.", KeepInMemory.NONE,
       KeepInMemory.ALL, KeepInMemory.MASSES_AND_FEATURES), KeepInMemory.values(),
       KeepInMemory.NONE);
 
@@ -182,7 +182,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
       "Normalize images",
       "Specifies if displayed images shall be normalized to the average TIC or shown according to the raw data."
-          + "only applies to newly generated plots.", ImageNormalization.values(),
+      + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
 
   public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
@@ -203,13 +203,12 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final BooleanParameter keepConvertedFile = new BooleanParameter(
       "Keep files converted by MSConvert",
       "Store the files after conversion by MSConvert to an mzML file.\n"
-          + "This will reduce the import time when re-processing, but require more disc space.",
-      false);
+      + "This will reduce the import time when re-processing, but require more disc space.", false);
 
   public static final BooleanParameter applyPeakPicking = new BooleanParameter(
       "Apply peak picking (recommended)",
       "Apply vendor peak picking during import of native vendor files with MSConvert.\n"
-          + "Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.",
+      + "Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.",
       true);
 
   public MZminePreferences() {
@@ -333,23 +332,23 @@ public class MZminePreferences extends SimpleParameterSet {
 
       boolean changeColors = false;
       if (theme.isDark() && (ColorUtils.isDark(bgColor) || ColorUtils.isDark(axisFont.getColor())
-          || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(titleFont.getColor())
-          || ColorUtils.isDark(subTitleFont.getColor()))) {
-        if (MZmineCore.getDesktop().displayConfirmation("""
+                             || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(
+          titleFont.getColor()) || ColorUtils.isDark(subTitleFont.getColor()))) {
+        if (DialogLoggerUtil.showDialogYesNo("Change theme?", """
             MZmine detected that you changed the GUI theme.
             The current chart theme colors might not be readable.
             Would you like to adapt them?
-            """, ButtonType.YES, ButtonType.NO) == ButtonType.YES) {
+            """)) {
           changeColors = true;
         }
       } else if (!theme.isDark() && (ColorUtils.isLight(bgColor) || ColorUtils.isLight(
           axisFont.getColor()) || ColorUtils.isLight(itemFont.getColor()) || ColorUtils.isLight(
           titleFont.getColor()) || ColorUtils.isLight(subTitleFont.getColor()))) {
-        if (MZmineCore.getDesktop().displayConfirmation("""
+        if (DialogLoggerUtil.showDialogYesNo("Change theme?", """
             MZmine detected that you changed the GUI theme.
             The current chart theme colors might not be readable.
             Would you like to adapt them?
-            """, ButtonType.YES, ButtonType.NO) == ButtonType.YES) {
+            """)) {
           changeColors = true;
         }
       }

@@ -34,8 +34,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MsProcessorList;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -134,12 +132,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     processors.add(new SortByMzMsProcessor());
 
     // read parameters
-    MZmineProcessingStep<MassDetector> ms1Detector = advanced.getEmbeddedParameterValueIfSelectedOrElse(
-        AdvancedSpectraImportParameters.msMassDetection, null);
-    MZmineProcessingStep<MassDetector> ms2Detector = advanced.getEmbeddedParameterValueIfSelectedOrElse(
-        AdvancedSpectraImportParameters.ms2MassDetection, null);
+    boolean ms1Detector = advanced.getValue(AdvancedSpectraImportParameters.msMassDetection);
+    boolean ms2Detector = advanced.getValue(AdvancedSpectraImportParameters.ms2MassDetection);
 
-    boolean applyMassDetection = ms1Detector != null || ms2Detector != null;
+    boolean applyMassDetection = ms1Detector || ms2Detector;
 
     boolean denormalizeMsn = advanced.getValue(AdvancedSpectraImportParameters.denormalizeMSnScans);
     Range<Double> cropMzRange = advanced.getEmbeddedParameterValueIfSelectedOrElse(
@@ -171,7 +167,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    */
   public static File validateBrukerPath(File f) {
     if (f.getParent().endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
-        || f.getName().endsWith(".tsf") || f.getName().endsWith(".baf"))) {
+                                         || f.getName().endsWith(".tsf") || f.getName()
+                                             .endsWith(".baf"))) {
       return f.getParentFile();
     } else {
       return f;
@@ -444,7 +441,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
-        + " and file " + file.getAbsolutePath());
+                   + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(getMassListStorage(), newMZmineFile,
         createTask(fileType, project, file, newMZmineFile, scanProcessorConfig, module, parameters,

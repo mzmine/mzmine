@@ -33,11 +33,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
-import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -88,20 +85,21 @@ public abstract class AbstractDataImportTest {
    */
   @Nullable
   public static AdvancedSpectraImportParameters createAdvancedImportSettings() {
-    final var massDetector = MassDetectors.FACTOR_OF_LOWEST.getDefaultModule();
-    ParameterSet massDetectorParam = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
+    ParameterSet massDetectorParam = MassDetectors.FACTOR_OF_LOWEST.getModuleParameters()
+        .cloneParameterSet();
     massDetectorParam.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 3d);
-    var massDetectorStep = new MZmineProcessingStepImpl<>(massDetector, massDetectorParam);
-
-    ParameterSet massDetectorParam2 = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
-    massDetectorParam2.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 3d);
-    MZmineProcessingStep<MassDetector> massDetectorStep2 = new MZmineProcessingStepImpl<>(
-        massDetector, massDetectorParam2);
 
     AdvancedSpectraImportParameters advanced = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
-    advanced.setParameter(AdvancedSpectraImportParameters.msMassDetection, true, massDetectorStep);
-    advanced.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, true,
-        massDetectorStep2);
+
+    // set value first and then parameters
+    advanced.setParameter(AdvancedSpectraImportParameters.msMassDetection, true);
+    advanced.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, true);
+
+    advanced.getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
+        .setValue(MassDetectors.FACTOR_OF_LOWEST, massDetectorParam);
+    advanced.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter()
+        .setValue(MassDetectors.FACTOR_OF_LOWEST, massDetectorParam.cloneParameterSet());
+
     advanced.setParameter(AdvancedSpectraImportParameters.mzRange, true,
         Range.closed(lowestMz, 5000d));
     advanced.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, true);

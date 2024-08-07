@@ -266,7 +266,7 @@ public class IMSScanTypesTest {
     SpectralLibraryEntry entry = SpectralLibraryEntry.create(null, map,
         ScanUtils.extractDataPoints(library));
 
-    SpectralSimilarity similarity = simFunc.getSimilarity(param, new MZTolerance(0.005, 15), 0,
+    SpectralSimilarity similarity = simFunc.getSimilarity(new MZTolerance(0.005, 15), 0,
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
     List<SpectralDBAnnotation> value = List.of(

@@ -29,8 +29,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -39,24 +38,20 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.NotNull;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
-  public static final MassDetector[] massDetectors = MassDetectors.listModules()
-      .toArray(MassDetector[]::new);
-
-  public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<>(
-      "Mass detector", "Algorithm to use for mass detection and its parameters.", massDetectors,
-      MassDetectors.AUTO.getDefaultModule());
-
+  public static final ModuleOptionsEnumComboParameter<MassDetectors> massDetector = new ModuleOptionsEnumComboParameter<>(
+      "Mass detector", "Algorithm to use for mass detection and its parameters.",
+      MassDetectors.AUTO);
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
@@ -82,7 +77,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public MassDetectionParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, scanTypes, massDetector, denormalizeMSnScans},
+    super(new Parameter[]{dataFiles, scanSelection, scanTypes, denormalizeMSnScans, massDetector},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection.html");
   }
 
@@ -90,20 +85,15 @@ public class MassDetectionParameters extends SimpleParameterSet {
   public boolean checkParameterValues(Collection<String> errorMessages) {
     final boolean superCheck = super.checkParameterValues(errorMessages);
     // Check the selected mass detector
-    MZmineProcessingStep<MassDetector> detector = getValue(massDetector);
-    if (detector == null) {
-      errorMessages.add("No mass detector selected");
-      return false;
-    }
-    String massDetectorName = detector.toString();
+    MassDetectors detector = getValue(massDetector);
 
     // check if denormalize was selected that it matches to the mass detection algorithm
     boolean denorm = getValue(denormalizeMSnScans);
     boolean illegalDenormalizeMassDetectorCombo =
-        denorm && !(massDetectorName.startsWith("Factor"));
+        denorm && !(detector == MassDetectors.FACTOR_OF_LOWEST);
     if (illegalDenormalizeMassDetectorCombo) {
       errorMessages.add("Spectral denormalization is currently only supported by the "
-                        + "Factor of the lowest mass detector; selected:" + massDetectorName);
+                        + "Factor of the lowest mass detector; selected: " + detector);
       return false;
     }
 
@@ -143,46 +133,44 @@ public class MassDetectionParameters extends SimpleParameterSet {
     logger.finest("Proportion of scans estimated to be centroided: " + proportionCentroided);
 
     // Check the selected mass detector
-    if (!massDetectorName.contains("Auto")) {
-      if (mostlyCentroided && !(massDetectorName.startsWith("Centroid")
-                                || massDetectorName.startsWith("Factor"))) {
-        String msg = """
-            MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans.
-            This will likely produce wrong results. Try the Centroid mass detector or Factor of lowest signal mass detector instead.
-            Continue anyway?""";
-        if (MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO)
-            == ButtonType.NO) {
-          return false;
-        }
-      }
-
-      if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid"))) {
-        String msg = """
-            MZmine thinks you are running the centroid on (mostly) profile scans.
-            This will likely produce wrong results.
-            Continue anyway?""";
-        if (MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO)
-            == ButtonType.NO) {
-          return false;
-        }
-      }
+    String msg = null;
+    if (mostlyCentroided && !detector.usesCentroidData()) {
+      msg = """
+          mzmine thinks you are running the profile mode mass detector on (mostly) centroided scans.
+          This will likely produce wrong results. Try the Centroid mass detector or Factor of lowest signal mass detector instead.
+          Continue anyway?""";
+    } else if (!mostlyCentroided && !detector.usesProfileData()) {
+      msg = """
+          mzmine thinks you are running the centroid on (mostly) profile scans.
+          This will likely produce wrong results.
+          Continue anyway?""";
+    }
+    // open dialog on error
+    if (msg != null && !DialogLoggerUtil.showDialogYesNo("Confirmation", msg)) {
+      return false;
     }
 
     final SelectedScanTypes types = getValue(scanTypes);
     if (types != SelectedScanTypes.SCANS && Arrays.stream(selectedFiles)
         .anyMatch(file -> !(file instanceof IMSRawDataFile))) {
-      final ButtonType buttonType = MZmineCore.getDesktop().displayConfirmation("""
-              The scan types selection is set to "%s" but there are non IMS files selected.This will not add a mass list to the files:
-              %s
-              Do you want to continue anyway?""".formatted(types,
-              Arrays.stream(selectedFiles).map(RawDataFile::getName).collect(Collectors.joining("; "))),
-          ButtonType.YES, ButtonType.NO);
-      if (buttonType == ButtonType.NO) {
+      if (!DialogLoggerUtil.showDialogYesNo("Confirmation", """
+          The scan types selection is set to "%s" but there are non IMS files selected.This will not add a mass list to the files:
+          %s
+          Do you want to continue anyway?""".formatted(types,
+          Arrays.stream(selectedFiles).map(RawDataFile::getName)
+              .collect(Collectors.joining("; "))))) {
         return false;
       }
     }
 
     return superCheck;
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(valueCheckRequired, this);
+    dialog.showAndWait();
+    return dialog.getExitCode();
   }
 
   @Override
