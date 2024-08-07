@@ -283,17 +283,18 @@ public class MSConvertImportTask extends AbstractTask {
     if (polarity == PolarityType.POSITIVE) {
       logger.finest(
           "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
-              rawFilePath, polarity));
-      cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=556.276575 tol=0.1\""));
+              rawFilePath.getName(), polarity));
+//      cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=556.276575 tol=0.1\""));
     } else if (polarity == PolarityType.NEGATIVE) {
       logger.finest(
           "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
-              rawFilePath, polarity));
+              rawFilePath.getName(), polarity));
       cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=554.262022 tol=0.1\""));
     }
 
     final WatersAcquisitionType type = RawDataFileTypeDetector.detectWatersAcquisitionType(
         rawFilePath);
+    logger.finest("Determined acquisition type of file %s to be %s".formatted(rawFilePath.getName(), type.name()));
     switch (type) {
       case MS_ONLY, MSE -> {
         cmdLine.addAll(List.of("\"ignoreCalibrationScans\"", "--filter", "\"metadataFixer\""));
