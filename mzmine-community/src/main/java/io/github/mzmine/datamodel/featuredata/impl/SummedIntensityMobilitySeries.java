@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -121,6 +121,32 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
   }
 
+  public static SummedIntensityMobilitySeries loadFromXML(@NotNull XMLStreamReader reader,
+      @Nullable MemoryMapStorage storage) throws XMLStreamException {
+
+    double[] mobilities = null;
+    double[] intensities = null;
+
+    while (reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName()
+          .equals(SummedIntensityMobilitySeries.XML_ELEMENT)) {
+        break;
+      }
+
+      final int next = reader.next();
+      if (next != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_MOBILITY_VALUES_ELEMENT ->
+            mobilities = ParsingUtils.stringToDoubleArray(reader.getElementText());
+      }
+    }
+    return new SummedIntensityMobilitySeries(storage, mobilities, intensities);
+  }
+
   public int getNumberOfDataPoints() {
     return getMobilityValues().capacity();
   }
@@ -193,32 +219,6 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
 
     IntensitySeries.saveIntensityValuesToXML(writer, this);
     writer.writeEndElement();
-  }
-
-  public static SummedIntensityMobilitySeries loadFromXML(@NotNull XMLStreamReader reader,
-      @Nullable MemoryMapStorage storage) throws XMLStreamException {
-
-    double[] mobilities = null;
-    double[] intensities = null;
-
-    while (reader.hasNext()) {
-      if (reader.isEndElement() && reader.getLocalName()
-          .equals(SummedIntensityMobilitySeries.XML_ELEMENT)) {
-        break;
-      }
-
-      final int next = reader.next();
-      if (next != XMLEvent.START_ELEMENT) {
-        continue;
-      }
-      switch (reader.getLocalName()) {
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-        case CONST.XML_MOBILITY_VALUES_ELEMENT -> mobilities = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-      }
-    }
-    return new SummedIntensityMobilitySeries(storage, mobilities, intensities);
   }
 
   @Override
