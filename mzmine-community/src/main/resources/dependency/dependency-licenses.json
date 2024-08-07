@@ -506,7 +506,7 @@
         },
         {
             "moduleName": "commons-codec:commons-codec",
-            "moduleVersion": "1.15",
+            "moduleVersion": "1.17.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-codec/"
             ],
@@ -532,7 +532,7 @@
         },
         {
             "moduleName": "commons-io:commons-io",
-            "moduleVersion": "2.15.1",
+            "moduleVersion": "2.16.1",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-io/"
             ],
@@ -1295,7 +1295,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-compress",
-            "moduleVersion": "1.25.0",
+            "moduleVersion": "1.26.2",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-compress/"
             ],
@@ -1308,7 +1308,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-lang3",
-            "moduleVersion": "3.12.0",
+            "moduleVersion": "3.14.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-lang/"
             ],

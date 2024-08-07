@@ -23,51 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.otherdetectors;
+package io.github.mzmine.datamodel.features.types.otherdectectors;
 
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
-import java.util.List;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
+import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
-public interface OtherTimeSeriesData {
+/**
+ * Type to link processed {@link OtherFeature} to their original raw data (also an unprocessed
+ * {@link OtherFeature}).
+ */
+public class RawTraceType extends DataType<OtherFeature> implements NoTextColumn, NullColumnType {
 
-  OtherDataFile getOtherDataFile();
-
-  String getTimeSeriesDomainLabel();
-
-  String getTimeSeriesDomainUnit();
-
-  String getTimeSeriesRangeLabel();
-
-  String getTimeSeriesRangeUnit();
-
-  @NotNull
-  List<@NotNull OtherFeature> getRawTraces();
-
-  default int getNumberOfTimeSeries() {
-    return getRawTraces().size();
+  @Override
+  public @NotNull String getUniqueID() {
+    return "raw_trace";
   }
 
-  @NotNull
-  OtherFeature getRawTrace(int index);
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Raw trace";
+  }
 
-  /**
-   * @return The chromatograms in this data file or null if this file does not contain
-   * chromatograms.
-   */
-  @NotNull
-  ChromatogramType getChromatogramType();
+  @Override
+  public Property<OtherFeature> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
 
-  List<OtherFeature> getProcessedFeatures();
-
-  /**
-   * @return The processed features for the given series, may be empty. The list is modifiable.
-   */
-  @NotNull
-  List<OtherFeature> getProcessedFeaturesForTrace(OtherFeature rawTrace);
-
-  void replaceProcessedFeaturesForTrace(OtherFeature rawTrace,
-      @NotNull List<OtherFeature> newFeatures);
-
-  void addProcessedFeature(@NotNull OtherFeature newFeature);
+  @Override
+  public Class<OtherFeature> getValueClass() {
+    return OtherFeature.class;
+  }
 }

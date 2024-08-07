@@ -23,18 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.featuredata;
+package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.main.MZmineCore;
 
-public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
+public class MultidetectorVisualizerTab extends SimpleTab {
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
+  public MultidetectorVisualizerTab() {
+    super("Multi detector visualizer");
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
-      int endIndexExclusive);
+    final MultidetectorVisualizerController controller = new MultidetectorVisualizerController();
+    setContent(controller.buildView());
+  }
 
-  @Nullable
-  MemoryMapStorage getStorage();
+  public static void addTab() {
+    MZmineCore.getDesktop().addTab(new MultidetectorVisualizerTab());
+  }
 }

@@ -23,18 +23,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.featuredata;
+package io.github.mzmine.datamodel.features.types.otherdectectors;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
 
-public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
+public class WavelengthType extends DoubleType {
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
+  private static NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0");
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
-      int endIndexExclusive);
+  protected WavelengthType() {
+    super(DEFAULT_FORMAT);
+  }
 
-  @Nullable
-  MemoryMapStorage getStorage();
+  @Override
+  public NumberFormat getFormat() {
+    return DEFAULT_FORMAT;
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    return DEFAULT_FORMAT;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return "wavelength";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Wavelength / nm";
+  }
 }
