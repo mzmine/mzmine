@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.isotopeprediction;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -56,7 +57,8 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  */
 public class IsotopePatternCalculator implements MZmineModule {
 
-  private static final double ELECTRON_MASS = 5.4857990943E-4;
+  public static final double ELECTRON_MASS = 5.4857990943E-4;
+  public static final double THIRTHEEN_C_DISTANCE = 1.003354831;
 
   private static final String MODULE_NAME = "Isotope pattern prediction.";
 
@@ -148,9 +150,9 @@ public class IsotopePatternCalculator implements MZmineModule {
     }
   }
 
-  public static HashMap <Double, IsotopePattern> calculateIsotopePatternForResolutions(IMolecularFormula cdkFormula,
-      double minAbundance, MZTolerance[] tolerances, int charge, PolarityType polarity,
-      boolean storeFormula) {
+  public static HashMap<Double, IsotopePattern> calculateIsotopePatternForResolutions(
+      IMolecularFormula cdkFormula, double minAbundance, MZTolerance[] tolerances, int charge,
+      PolarityType polarity, boolean storeFormula) {
     // TODO: check if the formula is not too big (>100 of a single atom?).
     // if so, just cancel the prediction
 
@@ -158,12 +160,13 @@ public class IsotopePatternCalculator implements MZmineModule {
     // TODO: in the CDK minAbundance is now called minIntensity and refers
     // to the relative intensity
     // in the isotope pattern, should change it here, too
-    HashMap <Double, IsotopePattern> calculatedIsotopePatternForResolutions = new HashMap<>();
+    HashMap<Double, IsotopePattern> calculatedIsotopePatternForResolutions = new HashMap<>();
     for (MZTolerance mzTolerance : tolerances) {
-      calculatedIsotopePatternForResolutions.put(mzTolerance.getMzTolerance(),calculateIsotopePattern(
-          cdkFormula,minAbundance,mzTolerance.getMzTolerance(),charge,polarity,storeFormula));
+      calculatedIsotopePatternForResolutions.put(mzTolerance.getMzTolerance(),
+          calculateIsotopePattern(cdkFormula, minAbundance, mzTolerance.getMzTolerance(), charge,
+              polarity, storeFormula));
     }
-  return calculatedIsotopePatternForResolutions;
+    return calculatedIsotopePatternForResolutions;
   }
 
 
@@ -207,22 +210,9 @@ public class IsotopePatternCalculator implements MZmineModule {
   public static IsotopePattern normalizeIsotopePattern(IsotopePattern pattern,
       double normalizedValue) {
 
-    int isotopeBasePeak = pattern.getBasePeakIndex();
-    if (isotopeBasePeak < 0) {
+    DataPoint[] newDataPoints = ScanUtils.normalizeSpectrum(pattern, normalizedValue);
+    if (newDataPoints.length == 0) {
       return pattern;
-    }
-    final double maxIntensity = pattern.getBasePeakIntensity();
-
-    DataPoint dataPoints[] = ScanUtils.extractDataPoints(pattern);
-
-    DataPoint newDataPoints[] = new DataPoint[dataPoints.length];
-
-    for (int i = 0; i < dataPoints.length; i++) {
-
-      double mz = dataPoints[i].getMZ();
-      double intensity = dataPoints[i].getIntensity() / maxIntensity * normalizedValue;
-
-      newDataPoints[i] = new SimpleDataPoint(mz, intensity);
     }
 
     if (pattern instanceof SimpleIsotopePattern simple

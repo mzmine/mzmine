@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,8 @@ import java.util.Objects;
  * values. The tolerance range is calculated as the maximum of the absolute and relative values.
  */
 public class MZTolerance {
+
+  public static final MZTolerance FIFTEEN_PPM_OR_FIVE_MDA = new MZTolerance(0.005, 15);
 
   // PPM conversion factor.
   private static final double MILLION = 1000000.0;

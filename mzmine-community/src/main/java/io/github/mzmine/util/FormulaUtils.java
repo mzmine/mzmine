@@ -594,6 +594,9 @@ public class FormulaUtils {
         }
       } while (count > 0 && found);
     }
+    final Integer resultCharge = Objects.requireNonNullElse(result.getCharge(), 0);
+    final Integer subtractCharge = Objects.requireNonNullElse(sub.getCharge(), 0);
+    result.setCharge(resultCharge - subtractCharge);
     return result;
   }
 
@@ -769,4 +772,21 @@ public class FormulaUtils {
       throw new RuntimeException(e);
     }
   }
+
+  public static boolean isSubFormula(FormulaWithExactMz a, FormulaWithExactMz b) {
+    final IMolecularFormula larger = a.mz() > b.mz() ? a.formula() : b.formula();
+    final IMolecularFormula smaller = a.mz() < b.mz() ? a.formula() : b.formula();
+
+    return isSubFormula(smaller, larger);
+  }
+
+  private static boolean isSubFormula(IMolecularFormula smaller, IMolecularFormula larger) {
+    for (IIsotope isotope : smaller.isotopes()) {
+      if(smaller.getIsotopeCount(isotope) > larger.getIsotopeCount(isotope)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 }

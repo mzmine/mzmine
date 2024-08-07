@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -360,13 +360,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
           logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-                              + rawDataFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
         if (!libraryFiles.isEmpty()) {
           logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
-                              + libraryFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
 
         // set raw and library files to parameter

@@ -33,6 +33,11 @@ public class ElementalHeuristicChecker {
   public static boolean checkFormula(IMolecularFormula formula, boolean checkHC, boolean checkNOPS,
       boolean checkMultiple) {
 
+    // if we dont have to do checks, return true.
+    if(!checkHC && !checkNOPS && !checkMultiple) {
+      return true;
+    }
+
     double eH = 0, eC = 0, eN = 0, eO = 0, eP = 0, eS = 0;
     for (IIsotope isotope : formula.isotopes()) {
       if (isotope.getSymbol().equals("C")) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore.Result;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
@@ -114,12 +115,14 @@ public class MSMSScoreCalculator {
     for (DataPoint dp : msmsIons) {
 
       // Check if this is an isotope
-      Range<Double> isotopeCheckRange = Range.closed(dp.getMZ() - 1.4, dp.getMZ() - 0.6);
+      Range<Double> isotopeCheckRange = msmsTolerance.getToleranceRange(
+          dp.getMZ() - IsotopePatternCalculator.THIRTHEEN_C_DISTANCE);
       for (DataPoint dpCheck : msmsIons) {
         // If we have any MS/MS peak with 1 neutron mass smaller m/z
         // and higher intensity, it means the current peak is an
         // isotope and we should ignore it
-        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity() > dp.getIntensity())) {
+        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity()
+            > dp.getIntensity())) {
           continue msmsCycle;
         }
       }
@@ -136,7 +139,8 @@ public class MSMSScoreCalculator {
 
       Range<Double> msmsTargetRange = msmsTolerance.getToleranceRange(neutralLoss);
       IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-      MolecularFormulaGenerator msmsEngine = new MolecularFormulaGenerator(builder, msmsTargetRange.lowerEndpoint(), msmsTargetRange.upperEndpoint(), msmsElementRange);
+      MolecularFormulaGenerator msmsEngine = new MolecularFormulaGenerator(builder,
+          msmsTargetRange.lowerEndpoint(), msmsTargetRange.upperEndpoint(), msmsElementRange);
 
       IMolecularFormula formula = msmsEngine.getNextFormula();
       if (formula != null) {

@@ -245,7 +245,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-                                         + "row. Create feature with the correct feature list as an argument.");
+          + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -679,7 +679,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public IsotopePattern getBestIsotopePattern() {
     return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight))
         .map(ModularFeature::getIsotopePattern).orElse(null);
   }
@@ -724,6 +724,17 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public void setFormulas(List<ResultFormula> formulas) {
     set(FormulaListType.class, formulas);
+  }
+
+  public void addFormula(ResultFormula formula, boolean preferred) {
+    final List<ResultFormula> current = getFormulas();
+    final List<ResultFormula> resultFormulas = new ArrayList<>(current);
+    if (preferred) {
+      resultFormulas.add(0, formula);
+    } else {
+      resultFormulas.add(formula);
+    }
+    setFormulas(resultFormulas);
   }
 
   @Override

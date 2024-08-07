@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -69,7 +70,7 @@ class IsotopeGrouperTask extends AbstractTask {
    * tolerance.
    */
   private static final Logger logger = Logger.getLogger(IsotopeGrouperTask.class.getName());
-  private static final double isotopeDistance = 1.0033;
+  private static final double isotopeDistance = IsotopePatternCalculator.THIRTHEEN_C_DISTANCE;
   private final MZmineProject project;
   private final ModularFeatureList featureList;
   // parameter values

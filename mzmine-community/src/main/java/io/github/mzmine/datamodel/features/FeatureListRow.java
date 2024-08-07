@@ -440,6 +440,8 @@ public interface FeatureListRow extends ModularDataModel {
 
   void setFormulas(List<ResultFormula> formulas);
 
+  void addFormula(ResultFormula formula, boolean preferred);
+
   /**
    * Checks if MS2 fragmentation data is available
    *

@@ -90,3 +90,6 @@
     -fx-icon-color: -jr-selected;
 }
 
+.align-right-column {
+	-fx-alignment: center-right;
+}
