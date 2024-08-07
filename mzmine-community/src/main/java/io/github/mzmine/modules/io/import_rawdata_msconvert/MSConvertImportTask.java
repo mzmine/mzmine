@@ -39,6 +39,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileTypeDetector;
+import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.BufferedReader;
@@ -263,27 +266,42 @@ public class MSConvertImportTask extends AbstractTask {
     }
 
     // deactivated, since waters files converted by MSConvert have poor quality.
-    /*final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(rawFilePath);
+    final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(rawFilePath);
     if (fileType == RawDataFileType.WATERS_RAW) {
-      final PolarityType polarity = getWatersPolarity(filePath);
-      if (polarity == PolarityType.POSITIVE) {
-        logger.finest(
-            "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
-                rawFilePath, polarity));
-        cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=556.276575 tol=0.1\""));
-      } else if (polarity == PolarityType.NEGATIVE) {
-        logger.finest(
-            "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
-                rawFilePath, polarity));
-        cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=554.262022 tol=0.1\""));
-      }
-    }*/
+      addWatersOptions(filePath, cmdLine);
+    }
 
-    cmdLine.addAll(List.of("--filter",
-        "\"titleMaker <RunId>.<ScanNumber>.<ScanNumber>.<ChargeState> File:\"\"\"^<SourcePath^>\"\"\", NativeID:\"\"\"^<Id^>\"\"\"\""));
+//    cmdLine.addAll(List.of("--filter",
+//        "\"titleMaker <RunId>.<ScanNumber>.<ScanNumber>.<ChargeState> File:\"\"\"^<SourcePath^>\"\"\", NativeID:\"\"\"^<Id^>\"\"\"\""));
 
     logger.finest("Running msconvert with command line: %s".formatted(cmdLine.toString()));
     return cmdLine;
+  }
+
+  private void addWatersOptions(File filePath, List<String> cmdLine) {
+    final PolarityType polarity = getWatersPolarity(filePath);
+    if (polarity == PolarityType.POSITIVE) {
+      logger.finest(
+          "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
+              rawFilePath, polarity));
+      cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=556.276575 tol=0.1\""));
+    } else if (polarity == PolarityType.NEGATIVE) {
+      logger.finest(
+          "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
+              rawFilePath, polarity));
+      cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=554.262022 tol=0.1\""));
+    }
+
+    final WatersAcquisitionType type = RawDataFileTypeDetector.detectWatersAcquisitionType(
+        rawFilePath);
+    switch (type) {
+      case MS_ONLY, MSE -> {
+        cmdLine.addAll(List.of("\"ignoreCalibrationScans\"", "--filter", "\"metadataFixer\""));
+      }
+      case DDA -> {
+        cmdLine.addAll(List.of("--ddaProcessing", "--filter", "\"metadataFixer\""));
+      }
+    }
   }
 
   private PolarityType getWatersPolarity(File rawFilePath) {
