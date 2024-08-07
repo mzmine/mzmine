@@ -110,4 +110,5 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   public void setChromatogramType(@Nullable ChromatogramType chromatogramType) {
     this.chromatogramType = chromatogramType;
   }
+
 }
