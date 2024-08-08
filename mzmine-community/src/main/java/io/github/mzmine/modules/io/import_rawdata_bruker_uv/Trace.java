@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_uv;
 
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
-import java.util.Objects;
 
 class Trace {
 
@@ -72,112 +71,16 @@ class Trace {
     };
   }
 
-  public String getUnit() {
-    if (unit == null) {
-      return "Unknown";
-    }
-    return switch (unit.intValue()) {
-      case 8 -> "AU";
-      case 9 -> "mAU";
-      case 10 -> "Counts";
-      case 11 -> "A";
-      case 12 -> "mA";
-      case 13 -> "µA";
-      case 43 -> "J";
-      case 44 -> "mJ";
-      case 45 -> "µJ";
-      case 14 -> "mL/min";
-      case 2 -> "µL/min";
-      case 15 -> "nL/min";
-      case 6 -> "Unknown";
-      case 16 -> "cm";
-      case 17 -> "mm";
-      case 18 -> "µm";
-      case 1 -> "nm";
-      case 46 -> "Å";
-      case 20 -> "Unknown";
-      case 21 -> "mM";
-      case 4 -> "%";
-      case 22 -> "W";
-      case 23 -> "mW";
-      case 3 -> "bar";
-      case 24 -> "mbar";
-      case 25 -> "kPa";
-      case 26 -> "MPa";
-      case 27 -> "psi";
-      case 28 -> "Unknown";
-      case 5 -> "°C";
-      case 30 -> "°F";
-      case 31 -> "h";
-      case 32 -> "min";
-      case 33 -> "s";
-      case 34 -> "ms";
-      case 35 -> "µs";
-      case 36 -> "cP";
-      case 37 -> "kV";
-      case 38 -> "V";
-      case 39 -> "mV";
-      case 40 -> "L";
-      case 41 -> "mL";
-      case 42 -> "µL";
-      default -> "Unknown";
-    };
+  public String getConvertedRangeUnit() {
+    return BrukerUtils.unitToString(unit().intValue());
   }
 
   public void setUnit(Long unit) {
     this.unit = unit;
   }
 
-  public String getLabel() {
-    if (unit == null) {
-      return "Unknown";
-    }
-    return switch (unit.intValue()) {
-      case 8 -> "Absorbance";
-      case 9 -> "Absorbance";
-      case 10 -> "Counts";
-      case 11 -> "Current";
-      case 12 -> "Current";
-      case 13 -> "Current";
-      case 43 -> "Energy";
-      case 44 -> "Energy";
-      case 45 -> "Energy";
-      case 14 -> "Flow";
-      case 2 -> "Flow";
-      case 15 -> "Flow";
-      case 6 -> "Intensity";
-      case 16 -> "Length";
-      case 17 -> "Length";
-      case 18 -> "Length";
-      case 1 -> "Length";
-      case 46 -> "Length";
-      case 20 -> "Luminescence";
-      case 21 -> "Molarity";
-      case 4 -> "Percent";
-      case 22 -> "Power";
-      case 23 -> "Power";
-      case 3 -> "Pressure";
-      case 24 -> "Pressure";
-      case 25 -> "Pressure";
-      case 26 -> "Pressure";
-      case 27 -> "Pressure";
-      case 28 -> "Refractive index";
-      case 5 -> "Temperature";
-      case 30 -> "Temperature";
-      case 31 -> "Time";
-      case 32 -> "Time";
-      case 33 -> "Time";
-      case 34 -> "Time";
-      case 35 -> "Time";
-      case 36 -> "Viscosity";
-      case 37 -> "Voltage";
-      case 38 -> "Voltage";
-      case 39 -> "Voltage";
-      case 40 -> "Volume";
-      case 41 -> "Volume";
-      case 42 -> "Volume";
-      default -> "Unknown";
-    };
+  public String getConvertedRangeLabel() {
+    return BrukerUtils.unitToLabel(unit.intValue());
   }
 
   public Long id() {
@@ -210,34 +113,6 @@ class Trace {
 
   public Long color() {
     return color;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
-    }
-    if (obj == null || obj.getClass() != this.getClass()) {
-      return false;
-    }
-    var that = (Trace) obj;
-    return Objects.equals(this.id, that.id) && Objects.equals(this.description, that.description)
-        && Objects.equals(this.instrument, that.instrument) && Objects.equals(this.instrumentId,
-        that.instrumentId) && Objects.equals(this.type, that.type) && Objects.equals(this.unit,
-        that.unit) && Objects.equals(this.timeOffset, that.timeOffset) && Objects.equals(this.color,
-        that.color);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, description, instrument, instrumentId, type, unit, timeOffset, color);
-  }
-
-  @Override
-  public String toString() {
-    return "Trace[" + "id=" + id + ", " + "description=" + description + ", " + "instrument="
-        + instrument + ", " + "instrumentId=" + instrumentId + ", " + "type=" + type + ", "
-        + "unit=" + unit + ", " + "timeOffset=" + timeOffset + ", " + "color=" + color + ']';
   }
 
   public void setId(Long id) {

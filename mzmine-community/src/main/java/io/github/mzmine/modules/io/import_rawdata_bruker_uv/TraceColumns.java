@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,25 @@ public enum TraceColumns {
 
   ID, DESCRIPTION, INSTRUMENT, INSTRUMENT_ID, TYPE, UNIT, TIME_OFFSET, COLOR;
 
+  public static Map<Integer, TraceColumns> findIndices(ResultSetMetaData metaData)
+      throws SQLException {
+    final Map<Integer, TraceColumns> indices = new HashMap<>();
+    for (int i = 1; i <= metaData.getColumnCount(); i++) { // 1 based indexing in sql
+      int finalI = i;
+      final Optional<TraceColumns> value = Arrays.stream(values()).filter(c -> {
+        try {
+          return c.header().equals(metaData.getColumnName(finalI));
+        } catch (SQLException e) {
+          return false;
+        }
+      }).findFirst();
+      if (value.isPresent()) {
+        indices.put(i, value.get());
+      }
+    }
+    return indices;
+  }
+
   public String header() {
     return switch (this) {
       case ID -> "Id";
@@ -62,25 +81,6 @@ public enum TraceColumns {
       case TIME_OFFSET -> Types.DOUBLE;
       case COLOR -> Types.INTEGER;
     };
-  }
-
-  public static Map<Integer, TraceColumns> findIndices(ResultSetMetaData metaData)
-      throws SQLException {
-    final Map<Integer, TraceColumns> indices = new HashMap<>();
-    for (int i = 0; i < metaData.getColumnCount(); i++) {
-      int finalI = i;
-      final Optional<TraceColumns> value = Arrays.stream(values()).filter(c -> {
-        try {
-          return c.header().equals(metaData.getColumnName(finalI));
-        } catch (SQLException e) {
-          return false;
-        }
-      }).findFirst();
-      if (value.isPresent()) {
-        indices.put(i, value.get());
-      }
-    }
-    return indices;
   }
 
   public void map(int index, ResultSet result, Trace trace) throws SQLException {

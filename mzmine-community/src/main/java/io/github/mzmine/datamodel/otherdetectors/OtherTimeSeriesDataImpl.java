@@ -104,11 +104,11 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   }
 
   public void setTimeSeriesRangeLabel(@Nullable String timeSeriesRangeLabel) {
-    if (!(DEFAULT_UNIT).equals(timeSeriesRangeLabel) && timeSeriesRangeLabel != null
+    if (!DEFAULT_UNIT.equals(this.timeSeriesRangeLabel) && timeSeriesRangeLabel != null
         && this.timeSeriesRangeLabel != null && !this.timeSeriesRangeLabel.equals(
         timeSeriesRangeLabel)) {
       logger.severe(() -> (
-          "Warning: Range axis labels of time series in file %s for chromatogram type %s do not have the "
+          "Range axis labels of time series in file %s for chromatogram type %s do not have the "
               + "same label (old: %s, new: %s)").formatted(getOtherDataFile().getDescription(),
           getChromatogramType(), this.timeSeriesRangeLabel, timeSeriesRangeLabel));
     }
