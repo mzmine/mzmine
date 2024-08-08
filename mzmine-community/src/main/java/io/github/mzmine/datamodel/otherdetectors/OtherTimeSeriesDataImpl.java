@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,10 +33,13 @@ import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
+
+  private static final Logger logger = Logger.getLogger(OtherTimeSeriesDataImpl.class.getName());
 
   private final CloseableReentrantReadWriteLock writeLock = new CloseableReentrantReadWriteLock();
 
@@ -56,7 +59,7 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
   @Override
   public @NotNull OtherFeature getRawTrace(int index) {
-    try(var _ = writeLock.lockWrite()) {
+    try (var _ = writeLock.lockWrite()) {
       return rawTraces.get(index);
     }
   }
@@ -101,11 +104,28 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   }
 
   public void setTimeSeriesRangeLabel(@Nullable String timeSeriesRangeLabel) {
+    if (!(DEFAULT_UNIT).equals(timeSeriesRangeLabel) && timeSeriesRangeLabel != null
+        && this.timeSeriesRangeLabel != null && !this.timeSeriesRangeLabel.equals(
+        timeSeriesRangeLabel)) {
+      logger.severe(() -> (
+          "Warning: Range axis labels of time series in file %s for chromatogram type %s do not have the "
+              + "same label (old: %s, new: %s)").formatted(getOtherDataFile().getDescription(),
+          getChromatogramType(), this.timeSeriesRangeLabel, timeSeriesRangeLabel));
+    }
     this.timeSeriesRangeLabel = timeSeriesRangeLabel;
   }
 
   @Override
   public @Nullable String getTimeSeriesRangeUnit() {
+    if (!(DEFAULT_UNIT).equals(timeSeriesRangeUnit) && timeSeriesRangeUnit != null
+        && this.timeSeriesRangeUnit != null && !this.timeSeriesRangeUnit.equals(
+        timeSeriesRangeUnit)) {
+      logger.severe(() -> (
+          "Warning: Range axis units of time series in file %s for chromatogram type %s do not have the "
+              + "same unit (old: %s, new: %s)").formatted(getOtherDataFile().getDescription(),
+          getChromatogramType(), this.timeSeriesRangeUnit, timeSeriesRangeUnit));
+    }
+
     return timeSeriesRangeUnit;
   }
 
@@ -118,13 +138,13 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
     return chromatogramType;
   }
 
+  public void setChromatogramType(@Nullable ChromatogramType chromatogramType) {
+    this.chromatogramType = chromatogramType;
+  }
+
   @Override
   public List<OtherFeature> getProcessedFeatures() {
     return processedFeatures;
-  }
-
-  public void setChromatogramType(@Nullable ChromatogramType chromatogramType) {
-    this.chromatogramType = chromatogramType;
   }
 
   @Override
