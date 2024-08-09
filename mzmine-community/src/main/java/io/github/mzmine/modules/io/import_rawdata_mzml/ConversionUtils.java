@@ -415,7 +415,6 @@ public class ConversionUtils {
           final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
           timeSeriesData.addRawTrace(otherFeature);
 
-          final String currentUnit = timeSeriesData.getTimeSeriesRangeUnit();
           timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
           timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
         }

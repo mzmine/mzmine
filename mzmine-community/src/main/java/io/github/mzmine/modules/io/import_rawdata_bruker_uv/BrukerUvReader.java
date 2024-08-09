@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -154,9 +155,9 @@ public class BrukerUvReader implements AutoCloseable {
    * @return The loaded spectrum.
    */
   private static @NotNull WavelengthSpectrum getSpectrumFromResult(MemoryMapStorage storage,
-      ResultSet resultSet, OtherSpectralDataImpl spectralData, DoubleBuffer storedDomainAxis)
-      throws SQLException {
-    final double rt = resultSet.getDouble(1);
+      ResultSet resultSet, OtherSpectralDataImpl spectralData, DoubleBuffer storedDomainAxis,
+      double timeOffset) throws SQLException {
+    final double rt = (resultSet.getDouble(1) + timeOffset) / 60;
     final byte[] intensitiesArray = resultSet.getBytes(2);
     final MemorySegment intensitiesSegment = MemorySegment.ofArray(intensitiesArray);
 
@@ -298,6 +299,12 @@ public class BrukerUvReader implements AutoCloseable {
               "Number of times and intensities values does not match.");
         }
 
+        final double offset = Objects.requireNonNullElse(trace.timeOffset(), 0d);
+        for (int i = 0; i < timesList.size(); i++) {
+          timesList.set(i,
+              (timesList.getQuick(i) + offset) / 60); // convert to minutes and apply offset
+        }
+
         return new SimpleOtherTimeSeries(storage,
             ConversionUtils.convertDoublesToFloats(timesList.toArray()),
             ConversionUtils.convertFloatsToDoubles(intensitiesList.toArray()), trace.description(),
@@ -331,6 +338,8 @@ public class BrukerUvReader implements AutoCloseable {
 
       applyUnitLabelsToSpectralData(detector, spectralData);
 
+      final double timeOffset = Objects.requireNonNullElse(detector.timeOffset(), 0d);
+
       try (Statement statement = connection.createStatement()) {
         statement.setQueryTimeout(30);
         final String spectraQuery = "SELECT Time,Intensities FROM Spectra WHERE Source=%s".formatted(
@@ -339,7 +348,7 @@ public class BrukerUvReader implements AutoCloseable {
 
         while (resultSet.next()) {
           final WavelengthSpectrum spectrum = getSpectrumFromResult(storage, resultSet,
-              spectralData, storedDomainAxis);
+              spectralData, storedDomainAxis, timeOffset);
           spectralData.addSpectrum(spectrum);
 
           spectraCounter++;
