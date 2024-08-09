@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,6 @@ import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableList;
@@ -49,7 +48,7 @@ public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMS
 
 
   public IMSImagingRawDataFileImpl(String dataFileName, @Nullable final String absPath,
-      @Nullable MemoryMapStorage storage) throws IOException {
+      @Nullable MemoryMapStorage storage) {
     super(dataFileName, absPath, storage);
   }
 

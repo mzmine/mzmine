@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,14 +43,9 @@ public record Trace(Long id, String description, String instrument, String instr
       final ResultSet results = statement.executeQuery(query);
 
       while (results.next()) {
-        final Trace trace = new Trace(results.getLong(1),
-            results.getString(2),
-            results.getString(3),
-            results.getString(4),
-            results.getLong(5),
-            results.getLong(6),
-            results.getDouble(7),
-            results.getLong(8));
+        final Trace trace = new Trace(results.getLong(1), results.getString(2),
+            results.getString(3), results.getString(4), results.getLong(5), results.getLong(6),
+            results.getDouble(7), results.getLong(8));
 
         traces.add(trace);
       }
@@ -67,10 +62,10 @@ public record Trace(Long id, String description, String instrument, String instr
       return false;
     }
 
-    if ((getChomatogramType() == ChromatogramType.UNKNOWN && !"Pump_pressure".equals(description))
-        || getChomatogramType().equals(ChromatogramType.UNKNOWN)) {
-      return false;
-    }
+//    if ((getChomatogramType() == ChromatogramType.UNKNOWN && !"Pump_pressure".equals(description))
+//        || getChomatogramType().equals(ChromatogramType.UNKNOWN)) {
+//      return false;
+//    }
     return true;
   }
 
@@ -81,13 +76,24 @@ public record Trace(Long id, String description, String instrument, String instr
     return switch (type.intValue()) {
       case 0 -> ChromatogramType.UNKNOWN; // None
       case 1 -> ChromatogramType.BPC; // any MS
-      case 2 -> ChromatogramType.ABSORPTION; // DAD/PDA
-      case 3 -> ChromatogramType.ABSORPTION; // UV trace
+      case 2, 3 -> deriveTypeFromUnit(); // Trace from DAD/PDA, does not have to be actual UV signal
       case 4 -> ChromatogramType.PRESSURE; // pump pressure
       case 5 -> ChromatogramType.UNKNOWN; // solvent composition
       case 6 -> ChromatogramType.FLOW_RATE; // flow rate
       case 7 -> ChromatogramType.UNKNOWN; // temperature
       default -> ChromatogramType.UNKNOWN; // user defined
+    };
+  }
+
+  /**
+   * More finely grained check for Traces from UV detector (Type = 3) May be a temperature
+   * chromatogram or so. If it's related to UV, we return {@link ChromatogramType#ABSORPTION} and
+   * {@link ChromatogramType#UNKNOWN} otherwise.
+   */
+  private ChromatogramType deriveTypeFromUnit() {
+    return switch (getConvertedRangeLabel()) {
+      case "Absorbance", "Intensity" -> ChromatogramType.ABSORPTION;
+      default -> ChromatogramType.UNKNOWN;
     };
   }
 

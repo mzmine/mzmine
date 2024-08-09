@@ -43,6 +43,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafP
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafPropertiesTable.Values;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.Ms2Table;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.SpectraAcquisitionStepsTable;
+import io.github.mzmine.modules.io.import_rawdata_bruker_uv.BrukerUvReader;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -153,6 +154,11 @@ public class BafImportTask extends AbstractTask {
       }
 
       baf.closeHandle();
+
+      synchronized (org.sqlite.JDBC.class) {
+        BrukerUvReader.loadAndAddForFile(folderPath, file, getMemoryMapStorage());
+      }
+
       file.setStartTimeStamp(
           ZonedDateTime.parse(metadata.getValue(Values.AcquisitionDateTime)).toLocalDateTime());
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -87,10 +88,10 @@ public class BrukerUvReader implements AutoCloseable {
 
   private final File folder;
   private final File chromatographySqlite;
+  private final Connection connection;
   private double traceProgress = 0d;
   private double spectraProgress = 0d;
   private String description = "Connecting to SQLite database...";
-  private final Connection connection;
 
   private BrukerUvReader(File dFolder) throws SQLException {
     this.folder = dFolder;
@@ -116,22 +117,20 @@ public class BrukerUvReader implements AutoCloseable {
     return new BrukerUvReader(dFolder);
   }
 
-  public boolean isConnected() throws SQLException {
-    return connection != null && connection.isValid(2);
-  }
+  public static void loadAndAddForFile(File dFolder, RawDataFileImpl impl,
+      MemoryMapStorage storage) {
+    if (!hasUvData(dFolder)) {
+      return;
+    }
 
-  public static void main(String[] args) {
+    try (var reader = forFolder(dFolder)) {
+      final List<OtherDataFile> spectra = reader.loadSpectra(storage, impl);
+      final List<OtherDataFile> traces = reader.loadChromatograms(storage, impl);
 
-    final RawDataFileImpl file = new RawDataFileImpl("bla", null, null);
-
-    try (BrukerUvReader reader = BrukerUvReader.forFolder(new File(
-        "I:\\Downloads"))) {
-      file.addOtherDataFiles(reader.loadChromatograms(null, file));
-      file.addOtherDataFiles(reader.loadSpectra(null, file));
-
-      logger.finest("load" + file.getOtherDataFiles().size());
+      impl.addOtherDataFiles(spectra);
+      impl.addOtherDataFiles(traces);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      logger.log(Level.SEVERE, e.getMessage(), e);
     }
   }
 
@@ -180,6 +179,10 @@ public class BrukerUvReader implements AutoCloseable {
     spectralData.setSpectraRangeUnit(BrukerUtils.unitToString(detector.yAxisUnit()));
   }
 
+  public boolean isConnected() throws SQLException {
+    return connection != null && connection.isValid(2);
+  }
+
   public boolean hasUvData() {
     return chromatographySqlite.exists();
   }
@@ -198,28 +201,40 @@ public class BrukerUvReader implements AutoCloseable {
 
     final List<OtherDataFile> groupedData = new ArrayList<>();
 
-    for (Entry<ChromatogramType, List<Trace>> entry : groupedChromatograms.entrySet()) {
-      final ChromatogramType type = entry.getKey();
-      final OtherDataFileImpl otherDataFile = new OtherDataFileImpl(msFile);
-      final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherDataFile);
-      timeSeriesData.setChromatogramType(type);
+    for (Entry<ChromatogramType, List<Trace>> entryGroupedByChromType : groupedChromatograms.entrySet()) {
+      final ChromatogramType type = entryGroupedByChromType.getKey();
 
-      logger.finest("%s: Importing time series data for traces.".formatted(folder.getName()));
-      for (Trace trace : entry.getValue()) {
-        final OtherTimeSeries timeSeries = loadTimeSeriesData(storage, timeSeriesData, trace,
-            connection);
-        timeSeriesData.setTimeSeriesRangeLabel(trace.getConvertedRangeLabel());
-        timeSeriesData.setTimeSeriesRangeUnit(trace.getConvertedRangeUnit());
+      // unfortunately, grouping just by chrom type is not enough because temperature is also
+      // marked as from UV detector...
+      final Map<String, List<Trace>> groupedByUnit = ConversionUtils.groupByUnit(
+          entryGroupedByChromType.getValue(), Trace::getConvertedRangeUnit);
 
-        final OtherFeature feature = new OtherFeatureImpl(timeSeries);
-        timeSeriesData.addRawTrace(feature);
+      for (Entry<String, List<Trace>> entry : groupedByUnit.entrySet()) {
+        final String unit = entry.getKey();
 
-        importedTraces++;
-        traceProgress = (double) importedTraces / numTraces;
+        final OtherDataFileImpl otherDataFile = new OtherDataFileImpl(msFile);
+        otherDataFile.setDescription(entry.getValue().getFirst().instrument() + "_" + unit);
+        final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherDataFile);
+        timeSeriesData.setChromatogramType(type);
+
+        logger.finest("%s: Importing time series data for traces.".formatted(folder.getName()));
+        for (Trace trace : entry.getValue()) {
+          final OtherTimeSeries timeSeries = loadTimeSeriesData(storage, timeSeriesData, trace,
+              connection);
+          timeSeriesData.setTimeSeriesRangeLabel(trace.getConvertedRangeLabel());
+          timeSeriesData.setTimeSeriesRangeUnit(trace.getConvertedRangeUnit());
+
+          final OtherFeature feature = new OtherFeatureImpl(timeSeries);
+          timeSeriesData.addRawTrace(feature);
+
+          importedTraces++;
+          traceProgress = (double) importedTraces / numTraces;
+        }
+        otherDataFile.setOtherTimeSeriesData(timeSeriesData);
+        groupedData.add(otherDataFile);
       }
 
-      otherDataFile.setOtherTimeSeriesData(timeSeriesData);
-      groupedData.add(otherDataFile);
+
     }
 
     return groupedData;

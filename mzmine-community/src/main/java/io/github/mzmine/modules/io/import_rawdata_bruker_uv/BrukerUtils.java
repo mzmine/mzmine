@@ -37,6 +37,7 @@ class BrukerUtils {
       return "Unknown";
     }
     return switch (unit) {
+      case 7 -> "Unknown";
       case 8 -> "AU";
       case 9 -> "mAU";
       case 10 -> "Counts";
@@ -89,6 +90,7 @@ class BrukerUtils {
       return "Unknown";
     }
     return switch (unit) {
+      case 7 -> "Unknown";
       case 8 -> "Absorbance";
       case 9 -> "Absorbance";
       case 10 -> "Counts";

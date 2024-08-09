@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -69,6 +69,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -388,40 +389,46 @@ public class ConversionUtils {
 
     List<OtherDataFile> otherFiles = new ArrayList<>();
 
-    for (Entry<ChromatogramType, List<MzMLChromatogram>> grouped : groupedChromatograms.entrySet()
+    for (Entry<ChromatogramType, List<MzMLChromatogram>> groupedByChromType : groupedChromatograms.entrySet()
         .stream().sorted(Comparator.comparing(e -> e.getKey().getDescription())).toList()) {
-      final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
-      final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
-      otherFile.setDetectorType(DetectorType.OTHER);
 
-      timeSeriesData.setChromatogramType(grouped.getKey());
-      otherFile.setDescription(grouped.getKey().getDescription());
+      // group by range unit so we definitely have only one chromatogram type per file.
+      final Map<MzMLUnits, List<MzMLChromatogram>> groupedByUnit = groupByUnit(
+          groupedByChromType.getValue(),
+          c -> MzMLUnits.ofAccession(c.getIntensityBinaryDataInfo().getUnitAccession()));
 
-      for (MzMLChromatogram chrom : grouped.getValue()) {
-        final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
-            file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
-            chrom.getId(), timeSeriesData);
+      for (Entry<MzMLUnits, List<MzMLChromatogram>> unitChromEntry : groupedByUnit.entrySet()) {
+        final MzMLUnits unit = unitChromEntry.getKey();
 
-        final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
-        timeSeriesData.addRawTrace(otherFeature);
+        final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
+        final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
+        otherFile.setDetectorType(DetectorType.OTHER);
+        timeSeriesData.setChromatogramType(groupedByChromType.getKey());
+        otherFile.setDescription(
+            groupedByChromType.getKey().getDescription() + "_" + unit.getSign());
 
-        final String unitAccession = chrom.getIntensityBinaryDataInfo().getUnitAccession();
-        final MzMLUnits unit = MzMLUnits.ofAccession(unitAccession);
-        final String currentUnit = timeSeriesData.getTimeSeriesRangeUnit();
-        if (!currentUnit.equals(OtherDataFileImpl.DEFAULT_UNIT) && !currentUnit.equals(
-            unit.getSign())) {
-          logger.severe(
-              () -> "Chromatogram units in file %s do not match.".formatted(file.getName()));
-        } else {
+        for (MzMLChromatogram chrom : unitChromEntry.getValue()) {
+          final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
+              file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
+              chrom.getId(), timeSeriesData);
+
+          final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
+          timeSeriesData.addRawTrace(otherFeature);
+
+          final String currentUnit = timeSeriesData.getTimeSeriesRangeUnit();
           timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
           timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
         }
+        otherFile.setOtherTimeSeriesData(timeSeriesData);
+        otherFiles.add(otherFile);
       }
-      otherFile.setOtherTimeSeriesData(timeSeriesData);
-      otherFiles.add(otherFile);
     }
 
     return otherFiles;
+  }
+
+  public static <T, K> Map<K, List<T>> groupByUnit(List<T> values, Function<T, K> getUnit) {
+    return values.stream().collect(Collectors.groupingBy(getUnit));
   }
 
   private static @NotNull ChromatogramType getChromatogramType(MzMLChromatogram c) {
