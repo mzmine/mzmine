@@ -41,11 +41,9 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportParameters
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.io.File;
 import java.io.IOException;
@@ -56,7 +54,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
-import javafx.scene.paint.Color;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -75,12 +72,9 @@ public class BrukerTdfTest {
     String str = BrukerTdfTest.class.getClassLoader()
         .getResource("rawdatafiles/200ngHeLaPASEF_2min_compressed.d").getFile();
     File file = new File(str);
-    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(), null,
-        MemoryMapStorage.forRawDataFile(), Color.BLACK);
-
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);
 
-    AbstractTask importTask = new TDFImportTask(project, file, rawDataFile, TDFImportModule.class,
+    AbstractTask importTask = new TDFImportTask(project, file, null, TDFImportModule.class,
         new TDFImportParameters(), Instant.now());
     importTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
       status.set(newStatus);
@@ -101,7 +95,7 @@ public class BrukerTdfTest {
     logger.info("TDF import took " + ((end.getTime() - start.getTime()) / 1000) + " seconds");
     logger.info("Compare to 19 seconds on NVME SSD.");
 
-    return rawDataFile;
+    return (IMSRawDataFile) project.getCurrentRawDataFiles().getFirst();
   }
 
   @Disabled("Needs test file?")

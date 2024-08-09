@@ -29,6 +29,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Groups data of one detector type. Must be associated with an MS {@link RawDataFile}. One
+ * {@link RawDataFile} can contain multiple {@link OtherDataFile}s if multiple other detectors were
+ * used.
+ */
 public interface OtherDataFile {
 
   @NotNull

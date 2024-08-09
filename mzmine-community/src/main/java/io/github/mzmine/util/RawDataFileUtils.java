@@ -27,7 +27,6 @@ package io.github.mzmine.util;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -141,9 +140,7 @@ public class RawDataFileUtils {
               moduleCallDate, storage);
           break;
         case BRUKER_TDF:
-          newMZmineFile = MZmineCore.createNewIMSFile(fileName.getName(),
-              fileName.getAbsolutePath(), MemoryMapStorage.forRawDataFile());
-          newTask = new TDFImportTask(project, fileName, (IMSRawDataFile) newMZmineFile, module,
+          newTask = new TDFImportTask(project, fileName, MemoryMapStorage.forRawDataFile(), module,
               parameters, moduleCallDate);
           break;
         default:

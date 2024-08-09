@@ -34,7 +34,7 @@ public class WavelengthType extends DoubleType {
 
   private static NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0");
 
-  protected WavelengthType() {
+  public WavelengthType() {
     super(DEFAULT_FORMAT);
   }
 

@@ -3047,7 +3047,7 @@
         },
         {
             "moduleName": "org.xerial:sqlite-jdbc",
-            "moduleVersion": "3.40.0.0",
+            "moduleVersion": "3.41.2.2",
             "moduleUrls": [
                 "https://github.com/xerial/sqlite-jdbc"
             ],
