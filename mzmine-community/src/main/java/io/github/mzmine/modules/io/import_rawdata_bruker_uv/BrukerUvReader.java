@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,12 +61,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public class BrukerUvReader {
+public class BrukerUvReader implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(BrukerUvReader.class.getName());
   private static final int TRACE_TIME_COL_INDEX = 1;
@@ -91,20 +90,49 @@ public class BrukerUvReader {
   private double traceProgress = 0d;
   private double spectraProgress = 0d;
   private String description = "Connecting to SQLite database...";
+  private final Connection connection;
 
-  private boolean initialized = false;
-
-  public BrukerUvReader(File dFolder) {
+  private BrukerUvReader(File dFolder) throws SQLException {
     this.folder = dFolder;
     chromatographySqlite = new File(folder, "chromatography-data.sqlite");
+    initSql();
+
+    if (folder.exists()) {
+      connection = DriverManager.getConnection(
+          "jdbc:sqlite:" + chromatographySqlite.getAbsolutePath());
+    } else {
+      connection = null;
+    }
+  }
+
+  public static boolean hasUvData(File dFolder) {
+    if (new File(dFolder, "chromatography-data.sqlite").exists()) {
+      return true;
+    }
+    return false;
+  }
+
+  public static BrukerUvReader forFolder(File dFolder) throws SQLException {
+    return new BrukerUvReader(dFolder);
+  }
+
+  public boolean isConnected() throws SQLException {
+    return connection != null && connection.isValid(2);
   }
 
   public static void main(String[] args) {
-    BrukerUvReader reader = new BrukerUvReader(new File("I:\\Downloads"));
-    final RawDataFileImpl file = new RawDataFileImpl("bla", null, null);
-    reader.importOtherData(file, null);
 
-    logger.finest("load" + file.getOtherDataFiles().size());
+    final RawDataFileImpl file = new RawDataFileImpl("bla", null, null);
+
+    try (BrukerUvReader reader = BrukerUvReader.forFolder(new File(
+        "I:\\Downloads"))) {
+      file.addOtherDataFiles(reader.loadChromatograms(null, file));
+      file.addOtherDataFiles(reader.loadSpectra(null, file));
+
+      logger.finest("load" + file.getOtherDataFiles().size());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private static boolean initSql() {
@@ -118,6 +146,14 @@ public class BrukerUvReader {
     return true;
   }
 
+  /**
+   * @param storage          The storage for the intensities.
+   * @param resultSet        The sql query result. col 1 must be rt, col 2 a blob of intensities.
+   * @param spectralData     spectral data to add the spectrum to.
+   * @param storedDomainAxis Already mapped domain axis values. they are all the same for the whole
+   *                         acquisition for PDA spectra.
+   * @return The loaded spectrum.
+   */
   private static @NotNull WavelengthSpectrum getSpectrumFromResult(MemoryMapStorage storage,
       ResultSet resultSet, OtherSpectralDataImpl spectralData, DoubleBuffer storedDomainAxis)
       throws SQLException {
@@ -125,6 +161,7 @@ public class BrukerUvReader {
     final byte[] intensitiesArray = resultSet.getBytes(2);
     final MemorySegment intensitiesSegment = MemorySegment.ofArray(intensitiesArray);
 
+    // intensities are an array of floats
     final float[] intensities = intensitiesSegment.toArray(FLOAT_ARRAY_LAYOUT);
     assert intensities.length == storedDomainAxis.limit() / 8;
 
@@ -143,48 +180,15 @@ public class BrukerUvReader {
     spectralData.setSpectraRangeUnit(BrukerUtils.unitToString(detector.yAxisUnit()));
   }
 
-  public boolean hasDataData() {
+  public boolean hasUvData() {
     return chromatographySqlite.exists();
   }
 
-  public boolean importOtherData(RawDataFile file, MemoryMapStorage storage) {
-    if (!initSql()) {
-      return false;
-    }
-
-    synchronized (org.sqlite.JDBC.class) {
-      try (Connection connection = DriverManager.getConnection(
-          "jdbc:sqlite:" + chromatographySqlite.getAbsolutePath())) {
-
-        description = "Importing traces";
-        final List<OtherDataFile> otherTraceFiles = loadChromatograms(connection, storage, file);
-        final List<OtherDataFile> otherSpectraFiles = loadSpectra(connection, storage, file);
-        if (file instanceof RawDataFileImpl impl) {
-          impl.addOtherDataFiles(otherTraceFiles);
-          impl.addOtherDataFiles(otherSpectraFiles);
-        }
-
-      } catch (SQLException e) {
-        logger.log(Level.SEVERE,
-            "Cannot load chromatography data for file %s".formatted(folder.getName()), e);
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   /**
-   * Loads chromatogram data from an sqllite connection.
-   *
-   * @param connection
-   * @param storage
-   * @param msFile
-   * @return
-   * @throws SQLException
+   * Loads chromatogram data from a sqlite connection.
    */
-  public List<OtherDataFile> loadChromatograms(Connection connection, MemoryMapStorage storage,
-      RawDataFile msFile) throws SQLException {
+  public List<OtherDataFile> loadChromatograms(MemoryMapStorage storage, RawDataFile msFile)
+      throws SQLException {
 
     final Map<ChromatogramType, List<Trace>> groupedChromatograms = readTraceInfo(connection);
 
@@ -229,30 +233,14 @@ public class BrukerUvReader {
     description = "Reading trace information.";
     logger.finest("%s: Reading trace information".formatted(folder.getName()));
 
-    final Statement statement = connection.createStatement();
-    statement.setQueryTimeout(30);
-    String query = "SELECT * FROM TraceSources";
-
-    List<Trace> traces = new ArrayList<>();
-    try (ResultSet rs = statement.executeQuery(query)) {
-      final ResultSetMetaData metaData = rs.getMetaData();
-
-      final Map<Integer, TraceColumns> indices = TraceColumns.findIndices(metaData);
-      while (rs.next()) {
-        var trace = new Trace();
-        for (Entry<Integer, TraceColumns> entry : indices.entrySet()) {
-          entry.getValue().map(entry.getKey(), rs, trace);
-        }
-        traces.add(trace);
-      }
-    }
+    final List<Trace> traces = Trace.readFromSql(connection);
 
     traces.removeIf(trace -> !trace.isValid());
     return traces.stream().filter(trace -> !trace.getChomatogramType().isMsType())
         .collect(Collectors.groupingBy(Trace::getChomatogramType));
   }
 
-  public OtherTimeSeries loadTimeSeriesData(MemoryMapStorage storage,
+  private OtherTimeSeries loadTimeSeriesData(MemoryMapStorage storage,
       OtherTimeSeriesData otherTimeSeriesData, final Trace trace, Connection connection)
       throws SQLException {
 
@@ -272,8 +260,8 @@ public class BrukerUvReader {
                   folder.getName()));
         }
 
-        TDoubleArrayList timesList = new TDoubleArrayList();
-        TFloatArrayList intensitiesList = new TFloatArrayList();
+        final TDoubleArrayList timesList = new TDoubleArrayList();
+        final TFloatArrayList intensitiesList = new TFloatArrayList();
         while (results.next()) {
           final MemorySegment timesSegment = MemorySegment.ofArray(
               results.getBytes(TRACE_TIME_COL_INDEX));
@@ -303,8 +291,8 @@ public class BrukerUvReader {
     }
   }
 
-  private List<OtherDataFile> loadSpectra(Connection connection, MemoryMapStorage storage,
-      RawDataFile msFile) throws SQLException {
+  public List<OtherDataFile> loadSpectra(MemoryMapStorage storage, RawDataFile msFile)
+      throws SQLException {
     description = "Reading spectra information";
     logger.finest("%s: Reading spectra information".formatted(folder.getName()));
 
@@ -360,5 +348,10 @@ public class BrukerUvReader {
 
   public String getDescription() {
     return description;
+  }
+
+  @Override
+  public void close() throws Exception {
+    connection.close();
   }
 }

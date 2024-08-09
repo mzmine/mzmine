@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,19 +26,39 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_uv;
 
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-class Trace {
+public record Trace(Long id, String description, String instrument, String instrumentId, Long type,
+                    Long unit, Double timeOffset, Long color) {
 
-  private Long id = null;
-  private String description = null;
-  private String instrument = null;
-  private String instrumentId = null;
-  private Long type = null;
-  private Long unit = null;
-  private Double timeOffset = null;
-  private Long color = null;
+  public static List<Trace> readFromSql(Connection con) throws SQLException {
+    final String query = "SELECT Id,Description,Instrument,InstrumentId,Type,Unit,TimeOffset,Color FROM TraceSources";
 
-  public Trace() {
+    List<Trace> traces = new ArrayList<>();
+    try (var statement = con.createStatement()) {
+      final ResultSet results = statement.executeQuery(query);
+
+      while (results.next()) {
+        final Trace trace = new Trace(results.getLong(1),
+            results.getString(2),
+            results.getString(3),
+            results.getString(4),
+            results.getLong(5),
+            results.getLong(6),
+            results.getDouble(7),
+            results.getLong(8));
+
+        traces.add(trace);
+      }
+
+      results.close();
+    }
+
+    return traces;
   }
 
   public boolean isValid() {
@@ -75,71 +95,7 @@ class Trace {
     return BrukerUtils.unitToString(unit().intValue());
   }
 
-  public void setUnit(Long unit) {
-    this.unit = unit;
-  }
-
   public String getConvertedRangeLabel() {
     return BrukerUtils.unitToLabel(unit.intValue());
-  }
-
-  public Long id() {
-    return id;
-  }
-
-  public String description() {
-    return description;
-  }
-
-  public String instrument() {
-    return instrument;
-  }
-
-  public String instrumentId() {
-    return instrumentId;
-  }
-
-  public Long type() {
-    return type;
-  }
-
-  public Long unit() {
-    return unit;
-  }
-
-  public Double timeOffset() {
-    return timeOffset;
-  }
-
-  public Long color() {
-    return color;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public void setInstrument(String instrument) {
-    this.instrument = instrument;
-  }
-
-  public void setInstrumentId(String instrumentId) {
-    this.instrumentId = instrumentId;
-  }
-
-  public void setType(Long type) {
-    this.type = type;
-  }
-
-  public void setTimeOffset(Double timeOffset) {
-    this.timeOffset = timeOffset;
-  }
-
-  public void setColor(Long color) {
-    this.color = color;
   }
 }
