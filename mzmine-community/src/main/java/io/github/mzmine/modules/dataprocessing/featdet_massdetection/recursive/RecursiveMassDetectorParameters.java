@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,11 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorSetupDialog;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.util.ExitCode;
 
 public class RecursiveMassDetectorParameters extends SimpleParameterSet {
 
@@ -45,15 +43,8 @@ public class RecursiveMassDetectorParameters extends SimpleParameterSet {
       "Maximum acceptable peak width in m/z", MZmineCore.getConfiguration().getMZFormat());
 
   public RecursiveMassDetectorParameters() {
-    super(new UserParameter[] {noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth},
+    super(new UserParameter[]{noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#recursive-threshold");
-  }
-
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    MassDetectorSetupDialog dialog =
-        new MassDetectorSetupDialog(valueCheckRequired, RecursiveMassDetector.class, this);
-    dialog.showAndWait();
-    return dialog.getExitCode();
   }
 
 }

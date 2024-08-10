@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,14 +47,4 @@ public class MassDetectorUtils {
   }
 
 
-  /**
-   * Create new mass detector with the parameters provided in this {@link MZmineProcessingStep}
-   */
-  @NotNull
-  public static MassDetector createMassDetector(
-      final MZmineProcessingStep<MassDetector> massDetectorStep) {
-    ParameterSet parameterSet = massDetectorStep.getParameterSet();
-    // derive new mass detector with parameters
-    return massDetectorStep.getModule().create(parameterSet);
-  }
 }

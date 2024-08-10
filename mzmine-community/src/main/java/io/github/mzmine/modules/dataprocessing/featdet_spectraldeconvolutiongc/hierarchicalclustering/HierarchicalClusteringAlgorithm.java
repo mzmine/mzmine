@@ -45,17 +45,15 @@ public class HierarchicalClusteringAlgorithm implements SpectralDeconvolutionAlg
     this(null, 1);
   }
 
+  public HierarchicalClusteringAlgorithm(ParameterSet parameters) {
+    this.rtTolerance = parameters.getValue(HierarchicalClusteringParameters.RT_TOLERANCE);
+    this.minNumberOfSignals = parameters.getValue(
+        HierarchicalClusteringParameters.MIN_NUMBER_OF_SIGNALS);
+  }
+
   public HierarchicalClusteringAlgorithm(RTTolerance rtTolerance, int minNumberOfSignals) {
     this.rtTolerance = rtTolerance;
     this.minNumberOfSignals = minNumberOfSignals;
-  }
-
-  @Override
-  public SpectralDeconvolutionAlgorithm create(ParameterSet parameters) {
-    var rtTolerance = parameters.getValue(HierarchicalClusteringParameters.RT_TOLERANCE);
-    var minNumberOfSignals = parameters.getValue(
-        HierarchicalClusteringParameters.MIN_NUMBER_OF_SIGNALS);
-    return new HierarchicalClusteringAlgorithm(rtTolerance, minNumberOfSignals);
   }
 
   @Override

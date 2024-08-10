@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,7 @@ import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabas
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 /**
@@ -43,8 +43,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 @Deprecated
 public class SpectraIdentificationOnlineDatabaseParameters extends SimpleParameterSet {
 
-  public static final ModuleComboParameter<OnlineDatabases> database = new ModuleComboParameter<OnlineDatabases>(
-      "Database", "Database to search", OnlineDatabases.values(), OnlineDatabases.PubChem);
+  public static final ModuleOptionsEnumComboParameter<OnlineDatabases> database = new ModuleOptionsEnumComboParameter<>(
+      "Database", "Database to search", OnlineDatabases.PubChem);
 
   public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
       "Ionization type", "Ionization type", IonizationType.values());

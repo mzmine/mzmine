@@ -23,22 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest;
+package io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 
-public class FactorOfLowestMassDetectorParameters extends SimpleParameterSet {
+public enum TimsTOFPrecursorSelectionOptions implements
+    ModuleOptionsEnum<PrecursorSelectionModule> {
+  TOP_N;
 
-  public static final DoubleParameter noiseFactor = new DoubleParameter("Noise factor",
-      "Signals less than lowest intensity x noiseFactor are removed",
-      MZmineCore.getConfiguration().getScoreFormat(), 2.5);
-
-  public FactorOfLowestMassDetectorParameters() {
-    super(new UserParameter[]{noiseFactor},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#factor-of-the-lowest-signal");
+  public static PrecursorSelectionModule createSelector(
+      final ValueWithParameters<TimsTOFPrecursorSelectionOptions> param) {
+    return switch (param.value()) {
+      case TOP_N -> new TopNSelectionModule(param.parameters());
+    };
   }
 
+  @Override
+  public Class<? extends PrecursorSelectionModule> getModuleClass() {
+    return switch (this) {
+      case TOP_N -> TopNSelectionModule.class;
+    };
+  }
+
+  @Override
+  public String getStableId() {
+    return switch (this) {
+      case TOP_N -> "Top N Precursor selection module";
+    };
+  }
 }

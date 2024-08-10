@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureRowAlignScorer;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
 import io.github.mzmine.modules.dataprocessing.align_join.RowVsRowScore;
@@ -42,6 +41,7 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import org.jetbrains.annotations.Nullable;
@@ -53,20 +53,21 @@ public class GcRowAlignScorer implements FeatureRowAlignScorer {
 
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
-  private final MZmineProcessingStep<SpectralSimilarityFunction> similarityFunction;
+  private final SpectralSimilarityFunction similarityFunction;
   private final double rtWeight;
 
   public GcRowAlignScorer(final ParameterSet parameters) {
     this.mzTolerance = parameters.getValue(GCAlignerParameters.MZ_TOLERANCE);
     this.rtTolerance = parameters.getValue(GCAlignerParameters.RT_TOLERANCE);
     rtWeight = parameters.getValue(GCAlignerParameters.RT_WEIGHT);
-    this.similarityFunction = parameters.getValue(GCAlignerParameters.SIMILARITY_FUNCTION);
+    var simfuncParams = parameters.getParameter(GCAlignerParameters.SIMILARITY_FUNCTION)
+        .getValueWithParameters();
+    this.similarityFunction = SpectralSimilarityFunctions.createOption(simfuncParams);
   }
 
   @Override
   public void scoreRowAgainstBaseRows(final List<FeatureListRow> baseRowsByRt,
       final FeatureListRow rowToAdd, final ConcurrentLinkedDeque<RowVsRowScore> scoresList) {
-
 
     final Range<Float> rtRange = rtTolerance.getToleranceRange(rowToAdd.getAverageRT());
     // find all rows in the aligned rows that might match
@@ -95,9 +96,7 @@ public class GcRowAlignScorer implements FeatureRowAlignScorer {
 
     // compare mass list data points of selected scans
     if (rowDPs != null && candidateDPs != null) {
-      sim = similarityFunction.getModule()
-          .getSimilarity(similarityFunction.getParameterSet(), mzTolerance, 0, rowDPs,
-              candidateDPs);
+      sim = similarityFunction.getSimilarity(mzTolerance, 0, rowDPs, candidateDPs);
       return sim;
     }
     return null;

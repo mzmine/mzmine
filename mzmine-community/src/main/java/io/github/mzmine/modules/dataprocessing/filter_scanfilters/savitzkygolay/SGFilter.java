@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,10 +80,19 @@ public class SGFilter implements ScanFilter {
 
   }
 
-  @Override
-  public Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters) {
+  private final int numOfDataPoints;
 
-    int numOfDataPoints = parameters.getParameter(SGFilterParameters.datapoints).getValue();
+  // requires default constructor for config
+  public SGFilter() {
+    numOfDataPoints = 5;
+  }
+
+  public SGFilter(final ParameterSet parameters) {
+    numOfDataPoints = parameters.getValue(SGFilterParameters.datapoints);
+  }
+
+  @Override
+  public Scan filterScan(RawDataFile newFile, Scan scan) {
 
     assert Avalues.containsKey(numOfDataPoints);
     assert Hvalues.containsKey(numOfDataPoints);
@@ -106,8 +115,8 @@ public class SGFilter implements ScanFilter {
 
     DataPoint newDataPoints[] = new DataPoint[newDataPointsLength];
 
-    for (int spectrumInd =
-        marginSize; spectrumInd < (oldDataPoints.length - marginSize); spectrumInd++) {
+    for (int spectrumInd = marginSize; spectrumInd < (oldDataPoints.length - marginSize);
+        spectrumInd++) {
 
       // zero intensity data points must be left unchanged
       if (oldDataPoints[spectrumInd].getIntensity() == 0) {
@@ -119,7 +128,7 @@ public class SGFilter implements ScanFilter {
 
       for (int windowInd = 1; windowInd <= marginSize; windowInd++) {
         sumOfInts += aVals[windowInd] * (oldDataPoints[spectrumInd + windowInd].getIntensity()
-            + oldDataPoints[spectrumInd - windowInd].getIntensity());
+                                         + oldDataPoints[spectrumInd - windowInd].getIntensity());
       }
 
       sumOfInts = sumOfInts / h;
@@ -127,8 +136,8 @@ public class SGFilter implements ScanFilter {
       if (sumOfInts < 0) {
         sumOfInts = 0;
       }
-      newDataPoints[spectrumInd - marginSize] =
-          new SimpleDataPoint(oldDataPoints[spectrumInd].getMZ(), sumOfInts);
+      newDataPoints[spectrumInd - marginSize] = new SimpleDataPoint(
+          oldDataPoints[spectrumInd].getMZ(), sumOfInts);
 
     }
 

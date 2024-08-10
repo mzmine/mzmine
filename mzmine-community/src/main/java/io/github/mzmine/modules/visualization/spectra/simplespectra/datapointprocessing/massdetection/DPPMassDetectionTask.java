@@ -26,8 +26,9 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorUtils;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
@@ -36,7 +37,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.awt.Color;
 import org.jmol.util.Logger;
 
@@ -49,8 +49,9 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
       DataPointProcessingController controller, TaskStatusListener listener) {
     super(dataPoints, targetPlot, parameterSet, controller, listener);
     currentIndex = 0;
-    var massDetectorStep = parameterSet.getValue(DPPMassDetectionParameters.massDetector);
-    detector = MassDetectorUtils.createMassDetector(massDetectorStep);
+    var massDetectorStep = parameterSet.getParameter(DPPMassDetectionParameters.massDetector)
+        .getValueWithParameters();
+    detector = MassDetectors.createMassDetector(massDetectorStep);
 
     setDisplayResults(
         parameterSet.getParameter(DPPMassDetectionParameters.displayResults).getValue());
@@ -63,9 +64,10 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (getDataPoints().getNumberOfDataPoints() == 0)
+    if (getDataPoints().getNumberOfDataPoints() == 0) {
       return 0;
-    return currentIndex / getDataPoints().getNumberOfDataPoints();
+    }
+    return currentIndex / (double) getDataPoints().getNumberOfDataPoints();
   }
 
   @Override

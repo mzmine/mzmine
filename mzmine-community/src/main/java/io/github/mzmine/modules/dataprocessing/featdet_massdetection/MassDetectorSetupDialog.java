@@ -41,24 +41,11 @@ import java.util.ArrayList;
  */
 public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview {
 
-  protected MassDetector massDetector;
-  protected ParameterSet parameters;
-
   /**
-   * @param parameters
+   * @param mainParams
    */
-  public MassDetectorSetupDialog(boolean valueCheckRequired, Class<?> massDetectorClass,
-      ParameterSet parameters) {
-
-    super(valueCheckRequired, parameters);
-
-    this.parameters = parameters;
-
-    for (MassDetector detector : MassDetectionParameters.massDetectors) {
-      if (detector.getClass().equals(massDetectorClass)) {
-        this.massDetector = detector;
-      }
-    }
+  public MassDetectorSetupDialog(boolean valueCheckRequired, ParameterSet mainParams) {
+    super(valueCheckRequired, mainParams);
   }
 
   @Override
@@ -80,7 +67,11 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
       return;
     }
 
-    double[][] mzValues = massDetector.create(parameterSet).getMassValues(previewScan);
+    var detector = parameterSet.getParameter(MassDetectionParameters.massDetector)
+        .getValueWithParameters();
+    MassDetector massDetector = detector.value().createMassDetector(detector.parameters());
+
+    double[][] mzValues = massDetector.getMassValues(previewScan);
 
     MassListDataSet peaksDataSet = new MassListDataSet(mzValues[0], mzValues[1]);
 
