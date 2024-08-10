@@ -87,7 +87,11 @@ public enum DBEntryField {
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
 
   // Dataset ID is for MassIVE or other repositories
-  DATASET_ID, FILENAME, USI, SCAN_NUMBER(Integer.class), SPLASH,
+  DATASET_ID, FILENAME, USI,
+  /**
+   * `   * int or a {@code List<Integer>} `
+   */
+  SCAN_NUMBER, SPLASH,
 
   // Quality measures in wrapper object
   QUALITY, // individual properties

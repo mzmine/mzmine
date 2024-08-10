@@ -65,6 +65,7 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -91,8 +92,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Scan related utilities
@@ -2104,6 +2105,18 @@ public class ScanUtils {
    */
   public static IntStream extractScanNumbers(MassSpectrum spectrum) {
     return streamSourceScans(spectrum, Scan.class).mapToInt(Scan::getScanNumber).distinct();
+  }
+
+  public static Stream<String> extractUSI(MassSpectrum spectrum, @Nullable String datasetID) {
+    String baseUSI = "mzspec:" + (datasetID == null ? "" : datasetID + ":");
+    return streamSourceScans(spectrum, Scan.class).map(scan -> scanToUSI(scan, baseUSI)).distinct();
+  }
+
+  public static String scanToUSI(Scan scan, String baseUSI) {
+    String filename = FileAndPathUtil.eraseFormat(scan.getDataFile().getFileName());
+    int scanNumber = scan.getScanNumber();
+    // map to USI
+    return baseUSI + filename + ":" + scanNumber;
   }
 
   public static <T extends MassSpectrum> Stream<T> streamSourceScans(final MassSpectrum scan,

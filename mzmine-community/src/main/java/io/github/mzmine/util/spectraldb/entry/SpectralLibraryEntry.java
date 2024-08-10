@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -55,6 +56,7 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,8 +106,9 @@ public interface SpectralLibraryEntry extends MassList {
 
   /**
    * Create a new spectral library entry from any {@link FeatureAnnotation} but new spectral data
-   * @param scan only used for scan metadata - data is provided through dataPoints
-   * @param match the annotation for additional metadata
+   *
+   * @param scan       only used for scan metadata - data is provided through dataPoints
+   * @param match      the annotation for additional metadata
    * @param dataPoints the actual data
    * @return spectral library entry
    */
@@ -125,10 +128,6 @@ public interface SpectralLibraryEntry extends MassList {
     }
     entry.putIfNotNull(DBEntryField.POLARITY, scan.getPolarity());
 
-    if (scan instanceof MergedMassSpectrum merged) {
-      entry.putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
-      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getMergingType());
-    }
 
     MsMsInfo msMsInfo = scan.getMsMsInfo();
     if (msMsInfo instanceof MSnInfoImpl msnInfo) {
@@ -152,6 +151,20 @@ public interface SpectralLibraryEntry extends MassList {
         entry.putIfNotNull(DBEntryField.ISOLATION_WINDOW, RangeUtils.rangeLength(window));
       }
       entry.putIfNotNull(DBEntryField.MS_LEVEL, msMsInfo.getMsLevel());
+    }
+
+    // merged scans are derived from multiple source scans - add all information here and overwrite
+    if (scan instanceof MergedMassSpectrum merged) {
+      entry.putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
+      entry.putIfNotNull(DBEntryField.SCAN_NUMBER,
+          ScanUtils.extractScanNumbers(merged).boxed().toList());
+      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getMergingType());
+
+      String datasetID = entry.getOrElse(DBEntryField.DATASET_ID, null);
+      entry.putIfNotNull(DBEntryField.USI, ScanUtils.extractUSI(merged, datasetID).toList());
+    } else {
+      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, MergingType.SINGLE_SCAN);
+      entry.putIfNotNull(DBEntryField.SCAN_NUMBER, scan.getScanNumber());
     }
 
     return entry;

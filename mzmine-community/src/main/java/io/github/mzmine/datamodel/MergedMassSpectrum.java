@@ -63,6 +63,10 @@ public interface MergedMassSpectrum extends Scan {
    */
   enum MergingType {
     /**
+     * Single scan so not merged yet
+     */
+    SINGLE_SCAN,
+    /**
      * SAME_ENERGY merged all spectra from the same energy
      */
     SAME_ENERGY,

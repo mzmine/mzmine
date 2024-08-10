@@ -44,7 +44,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorChecker;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorFlag;
@@ -344,7 +343,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     final String fileUSI = Path.of(requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
         msmsScan.getDataFile().getName())).getFileName().toString() + ":" + scanNumber;
 
-    entry.putIfNotNull(DBEntryField.SCAN_NUMBER, scanNumber);
     entry.getField(DBEntryField.DATASET_ID).ifPresent(
         dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
 
