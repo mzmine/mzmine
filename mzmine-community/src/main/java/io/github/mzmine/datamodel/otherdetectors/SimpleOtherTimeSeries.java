@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -100,7 +100,9 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
 
     final float[] rts = new float[getNumberOfValues()];
     timeBuffer.get(rts);
-    return new SimpleOtherTimeSeries(storage, rts, newIntensities, newName, getTimeSeriesData());
+    return new SimpleOtherTimeSeries(timeBuffer,
+        StorageUtils.storeValuesToDoubleBuffer(storage, newIntensities), newName,
+        getTimeSeriesData());
   }
 
   @Override
