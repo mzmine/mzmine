@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -163,21 +162,32 @@ public class BrukerUvReader implements AutoCloseable {
 
     // intensities are an array of floats
     final float[] intensities = intensitiesSegment.toArray(FLOAT_ARRAY_LAYOUT);
-    assert intensities.length == storedDomainAxis.limit() / 8;
+    assert intensities.length == storedDomainAxis.limit();
 
     final WavelengthSpectrum spectrum = new WavelengthSpectrum(spectralData, storedDomainAxis,
         StorageUtils.storeValuesToDoubleBuffer(storage,
             ConversionUtils.convertFloatsToDoubles(intensities)), MassSpectrumType.PROFILE,
         (float) rt);
+
     return spectrum;
   }
 
   private static void applyUnitLabelsToSpectralData(SpectrumSource detector,
       OtherSpectralDataImpl spectralData) {
-    spectralData.setSpectraDomainLabel(BrukerUtils.unitToLabel(detector.xAxisUnit()));
-    spectralData.setSpectraDomainUnit(BrukerUtils.unitToString(detector.xAxisUnit()));
-    spectralData.setSpectraRangeLabel(BrukerUtils.unitToLabel(detector.yAxisUnit()));
-    spectralData.setSpectraRangeUnit(BrukerUtils.unitToString(detector.yAxisUnit()));
+    if (detector.yAxisUnit() != 7) {
+      spectralData.setSpectraRangeLabel(BrukerUtils.unitToLabel(detector.yAxisUnit()));
+      spectralData.setSpectraRangeUnit(BrukerUtils.unitToString(detector.yAxisUnit()));
+    } else {
+      spectralData.setSpectraRangeLabel("Intensity");
+      spectralData.setSpectraRangeUnit("a.u.");
+    }
+    if (detector.xAxisUnit() != 7) {
+      spectralData.setSpectraDomainLabel(BrukerUtils.unitToLabel(detector.xAxisUnit()));
+      spectralData.setSpectraDomainUnit(BrukerUtils.unitToString(detector.xAxisUnit()));
+    } else {
+      spectralData.setSpectraDomainLabel("Wavelength");
+      spectralData.setSpectraDomainUnit("nm");
+    }
   }
 
   public boolean isConnected() throws SQLException {
@@ -331,7 +341,6 @@ public class BrukerUvReader implements AutoCloseable {
       final double[] xAxisValues = detector.xAxis();
       final DoubleBuffer storedDomainAxis = StorageUtils.storeValuesToDoubleBuffer(storage,
           xAxisValues);
-      // load 100 spectra at a time
 
       final OtherDataFileImpl spectraFile = new OtherDataFileImpl(msFile);
       final OtherSpectralDataImpl spectralData = new OtherSpectralDataImpl(spectraFile);
