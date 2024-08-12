@@ -29,6 +29,7 @@ import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.previewpane.AbstractPreviewPane;
 import io.github.mzmine.parameters.dialogs.previewpane.FeaturePreviewPane;
 import java.util.function.Function;
 import javafx.geometry.Pos;
@@ -42,10 +43,10 @@ public class ParameterDialogWithPreviewPanes extends ParameterSetupDialogWithPre
   private final ScrollPane scroll = new ScrollPane();
   private final VBox vbox = FxLayout.newVBox(Pos.TOP_CENTER, FxLayout.DEFAULT_PADDING_INSETS);
   @NotNull
-  private final Function<ParameterSet, FeaturePreviewPane> createNewPreview;
+  private final Function<ParameterSet, AbstractPreviewPane<?>> createNewPreview;
 
   public ParameterDialogWithPreviewPanes(boolean valueCheckRequired, ParameterSet parameters,
-      Region message, @NotNull Function<ParameterSet, FeaturePreviewPane> createNewPreview) {
+      Region message, @NotNull Function<ParameterSet, AbstractPreviewPane<?>> createNewPreview) {
     super(valueCheckRequired, parameters, message);
     this.createNewPreview = createNewPreview;
     scroll.setFitToWidth(true);
@@ -59,7 +60,7 @@ public class ParameterDialogWithPreviewPanes extends ParameterSetupDialogWithPre
   }
 
   public ParameterDialogWithPreviewPanes(boolean valueCheckRequired, ParameterSet parameters,
-      @NotNull Function<ParameterSet, FeaturePreviewPane> createNewPreview) {
+      @NotNull Function<ParameterSet, AbstractPreviewPane<?>> createNewPreview) {
     this(valueCheckRequired, parameters, null, createNewPreview);
   }
 

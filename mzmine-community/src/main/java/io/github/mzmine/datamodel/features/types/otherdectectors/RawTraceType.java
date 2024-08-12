@@ -23,38 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.dialogs.previewpane;
+package io.github.mzmine.datamodel.features.types.otherdectectors;
 
-import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
-import java.util.List;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
+import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public interface PreviewPane<T> {
+/**
+ * Type to link processed {@link OtherFeature} to their original raw data (also an unprocessed
+ * {@link OtherFeature}).
+ */
+public class RawTraceType extends DataType<OtherFeature> implements NoTextColumn, NullColumnType {
 
-  @NotNull
-  SimpleXYChart<PlotXYDataProvider> createChart();
+  @Override
+  public @NotNull String getUniqueID() {
+    return "raw_trace";
+  }
 
-  /**
-   * This method is executed on the fx thread and updates the chart with the respective datasets.
-   *
-   * @param datasets The new datasets. May be empty.
-   * @param chart    The chart of the preview.
-   */
-  void updateChart(@NotNull List<DatasetAndRenderer> datasets,
-      @NotNull SimpleXYChart<? extends PlotXYDataProvider> chart);
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Raw trace";
+  }
 
-  /**
-   * Calculate the new datasets after the feature changed. Parameters are update. This calculation
-   * is run on a separate thread. The datasets are added to the chart in
-   * {@link FeaturePreviewPane#updateChart(List, SimpleXYChart)} )}.
-   */
-  @NotNull
-  List<@NotNull DatasetAndRenderer> calculateNewDatasets(@Nullable T valueForPreview);
+  @Override
+  public Property<OtherFeature> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
 
-  void updatePreview();
-
-  T getValueForPreview();
+  @Override
+  public Class<OtherFeature> getValueClass() {
+    return OtherFeature.class;
+  }
 }

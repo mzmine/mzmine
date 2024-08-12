@@ -23,18 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.featuredata;
+package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import org.jetbrains.annotations.NotNull;
 
-public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
+public class MultidetectorVisualizerController extends FxController<MultidetectorVisualizerModel> {
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
+  private final MultidetectorVisualizerBuilder builder;
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
-      int endIndexExclusive);
+  public MultidetectorVisualizerController() {
+    super(new MultidetectorVisualizerModel());
+    builder = new MultidetectorVisualizerBuilder(model);
+  }
 
-  @Nullable
-  MemoryMapStorage getStorage();
+  @Override
+  protected @NotNull FxViewBuilder<MultidetectorVisualizerModel> getViewBuilder() {
+
+    return builder;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,18 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.featuredata;
+package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import org.jetbrains.annotations.Nullable;
+enum State {
+  SETTING_LEFT, SETTING_RIGHT, NOT_INTEGRATING;
 
-public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
-
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
-
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
-      int endIndexExclusive);
-
-  @Nullable
-  MemoryMapStorage getStorage();
+  boolean isIntegrating() {
+    return switch (this) {
+      case SETTING_LEFT, SETTING_RIGHT -> true;
+      case NOT_INTEGRATING -> false;
+    };
+  }
 }

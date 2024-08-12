@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,18 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.featuredata;
+package io.github.mzmine.datamodel.otherdetectors;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 
-public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
+public class OtherFeatureImpl implements OtherFeature {
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
+  public final ObservableMap<DataType, Object> map = FXCollections.observableHashMap();
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
-      int endIndexExclusive);
+  public OtherFeatureImpl() {
+  }
 
-  @Nullable
-  MemoryMapStorage getStorage();
+  public OtherFeatureImpl(OtherTimeSeries series) {
+    set(OtherFileType.class, series.getOtherDataFile());
+    set(OtherFeatureDataType.class, series);
+    set(ChromatogramTypeType.class, series.getChromatoogramType());
+  }
+
+  @Override
+  public ObservableMap<DataType, Object> getMap() {
+    return map;
+  }
 }

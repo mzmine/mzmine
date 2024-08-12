@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,18 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.featuredata;
+package io.github.mzmine.datamodel.features.types.otherdectectors;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
 
-public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
+public class ChromatogramTypeType extends DataType<ChromatogramType> {
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
+  @Override
+  public @NotNull String getUniqueID() {
+    return "other_chromatogram_type";
+  }
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
-      int endIndexExclusive);
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Chromatogram type";
+  }
 
-  @Nullable
-  MemoryMapStorage getStorage();
+  @Override
+  public Property<ChromatogramType> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<ChromatogramType> getValueClass() {
+    return ChromatogramType.class;
+  }
 }

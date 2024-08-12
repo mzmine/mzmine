@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,17 +38,17 @@ import javafx.scene.control.Tooltip;
 import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-public class FxIconButtonBuilder {
+public class FxIconButtonBuilder<T extends ButtonBase> {
 
   private final FontIcon icon;
-  private final ButtonBase button;
+  private final T button;
   private BooleanExpression flashingProperty;
 
-  public FxIconButtonBuilder(@NotNull final ButtonBase button, @NotNull IconCodeSupplier iconCode) {
+  public FxIconButtonBuilder(@NotNull final T button, @NotNull IconCodeSupplier iconCode) {
     this(button, iconCode.getIconCode());
   }
 
-  public FxIconButtonBuilder(@NotNull final ButtonBase button, @NotNull String iconCode) {
+  public FxIconButtonBuilder(@NotNull final T button, @NotNull String iconCode) {
     icon = new FontIcon(iconCode);
     icon.setIconSize(FxIconUtil.DEFAULT_ICON_SIZE);
     this.button = button;
@@ -56,7 +56,7 @@ public class FxIconButtonBuilder {
   }
 
 
-  public ButtonBase build() {
+  public T build() {
     if (flashingProperty != null) {
       FxFlashingAnimation.animate(icon, flashingProperty);
     }
@@ -66,53 +66,53 @@ public class FxIconButtonBuilder {
   }
 
   //
-  public static FxIconButtonBuilder ofIconButton(IconCodeSupplier iconCode) {
-    return new FxIconButtonBuilder(new Button(), iconCode.getIconCode());
+  public static FxIconButtonBuilder<Button> ofIconButton(IconCodeSupplier iconCode) {
+    return new FxIconButtonBuilder<>(new Button(), iconCode.getIconCode());
+  }
+
+  public static FxIconButtonBuilder<ToggleButton> ofToggleIconButton(IconCodeSupplier iconCode) {
+    return new FxIconButtonBuilder<>(new ToggleButton(), iconCode.getIconCode());
   }
 
   public static FxIconButtonBuilder ofMenuIconButton(IconCodeSupplier iconCode) {
     return new FxIconButtonBuilder(new MenuButton(), iconCode.getIconCode());
   }
 
-  public static FxIconButtonBuilder ofToggleIconButton(IconCodeSupplier iconCode) {
-    return new FxIconButtonBuilder(new ToggleButton(), iconCode.getIconCode());
+  public static FxIconButtonBuilder<Button> ofIconButton(String iconCode) {
+    return new FxIconButtonBuilder<>(new Button(), iconCode);
   }
 
-  public static FxIconButtonBuilder ofIconButton(String iconCode) {
-    return new FxIconButtonBuilder(new Button(), iconCode);
+  public static FxIconButtonBuilder<ToggleButton> ofToggleIconButton(String iconCode) {
+    return new FxIconButtonBuilder<>(new ToggleButton(), iconCode);
   }
 
-  public static FxIconButtonBuilder ofToggleIconButton(String iconCode) {
-    return new FxIconButtonBuilder(new ToggleButton(), iconCode);
-  }
-
-  public FxIconButtonBuilder tooltip(String tooltip) {
+  public FxIconButtonBuilder<T> tooltip(String tooltip) {
     if (tooltip != null) {
       button.setTooltip(new Tooltip(tooltip));
     }
     return this;
   }
 
-  public FxIconButtonBuilder size(int size) {
+  public FxIconButtonBuilder<T> size(int size) {
     icon.setIconSize(size);
     return this;
   }
 
-  public FxIconButtonBuilder onAction(Runnable onAction) {
+  public FxIconButtonBuilder<T> onAction(Runnable onAction) {
     if (onAction != null) {
       button.setOnAction(_ -> onAction.run());
     }
     return this;
   }
 
-  public FxIconButtonBuilder bindDisable(final ObservableValue<? extends Boolean> disableWhen) {
+  public FxIconButtonBuilder<T> bindDisable(final ObservableValue<? extends Boolean> disableWhen) {
     if (disableWhen != null) {
       button.disableProperty().bind(disableWhen);
     }
     return this;
   }
 
-  public FxIconButtonBuilder flashingProperty(final BooleanExpression flashingProperty) {
+  public FxIconButtonBuilder<T> flashingProperty(final BooleanExpression flashingProperty) {
     this.flashingProperty = flashingProperty;
     return this;
   }
