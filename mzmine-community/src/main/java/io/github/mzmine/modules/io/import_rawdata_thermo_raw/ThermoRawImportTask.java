@@ -54,6 +54,7 @@ import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -65,6 +66,7 @@ public class ThermoRawImportTask extends AbstractTask {
   public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
 
   private static final Logger logger = Logger.getLogger(ThermoRawImportTask.class.getName());
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ThermoRawImportTask.class);
 
   private final File fileToOpen;
   private final MZmineProject project;
@@ -186,8 +188,17 @@ public class ThermoRawImportTask extends AbstractTask {
 
   private @Nullable ProcessBuilder createProcessFromThermoFileParser() throws IOException {
     if (CurrentUserService.getUser().getUserType() != UserType.ACADEMIC) {
-      error("Cannot use Thermo raw file parser import without an academic license.");
-      return null;
+      logger.info(
+          "Thermo import via raw file parser selected although the user is not academic. Overriding.");
+      ConfigService.getPreferences()
+          .setParameter(MZminePreferences.thermoImportChoice, ThermoImportOptions.MSCONVERT);
+      // try to launch via msconvert to make it seemless.
+      final ProcessBuilder msconvert = createProcessFromMsConvert();
+      if (msconvert == null) {
+        error("Cannot use Thermo raw file parser import without an academic license.");
+        return null;
+      }
+      return msconvert;
     }
 
     final File thermoRawFileParserDir = unzipThermoRawFileParser();

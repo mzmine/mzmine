@@ -57,8 +57,11 @@ import io.github.mzmine.util.web.Proxy;
 import io.github.mzmine.util.web.ProxyType;
 import io.github.mzmine.util.web.ProxyUtils;
 import io.mzio.users.gui.fx.UsersController;
+import io.mzio.users.service.UserType;
+import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javafx.application.Platform;
@@ -495,5 +498,22 @@ public class MZminePreferences extends SimpleParameterSet {
     ProxyParameters params = pp.getEmbeddedParameters();
     params.setProxy(proxy);
     ProxyUtils.setSystemProxy(proxy);
+  }
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
+
+    if (getValue(MZminePreferences.thermoImportChoice) == ThermoImportOptions.THERMO_RAW_FILE_PARSER
+        && CurrentUserService.getUser() != null
+        && CurrentUserService.getUser().getUserType() != UserType.ACADEMIC) {
+      errorMessages.add(
+          "Importing Thermo raw files via the Thermo raw file parser is only available for academic "
+              + "users. Please select and install MSConvert.");
+      return false;
+    }
+    return superCheck;
   }
 }
