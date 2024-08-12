@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,7 +54,7 @@ public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
   private final int iterations;
 
   public PolynomialBaselineCorrection() {
-    super(null, 5, null, null);
+    super(null, 5, "", null);
     degree = 1;
     iterations = 1;
   }

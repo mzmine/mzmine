@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Abstra
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrector;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.akimaspline.AkimaSplineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -65,7 +64,7 @@ public class SplineBaselineCorrector extends UnivariateBaselineCorrector {
             ? AbstractBaselineCorrector.initializeLocalMinResolver((ModularFeatureList) flist)
             : null;
 
-    return new AkimaSplineCorrector(storage, numSamples, suffix, resolver);
+    return new SplineBaselineCorrector(storage, numSamples, suffix, resolver);
   }
 
   @Override

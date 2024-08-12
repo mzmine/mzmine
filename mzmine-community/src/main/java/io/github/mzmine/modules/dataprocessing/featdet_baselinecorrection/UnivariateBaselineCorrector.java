@@ -36,15 +36,17 @@ import java.awt.Color;
 import java.util.List;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrector {
 
   public UnivariateBaselineCorrector() {
-    super(null, 5, null, null);
+    super(null, 5, "", null);
   }
 
-  public UnivariateBaselineCorrector(MemoryMapStorage storage, int numSamples, String suffix,
-      MinimumSearchFeatureResolver resolver) {
+  public UnivariateBaselineCorrector(@Nullable MemoryMapStorage storage, int numSamples,
+      @NotNull String suffix, @Nullable MinimumSearchFeatureResolver resolver) {
     super(storage, numSamples, suffix, resolver);
   }
 

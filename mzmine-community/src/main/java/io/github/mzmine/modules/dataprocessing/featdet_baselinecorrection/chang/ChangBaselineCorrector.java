@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,27 +51,52 @@ import org.jetbrains.annotations.Nullable;
 public class ChangBaselineCorrector extends AbstractBaselineCorrector {
 
   protected final MemoryMapStorage storage = null;
-  protected double[] xBuffer = new double[0];
-  protected double[] yBuffer = new double[0];
   private final double alpha;
   private final int maxSegments;
   private final double baselineFraction;
   private final int windowSize;
   private final double threshold;
+  protected double[] xBuffer = new double[0];
+  protected double[] yBuffer = new double[0];
 
   public ChangBaselineCorrector() {
-    this(null, null, 0.95, 100, 0.2, 10, 0.5);
+    this(null, "", 0.95, 100, 0.2, 10, 0.5);
   }
 
   public ChangBaselineCorrector(MemoryMapStorage storage, String suffix, double alpha,
       int maxSegments, double baselineFraction, int windowSize, double threshold) {
-    super(storage, 0, null, null);
+    super(storage, 0, suffix, null);
     this.alpha = alpha;
     this.maxSegments = maxSegments;
     this.baselineFraction = baselineFraction;
     this.windowSize = windowSize;
     this.threshold = threshold;
 
+  }
+
+  // Method for linear interpolation
+  private static double[] linearInterpolation(double[] x, double[] y, double[] newX) {
+    double[] newY = new double[newX.length];
+    int index = 0;
+    for (int i = 0; i < newX.length; i++) {
+      while (index < x.length - 1 && newX[i] > x[index + 1]) {
+        index++;
+      }
+      double ratio = (newX[i] - x[index]) / (x[index + 1] - x[index]);
+      newY[i] = y[index] + ratio * (y[index + 1] - y[index]);
+    }
+    return newY;
+  }
+
+  public static double[] highPassFilter(double[] x, double alpha) {
+    double[] y = new double[x.length];
+    y[0] = alpha * (0 + x[0]);
+
+    for (int i = 1; i < x.length; i++) {
+      y[i] = alpha * (y[i - 1] + x[i] - x[i - 1]);
+    }
+
+    return y;
   }
 
   @Override
@@ -141,23 +166,12 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
           i -> backgroundSignal[i] + 2 * (threshold * 0.5) * 2 * backgroundSDev));
       additionalData.add(new AnyXYProvider(Color.BLUE, "background", numValues, i -> xBuffer[i],
           i -> backgroundSignal[i]));
+      additionalData.add(
+          new AnyXYProvider(Color.GREEN, "isSignal " + backgroundSDev, numValues, i -> xBuffer[i],
+              i -> isSignal[i] ? 1000d : -1000d));
     }
 
     return createNewTimeSeries(timeSeries, numValues, yBuffer);
-  }
-
-  // Method for linear interpolation
-  private static double[] linearInterpolation(double[] x, double[] y, double[] newX) {
-    double[] newY = new double[newX.length];
-    int index = 0;
-    for (int i = 0; i < newX.length; i++) {
-      while (index < x.length - 1 && newX[i] > x[index + 1]) {
-        index++;
-      }
-      double ratio = (newX[i] - x[index]) / (x[index + 1] - x[index]);
-      newY[i] = y[index] + ratio * (y[index + 1] - y[index]);
-    }
-    return newY;
   }
 
   @Override
@@ -187,16 +201,5 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
     return ChangBaselineCorrectorParameters.class;
-  }
-
-  public static double[] highPassFilter(double[] x, double alpha) {
-    double[] y = new double[x.length];
-    y[0] = alpha * (0 + x[0]);
-
-    for (int i = 1; i < x.length; i++) {
-      y[i] = alpha * (y[i - 1] + x[i] - x[i - 1]);
-    }
-
-    return y;
   }
 }

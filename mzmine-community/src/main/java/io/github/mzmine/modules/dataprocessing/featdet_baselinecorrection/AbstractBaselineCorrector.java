@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,7 +55,7 @@ public abstract class AbstractBaselineCorrector implements BaselineCorrector {
   boolean preview = false;
 
   public AbstractBaselineCorrector(@Nullable MemoryMapStorage storage, int numSamples,
-      @NotNull String suffix, MinimumSearchFeatureResolver resolver) {
+      @NotNull String suffix, @Nullable MinimumSearchFeatureResolver resolver) {
 
     this.storage = storage;
     this.numSamples = numSamples;
