@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -387,7 +387,7 @@ public class ConversionUtils {
         .filter(c -> c instanceof MzMLChromatogram).map(c -> (MzMLChromatogram) c)
         .collect(Collectors.groupingBy(ConversionUtils::getChromatogramType));
 
-    List<OtherDataFile> otherFiles = new ArrayList<>();
+    final List<OtherDataFile> otherFiles = new ArrayList<>();
 
     for (Entry<ChromatogramType, List<MzMLChromatogram>> groupedByChromType : groupedChromatograms.entrySet()
         .stream().sorted(Comparator.comparing(e -> e.getKey().getDescription())).toList()) {
@@ -404,8 +404,8 @@ public class ConversionUtils {
         final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
         otherFile.setDetectorType(DetectorType.OTHER);
         timeSeriesData.setChromatogramType(groupedByChromType.getKey());
-        otherFile.setDescription(
-            groupedByChromType.getKey().getDescription() + "_" + unit.getSign());
+        otherFile.setDescription(unit +  "_" +
+            groupedByChromType.getKey().getDescription());
 
         for (MzMLChromatogram chrom : unitChromEntry.getValue()) {
           final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
