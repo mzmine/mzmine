@@ -33,9 +33,13 @@ import org.w3c.dom.Element;
 public class OtherTraceSelectionParameter implements
     UserParameter<OtherTraceSelection, OtherTraceSelectionComponent> {
 
+  private final OtherTraceSelection value;
+  private final String description;
+  private final String name;
+
   @Override
   public String getDescription() {
-    return "";
+    return description;
   }
 
   @Override
@@ -56,17 +60,17 @@ public class OtherTraceSelectionParameter implements
 
   @Override
   public String getName() {
-    return "";
+    return name;
   }
 
   @Override
   public OtherTraceSelection getValue() {
-    return null;
+    return value;
   }
 
   @Override
   public void setValue(OtherTraceSelection newValue) {
-
+    this.value = value;
   }
 
   @Override
