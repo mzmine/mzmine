@@ -30,13 +30,16 @@ import static io.github.mzmine.util.StringUtils.inQuotes;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.TextUtils;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -112,18 +115,41 @@ public class OtherTraceSelection {
     }
   }
 
+  public Stream<OtherFeature> streamMatchingTraces(OtherTimeSeriesData otherTimeSeriesData) {
+    // go from top level to make sure everything matches. if not, the stream will simply be empty.
+    return streamMatchingTraces(
+        List.of(otherTimeSeriesData.getOtherDataFile().getCorrespondingRawDataFile()));
+  }
+
+  public List<OtherFeature> getMatchingTraces(OtherTimeSeriesData otherTimeSeriesData) {
+    return streamMatchingTraces(otherTimeSeriesData).toList();
+  }
+
   public List<OtherFeature> getMatchingTraces(Collection<RawDataFile> msFiles) {
+    return streamMatchingTraces(msFiles).toList();
+  }
+
+  public Stream<OtherFeature> streamMatchingTraces(Collection<RawDataFile> msFiles) {
+    return streamMatchingTimeSeriesData(msFiles) //
+        .flatMap(rawOrProcessed::streamMatching);
+  }
+
+  public List<OtherTimeSeriesData> getMatchingTimeSeriesData(Collection<RawDataFile> msFiles) {
+    return streamMatchingTimeSeriesData(msFiles).toList(); //
+  }
+
+  public Stream<OtherTimeSeriesData> streamMatchingTimeSeriesData(Collection<RawDataFile> msFiles) {
     return msFiles.stream().flatMap(f -> f.getOtherDataFiles().stream())
-        .filter(OtherDataFile::hasTimeSeries).map(OtherDataFile::getOtherTimeSeries)//
+        .filter(OtherDataFile::hasTimeSeries).map(OtherDataFile::getOtherTimeSeries)
+        .filter(Objects::nonNull)//
         .filter(
-            data -> chromatogramType != null || data.getChromatogramType() == chromatogramType)//
+            data -> chromatogramType == null || data.getChromatogramType() == chromatogramType)//
         .filter(data -> rangeUnitFilter == null || data.getTimeSeriesRangeUnit()
-            .matches(rangeLabelFilter))//
+            .matches(rangeUnitFilter))//
         .filter(data -> rangeLabelFilter == null || data.getTimeSeriesRangeLabel()
             .matches(rangeLabelFilter))//
-        .filter(data -> descriptionFilter != null || data.getOtherDataFile().getDescription()
-            .matches(descriptionFilter)) //
-        .flatMap(rawOrProcessed::streamMatching).toList();
+        .filter(data -> descriptionFilter == null || data.getOtherDataFile().getDescription()
+            .matches(descriptionFilter)); //
   }
 
   /**

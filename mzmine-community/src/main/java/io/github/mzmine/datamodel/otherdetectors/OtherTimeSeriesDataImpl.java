@@ -134,7 +134,7 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   }
 
   @Override
-  public @Nullable ChromatogramType getChromatogramType() {
+  public @NotNull ChromatogramType getChromatogramType() {
     return chromatogramType;
   }
 
