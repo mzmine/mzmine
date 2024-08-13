@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,41 +25,91 @@
 
 package io.github.mzmine.parameters.parametertypes.other_detectors;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.TextUtils;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 public class OtherTraceSelection {
 
+  private static final Logger logger = Logger.getLogger(OtherTraceSelection.class.getName());
+
+  private static final String XML_CHROM_TYPE_ATTR = "chromatogramType";
+  private static final String XML_RANGE_UNIT_FILTER_ATTR = "rangeUnitFilter";
+  private static final String XML_RANGE_LABEL_FILTER_ATTR = "rangeLabelFilter";
+  private static final String XML_DESCRIPTION_FILTER_ATTR = "descriptionFilter";
+  private static final String XML_RAW_OR_PROCESSED_ATTR = "rawOrProcessed";
+
   @Nullable
   private final ChromatogramType chromatogramType;
-
   @Nullable
   private final String rangeUnitFilter;
-
   @Nullable
   private final String rangeLabelFilter;
-
   @Nullable
-  private final String nameFilter;
-
+  private final String descriptionFilter;
+  @NotNull
   private final OtherRawOrProcessed rawOrProcessed;
 
   public OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
       @Nullable String rangeUnitFilter, @Nullable String rangeLabelFilter,
-      @Nullable String nameFilter, @Nullable OtherRawOrProcessed rawOrProcessed) {
+      @Nullable String descriptionFilter, @NotNull OtherRawOrProcessed rawOrProcessed) {
     this.chromatogramType = chromatogramType;
     this.rangeUnitFilter =
         rangeUnitFilter != null ? TextUtils.createRegexFromWildcards(rangeUnitFilter) : null;
     this.rangeLabelFilter =
         rangeLabelFilter != null ? TextUtils.createRegexFromWildcards(rangeLabelFilter) : null;
-    this.nameFilter = nameFilter != null ? TextUtils.createRegexFromWildcards(nameFilter) : null;
+    this.descriptionFilter =
+        descriptionFilter != null ? TextUtils.createRegexFromWildcards(descriptionFilter) : null;
     this.rawOrProcessed = rawOrProcessed;
+  }
+
+  public static OtherTraceSelection rawUv() {
+    return new OtherTraceSelection(ChromatogramType.ABSORPTION, null, null, null,
+        OtherRawOrProcessed.RAW);
+  }
+
+  public static OtherTraceSelection processedUv() {
+    return new OtherTraceSelection(ChromatogramType.ABSORPTION, null, null, null,
+        OtherRawOrProcessed.PROCESSED);
+  }
+
+  public static OtherTraceSelection loadFromXml(Element element) {
+    try {
+      final var chromType =
+          ParsingUtils.readNullableString(element.getAttribute(XML_CHROM_TYPE_ATTR)) != null
+              ? ChromatogramType.valueOf(element.getAttribute(XML_CHROM_TYPE_ATTR)) : null;
+
+      final String rangeUnitFilter = ParsingUtils.readNullableString(
+          element.getAttribute(XML_RANGE_UNIT_FILTER_ATTR));
+
+      final String rangeLabelFilter = ParsingUtils.readNullableString(
+          element.getAttribute(XML_RANGE_LABEL_FILTER_ATTR));
+
+      final String descriptionFilter = ParsingUtils.readNullableString(
+          element.getAttribute(XML_DESCRIPTION_FILTER_ATTR));
+
+      final OtherRawOrProcessed rawOrProcessed = OtherRawOrProcessed.valueOf(
+          element.getAttribute(XML_RAW_OR_PROCESSED_ATTR));
+
+      return new OtherTraceSelection(chromType, rangeUnitFilter, rangeLabelFilter,
+          descriptionFilter, rawOrProcessed);
+    } catch (Exception e) {
+      logger.log(Level.SEVERE,
+          "Cannot load OtherTraceSelection from xml. Defaulting to only raw UV.", e);
+      return rawUv();
+    }
   }
 
   public List<OtherFeature> getMatchingTraces(Collection<RawDataFile> msFiles) {
@@ -71,9 +121,75 @@ public class OtherTraceSelection {
             .matches(rangeLabelFilter))//
         .filter(data -> rangeLabelFilter == null || data.getTimeSeriesRangeLabel()
             .matches(rangeLabelFilter))//
-        .filter(data -> nameFilter != null || data.getOtherDataFile().getDescription()
-            .matches(nameFilter)) //
+        .filter(data -> descriptionFilter != null || data.getOtherDataFile().getDescription()
+            .matches(descriptionFilter)) //
         .flatMap(rawOrProcessed::streamMatching).toList();
   }
 
+  /**
+   * @param element The element to write the data into.
+   */
+  public void saveToXml(Element element) {
+    element.setAttribute(XML_CHROM_TYPE_ATTR, ParsingUtils.parseNullableString(
+        chromatogramType != null ? chromatogramType.name() : null));
+    element.setAttribute(XML_RANGE_UNIT_FILTER_ATTR,
+        ParsingUtils.parseNullableString(rangeUnitFilter));
+    element.setAttribute(XML_RANGE_LABEL_FILTER_ATTR,
+        ParsingUtils.parseNullableString(rangeLabelFilter));
+    element.setAttribute(XML_DESCRIPTION_FILTER_ATTR,
+        ParsingUtils.parseNullableString(descriptionFilter));
+    element.setAttribute(XML_RAW_OR_PROCESSED_ATTR, rawOrProcessed.name());
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder b = new StringBuilder();
+    b.append("only ");
+    b.append(rawOrProcessed);
+    b.append(", ");
+    if (chromatogramType != null) {
+      b.append(" of type ");
+      b.append(chromatogramType.getDescription());
+      b.append("(s), ");
+    }
+    if (rangeUnitFilter != null) {
+      b.append("with range unit: ");
+      b.append(inQuotes(rangeUnitFilter)).append(", ");
+    }
+    if (rangeUnitFilter != null) {
+      b.append("with range label: ");
+      b.append(inQuotes(rangeUnitFilter)).append(", ");
+    }
+    if (descriptionFilter != null) {
+      b.append("with description: ");
+      b.append(inQuotes(descriptionFilter)).append(", ");
+    }
+
+    return b.toString();
+  }
+
+  public @Nullable ChromatogramType getChromatogramType() {
+    return chromatogramType;
+  }
+
+  public @Nullable String getRangeUnitFilter() {
+    return rangeUnitFilter;
+  }
+
+  public @Nullable String getRangeLabelFilter() {
+    return rangeLabelFilter;
+  }
+
+  public @Nullable String getDescriptionFilter() {
+    return descriptionFilter;
+  }
+
+  public @NotNull OtherRawOrProcessed getRawOrProcessed() {
+    return rawOrProcessed;
+  }
+
+  public OtherTraceSelection copy() {
+    return new OtherTraceSelection(chromatogramType, rangeUnitFilter, rangeLabelFilter,
+        descriptionFilter, rawOrProcessed);
+  }
 }

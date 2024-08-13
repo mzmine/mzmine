@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,17 +25,34 @@
 
 package io.github.mzmine.parameters.parametertypes.other_detectors;
 
+import io.github.mzmine.parameters.PropertyParameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public class OtherTraceSelectionParameter implements
-    UserParameter<OtherTraceSelection, OtherTraceSelectionComponent> {
+    UserParameter<OtherTraceSelection, OtherTraceSelectionComponent>,
+    PropertyParameter<OtherTraceSelection, OtherTraceSelectionComponent> {
 
-  private final OtherTraceSelection value;
-  private final String description;
   private final String name;
+  private final String description;
+  @NotNull
+  private OtherTraceSelection value;
+
+  public OtherTraceSelectionParameter(String name, String description) {
+    this(name, description, OtherTraceSelection.rawUv());
+  }
+
+  public OtherTraceSelectionParameter(String name, String description,
+      @NotNull OtherTraceSelection value) {
+    this.description = description;
+    this.name = name;
+    this.value = value;
+  }
 
   @Override
   public String getDescription() {
@@ -49,13 +66,16 @@ public class OtherTraceSelectionParameter implements
 
   @Override
   public void setValueFromComponent(OtherTraceSelectionComponent otherTraceSelectionComponent) {
-
+    value = otherTraceSelectionComponent.getValue();
   }
 
   @Override
   public void setValueToComponent(OtherTraceSelectionComponent otherTraceSelectionComponent,
       @Nullable OtherTraceSelection newValue) {
-
+    if (newValue == null) { // should not be the case, but have a default.
+      newValue = OtherTraceSelection.rawUv();
+    }
+    otherTraceSelectionComponent.setValue(newValue);
   }
 
   @Override
@@ -69,8 +89,8 @@ public class OtherTraceSelectionParameter implements
   }
 
   @Override
-  public void setValue(OtherTraceSelection newValue) {
-    this.value = value;
+  public void setValue(@NotNull OtherTraceSelection newValue) {
+    this.value = newValue;
   }
 
   @Override
@@ -80,12 +100,16 @@ public class OtherTraceSelectionParameter implements
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-
+    final NodeList childNodes = xmlElement.getElementsByTagName("selection");
+    final Node item = childNodes.item(0);
+    this.value = OtherTraceSelection.loadFromXml((Element) item);
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-
+    final Element valueElement = xmlElement.getOwnerDocument().createElement("selection");
+    xmlElement.appendChild(valueElement);
+    value.saveToXml(valueElement);
   }
 
   @Override
