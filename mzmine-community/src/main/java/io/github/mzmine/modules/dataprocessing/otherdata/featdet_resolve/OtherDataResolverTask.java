@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -116,9 +116,10 @@ public class OtherDataResolverTask extends AbstractSimpleTask {
       final List<OtherFeature> outputData = resolveFeatures(inputData, resolver,
           getMemoryMapStorage());
 
+      // technically this is not needed, because all traces will be processed from a OtherTimeSeriesData,
+      // but we might be changing to specific traces afterward.
       final Map<OtherFeature, List<OtherFeature>> groupedByRawTrace = outputData.stream()
           .collect(Collectors.groupingBy(f -> f.get(RawTraceType.class)));
-
       for (Entry<OtherFeature, List<OtherFeature>> grouped : groupedByRawTrace.entrySet()) {
         data.replaceProcessedFeaturesForTrace(grouped.getKey(), grouped.getValue());
       }
