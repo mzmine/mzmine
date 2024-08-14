@@ -82,8 +82,8 @@ public class IntegrationPane extends BorderPane {
 //    otherFileCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
 //    timeSeriesCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
 
-    vbox.minWidth(250);
-    vbox.maxWidth(250);
+    vbox.setMinWidth(250);
+    vbox.setMaxWidth(250);
 
     final Region plotView = plot.buildView();
     setCenter(plotView);

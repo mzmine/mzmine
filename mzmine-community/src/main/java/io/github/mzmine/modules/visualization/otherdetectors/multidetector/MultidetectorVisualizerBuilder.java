@@ -59,12 +59,13 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
 
   @Override
   public Region build() {
-    content = FxLayout.newVBox(new Insets(0));
+    content = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true);
 
     final Button addButton = FxButtons.createButton(null, FxIcons.ADD, "Add another trace",
         this::addNewDetector);
     final HBox addWrapper = FxLayout.newHBox(Pos.TOP_RIGHT, addButton);
-    final VBox contentWrapper = FxLayout.newVBox(content, addWrapper);
+    final VBox contentWrapper = content = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true,
+        content, addWrapper);
 
     main = new BorderPane(contentWrapper);
     var scroll = new ScrollPane(main);
