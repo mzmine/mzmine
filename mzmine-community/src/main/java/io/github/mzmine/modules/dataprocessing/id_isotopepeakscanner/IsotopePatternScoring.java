@@ -5,24 +5,27 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
-import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.Weights;
-import org.openscience.cdk.formula.IsotopePatternGenerator;
 
 public class IsotopePatternScoring {
   private IsotopePattern nDetectedPattern;
   private IsotopePattern nCalculatedPattern;
 
+  /**
+   *
+   * @param detectedPattern
+   * @param calculatedPattern
+   * @param mzTolerance
+   * @return isotope pattern similarity score
+   * by comparing the normalised data points of the detected isotope pattern with the calculated (theoretical) pattern
+   */
 
-  public Double calculateIsotopeScore (IsotopePattern detectedPattern, IsotopePattern calculatedPattern, double minIntensity, MZTolerance mzTolerance) {
+  public Double calculateIsotopeScore (IsotopePattern detectedPattern, IsotopePattern calculatedPattern, MZTolerance mzTolerance) {
     nDetectedPattern = normalisationOfIsotopePattern(detectedPattern);
     nCalculatedPattern = normalisationOfIsotopePattern(calculatedPattern);
-//      nDetectedPattern = detectedPattern;
-//      nCalculatedPattern = calculatedPattern;
     DataPoint[] detectedDataPoints = new DataPoint[nDetectedPattern.getNumberOfDataPoints()];
     for (int i = 0; i < detectedDataPoints.length; i++) {
       SimpleDataPoint dp = new SimpleDataPoint ( nDetectedPattern.getMzValue(i), nDetectedPattern.getIntensityValue(i));
