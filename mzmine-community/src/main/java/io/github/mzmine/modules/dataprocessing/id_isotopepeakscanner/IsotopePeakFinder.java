@@ -45,7 +45,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -57,7 +56,7 @@ import java.util.Objects;
 
 public class IsotopePeakFinder {
 
-  static int numberOfScans = 1;
+
   private final Map<RawDataFile, ScanDataAccess> dataAccessMap = new HashMap<>();
 
   /**
@@ -68,16 +67,15 @@ public class IsotopePeakFinder {
    * @param minHeight
    * @param mzRangeOfPattern
    * @param resolvedMobility
-   * @param mobTolerance
    * @param charge
    * @return the isotope signals found that match the isotope distribution searched for
    */
 
   public IsotopePattern detectedIsotopePattern (FeatureList featureList, FeatureListRow row,
       DataPoint [] calculatedDataPoints, MZTolerance mzTolerance, double minHeight, Range<Double> mzRangeOfPattern,
-      boolean resolvedMobility, MobilityTolerance mobTolerance, int charge){
+      boolean resolvedMobility, int charge){
     DataPoint[] detectedPatternDPs = searchForIsotopePatternDataPoints(featureList, row, calculatedDataPoints,
-        mzTolerance, minHeight, mzRangeOfPattern, resolvedMobility, mobTolerance);
+        mzTolerance, minHeight, mzRangeOfPattern, resolvedMobility);
     return  new SimpleIsotopePattern(detectedPatternDPs, charge,
         IsotopePatternStatus.DETECTED, "");
   }
@@ -88,7 +86,7 @@ public class IsotopePeakFinder {
 
   public DataPoint[] searchForIsotopePatternDataPoints (FeatureList featureList, FeatureListRow row,
       DataPoint [] calculatedDataPoints, MZTolerance mzTolerance, double minHeight, Range<Double> mzRangeOfPattern,
-      boolean resolvedMobility, MobilityTolerance mobTolerance ){
+      boolean resolvedMobility){
 
     var ms1Scan = row.getBestFeature().getRepresentativeScan();
 
@@ -101,8 +99,8 @@ public class IsotopePeakFinder {
 
     if (ms1Scan != null) {
       if (resolvedMobility) {
-        ms1Scan = findBestScanOrMobilityScan(scans, Objects.requireNonNull(row.getFeature(raw)),
-            mzTolerance,mobTolerance);
+        ms1Scan = findBestScanOrMobilityScan(Objects.requireNonNull(row.getFeature(raw)),
+            mzTolerance);
       }
 
       MassList massList = ms1Scan.getMassList();
@@ -141,25 +139,18 @@ public class IsotopePeakFinder {
   }
 
   /**
-   * @param scans
    * @param feature
    * @param mzTolerance
-   * @param mobTolerance
    * @return Scan in which the isotope signals are searched for; in the case of mobility-resolved data,
    * a merged mobility scan is used
    */
-  private static Scan findBestScanOrMobilityScan(ScanDataAccess scans, Feature feature,
-      MZTolerance mzTolerance, MobilityTolerance mobTolerance) {
-
-//    final Scan maxScan = feature.getRepresentativeScan();
-//    final int scanIndex = scans.indexOf(maxScan);
-//    scans.jumpToIndex(scanIndex);
+  private static Scan findBestScanOrMobilityScan(Feature feature,
+      MZTolerance mzTolerance) {
 
     final boolean mobility = feature.getMobility() != null;
     final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
     if (mobility && featureData instanceof IonMobilogramTimeSeries imsData) {
       MergedMassSpectrum mergedMobilityScan = null;
-      //final Range <Float> mobilityRange = mobTolerance.getToleranceRange(feature.getMobility());
       final Range<Float> mobilityFWHM = IonMobilityUtils.getMobilityFWHM(imsData.getSummedMobilogram());
       final List<MobilityScan> mobilityScans = imsData.getMobilograms().stream()
           .flatMap(s -> (s.getSpectra().stream())).filter(m -> {
@@ -174,9 +165,6 @@ public class IsotopePeakFinder {
       }
     }
     return feature.getRepresentativeScan();
-  }
-  private int getNumberOfMergedScans() {
-    return numberOfScans;
   }
 
 }
