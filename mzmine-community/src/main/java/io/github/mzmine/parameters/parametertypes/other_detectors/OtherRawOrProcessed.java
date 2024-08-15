@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,11 +34,10 @@ public enum OtherRawOrProcessed {
 
   public Stream<OtherFeature> streamMatching(OtherTimeSeriesData data) {
     return switch (this) {
-      case RAW -> data.getProcessedFeatures().stream();
-      case PROCESSED -> data.getRawTraces().stream();
+      case RAW -> data.getRawTraces().stream();
+      case PROCESSED -> data.getProcessedFeatures().stream();
     };
   }
-
 
   @Override
   public String toString() {
