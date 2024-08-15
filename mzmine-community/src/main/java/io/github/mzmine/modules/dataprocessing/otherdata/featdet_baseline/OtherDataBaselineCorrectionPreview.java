@@ -23,33 +23,44 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
+package io.github.mzmine.modules.dataprocessing.otherdata.featdet_baseline;
 
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.OtherFeatureDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrector;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectors;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.dialogs.previewpane.FeaturePreviewPane;
+import io.github.mzmine.parameters.dialogs.previewpane.AbstractPreviewPane;
+import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.util.javafx.OtherFeatureSelectionPane;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class BaselineCorrectionPreview extends FeaturePreviewPane {
+class OtherDataBaselineCorrectionPreview extends AbstractPreviewPane<OtherFeature> {
 
-  public BaselineCorrectionPreview(ParameterSet parameterSet) {
+  private final OtherFeatureSelectionPane selectionPane = new OtherFeatureSelectionPane();
+
+  public OtherDataBaselineCorrectionPreview(ParameterSet parameterSet) {
     super(parameterSet);
+
+    setBottom(selectionPane);
+    selectionPane.featureProperty().addListener((_,_,v) -> updatePreview());
   }
 
   @Override
@@ -72,7 +83,7 @@ class BaselineCorrectionPreview extends FeaturePreviewPane {
 
   @Override
   public @NotNull List<@NotNull DatasetAndRenderer> calculateNewDatasets(
-      @Nullable Feature feature) {
+      @Nullable OtherFeature feature) {
 
     final List<String> errorMessages = new ArrayList<>();
     if (feature == null || !parameters.checkParameterValues(errorMessages, true)) {
@@ -84,32 +95,41 @@ class BaselineCorrectionPreview extends FeaturePreviewPane {
       return List.of();
     }
 
+    final ModularFeatureList dummyFlist = new ModularFeatureList("dummy", null,
+        new RawDataFileImpl("dummy", null, null));
+
     final BaselineCorrectors enumValue = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getValue();
-    final BaselineCorrector baselineCorrector = enumValue.getModuleInstance().newInstance(
-        parameters, null, feature.getFeatureList());
+    final BaselineCorrector baselineCorrector = enumValue.getModuleInstance()
+        .newInstance(parameters, null, dummyFlist);
     if (baselineCorrector instanceof AbstractBaselineCorrector uv) {
       uv.setPreview(true);
     }
 
-    final IonTimeSeries<Scan> full = IonTimeSeriesUtils.remapRtAxis(feature.getFeatureData(),
-        feature.getFeatureList().getSeletedScans(feature.getRawDataFile()));
-
-    IonTimeSeries<? extends Scan> corrected = baselineCorrector.correctBaseline(full);
+    OtherFeature corrected = new OtherFeatureImpl(
+        baselineCorrector.correctBaseline(feature.getFeatureData()));
     final List<PlotXYDataProvider> additionalPreviewData = baselineCorrector.getAdditionalPreviewData();
 
     final List<DatasetAndRenderer> data = new ArrayList<>();
 
+    final Color color = feature.getFeatureData().getOtherDataFile().getCorrespondingRawDataFile()
+        .getColorAWT();
     data.addAll(List.of(new DatasetAndRenderer(new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider(corrected, feature.toString() + " corrected",
-                feature.getRawDataFile().getColor())), new ColoredAreaShapeRenderer()),
-        new DatasetAndRenderer(new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider(full, feature.toString(),
-                feature.getRawDataFile().getColor())), new ColoredXYLineRenderer())));
+            new OtherFeatureDataProvider(corrected, feature.toString() + " corrected",
+                ConfigService.getDefaultColorPalette().getPositiveColorAWT())),
+            new ColoredXYLineRenderer()), //
+        new DatasetAndRenderer(
+            new ColoredXYDataset(new OtherFeatureDataProvider(feature, feature.toString(), color)),
+            new ColoredXYLineRenderer())));
 
     additionalPreviewData.forEach(a -> data.add(
         new DatasetAndRenderer(new ColoredXYDataset(a), new ColoredXYLineRenderer())));
 
     return data;
+  }
+
+  @Override
+  public OtherFeature getValueForPreview() {
+    return selectionPane.getFeature();
   }
 }

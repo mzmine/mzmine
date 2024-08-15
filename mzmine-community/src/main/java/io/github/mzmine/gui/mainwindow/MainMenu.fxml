@@ -615,6 +615,8 @@
   </Menu>
 
   <Menu text="Other data">
+    <MenuItem text="Baseline correction" onAction="#runModule"
+      userData="io.github.mzmine.modules.dataprocessing.otherdata.featdet_baseline.OtherDataBaselineCorrectionModule"/>
     <MenuItem text="Resolving" onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.otherdata.featdet_resolve.OtherDataResolverModule"/>
   </Menu>
