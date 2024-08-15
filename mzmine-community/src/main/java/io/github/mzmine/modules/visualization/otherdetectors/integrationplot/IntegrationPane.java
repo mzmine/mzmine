@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
@@ -104,8 +103,8 @@ public class IntegrationPane extends BorderPane {
         data.replaceProcessedFeaturesForTrace(rawTrace.get(),
             plot.getIntegratedFeatures().stream().filter(ts -> ts instanceof OtherTimeSeries)
                 .map(ts -> {
-                  final OtherFeature integrated = rawTrace.get().createSubFeature();
-                  integrated.set(OtherFeatureDataType.class, (OtherTimeSeries) ts);
+                  final OtherFeature integrated = rawTrace.get()
+                      .createSubFeature((OtherTimeSeries) ts);
                   return integrated;
                 }).toList());
       }
