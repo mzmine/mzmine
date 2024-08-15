@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,7 +61,7 @@ public class OtherTraceSelectionParameter implements
 
   @Override
   public OtherTraceSelectionComponent createEditingComponent() {
-    return null;
+    return new OtherTraceSelectionComponent();
   }
 
   @Override
@@ -95,7 +95,10 @@ public class OtherTraceSelectionParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    return false;
+    if(value == null) {
+      return false;
+    }
+    return true;
   }
 
   @Override
@@ -114,6 +117,6 @@ public class OtherTraceSelectionParameter implements
 
   @Override
   public UserParameter<OtherTraceSelection, OtherTraceSelectionComponent> cloneParameter() {
-    return null;
+    return new OtherTraceSelectionParameter(name, description, value.copy());
   }
 }

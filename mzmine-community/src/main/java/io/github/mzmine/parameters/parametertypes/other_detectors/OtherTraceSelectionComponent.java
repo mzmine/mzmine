@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -97,7 +97,7 @@ public class OtherTraceSelectionComponent extends VBox implements
     grid.add(FxLabels.newLabel("Trace type:"), 0, 4);
     grid.add(rawOrProcessedCombo, 1, 4);
 
-    grid.getColumnConstraints().add(new ColumnConstraints(80));
+    grid.getColumnConstraints().add(new ColumnConstraints(120));
     grid.getColumnConstraints().add(
         new ColumnConstraints(80, USE_PREF_SIZE, USE_COMPUTED_SIZE, Priority.ALWAYS, HPos.LEFT,
             true));
@@ -128,9 +128,14 @@ public class OtherTraceSelectionComponent extends VBox implements
   public void setValue(final OtherTraceSelection value) {
     chromType.set(ChromatogramTypeChoices.fromChromatogramType(value.getChromatogramType()));
     // replace the wildcard filter with the gui representation
-    rangeUnitFilter.set(value.getRangeUnitFilter().replaceAll("\\*\\.", "*"));
-    rangeLabelFilter.set(value.getRangeLabelFilter().replaceAll("\\*\\.", "*"));
-    descriptionFilter.set(value.getDescriptionFilter().replaceAll("\\*\\.", "*"));
+    rangeUnitFilter.set(
+        value.getRangeUnitFilter() != null ? value.getRangeUnitFilter().replaceAll("\\*\\.", "*")
+            : "");
+    rangeLabelFilter.set(
+        value.getRangeLabelFilter() != null ? value.getRangeLabelFilter().replaceAll("\\*\\.", "*")
+            : "");
+    descriptionFilter.set(value.getDescriptionFilter() != null ? value.getDescriptionFilter()
+        .replaceAll("\\*\\.", "*") : "");
     rawOrProcessed.set(value.getRawOrProcessed());
   }
 
