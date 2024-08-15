@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -144,6 +144,10 @@ public class SortableOtherFeatureComboBox extends FlowPane {
   }
 
   public void setSelectedFeature(OtherFeature f) {
+    if(f == null) {
+      otherFeatureBox.getSelectionModel().clearSelection();
+      return;
+    }
     if (filtered.contains(f)) {
       // check if we contain the feature in the filtered list. otherwise it will not keep the
       // filtering properly when changing the feature list/setting new items.

@@ -30,8 +30,8 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.previewpane.AbstractPreviewPane;
-import io.github.mzmine.parameters.dialogs.previewpane.FeaturePreviewPane;
 import java.util.function.Function;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Region;
@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 public class ParameterDialogWithPreviewPanes extends ParameterSetupDialogWithPreview {
 
   private final ScrollPane scroll = new ScrollPane();
-  private final VBox vbox = FxLayout.newVBox(Pos.TOP_CENTER, FxLayout.DEFAULT_PADDING_INSETS);
+  private final VBox vbox = FxLayout.newVBox(Pos.TOP_CENTER, Insets.EMPTY, true);
   @NotNull
   private final Function<ParameterSet, AbstractPreviewPane<?>> createNewPreview;
 
@@ -75,8 +75,8 @@ public class ParameterDialogWithPreviewPanes extends ParameterSetupDialogWithPre
    */
   private void updatePreview() {
     updateParameterSetFromComponents();
-    vbox.getChildren().stream().filter(n -> n instanceof FeaturePreviewPane)
-        .map(n -> (FeaturePreviewPane) n).forEach(FeaturePreviewPane::updatePreview);
+    vbox.getChildren().stream().filter(n -> n instanceof AbstractPreviewPane<?>)
+        .map(n -> (AbstractPreviewPane<?>) n).forEach(AbstractPreviewPane::updatePreview);
   }
 
 
