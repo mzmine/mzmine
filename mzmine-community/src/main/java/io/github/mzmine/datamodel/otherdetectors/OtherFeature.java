@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
@@ -41,6 +42,14 @@ public interface OtherFeature extends ModularDataModel {
    * @return Creates a new feature with the same properties, except the actual time series data. If
    * this feature is the "raw" trace, this is used as RawTraceType. If this feature is already
    * processed, the original RawTraceType is used.
+   * <p></p>
+   * Note: Don't forget to recalculate all time series depending types using
+   * {@link
+   * io.github.mzmine.datamodel.featuredata.FeatureDataUtils#recalculateIntensityTimeSeriesDependingTypes(OtherFeature)}
+   * after setting the {@link OtherFeatureDataType}.
+   * <p></p>
+   * If the new {@link OtherTimeSeries} is already available, use
+   * {@link #createSubFeature(OtherTimeSeries)} instead.
    */
   default OtherFeature createSubFeature() {
     final OtherFeatureImpl newFeature = new OtherFeatureImpl();
@@ -56,5 +65,22 @@ public interface OtherFeature extends ModularDataModel {
       newFeature.set(RawTraceType.class, raw);
     }
     return newFeature;
+  }
+
+  /**
+   * @return Creates a new feature with the same properties, except the actual time series data. If
+   * this feature is the "raw" trace, this is used as RawTraceType. If this feature is already
+   * processed, the original RawTraceType is used.
+   * <p></p>
+   * Note: This method automatically recalculates all time series depending types using
+   * {@link
+   * io.github.mzmine.datamodel.featuredata.FeatureDataUtils#recalculateIntensityTimeSeriesDependingTypes(OtherFeature)}
+   * after setting the {@link OtherFeatureDataType}.
+   */
+  default OtherFeature createSubFeature(OtherTimeSeries series) {
+    var feature = createSubFeature();
+    feature.set(OtherFeatureDataType.class, series);
+    FeatureDataUtils.recalculateIntensityTimeSeriesDependingTypes(feature);
+    return feature;
   }
 }

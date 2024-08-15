@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,10 +34,16 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointUtils;
@@ -209,18 +215,17 @@ public class FeatureDataUtils {
    * @return The area of the given series in retention time dimension (= for {@link
    * IonMobilogramTimeSeries}, the intensities in one frame are summed.).
    */
-  public static float calculateArea(IonTimeSeries<? extends Scan> series) {
+  public static float calculateArea(IntensityTimeSeries series) {
     if (series.getNumberOfValues() <= 1) {
       return 0f;
     }
     float area = 0f;
     DoubleBuffer intensities = series.getIntensityValueBuffer();
-    List<? extends Scan> scans = series.getSpectra();
     double lastIntensity = intensities.get(0);
-    float lastRT = scans.get(0).getRetentionTime();
+    float lastRT = series.getRetentionTime(0);
     for (int i = 1; i < series.getNumberOfValues(); i++) {
       final double thisIntensity = intensities.get(i);
-      final float thisRT = scans.get(i).getRetentionTime();
+      final float thisRT = series.getRetentionTime(i);
       area += (thisRT - lastRT) * ((float) (thisIntensity + lastIntensity)) / 2.0;
       lastIntensity = thisIntensity;
       lastRT = thisRT;
@@ -267,6 +272,23 @@ public class FeatureDataUtils {
    */
   public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature) {
     recalculateIonSeriesDependingTypes(feature, DEFAULT_CENTER_FUNCTION, true);
+  }
+
+  public static void recalculateIntensityTimeSeriesDependingTypes(@NotNull OtherFeature feature) {
+    final OtherTimeSeries featureData = feature.getFeatureData();
+    if(featureData == null) {
+      return;
+    }
+
+    feature.set(OtherFileType.class, featureData.getOtherDataFile());
+    feature.set(ChromatogramTypeType.class, featureData.getChromatoogramType());
+
+    final int mostIntenseIndex = getMostIntenseIndex(featureData);
+    var intensityRange = getIntensityRange(featureData);
+    feature.set(IntensityRangeType.class, intensityRange);
+    feature.set(AreaType.class, calculateArea(featureData));
+    feature.set(HeightType.class, (float)featureData.getIntensity(mostIntenseIndex));
+    feature.set(RTType.class, featureData.getRetentionTime(mostIntenseIndex));
   }
 
   /**

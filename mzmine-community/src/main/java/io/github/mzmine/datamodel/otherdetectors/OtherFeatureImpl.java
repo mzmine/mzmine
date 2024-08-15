@@ -25,10 +25,9 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
@@ -40,9 +39,8 @@ public class OtherFeatureImpl implements OtherFeature {
   }
 
   public OtherFeatureImpl(OtherTimeSeries series) {
-    set(OtherFileType.class, series.getOtherDataFile());
     set(OtherFeatureDataType.class, series);
-    set(ChromatogramTypeType.class, series.getChromatoogramType());
+    FeatureDataUtils.recalculateIntensityTimeSeriesDependingTypes(this);
   }
 
   @Override
