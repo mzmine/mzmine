@@ -91,6 +91,20 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
   }
 
   @Override
+  public OtherTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newIntensities,
+      String newName) {
+    if (getNumberOfValues() != newIntensities.length) {
+      throw new IllegalArgumentException("The number of intensities does not match number of rts.");
+    }
+
+    final float[] rts = new float[getNumberOfValues()];
+    timeBuffer.get(rts);
+    return new SimpleOtherTimeSeries(timeBuffer,
+        StorageUtils.storeValuesToDoubleBuffer(storage, newIntensities), newName,
+        getTimeSeriesData());
+  }
+
+  @Override
   public OtherTimeSeries subSeries(MemoryMapStorage storage, float start, float end) {
     // todo does this work with float to double?
     final IndexRange indexRange = BinarySearch.indexRange(start, end, getNumberOfValues(),

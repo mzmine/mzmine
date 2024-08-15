@@ -23,31 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.otherdetectors;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.akimaspline;
 
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
-import io.github.mzmine.util.MemoryMapStorage;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
 
-public interface OtherTimeSeries extends IntensityTimeSeries {
+public class AkimaSplineCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
-  String getName();
-
-  ChromatogramType getChromatoogramType();
-
-  @NotNull
-  OtherDataFile getOtherDataFile();
-
-  @NotNull
-  OtherTimeSeriesData getTimeSeriesData();
-
-  @Override
-  OtherTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
-      int endIndexExclusive);
-
-  @Override
-  OtherTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
-
-  OtherTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newIntensities, String newName);
+  public AkimaSplineCorrectorParameters() {
+    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter());
+  }
 }

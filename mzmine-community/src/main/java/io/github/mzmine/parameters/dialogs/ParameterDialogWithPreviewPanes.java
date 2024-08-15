@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,6 +52,7 @@ public class ParameterDialogWithPreviewPanes extends ParameterSetupDialogWithPre
     scroll.setFitToWidth(true);
     scroll.setFitToHeight(true);
     scroll.setContent(vbox);
+    vbox.setFillWidth(true);
     previewWrapperPane.setBottom(
         FxButtons.createButton("Add preview", FxIcons.PLUS, "Add another preview",
             () -> vbox.getChildren().add(createNewPreview.apply(parameters))));

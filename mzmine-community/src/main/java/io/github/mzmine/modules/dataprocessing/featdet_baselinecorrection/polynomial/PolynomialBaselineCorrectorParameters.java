@@ -23,31 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.otherdetectors;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.polynomial;
 
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
-import io.github.mzmine.util.MemoryMapStorage;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-public interface OtherTimeSeries extends IntensityTimeSeries {
+public class PolynomialBaselineCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
-  String getName();
+  public static final IntegerParameter degree = new IntegerParameter("Degree of polynomial",
+      "The degree of the polynomial to fit the baseline.", 4, 1, Integer.MAX_VALUE);
 
-  ChromatogramType getChromatoogramType();
-
-  @NotNull
-  OtherDataFile getOtherDataFile();
-
-  @NotNull
-  OtherTimeSeriesData getTimeSeriesData();
-
-  @Override
-  OtherTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
-      int endIndexExclusive);
-
-  @Override
-  OtherTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
-
-  OtherTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newIntensities, String newName);
+  public PolynomialBaselineCorrectorParameters() {
+    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter(), degree);
+  }
 }
