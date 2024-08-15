@@ -85,7 +85,7 @@ public class OtherDataResolverTask extends AbstractSimpleTask {
               range.upperEndpoint().floatValue())).toList();
 
       for (OtherTimeSeries series : resolved) {
-        final OtherFeature resolvedFeature = feature.createSubFeature();
+        final OtherFeature resolvedFeature = feature.createSubFeature(series);
         resolvedFeature.set(OtherFeatureDataType.class, series);
         outputData.add(resolvedFeature);
       }
@@ -97,7 +97,7 @@ public class OtherDataResolverTask extends AbstractSimpleTask {
   protected void process() {
 
     if (!(parameters instanceof OtherDataResolverParameters otherParam)) {
-      error("Resoling started with wrong parameter set instance.");
+      error("Resolving started with wrong parameter set instance.");
       return;
     }
     final ParameterSet resolverParam = otherParam.toResolverParameters();

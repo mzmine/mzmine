@@ -31,6 +31,7 @@ import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +48,15 @@ public class OtherDataResolverModule extends AbstractProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    return null;
+
+    // maybe create one storage for all other data? should not be too much.
+    MemoryMapStorage storage = null;
+
+    final OtherDataResolverTask task = new OtherDataResolverTask(storage,
+        moduleCallDate, parameters, this.getClass(), project);
+
+    tasks.add(task);
+
+    return ExitCode.OK;
   }
 }

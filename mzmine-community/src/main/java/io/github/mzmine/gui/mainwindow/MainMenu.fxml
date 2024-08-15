@@ -614,6 +614,11 @@
     </MenuItem>
   </Menu>
 
+  <Menu text="Other data">
+    <MenuItem text="Resolving" onAction="#runModule"
+      userData="io.github.mzmine.modules.dataprocessing.otherdata.featdet_resolve.OtherDataResolverModule"/>
+  </Menu>
+
   <!-- Window control -->
   <WindowsMenu>
     <Menu text="Task manager">

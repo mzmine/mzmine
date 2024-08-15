@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,8 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -46,7 +48,9 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelection;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
+import javafx.application.Platform;
 
 public class OtherDataResolverParameters extends SimpleParameterSet {
 
@@ -61,7 +65,7 @@ public class OtherDataResolverParameters extends SimpleParameterSet {
       SEARCH_RT_RANGE.getDescription(), new DecimalFormat("0.000"), 0.05);
 
   public static final PercentParameter minRelHeight = new PercentParameter(
-      MIN_RELATIVE_HEIGHT.getName(), MIN_RELATIVE_HEIGHT.getDescription());
+      MIN_RELATIVE_HEIGHT.getName(), MIN_RELATIVE_HEIGHT.getDescription(), 0.0);
 
   public static final DoubleParameter minAbsHeight = new DoubleParameter(
       MIN_ABSOLUTE_HEIGHT.getName(), MIN_ABSOLUTE_HEIGHT.getDescription(), new DecimalFormat("0.0"),
@@ -98,5 +102,18 @@ public class OtherDataResolverParameters extends SimpleParameterSet {
     param.setParameter(dimension, ResolvingDimension.RETENTION_TIME);
 
     return param;
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    assert Platform.isFxApplicationThread();
+
+    if ((parameters == null) || (parameters.length == 0)) {
+      return ExitCode.OK;
+    }
+    ParameterSetupDialog dialog = new ParameterDialogWithPreviewPanes(valueCheckRequired, this,
+        OtherDataResolverPreviewPane::new);
+    dialog.showAndWait();
+    return dialog.getExitCode();
   }
 }

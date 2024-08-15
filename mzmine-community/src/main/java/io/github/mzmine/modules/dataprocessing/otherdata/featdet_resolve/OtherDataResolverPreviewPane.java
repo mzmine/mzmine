@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,12 +28,18 @@ package io.github.mzmine.modules.dataprocessing.otherdata.featdet_resolve;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.OtherFeatureDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.previewpane.AbstractPreviewPane;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.OtherFeatureSelectionPane;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,12 +54,15 @@ public class OtherDataResolverPreviewPane extends AbstractPreviewPane<OtherFeatu
     super(parameters);
 
     selectionPane = new OtherFeatureSelectionPane();
+    selectionPane.featureProperty().addListener((_, _, _) -> updatePreview());
     setBottom(selectionPane);
   }
 
   @Override
   public @NotNull SimpleXYChart<PlotXYDataProvider> createChart() {
     final SimpleXYChart<PlotXYDataProvider> preview = new SimpleXYChart<>("Preview");
+    preview.setMinHeight(200);
+    preview.setDomainAxisLabel(formats.unit("Retention time", "min"));
     return preview;
   }
 
@@ -73,10 +82,22 @@ public class OtherDataResolverPreviewPane extends AbstractPreviewPane<OtherFeatu
         resolverParameters,
         new ModularFeatureList("dummy", null, new RawDataFileImpl("dummy", null, null)));
 
-    final List<OtherFeature> resolved = OtherDataResolverTask.resolveFeatures(
+    final List<OtherFeature> resolvedFeatures = OtherDataResolverTask.resolveFeatures(
         List.of(valueForPreview), resolver, null);
 
     final List<DatasetAndRenderer> datasets = new ArrayList<>();
+
+    final SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
+
+    datasets.add(new DatasetAndRenderer(new OtherFeatureDataProvider(valueForPreview,
+        valueForPreview.getFeatureData().getOtherDataFile().getCorrespondingRawDataFile()
+            .getColorAWT()), new ColoredXYLineRenderer()));
+    for (OtherFeature resolved : resolvedFeatures) {
+      datasets.add(new DatasetAndRenderer(
+          new ColoredXYDataset(new OtherFeatureDataProvider(resolved, palette.getNextColorAWT())),
+          new ColoredAreaShapeRenderer()));
+    }
+    return datasets;
   }
 
   @Override
@@ -88,5 +109,18 @@ public class OtherDataResolverPreviewPane extends AbstractPreviewPane<OtherFeatu
   public void updateChart(@NotNull List<DatasetAndRenderer> datasets,
       @NotNull SimpleXYChart<? extends PlotXYDataProvider> chart) {
 
+    chart.applyWithNotifyChanges(false, () -> {
+
+      if (datasets.get(0).dataset().getValueProvider() instanceof OtherFeatureDataProvider prov) {
+        final String label = prov.getFeature().getFeatureData().getTimeSeriesData()
+            .getTimeSeriesRangeLabel();
+        final String unit = prov.getFeature().getFeatureData().getTimeSeriesData()
+            .getTimeSeriesRangeUnit();
+        chart.setRangeAxisLabel(formats.unit(label, unit));
+      }
+
+      chart.removeAllDatasets();
+      datasets.forEach(dsr -> chart.addDataset(dsr.dataset(), dsr.renderer()));
+    });
   }
 }
