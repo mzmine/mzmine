@@ -37,7 +37,7 @@ public class precursorIonsType extends IntegerType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "precursor_ion_count";
+    return "precursor_ions_count";
   }
 
   @Override
