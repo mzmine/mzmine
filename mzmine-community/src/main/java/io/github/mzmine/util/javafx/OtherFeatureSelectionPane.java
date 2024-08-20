@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -89,9 +89,11 @@ public class OtherFeatureSelectionPane extends GridPane {
     add(otherFeatureCombo, 1, 1, 3, 1);
 
     getColumnConstraints().add(new ColumnConstraints(80));
-    getColumnConstraints().add(new ColumnConstraints(80, USE_PREF_SIZE, 800, Priority.SOMETIMES, HPos.LEFT, true));
+    getColumnConstraints().add(
+        new ColumnConstraints(80, USE_PREF_SIZE, 800, Priority.SOMETIMES, HPos.LEFT, true));
     getColumnConstraints().add(new ColumnConstraints(80));
-    getColumnConstraints().add(new ColumnConstraints(80, USE_PREF_SIZE, 800, Priority.SOMETIMES, HPos.LEFT, true));
+    getColumnConstraints().add(
+        new ColumnConstraints(80, USE_PREF_SIZE, 800, Priority.SOMETIMES, HPos.LEFT, true));
 
     // need to use listeners to the actual properties. the bound properties do not trigger the listener
     rawFileBox.valueProperty().addListener((_, _, f) -> {
@@ -99,7 +101,8 @@ public class OtherFeatureSelectionPane extends GridPane {
         otherFiles.clear();
         return;
       }
-      otherFiles.setAll(f.getOtherDataFiles().stream().filter(OtherDataFile::hasTimeSeries).toList());
+      otherFiles.setAll(
+          f.getOtherDataFiles().stream().filter(OtherDataFile::hasTimeSeries).toList());
     });
 
     otherFileBox.valueProperty().addListener((_, _, f) -> {
@@ -108,10 +111,19 @@ public class OtherFeatureSelectionPane extends GridPane {
         return;
       }
 
-      if (rawOrProcessed.get() == OtherRawOrProcessed.RAW) {
-        otherFeatureCombo.setItems(f.getOtherTimeSeries().getRawTraces());
-      } else {
-        otherFeatureCombo.setItems(f.getOtherTimeSeries().getProcessedFeatures());
+      otherFeatureCombo.setItems(
+          rawOrProcessed.get().streamMatching(f.getOtherTimeSeries()).toList());
+    });
+
+    rawOrProcessedBox.valueProperty().addListener((_, _, rop) -> {
+      if (rop == null) {
+        return;
+      }
+
+      if (otherFileBox.getValue() != null) {
+        otherFeatureCombo.setItems(
+            rawOrProcessed.get().streamMatching(otherFileBox.getValue().getOtherTimeSeries())
+                .toList());
       }
     });
   }
