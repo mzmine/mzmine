@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,14 +51,13 @@ import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 import java.nio.DoubleBuffer;
-import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Used to uniformly calculate feature describing values by the series stored in {@link
- * ModularFeature#getFeatureData()} (and it's super/extending classes).
+ * Used to uniformly calculate feature describing values by the series stored in
+ * {@link ModularFeature#getFeatureData()} (and it's super/extending classes).
  *
  * @author https://github.com/SteffenHeu
  */
@@ -81,10 +80,10 @@ public class FeatureDataUtils {
    * @return The RT range or null, if there are no scans in the series.
    */
   @Nullable
-  public static Range<Float> getRtRange(IonTimeSeries<? extends Scan> series) {
-    final List<? extends Scan> scans = series.getSpectra();
-    return scans.isEmpty() ? null : Range.closed(scans.get(0).getRetentionTime(),
-        scans.get(scans.size() - 1).getRetentionTime());
+  public static Range<Float> getRtRange(IntensityTimeSeries series) {
+    final int numValues = series.getNumberOfValues();
+    return numValues == 0 ? null
+        : Range.closed(series.getRetentionTime(0), series.getRetentionTime(numValues - 1));
   }
 
   /**
@@ -212,8 +211,8 @@ public class FeatureDataUtils {
 
   /**
    * @param series The series.
-   * @return The area of the given series in retention time dimension (= for {@link
-   * IonMobilogramTimeSeries}, the intensities in one frame are summed.).
+   * @return The area of the given series in retention time dimension (= for
+   * {@link IonMobilogramTimeSeries}, the intensities in one frame are summed.).
    */
   public static float calculateArea(IntensityTimeSeries series) {
     if (series.getNumberOfValues() <= 1) {
@@ -276,7 +275,7 @@ public class FeatureDataUtils {
 
   public static void recalculateIntensityTimeSeriesDependingTypes(@NotNull OtherFeature feature) {
     final OtherTimeSeries featureData = feature.getFeatureData();
-    if(featureData == null) {
+    if (featureData == null) {
       return;
     }
 
@@ -287,14 +286,15 @@ public class FeatureDataUtils {
     var intensityRange = getIntensityRange(featureData);
     feature.set(IntensityRangeType.class, intensityRange);
     feature.set(AreaType.class, calculateArea(featureData));
-    feature.set(HeightType.class, (float)featureData.getIntensity(mostIntenseIndex));
+    feature.set(HeightType.class, (float) featureData.getIntensity(mostIntenseIndex));
     feature.set(RTType.class, featureData.getRetentionTime(mostIntenseIndex));
+    feature.set(RTRangeType.class, getRtRange(featureData));
   }
 
   /**
    * @param feature          The feature
-   * @param mzCenterFunction Center function for m/z calculation. Default = {@link
-   *                         FeatureDataUtils#DEFAULT_CENTER_FUNCTION}
+   * @param mzCenterFunction Center function for m/z calculation. Default =
+   *                         {@link FeatureDataUtils#DEFAULT_CENTER_FUNCTION}
    * @param calcQuality      specifies if quality parameters (FWHM, asymmetry, tailing) shall be
    *                         calculated.
    */
