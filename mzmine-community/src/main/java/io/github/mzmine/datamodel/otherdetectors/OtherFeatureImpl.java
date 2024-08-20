@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.otherdetectors;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
+import io.github.mzmine.main.ConfigService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
@@ -46,5 +47,26 @@ public class OtherFeatureImpl implements OtherFeature {
   @Override
   public ObservableMap<DataType, Object> getMap() {
     return map;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+
+    if (getFeatureData() != null) {
+      sb.append(getFeatureData().getOtherDataFile().getCorrespondingRawDataFile().getName())
+          .append(" ");
+    }
+    if (getChromatogramType() != null) {
+      sb.append(getChromatogramType().getDescription()).append(" ");
+    }
+    if (getRT() != null) {
+      sb.append(ConfigService.getGuiFormats().rt(getRT())).append(" min ");
+    }
+    if (getWavelength() != null) {
+      sb.append(getWavelength()).append(" nm");
+    }
+
+    return sb.toString();
   }
 }
