@@ -223,9 +223,9 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     // you could build a RangeMap<Double, UniqueSignal> of all rows with fragment spectra (precursor m/z)
     // before looping over all rows and pass it into this method
     // Or maybe we need to accumulate all MS2 fragment signals over all scans?
-    List<UniqueSignal> ms1SignalMatchesMs2Precursors = getUniquePrecursors(ms1SignalMap,
+    List<UniqueSignal> uniqueMs1SignalsWithMs2Scan = getUniquePrecursors(ms1SignalMap,
         ms2Scans);
-    Set<Double> precursorMzSet = ms1SignalMatchesMs2Precursors.stream().map(UniqueSignal::mz)
+    Set<Double> precursorMzSet = uniqueMs1SignalsWithMs2Scan.stream().map(UniqueSignal::mz)
         .collect(Collectors.toSet());
     List<UniqueSignal> ms1FragmentedSignalMatchesMs2 = ms1Signals.stream()
         .filter(signal -> precursorMzSet.contains(signal.mz()))
@@ -233,12 +233,12 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
 
     double ms1IntensityTotal = calcSumIntensity(ms1Signals);
     double ms1IntensityFragmentedPercent =
-        calcSumIntensity(ms1SignalMatchesMs2Precursors) / ms1IntensityTotal;
+        calcSumIntensity(uniqueMs1SignalsWithMs2Scan) / ms1IntensityTotal;
     double ms1IntensityMatched = calcSumIntensity(ms1SignalMatchesMs2);
     double ms1IntensityMatchedPercent = ms1IntensityMatched / ms1IntensityTotal;
 
     int ms1SignalsTotal = ms1Signals.size();
-    int ms1SignalsFragmented = ms1SignalMatchesMs2Precursors.size();
+    int ms1SignalsFragmented = uniqueMs1SignalsWithMs2Scan.size();
     double ms1SignalsFragmentedPercent = ms1SignalsFragmented / (double) ms1SignalsTotal;
     int signalsMatched = ms1SignalMatchesMs2.size();
     double ms1SignalsMatchedPercent = signalsMatched / (double) ms1SignalsTotal;
