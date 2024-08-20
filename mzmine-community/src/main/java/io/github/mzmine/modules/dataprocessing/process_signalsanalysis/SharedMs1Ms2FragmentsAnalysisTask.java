@@ -144,7 +144,7 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     for (final ModularFeature feature : row.getFeatures()) {
       try {
         // Process the feature and get categorized scans
-        Map<String, List<Scan>> categorizedScans = processFeature(feature);
+        Map<String, List<Scan>> categorizedScans = collectMs1MS2AllPrecursorsScans(feature);
 
         // Collect MS1 scans
         ms1Scans.addAll(categorizedScans.getOrDefault("ms1Scans", new ArrayList<>()));
@@ -176,7 +176,7 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
    * @return The list of exported scans. The representative MS1 and all MS2 scans that match the
    * retention time range of this feature and any MS1 signal in best MS1
    */
-  private Map<String, List<Scan>> processFeature(final Feature feature) {
+  private Map<String, List<Scan>> collectMs1MS2AllPrecursorsScans(final Feature feature) {
     List<Scan> ms1Scans = new ArrayList<>();
     List<Scan> ms2Scans = new ArrayList<>();
     List<Scan> ms2ScansAllPrecursors = new ArrayList<>();
