@@ -248,10 +248,22 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     int signalsMatched = ms1SignalMatchesMs2.size();
     double ms1SignalsMatchedPercent = signalsMatched / (double) ms1SignalsTotal;
 
-    // for all precursor ions
-    int ms2SignalsAllPrecursors = mapToList(ms2SignalMap).size();
+    // TODO decide if keeping both or chose one
 
-    // only for this precursor ion
+    // for all precursor ions
+    List<UniqueSignal> ms2SignalsAllPrecursors = mapToList(ms2SignalMap);
+    List<UniqueSignal> ms2SignalMatchesMs1AllPrecursors = mapToList(ms2SignalMap).stream()
+        .filter(signal -> ms1SignalMap.get(signal.mz()) != null).toList();
+
+    int ms2SignalsAllPrecursorsTotal = ms2SignalsAllPrecursors.size();
+    double ms2SignalsMatchedPercentAllPrecursors =
+        ms2SignalMatchesMs1AllPrecursors.size() / (double) ms2SignalsAllPrecursorsTotal;
+    double ms2IntensityMatchedAllPrecursors = calcSumIntensity(ms2SignalMatchesMs1AllPrecursors);
+    double ms2IntensityTotalAllPrecursors = calcSumIntensity(ms2SignalsAllPrecursors);
+    double ms2IntensityMatchedPercentAllPrecursors =
+        ms2IntensityMatchedAllPrecursors / ms2IntensityTotalAllPrecursors;
+
+    // only for classically associated precursor ion
     List<UniqueSignal> ms2Signals = mapToList(ms2SignalMap).stream()
         .filter(signal -> originatesFromPrecursorIon(signal, tolerance, precursorMz)).toList();
     List<UniqueSignal> ms2SignalMatchesMs1 = ms2Signals.stream()
@@ -280,7 +292,7 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
 
     InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(isLikelyISF,
         ms1SignalsFragmentedLikelyISFPercent, signalsMatched, ms1SignalsTotal,
-        ms2SignalsAllPrecursors, ms1SignalsFragmented, ms1SignalsFragmentedPercent,
+        ms2SignalsAllPrecursorsTotal, ms1SignalsFragmented, ms1SignalsFragmentedPercent,
         ms1IntensityFragmentedPercent, ms1SignalsMatchedPercent, ms1IntensityMatchedPercent,
         ms2SignalsTotal, ms2SignalsMatchedPercent, ms2IntensityMatchedPercent);
 
