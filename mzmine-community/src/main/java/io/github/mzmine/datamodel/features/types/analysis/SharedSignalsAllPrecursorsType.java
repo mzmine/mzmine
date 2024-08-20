@@ -23,13 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
+package io.github.mzmine.datamodel.features.types.analysis;
 
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.List;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import org.jetbrains.annotations.NotNull;
 
-public record GroupedSignalScans(FeatureListRow row, List<Scan> ms1Scans, List<Scan> ms2Scans,
-                                 List<Scan> ms2ScansAllPrecursors) {
+/**
+ * Represents the count of shared signals between MS1 and MS2 signals. It extends the
+ * {@link IntegerType} class. This value is typically used in the context of in source fragments
+ * analysis.
+ */
+public class SharedSignalsAllPrecursorsType extends IntegerType {
 
+  @Override
+  public @NotNull String getUniqueID() {
+    return "shared_signals_all_precursors";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Shared signals (all precursors)";
+  }
 }

@@ -43,15 +43,16 @@ import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsIntensity
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsLikelyISFragmentInMs1PercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsType;
+import io.github.mzmine.datamodel.features.types.analysis.SharedSignalsAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.SharedSignalsType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
                                               double ms1FragmentedLikelyISFPercent,
-                                              int sharedSignals, int ms1Signals,
-                                              int ms2SignalsAllPrecursors, int ms1Fragmented,
-                                              double ms1FragmentedPercent,
+                                              int sharedSignals, int sharedSignalsAllPrecursors,
+                                              int ms1Signals, int ms2SignalsAllPrecursors,
+                                              int ms1Fragmented, double ms1FragmentedPercent,
                                               double ms1IntensityFragmentedPercent,
                                               double ms1SharedPercent,
                                               double ms1IntensityMatchedPercent, int ms2Signals,
@@ -75,6 +76,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
     return DataTypes.getAll(IsLikelyISFragmentType.class, //
         PrecursorIonsLikelyISFragmentInMs1PercentType.class, //
         SharedSignalsType.class, //
+        SharedSignalsAllPrecursorsType.class, //
         Ms1SignalsType.class, //
         Ms2SignalsAllPrecursorsType.class, //
         Ms2SignalsType.class, //
@@ -94,6 +96,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
         requireNonNullElse(values.get(IsLikelyISFragmentType.class), false),
         requireNonNullElse(values.get(PrecursorIonsLikelyISFragmentInMs1PercentType.class), -1f),
         requireNonNullElse(values.get(SharedSignalsType.class), -1),
+        requireNonNullElse(values.get(SharedSignalsAllPrecursorsType.class), -1),
         requireNonNullElse(values.get(Ms1SignalsType.class), -1),
         requireNonNullElse(values.get(Ms2SignalsAllPrecursorsType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsType.class), -1),
@@ -110,10 +113,10 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
   // Method to create a new instance with updated isLikelyISF
   public InSourceFragmentAnalysisResults withIsLikelyISF(boolean isLikelyISF) {
     return new InSourceFragmentAnalysisResults(isLikelyISF, this.ms1FragmentedLikelyISFPercent,
-        this.sharedSignals, this.ms1Signals, this.ms2SignalsAllPrecursors, this.ms1Fragmented,
-        this.ms1FragmentedPercent, this.ms1IntensityFragmentedPercent, this.ms1SharedPercent,
-        this.ms1IntensityMatchedPercent, this.ms2Signals, this.ms2SharedPercent,
-        this.ms2IntensitySharedPercent);
+        this.sharedSignals, this.sharedSignalsAllPrecursors, this.ms1Signals,
+        this.ms2SignalsAllPrecursors, this.ms1Fragmented, this.ms1FragmentedPercent,
+        this.ms1IntensityFragmentedPercent, this.ms1SharedPercent, this.ms1IntensityMatchedPercent,
+        this.ms2Signals, this.ms2SharedPercent, this.ms2IntensitySharedPercent);
   }
 
   /**
@@ -127,6 +130,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
     return switch (sub) {
       case IsLikelyISFragmentType _ -> isLikelyISF;
       case SharedSignalsType _ -> sharedSignals;
+      case SharedSignalsAllPrecursorsType _ -> sharedSignalsAllPrecursors;
       case PrecursorIonsLikelyISFragmentInMs1PercentType _ -> ms1FragmentedLikelyISFPercent;
       case Ms1SignalsType _ -> ms1Signals;
       case Ms2SignalsAllPrecursorsType _ -> ms2SignalsAllPrecursors;
