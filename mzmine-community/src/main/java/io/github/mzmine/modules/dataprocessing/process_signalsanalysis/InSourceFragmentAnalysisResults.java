@@ -39,7 +39,7 @@ import io.github.mzmine.datamodel.features.types.analysis.Ms2SharedIntensityPerc
 import io.github.mzmine.datamodel.features.types.analysis.Ms2SharedSignalsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsType;
-import io.github.mzmine.datamodel.features.types.analysis.precursorIonsType;
+import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsLikelyISFragmentInMs1PercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsPercentType;
@@ -82,7 +82,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
         Ms2SharedSignalsPercentType.class, //
         Ms1SharedIntensityPercentType.class, //
         Ms2SharedIntensityPercentType.class, //
-        precursorIonsType.class, //
+        PrecursorIonsType.class, //
         PrecursorIonsPercentType.class, //
         PrecursorIonsIntensityPercentType.class //
     );
@@ -96,7 +96,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
         requireNonNullElse(values.get(SharedSignalsType.class), -1),
         requireNonNullElse(values.get(Ms1SignalsType.class), -1),
         requireNonNullElse(values.get(Ms2SignalsAllPrecursorsType.class), -1),
-        requireNonNullElse(values.get(precursorIonsType.class), -1),
+        requireNonNullElse(values.get(PrecursorIonsType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(PrecursorIonsPercentType.class), -1f),
         requireNonNullElse(values.get(Ms1SharedSignalsPercentType.class), -1f),
@@ -131,7 +131,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
       case Ms1SignalsType _ -> ms1Signals;
       case Ms2SignalsAllPrecursorsType _ -> ms2SignalsAllPrecursors;
       case PrecursorIonsIntensityPercentType _ -> ms1IntensityFragmentedPercent;
-      case precursorIonsType _ -> ms1Fragmented;
+      case PrecursorIonsType _ -> ms1Fragmented;
       case PrecursorIonsPercentType _ -> ms1FragmentedPercent;
       case Ms1SharedIntensityPercentType _ -> ms1IntensityMatchedPercent;
       case Ms1SharedSignalsPercentType _ -> ms1SharedPercent;
