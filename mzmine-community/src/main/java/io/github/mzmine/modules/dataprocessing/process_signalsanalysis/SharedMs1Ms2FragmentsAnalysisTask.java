@@ -223,7 +223,7 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     // you could build a RangeMap<Double, UniqueSignal> of all rows with fragment spectra (precursor m/z)
     // before looping over all rows and pass it into this method
     // Or maybe we need to accumulate all MS2 fragment signals over all scans?
-    List<UniqueSignal> ms1SignalMatchesMs2Precursors = filterUniquePrecursors(ms1SignalMap,
+    List<UniqueSignal> ms1SignalMatchesMs2Precursors = getUniquePrecursors(ms1SignalMap,
         ms2Scans);
     Set<Double> precursorMzSet = ms1SignalMatchesMs2Precursors.stream().map(UniqueSignal::mz)
         .collect(Collectors.toSet());
@@ -342,7 +342,7 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
    * @param ms2Scans   The MS2 scans.
    * @return A list of unique MS1 signals that match MS2 precursors.
    */
-  private List<UniqueSignal> filterUniquePrecursors(RangeMap<Double, UniqueSignal> ms1Signals,
+  private List<UniqueSignal> getUniquePrecursors(RangeMap<Double, UniqueSignal> ms1Signals,
       List<Scan> ms2Scans) {
     return ms2Scans.stream().map(Scan::getPrecursorMz).filter(Objects::nonNull)
         .map(precursormz -> ms1Signals.get(precursormz)).filter(Objects::nonNull).distinct()
