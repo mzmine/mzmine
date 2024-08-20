@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -116,6 +116,7 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.otherdata.align_msother.MsOtherCorrelationModule;
 import io.github.mzmine.modules.dataprocessing.otherdata.featdet_baseline.OtherDataBaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.otherdata.featdet_resolve.OtherDataResolverModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
@@ -412,7 +413,8 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#OTHER_DATA_PROCESSING}
        */
       OtherDataBaselineCorrectionModule.class, //
-      OtherDataResolverModule.class //
+      OtherDataResolverModule.class, //
+      MsOtherCorrelationModule.class //
   );
 
 
