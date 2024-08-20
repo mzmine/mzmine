@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "PeakPickingModel",
+            "request": "launch",
+            "mainClass": "io.github.mzmine.util.scans.PeakPickingModel.PeakPickingModel",
+            "projectName": "mzmine-community"
+        },
+        {
+            "type": "java",
             "name": "PeakClassifierModel",
             "request": "launch",
             "mainClass": "io.github.mzmine.util.scans.PeakClassification.PeakClassifierModel",
