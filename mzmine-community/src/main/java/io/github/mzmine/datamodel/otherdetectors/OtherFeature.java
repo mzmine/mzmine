@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,16 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import org.jetbrains.annotations.Nullable;
 
 public interface OtherFeature extends ModularDataModel {
@@ -83,4 +89,26 @@ public interface OtherFeature extends ModularDataModel {
     FeatureDataUtils.recalculateIntensityTimeSeriesDependingTypes(feature);
     return feature;
   }
+
+  @Nullable
+  default Float getRT() {
+    return get(RTType.class);
+  }
+
+  @Nullable
+  default Range<Float> getRtRange() {
+    return get(RTRangeType.class);
+  }
+
+  @Nullable
+  default Double getWavelength() {
+    return get(WavelengthType.class);
+  }
+
+  @Nullable
+  default ChromatogramType getChromatogramType() {
+    return get(ChromatogramTypeType.class);
+  }
+
+
 }
