@@ -11,7 +11,7 @@ import java.io.InputStream;
 
 
 public class PeakClassifierModel {
-    private static final String modelDir = "/MLModels/traced_single_class_model_fft_float64.pt";
+    private static final String modelDir = "/MLModels/traced_check1.pt";
     private final Model model;
     private final NDManager manager;
     private final Translator<double[][], double[]> translator;
