@@ -31,9 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents how many of the MS1 signals in the corresponding MS1 scans were fragmented (%).
- * Measured by their intensity.
- * It extends the {@link IntegerType} class. This value is typically used in the context of
- * in source fragments analysis.
+ * Measured by their intensity. It extends the {@link IntegerType} class. This value is typically
+ * used in the context of in source fragments analysis.
  */
 public class PrecursorIonsIntensityPercentType extends PercentType {
 

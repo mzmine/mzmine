@@ -46,7 +46,7 @@ public class SharedMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet 
   public static final ComboParameter<ScanDataType> scanDataType = new ComboParameter<>(
       "MS data selection",
       "Show either raw data or filtered centroid data (after mass detection and other filters).\n"
-      + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
+          + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
       ScanDataType.values(), ScanDataType.MASS_LIST);
 
   public SharedMs1Ms2FragmentsAnalysisParameters() {

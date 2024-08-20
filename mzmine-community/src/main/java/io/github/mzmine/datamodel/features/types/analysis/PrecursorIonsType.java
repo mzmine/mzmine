@@ -29,9 +29,8 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents count of precursors found in MS1.
- * It extends the {@link IntegerType} class. This value is typically used in the context of
- * in source fragments analysis.
+ * Represents count of precursors found in MS1. It extends the {@link IntegerType} class. This value
+ * is typically used in the context of in source fragments analysis.
  */
 public class PrecursorIonsType extends IntegerType {
 

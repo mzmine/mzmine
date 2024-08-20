@@ -29,9 +29,9 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents count of signals found in MS2 scan(s) corresponding to all precursors found in MS1.
- * It extends the {@link IntegerType} class. This value is typically used in the context of
- * in source fragments analysis.
+ * Represents count of signals found in MS2 scan(s) corresponding to all precursors found in MS1. It
+ * extends the {@link IntegerType} class. This value is typically used in the context of in source
+ * fragments analysis.
  */
 public class Ms2SignalsAllPrecursorsType extends IntegerType {
 

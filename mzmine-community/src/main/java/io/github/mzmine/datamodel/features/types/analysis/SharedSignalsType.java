@@ -26,13 +26,12 @@
 package io.github.mzmine.datamodel.features.types.analysis;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents the count of shared signals between MS1 and MS2 signals.
- * It extends the {@link IntegerType} class. This value is typically used in the context of
- * in source fragments analysis.
+ * Represents the count of shared signals between MS1 and MS2 signals. It extends the
+ * {@link IntegerType} class. This value is typically used in the context of in source fragments
+ * analysis.
  */
 public class SharedSignalsType extends IntegerType {
 

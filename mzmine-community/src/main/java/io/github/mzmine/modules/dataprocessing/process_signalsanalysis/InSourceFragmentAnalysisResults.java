@@ -39,10 +39,10 @@ import io.github.mzmine.datamodel.features.types.analysis.Ms2SharedIntensityPerc
 import io.github.mzmine.datamodel.features.types.analysis.Ms2SharedSignalsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsType;
-import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsLikelyISFragmentInMs1PercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsType;
 import io.github.mzmine.datamodel.features.types.analysis.SharedSignalsType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;

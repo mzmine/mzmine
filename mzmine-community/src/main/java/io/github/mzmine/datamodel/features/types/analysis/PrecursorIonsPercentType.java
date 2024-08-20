@@ -30,9 +30,9 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents how many of the MS1 signals in the corresponding MS1 scans were fragmented (%).
- * It extends the {@link IntegerType} class. This value is typically used in the context of
- * in source fragments analysis.
+ * Represents how many of the MS1 signals in the corresponding MS1 scans were fragmented (%). It
+ * extends the {@link IntegerType} class. This value is typically used in the context of in source
+ * fragments analysis.
  */
 public class PrecursorIonsPercentType extends PercentType {
 

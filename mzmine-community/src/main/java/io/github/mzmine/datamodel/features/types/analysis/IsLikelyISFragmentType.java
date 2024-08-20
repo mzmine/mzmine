@@ -26,16 +26,14 @@
 package io.github.mzmine.datamodel.features.types.analysis;
 
 import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Flag if signal is likely an in source fragment.
- * For now, if the m/z of the row corresponds to a (detected) signal (excluding the precursor ion)
- * found in any of the MS2 scans corresponding to all (detected) signals found in the MS1 scan,
- * it is flagged as a likely in source fragment. This method detects a lot of false positives.
- * It extends the {@link BooleanType} class. This value is typically used in the context of
- * in source fragments analysis.
+ * Flag if signal is likely an in source fragment. For now, if the m/z of the row corresponds to a
+ * (detected) signal (excluding the precursor ion) found in any of the MS2 scans corresponding to
+ * all (detected) signals found in the MS1 scan, it is flagged as a likely in source fragment. This
+ * method detects a lot of false positives. It extends the {@link BooleanType} class. This value is
+ * typically used in the context of in source fragments analysis.
  */
 public class IsLikelyISFragmentType extends BooleanType {
 

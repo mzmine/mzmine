@@ -100,6 +100,12 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     return ms1SignalMatchesMs2.stream().mapToDouble(UniqueSignal::sumIntensity).sum();
   }
 
+  private static boolean originatesFromPrecursorIon(final UniqueSignal signal,
+      final MZTolerance tolerance, final Double precursorMz) {
+    return signal.streamPrecursorMzs()
+        .anyMatch(mz -> tolerance.checkWithinTolerance(precursorMz, mz));
+  }
+
   @Override
   protected void process() {
     List<GroupedSignalScans> groupedScans = collectSpectra();
@@ -223,8 +229,7 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     // you could build a RangeMap<Double, UniqueSignal> of all rows with fragment spectra (precursor m/z)
     // before looping over all rows and pass it into this method
     // Or maybe we need to accumulate all MS2 fragment signals over all scans?
-    List<UniqueSignal> uniqueMs1SignalsWithMs2Scan = getUniquePrecursors(ms1SignalMap,
-        ms2Scans);
+    List<UniqueSignal> uniqueMs1SignalsWithMs2Scan = getUniquePrecursors(ms1SignalMap, ms2Scans);
     Set<Double> precursorMzSet = uniqueMs1SignalsWithMs2Scan.stream().map(UniqueSignal::mz)
         .collect(Collectors.toSet());
     List<UniqueSignal> ms1FragmentedSignalMatchesMs2 = ms1Signals.stream()
@@ -280,12 +285,6 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         ms2SignalsTotal, ms2SignalsMatchedPercent, ms2IntensityMatchedPercent);
 
     return new SignalsAnalysisResult(results);
-  }
-
-  private static boolean originatesFromPrecursorIon(final UniqueSignal signal,
-      final MZTolerance tolerance, final Double precursorMz) {
-    return signal.streamPrecursorMzs()
-        .anyMatch(mz -> tolerance.checkWithinTolerance(precursorMz, mz));
   }
 
   private List<UniqueSignal> mapToList(final RangeMap<Double, UniqueSignal> map) {

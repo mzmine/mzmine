@@ -29,9 +29,9 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents shared signals between MS1 and MS2 signals, over MS2 total signals (%).
- * It extends the {@link PercentType} class. This value is typically used in the context of
- * in source fragments analysis.
+ * Represents shared signals between MS1 and MS2 signals, over MS2 total signals (%). It extends the
+ * {@link PercentType} class. This value is typically used in the context of in source fragments
+ * analysis.
  */
 public class Ms2SharedSignalsPercentType extends PercentType {
 
