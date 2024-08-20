@@ -61,8 +61,10 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
     UnivariateFunction splineFunction = interpolator.interpolate(subsampleX, subsampleY);
 
     for (int i = 0; i < numValues; i++) {
-      // must be above zero, but not bigger than the original value.
-      yBuffer[i] = Math.min(Math.max(yBuffer[i] - splineFunction.value(xBuffer[i]), 0), yBuffer[i]);
+      final double baseline = splineFunction.value(xBuffer[i]);
+      // corrected value must be above zero. the baseline itself may be below zero, e.g. for signal
+      // drifts due to solvent composition change
+      yBuffer[i] = Math.max(yBuffer[i] - baseline, 0);
     }
 
     if (isPreview()) {

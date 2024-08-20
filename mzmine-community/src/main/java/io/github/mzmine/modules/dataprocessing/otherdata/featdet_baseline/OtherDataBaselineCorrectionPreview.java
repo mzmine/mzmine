@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.OtherFeatureDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -117,7 +118,7 @@ class OtherDataBaselineCorrectionPreview extends AbstractPreviewPane<OtherFeatur
     data.addAll(List.of(new DatasetAndRenderer(new ColoredXYDataset(
             new OtherFeatureDataProvider(corrected, feature.toString() + " corrected",
                 ConfigService.getDefaultColorPalette().getPositiveColorAWT())),
-            new ColoredXYLineRenderer()), //
+            new ColoredAreaShapeRenderer()), //
         new DatasetAndRenderer(
             new ColoredXYDataset(new OtherFeatureDataProvider(feature, feature.toString(), color)),
             new ColoredXYLineRenderer())));

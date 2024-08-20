@@ -96,8 +96,10 @@ public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
             i -> function.value(xBuffer[i])));
       }
       for (int i = 0; i < numValues; i++) {
-        // must be above zero, but not bigger than the original value.
-        yBuffer[i] = Math.min(Math.max(yBuffer[i] - function.value(xBuffer[i]), 0), yBuffer[i]);
+        final double baseline = function.value(xBuffer[i]);
+        // corrected value must be above zero. the baseline itself may be below zero, e.g. for signal
+        // drifts due to solvent composition change
+        yBuffer[i] = Math.max(yBuffer[i] - baseline, 0);
       }
 
       return createNewTimeSeries(timeSeries, numValues, yBuffer);
@@ -110,8 +112,10 @@ public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
             i -> function.value(xBuffer[i])));
       }
       for (int i = 0; i < numValues; i++) {
-        // must be above zero, but not bigger than the original value.
-        yBuffer[i] = Math.min(Math.max(yBuffer[i] - function.value(xBuffer[i]), 0), yBuffer[i]);
+        final double baseline = function.value(xBuffer[i]);
+        // corrected value must be above zero. the baseline itself may be below zero, e.g. for signal
+        // drifts due to solvent composition change
+        yBuffer[i] = Math.max(yBuffer[i] - baseline, 0);
       }
 
       return createNewTimeSeries(timeSeries, numValues, yBuffer);
