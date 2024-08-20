@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * It extends the {@link IntegerType} class. This value is typically used in the context of
  * in source fragments analysis.
  */
-public class precursorIonsType extends IntegerType {
+public class PrecursorIonsType extends IntegerType {
 
   @Override
   public @NotNull String getUniqueID() {
