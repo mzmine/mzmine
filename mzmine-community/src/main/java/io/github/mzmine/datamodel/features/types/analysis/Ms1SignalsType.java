@@ -26,8 +26,14 @@
 package io.github.mzmine.datamodel.features.types.analysis;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents count of signals found in MS1 scan(s).
+ * It extends the {@link IntegerType} class. This value is typically used in the context of
+ * in source fragments analysis.
+ */
 public class Ms1SignalsType extends IntegerType {
 
   @Override

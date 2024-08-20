@@ -25,11 +25,14 @@
 
 package io.github.mzmine.datamodel.features.types.analysis;
 
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Number of precursor ions that match fragment signals in any MS2 scan in RT range
+ * Represents the % of precursor ions that match fragment signals in any MS2 scan in RT range.
+ * It extends the {@link PercentType} class. This value is typically used in the context of
+ * in source fragments analysis.
  */
 public class PrecursorIonsLikelyISFragmentInMs1PercentType extends PercentType {
 

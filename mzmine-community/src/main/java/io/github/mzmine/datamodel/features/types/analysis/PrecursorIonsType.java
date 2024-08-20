@@ -23,52 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel.features.types.analysis;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
-import io.github.mzmine.main.MZmineCore;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The number of common signals, e.g., comparing MS1 and MS2
+ * Represents count of precursors found in MS1.
+ * It extends the {@link IntegerType} class. This value is typically used in the context of
+ * in source fragments analysis.
  */
-public class Ms1IntensityPercentType extends DoubleType {
+public class precursorIonsType extends IntegerType {
 
-  public Ms1IntensityPercentType() {
-    super(new DecimalFormat("0.0E00"));
-  }
-
-  @NotNull
   @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "sum_intensity_ms1_signals";
+  public @NotNull String getUniqueID() {
+    return "precursor_ion_count";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Total intensity of MS1 signals";
-  }
-
-  @Override
-  public NumberFormat getFormat() {
-    try {
-      return MZmineCore.getConfiguration().getIntensityFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
-  }
-
-  @Override
-  public NumberFormat getExportFormat() {
-    try {
-      return MZmineCore.getConfiguration().getExportFormats().intensityFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
+    return "Precursor ions";
   }
 }
