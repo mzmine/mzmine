@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectors;
-import io.github.mzmine.modules.dataprocessing.otherdata.featdet_resolve.OtherDataResolverParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelection;
 import io.github.mzmine.project.ProjectService;
@@ -67,12 +66,10 @@ public class OtherDataBaselineCorrectionTask extends AbstractSimpleTask {
     RawDataFileImpl dummyFile = new RawDataFileImpl("dummy", null, null);
     ModularFeatureList flist = new ModularFeatureList("dummy flist", null, dummyFile);
 
-    traceSelection = parameters.getValue(OtherDataResolverParameters.otherTraces);
+    traceSelection = parameters.getValue(OtherDataBaselineCorrectionParameters.traces);
     final BaselineCorrectors value = parameters.getParameter(
         OtherDataBaselineCorrectionParameters.correctionAlgorithm).getValue();
-    corrector = value.getModuleInstance().newInstance(
-        parameters.getParameter(OtherDataBaselineCorrectionParameters.correctionAlgorithm)
-            .getEmbeddedParameters(), null, flist);
+    corrector = value.getModuleInstance().newInstance(parameters, null, flist);
   }
 
   public static @NotNull List<OtherFeature> correctBaseline(List<OtherFeature> inputData,
