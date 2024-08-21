@@ -48,6 +48,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OtherFeatureSelectionPane extends GridPane {
@@ -55,6 +56,14 @@ public class OtherFeatureSelectionPane extends GridPane {
   private final ReadOnlyObjectWrapper<@Nullable OtherFeature> featureProperty = new ReadOnlyObjectWrapper<>();
 
   public OtherFeatureSelectionPane() {
+    this(OtherRawOrProcessed.values());
+  }
+
+  public OtherFeatureSelectionPane(@NotNull OtherRawOrProcessed... rawOrProcessedChoices) {
+    if (rawOrProcessedChoices == null || rawOrProcessedChoices.length == 0) {
+      throw new IllegalArgumentException("rawOrProcessedChoices is null or empty");
+    }
+
     setVgap(FxLayout.DEFAULT_SPACE);
     setHgap(FxLayout.DEFAULT_SPACE);
     setAlignment(Pos.TOP_LEFT);
@@ -72,9 +81,9 @@ public class OtherFeatureSelectionPane extends GridPane {
     otherFileBox.setMinWidth(100);
 
     final ObjectProperty<OtherRawOrProcessed> rawOrProcessed = new SimpleObjectProperty<>(
-        OtherRawOrProcessed.RAW);
+        rawOrProcessedChoices[0]);
     final ComboBox<OtherRawOrProcessed> rawOrProcessedBox = FxComboBox.createComboBox(
-        "Select the time series type", List.of(OtherRawOrProcessed.values()), rawOrProcessed);
+        "Select the time series type", List.of(rawOrProcessedChoices), rawOrProcessed);
     rawOrProcessedBox.setMinWidth(40);
 
     final SortableOtherFeatureComboBox otherFeatureCombo = new SortableOtherFeatureComboBox();
@@ -84,9 +93,11 @@ public class OtherFeatureSelectionPane extends GridPane {
     add(rawFileBox, 1, 0);
     add(FxLabels.newLabel("2. Other data:"), 2, 0);
     add(otherFileBox, 3, 0);
-    add(rawOrProcessedBox, 4, 0);
+    if (rawOrProcessedChoices.length > 1) {
+      add(rawOrProcessedBox, 4, 0);
+    }
     add(FxLabels.newLabel("3. Feature:"), 0, 1);
-    add(otherFeatureCombo, 1, 1, 3, 1);
+    add(otherFeatureCombo, 1, 1, rawOrProcessedChoices.length > 1 ? 3 : 2, 1);
 
     getColumnConstraints().add(new ColumnConstraints(80));
     getColumnConstraints().add(
