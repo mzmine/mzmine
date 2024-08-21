@@ -23,51 +23,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.otherdetectors;
+package io.github.mzmine.parameters.dialogs.previewpane;
 
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface OtherTimeSeriesData {
-
-  OtherDataFile getOtherDataFile();
-
-  String getTimeSeriesDomainLabel();
-
-  String getTimeSeriesDomainUnit();
-
-  String getTimeSeriesRangeLabel();
-
-  String getTimeSeriesRangeUnit();
+public interface PreviewPane<T> {
 
   @NotNull
-  List<@NotNull OtherFeature> getRawTraces();
-
-  default int getNumberOfTimeSeries() {
-    return getRawTraces().size();
-  }
-
-  @NotNull
-  OtherFeature getRawTrace(int index);
+  SimpleXYChart<PlotXYDataProvider> createChart();
 
   /**
-   * @return The chromatograms in this data file or null if this file does not contain
-   * chromatograms.
+   * This method is executed on the fx thread and updates the chart with the respective datasets.
+   *
+   * @param datasets The new datasets. May be empty.
+   * @param chart    The chart of the preview.
    */
-  @NotNull
-  ChromatogramType getChromatogramType();
-
-  List<OtherFeature> getProcessedFeatures();
+  void updateChart(@NotNull List<DatasetAndRenderer> datasets,
+      @NotNull SimpleXYChart<? extends PlotXYDataProvider> chart);
 
   /**
-   * @return The processed features for the given series, may be empty. The list is modifiable.
+   * Calculate the new datasets after the feature changed. Parameters are update. This calculation
+   * is run on a separate thread. The datasets are added to the chart in
+   * {@link FeaturePreviewPane#updateChart(List, SimpleXYChart)} )}.
    */
   @NotNull
-  List<OtherFeature> getProcessedFeaturesForTrace(OtherFeature rawTrace);
+  List<@NotNull DatasetAndRenderer> calculateNewDatasets(@Nullable T valueForPreview);
 
-  void replaceProcessedFeaturesForTrace(OtherFeature rawTrace,
-      @NotNull List<OtherFeature> newFeatures);
+  void updatePreview();
 
-  void addProcessedFeature(@NotNull OtherFeature newFeature);
+  T getValueForPreview();
 }

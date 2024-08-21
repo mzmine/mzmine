@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -94,9 +94,14 @@ public class FxLayout {
   }
 
   public static VBox newVBox(Pos alignment, Insets padding, Node... children) {
+    return newVBox(alignment, padding, false, children);
+  }
+
+  public static VBox newVBox(Pos alignment, Insets padding, boolean fillWidth, Node... children) {
     var pane = new VBox(DEFAULT_SPACE, children);
     pane.setPadding(padding);
     pane.setAlignment(alignment);
+    pane.setFillWidth(fillWidth);
     return pane;
   }
 

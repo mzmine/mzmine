@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,6 @@ import com.google.common.collect.Range;
 import java.text.NumberFormat;
 import java.util.function.Function;
 import java.util.logging.Logger;
-import javafx.beans.binding.DoubleExpression;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -46,25 +45,7 @@ public class TableColumns {
   private static final Logger logger = Logger.getLogger(TableColumns.class.getName());
 
   public static void autoFitLastColumn(TableView<?> table) {
-    autoFitLastColumn(table, table.widthProperty().subtract(10));
-  }
-
-  public static void autoFitLastColumn(TableView<?> table, DoubleExpression tableWidth) {
-    var cols = table.getColumns();
-    if (cols.isEmpty()) {
-      throw new IllegalArgumentException("Table must contain 1 or more columns");
-    }
-    // target column to resize
-    TableColumn<?, ?> lastCol = cols.getLast();
-    // subtract all widths from the table width
-    DoubleExpression remainingWidth = tableWidth;
-    for (int i = 0; i < cols.size() - 1; i++) {
-      var col = cols.get(i);
-      if (col != lastCol) {
-        remainingWidth = remainingWidth.subtract(col.widthProperty());
-      }
-    }
-    lastCol.prefWidthProperty().bind(remainingWidth);
+    table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
   }
 
   /**
@@ -141,12 +122,11 @@ public class TableColumns {
   }
 
   /**
-   *
-   * @param name column name
+   * @param name         column name
    * @param valueFactory defines the value of the cell
+   * @param <MODEL>      the table row data model
+   * @param <V>          the value type of the property
    * @return a new TableColumn
-   * @param <MODEL> the table row data model
-   * @param <V> the value type of the property
    */
   @NotNull
   public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name, double minWidth,
@@ -157,12 +137,11 @@ public class TableColumns {
   }
 
   /**
-   *
-   * @param name column name
+   * @param name         column name
    * @param valueFactory defines the value of the cell
+   * @param <MODEL>      the table row data model
+   * @param <V>          the value type of the property
    * @return a new TableColumn
-   * @param <MODEL> the table row data model
-   * @param <V> the value type of the property
    */
   @NotNull
   public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name, double minWidth,

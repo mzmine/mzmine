@@ -506,6 +506,9 @@
         userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
       <MenuItem onAction="#runModule" text="Image viewer"
         userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
+      <MenuItem onAction="#runModule" text="Multi detector visualizer"
+        userData="io.github.mzmine.modules.visualization.otherdetectors.multidetector.MultidetectorVisualizerModule"/>
+
 
       <SeparatorMenuItem/>
 

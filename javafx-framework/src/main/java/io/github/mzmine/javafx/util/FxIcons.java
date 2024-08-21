@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,7 @@ public enum FxIcons implements IconCodeSupplier {
   CHECK_CIRCLE, X, X_CIRCLE, EXCLAMATION_TRIANGLE,
 
   // control flow
-  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN,
+  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, PLUS, ADD, EDIT,
 
   // UI
   DARK_MODE_SWITCH, BATCH,
@@ -73,7 +73,10 @@ public enum FxIcons implements IconCodeSupplier {
       case STOP -> "bi-stop-circle";
       case DRAW_REGION -> "bi-bounding-box";
       case BATCH -> "bi-layout-split";
+      case ADD -> "bi-plus";
+      case EDIT -> "bi-pencil-square";
       case DOWNLOAD -> "bi-download";
+      case PLUS -> "bi-plus";
     };
   }
 }

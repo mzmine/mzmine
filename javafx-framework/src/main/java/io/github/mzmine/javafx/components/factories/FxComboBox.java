@@ -70,11 +70,6 @@ public class FxComboBox {
     return combo;
   }
 
-  public static <T> ComboBox<T> createComboBox(String tooltip, T[] values,
-      Property<T> selectedItem) {
-    return createComboBox(tooltip, List.of(values), selectedItem);
-  }
-
   public static <T> SearchableComboBox<T> newSearchableComboBox(@NotNull String tooltip,
       @NotNull List<T> values, @NotNull Property<T> selectedItem) {
     return addContent(tooltip, values, selectedItem, new SearchableComboBox<>());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.DetectorType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectralData;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectralDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectrum;
@@ -62,6 +63,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -376,7 +378,6 @@ public class ConversionUtils {
   /**
    * Converts chromatograms from the MZML and groups them into one {@link OtherDataFile} per
    * chromatogram type. E.g. all pressure, all PDA or all UV chromatograms will be in one file.
-   *
    */
   public static List<OtherDataFile> convertOtherTraces(RawDataFile file,
       List<Chromatogram> chromatograms) {
@@ -387,7 +388,8 @@ public class ConversionUtils {
 
     List<OtherDataFile> otherFiles = new ArrayList<>();
 
-    for (Entry<ChromatogramType, List<MzMLChromatogram>> grouped : groupedChromatograms.entrySet()) {
+    for (Entry<ChromatogramType, List<MzMLChromatogram>> grouped : groupedChromatograms.entrySet()
+        .stream().sorted(Comparator.comparing(e -> e.getKey().getDescription())).toList()) {
       final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
       final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
       otherFile.setDetectorType(DetectorType.OTHER);
@@ -400,7 +402,8 @@ public class ConversionUtils {
             file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
             chrom.getId(), timeSeriesData);
 
-        timeSeriesData.addTimeSeries(timeSeries);
+        final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
+        timeSeriesData.addRawTrace(otherFeature);
 
         final String unitAccession = chrom.getIntensityBinaryDataInfo().getUnitAccession();
         final MzMLUnits unit = MzMLUnits.ofAccession(unitAccession);
