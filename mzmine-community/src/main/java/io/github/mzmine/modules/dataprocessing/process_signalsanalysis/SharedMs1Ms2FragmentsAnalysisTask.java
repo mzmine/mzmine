@@ -208,96 +208,79 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
   private SignalsAnalysisResult analyzeSignals(List<Scan> ms1Scans, List<Scan> ms2Scans,
       List<Scan> allPrecursorsMs2Scans, MZTolerance tolerance, Double precursorMz) {
 
+    // Step 1: Analyze MS1 signals
     // require signal to be in 90% of MS1 scans
     int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);
-    var ms1SignalMap = filterMap(collectUniqueSignals(ms1Scans, tolerance), minMs1Scans);
+    var ms1SignalRangeMap = filterMap(collectUniqueSignals(ms1Scans, tolerance), minMs1Scans);
+    List<UniqueSignal> ms1Signals = new ArrayList<>(ms1SignalRangeMap.asMapOfRanges().values());
 
-    // TODO this is the MS2 scans of one row so all of them have the same m/z - maybe this should be done globally for all rows?
-    // you could build a RangeMap<Double, UniqueSignal> of all rows with fragment spectra (precursor m/z)
-    // before looping over all rows and pass it into this method
-    // Or maybe we need to accumulate all MS2 fragment signals over all scans?
-    List<UniqueSignal> uniqueMs1SignalsWithMs2 = findUniquePrecursors(ms1SignalMap,
-        allPrecursorsMs2Scans);
-    Set<Double> precursorMzSet = uniqueMs1SignalsWithMs2.stream().map(UniqueSignal::mz)
+    // Step 2a: Analyze MS2 signals for all precursors
+    var ms2SignalRangeMapAllPrecursors = collectUniqueSignals(allPrecursorsMs2Scans, tolerance);
+    List<UniqueSignal> ms2SignalsAllPrecursors = mapToList(ms2SignalRangeMapAllPrecursors);
+    List<UniqueSignal> ms1SignalMatchesMs2AllPrecursors = findMatches(ms1Signals,
+        ms2SignalRangeMapAllPrecursors);
+    List<UniqueSignal> ms2SignalMatchesMs1AllPrecursors = findMatches(ms2SignalsAllPrecursors,
+        ms1SignalRangeMap);
+
+    // Step 2b: Analyze MS2 signals for classically associated precursors
+    var ms2SignalRangeMap = collectUniqueSignals(ms2Scans, tolerance);
+    List<UniqueSignal> ms2Signals = mapToList(ms2SignalRangeMap);
+    List<UniqueSignal> ms1SignalMatchesMs2 = findMatches(ms1Signals, ms2SignalRangeMap);
+    List<UniqueSignal> ms2SignalMatchesMs1 = findMatches(ms2Signals, ms1SignalRangeMap);
+
+    // Step 3: Calculate percentages and totals
+    Set<Double> precursorMzSet = ms1SignalMatchesMs2.stream().map(UniqueSignal::mz)
         .collect(Collectors.toSet());
-
-    List<UniqueSignal> ms1Signals = new ArrayList<>(ms1SignalMap.asMapOfRanges().values());
-
-    // TODO decide if keeping both or chose one
-    // for all precursor ions
-    var ms2SignalMapAllPrecursors = collectUniqueSignals(allPrecursorsMs2Scans, tolerance);
-    List<UniqueSignal> ms2SignalsAllPrecursors = mapToList(ms2SignalMapAllPrecursors);
-    List<UniqueSignal> ms1SignalMatchesMs2AllPrecursors = ms1Signals.stream()
-        .filter(signal -> ms2SignalMapAllPrecursors.get(signal.mz()) != null).toList();
-    List<UniqueSignal> ms2SignalMatchesMs1AllPrecursors = ms2SignalsAllPrecursors.stream()
-        .filter(signal -> ms1SignalMap.get(signal.mz()) != null).toList();
-
-    // only for classically associated precursor ion
-    var ms2SignalMap = collectUniqueSignals(ms2Scans, tolerance);
-    List<UniqueSignal> ms2Signals = mapToList(ms2SignalMap);
-
-    List<UniqueSignal> ms1SignalMatchesMs2 = ms1Signals.stream()
-        .filter(signal -> ms2SignalMap.get(signal.mz()) != null).toList();
-    List<UniqueSignal> ms2SignalMatchesMs1 = ms2Signals.stream()
-        .filter(signal -> ms1SignalMap.get(signal.mz()) != null).toList();
-
-    // for all precursor ions
     List<UniqueSignal> ms1FragmentedSignalMatchesMs2AllPrecursors = ms1Signals.stream()
         .filter(signal -> precursorMzSet.contains(signal.mz()))
-        .filter(signal -> ms2SignalMapAllPrecursors.get(signal.mz()) != null).toList();
+        .filter(signal -> ms2SignalRangeMapAllPrecursors.get(signal.mz()) != null)
+        .toList();
 
-    // only for classically associated precursor ion
     List<UniqueSignal> ms1FragmentedSignalMatchesMs2 = ms1Signals.stream()
         .filter(signal -> precursorMzSet.contains(signal.mz()))
-        .filter(signal -> ms2SignalMap.get(signal.mz()) != null).toList();
+        .filter(signal -> ms2SignalRangeMap.get(signal.mz()) != null).toList();
 
+    // Step 4: Calculate percentages and totals
     double ms1IntensityTotal = calcSumIntensity(ms1Signals);
     double ms1IntensityFragmentedPercent =
-        calcSumIntensity(uniqueMs1SignalsWithMs2) / ms1IntensityTotal;
+        calcSumIntensity(findUniquePrecursors(ms1SignalRangeMap, allPrecursorsMs2Scans))
+            / ms1IntensityTotal;
     double ms1IntensityMatched = calcSumIntensity(ms1SignalMatchesMs2);
     double ms1IntensityMatchedPercent = ms1IntensityMatched / ms1IntensityTotal;
 
     int ms1SignalsTotal = ms1Signals.size();
-    int ms1SignalsFragmented = uniqueMs1SignalsWithMs2.size();
-    double ms1SignalsFragmentedPercent = ms1SignalsFragmented / (double) ms1SignalsTotal;
+    int ms1SignalsFragmented = findUniquePrecursors(ms1SignalRangeMap,
+        allPrecursorsMs2Scans).size();
+    double ms1SignalsFragmentedPercent = (double) ms1SignalsFragmented / ms1SignalsTotal;
 
-    // TODO decide if keeping both or chose one
-    // for all precursor ions
     int ms2SignalsAllPrecursorsTotal = ms2SignalsAllPrecursors.size();
     int signalsMatchedAllPrecursors = ms1SignalMatchesMs2AllPrecursors.size();
     double ms1SignalsMatchedPercentAllPrecursors =
-        signalsMatchedAllPrecursors / (double) ms1SignalsTotal;
+        (double) signalsMatchedAllPrecursors / ms1SignalsTotal;
     double ms2SignalsMatchedPercentAllPrecursors =
-        ms2SignalMatchesMs1AllPrecursors.size() / (double) ms2SignalsAllPrecursorsTotal;
+        (double) ms2SignalMatchesMs1AllPrecursors.size() / ms2SignalsAllPrecursorsTotal;
     double ms2IntensityMatchedAllPrecursors = calcSumIntensity(ms2SignalMatchesMs1AllPrecursors);
     double ms2IntensityTotalAllPrecursors = calcSumIntensity(ms2SignalsAllPrecursors);
     double ms2IntensityMatchedPercentAllPrecursors =
         ms2IntensityMatchedAllPrecursors / ms2IntensityTotalAllPrecursors;
 
-    // only for classically associated precursor ion
     int ms2SignalsTotal = ms2Signals.size();
     int signalsMatched = ms1SignalMatchesMs2.size();
-    double ms1SignalsMatchedPercent = signalsMatched / (double) ms1SignalsTotal;
-    double ms2SignalsMatchedPercent = ms2SignalMatchesMs1.size() / (double) ms2SignalsTotal;
+    double ms1SignalsMatchedPercent = (double) signalsMatched / ms1SignalsTotal;
+    double ms2SignalsMatchedPercent = (double) ms2SignalMatchesMs1.size() / ms2SignalsTotal;
     double ms2IntensityMatched = calcSumIntensity(ms2SignalMatchesMs1);
     double ms2IntensityTotal = calcSumIntensity(ms2Signals);
     double ms2IntensityMatchedPercent = ms2IntensityMatched / ms2IntensityTotal;
 
-    /*
-     * The precursor with the highest m/z will never be recognized as ISF.
-     * Same if there is only one MS2 scan over the whole range.
-     */
+    // Step 5: Determine ISF likelihood
     double ms1SignalsFragmentedLikelyISFPercent =
-        ms1FragmentedSignalMatchesMs2.size() / (double) ms1SignalsFragmented;
-
-    // Create a list of ISF precursor m/z values
+        (double) ms1FragmentedSignalMatchesMs2.size() / ms1SignalsFragmented;
     List<Double> likelyISFPrecursorMzs = ms1FragmentedSignalMatchesMs2.stream()
         .map(UniqueSignal::mz).toList();
-
-    //
     boolean isLikelyISF = likelyISFPrecursorMzs.stream()
         .anyMatch(mz -> tolerance.checkWithinTolerance(precursorMz, mz));
 
+    // Step 6: Create results object
     InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(isLikelyISF,
         ms1SignalsFragmentedLikelyISFPercent, signalsMatched, signalsMatchedAllPrecursors,
         ms1SignalsTotal, ms2SignalsAllPrecursorsTotal, ms1SignalsFragmented,
@@ -307,6 +290,16 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
 
     return new SignalsAnalysisResult(results);
   }
+
+  /**
+   * Finds unique signals in signals that match with the signals in the provided signal map.
+   */
+  private List<UniqueSignal> findMatches(List<UniqueSignal> signals,
+      RangeMap<Double, UniqueSignal> signalRangeMap) {
+    return signals.stream().filter(signal -> signalRangeMap.get(signal.mz()) != null)
+        .collect(Collectors.toList());
+  }
+
 
   private List<UniqueSignal> mapToList(final RangeMap<Double, UniqueSignal> map) {
     return new ArrayList<>(map.asMapOfRanges().values());
@@ -364,14 +357,14 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
   /**
    * Finds unique precursor signals within a list of MS2 scans.
    *
-   * @param ms1SignalMap The MS1 signal map.
-   * @param ms2Scans     The MS2 scans.
+   * @param ms1SignalRangeMap The MS1 signal map.
+   * @param ms2Scans          The MS2 scans.
    * @return The list of unique MS1 signals with MS2 fragments.
    */
-  private List<UniqueSignal> findUniquePrecursors(RangeMap<Double, UniqueSignal> ms1SignalMap,
+  private List<UniqueSignal> findUniquePrecursors(RangeMap<Double, UniqueSignal> ms1SignalRangeMap,
       List<Scan> ms2Scans) {
     return ms2Scans.stream().map(Scan::getPrecursorMz).filter(Objects::nonNull)
-        .map(ms1SignalMap::get).filter(Objects::nonNull).distinct().toList();
+        .map(ms1SignalRangeMap::get).filter(Objects::nonNull).distinct().toList();
   }
 
   private record SignalsAnalysisResult(InSourceFragmentAnalysisResults results) {
