@@ -63,11 +63,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The SignalsAnalysisTask is responsible for analyzing the signals from feature lists. The task
- * will be scheduled by the TaskController and progress is calculated from the
- * finishedItems/totalItems. It compares all MS1 signals present in the feature mass spectrum to the
- * MS2 signals present in all the fragment scans corresponding to precursors corresponding to MS1
- * signals.
+ * Analyzes MS1 and MS2 signals from feature lists to compare MS1 signals with MS2 fragment scans.
  */
 class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
 
@@ -93,121 +89,98 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.featureLists = featureLists;
     this.totalItems = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).sum();
-    var scanDataType = parameters.getValue(SharedMs1Ms2FragmentsAnalysisParameters.scanDataType);
-    this.useMassList = scanDataType == ScanDataType.MASS_LIST;
+    this.useMassList = parameters.getValue(SharedMs1Ms2FragmentsAnalysisParameters.scanDataType)
+        == ScanDataType.MASS_LIST;
     this.tolerance = parameters.getValue(SharedMs1Ms2FragmentsAnalysisParameters.tolerance);
   }
 
-  private static double calcSumIntensity(final List<UniqueSignal> ms1SignalMatchesMs2) {
-    return ms1SignalMatchesMs2.stream().mapToDouble(UniqueSignal::sumIntensity).sum();
-  }
-
-  private static boolean originatesFromPrecursorIon(final UniqueSignal signal,
-      final MZTolerance tolerance, final Double precursorMz) {
-    return signal.streamPrecursorMzs()
-        .anyMatch(mz -> tolerance.checkWithinTolerance(precursorMz, mz));
+  private static double calcSumIntensity(List<UniqueSignal> signals) {
+    return signals.stream().mapToDouble(UniqueSignal::sumIntensity).sum();
   }
 
   @Override
   protected void process() {
-    List<GroupedSignalScans> groupedScans = collectSpectra();
+    List<GroupedSignalScans> groupedScans = gatherSpectra();
     logger.info("Collected spectra - now starting to analyze the grouped scans.");
   }
 
   /**
-   * Collects spectra from feature lists.
+   * Gathers spectra from feature lists.
    *
    * @return A list of grouped signal scans.
    */
-  private List<GroupedSignalScans> collectSpectra() {
-    List<GroupedSignalScans> groupingResults = new ArrayList<>();
-    for (FeatureList featureList : featureLists) {
-      for (FeatureListRow row : featureList.getRows()) {
-        GroupedSignalScans result = processRow(row);
-        groupingResults.add(result);
-      }
-    }
-    return groupingResults;
+  private List<GroupedSignalScans> gatherSpectra() {
+    return featureLists.stream()
+        .flatMap(featureList -> featureList.getRows().stream().map(this::createGroupedSignalScans))
+        .collect(Collectors.toList());
   }
 
   /**
-   * Processes a single row from the feature list.
+   * Creates grouped signal scans for a given row.
    *
    * @param row The feature list row.
    * @return The grouped signal scans.
    */
-  private GroupedSignalScans processRow(FeatureListRow row) {
+  private GroupedSignalScans createGroupedSignalScans(FeatureListRow row) {
     List<Scan> ms1Scans = new ArrayList<>();
     List<Scan> ms2Scans = new ArrayList<>();
-    List<Scan> ms2ScansAllPrecursors = new ArrayList<>();
+    List<Scan> allPrecursorsMs2Scans = new ArrayList<>();
 
-    for (final ModularFeature feature : row.getFeatures()) {
+    for (ModularFeature feature : row.getFeatures()) {
       try {
-        // Process the feature and get categorized scans
-        Map<String, List<Scan>> categorizedScans = collectMs1MS2AllPrecursorsScans(feature);
+        Map<String, List<Scan>> categorizedScans = categorizeScans(feature);
 
-        // Collect MS1 scans
         ms1Scans.addAll(categorizedScans.getOrDefault("ms1Scans", new ArrayList<>()));
-
-        // Collect MS2 scans
         ms2Scans.addAll(categorizedScans.getOrDefault("ms2Scans", new ArrayList<>()));
+        allPrecursorsMs2Scans.addAll(
+            categorizedScans.getOrDefault("ms2ScansAllPrecursors", new ArrayList<>()));
 
-        // Collect MS2 scans (all precursors)
-        ms2ScansAllPrecursors.addAll(
-            categorizedScans.getOrDefault("ms2ScansType2", new ArrayList<>()));
+        SignalsAnalysisResult analysisResult = analyzeSignals(ms1Scans, ms2Scans,
+            allPrecursorsMs2Scans, tolerance, row.getAverageMZ());
+        row.set(InSourceFragmentsAnalysisType.class, analysisResult.results);
 
       } catch (Exception ex) {
         logger.log(Level.WARNING, "Error processing feature: " + ex.getMessage(), ex);
       }
-
-      SignalsAnalysisResult analysisResult = countUniqueSignalsBetweenMs1AndMs2(ms1Scans, ms2Scans,
-          ms2ScansAllPrecursors, tolerance, row.getAverageMZ());
-
-      row.set(InSourceFragmentsAnalysisType.class, analysisResult.results);
-
     }
-    return new GroupedSignalScans(row, ms1Scans, ms2Scans, ms2ScansAllPrecursors);
+    return new GroupedSignalScans(row, ms1Scans, ms2Scans, allPrecursorsMs2Scans);
   }
 
   /**
-   * Processes a single feature.
+   * Categorizes MS1 and MS2 scans for a given feature.
    *
    * @param feature The feature to process.
-   * @return The list of exported scans. The representative MS1 and all MS2 scans that match the
-   * retention time range of this feature and any MS1 signal in best MS1
+   * @return A map of categorized scans.
    */
-  private Map<String, List<Scan>> collectMs1MS2AllPrecursorsScans(final Feature feature) {
+  private Map<String, List<Scan>> categorizeScans(Feature feature) {
     List<Scan> ms1Scans = new ArrayList<>();
     List<Scan> ms2Scans = new ArrayList<>();
-    List<Scan> ms2ScansAllPrecursors = new ArrayList<>();
-    Scan bestMs1 = feature.getRepresentativeScan();
-    if (bestMs1 != null) {
-      ms1Scans.add(bestMs1);
+    List<Scan> allPrecursorsMs2Scans = new ArrayList<>();
+
+    Scan representativeMs1 = feature.getRepresentativeScan();
+    if (representativeMs1 != null) {
+      ms1Scans.add(representativeMs1);
+
       List<Scan> fragmentScans = feature.getAllMS2FragmentScans();
-      for (Scan ms2 : fragmentScans) {
-        if (ms2 != null) {
-          ms2Scans.add(ms2);
-        }
-      }
+      ms2Scans.addAll(fragmentScans);
+
       // TODO: This could be a parameter to get it over the whole file instead
       Range<Float> rawRtRange = feature.getRawDataPointsRTRange();
       RawDataFile raw = feature.getRawDataFile();
-      DataPoint[] dataPoints = ScanUtils.extractDataPoints(bestMs1, useMassList);
+      DataPoint[] dataPoints = ScanUtils.extractDataPoints(representativeMs1, useMassList);
+
       for (DataPoint dp : dataPoints) {
-        double ms1Signal = dp.getMZ();
-        Scan[] fragmentScansBroad = findAllMS2FragmentScans(raw, rawRtRange,
-            tolerance.getToleranceRange(ms1Signal));
-        for (Scan ms2 : fragmentScansBroad) {
-          if (ms2 != null) {
-            ms2ScansAllPrecursors.add(ms2);
-          }
-        }
+        double ms1SignalMz = dp.getMZ();
+        Scan[] broadFragmentScans = findAllMS2FragmentScans(raw, rawRtRange,
+            tolerance.getToleranceRange(ms1SignalMz));
+        allPrecursorsMs2Scans.addAll(Arrays.asList(broadFragmentScans));
       }
     }
+
     Map<String, List<Scan>> result = new HashMap<>();
     result.put("ms1Scans", ms1Scans);
     result.put("ms2Scans", ms2Scans);
-    result.put("ms2ScansType2", ms2ScansAllPrecursors);
+    result.put("ms2ScansAllPrecursors", allPrecursorsMs2Scans);
 
     return result;
   }
@@ -223,36 +196,36 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
   }
 
   /**
-   * Counts unique signals between MS1 and MS2 scans.
+   * Analyzes unique signals between MS1 and MS2 scans.
    *
    * @param ms1Scans              The MS1 scans.
    * @param ms2Scans              The MS2 scans.
-   * @param ms2ScansAllPrecursors The MS2 scans from all precursors.
+   * @param allPrecursorsMs2Scans The MS2 scans from all precursors.
    * @param tolerance             The MZ tolerance.
-   * @param precursorMz
-   * @return The results of the signal count.
+   * @param precursorMz           The precursor MZ value.
+   * @return The analysis result.
    */
-  private SignalsAnalysisResult countUniqueSignalsBetweenMs1AndMs2(List<Scan> ms1Scans,
-      List<Scan> ms2Scans, List<Scan> ms2ScansAllPrecursors, MZTolerance tolerance,
-      final Double precursorMz) {
+  private SignalsAnalysisResult analyzeSignals(List<Scan> ms1Scans, List<Scan> ms2Scans,
+      List<Scan> allPrecursorsMs2Scans, MZTolerance tolerance, Double precursorMz) {
+
     // require signal to be in 90% of MS1 scans
     int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);
-    var ms1SignalMap = filterMap(collectUniqueSignalsFromScans(ms1Scans, tolerance), minMs1Scans);
+    var ms1SignalMap = filterMap(collectUniqueSignals(ms1Scans, tolerance), minMs1Scans);
 
     // TODO this is the MS2 scans of one row so all of them have the same m/z - maybe this should be done globally for all rows?
     // you could build a RangeMap<Double, UniqueSignal> of all rows with fragment spectra (precursor m/z)
     // before looping over all rows and pass it into this method
     // Or maybe we need to accumulate all MS2 fragment signals over all scans?
-    List<UniqueSignal> uniqueMs1SignalsWithMs2Scan = getUniquePrecursors(ms1SignalMap,
-        ms2ScansAllPrecursors);
-    Set<Double> precursorMzSet = uniqueMs1SignalsWithMs2Scan.stream().map(UniqueSignal::mz)
+    List<UniqueSignal> uniqueMs1SignalsWithMs2 = findUniquePrecursors(ms1SignalMap,
+        allPrecursorsMs2Scans);
+    Set<Double> precursorMzSet = uniqueMs1SignalsWithMs2.stream().map(UniqueSignal::mz)
         .collect(Collectors.toSet());
 
-    List<UniqueSignal> ms1Signals = mapToList(ms1SignalMap);
+    List<UniqueSignal> ms1Signals = new ArrayList<>(ms1SignalMap.asMapOfRanges().values());
 
     // TODO decide if keeping both or chose one
     // for all precursor ions
-    var ms2SignalMapAllPrecursors = collectUniqueSignalsFromScans(ms2ScansAllPrecursors, tolerance);
+    var ms2SignalMapAllPrecursors = collectUniqueSignals(allPrecursorsMs2Scans, tolerance);
     List<UniqueSignal> ms2SignalsAllPrecursors = mapToList(ms2SignalMapAllPrecursors);
     List<UniqueSignal> ms1SignalMatchesMs2AllPrecursors = ms1Signals.stream()
         .filter(signal -> ms2SignalMapAllPrecursors.get(signal.mz()) != null).toList();
@@ -260,7 +233,7 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         .filter(signal -> ms1SignalMap.get(signal.mz()) != null).toList();
 
     // only for classically associated precursor ion
-    var ms2SignalMap = collectUniqueSignalsFromScans(ms2Scans, tolerance);
+    var ms2SignalMap = collectUniqueSignals(ms2Scans, tolerance);
     List<UniqueSignal> ms2Signals = mapToList(ms2SignalMap);
 
     List<UniqueSignal> ms1SignalMatchesMs2 = ms1Signals.stream()
@@ -280,12 +253,12 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
 
     double ms1IntensityTotal = calcSumIntensity(ms1Signals);
     double ms1IntensityFragmentedPercent =
-        calcSumIntensity(uniqueMs1SignalsWithMs2Scan) / ms1IntensityTotal;
+        calcSumIntensity(uniqueMs1SignalsWithMs2) / ms1IntensityTotal;
     double ms1IntensityMatched = calcSumIntensity(ms1SignalMatchesMs2);
     double ms1IntensityMatchedPercent = ms1IntensityMatched / ms1IntensityTotal;
 
     int ms1SignalsTotal = ms1Signals.size();
-    int ms1SignalsFragmented = uniqueMs1SignalsWithMs2Scan.size();
+    int ms1SignalsFragmented = uniqueMs1SignalsWithMs2.size();
     double ms1SignalsFragmentedPercent = ms1SignalsFragmented / (double) ms1SignalsTotal;
 
     // TODO decide if keeping both or chose one
@@ -319,7 +292,7 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
 
     // Create a list of ISF precursor m/z values
     List<Double> likelyISFPrecursorMzs = ms1FragmentedSignalMatchesMs2.stream()
-        .map(UniqueSignal::mz).collect(Collectors.toList());
+        .map(UniqueSignal::mz).toList();
 
     //
     boolean isLikelyISF = likelyISFPrecursorMzs.stream()
@@ -339,6 +312,13 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     return new ArrayList<>(map.asMapOfRanges().values());
   }
 
+  /**
+   * Filters the signal map based on a minimum number of scans.
+   *
+   * @param uniqueMs1Map The signal map.
+   * @param minSamples   The minimum number of scans.
+   * @return The filtered signal map.
+   */
   private @NotNull RangeMap<Double, UniqueSignal> filterMap(
       final RangeMap<Double, UniqueSignal> uniqueMs1Map, final int minSamples) {
     RangeMap<Double, UniqueSignal> unique = TreeRangeMap.create();
@@ -351,16 +331,15 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
   }
 
   /**
-   * Collects unique dataPoints from scans.
+   * Collects unique signals from a list of scans.
    *
-   * @param scans     The scans.
+   * @param scans     The list of scans.
    * @param tolerance The MZ tolerance.
-   * @return A set of unique dataPoints.
+   * @return The range map of unique signals.
    */
-  private RangeMap<Double, UniqueSignal> collectUniqueSignalsFromScans(List<Scan> scans,
+  private RangeMap<Double, UniqueSignal> collectUniqueSignals(List<Scan> scans,
       MZTolerance tolerance) {
     RangeMap<Double, UniqueSignal> unique = TreeRangeMap.create();
-
     for (Scan scan : scans) {
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
       if (scan.getMSLevel() > 1) {
@@ -383,21 +362,19 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
   }
 
   /**
-   * Filters unique precursors.
+   * Finds unique precursor signals within a list of MS2 scans.
    *
-   * @param ms1Signals The MS1 signals.
-   * @param ms2Scans   The MS2 scans.
-   * @return A list of unique MS1 signals that match MS2 precursors.
+   * @param ms1SignalMap The MS1 signal map.
+   * @param ms2Scans     The MS2 scans.
+   * @return The list of unique MS1 signals with MS2 fragments.
    */
-  private List<UniqueSignal> getUniquePrecursors(RangeMap<Double, UniqueSignal> ms1Signals,
+  private List<UniqueSignal> findUniquePrecursors(RangeMap<Double, UniqueSignal> ms1SignalMap,
       List<Scan> ms2Scans) {
     return ms2Scans.stream().map(Scan::getPrecursorMz).filter(Objects::nonNull)
-        .map(precursormz -> ms1Signals.get(precursormz)).filter(Objects::nonNull).distinct()
-        .toList();
+        .map(ms1SignalMap::get).filter(Objects::nonNull).distinct().toList();
   }
 
   private record SignalsAnalysisResult(InSourceFragmentAnalysisResults results) {
 
   }
-
 }
