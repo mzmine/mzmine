@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,11 +26,13 @@
 package io.github.mzmine.modules.visualization.other_correlationdashboard;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.OtherFeatureDataProvider;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import java.util.Optional;
+import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
 public class CorrelationDashboardController extends FxController<CorrelationDashboardModel> {
@@ -87,5 +89,9 @@ public class CorrelationDashboardController extends FxController<CorrelationDash
   @Override
   protected @NotNull FxViewBuilder<CorrelationDashboardModel> getViewBuilder() {
     return correlationDashboardViewBuilder;
+  }
+
+  public ObjectProperty<ModularFeatureList> featureListProperty() {
+    return model.featureListProperty();
   }
 }

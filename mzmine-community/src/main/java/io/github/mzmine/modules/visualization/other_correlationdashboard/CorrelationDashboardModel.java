@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.other_correlationdashboard;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import javafx.beans.property.DoubleProperty;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class CorrelationDashboardModel {
 
+  private ObjectProperty<@Nullable ModularFeatureList> featureList = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable FeatureListRow> selectedRow = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable OtherFeature> selectedOtherRawTrace = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable OtherFeature> selectedOtherFeature = new SimpleObjectProperty<>();
@@ -145,5 +147,17 @@ public class CorrelationDashboardModel {
 
   public ObjectProperty<ChromatogramPlotController> correlationPlotControllerProperty() {
     return correlationPlotController;
+  }
+
+  public @Nullable ModularFeatureList getFeatureList() {
+    return featureList.get();
+  }
+
+  public ObjectProperty<@Nullable ModularFeatureList> featureListProperty() {
+    return featureList;
+  }
+
+  public void setFeatureList(@Nullable ModularFeatureList featureList) {
+    this.featureList.set(featureList);
   }
 }

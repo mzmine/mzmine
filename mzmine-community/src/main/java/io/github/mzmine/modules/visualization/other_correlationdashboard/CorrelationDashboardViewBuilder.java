@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
@@ -41,6 +43,7 @@ import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.dataprocessing.otherdata.align_msother.MsOtherCorrelationResult;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
@@ -52,11 +55,20 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.SplitPane;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
@@ -68,8 +80,11 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
   private Region uvPlot;
   private Region msPlot;
   private Region correlatedPlot;
-  private SimpleColorPalette palette;
+  private SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
   private Color otherFeatureColor = palette.getNegativeColorAWT();
+
+  private final ComboBox<OtherFeature> alreadyCorrelatedBox = new ComboBox<>();
+  private OtherFeatureSelectionPane otherFeatureSelectionPane;
 
   public CorrelationDashboardViewBuilder(CorrelationDashboardModel model) {
     super(model);
@@ -105,11 +120,99 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     topBottomSplit.setOrientation(Orientation.VERTICAL);
     topBottomSplit.getItems().addAll(plotsAndControls, featureTable);
 
-    final VBox plots = FxLayout.newVBox(Insets.EMPTY, new BorderPane(uvPlot),
-        new BorderPane(msPlot));
+    GridPane plots = new GridPane();
+    plots.add(uvPlot, 0, 0);
+    plots.add(msPlot, 0, 1);
+    GridPane.setHgrow(uvPlot, Priority.SOMETIMES);
+    GridPane.setHgrow(msPlot, Priority.SOMETIMES);
+    GridPane.setVgrow(uvPlot, Priority.SOMETIMES);
+    GridPane.setVgrow(msPlot, Priority.SOMETIMES);
+
+    plots.setBorder(new Border(
+        new BorderStroke(javafx.scene.paint.Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+            BorderStroke.THIN)));
     plotsAndControls.setCenter(plots);
 
-    DoubleComponent shiftCompoment = new DoubleComponent(10, Double.MIN_VALUE, Double.MAX_VALUE,
+    final DoubleComponent shiftComponent = createShiftComponent();
+    final HBox shiftBox = FxLayout.newHBox(FxLabels.newLabel("RT shift:"), shiftComponent);
+
+    otherFeatureSelectionPane = new OtherFeatureSelectionPane(OtherRawOrProcessed.RAW);
+    final VBox controlsAndCorrelation = FxLayout.newVBox(Pos.CENTER_LEFT, Insets.EMPTY, true,
+        otherFeatureSelectionPane, shiftBox, correlatedPlot);
+    plotsAndControls.setRight(controlsAndCorrelation);
+
+    featureTable.getSelectionModel().selectedItemProperty()
+        .addListener((_, _, _) -> updateSelectedRowFromTable());
+
+    featureTable.featureListProperty().bind(model.featureListProperty());
+    model.featureListProperty().subscribe(flist -> {
+      if (flist == null) {
+        return;
+      }
+      otherFeatureSelectionPane.getRawFiles().setAll(flist.getRawDataFiles());
+      otherFeatureSelectionPane.fileProperty().set(flist.getRawDataFile(0));
+    });
+    otherFeatureSelectionPane.fileProperty().bindBidirectional(model.selectedRawDataFileProperty());
+    otherFeatureSelectionPane.featureProperty()
+        .addListener((_, _, f) -> model.setSelectedOtherRawTrace(f));
+
+    // updates for the ms feature chart
+    model.selectedRowProperty().addListener((_, _, _) -> updateMsPlot());
+    model.selectedRawDataFileProperty().addListener((_, _, _) -> updateMsPlot());
+
+    // updates for uv feature chart
+    model.selectedOtherFeatureProperty().addListener((_, _, _) -> updateUvChart());
+    model.selectedOtherRawTraceProperty().addListener((_, _, _) -> updateUvChart());
+
+    // updates for correlation plot
+    model.selectedOtherFeatureProperty().addListener((_, _, _) -> updateCorrelationChart());
+    model.selectedRowProperty().addListener((_, _, _) -> updateCorrelationChart());
+    model.selectedRawDataFileProperty().addListener((_, _, _) -> updateCorrelationChart());
+
+    // update the alreadyCorrelatedBox
+    model.selectedRowProperty().addListener((_, _, _) -> updateAlreadyCorrelatedBox());
+    alreadyCorrelatedBox.valueProperty()
+        .addListener((_, _, corr) -> otherFeatureSelectionPane.setFeature(corr));
+
+    return new BorderPane(topBottomSplit);
+  }
+
+  private void updateSelectedRowFromTable() {
+    if (featureTable.getSelectedRow() == null) {
+      model.setSelectedRow(null);
+      return;
+    }
+    model.setSelectedRow(featureTable.getSelectedRow());
+  }
+
+  private void updateAlreadyCorrelatedBox() {
+    alreadyCorrelatedBox.getSelectionModel().clearSelection();
+    final FeatureListRow row = model.getSelectedRow();
+    final RawDataFile raw = model.getSelectedRawDataFile();
+
+    if (row == null || raw == null) {
+      alreadyCorrelatedBox.setItems(FXCollections.emptyObservableList());
+      return;
+    }
+    final ModularFeature feature = (ModularFeature) row.getFeature(raw);
+    if (feature == null) {
+      alreadyCorrelatedBox.setItems(FXCollections.emptyObservableList());
+      return;
+    }
+
+    final List<MsOtherCorrelationResult> results = feature.get(MsOtherCorrelationResultType.class);
+    if (results == null) {
+      alreadyCorrelatedBox.setItems(FXCollections.emptyObservableList());
+      return;
+    }
+
+    final List<OtherFeature> correlated = results.stream()
+        .map(MsOtherCorrelationResult::otherFeature).toList();
+    alreadyCorrelatedBox.setItems(FXCollections.observableArrayList(correlated));
+  }
+
+  private @NotNull DoubleComponent createShiftComponent() {
+    DoubleComponent shiftCompoment = new DoubleComponent(40, Double.MIN_VALUE, Double.MAX_VALUE,
         ConfigService.getGuiFormats().rtFormat(), 0d);
     Bindings.bindBidirectional(shiftCompoment.getTextField().textProperty(),
         model.uvToMsRtOffsetProperty(), new StringConverter<>() {
@@ -127,41 +230,15 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
             return !string.isEmpty() ? Double.parseDouble(string) : 0;
           }
         });
-    final HBox shiftBox = FxLayout.newHBox(FxLabels.newLabel("RT shift:"), shiftCompoment);
-
-    OtherFeatureSelectionPane otherFeatureSelectionPane = new OtherFeatureSelectionPane(
-        OtherRawOrProcessed.RAW);
-    final VBox controlsAndCorrelation = FxLayout.newVBox(Insets.EMPTY, otherFeatureSelectionPane,
-        shiftBox, new BorderPane(correlatedPlot));
-    plotsAndControls.setRight(controlsAndCorrelation);
-
-    featureTable.getSelectionModel().selectedItemProperty().addListener((_, _, _) -> {
-      if (featureTable.getSelectedRow() == null) {
-        model.setSelectedRow(null);
-        return;
-      }
-      model.setSelectedRow(featureTable.getSelectedRow());
-    });
-
-    model.selectedRowProperty().addListener((_, _, _) -> updateMsPlot());
-    model.selectedRawDataFileProperty().addListener((_, _, _) -> updateMsPlot());
-
-    model.selectedOtherFeatureProperty().addListener((_, _, trace) -> {
-      updateUvChart(trace);
-    });
-
-    model.selectedOtherFeatureProperty().addListener((_, _, _) -> updateCorrelationChart());
-    model.selectedRowProperty().addListener((_, _, _) -> updateCorrelationChart());
-    model.selectedRawDataFileProperty().addListener((_, _, _) -> updateCorrelationChart());
-
-    return null;
+    return shiftCompoment;
   }
 
   /**
    * clears the uv plot and puts the raw trace and all features in that raw trace into the chart.
    */
-  private void updateUvChart(OtherFeature trace) {
+  private void updateUvChart() {
     model.getUvPlotController().clearDatasets();
+    final OtherFeature trace = model.getSelectedOtherRawTrace();
     if (trace == null) {
       return;
     }
@@ -187,6 +264,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     final ChromatogramPlotController controller = model.getCorrelationPlotController();
     controller.clearDatasets();
 
+    // todo: normalise peaks
     final FeatureListRow row = model.getSelectedRow();
     final RawDataFile file = model.getSelectedRawDataFile();
     final OtherFeature other = model.getSelectedOtherFeature();

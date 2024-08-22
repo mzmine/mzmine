@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
@@ -54,6 +55,9 @@ import org.jetbrains.annotations.Nullable;
 public class OtherFeatureSelectionPane extends GridPane {
 
   private final ReadOnlyObjectWrapper<@Nullable OtherFeature> featureProperty = new ReadOnlyObjectWrapper<>();
+  private ComboBox<RawDataFile> rawFileBox;
+  private ComboBox<OtherDataFile> otherFileBox;
+  private SortableOtherFeatureComboBox otherFeatureCombo;
 
   public OtherFeatureSelectionPane() {
     this(OtherRawOrProcessed.values());
@@ -69,15 +73,15 @@ public class OtherFeatureSelectionPane extends GridPane {
     setAlignment(Pos.TOP_LEFT);
 
     final ObjectProperty<RawDataFile> file = new SimpleObjectProperty<>();
-    final ComboBox<RawDataFile> rawFileBox = FxComboBox.createComboBox("Select a raw data file.",
+    rawFileBox = FxComboBox.createComboBox("Select a raw data file.",
         new ArrayList<>(ProjectService.getProject().getCurrentRawDataFiles()), file);
     rawFileBox.setMinWidth(100);
 
     final ListProperty<OtherDataFile> otherFiles = new SimpleListProperty<>(
         FXCollections.observableArrayList());
     final ObjectProperty<OtherDataFile> otherFile = new SimpleObjectProperty<>();
-    final ComboBox<OtherDataFile> otherFileBox = FxComboBox.createComboBox(
-        "Select a collection of traces", otherFiles, otherFile);
+    otherFileBox = FxComboBox.createComboBox("Select a collection of traces", otherFiles,
+        otherFile);
     otherFileBox.setMinWidth(100);
 
     final ObjectProperty<OtherRawOrProcessed> rawOrProcessed = new SimpleObjectProperty<>(
@@ -86,7 +90,7 @@ public class OtherFeatureSelectionPane extends GridPane {
         "Select the time series type", List.of(rawOrProcessedChoices), rawOrProcessed);
     rawOrProcessedBox.setMinWidth(40);
 
-    final SortableOtherFeatureComboBox otherFeatureCombo = new SortableOtherFeatureComboBox();
+    otherFeatureCombo = new SortableOtherFeatureComboBox();
     featureProperty.bind(otherFeatureCombo.selectedFeatureProperty());
 
     add(FxLabels.newLabel("1. MS data file:"), 0, 0);
@@ -121,7 +125,6 @@ public class OtherFeatureSelectionPane extends GridPane {
         otherFeatureCombo.setItems(List.of());
         return;
       }
-
       otherFeatureCombo.setItems(
           rawOrProcessed.get().streamMatching(f.getOtherTimeSeries()).toList());
     });
@@ -130,11 +133,27 @@ public class OtherFeatureSelectionPane extends GridPane {
       if (rop == null) {
         return;
       }
-
       if (otherFileBox.getValue() != null) {
         otherFeatureCombo.setItems(
             rawOrProcessed.get().streamMatching(otherFileBox.getValue().getOtherTimeSeries())
                 .toList());
+      }
+    });
+
+    otherFeatureCombo.selectedFeatureProperty().addListener((_, _, selectedFeature) -> {
+      if (selectedFeature == null) {
+        return;
+      }
+      final RawDataFile rawFile = selectedFeature.getRawDataFile();
+      final OtherDataFile other = selectedFeature.getOtherDataFile();
+      if (rawFile == null || other == null) {
+        return;
+      }
+      if (rawFileBox.getValue() != rawFile) {
+        rawFileBox.setValue(rawFile);
+      }
+      if (otherFileBox.getValue() != other) {
+        otherFileBox.setValue(other);
       }
     });
   }
@@ -144,7 +163,28 @@ public class OtherFeatureSelectionPane extends GridPane {
     return featureProperty.get();
   }
 
+  public void setFeature(OtherFeature feature) {
+    otherFeatureCombo.setSelectedFeature(feature);
+  }
+
   public ReadOnlyObjectProperty<@Nullable OtherFeature> featureProperty() {
     return featureProperty.getReadOnlyProperty();
+  }
+
+  public ObjectProperty<RawDataFile> fileProperty() {
+    return rawFileBox.valueProperty();
+  }
+
+  public ObjectProperty<OtherDataFile> otherFileProperty() {
+    return otherFileBox.valueProperty();
+  }
+
+  /**
+   * exposes the raw data files of the raw file box
+   *
+   * @return
+   */
+  public ObservableList<RawDataFile> getRawFiles() {
+    return rawFileBox.getItems();
   }
 }
