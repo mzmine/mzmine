@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
-<?import javafx.geometry.Insets?>
-
 <!--
-  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~ Copyright (c) 2004-2024 The mzmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -30,6 +25,15 @@
   ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 <BorderPane xmlns="http://javafx.com/javafx"
   xmlns:fx="http://javafx.com/fxml"
   fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataFileInfoPaneController"
@@ -101,24 +105,34 @@
   <center>
     <TableView fx:id="rawDataTableView" BorderPane.alignment="CENTER">
       <columnResizePolicy>
-        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-	  </columnResizePolicy>
+        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+      </columnResizePolicy>
       <columns>
-        <TableColumn fx:id="scanColumn" editable="false" prefWidth="35" text="Scan"/>
-        <TableColumn fx:id="massDetectionColumn" editable="false" prefWidth="35"
-          text="Masses detected"/>
-        <TableColumn fx:id="rtColumn" editable="false" prefWidth="35" text="RT"/>
-        <TableColumn fx:id="basePeakColumn" editable="false" prefWidth="80" text="Base peak"/>
-        <TableColumn fx:id="basePeakIntensityColumn" editable="false" prefWidth="55"
+        <TableColumn fx:id="scanColumn" editable="false" prefWidth="50" minWidth="50" maxWidth="70"
+          text="Scan"/>
+        <TableColumn fx:id="massDetectionColumn" editable="false" prefWidth="70" minWidth="35"
+          maxWidth="90" text="Processed"/>
+        <TableColumn fx:id="rtColumn" editable="false" prefWidth="35" text="RT" minWidth="50"
+          maxWidth="60"/>
+        <TableColumn fx:id="basePeakColumn" editable="false" prefWidth="80" text="Base peak"
+          minWidth="35" maxWidth="90"/>
+        <TableColumn fx:id="basePeakIntensityColumn" editable="false" prefWidth="80" minWidth="55"
+          maxWidth="100"
           text="BP intensity"/>
-        <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="42" text="MSn"/>
-        <TableColumn fx:id="precursorMzColumn" editable="false" prefWidth="80"
+        <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="45" text="MSn" minWidth="40"
+          maxWidth="60"/>
+<!--          precursor mz column has no max width as pasef frames contain multiple precursors -->
+        <TableColumn fx:id="precursorMzColumn" editable="false" prefWidth="90" minWidth="80"
           text="Precursor m/z"/>
-        <TableColumn fx:id="mzRangeColumn" editable="false" prefWidth="115" text="m/z range"/>
-        <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="95.0" text="Scan type"/>
-        <TableColumn fx:id="polarityColumn" editable="false" prefWidth="62.0" text="Polarity"/>
-        <TableColumn fx:id="injectTimeColumn" editable="false" prefWidth="75" text="Inject time"/>
-        <TableColumn fx:id="definitionColumn" minWidth="15"  prefWidth="125.0"
+        <TableColumn fx:id="mzRangeColumn" editable="false" prefWidth="115" maxWidth="130"
+          text="m/z range"/>
+        <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="90.0" minWidth="35"
+          maxWidth="100" text="Scan type"/>
+        <TableColumn fx:id="polarityColumn" editable="false" prefWidth="62.0" minWidth="35"
+          maxWidth="80" text="Polarity"/>
+        <TableColumn fx:id="injectTimeColumn" editable="false" prefWidth="75" maxWidth="100"
+          text="Inject time"/>
+        <TableColumn fx:id="definitionColumn" minWidth="80" prefWidth="125.0"
           text="Scan definition" editable="false"/>
       </columns>
     </TableView>

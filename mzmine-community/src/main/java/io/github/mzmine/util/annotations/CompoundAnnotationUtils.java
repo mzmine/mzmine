@@ -28,6 +28,7 @@ package io.github.mzmine.util.annotations;
 import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
@@ -36,13 +37,14 @@ import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.collections.SortOrder;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class CompoundAnnotationUtils {
@@ -88,7 +90,7 @@ public class CompoundAnnotationUtils {
   }
 
   /**
-   * @param types     can contain duplicates or nulls - that are filtered out
+   * @param types can contain duplicates or nulls - that are filtered out
    * @param order order either ascending from missing to best match or reverse
    * @return map of DataType to their rank in
    * {@link FeatureAnnotationPriority#getDataTypesInOrder()}. If {@link MissingValueType} is found,
@@ -119,17 +121,13 @@ public class CompoundAnnotationUtils {
    *                for each compound name by sorting by least modified adduct and highest score
    * @return list of unique compound names
    */
-  public static List<CompoundDBAnnotation> getBestMatchesPerCompoundName(
-      final List<CompoundDBAnnotation> matches) {
-    Map<String, List<CompoundDBAnnotation>> compoundsMap = new HashMap<>();
-
+  public static <T extends FeatureAnnotation> List<T> getBestMatchesPerCompoundName(
+      final List<T> matches) {
     // might have different adducts for the same compound - list them by compound name
-    for (final CompoundDBAnnotation match : matches) {
-      var list = compoundsMap.computeIfAbsent(match.getCompoundName(), s -> new ArrayList<>());
-      list.add(match);
-    }
+    Map<String, List<T>> compoundsMap = matches.stream()
+        .collect(Collectors.groupingBy(FeatureAnnotation::getCompoundName));
     // sort by number of adducts + modifications
-    var oneMatchPerCompound = compoundsMap.values().stream()
+    List<T> oneMatchPerCompound = compoundsMap.values().stream()
         .map(compound -> compound.stream().min(getSorterLeastModifiedCompoundFirst()).orElse(null))
         .filter(Objects::nonNull).toList();
 
@@ -142,8 +140,8 @@ public class CompoundAnnotationUtils {
    *
    * @return sorter
    */
-  public static Comparator<CompoundDBAnnotation> getSorterLeastModifiedCompoundFirst() {
-    return Comparator.comparing(CompoundDBAnnotation::getAdductType,
+  public static Comparator<FeatureAnnotation> getSorterLeastModifiedCompoundFirst() {
+    return Comparator.comparing(FeatureAnnotation::getAdductType,
             Comparator.nullsLast(Comparator.comparingInt(IonType::getTotalPartsCount)))
         .thenComparing(getSorterMaxScoreFirst());
   }
@@ -153,9 +151,20 @@ public class CompoundAnnotationUtils {
    *
    * @return sorter
    */
-  public static Comparator<CompoundDBAnnotation> getSorterMaxScoreFirst() {
-    return Comparator.comparing(CompoundDBAnnotation::getScore,
+  public static Comparator<FeatureAnnotation> getSorterMaxScoreFirst() {
+    return Comparator.comparing(FeatureAnnotation::getScore,
         Comparator.nullsLast(Comparator.reverseOrder()));
   }
 
+  /**
+   * Stream all instances of {@link FeatureAnnotation}
+   */
+  public static Stream<FeatureAnnotation> streamFeatureAnnotations(final FeatureListRow row) {
+    return row.streamAllFeatureAnnotations().filter(ann -> ann instanceof FeatureAnnotation)
+        .map(FeatureAnnotation.class::cast);
+  }
+
+  public static void calculateBoundTypes(CompoundDBAnnotation annotation, FeatureListRow row) {
+    ConnectedTypeCalculation.LIST.forEach(calc -> calc.calculateIfAbsent(row, annotation));
+  }
 }

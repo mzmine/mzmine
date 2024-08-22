@@ -49,7 +49,7 @@ public class LabeledProgressBarCell<S> extends TableCell<S, Number> {
 
   private String getFormattedProgress() {
     var item = getItem();
-    if (item == null) {
+    if (item == null || item.doubleValue() < 0) {
       return "";
     }
     return "%.0f %%".formatted(item.doubleValue() * 100.0);

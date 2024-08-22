@@ -29,16 +29,14 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -62,8 +60,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -106,7 +106,8 @@ public class BatchTask extends AbstractTask {
     this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
     // advanced parameters
-    useAdvanced = parameters.getParameter(BatchModeParameters.advanced).getValue();
+    useAdvanced = false;
+//    useAdvanced = parameters.getParameter(BatchModeParameters.advanced).getValue();
     if (useAdvanced) {
       // if sub directories is set - the input and output files are changed to each sub directory
       // each sub dir is processed sequentially as a different dataset
@@ -259,40 +260,25 @@ public class BatchTask extends AbstractTask {
 
   private void setOutputFiles(final File parentDir, final boolean createResultsDir,
       final String datasetName) {
-    int changedOutputSteps = 0;
-    for (MZmineProcessingStep<?> currentStep : queue) {
-      // only change for export modules
-      if (currentStep.getModule() instanceof MZmineRunnableModule mod && (
-          mod.getModuleCategory() == MZmineModuleCategory.FEATURELISTEXPORT
-          || mod.getModuleCategory() == MZmineModuleCategory.RAWDATAEXPORT)) {
-        ParameterSet params = currentStep.getParameterSet();
-        for (final Parameter<?> p : params.getParameters()) {
-          if (p instanceof FileNameParameter fnp) {
-            File old = fnp.getValue();
-            String oldName = FileAndPathUtil.eraseFormat(old).getName();
-            fnp.setValue(
-                createDatasetExportPath(parentDir, createResultsDir, datasetName, oldName));
-            changedOutputSteps++;
-          }
-        }
-      }
-    }
-    if (changedOutputSteps == 0) {
+    File exportPath = createDatasetExportPath(parentDir, createResultsDir, datasetName);
+    var countChanged = ChangeOutputFilesUtils.applyTo(queue, exportPath);
+
+    if (countChanged == 0) {
       logger.info(
           "No output steps were changes... Make sure to include steps that include filename parameters for export");
       throw new IllegalStateException(
           "No output steps were changes... Make sure to include steps that include filename parameters for export");
     } else {
-      logger.info("Changed output for n steps=" + changedOutputSteps);
+      logger.info("Changed output for n steps=" + countChanged);
     }
   }
 
   private File createDatasetExportPath(final File parentDir, final boolean createResultsDir,
-      final String datasetName, final String oldName) {
+      final String datasetName) {
     if (createResultsDir) {
-      return Paths.get(parentDir.getPath(), "results", datasetName, oldName + datasetName).toFile();
+      return Paths.get(parentDir.getPath(), "results", datasetName, datasetName).toFile();
     } else {
-      return Paths.get(parentDir.getPath(), datasetName, oldName + datasetName).toFile();
+      return Paths.get(parentDir.getPath(), datasetName, datasetName).toFile();
     }
   }
 
@@ -439,6 +425,11 @@ public class BatchTask extends AbstractTask {
     if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
       var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
           ProjectService.getProject(), batchStepParameters);
+
+      // because of concurrency - the project may not have all the new raw data files - but all newly created files are in createdDataFiles
+      Set<RawDataFile> files = new HashSet<>(loadedRawDataFiles);
+      files.addAll(createdDataFiles);
+      loadedRawDataFiles = new ArrayList<>(files);
 
       // loaded should always be >= created as we are at most skipping files
       if (loadedRawDataFiles.size() >= createdDataFiles.size()) {

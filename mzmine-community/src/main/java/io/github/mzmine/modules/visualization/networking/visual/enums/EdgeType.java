@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,7 @@ import java.util.Optional;
  */
 public enum EdgeType implements ElementType {
 
-  FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, ONLINE_REACTION, OTHER;
+  FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, ONLINE_REACTION, MS2Deepscore, OTHER;
 
   public static EdgeType of(String type) {
     if (type == null || type.isBlank()) {
@@ -52,6 +52,7 @@ public enum EdgeType implements ElementType {
       case MS2_NEUTRAL_LOSS_SIM -> NETWORK_RELATIONS;
       case MS2_GNPS_COSINE_SIM -> GNPS_MODIFIED_COSINE;
       case ONLINE_REACTION -> ONLINE_REACTION;
+      case MS2Deepscore -> MS2Deepscore;
       case OTHER -> OTHER;
       case null -> OTHER;
     };
@@ -65,6 +66,7 @@ public enum EdgeType implements ElementType {
       case NETWORK_RELATIONS -> Type.MS2_NEUTRAL_LOSS_SIM;
       case GNPS_MODIFIED_COSINE -> Type.MS2_GNPS_COSINE_SIM;
       case ONLINE_REACTION -> Type.ONLINE_REACTION;
+      case MS2Deepscore -> Type.MS2Deepscore;
       case OTHER -> Type.OTHER;
       case null -> Type.OTHER;
     };
@@ -94,6 +96,7 @@ public enum EdgeType implements ElementType {
       case GNPS_MODIFIED_COSINE -> "GNPS";
       case ION_IDENTITY -> "IIN";
       case ONLINE_REACTION -> "IINREL";
+      case MS2Deepscore -> "MS2Deepscore";
       case OTHER -> "OTHER";
     });
   }

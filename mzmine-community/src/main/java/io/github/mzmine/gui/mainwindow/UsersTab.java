@@ -26,8 +26,11 @@
 package io.github.mzmine.gui.mainwindow;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.InetUtils;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.gui.fx.UsersViewState;
+import java.net.InetAddress;
+import java.net.http.HttpClient;
 import javafx.scene.control.TabPane;
 
 /**
@@ -57,6 +60,7 @@ public class UsersTab extends SimpleTab {
       }
     });
   }
+
   public static UsersTab showTab() {
     return showTab(UsersViewState.LOCAL_USERS);
   }
@@ -78,5 +82,4 @@ public class UsersTab extends SimpleTab {
     }
     return instance;
   }
-
 }

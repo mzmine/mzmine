@@ -18,13 +18,13 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21.0.2'
+          java-version: '22.0.1'
 #          cache: 'gradle'  # now done with gradle
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-#      in push to master use signed version for macOS defined below
+      #      in push to master use signed version for macOS defined below
       - name: Execute Gradle build (unsigned)
         if: runner.os != 'macOS'
         run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
@@ -127,17 +127,17 @@ jobs:
           path: mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
           retention-days: 7  # store for 7 days
 
-#      - name: Remove dmg File and Make .app executable
-#        if: runner.os == 'macOS'
-#        run: |
-#          find ./build/jpackage/ -name '*.dmg' -delete
-#          chmod a+x build/jpackage/mzmine.app/Contents/MacOS/mzmine
-#      - name: Zip portable macos
-#        if: runner.os == 'macOS'
-#        uses: papeloto/action-zip@v1
-#        with:
-#          files: build/jpackage/
-#          dest: build/jpackage/mzmine_macOS_portable.zip
+      #      - name: Remove dmg File and Make .app executable
+      #        if: runner.os == 'macOS'
+      #        run: |
+      #          find ./build/jpackage/ -name '*.dmg' -delete
+      #          chmod a+x build/jpackage/mzmine.app/Contents/MacOS/mzmine
+      #      - name: Zip portable macos
+      #        if: runner.os == 'macOS'
+      #        uses: papeloto/action-zip@v1
+      #        with:
+      #          files: build/jpackage/
+      #          dest: build/jpackage/mzmine_macOS_portable.zip
       - name: Upload macOS portable builds
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v2
@@ -173,11 +173,17 @@ jobs:
     if: ${{ !startsWith(github.ref, 'refs/tags/') }} # only increment if not a tag push
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.MZMINE_BOT_ACTIONS_TOKEN }}
+          
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '22.0.1'
+
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
       - name: Execute Gradle to increment version
         run: ./gradlew incrementPatch
       - name: Commit updated patch version

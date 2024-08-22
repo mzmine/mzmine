@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.gui.DesktopService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -65,10 +66,14 @@ public class RawDataFileTypeDetector {
   private static final String TDF_BIN_SUFFIX = ".tdf_bin";
   private static final String TSF_BIN_SUFFIX = ".tsf_bin";
   private static final String TSF_SUFFIX = ".tsf_bin";
+  private static final String BAF_SUFFIX = ".baf";
   private static final String BRUKER_FOLDER_SUFFIX = ".d";
   private static final String AIRD_SUFFIX = ".aird";
   private static final String MZML_SUFFIX = ".mzml";
   private static final String IMZML_SUFFIX = ".imzml";
+  private static final String SCIEX_WIFF_SUFFIX = ".wiff";
+  private static final String SCIEX_WIFF2_SUFFIX = ".wiff2";
+  private static final String AGILENT_ACQDATATA_FOLDER = "AcqData";
 
   private static final Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
 
@@ -78,15 +83,16 @@ public class RawDataFileTypeDetector {
   public static RawDataFileType detectDataFileType(File fileName) {
 
     if (fileName.isDirectory()) {
-      /*if (fileName.getName().endsWith(BRUKER_FOLDER_SUFFIX)) {
-        return RawDataFileType.BRUKER_TDF;
-      }*/
-
       // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
       for (File f : fileName.listFiles()) {
-        /*if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
-          return RawDataFileType.WATERS_RAW;
-        }*/
+        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
+          DesktopService.getDesktop().displayMessage("Waters raw data detected",
+              "Waters raw data is currently not supported in mzmine. Please use their tool DataConnect to convert zo mzML (see documentation).",
+              "https://mzmine.github.io/mzmine_documentation/data_conversion.html#waters");
+          throw new RuntimeException(
+              "Waters raw data detected. Please download Waters DataConnect(R) and convert to mzML.");
+//          return RawDataFileType.WATERS_RAW;
+        }
         if (f.isFile() && (f.getName().contains(TDF_SUFFIX) || f.getName()
             .contains(TDF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TDF;
@@ -94,6 +100,12 @@ public class RawDataFileTypeDetector {
         if (f.isFile() && (f.getName().contains(TSF_SUFFIX) || f.getName()
             .contains(TSF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TSF;
+        }
+        if (f.isFile() && (f.getName().contains(BAF_SUFFIX))) {
+          return RawDataFileType.BRUKER_BAF;
+        }
+        if (f.isDirectory() && f.getName().equals(AGILENT_ACQDATATA_FOLDER)) {
+          return RawDataFileType.AGILENT_D;
         }
       }
       // We don't recognize any other directory type than Waters and Bruker
@@ -107,6 +119,12 @@ public class RawDataFileTypeDetector {
         }
         if (fileName.getName().toLowerCase().endsWith(IMZML_SUFFIX)) {
           return RawDataFileType.IMZML;
+        }
+        if (fileName.getName().toLowerCase().endsWith(SCIEX_WIFF_SUFFIX)) {
+          return RawDataFileType.SCIEX_WIFF;
+        }
+        if (fileName.getName().toLowerCase().endsWith(SCIEX_WIFF2_SUFFIX)) {
+          return RawDataFileType.SCIEX_WIFF2;
         }
         //the suffix is json and have a .aird file with same name
         /*if (fileName.getName().toLowerCase().endsWith(AIRD_SUFFIX)) {

@@ -100,7 +100,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
     super(new Parameter[]{peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,
             mobilityTolerance, mobilityWeight, SameChargeRequired, SameIDRequired,
             compareIsotopePattern, compareSpectraSimilarity, handleOriginal},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/join_aligner/join_aligner.html");
+        "https://mzmine.github.io/mzmine_documentation/module_docs/align_join_aligner/join_aligner.html");
   }
 
   @Override

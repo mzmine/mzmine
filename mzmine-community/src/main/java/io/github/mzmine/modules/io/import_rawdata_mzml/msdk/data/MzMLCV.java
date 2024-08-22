@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -183,6 +183,7 @@ public class MzMLCV {
    * Constant <code>cvChromatogramMRM_SRM="MS:1001473"</code>
    */
   public static final String cvChromatogramMRM_SRM = "MS:1001473";
+  public static final String cvChromatogramSIM = "MS:1001472";
   /**
    * Constant <code>cvChromatogramSIC="MS:1000627"</code>
    */
@@ -192,24 +193,28 @@ public class MzMLCV {
    */
   public static final String cvChromatogramBPC = "MS:1000628";
 
-  // Activation
-  /// activation methods
+  public static final String cvChromatogramElectromagneticRadiation = "MS:1000811";
+  public static final String cvChromatogramAbsorption = "MS:1000812";
+  public static final String cvChromatogramEmission = "MS:1000813";
+  public static final String cvChromatogramIonCurrent = "MS:1000810";
+  public static final String cvChromatogramPressure = "MS:1003019";
+  public static final String cvChromatogramFlowRate = "MS:1003020";
   /**
    * Constant <code>cvActivationEnergy="MS:1000045"</code>
    */
   public static final String cvActivationEnergy = "MS:1000045";
+  // Activation
+  /// activation methods
   public static final String cvPercentCollisionEnergy = "MS:1000138";
   public static final String cvActivationEnergy2 = "MS:1000509";
-  /// activation energies
   /**
    * Constant <code>cvActivationCID="MS:1000133"</code>
    */
   public static final String cvActivationCID = "MS:1000133";
+  /// activation energies
   public static final String cvElectronCaptureDissociation = "MS:1000250";
   public static final String cvHighEnergyCID = "MS:1000422";
   public static final String cvLowEnergyCID = "MS:1000433";
-
-  // Isolation
   /**
    * Constant <code>cvIsolationWindowTarget="MS:1000827"</code>
    */
@@ -218,12 +223,12 @@ public class MzMLCV {
    * Constant <code>cvIsolationWindowLowerOffset="MS:1000828"</code>
    */
   public static final String cvIsolationWindowLowerOffset = "MS:1000828";
+
+  // Isolation
   /**
    * Constant <code>cvIsolationWindowUpperOffset="MS:1000829"</code>
    */
   public static final String cvIsolationWindowUpperOffset = "MS:1000829";
-
-  // Data arrays
   /**
    * Constant <code>cvMzArray="MS:1000514"</code>
    */
@@ -232,23 +237,58 @@ public class MzMLCV {
    * Constant <code>cvIntensityArray="MS:1000515"</code>
    */
   public static final String cvIntensityArray = "MS:1000515";
+
+  // Data arrays
   /**
    * Constant <code>cvRetentionTimeArray="MS:1000595"</code>
    */
   public static final String cvRetentionTimeArray = "MS:1000595";
-
-  // UV spectrum, actually "electromagnetic radiation spectrum"
+  public static final String cvWavelengthArray = "MS:1000617";
   /**
    * Constant <code>cvUVSpectrum="MS:1000804"</code>
    */
   public static final String cvUVSpectrum = "MS:1000804";
-
-  // Intensity array unit
+  // UV spectrum, actually "electromagnetic radiation spectrum"
+  public static final String cvFluorescenceDetector = "MS:1002308";
+  public static final String cvLowestObservedWavelength = "MS:1000619";
+  public static final String cvhighestObservedWavelength = "MS:1000618";
+  public static final String cvUnitsNanometer = "UO:0000018";
   /**
    * Constant <code>cvUnitsIntensity1="MS:1000131"</code>
    */
   public static final String cvUnitsIntensity1 = "MS:1000131";
+  public static final String cvUnitsIntensity2 = "MS:1000814";
 
+  public static final String cvUnitsGram = "UO:0000021";
+  public static final String cvUnitsMilliliter = "UO:0000098";
+  public static final String cvUnitsGramsPerLiter = "UO:0000175";
+  public static final String cvUnitsPPM = "UO:0000169";
+  public static final String cvUnitsTesla = "UO:0000228";
+  public static final String cvUnitsMeter = "UO:0000008";
+  public static final String cvUnitsHertz = "UO:0000106";
+  public static final String cvUnitsAbsorbance = "UO:0000269";
+  public static final String cvUnitsElectronVolt = "UO:0000266";
+  public static final String cvUnitsVolt = "UO:0000218";
+  public static final String cvUnitsVoltPerMeter = "UO:0000268";
+  public static final String cvUnitsMicroLiterPerMinute = "UO:0000271";
+  public static final String cvUnitsPascal = "UO:0000110";
+  public static final String cvUnitsDegreeKelvin = "UO:0000012";
+  public static final String cvUnitsDegreeCelsius = "UO:0000027";
+  public static final String cvUnitsMicrometer = "UO:0000017";
+  public static final String cvUnitsJoule = "UO:0000112";
+  public static final String cvUnitsNanosecond = "UO:0000150";
+  public static final String cvUnitsPercent = "UO:0000187";
+  public static final String cvUnitsDegree = "UO:0000185";
+  public static final String cvUnitsDalton = "UO:0000221";
+  public static final String cvUnitsKiloDalton = "UO:0000222";
+  public static final String cvUnitsPartsPerNotationUnit = "UO:0000166";
+  public static final String cvUnitsCount = "UO:0000189";
+  public static final String cvUnitsSquareAngstrom = "UO:0000324";
+  public static final String cvUnitsAreaUnit = "UO:0000047";
+  public static final String cvUnitsDimensionlessUnit = "UO:0000186";
+
+
+  // Intensity array unit
   // Ion mobility
   // <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="4.090608"
   // unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
@@ -259,4 +299,23 @@ public class MzMLCV {
   // square centimeter"/>
   public static final String cvMobilityInverseReduced = "MS:1002815";
   public static final String cvMobilityInverseReducedUnit = "MS:1002814";
+
+
+  /**
+   * CV values that are specific for a detector and can be used to derive the actual detector.
+   */
+  public enum DetectorCVs {
+    UV_SPECTRUM(cvUVSpectrum), FLUORESCENCE(cvFluorescenceDetector);
+
+    String accession;
+
+    DetectorCVs(String accession) {
+      this.accession = accession;
+    }
+
+    public String getAccession() {
+      return accession;
+    }
+  }
+
 }

@@ -34,9 +34,12 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionAlgorithms;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
@@ -55,20 +58,17 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
-import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
-import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarityParameters;
-import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 import java.io.File;
 import java.util.Objects;
 import java.util.Optional;
@@ -99,8 +99,12 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
 
     // special workflow parameter are extracted here
     // chromatography
-    recalibrateRetentionTime = getValue(params,
-        IonInterfaceGcElectronImpactWizardParameters.RECALIBRATE_RETENTION_TIMES);
+    if (dataFiles.length > 1) {
+      recalibrateRetentionTime = getValue(params,
+          IonInterfaceGcElectronImpactWizardParameters.RECALIBRATE_RETENTION_TIMES);
+    } else {
+      recalibrateRetentionTime = false;
+    }
     rtSmoothing = getValue(params, IonInterfaceGcElectronImpactWizardParameters.smoothing);
     cropRtRange = getValue(params, IonInterfaceGcElectronImpactWizardParameters.cropRtRange);
     intraSampleRtTol = getValue(params,
@@ -143,7 +147,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     makeAndAddImportTask(q);
     makeAndAddMassDetectionStepForAllScans(q);
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
-        minRtDataPoints, cropRtRange);
+        minRtDataPoints, cropRtRange, polarity);
     if (rtSmoothing) {
       makeAndAddSmoothingStep(q, true, minRtDataPoints, false);
     }
@@ -154,8 +158,10 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     }
     makeSpectralDeconvolutionStep(q);
     makeAndAddAlignmentStep(q);
+    makeAndAddRowFilterStep(q);
     makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
         rtFwhm, imsInstrumentType);
+    makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
     makeAndAddLibrarySearchMS1Step(q, false);
 
     if (isExportActive) {
@@ -179,56 +185,53 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
       final Integer maxIsomersInRt) {
     super.makeAndAddRtLocalMinResolver(q, groupMs2Params, minRtDataPoints, cropRtRange, rtFwhm,
         maxIsomersInRt);
-    keepFeatureListForClustering(q);
   }
 
-  private void keepFeatureListForClustering(BatchQueue q) {
-    final var step = q.get(q.size() - 1);
-    final ParameterSet param = step.getParameterSet();
-    if (!(param instanceof GeneralResolverParameters minParam)) {
-      throw new IllegalStateException("Could not find resolver step to adapt for GC-MS data.");
-    }
-    minParam.setParameter(GeneralResolverParameters.handleOriginal, OriginalFeatureListOption.KEEP);
-  }
 
   private void makeSpectralDeconvolutionStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(SpectralDeconvolutionGCModule.class).cloneParameterSet();
-    param.setParameter(SpectralDeconvolutionGCParameters.RT_TOLERANCE, intraSampleRtTol);
-    param.setParameter(SpectralDeconvolutionGCParameters.MIN_NUMBER_OF_SIGNALS,
-        minNumberOfSignalsInDeconSpectra);
+
     param.setParameter(SpectralDeconvolutionGCParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(SpectralDeconvolutionGCParameters.HANDLE_ORIGINAL,
         handleOriginalFeatureLists);
-    param.setParameter(SpectralDeconvolutionGCParameters.SUFFIX, "spec_decon");
+    param.setParameter(SpectralDeconvolutionGCParameters.SUFFIX, "decon");
+    param.setParameter(SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE, false);
+    // deconvolution algorithm
+    var deconParams = param.getParameter(
+            SpectralDeconvolutionGCParameters.SPECTRAL_DECONVOLUTION_ALGORITHM)
+        .setOptionGetParameters(SpectralDeconvolutionAlgorithms.RT_GROUPING_AND_SHAPE_CORRELATION);
+    deconParams.setParameter(RtGroupingAndShapeCorrelationParameters.RT_TOLERANCE,
+        intraSampleRtTol);
+    deconParams.setParameter(RtGroupingAndShapeCorrelationParameters.MIN_NUMBER_OF_SIGNALS,
+        minNumberOfSignalsInDeconSpectra);
+    deconParams.setParameter(RtGroupingAndShapeCorrelationParameters.MIN_R, 0.8);
+
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SpectralDeconvolutionGCModule.class), param));
   }
 
-  protected void makeAndAddAlignmentStep(final BatchQueue q) {
+  private void makeAndAddAlignmentStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(GCAlignerModule.class).cloneParameterSet();
     param.setParameter(GCAlignerParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(GCAlignerParameters.MZ_TOLERANCE, mzTolScans);
     param.setParameter(GCAlignerParameters.RT_TOLERANCE, interSampleRtTol);
-    ModuleComboParameter<SpectralSimilarityFunction> simFunction = param.getParameter(
-        GCAlignerParameters.SIMILARITY_FUNCTION);
-    ParameterSet weightedCosineParam = MZmineCore.getConfiguration()
-        .getModuleParameters(WeightedCosineSpectralSimilarity.class).cloneParameterSet();
-    weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.weight,
-        Weights.NIST_GC);
-    weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.7);
-    weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.handleUnmatched,
-        HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
-    SpectralSimilarityFunction weightedCosineModule = SpectralSimilarityFunction.compositeCosine;
-    var similarityStep = new MZmineProcessingStepImpl<>(weightedCosineModule, weightedCosineParam);
-    simFunction.setValue(similarityStep);
-    param.setParameter(GCAlignerParameters.SIMILARITY_FUNCTION, similarityStep);
     param.setParameter(GCAlignerParameters.FEATURE_LIST_NAME, "Aligned feature list");
     param.setParameter(GCAlignerParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(GCAlignerParameters.RT_WEIGHT, 0.5d);
+
+    // spectral similarity
+    var simFunction = param.getParameter(GCAlignerParameters.SIMILARITY_FUNCTION);
+    simFunction.setValue(SpectralSimilarityFunctions.NIST_COMPOSITE_COSINE);
+    var simParam = simFunction.getEmbeddedParameters();
+    simParam.setParameter(CompositeCosineSpectralSimilarityParameters.weight, Weights.NIST_GC);
+    simParam.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.7);
+    simParam.setParameter(CompositeCosineSpectralSimilarityParameters.handleUnmatched,
+        HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
+
     q.add(
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(GCAlignerModule.class), param));
   }
@@ -254,22 +257,16 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     param.setParameter(SpectralLibrarySearchParameters.removePrecursor, false);
     param.setParameter(SpectralLibrarySearchParameters.minMatch, 8);
     // similarity
-    ModuleComboParameter<SpectralSimilarityFunction> simFunction = param.getParameter(
-        SpectralLibrarySearchParameters.similarityFunction);
+    var simFunction = param.getParameter(SpectralLibrarySearchParameters.similarityFunction);
+    simFunction.setValue(SpectralSimilarityFunctions.NIST_COMPOSITE_COSINE);
+    var weightedCosineParam = simFunction.getEmbeddedParameters();
 
-    ParameterSet weightedCosineParam = MZmineCore.getConfiguration()
-        .getModuleParameters(WeightedCosineSpectralSimilarity.class).cloneParameterSet();
     weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.weight,
         Weights.NIST_GC);
-    weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.85);
+    weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.75);
     weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.handleUnmatched,
         HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
 
-    SpectralSimilarityFunction weightedCosineModule = SpectralSimilarityFunction.compositeCosine;
-    var libMatchStep = new MZmineProcessingStepImpl<>(weightedCosineModule, weightedCosineParam);
-
-    // finally set the libmatch module plus parameters as step
-    simFunction.setValue(libMatchStep);
     // advanced off
     param.setParameter(SpectralLibrarySearchParameters.advanced, false);
     var advanced = param.getEmbeddedParameterValue(SpectralLibrarySearchParameters.advanced);
@@ -320,4 +317,19 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         param));
   }
 
+
+  @Override
+  protected void makeAndAddRowFilterStep(BatchQueue q) {
+    super.makeAndAddRowFilterStep(q);
+    // dont change if the step was not created
+    final MZmineProcessingStep<MZmineProcessingModule> filterStep = q.getLast();
+    if (!filter13C && !minAlignedSamples.isGreaterZero() || !filterStep.getModule()
+        .equals(MZmineCore.getModuleInstance(RowsFilterModule.class))) {
+      return;
+    }
+
+    // deactivate for gc-ei, everything has a spectrum
+    final ParameterSet param = filterStep.getParameterSet();
+    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, false);
+  }
 }

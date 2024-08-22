@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,11 +28,11 @@ package io.github.mzmine.modules.batchmode;
 import io.github.mzmine.gui.framework.fx.FilterableTreeItem;
 import io.github.mzmine.gui.framework.fx.TreeItemPredicate;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineModuleCategory.MainCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,6 @@ import java.util.logging.Logger;
 import javafx.beans.NamedArg;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
@@ -70,6 +69,7 @@ public class BatchModuleTreePane extends BorderPane {
    */
   public BatchModuleTreePane(@NamedArg("includeTools") boolean includeTools) {
     BorderPane bottom = new BorderPane(searchField);
+    bottom.setPadding(new Insets(5, 0, 0, 0));
     FontIcon icon = FxIconUtil.getFontIcon("bi-x-circle", 20);
     icon.setOnMouseClicked(event -> xButtonPressed());
     HBox box = FxLayout.newHBox(icon, new Label("Search"));

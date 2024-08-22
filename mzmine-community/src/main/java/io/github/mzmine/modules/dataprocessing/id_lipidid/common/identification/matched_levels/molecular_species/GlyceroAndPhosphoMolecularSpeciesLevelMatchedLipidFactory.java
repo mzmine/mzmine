@@ -129,7 +129,7 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
               detectedFragmentsWithChainInformation);
           matchedMolecularSpeciesLevelAnnotations.add(
               buildNewMolecularSpeciesLevelMatch(fittingFragments, lipidAnnotation, accurateMz,
-                  massList, predictedChains, minMsMsScore, mzTolRangeMSMS, ionizationType));
+                  massList, predictedChains, mzTolRangeMSMS, ionizationType));
         }
       }
       if (chainsInLipid >= 2) {
@@ -146,7 +146,7 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
                   predictedChains, detectedFragmentsWithChainInformation);
               matchedMolecularSpeciesLevelAnnotations.add(
                   buildNewMolecularSpeciesLevelMatch(fittingFragments, lipidAnnotation, accurateMz,
-                      massList, predictedChains, minMsMsScore, mzTolRangeMSMS, ionizationType));
+                      massList, predictedChains, mzTolRangeMSMS, ionizationType));
             }
           }
           if (chainsInLipid >= 3) {
@@ -165,7 +165,7 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
                       predictedChains, detectedFragmentsWithChainInformation);
                   matchedMolecularSpeciesLevelAnnotations.add(
                       buildNewMolecularSpeciesLevelMatch(fittingFragments, lipidAnnotation,
-                          accurateMz, massList, predictedChains, minMsMsScore, mzTolRangeMSMS,
+                          accurateMz, massList, predictedChains, mzTolRangeMSMS,
                           ionizationType));
                 }
               }
@@ -187,7 +187,7 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
                           predictedChains, detectedFragmentsWithChainInformation);
                       matchedMolecularSpeciesLevelAnnotations.add(
                           buildNewMolecularSpeciesLevelMatch(fittingFragments, lipidAnnotation,
-                              accurateMz, massList, predictedChains, minMsMsScore, mzTolRangeMSMS,
+                              accurateMz, massList, predictedChains, mzTolRangeMSMS,
                               ionizationType));
                     }
                   }
@@ -254,7 +254,7 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
                   predictedChains, detectedFragmentsWithCombinedChainInformation);
               matchedMolecularSpeciesLevelAnnotations.add(
                   buildNewSpeciesLevelMatch(extractFragmentsForFittingChains, lipidAnnotation,
-                      accurateMz, massList, predictedChains, minMsMsScore, mzTolRangeMSMS,
+                      accurateMz, massList, predictedChains, mzTolRangeMSMS,
                       ionizationType));
             }
           }
@@ -394,13 +394,20 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
 
   private MatchedLipid buildNewMolecularSpeciesLevelMatch(Set<LipidFragment> detectedFragments,
       ILipidAnnotation lipidAnnotation, Double accurateMz, DataPoint[] massList,
-      List<ILipidChain> predictedChains, double minMsMsScore, MZTolerance mzTolRangeMSMS,
+      List<ILipidChain> predictedChains, MZTolerance mzTolRangeMSMS,
       IonizationType ionizationType) {
     ILipidAnnotation molecularSpeciesLevelAnnotation = LIPID_FACTORY.buildMolecularSpeciesLevelLipidFromChains(
         lipidAnnotation.getLipidClass(), predictedChains);
     if (molecularSpeciesLevelAnnotation != null) {
+      IMolecularFormula lipidFormula = null;
+      try {
+        lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
+      } catch (CloneNotSupportedException e) {
+        throw new RuntimeException(e);
+      }
+      double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
       Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, detectedFragments,
-          minMsMsScore, mzTolRangeMSMS);
+          precursorMz, mzTolRangeMSMS);
       return new MatchedLipid(molecularSpeciesLevelAnnotation, accurateMz, ionizationType,
           detectedFragments, msMsScore);
     } else {
@@ -410,15 +417,22 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
 
   private MatchedLipid buildNewSpeciesLevelMatch(Set<LipidFragment> detectedFragments,
       ILipidAnnotation lipidAnnotation, Double accurateMz, DataPoint[] massList,
-      List<ILipidChain> predictedChains, double minMsMsScore, MZTolerance mzTolRangeMSMS,
+      List<ILipidChain> predictedChains, MZTolerance mzTolRangeMSMS,
       IonizationType ionizationType) {
     ILipidAnnotation molecularSpeciesLevelAnnotation = LIPID_FACTORY.buildSpeciesLevelLipid(
         lipidAnnotation.getLipidClass(),
         predictedChains.stream().mapToInt(ILipidChain::getNumberOfCarbons).sum(),
         predictedChains.stream().mapToInt(ILipidChain::getNumberOfDBEs).sum(), 0);
     if (molecularSpeciesLevelAnnotation != null) {
+      IMolecularFormula lipidFormula = null;
+      try {
+        lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
+      } catch (CloneNotSupportedException e) {
+        throw new RuntimeException(e);
+      }
+      double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
       Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, detectedFragments,
-          minMsMsScore, mzTolRangeMSMS);
+          precursorMz, mzTolRangeMSMS);
       return new MatchedLipid(molecularSpeciesLevelAnnotation, accurateMz, ionizationType,
           detectedFragments, msMsScore);
     } else {

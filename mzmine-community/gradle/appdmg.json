@@ -1,6 +1,5 @@
 {
   "title": "mzmine installer",
-  "background": "mac_installer_back.svg",
   "window": {
     "size": {"width": 520, "height": 330}
   },

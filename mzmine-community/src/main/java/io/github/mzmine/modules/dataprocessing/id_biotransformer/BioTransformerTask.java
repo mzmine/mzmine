@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,12 +42,13 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
@@ -114,8 +115,8 @@ public class BioTransformerTask extends AbstractTask {
     final boolean enableAdvancedFilters = parameters.getValue(BioTransformerParameters.advanced);
     final ParameterSet filterParams = parameters.getEmbeddedParameterValue(
         BioTransformerParameters.advanced);
-    rowCorrelationFilter =
-        enableAdvancedFilters && filterParams.getValue(RtClusterFilterParameters.rowCorrelationFilter);
+    rowCorrelationFilter = enableAdvancedFilters && filterParams.getValue(
+        RtClusterFilterParameters.rowCorrelationFilter);
     rtTolerance = enableAdvancedFilters ? filterParams.getEmbeddedParameterValueIfSelectedOrElse(
         RtClusterFilterParameters.rtTolerance, null) : null;
 
@@ -160,24 +161,23 @@ public class BioTransformerTask extends AbstractTask {
       @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
       @NotNull ParameterSet parameters, @NotNull IonNetworkLibrary ionLibrary) throws IOException {
 
-    final IMolecularFormula fomulaFromSmiles = FormulaUtils.getFomulaFromSmiles(bestSmiles);
+    final IMolecularFormula fomulaFromSmiles = FormulaUtils.getFormulaFromSmiles(bestSmiles);
     if (FormulaUtils.getMonoisotopicMass(fomulaFromSmiles) > molecularMassCutoff) {
       return List.of();
     }
 
     String filename = id + "_transformation";
-    final File file;
     // will be cleaned by temp file cleanup (windows)
-    file = FileAndPathUtil.createTempFile("mzmine_bio_" + filename, ".csv");
-    file.deleteOnExit();
+    final File outputFile = FileAndPathUtil.createTempFile("mzmine_bio_" + filename, ".csv");
+    outputFile.deleteOnExit();
 
     final List<String> cmd = BioTransformerUtil.buildCommandLineArguments(bestSmiles, parameters,
-        file);
+        outputFile);
 
     BioTransformerUtil.runCommandAndWait(bioTransformerPath.getParentFile(), cmd);
 
     final List<CompoundDBAnnotation> bioTransformerAnnotations = BioTransformerUtil.parseLibrary(
-        file, ionLibrary);
+        outputFile, ionLibrary);
 
     bioTransformerAnnotations.forEach(a -> a.put(CompoundNameType.class,
         Objects.requireNonNullElse(prefix, "") + "_" + a.get(CompoundNameType.class)));
@@ -268,8 +268,10 @@ public class BioTransformerTask extends AbstractTask {
               }
 
               r.addCompoundAnnotation(clone);
-              row.getCompoundAnnotations().sort(
-                  Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
+              final List<CompoundDBAnnotation> annotations = new ArrayList<>(
+                  row.getCompoundAnnotations());
+              annotations.sort(CompoundAnnotationUtils.getSorterMaxScoreFirst());
+              row.setCompoundAnnotations(annotations);
               numAnnotations.getAndIncrement();
             }
           });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,9 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -91,9 +93,14 @@ public class FxLayout {
   }
 
   public static VBox newVBox(Pos alignment, Insets padding, Node... children) {
+    return newVBox(alignment, padding, false, children);
+  }
+
+  public static VBox newVBox(Pos alignment, Insets padding, boolean fillWidth, Node... children) {
     var pane = new VBox(DEFAULT_SPACE, children);
     pane.setPadding(padding);
     pane.setAlignment(alignment);
+    pane.setFillWidth(fillWidth);
     return pane;
   }
 
@@ -155,5 +162,17 @@ public class FxLayout {
     scroll.setFitToHeight(true);
     scroll.setCenterShape(true);
     return scroll;
+  }
+
+  public static TitledPane newTitledPane(String title, Node node) {
+    return new TitledPane(title, node);
+  }
+
+  public static Accordion newAccordion(boolean expandFirst, TitledPane... contents) {
+    final Accordion accordion = new Accordion(contents);
+    if (expandFirst && contents.length > 0) {
+      accordion.setExpandedPane(contents[0]);
+    }
+    return accordion;
   }
 }

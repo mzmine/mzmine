@@ -41,10 +41,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.util.javafx.LightAndDarkModeIcon;
 import java.util.logging.Logger;
-import javafx.animation.Animation;
-import javafx.animation.FadeTransition;
-import javafx.animation.Interpolator;
-import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
@@ -56,10 +52,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.util.Duration;
 import org.controlsfx.control.ToggleSwitch;
 import org.jetbrains.annotations.NotNull;
 
@@ -76,9 +70,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     final VBox main = new VBox(40);
     main.setAlignment(Pos.CENTER);
 
-    LightAndDarkModeIcon mzmineIcon = new LightAndDarkModeIcon(
-        "icons/introductiontab/logos_mzio_mzmine.png",
-        "icons/introductiontab/logos_mzio_mzmine_light.png", 350, 200, model.isDarkModeProperty());
+    LightAndDarkModeIcon mzmineIcon = LightAndDarkModeIcon.mzmineImage(350, 200);
 
     HBox title = new HBox(FxLayout.DEFAULT_SPACE,
         /*FxLabels.styled("Welcome to ", "huge-title-label"),*/ mzmineIcon /*,
@@ -119,10 +111,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   private Region createWizardRow() {
     final GridPane pane = new GridPane(20, 5);
 
-    final HBox wizardImageWrapper = new LightAndDarkModeIcon(
-        "icons/introductiontab/logos_mzio_mzwizard.png",
-        "icons/introductiontab/logos_mzio_mzwizard_light.png", 300, 150,
-        model.isDarkModeProperty());
+    final HBox wizardImageWrapper = LightAndDarkModeIcon.mzwizardImage(300, 150);
     final Label lblWizard = FxLabels.newBoldTitle("Easy workflow setup");
     final Button btnWizard = FxButtons.graphicButton(wizardImageWrapper,
         "Open the mzwizard to easily configure a workflow.",
@@ -174,8 +163,8 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
         "See what's new in mzmine",
         () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/mzmine-news/"));
 
-    FlowPane pane = new FlowPane(20, 20, btnPreferences, btnDocs, btnYoutube, btnWebsite, btnUserManagement,
-        btnDevelopment, btnWhatsNew);
+    FlowPane pane = new FlowPane(20, 20, btnPreferences, btnDocs, btnYoutube, btnWebsite,
+        btnUserManagement, btnDevelopment, btnWhatsNew);
     pane.setAlignment(Pos.CENTER);
     return pane;
   }
@@ -204,7 +193,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     final VBox box = new VBox(20);
     final Label label = FxLabels.newBoldTitle("New version available!");
     final Button downloadButton = FxButtons.createButton(
-        FxIconUtil.getFontIcon("bi-download", 60, Color.web("3391C1")),
+        FxIconUtil.getFontIcon(FxIcons.DOWNLOAD, 60, Color.web("3391C1")),
         () -> MZmineCore.getDesktop()
             .openWebPage("https://github.com/mzmine/mzmine3/releases/latest"));
     box.getChildren().addAll(label, downloadButton);

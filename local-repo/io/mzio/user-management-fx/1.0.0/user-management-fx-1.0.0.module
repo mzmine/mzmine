@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "8.5"
+      "version": "8.9"
     }
   },
   "variants": [
@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 21,
+        "org.gradle.jvm.version": 22,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 33954,
-          "sha512": "cd9d4e26733a406fc639af780ba3b2a3f47f442a87fdc64c95a00dfb103950ec479a64468dc6563b5e5bc82ac9efc2949923a1d64bd55b2caffc1ce1929d6f22",
-          "sha256": "396d1b012d80ec6af4edf7353ac5a0ed01ab03928ba116459abf484495bfbdf5",
-          "sha1": "ccd40d8ac69c1132b604aa2438816c5928e41f2e",
-          "md5": "3fee9ca86fc6e554c1b468ed1a0f199a"
+          "size": 39603,
+          "sha512": "424482c906d40ca5574dde237e44917bb3fbcd3fff0889c94aef9a32516bc5eaed1257b1ee291fdf7ad9e745135cf1add858dbc1caeb23f52c2f116fbe2b6e94",
+          "sha256": "61083b98620117856ca21705d2485580b936f846aa22c51e514a7c0a55e4da1b",
+          "sha1": "d1d918deaebc5dd5bd743ce1d0fb1102736a07c0",
+          "md5": "e43eff701e216338121cf7be3b09b473"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 21,
+        "org.gradle.jvm.version": 22,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -200,6 +200,13 @@
           }
         },
         {
+          "group": "io.mzio",
+          "module": "global-events",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
           "group": "io.github.mzmine",
           "module": "javafx-framework"
         },
@@ -223,11 +230,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 33954,
-          "sha512": "cd9d4e26733a406fc639af780ba3b2a3f47f442a87fdc64c95a00dfb103950ec479a64468dc6563b5e5bc82ac9efc2949923a1d64bd55b2caffc1ce1929d6f22",
-          "sha256": "396d1b012d80ec6af4edf7353ac5a0ed01ab03928ba116459abf484495bfbdf5",
-          "sha1": "ccd40d8ac69c1132b604aa2438816c5928e41f2e",
-          "md5": "3fee9ca86fc6e554c1b468ed1a0f199a"
+          "size": 39603,
+          "sha512": "424482c906d40ca5574dde237e44917bb3fbcd3fff0889c94aef9a32516bc5eaed1257b1ee291fdf7ad9e745135cf1add858dbc1caeb23f52c2f116fbe2b6e94",
+          "sha256": "61083b98620117856ca21705d2485580b936f846aa22c51e514a7c0a55e4da1b",
+          "sha1": "d1d918deaebc5dd5bd743ce1d0fb1102736a07c0",
+          "md5": "e43eff701e216338121cf7be3b09b473"
         }
       ]
     }

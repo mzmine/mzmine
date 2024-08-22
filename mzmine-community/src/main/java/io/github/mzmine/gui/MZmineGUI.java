@@ -47,6 +47,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -62,6 +63,8 @@ import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
@@ -110,7 +113,6 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -143,18 +145,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   public static void requestQuit() {
     FxThread.runLater(() -> {
-      Alert alert = new Alert(AlertType.CONFIRMATION);
-      Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-      stage.getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      stage.getIcons().add(mzMineIcon);
-      alert.setTitle("Confirmation");
-      alert.setHeaderText("Exit mzmine");
-      String s = "Are you sure you want to exit?";
-      alert.setContentText(s);
-      Optional<ButtonType> result = alert.showAndWait();
-
-      if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
+      if (DialogLoggerUtil.showDialogYesNo("Exit mzmine", "Are you sure you want to exit?")) {
         // Quit the JavaFX thread
         Platform.exit();
         // Call System.exit() because there are probably some background
@@ -199,7 +190,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     Scene newScene = new Scene(parent);
 
     // Copy CSS styles
-    newScene.getStylesheets().addAll(rootScene.getStylesheets());
+    ConfigService.getConfiguration().getTheme().apply(newScene.getStylesheets());
 
     Stage newStage = new Stage();
     newStage.setTitle(title);
@@ -309,8 +300,8 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     if (dragboard.hasFiles()) {
       hasFileDropped = true;
 
-      final List<String> rawExtensions = List.of("mzml", "mzxml", "raw", "cdf", "netcdf", "nc",
-          "mzdata", "imzml", "tdf", "d", "tsf", "zip", "gz");
+      final List<String> rawExtensions = ExtensionFilters.ALL_MS_DATA_FILTER.getExtensions()
+          .stream().map(e -> e.replaceAll("\\*\\.", "")).toList();
       final List<String> libraryExtensions = List.of("json", "mgf", "msp", "jdx");
 
       final List<File> rawDataFiles = new ArrayList<>();
@@ -516,7 +507,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       Platform.exit();
     }
 
-    stage.setTitle("mzmine " + MZmineCore.getMZmineVersion());
+    stage.setTitle("mzmine " + SemverVersionReader.getMZmineVersion());
     stage.setMinWidth(600);
     stage.setMinHeight(400);
 
@@ -541,7 +532,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
     desktopSetupThread.start();
 
-    setStatusBarText("Welcome to mzmine " + MZmineCore.getMZmineVersion());
+    setStatusBarText("Welcome to mzmine " + SemverVersionReader.getMZmineVersion());
 
     stage.show();
 
@@ -685,7 +676,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
 
-      TextFlow flow = new TextFlow(new Text(msg));
+      TextFlow flow = new TextFlow(new Text(msg + " "));
       if (url != null) {
         Hyperlink href = new Hyperlink(url);
         flow.getChildren().add(href);
@@ -718,34 +709,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   }
 
   @Override
-  public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
-
-    FutureTask<ButtonType> alertTask = new FutureTask<>(() -> {
-      Alert alert = new Alert(AlertType.CONFIRMATION, "", buttonTypes);
-      alert.getDialogPane().getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      Text text = new Text(msg);
-      text.setWrappingWidth(370);
-      final FlowPane pane = new FlowPane(text);
-      pane.setPadding(new Insets(5));
-      alert.getDialogPane().setContent(pane);
-      alert.setWidth(400);
-      alert.showAndWait();
-      return alert.getResult();
-    });
-
-    // Show the dialog
-    try {
-      if (Platform.isFxApplicationThread()) {
-        alertTask.run();
-      } else {
-        FxThread.runLater(alertTask);
-      }
-      return alertTask.get();
-    } catch (Exception e) {
-      logger.log(Level.WARNING, e.getMessage(), e);
-      return null;
-    }
+  public ButtonType displayConfirmation(final String title, String msg, ButtonType... buttonTypes) {
+    return DialogLoggerUtil.showDialog(AlertType.CONFIRMATION, "null", msg, buttonTypes)
+        .orElse(null);
   }
 
   @Override
@@ -854,8 +820,8 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     // Credits: https://stackoverflow.com/questions/36949595/how-do-i-create-a-javafx-alert-with-a-check-box-for-do-not-ask-again
     FutureTask<ButtonType> task = new FutureTask<>(() -> {
       Alert alert = new Alert(AlertType.WARNING);
-      alert.getDialogPane().getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      ConfigService.getConfiguration().getTheme()
+          .apply(alert.getDialogPane().getScene().getStylesheets());
       // Need to force the alert to layout in order to grab the graphic,
       // as we are replacing the dialog pane with a custom pane
       alert.getDialogPane().applyCss();

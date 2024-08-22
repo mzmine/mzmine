@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureTy
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.MolecularClassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
@@ -51,8 +52,6 @@ import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
@@ -89,30 +88,22 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(LocalCSVDatabaseSearchTask.class.getName());
 
   // all data types that we need
-  private final FormulaType formulaType = (FormulaType) DataTypes.get(FormulaType.class);
-  private final CompoundNameType compoundNameType = (CompoundNameType) DataTypes.get(
-      CompoundNameType.class);
-  private final CommentType commentType = (CommentType) DataTypes.get(CommentType.class);
-  private final PrecursorMZType precursorMz = (PrecursorMZType) DataTypes.get(
-      PrecursorMZType.class);
-
-  private final RTType rtType = (RTType) DataTypes.get(RTType.class);
-  private final MobilityType mobType = (MobilityType) DataTypes.get(MobilityType.class);
-  private final CCSType ccsType = (CCSType) DataTypes.get(CCSType.class);
-  private final SmilesStructureType smilesType = (SmilesStructureType) DataTypes.get(
-      SmilesStructureType.class);
-  private final InChIStructureType inchiType = (InChIStructureType) DataTypes.get(
-      InChIStructureType.class);
-  private final InChIKeyStructureType inchiKeyType = (InChIKeyStructureType) DataTypes.get(
-      InChIKeyStructureType.class);
-  private final IonTypeType adductType = (IonTypeType) DataTypes.get(IonTypeType.class);
-  private final NeutralMassType neutralMassType = (NeutralMassType) DataTypes.get(
-      NeutralMassType.class);
-  private final IonTypeType ionTypeType = (IonTypeType) DataTypes.get(IonTypeType.class);
-  private final PubChemIdType pubchemIdType = (PubChemIdType) DataTypes.get(PubChemIdType.class);
-
-  private final MolecularClassType molecularClassType = (MolecularClassType) DataTypes.get(
-      MolecularClassType.class);
+  private final FormulaType formulaType = DataTypes.get(FormulaType.class);
+  private final CompoundNameType compoundNameType = DataTypes.get(CompoundNameType.class);
+  private final CommentType commentType = DataTypes.get(CommentType.class);
+  private final PrecursorMZType precursorMz = DataTypes.get(PrecursorMZType.class);
+  private final RTType rtType = DataTypes.get(RTType.class);
+  private final MobilityType mobType = DataTypes.get(MobilityType.class);
+  private final CCSType ccsType = DataTypes.get(CCSType.class);
+  private final SmilesStructureType smilesType = DataTypes.get(SmilesStructureType.class);
+  private final InChIStructureType inchiType = DataTypes.get(InChIStructureType.class);
+  private final InChIKeyStructureType inchiKeyType = DataTypes.get(InChIKeyStructureType.class);
+  private final IonTypeType adductType = DataTypes.get(IonTypeType.class);
+  private final NeutralMassType neutralMassType = DataTypes.get(NeutralMassType.class);
+  private final IonTypeType ionTypeType = DataTypes.get(IonTypeType.class);
+  private final PubChemIdType pubchemIdType = DataTypes.get(PubChemIdType.class);
+  private final MolecularClassType molecularClassType = DataTypes.get(MolecularClassType.class);
+  private final DatabaseNameType databaseType = DataTypes.get(DatabaseNameType.class);
 
   // vars
   private final FeatureList[] featureLists;
@@ -413,6 +404,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       final @NotNull List<ImportType> commentFields) {
     final CompoundDBAnnotation baseAnnotation = getCompoundFromLine(values, linesWithIndices,
         commentFields);
+    baseAnnotation.put(databaseType, dataBaseFile.getName());
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
     if (ionNetworkLibrary != null) {
       annotations.addAll(

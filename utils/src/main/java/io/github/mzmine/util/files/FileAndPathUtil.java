@@ -117,9 +117,20 @@ public class FileAndPathUtil {
   }
 
 
+  /**
+   * Adds a suffix to the filename and replaces the format
+   */
   public static File getRealFilePathWithSuffix(File outputFile, String suffix, String format) {
     File out = eraseFormat(outputFile);
     return getRealFilePath(outputFile, out.getName() + suffix, format);
+  }
+
+  /**
+   * Creates a new file path that add a suffix to the filename and reuses the old format if present
+   */
+  public static File getRealFilePathWithSuffix(File outputFile, String suffix) {
+    var format = getFormat(outputFile);
+    return getRealFilePathWithSuffix(outputFile, suffix, format);
   }
 
   /**
@@ -150,12 +161,32 @@ public class FileAndPathUtil {
    * @param f target file
    * @return The file extension or null.
    */
+  public static String getExtension(String f) {
+    return FilenameUtils.getExtension(f);
+  }
+
+  /**
+   * @param f target file
+   * @return The file extension or null.
+   */
   public static String getExtension(File f) {
-    int lastDot = f.getName().lastIndexOf(".");
-    if (lastDot != -1) {
-      return f.getName().substring(lastDot + 1);
-    }
-    return null;
+    return getExtension(f.getName());
+  }
+
+  /**
+   * @param f target file
+   * @return The file extension or null.
+   */
+  public static String getFormat(File f) {
+    return getExtension(f.getName());
+  }
+
+  /**
+   * @param f target file
+   * @return The file extension or null.
+   */
+  public static String getFormat(String f) {
+    return getExtension(f);
   }
 
   /**
@@ -165,12 +196,7 @@ public class FileAndPathUtil {
    * @return remove format from file
    */
   public static File eraseFormat(File f) {
-    int lastDot = f.getName().lastIndexOf(".");
-    if (lastDot != -1) {
-      return new File(f.getParent(), f.getName().substring(0, lastDot));
-    } else {
-      return f;
-    }
+    return new File(FilenameUtils.removeExtension(f.getPath()));
   }
 
   /**
@@ -180,12 +206,7 @@ public class FileAndPathUtil {
    * @return remove format from file
    */
   public static String eraseFormat(String f) {
-    int lastDot = f.lastIndexOf(".");
-    if (lastDot != -1) {
-      return f.substring(0, lastDot);
-    } else {
-      return f;
-    }
+    return FilenameUtils.removeExtension(f);
   }
 
   /**
@@ -197,6 +218,9 @@ public class FileAndPathUtil {
    * @return name.format
    */
   public static String addFormat(String name, String format) {
+    if (format == null || format.isBlank()) {
+      return name;
+    }
     if (format.startsWith(".")) {
       return name + format;
     } else {
@@ -540,11 +564,18 @@ public class FileAndPathUtil {
   public static File getMzmineDir() {
     return USER_MZMINE_DIR;
   }
+
+  /**
+   * Directory for external resources
+   */
+  public static File resolveInDownloadResourcesDir(String name) {
+    return new File(resolveInMzmineDir("external_resources"), name);
+  }
+
   @Nullable
   public static File resolveInMzmineDir(String name) {
     return new File(USER_MZMINE_DIR, name);
   }
-
 
   public static File getUniqueFilename(final File parent, final String fileName) {
     final File dir = parent.isDirectory() ? parent : parent.getParentFile();
@@ -664,5 +695,16 @@ public class FileAndPathUtil {
    */
   public static Path createTempDirectory(String name) throws IOException {
     return Files.createTempDirectory(MZMINE_TEMP_DIR.toPath(), name);
+  }
+
+  public static Path getWorkingDirectory() {
+    return Paths.get("").toAbsolutePath();
+  }
+
+  /**
+   * strip query parameters from URL with split at ?
+   */
+  public static String getFileNameFromUrl(final String downloadUrl) {
+    return FilenameUtils.getName(downloadUrl).split("\\?")[0];
   }
 }

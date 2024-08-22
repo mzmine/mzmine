@@ -37,6 +37,7 @@ import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
@@ -120,6 +121,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -240,8 +242,9 @@ public class MainWindowController {
               This leads to degraded mass accuracies.""");
         } else if (rawDataFile.isContainsEmptyScans()) {
           tip.setText("""
-              Some scans were recognized as empty (no detected peaks).
-              The possible reason might be the high noise levels influencing mzml conversion.""");
+              Some MS1 scans were recognized as empty (no detected signals).
+              The possible reason might be high noise levels influencing mzml conversion.
+              Files can be processed anyway, but consider re-converting if you encounter unexpected results.""");
         }
         Tooltip.install(box, tip);
       }
@@ -254,8 +257,19 @@ public class MainWindowController {
   @FXML
   public void initialize() {
     // do not switch panes by arrows
-    mainTabPane.addEventFilter(KeyEvent.ANY, event -> {
+    mainTabPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
       if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
+        event.consume();
+      }
+      if (event.getCode() == KeyCode.PAGE_UP && event.isShortcutDown()) {
+        mainTabPane.getSelectionModel()
+            .select(Math.max(mainTabPane.getSelectionModel().getSelectedIndex() - 1, 0));
+        event.consume();
+      }
+      if (event.getCode() == KeyCode.PAGE_DOWN && event.isShortcutDown()) {
+        mainTabPane.getSelectionModel().select(
+            Math.min(mainTabPane.getSelectionModel().getSelectedIndex() + 1,
+                mainTabPane.getTabs().size() - 1));
         event.consume();
       }
     });
@@ -435,11 +449,10 @@ public class MainWindowController {
         RawDataFile clickedFile = MZmineGUI.getSelectedRawDataFiles().get(0);
         if (clickedFile instanceof IMSRawDataFile) {
           if (clickedFile instanceof ImagingRawDataFile) {
-            if (MZmineCore.getDesktop().displayConfirmation(
-                "Warning!\n" + "You are trying to open an IMS MS imaging file.\n"
-                + "The amount of information may crash MZmine.\n"
-                + "Would you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
-                == ButtonType.NO) {
+            if (!DialogLoggerUtil.showDialogYesNo(AlertType.WARNING, "Warning!", """
+                You are trying to open an IMS MS imaging file.
+                The amount of information may crash MZmine.
+                Would you like to open the overview anyway?""")) {
               return;
             }
           }

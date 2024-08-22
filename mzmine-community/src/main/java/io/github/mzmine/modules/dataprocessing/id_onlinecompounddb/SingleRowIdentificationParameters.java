@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,7 @@ import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScorePar
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.NeutralMassParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
@@ -40,8 +40,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 @Deprecated
 public class SingleRowIdentificationParameters extends SimpleParameterSet {
 
-  public static final ModuleComboParameter<OnlineDatabases> DATABASE = new ModuleComboParameter<OnlineDatabases>(
-      "Database", "Database to search", OnlineDatabases.values(), OnlineDatabases.PubChem);
+  public static final ModuleOptionsEnumComboParameter<OnlineDatabases> DATABASE = new ModuleOptionsEnumComboParameter<>(
+      "Database", "Database to search", OnlineDatabases.PubChem);
 
   public static final NeutralMassParameter NEUTRAL_MASS = new NeutralMassParameter("Neutral mass",
       "Value to use in the search query");

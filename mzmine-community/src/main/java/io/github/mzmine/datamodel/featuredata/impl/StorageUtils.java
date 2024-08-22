@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.featuredata.IonSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -174,6 +175,37 @@ public class StorageUtils {
       buffer = storage.storeData(values);
     } else {
       buffer = DoubleBuffer.wrap(values);
+    }
+    return buffer;
+  }
+
+  /**
+   * Stores the given array into a double buffer.
+   *
+   * @param storage The storage to be used. If null, the values will be wrapped using
+   *                {@link DoubleBuffer#wrap(double[])}.
+   * @param values  The values to be stored. If storage is null, a double buffer will be wrapped
+   *                around this array. Changes in the array will therefore be reflected in the
+   *                DoubleBuffer.
+   * @return The double buffer the values were stored in.
+   */
+  @NotNull
+  public static FloatBuffer storeValuesToFloatBuffer(@Nullable final MemoryMapStorage storage,
+      @NotNull final float[] values) {
+    if (values.length == 0) {
+      return AbstractStorableSpectrum.EMPTY_FLOAT_BUFFER;
+    }
+
+    FloatBuffer buffer;
+    if (storage != null) {
+      try {
+        buffer = storage.storeData(values);
+      } catch (IOException e) {
+        e.printStackTrace();
+        buffer = FloatBuffer.wrap(values);
+      }
+    } else {
+      buffer = FloatBuffer.wrap(values);
     }
     return buffer;
   }

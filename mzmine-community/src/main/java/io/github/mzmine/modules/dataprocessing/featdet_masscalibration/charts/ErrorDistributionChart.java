@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,10 @@ import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassPeakMatch;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.errormodeling.DistributionRange;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
@@ -42,29 +46,15 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Chart for error distribution (xy scatter plot of error values vs match number, sorted by error size)
  * with additional extraction ranges and bias estimates lines shown up
  */
 public class ErrorDistributionChart extends EChartViewer {
 
-  class ErrorDistributionTooltipGenerator implements XYToolTipGenerator {
-    @Override
-    public String generateToolTip(XYDataset dataset, int series, int item) {
-      return ChartUtils.generateTooltipText(matches, item);
-    }
-  }
-
   private final JFreeChart distributionChart;
-
   protected List<MassPeakMatch> matches;
   protected ArrayList<ValueMarker> rangeMarkers = new ArrayList<>();
-
   protected ErrorDistributionChart(JFreeChart chart) {
     super(chart);
     distributionChart = chart;
@@ -112,6 +102,7 @@ public class ErrorDistributionChart extends EChartViewer {
 
     XYDataset dataset = createDistributionDataset(errors);
     distributionPlot.setDataset(dataset);
+    distributionPlot.setRenderer(ChartUtils.createErrorsRenderer());
 
     for (String label : errorRanges.keySet()) {
       DistributionRange errorRange = errorRanges.get(label);
@@ -143,5 +134,13 @@ public class ErrorDistributionChart extends EChartViewer {
     }
 
     return new XYSeriesCollection(errorsXY);
+  }
+
+  class ErrorDistributionTooltipGenerator implements XYToolTipGenerator {
+
+    @Override
+    public String generateToolTip(XYDataset dataset, int series, int item) {
+      return ChartUtils.generateTooltipText(matches, item);
+    }
   }
 }

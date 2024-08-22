@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -230,7 +230,7 @@ public class RegularScanTypesTest {
     SpectralLibraryEntry entry = SpectralLibraryEntry.create(null, map,
         ScanUtils.extractDataPoints(library));
 
-    SpectralSimilarity similarity = simFunc.getSimilarity(param, new MZTolerance(0.005, 15), 0,
+    SpectralSimilarity similarity = simFunc.getSimilarity(new MZTolerance(0.005, 15), 0,
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
     List<SpectralDBAnnotation> value = List.of(

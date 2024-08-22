@@ -26,9 +26,9 @@
 package io.github.mzmine.gui;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineConfiguration;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.taskcontrol.TaskService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,17 +48,15 @@ class ShutDownHook extends Thread {
     // will block the shutdown of the JVM. If we cancel the tasks, the
     // processes will be killed immediately.
     try {
-      MZmineCore.getTaskController().close();
+      TaskService.getController().close();
 
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not stop all tasks on shutdown", e);
     }
 
     // Save configuration
-    try {
-      MZmineCore.getConfiguration().saveConfiguration(MZmineConfiguration.CONFIG_FILE);
-    } catch (Exception e) {
-      logger.log(Level.WARNING, "Could not save config on shutdown", e);
+    if (!ConfigService.saveUserConfig()) {
+      logger.log(Level.WARNING, "Could not save config on shutdown");
     }
 
     // Close all temporary files
@@ -68,4 +66,5 @@ class ShutDownHook extends Thread {
     }
 
   }
+
 }

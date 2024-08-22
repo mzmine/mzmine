@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
 
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -37,12 +39,13 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
 public class SpectralLibrarySearchParameters extends SimpleParameterSet {
@@ -76,17 +79,16 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
       0.0015, 10);
 
   public static final BooleanParameter removePrecursor = new BooleanParameter("Remove precursor",
-      "For MS2 scans, remove precursor signal prior to matching (+- 4 Da)",
-      true);
+      "For MS2 scans, remove precursor signal prior to matching (+- 4 Da)", true);
 
 
   public static final IntegerParameter minMatch = new IntegerParameter("Minimum  matched signals",
       "Minimum number of matched signals in masslist and spectral library entry (within mz tolerance)",
       4);
 
-  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction = new ModuleComboParameter<>(
+  public static final ModuleOptionsEnumComboParameter<SpectralSimilarityFunctions> similarityFunction = new ModuleOptionsEnumComboParameter<>(
       "Similarity", "Algorithm to calculate similarity and filter matches",
-      SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
+      SpectralSimilarityFunctions.WEIGHTED_COSINE);
 
   public SpectralLibrarySearchParameters() {
     super(new Parameter[]{peakLists, libraries, scanMatchingSelection, mzTolerancePrecursor,
@@ -106,7 +108,13 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
     if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
+
+    final Region message = FxTextFlows.newTextFlowInAccordion("Spectral libraries", true,
+        FxTexts.text("You can find compatible and freely available spectral libraries "),
+        FxTexts.hyperlinkText("here.",
+            "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectral_library_search/spectral_library_search.html#downloads-for-open-spectral-libraries"));
+
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
 
     var selection = getValue(scanMatchingSelection);
     var msLevelFilter = selection.getMsLevelFilter();
@@ -129,7 +137,7 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
             mzTolPrecursor.setDisable(true);
             cRemovePrec.setDisable(true);
           }
-    });
+        });
 
     dialog.showAndWait();
     return dialog.getExitCode();

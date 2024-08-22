@@ -26,13 +26,18 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 
+import io.github.mzmine.modules.io.download.DownloadAsset;
+import io.github.mzmine.modules.io.download.DownloadAssetButton;
+import io.github.mzmine.modules.io.download.ExternalAsset;
 import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser;
@@ -44,22 +49,35 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FileNameComponent extends HBox implements LastFilesComponent {
 
-  //public static final Font smallFont = new Font("SansSerif", 10);
-
+  private static final Logger logger = Logger.getLogger(FileNameComponent.class.getName());
   private final TextField txtFilename;
   private final LastFilesButton btnLastFiles;
   private final FileSelectionType type;
+  private final List<ExtensionFilter> filters;
+
 
   public FileNameComponent(List<File> lastFiles, FileSelectionType type,
       final List<ExtensionFilter> filters) {
     this(lastFiles, type, filters, null);
   }
 
+  public FileNameComponent(final List<File> lastFiles, final FileSelectionType type,
+      final List<ExtensionFilter> filters, final ExternalAsset extAsset,
+      final List<DownloadAsset> downloadLinks) {
+    this(lastFiles, type, filters, null, extAsset, downloadLinks);
+  }
+
+
   public FileNameComponent(List<File> lastFiles, FileSelectionType type,
       final List<ExtensionFilter> filters, @Nullable Consumer<File> exportExamples) {
-    // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
+    this(lastFiles, type, filters, exportExamples, null, List.of());
+  }
 
+  private FileNameComponent(final List<File> lastFiles, final FileSelectionType type,
+      final List<ExtensionFilter> filters, @Nullable Consumer<File> exportExamples,
+      final ExternalAsset extAsset, final List<DownloadAsset> downloadLinks) {
     this.type = type;
+    this.filters = filters;
 
     txtFilename = new TextField();
     //txtFilename.setFont(smallFont);
@@ -92,15 +110,20 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
       });
       getChildren().add(button);
     }
+    if (extAsset != null) {
+      var downloadButton = new DownloadAssetButton(extAsset, downloadLinks);
+      downloadButton.setOnDownloadFinished(file -> setValue(file));
+      getChildren().add(downloadButton);
+    }
 
     setAlignment(Pos.CENTER_LEFT);
     setSpacing(5);
     HBox.setHgrow(txtFilename, Priority.ALWAYS);
     setLastFiles(lastFiles);
+    initDragDropped();
   }
 
-
-  private File openSelectDialog(final List<File> lastFiles, final FileSelectionType type,
+  public File openSelectDialog(final List<File> lastFiles, final FileSelectionType type,
       final List<ExtensionFilter> filters) {
     // Create chooser.
     FileChooser fileChooser = new FileChooser();
@@ -168,4 +191,32 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
     txtFilename.setTooltip(new Tooltip(toolTip));
   }
 
+  private void initDragDropped() {
+    txtFilename.setOnDragOver(e -> {
+      if (e.getGestureSource() != this && e.getGestureSource() != txtFilename && e.getDragboard()
+          .hasFiles()) {
+        e.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+      }
+      e.consume();
+    });
+    txtFilename.setOnDragDropped(e -> {
+      if (e.getDragboard().hasFiles()) {
+        final List<File> files = e.getDragboard().getFiles();
+        final List<String> patterns = filters.stream().flatMap(f -> f.getExtensions().stream())
+            .map(extension -> extension.toLowerCase().replace("*", "").toLowerCase()).toList();
+
+        // use the first match of the dropped file
+        for (File file : files) {
+          if (patterns.stream()
+              .anyMatch(filter -> file.getAbsolutePath().toLowerCase().endsWith(filter))) {
+            txtFilename.setText(file.getPath());
+            break;
+          }
+        }
+
+        e.setDropCompleted(true);
+        e.consume();
+      }
+    });
+  }
 }

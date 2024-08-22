@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -232,7 +232,8 @@ public class FormulaUtils {
   }
 
   /**
-   * Calculates the m/z of the given formula. Formula must have a charge, otherwise the
+   * Calculates the m/z of the given formula. Formula must have a charge, otherwise the neutral mass
+   * is returned
    *
    * @param formula The formula.
    * @return the calculated m/z ratio. if the formula's charge is null or 0, the neutral mass is
@@ -669,7 +670,7 @@ public class FormulaUtils {
    * @return A molecular formula representing the smiles or null, if the smiles cannot be parsed.
    */
   @Nullable
-  public static IMolecularFormula getFomulaFromSmiles(@Nullable String smiles) {
+  public static IMolecularFormula getFormulaFromSmiles(@Nullable String smiles) {
     if (smiles == null) {
       return null;
     }
@@ -756,7 +757,8 @@ public class FormulaUtils {
       return null;
     }
 
-    IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(annotation.getFormula());
+    IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(
+        annotation.getFormula());
     assert molecularFormula != null;
     try {
       // ionize formula

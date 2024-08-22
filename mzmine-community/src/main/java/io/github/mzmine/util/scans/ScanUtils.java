@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -66,6 +67,7 @@ import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -2071,6 +2073,23 @@ public class ScanUtils {
       intensities[i] = intensities[i] * injectTime;
     }
     return intensities;
+  }
+
+  @Nullable
+  public static Double getPrecursorMz(final MassSpectrum scan) {
+    return switch (scan) {
+      case Scan sc -> sc.getPrecursorMz();
+      case SpectralLibraryEntry sc -> sc.getPrecursorMz();
+      case null, default -> null;
+    };
+  }
+
+  public static PolarityType getPolarity(final MassSpectrum scan) {
+    return switch (scan) {
+      case Scan sc -> sc.getPolarity();
+      case SpectralLibraryEntry sc -> sc.getPolarity();
+      case null, default -> null;
+    };
   }
 
   /**

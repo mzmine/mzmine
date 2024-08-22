@@ -35,8 +35,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -61,11 +60,11 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
   public static final ComboParameter<ProjectSaveOption> option = new ComboParameter<>(
       "Project type",
       "Referencing projects point to the original directory of raw data files (with those projects "
-          + "files should not be moved or renamed). Standalone copies the raw data files into the project, "
-          + "creating a large but flexible project that can be shared.", ProjectSaveOption.values(),
+      + "files should not be moved or renamed). Standalone copies the raw data files into the project, "
+      + "creating a large but flexible project that can be shared.", ProjectSaveOption.values(),
       ProjectSaveOption.REFERENCING);
-  public static final FileNameParameter projectFile = new FileNameParameter("Project file",
-      "File name of project to be saved", extensions, FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter projectFile = new FileNameSuffixExportParameter(
+      "Project file", "File name of project to be saved", extensions, null);
   private static final Logger logger = Logger.getLogger(ProjectSaveAsParameters.class.getName());
 
   public ProjectSaveAsParameters() {

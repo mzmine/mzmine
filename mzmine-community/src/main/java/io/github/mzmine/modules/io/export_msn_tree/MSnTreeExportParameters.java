@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,8 +41,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.util.List;
@@ -61,12 +60,11 @@ public class MSnTreeExportParameters extends SimpleParameterSet {
       new ExtensionFilter("tab separated file", "*.tsv"), //
       new ExtensionFilter("comma separated file", "*.csv") //
   );
-  public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Name of the raw data files to be exported "
-          + "Use pattern \"{}\" in the file name to substitute with raw data filename. "
-          + "(i.e. \"blah{}blah.mgf\" would become \"blahSOURCE_DATAFILE_Nameblah.mgf\"). "
-          + "If the file already exists, it will be overwritten.", extensions,
-      FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
+      "Filename", "Name of the raw data files to be exported "
+                  + "Use pattern \"{}\" in the file name to substitute with raw data filename. "
+                  + "(i.e. \"blah{}blah.mgf\" would become \"blahSOURCE_DATAFILE_Nameblah.mgf\"). "
+                  + "If the file already exists, it will be overwritten.", extensions, "msn_tress");
 
   public MSnTreeExportParameters() {
     super(new Parameter[]{RAW_FILES, FILENAME, SEPARATOR, MZ_TOL});
