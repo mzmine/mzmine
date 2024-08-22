@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.otherdetectors;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
@@ -35,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDat
 import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface OtherFeature extends ModularDataModel {
@@ -42,6 +44,20 @@ public interface OtherFeature extends ModularDataModel {
   @Nullable
   default OtherTimeSeries getFeatureData() {
     return get(OtherFeatureDataType.class);
+  }
+
+  @NotNull
+  default OtherDataFile getOtherDataFile() {
+    final OtherTimeSeries timeSeries = getFeatureData();
+    if (timeSeries == null) {
+      throw new IllegalStateException("TimeSeries is null");
+    }
+
+    return timeSeries.getOtherDataFile();
+  }
+
+  default RawDataFile getRawDataFile() {
+    return getOtherDataFile().getCorrespondingRawDataFile();
   }
 
   /**
