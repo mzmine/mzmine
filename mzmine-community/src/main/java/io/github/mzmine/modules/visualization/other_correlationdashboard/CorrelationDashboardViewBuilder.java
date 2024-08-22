@@ -27,9 +27,11 @@ package io.github.mzmine.modules.visualization.other_correlationdashboard;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.OtherFeatureUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
@@ -39,6 +41,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTim
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.MzRangeChromatogramProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -61,11 +64,7 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SplitPane;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -85,6 +84,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
 
   private final ComboBox<OtherFeature> alreadyCorrelatedBox = new ComboBox<>();
   private OtherFeatureSelectionPane otherFeatureSelectionPane;
+  private NumberFormats formats = ConfigService.getGuiFormats();
 
   public CorrelationDashboardViewBuilder(CorrelationDashboardModel model) {
     super(model);
@@ -113,6 +113,18 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     msPlot = model.getMsPlotController().buildView();
     correlatedPlot = model.getCorrelationPlotController().buildView();
 
+    model.getMsPlotController().setDomainAxisLabel(formats.unit("RT", "min"));
+    model.getMsPlotController().setDomainAxisFormat(formats.rtFormat());
+    model.getMsPlotController().setRangeAxisFormat(formats.intensityFormat());
+    model.getMsPlotController().setRangeAxisLabel(formats.unit("Intensity", "a.u."));
+
+    model.getUvPlotController().setDomainAxisLabel(formats.unit("RT", "min"));
+    model.getUvPlotController().setDomainAxisFormat(formats.rtFormat());
+
+    model.getCorrelationPlotController().setRangeAxisLabel("Normalized intensity");
+    model.getCorrelationPlotController().setDomainAxisLabel(formats.unit("RT", "min"));
+    model.getCorrelationPlotController().setDomainAxisFormat(formats.rtFormat());
+
     final BorderPane plotsAndControls = new BorderPane();
 
     // plots and controls on tob and feature table at the bottom
@@ -128,17 +140,18 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     GridPane.setVgrow(uvPlot, Priority.SOMETIMES);
     GridPane.setVgrow(msPlot, Priority.SOMETIMES);
 
-    plots.setBorder(new Border(
-        new BorderStroke(javafx.scene.paint.Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-            BorderStroke.THIN)));
     plotsAndControls.setCenter(plots);
 
     final DoubleComponent shiftComponent = createShiftComponent();
     final HBox shiftBox = FxLayout.newHBox(FxLabels.newLabel("RT shift:"), shiftComponent);
 
     otherFeatureSelectionPane = new OtherFeatureSelectionPane(OtherRawOrProcessed.RAW);
+    final HBox alreadyCorrelatedPane = FxLayout.newHBox(FxLabels.newLabel("Correlated features:"),
+        alreadyCorrelatedBox);
+
     final VBox controlsAndCorrelation = FxLayout.newVBox(Pos.CENTER_LEFT, Insets.EMPTY, true,
-        otherFeatureSelectionPane, shiftBox, correlatedPlot);
+        otherFeatureSelectionPane, shiftBox, alreadyCorrelatedPane, correlatedPlot);
+    VBox.setVgrow(correlatedPlot, Priority.SOMETIMES);
     plotsAndControls.setRight(controlsAndCorrelation);
 
     featureTable.getSelectionModel().selectedItemProperty()
@@ -168,6 +181,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     model.selectedOtherFeatureProperty().addListener((_, _, _) -> updateCorrelationChart());
     model.selectedRowProperty().addListener((_, _, _) -> updateCorrelationChart());
     model.selectedRawDataFileProperty().addListener((_, _, _) -> updateCorrelationChart());
+    model.uvToMsRtOffsetProperty().addListener((_, _, _) -> updateCorrelationChart());
 
     // update the alreadyCorrelatedBox
     model.selectedRowProperty().addListener((_, _, _) -> updateAlreadyCorrelatedBox());
@@ -244,6 +258,9 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     }
 
     final OtherTimeSeriesData data = trace.getOtherDataFile().getOtherTimeSeries();
+    model.getUvPlotController().setRangeAxisLabel(
+        formats.unit(data.getTimeSeriesRangeLabel(), data.getTimeSeriesRangeUnit()));
+
     final List<OtherFeature> processed = data.getProcessedFeaturesForTrace(trace);
 
     palette = ConfigService.getDefaultColorPalette();
@@ -264,19 +281,25 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     final ChromatogramPlotController controller = model.getCorrelationPlotController();
     controller.clearDatasets();
 
-    // todo: normalise peaks
     final FeatureListRow row = model.getSelectedRow();
     final RawDataFile file = model.getSelectedRawDataFile();
     final OtherFeature other = model.getSelectedOtherFeature();
 
+    final OtherFeature shifted = Double.compare(model.uvToMsRtOffsetProperty().get(), 0d) != 0
+        ? OtherFeatureUtils.shiftRtAxis(null, other, model.uvToMsRtOffsetProperty().floatValue())
+        : other;
+
     final List<DatasetAndRenderer> datasets = new ArrayList<>();
     if (other != null) {
-      datasets.add(new DatasetAndRenderer(new OtherFeatureDataProvider(other, otherFeatureColor),
+      datasets.add(new DatasetAndRenderer(
+          new OtherFeatureDataProvider(shifted, otherFeatureColor, 1 / other.get(HeightType.class)),
           new ColoredXYLineRenderer()));
     }
     if (row != null && file != null && row.getFeature(file) != null) {
-      datasets.add(new DatasetAndRenderer(new IonTimeSeriesToXYProvider(row.getFeature(file)),
-          new ColoredAreaShapeRenderer()));
+      final Feature feature = row.getFeature(file);
+      datasets.add(
+          new DatasetAndRenderer(new IonTimeSeriesToXYProvider(feature, 1 / feature.getHeight()),
+              new ColoredAreaShapeRenderer()));
     }
     controller.addDatasets(datasets);
   }
