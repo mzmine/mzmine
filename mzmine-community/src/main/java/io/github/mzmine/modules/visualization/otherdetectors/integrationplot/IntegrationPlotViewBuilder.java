@@ -171,8 +171,8 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
 
     return switch (series) {
       case OtherTimeSeries other ->
-          uf.format(other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesRangeLabel(),
-              other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesRangeUnit());
+          uf.format(other.getOtherDataFile().getOtherTimeSeriesData().getTimeSeriesRangeLabel(),
+              other.getOtherDataFile().getOtherTimeSeriesData().getTimeSeriesRangeUnit());
       default -> uf.format("Intensity", "a.u.");
     };
   }
@@ -182,8 +182,8 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     final UnitFormat uf = formats.unitFormat();
     return switch (series) {
       case OtherTimeSeries other ->
-          uf.format(other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesDomainLabel(),
-              other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesDomainUnit());
+          uf.format(other.getOtherDataFile().getOtherTimeSeriesData().getTimeSeriesDomainLabel(),
+              other.getOtherDataFile().getOtherTimeSeriesData().getTimeSeriesDomainUnit());
       default -> uf.format("Retention time", "min");
     };
   }

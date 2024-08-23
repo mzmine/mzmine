@@ -52,11 +52,11 @@ public interface OtherDataFile {
   }
 
   default int getNumberOfTimeSeries() {
-    return getOtherTimeSeries() != null ? getOtherTimeSeries().getNumberOfTimeSeries() : 0;
+    return getOtherTimeSeriesData() != null ? getOtherTimeSeriesData().getNumberOfTimeSeries() : 0;
   }
 
   @Nullable
-  OtherTimeSeriesData getOtherTimeSeries();
+  OtherTimeSeriesData getOtherTimeSeriesData();
 
   @Nullable
   OtherSpectralData getOtherSpectralData();

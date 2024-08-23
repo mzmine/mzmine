@@ -50,7 +50,7 @@ public class OtherDataFileImpl implements OtherDataFile {
 
   @Override
   @Nullable
-  public OtherTimeSeriesData getOtherTimeSeries() {
+  public OtherTimeSeriesData getOtherTimeSeriesData() {
     return timeSeriesData;
   }
 

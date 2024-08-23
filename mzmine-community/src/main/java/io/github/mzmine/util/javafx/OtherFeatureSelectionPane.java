@@ -126,7 +126,7 @@ public class OtherFeatureSelectionPane extends GridPane {
         return;
       }
       otherFeatureCombo.setItems(
-          rawOrProcessed.get().streamMatching(f.getOtherTimeSeries()).toList());
+          rawOrProcessed.get().streamMatching(f.getOtherTimeSeriesData()).toList());
     });
 
     rawOrProcessedBox.valueProperty().addListener((_, _, rop) -> {
@@ -135,7 +135,7 @@ public class OtherFeatureSelectionPane extends GridPane {
       }
       if (otherFileBox.getValue() != null) {
         otherFeatureCombo.setItems(
-            rawOrProcessed.get().streamMatching(otherFileBox.getValue().getOtherTimeSeries())
+            rawOrProcessed.get().streamMatching(otherFileBox.getValue().getOtherTimeSeriesData())
                 .toList());
       }
     });

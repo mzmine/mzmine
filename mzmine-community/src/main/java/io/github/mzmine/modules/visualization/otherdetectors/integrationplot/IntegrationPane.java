@@ -203,7 +203,7 @@ public class IntegrationPane extends BorderPane {
     otherFile.addListener((_, _, otherFile) -> {
       if (otherFile != null) {
         timeSeriesCombo.setItems(
-            FXCollections.observableList(otherFile.getOtherTimeSeries().getRawTraces()));
+            FXCollections.observableList(otherFile.getOtherTimeSeriesData().getRawTraces()));
         if (!timeSeriesCombo.getItems().isEmpty()) {
           timeSeriesCombo.getSelectionModel().selectFirst();
         }

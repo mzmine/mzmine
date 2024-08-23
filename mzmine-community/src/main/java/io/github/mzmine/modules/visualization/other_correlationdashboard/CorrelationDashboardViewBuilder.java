@@ -314,7 +314,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
       return;
     }
 
-    final OtherTimeSeriesData data = trace.getOtherDataFile().getOtherTimeSeries();
+    final OtherTimeSeriesData data = trace.getOtherDataFile().getOtherTimeSeriesData();
     model.getUvPlotController().setRangeAxisLabel(
         formats.unit(data.getTimeSeriesRangeLabel(), data.getTimeSeriesRangeUnit()));
 
