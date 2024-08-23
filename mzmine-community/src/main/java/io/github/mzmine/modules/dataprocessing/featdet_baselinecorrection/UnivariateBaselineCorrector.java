@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -62,6 +62,9 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
 
     for (int i = 0; i < numValues; i++) {
       final double baseline = splineFunction.value(xBuffer[i]);
+      if(Double.isNaN(baseline)) {
+        continue;
+      }
       // corrected value must be above zero. the baseline itself may be below zero, e.g. for signal
       // drifts due to solvent composition change
       yBuffer[i] = Math.max(yBuffer[i] - baseline, 0);
