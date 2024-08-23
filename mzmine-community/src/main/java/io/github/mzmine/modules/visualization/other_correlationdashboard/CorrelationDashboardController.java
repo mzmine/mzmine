@@ -27,6 +27,8 @@ package io.github.mzmine.modules.visualization.other_correlationdashboard;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.OtherFeatureDataProvider;
 import io.github.mzmine.javafx.mvci.FxController;
@@ -43,9 +45,17 @@ public class CorrelationDashboardController extends FxController<CorrelationDash
   public CorrelationDashboardController() {
     super(new CorrelationDashboardModel());
 
-    /**
-     * update the raw data file according to the currently selected trace
-     */
+    // make sure the correlation type is present
+    model.featureListProperty().addListener((_, _, fl) -> {
+      if (fl == null) {
+        return;
+      }
+      if (!fl.getFeatureTypes().contains(DataTypes.get(MsOtherCorrelationResultType.class))) {
+        fl.addFeatureType(DataTypes.get(MsOtherCorrelationResultType.class));
+      }
+    });
+
+    // update the raw data file according to the currently selected trace
     model.selectedOtherRawTraceProperty().addListener((_, _, rawTrace) -> {
       if (rawTrace == null) {
         return;

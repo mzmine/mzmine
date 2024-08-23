@@ -45,12 +45,17 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.MzRang
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.otherdata.align_msother.MsOtherCorrelationResult;
+import io.github.mzmine.modules.dataprocessing.otherdata.align_msother.MsOtherCorrelationType;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
@@ -68,6 +73,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
@@ -82,7 +88,8 @@ import org.jfree.data.xy.XYDataset;
 
 public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDashboardModel> {
 
-  private final FeatureTableFX featureTable = new FeatureTableFX();
+  private final FeatureTableTab featureTableTab = new FeatureTableTab(null);
+  private final FeatureTableFX featureTable = featureTableTab.getFeatureTable();
   private Region uvPlot;
   private Region msPlot;
   private Region correlatedPlot;
@@ -137,7 +144,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     // plots and controls on tob and feature table at the bottom
     final SplitPane topBottomSplit = new SplitPane();
     topBottomSplit.setOrientation(Orientation.VERTICAL);
-    topBottomSplit.getItems().addAll(plotsAndControls, featureTable);
+    topBottomSplit.getItems().addAll(plotsAndControls, featureTableTab.getMainPane());
 
     GridPane plots = new GridPane();
     plots.add(uvPlot, 0, 0);
@@ -150,14 +157,25 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     plotsAndControls.setCenter(plots);
 
     final DoubleComponent shiftComponent = createShiftComponent();
-    final HBox shiftBox = FxLayout.newHBox(FxLabels.newLabel("RT shift:"), shiftComponent);
+    final HBox shiftBox = FxLayout.newHBox(FxLabels.newLabel("RT shift:"), shiftComponent,
+        FxLabels.newLabel("min"));
 
     otherFeatureSelectionPane = new OtherFeatureSelectionPane(OtherRawOrProcessed.RAW);
     final HBox alreadyCorrelatedPane = FxLayout.newHBox(FxLabels.newLabel("Correlated features:"),
         alreadyCorrelatedBox);
 
+    final Button btnFilterMsFeatures = FxButtons.createButton("Filter MS features", FxIcons.FILTER,
+        "Filter MS features by the retention time range of the selected UV signal (adjusted by RT offset).",
+        this::applyUvToMsRtFilter);
+    final Button btnSetCorrelated = FxButtons.createButton("Define as correlated",
+        this::correlateSelectedFeatures);
+    final Button btnClearCorrelation = FxButtons.createButton("Clear selected correlation",
+        "Remove the selected UV feature from the selected MS feature",
+        this::clearSelectedCorrelation);
+    final HBox buttonBox = FxLayout.newHBox(btnFilterMsFeatures, btnSetCorrelated, btnClearCorrelation);
+
     final VBox controlsAndCorrelation = FxLayout.newVBox(Pos.CENTER_LEFT, Insets.EMPTY, true,
-        otherFeatureSelectionPane, shiftBox, alreadyCorrelatedPane, correlatedPlot);
+        otherFeatureSelectionPane, shiftBox, buttonBox, alreadyCorrelatedPane, correlatedPlot);
     VBox.setVgrow(correlatedPlot, Priority.SOMETIMES);
     plotsAndControls.setRight(controlsAndCorrelation);
 
@@ -360,5 +378,69 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     // todo update titles
     final List<DatasetAndRenderer> datasets = getMsFeatureAndChromatogramDatasets(feature, file);
     model.msPlotControllerProperty().get().addDatasets(datasets);
+  }
+
+  private void applyUvToMsRtFilter() {
+    final OtherFeature selected = model.getSelectedOtherFeature();
+    if (selected == null) {
+      return;
+    }
+
+    final double offset = model.getUvToMsRtOffset();
+    final Range<Float> rtRange = selected.getRtRange();
+    final Range<Double> rangeWithOffset = Range.closed(rtRange.lowerEndpoint() + offset,
+        rtRange.upperEndpoint() + offset);
+
+    featureTableTab.getController().setRtFilterString(formats.rt(rangeWithOffset));
+  }
+
+  private void clearSelectedCorrelation() {
+    final FeatureListRow selectedRow = model.selectedRowProperty().get();
+    final OtherFeature selectedOtherFeature = model.getSelectedOtherFeature();
+    final RawDataFile raw = model.getSelectedRawDataFile();
+    if (selectedRow == null || selectedOtherFeature == null || raw == null) {
+      return;
+    }
+    final ModularFeature feature = (ModularFeature) selectedRow.getFeature(raw);
+    if (feature == null) {
+      return;
+    }
+    final List<MsOtherCorrelationResult> results = feature.get(MsOtherCorrelationResultType.class);
+    final MsOtherCorrelationResult result = results.stream()
+        .filter(r -> r.otherFeature() == selectedOtherFeature).findFirst().orElse(null);
+    if (result == null) {
+      return;
+    }
+    final List<MsOtherCorrelationResult> filtered = new ArrayList<>(results);
+    filtered.remove(result);
+    feature.set(MsOtherCorrelationResultType.class, filtered);
+    featureTable.refresh();
+  }
+
+  private void correlateSelectedFeatures() {
+    final FeatureListRow selectedRow = model.selectedRowProperty().get();
+    final OtherFeature selectedOtherFeature = model.getSelectedOtherFeature();
+    final RawDataFile raw = model.getSelectedRawDataFile();
+    if (selectedRow == null || selectedOtherFeature == null || raw == null) {
+      return;
+    }
+    final ModularFeature feature = (ModularFeature) selectedRow.getFeature(raw);
+    if (feature == null) {
+      return;
+    }
+    final List<MsOtherCorrelationResult> results = feature.get(MsOtherCorrelationResultType.class);
+    if (results != null && results.stream().anyMatch(r -> r.otherFeature() == selectedOtherFeature)) {
+      DialogLoggerUtil.showMessageDialog("Already correlated",
+          "Selected UV feature is already correlated to MS feature.");
+      return;
+    }
+    final List<MsOtherCorrelationResult> newResults = new ArrayList<>();
+    newResults.add(
+        new MsOtherCorrelationResult(selectedOtherFeature, MsOtherCorrelationType.MANUAL));
+    if(results != null) {
+      newResults.addAll(results);
+    }
+    feature.set(MsOtherCorrelationResultType.class, newResults);
+    featureTable.refresh();
   }
 }
