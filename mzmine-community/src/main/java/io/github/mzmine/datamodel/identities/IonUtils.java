@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,6 +50,22 @@ public class IonUtils {
     return Math.abs(charge) + getSign(charge);
   }
 
+
+  /**
+   * @param n a number
+   * @return signed number as string but -1 as - and 1 as +. 2 is +2
+   */
+  public static String getSignedNumberOmit1(int n) {
+    if (n == 0) {
+      return "";
+    } else if (n == -1) {
+      return "-";
+    } else if (n == 1) {
+      return "1";
+    }
+    var v = String.valueOf(n);
+    return n < 0 ? v : "+" + v;
+  }
 
   public static String getSign(int number) {
     return number < 0 ? "-" : "+";

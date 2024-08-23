@@ -23,8 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.iontype;
+package io.github.mzmine.datamodel.identities;
 
+import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +44,8 @@ public class IonTypeParser {
   private static final Logger logger = Logger.getLogger(IonTypeParser.class.getName());
 
   /**
-   * Pattern that groups +3H2O to  +  3  H2O
+   * Pattern that groups +3H2O to  +3 and H2O
    */
-  private static final Pattern PART_PATTERN_OLD = Pattern.compile("([+-])(\\d*)(\\w+)");
-
-
   public static final Pattern PART_PATTERN = Pattern.compile("([+-]?\\d*)(\\w+)");
 
   @Nullable
@@ -121,11 +120,11 @@ public class IonTypeParser {
     IonType ion = createIon(molMultiplier, mods);
 
     int chargeDiff = 0;
-    if (detectedCharge == null && ion.getCharge() == 0) {
+    if (detectedCharge == null && ion.totalCharge() == 0) {
       // default to charge 1
       chargeDiff = 1;
     } else if (detectedCharge != null) {
-      chargeDiff = detectedCharge - ion.getCharge();
+      chargeDiff = detectedCharge - ion.totalCharge();
     }
     if (chargeDiff != 0) {
       var electron = chargeDiff > 0 ? IonModification.M_PLUS : IonModification.M_MINUS;

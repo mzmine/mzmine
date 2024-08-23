@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,14 +44,15 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * @param name          clear name - often derived from formula or from alternative names
  * @param singleFormula uncharged formula without multiplier formula may be null if unknown. Formula
  *                      of a single item - so the count multiplier is not added
- * @param singleMass    mass of a single item of this type which is multiplied by count to get total
- *                      mass. Loss if singleMass is negative and addition if mass is positive
- * @param singleCharge  this defines the charge of a single item which is multiplied by count to get
- *                      total charge
- * @param count         the multiplier of this single item, positive non-zero. e.g., 2 for 2Na
+ * @param absSingleMass absolute (positive) mass of a single item of this type which is multiplied
+ *                      by count to get total mass.
+ * @param singleCharge  signed charge of a single item which is multiplied by count to get total
+ *                      charge
+ * @param count         the singed multiplier of this single item, non-zero. e.g., 2 for 2Na and -1
+ *                      for -H
  */
 public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFormula,
-                      double singleMass, int singleCharge, int count) {
+                      double absSingleMass, int singleCharge, int count) {
 
   /**
    * losses first then additions. Each sorted by name
@@ -64,16 +65,16 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
   private static final Logger logger = Logger.getLogger(IonPart.class.getName());
 
   public IonPart(@NotNull final String name, @Nullable final IMolecularFormula singleFormula,
-      final double singleMass, final int singleCharge, final int count) {
+      final double absSingleMass, final int singleCharge, final int count) {
     this.name = name;
     this.singleFormula = singleFormula;
-    this.singleMass = singleMass;
+    this.absSingleMass = Math.abs(absSingleMass); // allways positive and then multiplied with count
     this.singleCharge = singleCharge;
-    this.count = Math.abs(count);
+    this.count = count;
   }
 
   /**
-   * Formula constructor
+   * Formula constructor with count 1
    *
    * @param formula used to calculate other fields
    */
@@ -93,6 +94,11 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
 
   public IonPart(@NotNull final IMolecularFormula formula, final int count) {
     this(FormulaUtils.getFormulaString(formula, false), formula, formula.getCharge(), count);
+  }
+
+  public IonPart(@NotNull final IMolecularFormula formula, final int singleCharge,
+      final int count) {
+    this(FormulaUtils.getFormulaString(formula, false), formula, singleCharge, count);
   }
 
   /**
@@ -157,7 +163,7 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
   public static IonPart unknown(final String name, final int signedCount) {
     // need to add a tiny mass difference to allow - or + in toString
     //
-    return new IonPart(name, null, Double.MIN_VALUE * signedCount, 0, signedCount);
+    return new IonPart(name, null, 0d, 0, signedCount);
   }
 
   /**
@@ -172,22 +178,14 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
   }
 
   public String toString(IonStringFlavor flavor) {
-    String base = getPartSign() + count + name;
+    String base = IonUtils.getSignedNumberOmit1(count) + name;
     return switch (flavor) {
       case SIMPLE_NO_CHARGE -> base;
-      case SIMPLE_WITH_CHARGE -> base + IonUtils.getChargeString(getTotalCharge());
-      case FULL -> base + IonUtils.getChargeString(getTotalCharge()) + " ("
-                   + ConfigService.getExportFormats().mz(getTotalMass()) + ")";
+      case SIMPLE_WITH_CHARGE -> base + IonUtils.getChargeString(singleCharge());
+      case FULL ->
+          base + IonUtils.getChargeString(singleCharge()) + " (" + ConfigService.getExportFormats()
+              .mz(absSingleMass()) + " Da)";
     };
-  }
-
-  /**
-   * Flip mass and charge
-   *
-   * @return Same formula, e.g., conversion from +Na to -Na
-   */
-  public IonPart flipMassAndCharge() {
-    return new IonPart(name, singleFormula, -singleMass, -singleCharge, count);
   }
 
   /**
@@ -213,52 +211,64 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
     return a.withCount(a.count + b.count);
   }
 
+  /**
+   * Flip count to flip the effective total mass and charge
+   *
+   * @return Same formula, e.g., conversion from +Na to -Na
+   */
+  public IonPart flipCount() {
+    return new IonPart(name, singleFormula, absSingleMass, singleCharge, -count);
+  }
+
   public IonPart withCount(final int count) {
-    return new IonPart(name, singleFormula, singleMass, singleCharge, count);
+    return new IonPart(name, singleFormula, absSingleMass, singleCharge, count);
   }
 
 
-  public int getTotalCharge() {
+  public int totalCharge() {
     return singleCharge * count;
   }
 
-  public int getTotalChargeAbs() {
-    return Math.abs(getTotalCharge());
+  public int absTotalCharge() {
+    return Math.abs(totalCharge());
   }
 
-  private boolean isCharged() {
+  public boolean isCharged() {
     return singleCharge != 0;
   }
 
-  public PolarityType getPolarity() {
-    return singleCharge < 0 ? PolarityType.NEGATIVE : PolarityType.POSITIVE;
+  /**
+   * Polarity of total charge so charge * count which may flip sign of singleCharge
+   */
+  public PolarityType totalChargePolarity() {
+    return totalCharge() < 0 ? PolarityType.NEGATIVE : PolarityType.POSITIVE;
   }
 
-  public double getTotalMass() {
-    return singleMass * count;
+  public double totalMass() {
+    return absSingleMass * count;
   }
 
-  public double getTotalMassAbs() {
-    return Math.abs(getTotalMass());
+  public double absTotalMass() {
+    return Math.abs(totalMass());
   }
 
-  public String getPartSign() {
-    return singleMass < 0 ? "-" : "+";
+  public String partSign() {
+    return isLoss() ? "-" : "+";
   }
 
   public boolean isLoss() {
-    return singleMass < 0;
+    return count < 0;
   }
 
   public boolean isAddition() {
-    return singleMass >= 0;
+    return count >= 0;
   }
 
-  public Type getType() {
+  public Type type() {
     if (isCharged()) {
       return Type.ADDUCT;
     }
-    return singleMass < 0 ? Type.IN_SOURCE_FRAGMENT : Type.CLUSTER;
+    return isLoss() ? Type.IN_SOURCE_FRAGMENT : Type.CLUSTER;
   }
 
 
@@ -277,18 +287,39 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
       return false;
     }
 
-    return singleCharge == ionPart.singleCharge && Precision.equals(singleMass, ionPart.singleMass,
-        0.0000000) && name.equals(ionPart.name) && Objects.equals(singleFormula,
-        ionPart.singleFormula);
+    return singleCharge == ionPart.singleCharge && Precision.equals(absSingleMass,
+        ionPart.absSingleMass, 0.0000000) && name.equals(ionPart.name) && Objects.equals(
+        singleFormula, ionPart.singleFormula);
   }
 
   @Override
   public int hashCode() {
     int result = name.hashCode();
     result = 31 * result + Objects.hashCode(singleFormula);
-    result = 31 * result + Double.hashCode(singleMass);
+    result = 31 * result + Double.hashCode(absSingleMass);
     result = 31 * result + singleCharge;
     return result;
+  }
+
+  /**
+   * @param formula changed in place
+   * @param ionize  ionize formula if part has charge
+   */
+  public void addToFormula(final IMolecularFormula formula, final boolean ionize) {
+    final int formulaCharge = Objects.requireNonNullElse(formula.getCharge(), 0);
+    if (ionize) {
+      formula.setCharge(formulaCharge + totalCharge());
+    }
+    if (singleFormula == null) {
+      return;
+    }
+    for (int i = 0; i < Math.abs(count); i++) {
+      if (isLoss()) {
+        FormulaUtils.subtractFormula(formula, singleFormula);
+      } else {
+        FormulaUtils.addFormula(formula, singleFormula);
+      }
+    }
   }
 
   public enum Type {
@@ -309,7 +340,18 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
 
   public enum IonStringFlavor {
 
-    FULL, SIMPLE_NO_CHARGE, SIMPLE_WITH_CHARGE
+    /**
+     * including count, name, charge, mass: +2Na+ (absSingleMass Da)
+     */
+    FULL,
+    /**
+     * count and name: +2Na
+     */
+    SIMPLE_NO_CHARGE,
+    /**
+     * count, name, charge: +2Na+
+     */
+    SIMPLE_WITH_CHARGE
 
   }
 }
