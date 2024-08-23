@@ -36,6 +36,7 @@ import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule;
+import io.github.mzmine.modules.dataprocessing.featdet_ML.MLFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adap3d.ADAP3DModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionModule;
@@ -284,9 +285,10 @@ public class BatchModeModulesList {
            */
           SmoothingModule.class, //
 //      AdapResolverModule.class, //
-          MinimumSearchFeatureResolverModule.class, //
-          NoiseAmplitudeResolverModule.class, //
-          SavitzkyGolayResolverModule.class, //
+      MinimumSearchFeatureResolverModule.class, //
+      NoiseAmplitudeResolverModule.class, //
+      SavitzkyGolayResolverModule.class, //
+      MLFeatureResolverModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}

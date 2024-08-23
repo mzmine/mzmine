@@ -1,30 +1,42 @@
-package io.github.mzmine.modules.dataprocessing.featdet_ML;
+/*
+ * Copyright (c) 2004-2024 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.MIN_RATIO;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.PEAK_DURATION;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE;
+package io.github.mzmine.modules.dataprocessing.featdet_ML;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.scans.PeakPickingModel.PeakPickingModel;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
-import java.util.stream.IntStream;
 import java.util.stream.Collectors;
-
-import org.jetbrains.annotations.NotNull;
+import java.util.stream.IntStream;
 
 
 public class MLFeatureResolver extends AbstractResolver {
@@ -56,8 +68,8 @@ public class MLFeatureResolver extends AbstractResolver {
         }
         
         final int inputLength = x.length;
-        
-        List<double[]> standardRegions = SplitSeries.extractRegionBatch(x); 
+
+        List<double[]> standardRegions = SplitSeries.extractRegionBatch(x);
         //CURRENTLY the is padding to the righ by zeros.
         List<double[]> standardRegionsRT = SplitSeries.extractRegionBatch(y);
         List<Map<String,double[]>> resolvedRegions;
@@ -147,6 +159,12 @@ public class MLFeatureResolver extends AbstractResolver {
             }
  
         return uniqueResolved;
+    }
+
+    public void closeModel() {
+        if(model != null){
+            model.closeModel();
+        }
     }
     
     public static void main(String[] args){
