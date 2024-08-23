@@ -75,6 +75,19 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
     }
   }
 
+  public void setRawTraces(@NotNull List<@NotNull OtherFeature> rawTraces) {
+    try (var _ = writeLock.lockWrite()) {
+      this.rawTraces.clear();
+      // if this is a processed feature, but set as raw trace, it replaces it's own raw trace.
+      // so set RawTraceType.class to null, so we don't produce memory leaks and don't point to a
+      // trace that cannot be found anymore.
+      // this may be needed after certain processing, e.g. after baseline correction.
+      rawTraces.forEach(t -> t.set(RawTraceType.class, null));
+      this.rawTraces.addAll(rawTraces);
+      processedFeatures.clear();
+    }
+  }
+
   @Override
   public OtherDataFile getOtherDataFile() {
     return otherDataFile;
