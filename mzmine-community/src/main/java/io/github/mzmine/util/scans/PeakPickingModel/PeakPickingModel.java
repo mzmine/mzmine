@@ -13,7 +13,7 @@ import ai.djl.translate.Translator;
 
 public class PeakPickingModel {
     //NEED TO TRACE MODEL AGAIN WITH (1,128) INPUT SHAPE (this is what _test.py is)
-    private static final String modelPath = "./traced_check1_test.pt";
+    private static final String modelPath = "MLModels/traced_check1_test.pt";
     private final Model model;
     private final NDManager manager;
     private final Translator<double[], Map<String,double[]>> translator;
@@ -38,7 +38,7 @@ public class PeakPickingModel {
         this.predictor.close();
         this.model.close();
     }
-    
+
     public Map<String,double[]> singlePrediction(double[] inputArray){
         try{
             return this.predictor.predict(inputArray);
