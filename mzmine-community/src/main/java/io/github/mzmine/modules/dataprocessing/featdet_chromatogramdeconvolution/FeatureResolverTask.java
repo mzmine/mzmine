@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
-import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -44,7 +43,6 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.MaldiSpotType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
-import io.github.mzmine.datamodel.features.types.annotations.FeatureRatingType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.dataprocessing.featdet_ML.MLFeatureResolver;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
@@ -56,8 +54,6 @@ import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.scans.PeakClassification.PeakClassifierModel;
-import io.github.mzmine.util.scans.PeakClassification.SeriesToArrayPrep;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -256,7 +252,6 @@ public class FeatureResolverTask extends AbstractTask {
 
     int c = 0;
 
-    final PeakClassifierModel model = new PeakClassifierModel();
 
     while (access.hasNextFeature()) {
       final ModularFeature originalFeature = (ModularFeature) access.nextFeature();
@@ -264,10 +259,7 @@ public class FeatureResolverTask extends AbstractTask {
           getMemoryMapStorage());
 
       if(resolvedSeries.size()>0){
-        //creates new batch and predicts probabilities
-        final List<double[][]> batchedStandardRegions = SeriesToArrayPrep.extractFeatureBatch((FeatureFullDataAccess) access, resolvedSeries);
-        final List<double[]> predictions = model.predictFromBatch(batchedStandardRegions);
-      
+
         for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
           int i =0;
           final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
@@ -285,10 +277,6 @@ public class FeatureResolverTask extends AbstractTask {
             f.set(MaldiSpotType.class, originalFeature.get(MaldiSpotType.class));
           }
 
-          //currently only displays first probability (measuring whether there is any peak or not)
-          f.set(FeatureRatingType.class, predictions.get(i)[0]);
-          i++;
-
           newRow.addFeature(originalFeature.getRawDataFile(), f);
           resolvedFeatureList.addRow(newRow);
           if (resolved.getSpectra().size() <= 3) {
@@ -298,7 +286,6 @@ public class FeatureResolverTask extends AbstractTask {
       } 
       processedRows++;
     }
-    model.closeModel();
 
     if(resolver instanceof MLFeatureResolver mlFeatureResolver) {
       mlFeatureResolver.closeModel();
