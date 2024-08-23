@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2024 The MZmine Development Team
+  ~ Copyright (c) 2004-2024 The mzmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -244,6 +244,8 @@
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule"/>
       <MenuItem text="Savitzky Golay resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule"/>
+      <MenuItem text="ML Resolver" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_ML.MLFeatureResolverModule"/>
     </Menu>
   </Menu>
 

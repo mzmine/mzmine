@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,19 +46,18 @@ import io.github.mzmine.datamodel.features.types.MaldiSpotType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.annotations.FeatureRatingType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.modules.dataprocessing.featdet_ML.MLFeatureResolver;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
-import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.scans.PeakClassification.SeriesToArrayPrep;
 import io.github.mzmine.util.scans.PeakClassification.PeakClassifierModel;
-
+import io.github.mzmine.util.scans.PeakClassification.SeriesToArrayPrep;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -300,6 +299,11 @@ public class FeatureResolverTask extends AbstractTask {
       processedRows++;
     }
     model.closeModel();
+
+    if(resolver instanceof MLFeatureResolver mlFeatureResolver) {
+      mlFeatureResolver.closeModel();
+    }
+
     logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
         + " have less than 4 scans (frames for IMS data)");
     // QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
