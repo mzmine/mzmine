@@ -83,9 +83,14 @@ public class OtherTraceSelection {
         OtherRawOrProcessed.RAW);
   }
 
-  public static OtherTraceSelection processedUv() {
+  public static OtherTraceSelection featureUv() {
     return new OtherTraceSelection(ChromatogramType.ABSORPTION, null, null, null,
-        OtherRawOrProcessed.PROCESSED);
+        OtherRawOrProcessed.FEATURES);
+  }
+
+  public static OtherTraceSelection preprocessedUv() {
+    return new OtherTraceSelection(ChromatogramType.ABSORPTION, null, null, null,
+        OtherRawOrProcessed.PREPROCESSED);
   }
 
   public static OtherTraceSelection loadFromXml(Element element) {

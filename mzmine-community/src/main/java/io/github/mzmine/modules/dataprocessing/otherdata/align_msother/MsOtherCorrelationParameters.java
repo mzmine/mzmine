@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,12 +28,14 @@ package io.github.mzmine.modules.dataprocessing.otherdata.align_msother;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelection;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import java.util.List;
 
 public class MsOtherCorrelationParameters extends SimpleParameterSet {
 
@@ -49,7 +51,7 @@ public class MsOtherCorrelationParameters extends SimpleParameterSet {
 
   public static final OtherTraceSelectionParameter traces = new OtherTraceSelectionParameter(
       "Trace selection", "Select the type of other traces you want to correlate to.",
-      OtherTraceSelection.processedUv());
+      OtherTraceSelection.featureUv(), List.of(OtherRawOrProcessed.FEATURES));
 
   public MsOtherCorrelationParameters() {
     super(flists, traces, rtTolerance, minPearson);

@@ -56,11 +56,11 @@ public class CorrelationDashboardController extends FxController<CorrelationDash
     });
 
     // update the raw data file according to the currently selected trace
-    model.selectedOtherRawTraceProperty().addListener((_, _, rawTrace) -> {
-      if (rawTrace == null) {
+    model.selectedOtherPreprocessedTraceProperty().addListener((_, _, preprocessedTrace) -> {
+      if (preprocessedTrace == null) {
         return;
       }
-      final RawDataFile file = rawTrace.getRawDataFile();
+      final RawDataFile file = preprocessedTrace.getRawDataFile();
       model.setSelectedRawDataFile(file);
     });
 
@@ -73,7 +73,7 @@ public class CorrelationDashboardController extends FxController<CorrelationDash
       // the dataset may be the actual feature or the full trace dataset.
       if (pos.getDataset() != null && pos.getDataset() instanceof ColoredXYDataset cds
           && cds.getValueProvider() instanceof OtherFeatureDataProvider ofdp
-          && ofdp.getFeature() != model.getSelectedOtherRawTrace()) {
+          && ofdp.getFeature() != model.getSelectedOtherPreprocessedTrace()) {
         // if it is not the full trace, simply update the selected feature
         model.selectedOtherFeatureProperty().set(ofdp.getFeature());
         return;
@@ -83,7 +83,7 @@ public class CorrelationDashboardController extends FxController<CorrelationDash
           .getDatasetRenderers().keySet().stream().<ColoredXYDataset>mapMulti((ds, c) -> {
             if (ds instanceof ColoredXYDataset cds
                 && cds.getValueProvider() instanceof OtherFeatureDataProvider ofdp
-                && ofdp.getFeature() != model.getSelectedOtherRawTrace()) {
+                && ofdp.getFeature() != model.getSelectedOtherPreprocessedTrace()) {
               c.accept(cds);
             }
           }).filter(cds -> cds.getDomainValueRange().contains(pos.getDomainValue()))

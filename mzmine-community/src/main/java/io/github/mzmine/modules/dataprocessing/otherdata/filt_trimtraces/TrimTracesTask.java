@@ -28,16 +28,13 @@ package io.github.mzmine.modules.dataprocessing.otherdata.filt_trimtraces;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
-import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelection;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -45,9 +42,6 @@ import io.github.mzmine.util.RangeUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +51,6 @@ public class TrimTracesTask extends AbstractSimpleTask {
   private final RawDataFile[] files;
   private final OtherTraceSelection selection;
   private final Range<Double> rtRange;
-  private final OtherRawOrProcessed saveResultsAs;
 
   protected TrimTracesTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
@@ -66,7 +59,6 @@ public class TrimTracesTask extends AbstractSimpleTask {
     files = parameters.getValue(TrimTracesParameters.files).getMatchingRawDataFiles();
     selection = parameters.getValue(TrimTracesParameters.traces);
     rtRange = parameters.getValue(TrimTracesParameters.rtRange);
-    saveResultsAs = parameters.getValue(TrimTracesParameters.saveResultsAs);
   }
 
   @Override
@@ -95,17 +87,7 @@ public class TrimTracesTask extends AbstractSimpleTask {
         trimmedFeatures.add(trimmedFeature);
       }
 
-      if (saveResultsAs == OtherRawOrProcessed.PROCESSED) {
-        // technically this is not needed, because all traces will be processed from a OtherTimeSeriesData,
-        // but we might be changing to specific traces afterward.
-        final Map<OtherFeature, List<OtherFeature>> groupedByRawTrace = trimmedFeatures.stream()
-            .collect(Collectors.groupingBy(f -> f.get(RawTraceType.class)));
-        for (Entry<OtherFeature, List<OtherFeature>> grouped : groupedByRawTrace.entrySet()) {
-          timeSeriesData.replaceProcessedFeaturesForTrace(grouped.getKey(), grouped.getValue());
-        }
-      } else {
-        ((OtherTimeSeriesDataImpl) timeSeriesData).setRawTraces(trimmedFeatures);
-      }
+      timeSeriesData.setPreprocessedTraces(trimmedFeatures);
     }
   }
 

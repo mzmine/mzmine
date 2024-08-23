@@ -30,16 +30,19 @@ import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelection;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.List;
 import javafx.application.Platform;
 
 public class OtherDataBaselineCorrectionParameters extends SimpleParameterSet {
 
   public static final OtherTraceSelectionParameter traces = new OtherTraceSelectionParameter(
-      "Select traces", "Select the traces you want to process.", OtherTraceSelection.rawUv());
+      "Select traces", "Select the traces you want to process.", OtherTraceSelection.rawUv(),
+      List.of(OtherRawOrProcessed.RAW, OtherRawOrProcessed.PREPROCESSED));
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "Suffix for the baseline corrected traces.", "bl");

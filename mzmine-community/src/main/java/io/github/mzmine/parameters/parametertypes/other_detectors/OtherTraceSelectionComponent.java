@@ -32,6 +32,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.util.StringUtils;
+import java.util.Collection;
 import java.util.List;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -63,6 +64,15 @@ public class OtherTraceSelectionComponent extends VBox implements
       OtherRawOrProcessed.RAW);
 
   public OtherTraceSelectionComponent() {
+    this(List.of(OtherRawOrProcessed.values()));
+  }
+
+  public OtherTraceSelectionComponent(Collection<OtherRawOrProcessed> otherRawOrProcessedChoices) {
+    // use default values that are actually available
+    if (!otherRawOrProcessedChoices.contains(OtherRawOrProcessed.RAW)) {
+      rawOrProcessed.set(otherRawOrProcessedChoices.iterator().next());
+    }
+
     setFillWidth(true);
     GridPane grid = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
     getChildren().add(grid);
@@ -92,8 +102,8 @@ public class OtherTraceSelectionComponent extends VBox implements
     grid.add(descriptionFilterField, 1, 3);
 
     final ComboBox<OtherRawOrProcessed> rawOrProcessedCombo = FxComboBox.createComboBox(
-        "Select the type of chromatograms you want to process.",
-        List.of(OtherRawOrProcessed.values()), this.rawOrProcessed);
+        "Select the type of chromatograms you want to process.", otherRawOrProcessedChoices,
+        this.rawOrProcessed);
     grid.add(FxLabels.newLabel("Trace type:"), 0, 4);
     grid.add(rawOrProcessedCombo, 1, 4);
 

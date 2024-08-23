@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.other_detectors;
 import io.github.mzmine.parameters.PropertyParameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -42,6 +43,7 @@ public class OtherTraceSelectionParameter implements
   private final String description;
   @NotNull
   private OtherTraceSelection value;
+  private final Collection<OtherRawOrProcessed> otherRawOrProcessedChoices;
 
   public OtherTraceSelectionParameter(String name, String description) {
     this(name, description, OtherTraceSelection.rawUv());
@@ -49,9 +51,31 @@ public class OtherTraceSelectionParameter implements
 
   public OtherTraceSelectionParameter(String name, String description,
       @NotNull OtherTraceSelection value) {
+    this(name, description, value, List.of(OtherRawOrProcessed.values()));
+  }
+
+  public OtherTraceSelectionParameter(@NotNull OtherTraceSelection value) {
+    this(value, List.of(OtherRawOrProcessed.values()));
+  }
+
+  public OtherTraceSelectionParameter(@NotNull OtherTraceSelection value, Collection<OtherRawOrProcessed> otherRawOrProcessedChoices) {
+    this("Trace selection", """
+        Select the traces you want to process.
+        raw = unprocessed, raw detector traces. always remain unaltered and true to the raw data.
+        preprocessed = preprocessed detector traces, e.g. after baseline correction or RT shifting/trimming.
+         If no preprocessing has been applied, but 'preprocessed' is selected, mzmine will default back to 
+         the raw traces.
+        features = raw traces split into individual features (= chromatographic peaks). 
+        """, value, otherRawOrProcessedChoices);
+  }
+
+  public OtherTraceSelectionParameter(String name, String description,
+      @NotNull OtherTraceSelection value,
+      Collection<OtherRawOrProcessed> otherRawOrProcessedChoices) {
     this.description = description;
     this.name = name;
     this.value = value;
+    this.otherRawOrProcessedChoices = otherRawOrProcessedChoices;
   }
 
   @Override
@@ -61,7 +85,7 @@ public class OtherTraceSelectionParameter implements
 
   @Override
   public OtherTraceSelectionComponent createEditingComponent() {
-    return new OtherTraceSelectionComponent();
+    return new OtherTraceSelectionComponent(otherRawOrProcessedChoices);
   }
 
   @Override
@@ -95,7 +119,7 @@ public class OtherTraceSelectionParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if(value == null) {
+    if (value == null) {
       return false;
     }
     return true;

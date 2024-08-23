@@ -27,35 +27,25 @@ package io.github.mzmine.modules.dataprocessing.otherdata.filt_trimtraces;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelection;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import java.util.List;
 
 public class TrimTracesParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter files = new RawDataFilesParameter();
 
   public static final OtherTraceSelectionParameter traces = new OtherTraceSelectionParameter(
-      "Detector traces", "Select the traces you want to be trimmed.", OtherTraceSelection.rawUv());
+      "Detector traces", "Select the traces you want to be trimmed.", OtherTraceSelection.rawUv(),
+      List.of(OtherRawOrProcessed.RAW, OtherRawOrProcessed.PREPROCESSED));
 
   public static final RTRangeParameter rtRange = new RTRangeParameter("Keep RT range",
       "Select the rt range you want to keep.", true, Range.closed(0d, 100d));
 
-  public static final ComboParameter<OtherRawOrProcessed> saveResultsAs = new ComboParameter<>(
-      "Save results as", """
-      Select if you want to trim the raw traces or save a copy as processed feature.
-            
-      Saving as raw will require you to re-import the file if you want to make changes, but will 
-      show the trimmed result as raw trace in plots.
-            
-      Saving as processed will not alter the raw data, but plots such as the Correlation Dashboard 
-      will still show the raw chromatogram.
-      """, OtherRawOrProcessed.values(), OtherRawOrProcessed.PROCESSED);
-
   public TrimTracesParameters() {
-    super(files, traces, rtRange, saveResultsAs);
+    super(files, traces, rtRange);
   }
 }

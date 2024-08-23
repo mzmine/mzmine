@@ -40,7 +40,7 @@ public class CorrelationDashboardModel {
 
   private ObjectProperty<@Nullable ModularFeatureList> featureList = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable FeatureListRow> selectedRow = new SimpleObjectProperty<>();
-  private ObjectProperty<@Nullable OtherFeature> selectedOtherRawTrace = new SimpleObjectProperty<>();
+  private ObjectProperty<@Nullable OtherFeature> selectedOtherPreprocessedTrace = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable OtherFeature> selectedOtherFeature = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable RawDataFile> selectedRawDataFile = new SimpleObjectProperty<>();
 
@@ -65,16 +65,16 @@ public class CorrelationDashboardModel {
     return selectedRow;
   }
 
-  public @Nullable OtherFeature getSelectedOtherRawTrace() {
-    return selectedOtherRawTrace.get();
+  public @Nullable OtherFeature getSelectedOtherPreprocessedTrace() {
+    return selectedOtherPreprocessedTrace.get();
   }
 
-  public void setSelectedOtherRawTrace(@Nullable OtherFeature selectedOtherRawTrace) {
-    this.selectedOtherRawTrace.set(selectedOtherRawTrace);
+  public void setSelectedOtherPreprocessedTrace(@Nullable OtherFeature selectedOtherPreprocessedTrace) {
+    this.selectedOtherPreprocessedTrace.set(selectedOtherPreprocessedTrace);
   }
 
-  public ObjectProperty<@Nullable OtherFeature> selectedOtherRawTraceProperty() {
-    return selectedOtherRawTrace;
+  public ObjectProperty<@Nullable OtherFeature> selectedOtherPreprocessedTraceProperty() {
+    return selectedOtherPreprocessedTrace;
   }
 
   public @Nullable OtherFeature getSelectedOtherFeature() {

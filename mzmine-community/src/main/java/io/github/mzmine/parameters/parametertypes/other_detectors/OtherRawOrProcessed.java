@@ -30,12 +30,13 @@ import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import java.util.stream.Stream;
 
 public enum OtherRawOrProcessed {
-  RAW, PROCESSED;
+  RAW, PREPROCESSED, FEATURES;
 
   public Stream<OtherFeature> streamMatching(OtherTimeSeriesData data) {
     return switch (this) {
       case RAW -> data.getRawTraces().stream();
-      case PROCESSED -> data.getProcessedFeatures().stream();
+      case PREPROCESSED -> data.getPreprocessedTraces().stream();
+      case FEATURES -> data.getProcessedFeatures().stream();
     };
   }
 
@@ -43,7 +44,8 @@ public enum OtherRawOrProcessed {
   public String toString() {
     return switch (this) {
       case RAW -> "raw";
-      case PROCESSED -> "processed";
+      case PREPROCESSED -> "pre-processed";
+      case FEATURES -> "features";
     };
   }
 }

@@ -45,6 +45,7 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
   private final OtherDataFile otherDataFile;
   private final List<OtherFeature> rawTraces = new ArrayList<>();
+  private final List<OtherFeature> preprocessedTraces = new ArrayList<>();
   private final List<OtherFeature> processedFeatures = new ArrayList<>();
 
   public @Nullable ChromatogramType chromatogramType = ChromatogramType.UNKNOWN;
@@ -67,6 +68,20 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   @Override
   public @NotNull List<@NotNull OtherFeature> getRawTraces() {
     return List.copyOf(rawTraces);
+  }
+
+  @Override
+  public @NotNull List<@NotNull OtherFeature> getPreprocessedTraces() {
+    if (preprocessedTraces.isEmpty()) {
+      return getRawTraces();
+    }
+    return preprocessedTraces;
+  }
+
+  @Override
+  public void setPreprocessedTraces(@NotNull List<@NotNull OtherFeature> preprocessedTraces) {
+    this.preprocessedTraces.clear();
+    this.preprocessedTraces.addAll(preprocessedTraces);
   }
 
   public void addRawTrace(@NotNull OtherFeature series) {
@@ -163,6 +178,15 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   @Override
   @NotNull
   public List<OtherFeature> getProcessedFeaturesForTrace(OtherFeature rawTrace) {
+    final OtherFeature original = rawTrace.get(RawTraceType.class);
+    // in case a baseline corrected raw trace was given, get the raw trace of the baseline corrected one.
+    if(original != null) {
+      try (var _ = writeLock.lockRead()) {
+        return processedFeatures.stream()
+            .filter(f -> Objects.equals(f.get(RawTraceType.class), original)).toList();
+      }
+    }
+
     try (var _ = writeLock.lockRead()) {
       return processedFeatures.stream()
           .filter(f -> Objects.equals(f.get(RawTraceType.class), rawTrace)).toList();

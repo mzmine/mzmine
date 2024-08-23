@@ -55,7 +55,7 @@ import javafx.application.Platform;
 public class OtherDataResolverParameters extends SimpleParameterSet {
 
   public static final OtherTraceSelectionParameter otherTraces = new OtherTraceSelectionParameter(
-      "Select traces", "Select the traces you want to process.", OtherTraceSelection.rawUv());
+      OtherTraceSelection.preprocessedUv());
 
   public static final PercentParameter chromThreshold = new PercentParameter(
       CHROMATOGRAPHIC_THRESHOLD_LEVEL.getName(), CHROMATOGRAPHIC_THRESHOLD_LEVEL.getDescription(),

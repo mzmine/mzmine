@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
@@ -45,9 +44,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,13 +92,7 @@ public class OtherDataBaselineCorrectionTask extends AbstractSimpleTask {
       final List<OtherFeature> inputData = traceSelection.getMatchingTraces(data);
       final List<OtherFeature> outputData = correctBaseline(inputData, corrector);
 
-      // technically this is not needed, because all traces will be processed from a OtherTimeSeriesData,
-      // but we might be changing to specific traces afterward.
-      final Map<OtherFeature, List<OtherFeature>> groupedByRawTrace = outputData.stream()
-          .collect(Collectors.groupingBy(f -> f.get(RawTraceType.class)));
-      for (Entry<OtherFeature, List<OtherFeature>> grouped : groupedByRawTrace.entrySet()) {
-        data.replaceProcessedFeaturesForTrace(grouped.getKey(), grouped.getValue());
-      }
+      data.setPreprocessedTraces(outputData);
     }
   }
 

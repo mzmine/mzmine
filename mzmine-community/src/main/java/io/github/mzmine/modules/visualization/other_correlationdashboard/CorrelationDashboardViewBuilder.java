@@ -67,6 +67,7 @@ import io.github.mzmine.util.javafx.OtherFeatureSelectionPane;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -160,7 +161,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     final HBox shiftBox = FxLayout.newHBox(FxLabels.newLabel("RT shift:"), shiftComponent,
         FxLabels.newLabel("min"));
 
-    otherFeatureSelectionPane = new OtherFeatureSelectionPane(OtherRawOrProcessed.RAW);
+    otherFeatureSelectionPane = new OtherFeatureSelectionPane(OtherRawOrProcessed.PREPROCESSED);
     final HBox alreadyCorrelatedPane = FxLayout.newHBox(FxLabels.newLabel("Correlated features:"),
         alreadyCorrelatedBox);
 
@@ -172,7 +173,8 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     final Button btnClearCorrelation = FxButtons.createButton("Clear selected correlation",
         "Remove the selected UV feature from the selected MS feature",
         this::clearSelectedCorrelation);
-    final HBox buttonBox = FxLayout.newHBox(btnFilterMsFeatures, btnSetCorrelated, btnClearCorrelation);
+    final HBox buttonBox = FxLayout.newHBox(btnFilterMsFeatures, btnSetCorrelated,
+        btnClearCorrelation);
 
     final VBox controlsAndCorrelation = FxLayout.newVBox(Pos.CENTER_LEFT, Insets.EMPTY, true,
         otherFeatureSelectionPane, shiftBox, buttonBox, alreadyCorrelatedPane, correlatedPlot);
@@ -192,7 +194,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     });
     otherFeatureSelectionPane.fileProperty().bindBidirectional(model.selectedRawDataFileProperty());
     otherFeatureSelectionPane.featureProperty()
-        .addListener((_, _, f) -> model.setSelectedOtherRawTrace(f));
+        .addListener((_, _, f) -> model.setSelectedOtherPreprocessedTrace(f));
 
     // updates for the ms feature chart
     model.selectedRowProperty().addListener((_, _, _) -> updateMsPlot());
@@ -201,7 +203,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     // updates for uv feature chart
     model.selectedOtherFeatureProperty().addListener((_, _, _) -> updateUvChart());
     model.selectedOtherFeatureProperty().addListener((_, _, _) -> updateSelectionInUvChart());
-    model.selectedOtherRawTraceProperty().addListener((_, _, _) -> updateUvChart());
+    model.selectedOtherPreprocessedTraceProperty().addListener((_, _, _) -> updateUvChart());
 
     // updates for correlation plot
     model.selectedOtherFeatureProperty().addListener((_, _, _) -> updateCorrelationChart());
@@ -213,7 +215,20 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     model.selectedRowProperty().addListener((_, _, _) -> updateAlreadyCorrelatedBox());
     alreadyCorrelatedBox.valueProperty().addListener((_, _, corr) -> {
       if (corr != null) {
-        otherFeatureSelectionPane.setFeature(corr.get(RawTraceType.class));
+        final OtherFeature rawTrace = corr.get(RawTraceType.class);
+        assert rawTrace != null;
+
+        // the other feature selection pane contains the preprocessed traces, so we need to find
+        // the preprocessed trace for the raw trace of the selected uv feature
+        final OtherTimeSeriesData timeSeriesData = rawTrace.getOtherDataFile()
+            .getOtherTimeSeriesData();
+        final OtherFeature preprocessedFeature = timeSeriesData.getPreprocessedTraces().stream()
+            .filter(tsd -> Objects.equals(tsd.get(RawTraceType.class), rawTrace)).findFirst()
+            // if no raw trace is found, there is no preprocessed trace -> the raw traces are
+            // returned which don't have a raw trace, thus the equality check is not true
+            .orElse(rawTrace);
+
+        otherFeatureSelectionPane.setFeature(preprocessedFeature);
         model.setSelectedOtherFeature(corr);
       }
     });
@@ -309,7 +324,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
    */
   private void updateUvChart() {
     model.getUvPlotController().clearDatasets();
-    final OtherFeature trace = model.getSelectedOtherRawTrace();
+    final OtherFeature trace = model.getSelectedOtherPreprocessedTrace();
     if (trace == null) {
       return;
     }
@@ -429,7 +444,8 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
       return;
     }
     final List<MsOtherCorrelationResult> results = feature.get(MsOtherCorrelationResultType.class);
-    if (results != null && results.stream().anyMatch(r -> r.otherFeature() == selectedOtherFeature)) {
+    if (results != null && results.stream()
+        .anyMatch(r -> r.otherFeature() == selectedOtherFeature)) {
       DialogLoggerUtil.showMessageDialog("Already correlated",
           "Selected UV feature is already correlated to MS feature.");
       return;
@@ -437,7 +453,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     final List<MsOtherCorrelationResult> newResults = new ArrayList<>();
     newResults.add(
         new MsOtherCorrelationResult(selectedOtherFeature, MsOtherCorrelationType.MANUAL));
-    if(results != null) {
+    if (results != null) {
       newResults.addAll(results);
     }
     feature.set(MsOtherCorrelationResultType.class, newResults);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,8 +45,24 @@ public interface OtherTimeSeriesData {
 
   String getTimeSeriesRangeUnit();
 
+  /**
+   * @return The actual raw data, without any preprocessing applied
+   */
   @NotNull
   List<@NotNull OtherFeature> getRawTraces();
+
+  /**
+   * @return The raw traces with applied preprocessing, such as rt shifting or baseline correction.
+   * no feature detection has been applied. If no preprocessing was applied, the raw traces are returned.
+   */
+  @NotNull
+  List<@NotNull OtherFeature> getPreprocessedTraces();
+
+  /**
+   * Replaces all existing preprocessed traces.
+   * @param preprocessedTraces The preprocessed traces.
+   */
+  void setPreprocessedTraces(@NotNull List<@NotNull OtherFeature> preprocessedTraces);
 
   default int getNumberOfTimeSeries() {
     return getRawTraces().size();
