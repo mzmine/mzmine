@@ -119,6 +119,7 @@ import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCom
 import io.github.mzmine.modules.dataprocessing.otherdata.align_msother.MsOtherCorrelationModule;
 import io.github.mzmine.modules.dataprocessing.otherdata.featdet_baseline.OtherDataBaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.otherdata.featdet_resolve.OtherDataResolverModule;
+import io.github.mzmine.modules.dataprocessing.otherdata.filt_trimtraces.TrimTracesModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
@@ -415,7 +416,8 @@ public class BatchModeModulesList {
        */
       OtherDataBaselineCorrectionModule.class, //
       OtherDataResolverModule.class, //
-      MsOtherCorrelationModule.class //
+      MsOtherCorrelationModule.class, //
+      TrimTracesModule.class //
   );
 
 
