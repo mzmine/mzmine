@@ -33,8 +33,11 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
+import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.OtherFeatureDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
@@ -52,11 +55,14 @@ import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.Ch
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.OtherFeatureSelectionPane;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -72,6 +78,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
+import org.jfree.data.xy.XYDataset;
 
 public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDashboardModel> {
 
@@ -175,6 +182,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
 
     // updates for uv feature chart
     model.selectedOtherFeatureProperty().addListener((_, _, _) -> updateUvChart());
+    model.selectedOtherFeatureProperty().addListener((_, _, _) -> updateSelectionInUvChart());
     model.selectedOtherRawTraceProperty().addListener((_, _, _) -> updateUvChart());
 
     // updates for correlation plot
@@ -185,10 +193,40 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
 
     // update the alreadyCorrelatedBox
     model.selectedRowProperty().addListener((_, _, _) -> updateAlreadyCorrelatedBox());
-    alreadyCorrelatedBox.valueProperty()
-        .addListener((_, _, corr) -> otherFeatureSelectionPane.setFeature(corr));
+    alreadyCorrelatedBox.valueProperty().addListener((_, _, corr) -> {
+      if (corr != null) {
+        otherFeatureSelectionPane.setFeature(corr.get(RawTraceType.class));
+        model.setSelectedOtherFeature(corr);
+      }
+    });
 
     return new BorderPane(topBottomSplit);
+  }
+
+  private void updateSelectionInUvChart() {
+    final OtherFeature selected = model.getSelectedOtherFeature();
+    var pos = model.getUvPlotController().cursorPositionProperty().get();
+    if (selected != null && pos != null) {
+      final Optional<XYDataset> optionalDs = model.getUvPlotController().getDatasetRenderers()
+          .keySet().stream().filter(ds -> ds instanceof ColoredXYDataset cds
+              // find correct dataset
+              && cds.getValueProvider() instanceof OtherFeatureDataProvider ofdp
+              && ofdp.getFeature() == selected
+              // not already selected
+              && pos.getDataset() != cds).findFirst();
+      if (optionalDs.isPresent()) {
+        var ds = optionalDs.get();
+        final Float rt = selected.getRT();
+        final Float height = selected.get(HeightType.class);
+        final int index = BinarySearch.binarySearch(rt.doubleValue(), DefaultTo.CLOSEST_VALUE,
+            ds.getItemCount(0), i -> ds.getXValue(0, i));
+        model.getUvPlotController().cursorPositionProperty()
+            .set(new PlotCursorPosition(rt, height, index, ds));
+      }
+    }
+    if (selected == null) {
+      model.getUvPlotController().cursorPositionProperty().set(null);
+    }
   }
 
   private void updateSelectedRowFromTable() {
@@ -215,7 +253,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     }
 
     final List<MsOtherCorrelationResult> results = feature.get(MsOtherCorrelationResultType.class);
-    if (results == null) {
+    if (results == null || results.isEmpty()) {
       alreadyCorrelatedBox.setItems(FXCollections.emptyObservableList());
       return;
     }
@@ -223,6 +261,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     final List<OtherFeature> correlated = results.stream()
         .map(MsOtherCorrelationResult::otherFeature).toList();
     alreadyCorrelatedBox.setItems(FXCollections.observableArrayList(correlated));
+    alreadyCorrelatedBox.getSelectionModel().selectFirst();
   }
 
   private @NotNull DoubleComponent createShiftComponent() {

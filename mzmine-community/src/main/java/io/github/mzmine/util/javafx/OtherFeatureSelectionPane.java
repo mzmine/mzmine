@@ -140,7 +140,7 @@ public class OtherFeatureSelectionPane extends GridPane {
       }
     });
 
-    otherFeatureCombo.selectedFeatureProperty().addListener((_, _, selectedFeature) -> {
+    /*otherFeatureCombo.selectedFeatureProperty().addListener((_, _, selectedFeature) -> {
       if (selectedFeature == null) {
         return;
       }
@@ -155,7 +155,7 @@ public class OtherFeatureSelectionPane extends GridPane {
       if (otherFileBox.getValue() != other) {
         otherFileBox.setValue(other);
       }
-    });
+    });*/
   }
 
   @Nullable
@@ -164,6 +164,14 @@ public class OtherFeatureSelectionPane extends GridPane {
   }
 
   public void setFeature(OtherFeature feature) {
+    if(feature != null && !otherFeatureCombo.getItems().contains(feature)) {
+      if(rawFileBox.getItems().contains(feature.getRawDataFile())) {
+        rawFileBox.setValue(feature.getRawDataFile());
+      }
+      if(otherFileBox.getItems().contains(feature.getOtherDataFile())) {
+        otherFileBox.setValue(feature.getOtherDataFile());
+      }
+    }
     otherFeatureCombo.setSelectedFeature(feature);
   }
 
