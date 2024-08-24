@@ -38,6 +38,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.previewpane.AbstractPreviewPane;
+import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.OtherFeatureSelectionPane;
@@ -53,7 +54,8 @@ public class OtherDataResolverPreviewPane extends AbstractPreviewPane<OtherFeatu
   public OtherDataResolverPreviewPane(ParameterSet parameters) {
     super(parameters);
 
-    selectionPane = new OtherFeatureSelectionPane();
+    selectionPane = new OtherFeatureSelectionPane(OtherRawOrProcessed.PREPROCESSED,
+        OtherRawOrProcessed.RAW, OtherRawOrProcessed.FEATURES);
     selectionPane.featureProperty().addListener((_, _, _) -> updatePreview());
     setBottom(selectionPane);
   }

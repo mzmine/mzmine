@@ -41,8 +41,9 @@ import javafx.application.Platform;
 public class OtherDataBaselineCorrectionParameters extends SimpleParameterSet {
 
   public static final OtherTraceSelectionParameter traces = new OtherTraceSelectionParameter(
-      "Select traces", "Select the traces you want to process.", OtherTraceSelection.rawUv(),
-      List.of(OtherRawOrProcessed.RAW, OtherRawOrProcessed.PREPROCESSED));
+      "Select traces", "Select the traces you want to process.",
+      OtherTraceSelection.preprocessedUv(),
+      List.of(OtherRawOrProcessed.PREPROCESSED, OtherRawOrProcessed.RAW));
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "Suffix for the baseline corrected traces.", "bl");

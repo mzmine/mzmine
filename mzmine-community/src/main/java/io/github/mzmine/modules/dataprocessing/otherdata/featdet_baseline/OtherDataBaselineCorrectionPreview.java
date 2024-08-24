@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,6 +44,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Baseli
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectors;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.previewpane.AbstractPreviewPane;
+import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.javafx.OtherFeatureSelectionPane;
 import java.awt.Color;
@@ -55,7 +56,8 @@ import org.jetbrains.annotations.Nullable;
 
 class OtherDataBaselineCorrectionPreview extends AbstractPreviewPane<OtherFeature> {
 
-  private final OtherFeatureSelectionPane selectionPane = new OtherFeatureSelectionPane();
+  private final OtherFeatureSelectionPane selectionPane = new OtherFeatureSelectionPane(
+      OtherRawOrProcessed.PREPROCESSED, OtherRawOrProcessed.RAW);
 
   public OtherDataBaselineCorrectionPreview(ParameterSet parameterSet) {
     super(parameterSet);
