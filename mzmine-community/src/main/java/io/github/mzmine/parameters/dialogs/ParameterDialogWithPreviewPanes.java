@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import java.util.function.Function;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
@@ -55,9 +56,16 @@ public class ParameterDialogWithPreviewPanes extends ParameterSetupDialogWithPre
     vbox.setFillWidth(true);
     previewWrapperPane.setBottom(
         FxButtons.createButton("Add preview", FxIcons.PLUS, "Add another preview",
-            () -> vbox.getChildren().add(createNewPreview.apply(parameters))));
+            () ->{
+              final AbstractPreviewPane<?> preview = createNewPreview.apply(parameters);
+              vbox.getChildren().add(preview);
+              VBox.setVgrow(preview, Priority.SOMETIMES);
+            }));
     previewWrapperPane.setCenter(scroll);
-    vbox.getChildren().add(createNewPreview.apply(parameters));
+
+    final AbstractPreviewPane<?> previewPane = createNewPreview.apply(parameters);
+    vbox.getChildren().add(previewPane);
+    VBox.setVgrow(previewPane, Priority.SOMETIMES);
   }
 
   public ParameterDialogWithPreviewPanes(boolean valueCheckRequired, ParameterSet parameters,
