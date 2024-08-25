@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 public class TrimTracesTask extends AbstractSimpleTask {
 
 
-  private final RawDataFile[] files;
+  private final List<RawDataFile> files;
   private final OtherTraceSelection selection;
   private final Range<Double> rtRange;
 
@@ -56,7 +56,7 @@ public class TrimTracesTask extends AbstractSimpleTask {
       @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
 
-    files = parameters.getValue(TrimTracesParameters.files).getMatchingRawDataFiles();
+    files = List.of(parameters.getValue(TrimTracesParameters.files).getMatchingRawDataFiles());
     selection = parameters.getValue(TrimTracesParameters.traces);
     rtRange = parameters.getValue(TrimTracesParameters.rtRange);
   }
@@ -65,7 +65,7 @@ public class TrimTracesTask extends AbstractSimpleTask {
   protected void process() {
 
     final List<OtherTimeSeriesData> timeSeriesDataList = selection.getMatchingTimeSeriesData(
-        List.of(files));
+       files);
 
     // Note: the current implementation will only trim features at are connected to the given range.
     // other features will not be altered
@@ -98,7 +98,7 @@ public class TrimTracesTask extends AbstractSimpleTask {
 
   @Override
   protected @NotNull List<RawDataFile> getProcessedDataFiles() {
-    return List.of();
+    return files;
   }
 
   @Override

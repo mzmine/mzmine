@@ -48,11 +48,14 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelection;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
 import javafx.application.Platform;
 
 public class OtherDataResolverParameters extends SimpleParameterSet {
+
+  public static final RawDataFilesParameter files = new RawDataFilesParameter();
 
   public static final OtherTraceSelectionParameter otherTraces = new OtherTraceSelectionParameter(
       OtherTraceSelection.preprocessedUv());
@@ -83,7 +86,7 @@ public class OtherDataResolverParameters extends SimpleParameterSet {
 
 
   public OtherDataResolverParameters() {
-    super(otherTraces, chromThreshold, searchRange, minRelHeight, minAbsHeight, minRatio,
+    super(files, otherTraces, chromThreshold, searchRange, minRelHeight, minAbsHeight, minRatio,
         peakDuration, minPoints);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -175,11 +175,12 @@ public class MsOtherCorrelationTask extends AbstractSimpleTask {
 
   @Override
   protected @NotNull List<FeatureList> getProcessedFeatureLists() {
-    return List.of();
+    return List.of(flist);
   }
 
   @Override
   protected @NotNull List<RawDataFile> getProcessedDataFiles() {
+    // at the time of project loading, no feature list exists so the batch would fail. So dont add to files
     return List.of();
   }
 

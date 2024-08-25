@@ -39,7 +39,6 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelection;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -55,6 +54,7 @@ import org.jetbrains.annotations.Nullable;
 public class OtherDataResolverTask extends AbstractSimpleTask {
 
   private final OtherTraceSelection traceSelection;
+  private final List<RawDataFile> files;
 
   protected OtherDataResolverTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
@@ -62,6 +62,8 @@ public class OtherDataResolverTask extends AbstractSimpleTask {
     super(storage, moduleCallDate, parameters, moduleClass);
 
     traceSelection = parameters.getValue(OtherDataResolverParameters.otherTraces);
+    files = List.of(
+        parameters.getValue(OtherDataResolverParameters.files).getMatchingRawDataFiles());
   }
 
   public static @NotNull List<OtherFeature> resolveFeatures(List<OtherFeature> inputData,
@@ -95,7 +97,6 @@ public class OtherDataResolverTask extends AbstractSimpleTask {
 
   @Override
   protected void process() {
-
     if (!(parameters instanceof OtherDataResolverParameters otherParam)) {
       error("Resolving started with wrong parameter set instance.");
       return;
@@ -108,8 +109,7 @@ public class OtherDataResolverTask extends AbstractSimpleTask {
 
     final MinimumSearchFeatureResolver resolver = new MinimumSearchFeatureResolver(resolverParam,
         flist);
-    final List<OtherTimeSeriesData> matchingData = traceSelection.getMatchingTimeSeriesData(
-        ProjectService.getProject().getCurrentRawDataFiles());
+    final List<OtherTimeSeriesData> matchingData = traceSelection.getMatchingTimeSeriesData(files);
 
     for (OtherTimeSeriesData data : matchingData) {
       final List<OtherFeature> inputData = traceSelection.getMatchingTraces(data);
@@ -133,7 +133,7 @@ public class OtherDataResolverTask extends AbstractSimpleTask {
 
   @Override
   protected @NotNull List<RawDataFile> getProcessedDataFiles() {
-    return List.of();
+    return files;
   }
 
   @Override

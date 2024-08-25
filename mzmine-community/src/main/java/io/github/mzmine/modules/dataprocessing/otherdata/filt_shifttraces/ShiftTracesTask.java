@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
 public class ShiftTracesTask extends AbstractSimpleTask {
 
 
-  private final RawDataFile[] files;
+  private final List<RawDataFile> files;
   private final OtherTraceSelection selection;
   private final float rtShift;
 
@@ -54,7 +54,7 @@ public class ShiftTracesTask extends AbstractSimpleTask {
       @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
 
-    files = parameters.getValue(ShiftTracesParameters.files).getMatchingRawDataFiles();
+    files = List.of(parameters.getValue(ShiftTracesParameters.files).getMatchingRawDataFiles());
     selection = parameters.getValue(ShiftTracesParameters.traces);
     rtShift = parameters.getValue(ShiftTracesParameters.rtShift).floatValue();
   }
@@ -62,8 +62,7 @@ public class ShiftTracesTask extends AbstractSimpleTask {
   @Override
   protected void process() {
 
-    final List<OtherTimeSeriesData> timeSeriesDataList = selection.getMatchingTimeSeriesData(
-        List.of(files));
+    final List<OtherTimeSeriesData> timeSeriesDataList = selection.getMatchingTimeSeriesData(files);
 
     for (OtherTimeSeriesData timeSeriesData : timeSeriesDataList) {
       final List<OtherFeature> matchingTraces = selection.getMatchingTraces(timeSeriesData);
@@ -84,7 +83,7 @@ public class ShiftTracesTask extends AbstractSimpleTask {
 
   @Override
   protected @NotNull List<RawDataFile> getProcessedDataFiles() {
-    return List.of();
+    return files;
   }
 
   @Override

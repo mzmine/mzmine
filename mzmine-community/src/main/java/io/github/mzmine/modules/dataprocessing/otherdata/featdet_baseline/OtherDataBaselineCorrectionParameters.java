@@ -33,12 +33,15 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelection;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import javafx.application.Platform;
 
 public class OtherDataBaselineCorrectionParameters extends SimpleParameterSet {
+
+  public static final RawDataFilesParameter files = new RawDataFilesParameter();
 
   public static final OtherTraceSelectionParameter traces = new OtherTraceSelectionParameter(
       "Select traces", "Select the traces you want to process.",
@@ -54,7 +57,7 @@ public class OtherDataBaselineCorrectionParameters extends SimpleParameterSet {
           BaselineCorrectors.SPLINE}, BaselineCorrectors.LOESS);
 
   public OtherDataBaselineCorrectionParameters() {
-    super(traces, suffix, correctionAlgorithm);
+    super(files, traces, suffix, correctionAlgorithm);
   }
 
   @Override

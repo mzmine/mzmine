@@ -37,7 +37,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Baseli
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectors;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelection;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -51,6 +50,7 @@ public class OtherDataBaselineCorrectionTask extends AbstractSimpleTask {
 
   private final OtherTraceSelection traceSelection;
   private final BaselineCorrector corrector;
+  private final List<RawDataFile> files;
 
   protected OtherDataBaselineCorrectionTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
@@ -62,6 +62,8 @@ public class OtherDataBaselineCorrectionTask extends AbstractSimpleTask {
     RawDataFileImpl dummyFile = new RawDataFileImpl("dummy", null, null);
     ModularFeatureList flist = new ModularFeatureList("dummy flist", null, dummyFile);
 
+    files = List.of(
+        parameters.getValue(OtherDataBaselineCorrectionParameters.files).getMatchingRawDataFiles());
     traceSelection = parameters.getValue(OtherDataBaselineCorrectionParameters.traces);
     final BaselineCorrectors value = parameters.getParameter(
         OtherDataBaselineCorrectionParameters.correctionAlgorithm).getValue();
@@ -85,8 +87,7 @@ public class OtherDataBaselineCorrectionTask extends AbstractSimpleTask {
 
   @Override
   protected void process() {
-    final List<OtherTimeSeriesData> matchingData = traceSelection.getMatchingTimeSeriesData(
-        ProjectService.getProject().getCurrentRawDataFiles());
+    final List<OtherTimeSeriesData> matchingData = traceSelection.getMatchingTimeSeriesData(files);
 
     for (OtherTimeSeriesData data : matchingData) {
       final List<OtherFeature> inputData = traceSelection.getMatchingTraces(data);
@@ -103,7 +104,7 @@ public class OtherDataBaselineCorrectionTask extends AbstractSimpleTask {
 
   @Override
   protected @NotNull List<RawDataFile> getProcessedDataFiles() {
-    return List.of();
+    return files;
   }
 
   @Override
