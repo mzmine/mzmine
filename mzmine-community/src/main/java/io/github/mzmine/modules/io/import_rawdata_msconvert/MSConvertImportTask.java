@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -104,7 +104,7 @@ public class MSConvertImportTask extends AbstractTask {
     }
 
     // deactivated, since waters files converted by MSConvert have poor quality.
-    final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(rawFilePath);
+    final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(filePath);
     if (fileType == RawDataFileType.WATERS_RAW) {
       addWatersOptions(filePath, cmdLine);
     }
@@ -114,12 +114,73 @@ public class MSConvertImportTask extends AbstractTask {
 
     logger.finest("Running msconvert with command line: %s".formatted(cmdLine.toString()));
     return cmdLine;
+  }
 
-    cmdLine.addAll(List.of("--filter",
-        "\"titleMaker <RunId>.<ScanNumber>.<ScanNumber>.<ChargeState> File:\"\"\"^<SourcePath^>\"\"\", NativeID:\"\"\"^<Id^>\"\"\"\""));
+  private static void addWatersOptions(File filePath, List<String> cmdLine) {
+    final PolarityType polarity = getWatersPolarity(filePath);
 
-    logger.finest("Running msconvert with command line: %s".formatted(cmdLine.toString()));
-    return cmdLine;
+    final MZminePreferences preferences = ConfigService.getPreferences();
+    final Boolean lockmassEnabled = preferences.getValue(MZminePreferences.watersLockmass);
+    final WatersLockmassParameters lockmassParameters = preferences.getEmbeddedParameterValue(
+        MZminePreferences.watersLockmass);
+    final double positiveLockmass = lockmassParameters.getValue(WatersLockmassParameters.positive);
+    final double negativeLockmass = lockmassParameters.getValue(WatersLockmassParameters.negative);
+
+    if (lockmassEnabled && polarity == PolarityType.POSITIVE) {
+      logger.finest(
+          "Determined polarity of file %s to be %s. Applying lockmass correction with lockmass %.6f.".formatted(
+              filePath.getName(), polarity, positiveLockmass));
+      cmdLine.addAll(List.of("--filter",
+          inQuotes("lockmassRefiner mz=%.6f tol=0.1".formatted(positiveLockmass))));
+    } else if (lockmassEnabled && polarity == PolarityType.NEGATIVE) {
+      logger.finest(
+          "Determined polarity of file %s to be %s. Applying lockmass correction with lockmass %.6f.".formatted(
+              filePath.getName(), polarity, negativeLockmass));
+      cmdLine.addAll(List.of("--filter",
+          inQuotes("lockmassRefiner mz=%.6f tol=0.1".formatted(negativeLockmass))));
+    }
+
+    final WatersAcquisitionType type = RawDataFileTypeDetector.detectWatersAcquisitionType(
+        filePath);
+    logger.finest("Determined acquisition type of file %s to be %s".formatted(filePath.getName(),
+        type.name()));
+    switch (type) {
+      case MS_ONLY, MSE -> {
+        cmdLine.addAll(
+            List.of(inQuotes("--ignoreCalibrationScans"), "--filter", inQuotes("metadataFixer")));
+      }
+      case DDA -> {
+        cmdLine.addAll(List.of("--ddaProcessing", "--filter", inQuotes("metadataFixer")));
+      }
+    }
+  }
+
+  private static PolarityType getWatersPolarity(File rawFilePath) {
+    final File file = new File(rawFilePath, "_extern.inf");
+    if (!file.exists() || !file.canRead()) {
+      return PolarityType.UNKNOWN;
+    }
+
+    final Pattern polarityPattern = Pattern.compile("(Polarity)(\\s+)([a-zA-Z]+)([+-])");
+
+    // somehow does not work with Files.newBufferedReader
+    try (var reader = new BufferedReader(new FileReader(file))) {
+      String line = reader.readLine();
+      while (line != null) {
+        final Matcher matcher = polarityPattern.matcher(line);
+        if (matcher.matches()) {
+          final PolarityType polarity = PolarityType.fromSingleChar(matcher.group(4));
+          return polarity;
+        }
+        line = reader.readLine();
+      }
+    } catch (IOException e) {
+      logger.log(Level.WARNING,
+          "Cannot determine raw data polarity for file %s. Cannot apply lockmass correction.".formatted(
+              rawFilePath), e);
+      return PolarityType.UNKNOWN;
+    }
+    return PolarityType.UNKNOWN;
   }
 
   @Override
@@ -284,33 +345,5 @@ public class MSConvertImportTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
       }
     }
-  }
-
-  private PolarityType getWatersPolarity(File rawFilePath) {
-    final File file = new File(rawFilePath, "_extern.inf");
-    if (!file.exists() || !file.canRead()) {
-      return PolarityType.UNKNOWN;
-    }
-
-    final Pattern polarityPattern = Pattern.compile("(Polarity)(\\s+)([a-zA-Z]+)([+-])");
-
-    // somehow does not work with Files.newBufferedReader
-    try (var reader = new BufferedReader(new FileReader(file))) {
-      String line = reader.readLine();
-      while (line != null) {
-        final Matcher matcher = polarityPattern.matcher(line);
-        if (matcher.matches()) {
-          final PolarityType polarity = PolarityType.fromSingleChar(matcher.group(4));
-          return polarity;
-        }
-        line = reader.readLine();
-      }
-    } catch (IOException e) {
-      logger.log(Level.WARNING,
-          "Cannot determine raw data polarity for file %s. Cannot apply lockmass correction.".formatted(
-              rawFilePath), e);
-      return PolarityType.UNKNOWN;
-    }
-    return PolarityType.UNKNOWN;
   }
 }
