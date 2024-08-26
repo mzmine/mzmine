@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -280,27 +281,39 @@ public class MSConvertImportTask extends AbstractTask {
 
   private void addWatersOptions(File filePath, List<String> cmdLine) {
     final PolarityType polarity = getWatersPolarity(filePath);
-    if (polarity == PolarityType.POSITIVE) {
+
+    final MZminePreferences preferences = ConfigService.getPreferences();
+    final Boolean lockmassEnabled = preferences.getValue(MZminePreferences.watersLockmass);
+    final WatersLockmassParameters lockmassParameters = preferences.getEmbeddedParameterValue(
+        MZminePreferences.watersLockmass);
+    final double positiveLockmass = lockmassParameters.getValue(WatersLockmassParameters.positive);
+    final double negativeLockmass = lockmassParameters.getValue(WatersLockmassParameters.negative);
+
+    if (lockmassEnabled && polarity == PolarityType.POSITIVE) {
       logger.finest(
-          "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
-              rawFilePath.getName(), polarity));
-//      cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=556.276575 tol=0.1\""));
-    } else if (polarity == PolarityType.NEGATIVE) {
+          "Determined polarity of file %s to be %s. Applying lockmass correction with lockmass %.6f.".formatted(
+              rawFilePath.getName(), polarity, positiveLockmass));
+      cmdLine.addAll(List.of("--filter",
+          inQuotes("lockmassRefiner mz=%.6f tol=0.1".formatted(positiveLockmass))));
+    } else if (lockmassEnabled && polarity == PolarityType.NEGATIVE) {
       logger.finest(
-          "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
-              rawFilePath.getName(), polarity));
-      cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=554.262022 tol=0.1\""));
+          "Determined polarity of file %s to be %s. Applying lockmass correction with lockmass %.6f.".formatted(
+              rawFilePath.getName(), polarity, negativeLockmass));
+      cmdLine.addAll(List.of("--filter",
+          inQuotes("lockmassRefiner mz=%.6f tol=0.1".formatted(negativeLockmass))));
     }
 
     final WatersAcquisitionType type = RawDataFileTypeDetector.detectWatersAcquisitionType(
         rawFilePath);
-    logger.finest("Determined acquisition type of file %s to be %s".formatted(rawFilePath.getName(), type.name()));
+    logger.finest("Determined acquisition type of file %s to be %s".formatted(rawFilePath.getName(),
+        type.name()));
     switch (type) {
       case MS_ONLY, MSE -> {
-        cmdLine.addAll(List.of("\"ignoreCalibrationScans\"", "--filter", "\"metadataFixer\""));
+        cmdLine.addAll(
+            List.of(inQuotes("--ignoreCalibrationScans"), "--filter", inQuotes("metadataFixer")));
       }
       case DDA -> {
-        cmdLine.addAll(List.of("--ddaProcessing", "--filter", "\"metadataFixer\""));
+        cmdLine.addAll(List.of("--ddaProcessing", "--filter", inQuotes("metadataFixer")));
       }
     }
   }
