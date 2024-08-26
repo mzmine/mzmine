@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -363,6 +363,10 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     final RawDataFile file = model.getSelectedRawDataFile();
     final OtherFeature other = model.getSelectedOtherFeature();
 
+    if (!alreadyCorrelatedBox.getItems().contains(other)) {
+      alreadyCorrelatedBox.getSelectionModel().clearSelection();
+    }
+
     final OtherFeature shifted = Double.compare(model.uvToMsRtOffsetProperty().get(), 0d) != 0
         ? OtherFeatureUtils.shiftRtAxis(null, other, model.uvToMsRtOffsetProperty().floatValue())
         : other;
@@ -436,7 +440,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     filtered.remove(result);
     feature.set(MsOtherCorrelationResultType.class, filtered);
     featureTable.refresh();
-    updateAlreadyCorrelatedBox(); // remove from box
+    alreadyCorrelatedBox.getItems().remove(selectedOtherFeature);
   }
 
   private void correlateSelectedFeatures() {
