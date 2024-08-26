@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -85,19 +85,19 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.data.xy.XYDataset;
 
 public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDashboardModel> {
 
   private final FeatureTableTab featureTableTab = new FeatureTableTab(null);
   private final FeatureTableFX featureTable = featureTableTab.getFeatureTable();
+  private final ComboBox<OtherFeature> alreadyCorrelatedBox = new ComboBox<>();
   private Region uvPlot;
   private Region msPlot;
   private Region correlatedPlot;
   private SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
   private Color otherFeatureColor = palette.getNegativeColorAWT();
-
-  private final ComboBox<OtherFeature> alreadyCorrelatedBox = new ComboBox<>();
   private OtherFeatureSelectionPane otherFeatureSelectionPane;
   private NumberFormats formats = ConfigService.getGuiFormats();
 
@@ -271,6 +271,8 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
   }
 
   private void updateAlreadyCorrelatedBox() {
+    @Nullable var previousSelection = alreadyCorrelatedBox.getValue();
+
     alreadyCorrelatedBox.getSelectionModel().clearSelection();
     final FeatureListRow row = model.getSelectedRow();
     final RawDataFile raw = model.getSelectedRawDataFile();
@@ -294,7 +296,11 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     final List<OtherFeature> correlated = results.stream()
         .map(MsOtherCorrelationResult::otherFeature).toList();
     alreadyCorrelatedBox.setItems(FXCollections.observableArrayList(correlated));
-    alreadyCorrelatedBox.getSelectionModel().selectFirst();
+    if (previousSelection != null && correlated.contains(previousSelection)) {
+      alreadyCorrelatedBox.getSelectionModel().select(previousSelection);
+    } else {
+      alreadyCorrelatedBox.getSelectionModel().selectFirst();
+    }
   }
 
   private @NotNull DoubleComponent createShiftComponent() {
@@ -430,6 +436,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     filtered.remove(result);
     feature.set(MsOtherCorrelationResultType.class, filtered);
     featureTable.refresh();
+    updateAlreadyCorrelatedBox(); // remove from box
   }
 
   private void correlateSelectedFeatures() {
@@ -458,5 +465,6 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     }
     feature.set(MsOtherCorrelationResultType.class, newResults);
     featureTable.refresh();
+    updateAlreadyCorrelatedBox();
   }
 }
