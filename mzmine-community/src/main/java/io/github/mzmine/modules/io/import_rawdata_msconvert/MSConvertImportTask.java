@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,6 +80,49 @@ public class MSConvertImportTask extends AbstractTask {
     this.parameters = parameters;
   }
 
+  public static @NotNull List<String> buildCommandLine(File filePath, File msConvertPath,
+      boolean convertToFile) {
+
+    List<String> cmdLine = new ArrayList<>();
+    cmdLine.addAll(List.of(inQuotes(msConvertPath.toString()), // MSConvert path
+        inQuotes(filePath.getAbsolutePath()), // raw file path
+        "-o", !convertToFile ? "-" /* to stdout */ : inQuotes(filePath.getParent()) //
+    )); // vendor peak-picking
+
+    if (convertToFile) {
+      cmdLine.add("--zlib");
+      cmdLine.add("--numpressPic");
+      cmdLine.add("--numpressLinear");
+    }
+
+    if (ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)) {
+      cmdLine.addAll(List.of("--filter", "\"peakPicking vendor msLevel=1-\""));
+    }
+
+    // deactivated, since waters files converted by MSConvert have poor quality.
+    /*final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(rawFilePath);
+    if (fileType == RawDataFileType.WATERS_RAW) {
+      final PolarityType polarity = getWatersPolarity(filePath);
+      if (polarity == PolarityType.POSITIVE) {
+        logger.finest(
+            "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
+                rawFilePath, polarity));
+        cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=556.276575 tol=0.1\""));
+      } else if (polarity == PolarityType.NEGATIVE) {
+        logger.finest(
+            "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
+                rawFilePath, polarity));
+        cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=554.262022 tol=0.1\""));
+      }
+    }*/
+
+    cmdLine.addAll(List.of("--filter",
+        "\"titleMaker <RunId>.<ScanNumber>.<ScanNumber>.<ChargeState> File:\"\"\"^<SourcePath^>\"\"\", NativeID:\"\"\"^<Id^>\"\"\"\""));
+
+    logger.finest("Running msconvert with command line: %s".formatted(cmdLine.toString()));
+    return cmdLine;
+  }
+
   @Override
   public String getTaskDescription() {
     return msdkTask != null ? msdkTask.getTaskDescription()
@@ -110,7 +153,7 @@ public class MSConvertImportTask extends AbstractTask {
       return;
     }
 
-    final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath);
+    final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath, convertToFile);
 
     if (convertToFile) {
       ProcessBuilder builder = new ProcessBuilder(cmdLine);
@@ -242,48 +285,6 @@ public class MSConvertImportTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
       }
     }
-  }
-
-  private @NotNull List<String> buildCommandLine(File filePath, File msConvertPath) {
-
-    List<String> cmdLine = new ArrayList<>();
-    cmdLine.addAll(List.of(inQuotes(msConvertPath.toString()), // MSConvert path
-        inQuotes(filePath.getAbsolutePath()), // raw file path
-        "-o", !convertToFile ? "-" /* to stdout */ : inQuotes(filePath.getParent()) //
-    )); // vendor peak-picking
-
-    if (convertToFile) {
-      cmdLine.add("--zlib");
-      cmdLine.add("--numpressPic");
-      cmdLine.add("--numpressLinear");
-    }
-
-    if (ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)) {
-      cmdLine.addAll(List.of("--filter", "\"peakPicking vendor msLevel=1-\""));
-    }
-
-    // deactivated, since waters files converted by MSConvert have poor quality.
-    /*final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(rawFilePath);
-    if (fileType == RawDataFileType.WATERS_RAW) {
-      final PolarityType polarity = getWatersPolarity(filePath);
-      if (polarity == PolarityType.POSITIVE) {
-        logger.finest(
-            "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
-                rawFilePath, polarity));
-        cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=556.276575 tol=0.1\""));
-      } else if (polarity == PolarityType.NEGATIVE) {
-        logger.finest(
-            "Determined polarity of file %s to be %s. Applying lockmass correction.".formatted(
-                rawFilePath, polarity));
-        cmdLine.addAll(List.of("--filter", "\"lockmassRefiner mz=554.262022 tol=0.1\""));
-      }
-    }*/
-
-    cmdLine.addAll(List.of("--filter",
-        "\"titleMaker <RunId>.<ScanNumber>.<ScanNumber>.<ChargeState> File:\"\"\"^<SourcePath^>\"\"\", NativeID:\"\"\"^<Id^>\"\"\"\""));
-
-    logger.finest("Running msconvert with command line: %s".formatted(cmdLine.toString()));
-    return cmdLine;
   }
 
   private PolarityType getWatersPolarity(File rawFilePath) {
