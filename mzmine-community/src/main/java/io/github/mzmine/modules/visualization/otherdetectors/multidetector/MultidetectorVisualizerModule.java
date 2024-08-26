@@ -23,18 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.featuredata;
+package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.impl.AbstractRunnableModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
-public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
+public class MultidetectorVisualizerModule extends AbstractRunnableModule {
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
+  public MultidetectorVisualizerModule() {
+    super("Multi detector visualizer", MultidetectorVisualizerParameters.class,
+        MZmineModuleCategory.VISUALIZATION_RAW_AND_FEATURE,
+        "Visualize chromatograms of other detectors.");
+  }
 
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
-      int endIndexExclusive);
-
-  @Nullable
-  MemoryMapStorage getStorage();
+  @Override
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
+    MultidetectorVisualizerTab.addTab();
+    return ExitCode.OK;
+  }
 }

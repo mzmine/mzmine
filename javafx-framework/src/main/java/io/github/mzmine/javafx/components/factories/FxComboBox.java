@@ -70,14 +70,26 @@ public class FxComboBox {
     return combo;
   }
 
-  public static <T> ComboBox<T> createComboBox(String tooltip, T[] values,
-      Property<T> selectedItem) {
-    return createComboBox(tooltip, List.of(values), selectedItem);
-  }
-
   public static <T> SearchableComboBox<T> newSearchableComboBox(@NotNull String tooltip,
       @NotNull List<T> values, @NotNull Property<T> selectedItem) {
     return addContent(tooltip, values, selectedItem, new SearchableComboBox<>());
   }
 
+  public static <T> ComboBox<T> createComboBox(String tooltip, Collection<T> values) {
+    final ComboBox<T> combo = new ComboBox<>();
+    if (values instanceof ObservableList<T> ov) {
+      combo.setItems(ov);
+    } else if (values instanceof List<T> list) {
+      combo.setItems(FXCollections.observableList(list));
+    } else {
+      combo.setItems(FXCollections.observableList(List.copyOf(values)));
+    }
+    combo.setTooltip(new Tooltip(tooltip));
+    return combo;
+  }
+
+  public static <T> ComboBox<T> createComboBox(String tooltip, T[] values,
+      Property<T> selectedItem) {
+    return createComboBox(tooltip, List.of(values), selectedItem);
+  }
 }

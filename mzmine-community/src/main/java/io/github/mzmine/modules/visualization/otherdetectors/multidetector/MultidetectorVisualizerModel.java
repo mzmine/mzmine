@@ -23,18 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.featuredata;
+package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import org.jetbrains.annotations.Nullable;
+public class MultidetectorVisualizerModel {
 
-public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
-
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
-
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
-      int endIndexExclusive);
-
-  @Nullable
-  MemoryMapStorage getStorage();
 }
