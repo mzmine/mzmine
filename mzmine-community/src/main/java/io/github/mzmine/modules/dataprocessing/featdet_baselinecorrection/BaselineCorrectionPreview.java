@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
@@ -102,10 +103,12 @@ class BaselineCorrectionPreview extends FeaturePreviewPane {
 
     data.addAll(List.of(new DatasetAndRenderer(new ColoredXYDataset(
             new IonTimeSeriesToXYProvider(corrected, feature.toString() + " corrected",
-                feature.getRawDataFile().getColor())), new ColoredAreaShapeRenderer()),
+                feature.getRawDataFile().getColor()), RunOption.THIS_THREAD),
+            new ColoredAreaShapeRenderer()),
         new DatasetAndRenderer(new ColoredXYDataset(
             new IonTimeSeriesToXYProvider(full, feature.toString(),
-                feature.getRawDataFile().getColor())), new ColoredXYLineRenderer())));
+                feature.getRawDataFile().getColor()), RunOption.THIS_THREAD),
+            new ColoredXYLineRenderer())));
 
     additionalPreviewData.forEach(a -> data.add(
         new DatasetAndRenderer(new ColoredXYDataset(a), new ColoredXYLineRenderer())));
