@@ -55,6 +55,12 @@ public class CorrelationDashboardController extends FxController<CorrelationDash
       }
     });
 
+    model.featureListProperty().addListener((_, _, fl) -> {
+      if(fl != null) {
+        model.selectedRawDataFileProperty().set(fl.getRawDataFile(0));
+      }
+    });
+
     // update the raw data file according to the currently selected trace
     model.selectedOtherPreprocessedTraceProperty().addListener((_, _, preprocessedTrace) -> {
       if (preprocessedTrace == null) {

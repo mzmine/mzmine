@@ -196,6 +196,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     otherFeatureSelectionPane.featureProperty()
         .addListener((_, _, f) -> model.setSelectedOtherPreprocessedTrace(f));
 
+
     // updates for the ms feature chart
     model.selectedRowProperty().addListener((_, _, _) -> updateMsPlot());
     model.selectedRawDataFileProperty().addListener((_, _, _) -> updateMsPlot());
