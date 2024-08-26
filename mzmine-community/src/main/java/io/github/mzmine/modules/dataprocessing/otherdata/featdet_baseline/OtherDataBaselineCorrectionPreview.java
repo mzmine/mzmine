@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.OtherFeatureDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
@@ -63,7 +64,7 @@ class OtherDataBaselineCorrectionPreview extends AbstractPreviewPane<OtherFeatur
     super(parameterSet);
 
     setBottom(selectionPane);
-    selectionPane.featureProperty().addListener((_,_,v) -> updatePreview());
+    selectionPane.featureProperty().addListener((_, _, v) -> updatePreview());
   }
 
   @Override
@@ -119,14 +120,16 @@ class OtherDataBaselineCorrectionPreview extends AbstractPreviewPane<OtherFeatur
         .getColorAWT();
     data.addAll(List.of(new DatasetAndRenderer(new ColoredXYDataset(
             new OtherFeatureDataProvider(corrected, feature.toString() + " corrected",
-                ConfigService.getDefaultColorPalette().getPositiveColorAWT())),
+                ConfigService.getDefaultColorPalette().getPositiveColorAWT()),
+            RunOption.THIS_THREAD),
             new ColoredAreaShapeRenderer()), //
         new DatasetAndRenderer(
-            new ColoredXYDataset(new OtherFeatureDataProvider(feature, feature.toString(), color)),
-            new ColoredXYLineRenderer())));
+            new ColoredXYDataset(new OtherFeatureDataProvider(feature, feature.toString(), color),
+                RunOption.THIS_THREAD), new ColoredXYLineRenderer())));
 
     additionalPreviewData.forEach(a -> data.add(
-        new DatasetAndRenderer(new ColoredXYDataset(a), new ColoredXYLineRenderer())));
+        new DatasetAndRenderer(new ColoredXYDataset(a, RunOption.THIS_THREAD),
+            new ColoredXYLineRenderer())));
 
     return data;
   }

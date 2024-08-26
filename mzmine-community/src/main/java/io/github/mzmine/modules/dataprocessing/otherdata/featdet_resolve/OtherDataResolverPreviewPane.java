@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.OtherFeatureDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
@@ -91,13 +92,14 @@ public class OtherDataResolverPreviewPane extends AbstractPreviewPane<OtherFeatu
 
     final SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
 
-    datasets.add(new DatasetAndRenderer(new OtherFeatureDataProvider(valueForPreview,
-        valueForPreview.getFeatureData().getOtherDataFile().getCorrespondingRawDataFile()
-            .getColorAWT()), new ColoredXYLineRenderer()));
+    datasets.add(new DatasetAndRenderer(new ColoredXYDataset(
+        new OtherFeatureDataProvider(valueForPreview,
+            valueForPreview.getFeatureData().getOtherDataFile().getCorrespondingRawDataFile()
+                .getColorAWT()), RunOption.THIS_THREAD), new ColoredXYLineRenderer()));
     for (OtherFeature resolved : resolvedFeatures) {
       datasets.add(new DatasetAndRenderer(
-          new ColoredXYDataset(new OtherFeatureDataProvider(resolved, palette.getNextColorAWT())),
-          new ColoredAreaShapeRenderer()));
+          new ColoredXYDataset(new OtherFeatureDataProvider(resolved, palette.getNextColorAWT()),
+              RunOption.THIS_THREAD), new ColoredAreaShapeRenderer()));
     }
     return datasets;
   }
