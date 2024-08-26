@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,13 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.ThermoImportOptions;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
+import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvert;
+import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -37,14 +42,18 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ZipUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.mzio.users.service.UserType;
+import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -53,6 +62,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ThermoRawImportTask extends AbstractTask {
 
+  public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
+
   private static final Logger logger = Logger.getLogger(ThermoRawImportTask.class.getName());
 
   private final File fileToOpen;
@@ -60,16 +71,11 @@ public class ThermoRawImportTask extends AbstractTask {
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
   private final ScanImportProcessorConfig scanProcessorConfig;
-
   private Process dumper = null;
-
   private String taskDescription;
   private int parsedScans = 0;
-
   private MSDKmzMLImportTask msdkTask;
   private int convertedScans;
-  public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
-
 
   public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -98,47 +104,23 @@ public class ThermoRawImportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Opening file " + fileToOpen);
 
-    // Unzip ThermoRawFileParser
-    try {
-      final File thermoRawFileParserDir = unzipThermoRawFileParser();
-      taskDescription = "Opening file " + fileToOpen;
-      String thermoRawFileParserCommand;
+    final boolean useMsConvertForThermo =
+        ConfigService.getPreferences().getValue(MZminePreferences.thermoImportChoice)
+            == ThermoImportOptions.MSCONVERT;
 
-      if (Platform.isWindows()) {
-        thermoRawFileParserCommand =
-            thermoRawFileParserDir + File.separator + "ThermoRawFileParser.exe";
-      } else if (Platform.isLinux()) {
-        thermoRawFileParserCommand =
-            thermoRawFileParserDir + File.separator + "ThermoRawFileParserLinux";
-      } else if (Platform.isMac()) {
-        thermoRawFileParserCommand =
-            thermoRawFileParserDir + File.separator + "ThermoRawFileParserMac";
-      } else {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Unsupported platform: JNA ID " + Platform.getOSType());
+    try {
+      final ProcessBuilder builder = useMsConvertForThermo ? createProcessFromMsConvert()
+          : createProcessFromThermoFileParser();
+      if (builder == null) {
         return;
       }
 
-      final String cmdLine[] = new String[]{ //
-          thermoRawFileParserCommand, // program to run
-          "-s", // output mzML to stdout
-          "-p", // no peak picking
-          "-z", // no zlib compression (higher speed)
-          "-f=1", // no index, https://github.com/compomics/ThermoRawFileParser/issues/118
-          "-i", // input RAW file name coming next
-          fileToOpen.getPath() // input RAW file name
-      };
-
-      // Create a separate process and execute ThermoRawFileParser.
-      // Use thermoRawFileParserDir as working directory; this is essential, otherwise the process will fail.
-      dumper = Runtime.getRuntime().exec(cmdLine, null, thermoRawFileParserDir);
+      dumper = builder.start();
 
       // Get the stdout of ThermoRawFileParser process as InputStream
       RawDataFile dataFile = null;
       try (InputStream mzMLStream = dumper.getInputStream()) //
-//          BufferedInputStream bufStream = new BufferedInputStream(mzMLStream))//
       {
-
         msdkTask = new MSDKmzMLImportTask(project, fileToOpen, mzMLStream, scanProcessorConfig,
             module, parameters, moduleCallDate, storage);
 
@@ -190,6 +172,68 @@ public class ThermoRawImportTask extends AbstractTask {
 
   }
 
+  private @Nullable ProcessBuilder createProcessFromMsConvert() {
+    final File msConvertPath = MSConvert.getMsConvertPath();
+    if (msConvertPath == null) {
+      error("MSConvert not found. Please install MSConvert to import thermo raw data files.");
+      return null;
+    }
+
+    final List<String> cmdLine = MSConvertImportTask.buildCommandLine(fileToOpen, msConvertPath,
+        false);
+    return new ProcessBuilder(cmdLine);
+  }
+
+  private @Nullable ProcessBuilder createProcessFromThermoFileParser() throws IOException {
+    if (CurrentUserService.getUser().getUserType() != UserType.ACADEMIC) {
+      logger.info(
+          "Thermo import via raw file parser selected although the user is not academic. Overriding.");
+      ConfigService.getPreferences()
+          .setParameter(MZminePreferences.thermoImportChoice, ThermoImportOptions.MSCONVERT);
+      // try to launch via msconvert to make it seemless.
+      final ProcessBuilder msconvert = createProcessFromMsConvert();
+      if (msconvert == null) {
+        error("Cannot use Thermo raw file parser import without an academic license.");
+        return null;
+      }
+      return msconvert;
+    }
+
+    final File thermoRawFileParserDir = unzipThermoRawFileParser();
+    taskDescription = "Opening file " + fileToOpen;
+    String thermoRawFileParserCommand;
+
+    if (Platform.isWindows()) {
+      thermoRawFileParserCommand =
+          thermoRawFileParserDir + File.separator + "ThermoRawFileParser.exe";
+    } else if (Platform.isLinux()) {
+      thermoRawFileParserCommand =
+          thermoRawFileParserDir + File.separator + "ThermoRawFileParserLinux";
+    } else if (Platform.isMac()) {
+      thermoRawFileParserCommand =
+          thermoRawFileParserDir + File.separator + "ThermoRawFileParserMac";
+    } else {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Unsupported platform: JNA ID " + Platform.getOSType());
+      return null;
+    }
+
+    final String cmdLine[] = new String[]{ //
+        thermoRawFileParserCommand, // program to run
+        "-s", // output mzML to stdout
+        "-p", // no peak picking
+        "-z", // no zlib compression (higher speed)
+        "-f=1", // no index, https://github.com/compomics/ThermoRawFileParser/issues/118
+        "-i", // input RAW file name coming next
+        fileToOpen.getPath() // input RAW file name
+    };
+
+    // Create a separate process and execute ThermoRawFileParser.
+    // Use thermoRawFileParserDir as working directory; this is essential, otherwise the process will fail.
+    ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(thermoRawFileParserDir);
+    return builder;
+  }
+
   @Override
   public String getTaskDescription() {
     return taskDescription;
@@ -197,7 +241,8 @@ public class ThermoRawImportTask extends AbstractTask {
 
   private File unzipThermoRawFileParser() throws IOException {
 
-    File thermoRawFileParserFolder = FileAndPathUtil.createTempDirectory(THERMO_RAW_PARSER_DIR).toFile();
+    File thermoRawFileParserFolder = FileAndPathUtil.createTempDirectory(THERMO_RAW_PARSER_DIR)
+        .toFile();
     final File thermoRawFileParserExe = new File(thermoRawFileParserFolder,
         "ThermoRawFileParser.exe");
 
@@ -228,7 +273,8 @@ public class ThermoRawImportTask extends AbstractTask {
     ZipInputStream zipInputStream = new ZipInputStream(zipStream);
     ZipUtils.unzipStream(zipInputStream, thermoRawFileParserFolder);
     zipInputStream.close();
-    logger.finest(STR."Finished unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
+    logger.finest(
+        STR."Finished unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
 
     // Delete the temporary folder on application exit
     FileUtils.forceDeleteOnExit(thermoRawFileParserFolder);
