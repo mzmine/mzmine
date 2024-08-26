@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,15 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.gui.DesktopService;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -86,12 +88,12 @@ public class RawDataFileTypeDetector {
       // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
       for (File f : fileName.listFiles()) {
         if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
-          DesktopService.getDesktop().displayMessage("Waters raw data detected",
-              "Waters raw data is currently not supported in mzmine. Please use their tool DataConnect to convert zo mzML (see documentation).",
-              "https://mzmine.github.io/mzmine_documentation/data_conversion.html#waters");
-          throw new RuntimeException(
-              "Waters raw data detected. Please download Waters DataConnect(R) and convert to mzML.");
-//          return RawDataFileType.WATERS_RAW;
+//          DesktopService.getDesktop().displayMessage("Waters raw data detected",
+//              "Waters raw data is currently not supported in mzmine. Please use their tool DataConnect to convert zo mzML (see documentation).",
+//              "https://mzmine.github.io/mzmine_documentation/data_conversion.html#waters");
+//          throw new RuntimeException(
+//              "Waters raw data detected. Please download Waters DataConnect(R) and convert to mzML.");
+          return RawDataFileType.WATERS_RAW;
         }
         if (f.isFile() && (f.getName().contains(TDF_SUFFIX) || f.getName()
             .contains(TDF_BIN_SUFFIX))) {
@@ -240,4 +242,70 @@ public class RawDataFileTypeDetector {
     }
   }
 
+
+  public static WatersAcquisitionType detectWatersAcquisitionType(File watersFolder) {
+    final Pattern parentFunctionPattern = Pattern.compile(
+        "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - TOF PARENT FUNCTION");
+    final Pattern ddaFunctionPattern = Pattern.compile(
+        "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - TOF FAST DDA FUNCTION");
+    final Pattern surveyFunctionPattern = Pattern.compile(
+        "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - TOF SURVEY FUNCTION");
+    final Pattern referenceFunctionPattern = Pattern.compile(
+        "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - REFERENCE");
+
+    final PatternMatchCounter parentCounter = new PatternMatchCounter(parentFunctionPattern);
+    final PatternMatchCounter ddaCounter = new PatternMatchCounter(ddaFunctionPattern);
+    final PatternMatchCounter surveyCounter = new PatternMatchCounter(surveyFunctionPattern);
+    final PatternMatchCounter referenceCounter = new PatternMatchCounter(referenceFunctionPattern);
+
+    try (var reader = new BufferedReader(new FileReader(new File(watersFolder, "_extern.inf")))) {
+      reader.lines().forEach(line -> {
+        parentCounter.checkMatch(line);
+        ddaCounter.checkMatch(line);
+        surveyCounter.checkMatch(line);
+        referenceCounter.checkMatch(line);
+      });
+      if (ddaCounter.getMatches() > 0 && surveyCounter.getMatches() > 0) {
+        return WatersAcquisitionType.DDA;
+      }
+      if (parentCounter.getMatches() > 1) {
+        return WatersAcquisitionType.MSE;
+      } else if (parentCounter.getMatches() == 1) {
+        return WatersAcquisitionType.MS_ONLY;
+      }
+      return WatersAcquisitionType.MSE;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public enum WatersAcquisitionType {
+    MS_ONLY, DDA, MSE;
+  }
+
+  private static final class PatternMatchCounter {
+
+    private final Pattern pattern;
+    private int matches = 0;
+
+    private PatternMatchCounter(Pattern pattern) {
+      this.pattern = pattern;
+    }
+
+    public Pattern pattern() {
+      return pattern;
+    }
+
+    public boolean checkMatch(String str) {
+      if (pattern.matcher(str).matches()) {
+        matches++;
+        return true;
+      }
+      return false;
+    }
+
+    public int getMatches() {
+      return matches;
+    }
+  }
 }

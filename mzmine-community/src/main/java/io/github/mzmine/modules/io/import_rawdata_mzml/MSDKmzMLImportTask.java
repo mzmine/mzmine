@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -71,12 +71,14 @@ import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -98,7 +100,7 @@ import org.jetbrains.annotations.Nullable;
 public class MSDKmzMLImportTask extends AbstractTask {
 
   public static final Pattern watersPattern = Pattern.compile(
-      "function=([1-9]+) process=[\\d]+ scan=[\\d]+");
+      "function=([1-9]+) process=([0-9]+) scan=([0-9]+)");
   private static final Logger logger = Logger.getLogger(MSDKmzMLImportTask.class.getName());
 
   // File is always set even if the input stream may be already opened, e.g., from a converter
@@ -253,7 +255,16 @@ public class MSDKmzMLImportTask extends AbstractTask {
         this.file.getName(), totalScansAfterFilter);
     RawDataFileImpl newMZmineFile = new RawDataFileImpl(this.file.getName(),
         this.file.getAbsolutePath(), storage);
-    for (BuildingMzMLMsScan mzMLScan : file.getMsScans()) {
+
+    List<BuildingMzMLMsScan> msScans = file.getMsScans();
+    if (!areScansSorted(msScans)) {
+      msScans = msScans.stream()
+          .sorted(Comparator.comparingDouble(BuildingMzMLMsScan::getRetentionTime)).toList();
+      AtomicInteger scanNumber = new AtomicInteger(1);
+      msScans.forEach(scan -> scan.setScanNumber(scanNumber.getAndIncrement()));
+    }
+
+    for (BuildingMzMLMsScan mzMLScan : msScans) {
       if (isCanceled()) {
         return newMZmineFile;
       }
@@ -265,6 +276,16 @@ public class MSDKmzMLImportTask extends AbstractTask {
       description = descriptionTemplate + convertedScansAfterFilter;
     }
     return newMZmineFile;
+  }
+
+  private boolean areScansSorted(List<BuildingMzMLMsScan> msScans) {
+    for (int i = 1; i < msScans.size(); i++) {
+      if (!(msScans.get(i).getRetentionTime() > msScans.get(i - 1).getRetentionTime()) || !(
+          msScans.get(i).getScanNumber() > msScans.get(i - 1).getScanNumber())) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @NotNull

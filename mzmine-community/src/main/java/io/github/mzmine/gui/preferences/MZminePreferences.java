@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptOutParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
@@ -191,6 +192,13 @@ public class MZminePreferences extends SimpleParameterSet {
       "Image paint scale transformation", "Transforms the paint scale for images.",
       PaintScaleTransform.values(), PaintScaleTransform.LINEAR);
 
+  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
+      new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
+      new DecimalFormat("0.###"), UnitFormat.DIVIDE);
+  private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
+  private NumberFormats guiFormat = exportFormat; // default value
+
   public static final FileNameParameter msConvertPath = new FileNameParameter("MSConvert path",
       "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
       List.of(ExtensionFilters.EXE, ExtensionFilters.ALL_FILES), FileSelectionType.OPEN, true);
@@ -213,12 +221,10 @@ public class MZminePreferences extends SimpleParameterSet {
       UV spectra and chromatograms and is therefore recommended, but only available on windows.
       """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.MSCONVERT);
 
-  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
-      new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
-      new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
-      new DecimalFormat("0.###"), UnitFormat.DIVIDE);
-  private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
-  private NumberFormats guiFormat = exportFormat; // default value
+  public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
+      new ParameterSetParameter<>("Apply lockmass on import (Waters)",
+          "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
+          new WatersLockmassParameters()), true);
 
   public MZminePreferences() {
     super(// start with performance
@@ -237,7 +243,7 @@ public class MZminePreferences extends SimpleParameterSet {
         // silent parameters without controls
         showTempFolderAlert, username,
         //
-        msConvertPath, keepConvertedFile, applyPeakPicking, thermoImportChoice);
+        msConvertPath, keepConvertedFile, applyPeakPicking, thermoImportChoice, watersLockmass);
 
     darkModeProperty.subscribe(state -> {
       var oldTheme = getValue(theme);
@@ -268,7 +274,7 @@ public class MZminePreferences extends SimpleParameterSet {
     dialog.addParameterGroup("Visuals", defaultColorPalette, defaultPaintScale, chartParam, theme,
         presentationMode, showPrecursorWindow, imageTransformation, imageNormalization);
     dialog.addParameterGroup("MS data import", msConvertPath, keepConvertedFile, applyPeakPicking,
-        thermoImportChoice);
+        thermoImportChoice, watersLockmass);
 //    dialog.addParameterGroup("Other", new Parameter[]{
     // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
 //    });
