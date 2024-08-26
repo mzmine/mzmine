@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,7 +54,6 @@ import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -66,7 +65,6 @@ public class ThermoRawImportTask extends AbstractTask {
   public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
 
   private static final Logger logger = Logger.getLogger(ThermoRawImportTask.class.getName());
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ThermoRawImportTask.class);
 
   private final File fileToOpen;
   private final MZmineProject project;
