@@ -52,8 +52,8 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
 
   private final String name;
   private final String description;
-  private EnumType selectedValue;
   private final EnumMap<EnumType, ParameterSet> parametersMap;
+  private EnumType selectedValue;
 
   public ModuleOptionsEnumComboParameter(final String name, final String description,
       @NotNull final EnumType defaultValue) {
@@ -228,7 +228,7 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
       return false;
     }
 
-    if (Objects.equals(selectedValue, thatOpt.getValue())) {
+    if (!Objects.equals(selectedValue, thatOpt.getValue())) {
       return false;
     }
 
