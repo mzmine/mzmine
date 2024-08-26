@@ -240,6 +240,11 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     if (getCVValue(MzMLCV.cvProfileSpectrum).isPresent()) {
       spectrumType = MassSpectrumType.PROFILE;
     }
+    // sometimes not set for UV data
+    if(isUVSpectrum()) {
+      return MassSpectrumType.PROFILE;
+    }
+
     // cannot run on data here as it's not necessarily loaded
     return spectrumType;
   }
