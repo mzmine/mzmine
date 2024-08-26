@@ -78,7 +78,7 @@ public class SplineBaselineCorrector extends UnivariateBaselineCorrector {
   }
 
   @Override
-  public UnivariateInterpolator initializeInterpolator() {
+  public UnivariateInterpolator initializeInterpolator(int actualNumberOfSamples) {
     return new SplineInterpolator();
   }
 }

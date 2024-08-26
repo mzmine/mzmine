@@ -28,13 +28,19 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.loess
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
-import java.util.Collection;
 import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
 
 public class LoessBaselineCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
-  public static final PercentParameter bandwidth = new PercentParameter("Bandwidth",
-      "The bandwidth of the LOESS filter.", LoessInterpolator.DEFAULT_BANDWIDTH, 0d, 1d);
+  public static final PercentParameter bandwidth = new PercentParameter("Bandwidth", """
+      The bandwidth of the LOESS filter.
+      This describes the percentage of samples that are used to approximate the local baseline.
+      Too low values will put more weight on chromatographic signals, higher values will create a 
+      smoother baseline, but may be too slow to react to sharp shifts in the baseline.
+            
+      NOTE: If the (bandwidth) * (number of baseline samples) < 2, the bandwidth will be adjusted 
+      automatically to yield at least 2.
+      """, LoessInterpolator.DEFAULT_BANDWIDTH, 0d, 1d);
 
   public static final IntegerParameter iterations = new IntegerParameter("Iterations",
       "The number of iterations for the LOESS filter.", LoessInterpolator.DEFAULT_ROBUSTNESS_ITERS,
@@ -42,23 +48,5 @@ public class LoessBaselineCorrectorParameters extends AbstractBaselineCorrectorP
 
   public LoessBaselineCorrectorParameters() {
     super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter(), bandwidth, iterations);
-  }
-
-  @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    final boolean superCheck = super.checkParameterValues(errorMessages,
-        skipRawDataAndFeatureListParameters);
-
-    if (!superCheck) {
-      return false;
-    }
-
-    if (getValue(bandwidth) * getValue(numSamples) < 2) {
-      errorMessages.add("Bandwidth * (number of baseline samples) < 2.");
-      return false;
-    }
-
-    return true;
   }
 }

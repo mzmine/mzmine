@@ -52,7 +52,7 @@ public class NevilleBaselineCorrector extends UnivariateBaselineCorrector {
   }
 
   @Override
-  protected UnivariateInterpolator initializeInterpolator() {
+  protected UnivariateInterpolator initializeInterpolator(int actualNumberOfSamples) {
     return new NevilleInterpolator();
   }
 
