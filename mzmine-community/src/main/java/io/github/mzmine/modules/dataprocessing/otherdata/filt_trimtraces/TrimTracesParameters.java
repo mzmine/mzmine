@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.otherdata.filt_trimtraces;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSelection;
@@ -33,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.other_detectors.OtherTraceSele
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class TrimTracesParameters extends SimpleParameterSet {
 
@@ -47,5 +49,10 @@ public class TrimTracesParameters extends SimpleParameterSet {
 
   public TrimTracesParameters() {
     super(files, traces, rtRange);
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

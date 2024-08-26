@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.otherdata.filt_shifttraces;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
@@ -37,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 public class ShiftTracesParameters extends SimpleParameterSet {
 
@@ -64,5 +66,10 @@ public class ShiftTracesParameters extends SimpleParameterSet {
         ShiftTracesPreviewPane::new);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

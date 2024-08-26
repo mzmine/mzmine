@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.otherdata.align_msother;
 
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
@@ -36,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class MsOtherCorrelationParameters extends SimpleParameterSet {
 
@@ -55,5 +57,10 @@ public class MsOtherCorrelationParameters extends SimpleParameterSet {
 
   public MsOtherCorrelationParameters() {
     super(flists, traces, rtTolerance, minPearson);
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

@@ -25,8 +25,10 @@
 
 package io.github.mzmine.modules.visualization.other_correlationdashboard;
 
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class CorrelationDashboardParameters extends SimpleParameterSet {
 
@@ -34,5 +36,10 @@ public class CorrelationDashboardParameters extends SimpleParameterSet {
 
   public CorrelationDashboardParameters() {
     super(flist);
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

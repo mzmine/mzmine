@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.otherdata.featdet_baseline;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectors;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
@@ -38,6 +39,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumCo
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 public class OtherDataBaselineCorrectionParameters extends SimpleParameterSet {
 
@@ -71,5 +73,10 @@ public class OtherDataBaselineCorrectionParameters extends SimpleParameterSet {
         OtherDataBaselineCorrectionPreview::new);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }
