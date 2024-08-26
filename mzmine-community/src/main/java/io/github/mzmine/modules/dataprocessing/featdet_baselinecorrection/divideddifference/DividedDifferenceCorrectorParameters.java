@@ -23,38 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.otherdectectors;
+package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.divideddifference;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
 
-public class WavelengthType extends DoubleType {
+public class DividedDifferenceCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
-  private static NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0");
-
-  public WavelengthType() {
-    super(DEFAULT_FORMAT);
-  }
-
-  @Override
-  public NumberFormat getFormat() {
-    return DEFAULT_FORMAT;
-  }
-
-  @Override
-  public NumberFormat getExportFormat() {
-    return DEFAULT_FORMAT;
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return "wavelength";
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Wavelength / nm";
+  public DividedDifferenceCorrectorParameters() {
+    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter());
   }
 }
