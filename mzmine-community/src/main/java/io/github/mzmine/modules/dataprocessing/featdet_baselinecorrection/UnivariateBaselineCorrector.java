@@ -57,7 +57,7 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
     final double[] subsampleY = BaselineCorrector.subsample(yBufferRemovedPeaks,
         numPointsInRemovedArray, numSamples, false);
 
-    UnivariateInterpolator interpolator = initializeInterpolator();
+    UnivariateInterpolator interpolator = initializeInterpolator(subsampleX.length);
     UnivariateFunction splineFunction = interpolator.interpolate(subsampleX, subsampleY);
 
     for (int i = 0; i < numValues; i++) {
@@ -103,6 +103,6 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
     }
   }
 
-  protected abstract UnivariateInterpolator initializeInterpolator();
+  protected abstract UnivariateInterpolator initializeInterpolator(int actualNumberOfSamples);
 
 }

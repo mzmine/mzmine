@@ -32,13 +32,14 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
 public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter applyPeakRemoval = new BooleanParameter("Apply peak removal",
+  public static final BooleanParameter applyPeakRemoval = new BooleanParameter("Exclude peaks",
       "Attempts to remove peaks prior to baseline correction.");
 
   public static final IntegerParameter numSamples = new IntegerParameter(
       "Number of baseline samples", """
       The number of samples taken from the chromatogram to fit the baseline.
-      Higher values may increase the processing time but also lead to better results.
+      Too low values may fail to approximate the baseline correctly, too high values may put 
+      too much weight on chromatographic signals and distort the baseline. Default: 50.
       """, 50, 2, Integer.MAX_VALUE);
 
   public AbstractBaselineCorrectorParameters() {

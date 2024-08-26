@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,14 +54,18 @@ public class LoessBaselineCorrector extends UnivariateBaselineCorrector {
   public LoessBaselineCorrector(MemoryMapStorage storage, int baselineSamples, double bandwidth,
       int iterations, String suffix, MinimumSearchFeatureResolver resolver) {
     super(storage, baselineSamples, suffix, resolver);
-    this.storage = storage;
     this.bandwidth = bandwidth;
+    this.storage = storage;
     this.iterations = iterations;
   }
 
   @Override
-  protected UnivariateInterpolator initializeInterpolator() {
-    return new LoessInterpolator(bandwidth, iterations);
+  protected UnivariateInterpolator initializeInterpolator(int actualNumberOfSamples) {
+    double actualBandwidth = bandwidth;
+    if (actualBandwidth * actualNumberOfSamples < 2d) {
+      actualBandwidth = 2d / actualNumberOfSamples;
+    }
+    return new LoessInterpolator(actualBandwidth, iterations);
   }
 
   @Override
@@ -83,7 +87,7 @@ public class LoessBaselineCorrector extends UnivariateBaselineCorrector {
 
   @Override
   public @NotNull String getName() {
-    return "Spline baseline correction";
+    return "Loess baseline correction";
   }
 
   @Override
