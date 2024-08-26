@@ -155,7 +155,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
   @Override
   public void run() {
-
     setStatus(TaskStatus.PROCESSING);
 
     RawDataFile dataFile = importStreamOrFile();
