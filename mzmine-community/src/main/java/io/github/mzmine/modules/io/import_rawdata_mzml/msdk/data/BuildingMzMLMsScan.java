@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -76,7 +76,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   private final MzMLProductList productList;
   private final MzMLScanList scanList;
   private final @NotNull String id;
-  private final int scanNumber;
+  private int scanNumber;
   private final int numOfDataPoints;
   private MassSpectrumType spectrumType;
   private Float retentionTime;
@@ -743,5 +743,9 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
   public @Nullable DoubleBuffer getWavelengthValues() {
     return wavelengthValues;
+  }
+
+  public void setScanNumber(int newScanNumber) {
+    this.scanNumber = newScanNumber;
   }
 }
