@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,38 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.otherdectectors;
+package io.github.mzmine.gui.preferences;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import org.jetbrains.annotations.NotNull;
 
-public class WavelengthType extends DoubleType {
+public class WatersLockmassParameters extends SimpleParameterSet {
 
-  private static NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0");
+  public static final DoubleParameter positive = new DoubleParameter("Positive lockmass",
+      "Lockmass for positive ion mode for native Waters files. The default is 556.276575 (Leu-Enk).",
+      new DecimalFormat("0.######"), 556.276575);
 
-  public WavelengthType() {
-    super(DEFAULT_FORMAT);
-  }
+  public static final DoubleParameter negative = new DoubleParameter("Negative lockmass",
+      "Lockmass for negative ion mode for native Waters files. The default is 554.262022 (Leu-Enk).",
+      new DecimalFormat("0.######"), 554.262022);
 
-  @Override
-  public NumberFormat getFormat() {
-    return DEFAULT_FORMAT;
-  }
-
-  @Override
-  public NumberFormat getExportFormat() {
-    return DEFAULT_FORMAT;
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return "wavelength";
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Wavelength / nm";
+  public WatersLockmassParameters() {
+    super(positive, negative);
   }
 }

@@ -23,38 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.otherdectectors;
+package io.github.mzmine.gui.preferences;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import org.jetbrains.annotations.NotNull;
+import com.sun.jna.Platform;
 
-public class WavelengthType extends DoubleType {
+public enum ThermoImportOptions {
+  THERMO_RAW_FILE_PARSER, MSCONVERT;
 
-  private static NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0");
 
-  public WavelengthType() {
-    super(DEFAULT_FORMAT);
+  public static ThermoImportOptions[] getOptionsForOs() {
+    if (Platform.isWindows()) {
+      return new ThermoImportOptions[]{THERMO_RAW_FILE_PARSER, MSCONVERT};
+    } else {
+      return new ThermoImportOptions[]{THERMO_RAW_FILE_PARSER};
+    }
   }
 
   @Override
-  public NumberFormat getFormat() {
-    return DEFAULT_FORMAT;
-  }
-
-  @Override
-  public NumberFormat getExportFormat() {
-    return DEFAULT_FORMAT;
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return "wavelength";
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Wavelength / nm";
+  public String toString() {
+    return switch (this) {
+      case THERMO_RAW_FILE_PARSER -> "Thermo raw file parser (academia only)";
+      case MSCONVERT -> "MSConvert";
+    };
   }
 }
