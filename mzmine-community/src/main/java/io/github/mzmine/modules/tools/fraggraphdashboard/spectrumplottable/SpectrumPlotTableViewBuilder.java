@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
 import java.awt.Color;
 import java.util.List;
-import java.util.logging.Logger;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
@@ -49,10 +48,7 @@ import org.jfree.chart.plot.Marker;
 
 public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTableModel> {
 
-  private static Logger logger = Logger.getLogger(SpectrumPlotTableViewBuilder.class.getName());
-
   private final Layout layout;
-  private SpectraPlot plot;
 
   SpectrumPlotTableViewBuilder(SpectrumPlotTableModel model, Layout layout) {
     super(model);
@@ -69,7 +65,7 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
 //    model.signalListProperty().addListener((_, _, t) -> logger.info("trigger signalList"));
 //    model.spectrumProperty().addListener((_, _, t) -> logger.info("trigger spectrum"));
 
-    plot = new SpectraPlot();
+    SpectraPlot plot = new SpectraPlot();
     plot.getXYPlot().getDomainAxis().setLabel("m/z");
     ((NumberAxis) plot.getXYPlot().getDomainAxis()).setNumberFormatOverride(formats.mzFormat());
     plot.getXYPlot().getRangeAxis().setLabel("Intensity");
@@ -93,7 +89,7 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
     });
     plot.setMinSize(200, 200);
 
-    initAnnotationListener();
+    initAnnotationListener(plot);
     return initialisePane(plot, peakTable);
   }
 
@@ -120,7 +116,7 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
     };
   }
 
-  private void initAnnotationListener() {
+  private void initAnnotationListener(final SpectraPlot plot) {
     model.getDomainMarkers().addListener(
         (ListChangeListener<Marker>) change -> plot.applyWithNotifyChanges(false, () -> {
           while (change.next()) {

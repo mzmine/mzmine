@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,12 +50,12 @@ public class SpectrumPlotTableController extends FxController<SpectrumPlotTableM
     model.signalListProperty().bindBidirectional(model.spectrumProperty(), new StringConverter<>() {
       @Override
       public String toString(MassSpectrum dataPoints) {
-        return ParseTextToSpectrumUtil.spectrumToString(dataPoints);
+        return ParseTextToSpectrumUtils.spectrumToString(dataPoints);
       }
 
       @Override
       public MassSpectrum fromString(String s) {
-        return ParseTextToSpectrumUtil.parseStringToSpectrum(s);
+        return ParseTextToSpectrumUtils.parseStringToSpectrum(s);
       }
     });
   }
@@ -80,9 +80,11 @@ public class SpectrumPlotTableController extends FxController<SpectrumPlotTableM
   }
 
   public void removeDomainMarker(Range<Double> range) {
-    model.getDomainMarkers().removeIf(m -> m instanceof IntervalMarker im
-        && Double.compare(im.getStartValue(), range.lowerEndpoint()) == 0
-        && Double.compare(im.getEndValue(), range.upperEndpoint()) == 0);
+    model.getDomainMarkers().removeIf(m -> m instanceof IntervalMarker im &&
+                                           Double.compare(im.getStartValue(), range.lowerEndpoint())
+                                           == 0 &&
+                                           Double.compare(im.getEndValue(), range.upperEndpoint())
+                                           == 0);
   }
 
   public ListProperty<Marker> domainMarkerProperty() {

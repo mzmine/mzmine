@@ -41,9 +41,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 
-public class ParseTextToSpectrumUtil {
+public class ParseTextToSpectrumUtils {
 
-  private static final Logger logger = Logger.getLogger(ParseTextToSpectrumUtil.class.getName());
+  private static final Logger logger = Logger.getLogger(ParseTextToSpectrumUtils.class.getName());
 
   public static MassSpectrum parseStringToSpectrum(String signalList) {
     if (StringUtils.isBlank(signalList)) {
