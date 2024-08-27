@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,25 +32,29 @@ import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import org.jetbrains.annotations.NotNull;
 
 public class ParseTextToSpectrumUtil {
 
-  private static Logger logger = Logger.getLogger(ParseTextToSpectrumUtil.class.getName());
+  private static final Logger logger = Logger.getLogger(ParseTextToSpectrumUtil.class.getName());
 
-  public static MassSpectrum parseStringToSpectrum(String singalList) {
-    if (singalList.isBlank()) {
+  public static MassSpectrum parseStringToSpectrum(String signalList) {
+    if (StringUtils.isBlank(signalList)) {
       return MassSpectrum.EMPTY;
     }
 
     final List<DataPoint> dataPoints = new ArrayList<>();
 
-    final String[] lines = singalList.split("\n");
+    final String[] lines = signalList.split("\n");
     for (String line : lines) {
-      final String[] mzIntensity = line.split("\t");
+      String[] mzIntensity = StringUtils.splitAnyCommaTabSpace(line);
       if (mzIntensity.length < 2) {
         continue;
       }
@@ -60,7 +64,8 @@ public class ParseTextToSpectrumUtil {
         final double intensity = Double.parseDouble(mzIntensity[1]);
         dataPoints.add(new SimpleDataPoint(mz, intensity));
       } catch (Exception e) {
-        logger.log(Level.WARNING, STR."Error parsing line \{line}", e);
+        logger.log(Level.WARNING, "Error parsing line, expecting tab or comma delimiter: " + line,
+            e);
       }
     }
 
@@ -72,15 +77,15 @@ public class ParseTextToSpectrumUtil {
     if (spectrum == null) {
       return "";
     }
-    final NumberFormats formats = ConfigService.getExportFormats();
-    StringBuilder b = new StringBuilder();
-    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
-      b.append(formats.mz(spectrum.getMzValue(i))).append("\t")
-          .append(formats.intensity(spectrum.getIntensityValue(i)));
-      if (i < spectrum.getNumberOfDataPoints() - 1) {
-        b.append("\n");
-      }
-    }
-    return b.toString();
+
+    return IntStream.of(spectrum.getNumberOfDataPoints())
+        .mapToObj(index -> concatDataPoint(spectrum, index)).collect(Collectors.joining("\n"));
   }
+
+  private static @NotNull String concatDataPoint(final MassSpectrum spectrum, final int i) {
+    final NumberFormats formats = ConfigService.getExportFormats();
+    return formats.mz(spectrum.getMzValue(i)) + "\t" + formats.intensity(
+        spectrum.getIntensityValue(i));
+  }
+
 }
