@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -79,7 +79,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
   private final MassSpectrum measuredIsotopePattern;
 
   @NotNull
-  private MZTolerance ms2Tolerance = new MZTolerance(0.005, 15);
+  private MZTolerance ms2Tolerance;
   private final MolecularFormulaRange elements;
 
   public FragGraphPrecursorFormulaTask(@NotNull FragDashboardModel model, ParameterSet parameters) {

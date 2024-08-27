@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -68,7 +68,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
 
-  private static Logger logger = Logger.getLogger(FragDashboardBuilder.class.getName());
+  private static final Logger logger = Logger.getLogger(FragDashboardBuilder.class.getName());
 
   private final NumberFormats format = ConfigService.getGuiFormats();
 
@@ -80,7 +80,7 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
   private final Runnable calculateFormulaeMethod;
   private final ComboComponent<PolarityType> polarityCombo = new ComboComponent<>(
       FXCollections.observableArrayList(PolarityType.POSITIVE, PolarityType.NEGATIVE));
-  private Runnable saveToRowAction;
+  private final Runnable saveToRowAction;
 
   protected FragDashboardBuilder(FragDashboardModel model, @NotNull Region fragmentGraph,
       @NotNull Region ms2Chart, @NotNull Region isotopeChart, Runnable updateGraphMethod,
@@ -159,7 +159,7 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
 //        new SimpleListProperty<>(nodeTable.getSelectionModel().getSelectedItems()));
     selectedElements.addListener((_, _, n) -> {
       if (n.isEmpty() || (table.getSelectionModel().getSelectedItem() != null
-          && table.getSelectionModel().getSelectedItem().equals(n.getFirst()))) {
+                          && table.getSelectionModel().getSelectedItem().equals(n.getFirst()))) {
         return;
       }
       table.getSelectionModel().clearAndSelect(table.getItems().indexOf(n.getFirst()));
