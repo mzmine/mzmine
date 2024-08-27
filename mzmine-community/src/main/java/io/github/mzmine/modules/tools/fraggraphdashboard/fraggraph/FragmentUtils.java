@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
@@ -127,13 +126,17 @@ public class FragmentUtils {
   public static List<SignalWithFormulae> getPeaksWithFormulae(IMolecularFormula ionFormula,
       MassSpectrum mergedMs2, SpectralSignalFilter defaultSignalFilter,
       MZTolerance fragmentFormulaTol) {
+    if (mergedMs2.getNumberOfDataPoints() == 0) {
+      return List.of();
+    }
+
     final List<FormulaWithExactMz> subFormulae = List.of(
         FormulaUtils.getAllFormulas(ionFormula, mergedMs2.getMzValue(0) - 1));
 
-    final @Nullable DataPoint[] intenseSignals = Arrays.stream(
-            defaultSignalFilter.applyFilterAndSortByIntensity(ScanUtils.extractDataPoints(mergedMs2),
-                FormulaUtils.calculateMzRatio(ionFormula))).sorted(DataPointSorter.DEFAULT_MZ_ASCENDING)
-        .toArray(DataPoint[]::new);
+    double precursorMz = FormulaUtils.calculateMzRatio(ionFormula);
+    DataPoint[] intenseSignals = ScanUtils.extractDataPoints(mergedMs2);
+    intenseSignals = defaultSignalFilter.applyFilterAndSortByIntensity(intenseSignals, precursorMz);
+    Arrays.sort(intenseSignals, DataPointSorter.DEFAULT_MZ_ASCENDING);
 
     List<SignalWithFormulae> peaksWithFormulae = new ArrayList<>();
     for (DataPoint signal : intenseSignals) {
