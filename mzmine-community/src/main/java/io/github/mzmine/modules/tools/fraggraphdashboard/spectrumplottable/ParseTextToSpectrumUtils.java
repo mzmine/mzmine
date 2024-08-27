@@ -78,7 +78,7 @@ public class ParseTextToSpectrumUtils {
       return "";
     }
 
-    return IntStream.of(spectrum.getNumberOfDataPoints())
+    return IntStream.range(0, spectrum.getNumberOfDataPoints())
         .mapToObj(index -> concatDataPoint(spectrum, index)).collect(Collectors.joining("\n"));
   }
 

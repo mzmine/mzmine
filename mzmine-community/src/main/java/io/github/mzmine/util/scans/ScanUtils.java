@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -238,20 +238,17 @@ public class ScanUtils {
 
   public static DataPoint[] normalizeSpectrum(@NotNull MassSpectrum spectrum,
       double normalizedValue) {
-    int basePeakIndex = spectrum.getBasePeakIndex();
-    if (basePeakIndex < 0) {
+    Integer basePeakIndex = spectrum.getBasePeakIndex();
+    if (basePeakIndex == null || basePeakIndex < 0) {
       return new DataPoint[0];
     }
-    final double maxIntensity = spectrum.getBasePeakIntensity();
+    final double maxIntensity = spectrum.getIntensityValue(basePeakIndex);
 
-    DataPoint dataPoints[] = ScanUtils.extractDataPoints(spectrum);
-
-    DataPoint newDataPoints[] = new DataPoint[dataPoints.length];
-
-    for (int i = 0; i < dataPoints.length; i++) {
-
-      double mz = dataPoints[i].getMZ();
-      double intensity = dataPoints[i].getIntensity() / maxIntensity * normalizedValue;
+    final int total = spectrum.getNumberOfDataPoints();
+    DataPoint[] newDataPoints = new DataPoint[total];
+    for (int i = 0; i < total; i++) {
+      double mz = spectrum.getMzValue(i);
+      double intensity = spectrum.getIntensityValue(i) / maxIntensity * normalizedValue;
 
       newDataPoints[i] = new SimpleDataPoint(mz, intensity);
     }
@@ -547,7 +544,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-              - leftNeighbourBinIndex);
+                                                                       - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
