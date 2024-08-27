@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,8 @@ package io.github.mzmine.parameters.parametertypes.elements;
 import io.github.mzmine.parameters.UserParameter;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.openscience.cdk.config.IsotopeFactory;
@@ -39,10 +41,13 @@ import org.w3c.dom.Element;
 /**
  * Parameter to setup element composition range represented by MolecularFormulaRange (CDK class).
  */
-public class ElementsCompositionRangeParameter
-    implements UserParameter<MolecularFormulaRange, ElementsCompositionRangeComponent> {
+public class ElementsCompositionRangeParameter implements
+    UserParameter<MolecularFormulaRange, ElementsCompositionRangeComponent> {
 
-  private String name, description;
+  private static final Logger logger = Logger.getLogger(
+      ElementsCompositionRangeParameter.class.getName());
+  private final String name;
+  private final String description;
   private MolecularFormulaRange value;
 
   public ElementsCompositionRangeParameter(String name, String description) {
@@ -51,28 +56,22 @@ public class ElementsCompositionRangeParameter
     this.value = new MolecularFormulaRange();
     try {
       IsotopeFactory iFac = Isotopes.getInstance();
-      value.addIsotope(iFac.getMajorIsotope("C"), 0, 100);
-      value.addIsotope(iFac.getMajorIsotope("H"), 0, 100);
-      value.addIsotope(iFac.getMajorIsotope("N"), 0, 5);
-      value.addIsotope(iFac.getMajorIsotope("O"), 0, 10);
-      value.addIsotope(iFac.getMajorIsotope("P"), 0, 1);
+      value.addIsotope(iFac.getMajorIsotope("C"), 0, 200);
+      value.addIsotope(iFac.getMajorIsotope("H"), 0, 300);
+      value.addIsotope(iFac.getMajorIsotope("N"), 0, 15);
+      value.addIsotope(iFac.getMajorIsotope("O"), 0, 25);
+      value.addIsotope(iFac.getMajorIsotope("P"), 0, 2);
       value.addIsotope(iFac.getMajorIsotope("S"), 0, 2);
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;
@@ -86,7 +85,8 @@ public class ElementsCompositionRangeParameter
 
   @Override
   public ElementsCompositionRangeParameter cloneParameter() {
-    ElementsCompositionRangeParameter copy = new ElementsCompositionRangeParameter(name, description);
+    ElementsCompositionRangeParameter copy = new ElementsCompositionRangeParameter(name,
+        description);
     copy.value = value;
     return copy;
   }
@@ -131,15 +131,15 @@ public class ElementsCompositionRangeParameter
       this.value = newValue;
 
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
-
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     StringBuilder s = new StringBuilder();
     for (IIsotope i : value.isotopes()) {
       s.append(i.getSymbol());

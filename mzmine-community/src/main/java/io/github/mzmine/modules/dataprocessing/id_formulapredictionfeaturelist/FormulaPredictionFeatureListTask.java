@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -72,7 +72,6 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
   private final Double isotopeNoiseLevel;
   private final MZTolerance isotopeMZTolerance;
   private final IonizationType ionType;
-  private final int charge;
   private final ModularFeatureList featureList;
   private final boolean checkIsotopes;
   private final boolean checkMSMS;
@@ -107,7 +106,6 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.featureList = featureList;
-    charge = parameters.getParameter(FormulaPredictionFeatureListParameters.charge).getValue();
     ionType = parameters.getParameter(FormulaPredictionFeatureListParameters.ionization).getValue();
     mzTolerance = parameters.getParameter(FormulaPredictionFeatureListParameters.mzTolerance)
         .getValue();
@@ -209,7 +207,8 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       }
       this.resultingFormulas = new ArrayList<>();
 
-      double searchedMass = (row.getAverageMZ() - ionType.getAddedMass()) * charge;
+      double searchedMass =
+          (row.getAverageMZ() - ionType.getAddedMass()) * Math.abs(ionType.getCharge());
 
       message = "Formula prediction for " + MZmineCore.getConfiguration().getMZFormat()
           .format(searchedMass);
@@ -240,7 +239,6 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-
 
       // Add the new formula entry top results
       if (!resultingFormulas.isEmpty()) {
@@ -304,7 +302,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 
       predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(clonedFormula,
-          minPredictedAbundance, charge, ionType.getPolarity());
+          minPredictedAbundance, ionType.getCharge(), ionType.getPolarity());
 
       isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,
           predictedIsotopePattern, isotopeMZTolerance, isotopeNoiseLevel);
