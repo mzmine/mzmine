@@ -51,10 +51,7 @@ public class OtherFeatureDataProvider implements PlotXYDataProvider {
   public OtherFeatureDataProvider(OtherFeature feature, Color awt, double normalizationFactor) {
     final OtherTimeSeries timeSeries = feature.getFeatureData();
     final NumberFormats formats = ConfigService.getGuiFormats();
-    this(feature,
-        "%s %s-%s".formatted(timeSeries.getName(), formats.rt(timeSeries.getRetentionTime(0)),
-            formats.rt(timeSeries.getRetentionTime(timeSeries.getNumberOfValues() - 1))), awt,
-        normalizationFactor);
+    this(feature, feature.toString(), awt, normalizationFactor);
   }
 
   public OtherFeatureDataProvider(OtherFeature feature, String seriesKey, Color awt) {

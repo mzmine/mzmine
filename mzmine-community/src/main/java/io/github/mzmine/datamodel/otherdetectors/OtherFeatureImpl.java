@@ -54,9 +54,9 @@ public class OtherFeatureImpl implements OtherFeature {
   public String toString() {
     StringBuilder sb = new StringBuilder();
 
-    if (getFeatureData() != null) {
-      sb.append(getFeatureData().getName()).append(" ");
-    }
+//    if (getFeatureData() != null) {
+//      sb.append(getFeatureData().getName()).append(" ");
+//    }
     if (getWavelength() != null) {
       sb.append(getWavelength()).append(" nm ");
     }
