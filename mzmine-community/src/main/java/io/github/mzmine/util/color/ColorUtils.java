@@ -102,7 +102,7 @@ public class ColorUtils {
         (2 + (255 - rmean) / 256) * +Math.pow(+255 * (clr1.getBlue() - clr2.getBlue()), 2);
 
     final double sqrt = Math.sqrt(rterm + gterm + bterm);
-    logger.finest(() -> "Color difference between %s and %s is %.3f".formatted(clr1, clr2, sqrt));
+//    logger.finest(() -> "Color difference between %s and %s is %.3f".formatted(clr1, clr2, sqrt));
     return sqrt;
   }
 
