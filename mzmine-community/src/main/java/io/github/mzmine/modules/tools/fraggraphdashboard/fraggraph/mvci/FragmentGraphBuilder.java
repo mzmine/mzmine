@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.layout.BorderPane;
@@ -109,8 +108,10 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
       final ObservableList<? extends Edge> selected = c.getList();
       var selectedEdges = selected.stream().map(Element::getId)
           .map(id -> model.getAllEdgesMap().get(id)).filter(Objects::nonNull).toList();
-      model.getSelectedEdges().clear();
-      model.getSelectedEdges().addAll(selectedEdges);
+      if (model.getSelectedEdges().equals(selected)) {
+        return;
+      }
+      model.getSelectedEdges().setAll(selectedEdges);
       logger.finest(() -> STR."Selected edges: \{selectedEdges.toString()}");
     });
   }
@@ -126,7 +127,7 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
       if (model.getSelectedNodes().equals(selectedNodes)) {
         return;
       }
-      model.setSelectedNodes(FXCollections.observableArrayList(selectedNodes));
+      model.setSelectedNodes(selectedNodes);
       logger.finest(() -> STR."Selected nodes: \{selectedNodes.toString()}");
     });
   }
