@@ -42,6 +42,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
@@ -91,6 +92,7 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
 
     final IntegrationPane pane = new IntegrationPane(file.get());
     pane.minHeightProperty().set(250);
+    VBox.setVgrow(pane, Priority.SOMETIMES);
 //    pane.addEventFilter(KeyEvent.KEY_PRESSED, event -> logger.finest("pane " + event.toString()));
     content.getChildren().add(pane);
   }
