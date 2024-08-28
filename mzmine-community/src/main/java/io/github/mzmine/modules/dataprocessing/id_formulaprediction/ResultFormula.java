@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -92,7 +92,7 @@ public class ResultFormula extends MolecularFormulaIdentity {
   /**
    * Creates a result neutralFormula from the given input.
    *
-   * @param neutralFormula              The charged ion formula.
+   * @param chargedFormula              The charged ion formula.
    * @param measuredPattern             the measured isotope pattern
    * @param ms2
    * @param searchedMass
@@ -100,10 +100,10 @@ public class ResultFormula extends MolecularFormulaIdentity {
    *                                    spectra.
    * @param msmsAnnotation
    */
-  public ResultFormula(IMolecularFormula chargedFormula, @NotNull IsotopePattern measuredPattern,
+  public ResultFormula(IMolecularFormula chargedFormula, @NotNull MassSpectrum measuredPattern,
       @NotNull MassSpectrum ms2, double searchedMass,
       @NotNull MZTolerance isotopeAndFragmentTolerance,
-      @Nullable Map<DataPoint, String> msmsAnnotation) throws CloneNotSupportedException {
+      @Nullable Map<DataPoint, String> msmsAnnotation) {
     super(chargedFormula, searchedMass);
 
     final int charge = Objects.requireNonNullElse(chargedFormula.getCharge(), 0);
@@ -125,8 +125,6 @@ public class ResultFormula extends MolecularFormulaIdentity {
   /**
    * Creates a result formula from the row and the given ionic formula.
    *
-   * @param ionFormula
-   * @param row
    */
   public ResultFormula(IMolecularFormula ionFormula, FeatureListRow row) {
     super(ionFormula, FormulaUtils.calculateMzRatio(ionFormula));

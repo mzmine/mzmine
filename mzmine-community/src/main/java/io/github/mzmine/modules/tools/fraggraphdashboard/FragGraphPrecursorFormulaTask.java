@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
@@ -39,14 +38,9 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils;
-import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
-import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
-import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
-import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.scans.ScanUtils;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,10 +60,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
   private final boolean checkCH;
   private final boolean checkMultiple;
   private final boolean checkRDBE;
-
-  private MolecularFormulaGenerator generator;
   private final int maxFormulaCount;
-  private int formulaCount = 0;
   private final Integer charge;
   private final PolarityType polarity;
   private final double averageMZ;
@@ -77,10 +68,11 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
   private final List<IonModification> assignedIonTypes;
   private final MassSpectrum ms2Spectrum;
   private final MassSpectrum measuredIsotopePattern;
-
+  private final MolecularFormulaRange elements;
+  private MolecularFormulaGenerator generator;
+  private int formulaCount = 0;
   @NotNull
   private MZTolerance ms2Tolerance;
-  private final MolecularFormulaRange elements;
 
   public FragGraphPrecursorFormulaTask(@NotNull FragDashboardModel model, ParameterSet parameters) {
     this(model, null, //
@@ -184,23 +176,14 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
       if (isFeasibleFormula(couldBeRadical, formula)) {
         formula.setCharge(polarity.getSign() * charge);
 
-        final IsotopePattern calcIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
-            formula, 0.01, formulaTolerance.getMzToleranceForMass(averageMZ), charge, polarity,
-            false);
-        final float isotopeSimilarity = IsotopePatternScoreCalculator.getSimilarityScore(
-            measuredIsotopePattern, calcIsotopePattern, formulaTolerance, 0.1);
-
-        final MSMSScore msmsScore = MSMSScoreCalculator.evaluateMSMS(ms2Tolerance, formula,
-            ScanUtils.extractDataPoints(ms2Spectrum), averageMZ, charge);
-
-        final ResultFormula resultFormula = new ResultFormula(formula, calcIsotopePattern,
-            isotopeSimilarity, msmsScore.explainedIntensity(), msmsScore.annotation(), averageMZ);
-
+        final ResultFormula resultFormula = new ResultFormula(formula, measuredIsotopePattern,
+            ms2Spectrum, averageMZ, ms2Tolerance, null);
+//
         // i know we should not do this, but it will take forever otherwise.
         FxThread.runLater(() -> model.getPrecursorFormulae().add(resultFormula));
         formulaCount++;
       }
-    } while (formula != null);
+    } while (formula != null && formulaCount < DEFAULT_MAX_FORMULA_COUNT);
   }
 
   private boolean isFeasibleFormula(boolean couldBeRadical, IMolecularFormula formula) {
