@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "8.9"
+      "version": "8.10"
     }
   },
   "variants": [
@@ -28,10 +28,10 @@
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
           "size": 19780,
-          "sha512": "b1022e02f2cbb841995440ba3e7b968ffb8ab50fa41438a38684bdc9c103a332eef4773df650113f819c68aac40d2fb4acf374ee73c9099e7530a3573218c86c",
-          "sha256": "7814ec3ce4ad187978aeca5cc7d32285b93782a7c8bd4cc4c71923a42a060a90",
-          "sha1": "c764643177eceb0ef9d6dea3d9aa10ff1c675a06",
-          "md5": "41cc9983e11059582f2b3fe3fc3aee65"
+          "sha512": "cadcdfb931d67e91bce87282eef712df99ed384097465fb1e9495d62707adffc18ead5354280d94089ba0216d036b632c53fde40bdb8927f3fe9a89f64c83773",
+          "sha256": "3f1de23d94e4d386300ba14910174be3fc1b8554147f40664f97e7f8e72287ee",
+          "sha1": "af32cd3d38017142de7ddf96b43257c240a26266",
+          "md5": "9adc7696a3e05233a388c1e316c6409f"
         }
       ]
     },
@@ -227,10 +227,10 @@
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
           "size": 19780,
-          "sha512": "b1022e02f2cbb841995440ba3e7b968ffb8ab50fa41438a38684bdc9c103a332eef4773df650113f819c68aac40d2fb4acf374ee73c9099e7530a3573218c86c",
-          "sha256": "7814ec3ce4ad187978aeca5cc7d32285b93782a7c8bd4cc4c71923a42a060a90",
-          "sha1": "c764643177eceb0ef9d6dea3d9aa10ff1c675a06",
-          "md5": "41cc9983e11059582f2b3fe3fc3aee65"
+          "sha512": "cadcdfb931d67e91bce87282eef712df99ed384097465fb1e9495d62707adffc18ead5354280d94089ba0216d036b632c53fde40bdb8927f3fe9a89f64c83773",
+          "sha256": "3f1de23d94e4d386300ba14910174be3fc1b8554147f40664f97e7f8e72287ee",
+          "sha1": "af32cd3d38017142de7ddf96b43257c240a26266",
+          "md5": "9adc7696a3e05233a388c1e316c6409f"
         }
       ]
     }
