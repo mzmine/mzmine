@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,17 +32,6 @@ import java.util.Comparator;
  */
 public class Comparators {
 
-  /**
-   * Comparing doubles scores: descending with nulls last usage:
-   * stream.sorted(Comparator.comparing(..., Comparators.scoreDescending())
-   *
-   * @return Comparator for scores
-   */
-  public static <T extends Comparable<? super T>> Comparator<T> scoreDescending() {
-    return Comparator.nullsLast(Comparator.reverseOrder());
-  }
-
-
   public static Comparator<Float> COMPARE_ABS_FLOAT = (a, b) -> {
     if (a == b) {
       return 0;
@@ -54,7 +43,6 @@ public class Comparators {
       return Float.compare(Math.abs(a), Math.abs(b));
     }
   };
-
   public static Comparator<Double> COMPARE_ABS_DOUBLE = (a, b) -> {
     if (a == b) {
       return 0;
@@ -66,8 +54,17 @@ public class Comparators {
       return Double.compare(Math.abs(a), Math.abs(b));
     }
   };
-
-
+  public static Comparator<Number> COMPARE_ABS_NUMBER = (a, b) -> {
+    if (a == b) {
+      return 0;
+    } else if (a == null) {
+      return -1;
+    } else if (b == null) {
+      return 1;
+    } else {
+      return Double.compare(Math.abs(a.doubleValue()), Math.abs(b.doubleValue()));
+    }
+  };
   public static Comparator<Integer> COMPARE_ABS_INT = (a, b) -> {
     if (a == b) {
       return 0;
@@ -79,4 +76,14 @@ public class Comparators {
       return Integer.compare(Math.abs(a), Math.abs(b));
     }
   };
+
+  /**
+   * Comparing doubles scores: descending with nulls last usage:
+   * stream.sorted(Comparator.comparing(..., Comparators.scoreDescending())
+   *
+   * @return Comparator for scores
+   */
+  public static <T extends Comparable<? super T>> Comparator<T> scoreDescending() {
+    return Comparator.nullsLast(Comparator.reverseOrder());
+  }
 }

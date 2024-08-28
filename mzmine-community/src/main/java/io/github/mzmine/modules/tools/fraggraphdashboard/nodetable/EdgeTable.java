@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,14 +26,16 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard.nodetable;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.factories.TableColumns.ColumnAlignment;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SubFormulaEdge;
+import io.github.mzmine.util.Comparators;
 import java.text.ParseException;
-import java.util.Comparator;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.CheckBoxTableCell;
 
 public class EdgeTable extends TableView<SubFormulaEdge> {
 
@@ -55,58 +57,47 @@ public class EdgeTable extends TableView<SubFormulaEdge> {
       }
     });
 
-    TableColumn<SubFormulaEdge, SubFormulaEdge> visible = new TableColumn<>("");
-    visible.setMinWidth(15);
-    visible.setMaxWidth(35);
-    visible.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue()));
-    visible.setCellFactory(col -> new CheckTreeCell<>(SubFormulaEdge::visibleProperty));
+    TableColumn<SubFormulaEdge, Boolean> visible = TableColumns.createColumn("", 15, 35,
+        SubFormulaEdge::visibleProperty);
+    visible.setCellFactory(CheckBoxTableCell.forTableColumn(visible));
 
-    TableColumn<SubFormulaEdge, String> signal1 = new TableColumn<>("Signal 1");
-    signal1.getStyleClass().add("align-right-column");
-    signal1.setCellValueFactory(
-        cell -> cell.getValue().smaller().calculatedMzProperty().map(formats::mz));
-    signal1.setComparator(Comparator.comparingDouble(this::mzDoubleParser));
-    signal1.setMinWidth(70);
+    TableColumn<SubFormulaEdge, Number> signal1 = TableColumns.createColumn("Signal 1", 70,
+        formats.mzFormat(), ColumnAlignment.RIGHT, edge -> edge.smaller().calculatedMzProperty());
 
-    TableColumn<SubFormulaEdge, String> signal2 = new TableColumn<>("Signal 2");
-    signal2.getStyleClass().add("align-right-column");
-    signal2.setCellValueFactory(
-        cell -> cell.getValue().larger().calculatedMzProperty().map(formats::mz));
-    signal2.setComparator(Comparator.comparingDouble(this::mzDoubleParser));
-    signal2.setMinWidth(70);
+    TableColumn<SubFormulaEdge, Number> signal2 = TableColumns.createColumn("Signal 2", 70,
+        formats.mzFormat(), ColumnAlignment.RIGHT, edge -> edge.larger().calculatedMzProperty());
 
-    TableColumn<SubFormulaEdge, String> formulaDifference = new TableColumn<>("Formula\ndiff.");
-    formulaDifference.setCellValueFactory(
-        cell -> cell.getValue().lossFormulaStringProperty().map(str -> STR."-[\{str}]"));
-    formulaDifference.setMinWidth(85);
+    TableColumn<SubFormulaEdge, String> formulaDifference = TableColumns.createColumn(
+        "Formula\ndiff.", 85, edge -> edge.lossFormulaStringProperty().map(str -> STR."-[\{str}]"));
 
-    TableColumn<SubFormulaEdge, String> massDifferenceAbs = new TableColumn<>(
-        "Mass diff.\n(meas.)");
-    massDifferenceAbs.getStyleClass().add("align-right-column");
-    massDifferenceAbs.setCellValueFactory(
-        cell -> cell.getValue().measuredMassDiffProperty().map(formats::mz));
-    massDifferenceAbs.setMinWidth(85);
-    massDifferenceAbs.setComparator(Comparator.comparingDouble(this::mzDoubleParser));
+    TableColumn<SubFormulaEdge, Number> massDifferenceAbs = TableColumns.createColumn(
+        "Mass diff.\n(meas.)", 85, formats.mzFormat(), ColumnAlignment.RIGHT,
+        SubFormulaEdge::measuredMassDiffProperty);
 
     TableColumn<SubFormulaEdge, String> massErrorAbs = new TableColumn<>("Δm/z\n(abs.)");
     massErrorAbs.getStyleClass().add("align-right-column");
     massErrorAbs.setCellValueFactory(
         cell -> cell.getValue().massErrorAbsProperty().map(formats::mz));
     massErrorAbs.setMinWidth(70);
-    massErrorAbs.setComparator(Comparator.comparingDouble(this::mzDoubleParser));
+    massErrorAbs.setComparator(
+        (s1, s2) -> Comparators.COMPARE_ABS_NUMBER.compare(mzDoubleParser(s1), mzDoubleParser(s2)));
 
     TableColumn<SubFormulaEdge, String> massErrorPpm = new TableColumn<>("Δm/z\n(ppm)");
     massErrorPpm.getStyleClass().add("align-right-column");
     massErrorPpm.setCellValueFactory(
         cell -> cell.getValue().massErrorPpmProperty().map(formats::ppm));
     massErrorPpm.setMinWidth(70);
-    massErrorPpm.setComparator(Comparator.comparingDouble(this::mzDoubleParser));
+    massErrorPpm.setComparator(
+        (s1, s2) -> Comparators.COMPARE_ABS_NUMBER.compare(mzDoubleParser(s1), mzDoubleParser(s2)));
 
     getColumns().addAll(visible, signal1, signal2, formulaDifference, massDifferenceAbs,
         massErrorAbs, massErrorPpm);
   }
 
-  private double mzDoubleParser(String diffStr) {
+  private Double mzDoubleParser(String diffStr) {
+    if (diffStr == null || diffStr.isBlank()) {
+      return null;
+    }
     try {
       return formats.mzFormat().parse(diffStr).doubleValue();
     } catch (ParseException e) {

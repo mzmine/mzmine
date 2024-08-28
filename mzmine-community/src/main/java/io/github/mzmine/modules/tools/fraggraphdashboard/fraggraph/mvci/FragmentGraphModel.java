@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.S
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.util.javafx.ListToMapListener;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
@@ -45,12 +46,7 @@ import org.graphstream.graph.implementations.MultiGraph;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-class FragmentGraphModel {
-
-  FragmentGraphModel() {
-    allNodes.addListener(new ListToMapListener<>(SignalFormulaeModel::getId, allNodesMap.get()));
-    allEdges.addListener(new ListToMapListener<>(SubFormulaEdge::getId, allEdgesMap.get()));
-  }
+public class FragmentGraphModel {
 
   private final ObjectProperty<IMolecularFormula> precursorFormula = new SimpleObjectProperty<>();
   private final ObjectProperty<@Nullable Double> measuredPrecursorMz = new SimpleObjectProperty<>();
@@ -70,100 +66,105 @@ class FragmentGraphModel {
   private final ReadOnlyMapWrapper<String, SubFormulaEdge> allEdgesMap = new ReadOnlyMapWrapper<>(
       FXCollections.observableHashMap());
 
-  public IMolecularFormula getPrecursorFormula() {
-    return precursorFormula.get();
+  public FragmentGraphModel() {
+    allNodes.addListener(new ListToMapListener<>(SignalFormulaeModel::getId, allNodesMap.get()));
+    allEdges.addListener(new ListToMapListener<>(SubFormulaEdge::getId, allEdgesMap.get()));
   }
 
-  public ObjectProperty<IMolecularFormula> precursorFormulaProperty() {
-    return precursorFormula;
+  public IMolecularFormula getPrecursorFormula() {
+    return precursorFormula.get();
   }
 
   public void setPrecursorFormula(IMolecularFormula precursorFormula) {
     this.precursorFormula.set(precursorFormula);
   }
 
-  public @Nullable Double getMeasuredPrecursorMz() {
-    return measuredPrecursorMz.get();
+  public ObjectProperty<IMolecularFormula> precursorFormulaProperty() {
+    return precursorFormula;
   }
 
-  public ObjectProperty<@Nullable Double> measuredPrecursorMzProperty() {
-    return measuredPrecursorMz;
+  public @Nullable Double getMeasuredPrecursorMz() {
+    return measuredPrecursorMz.get();
   }
 
   public void setMeasuredPrecursorMz(@Nullable Double measuredPrecursorMz) {
     this.measuredPrecursorMz.set(measuredPrecursorMz);
   }
 
-  public MassSpectrum getMs2Spectrum() {
-    return ms2Spectrum.get();
+  public ObjectProperty<@Nullable Double> measuredPrecursorMzProperty() {
+    return measuredPrecursorMz;
   }
 
-  public ObjectProperty<MassSpectrum> ms2SpectrumProperty() {
-    return ms2Spectrum;
+  public MassSpectrum getMs2Spectrum() {
+    return ms2Spectrum.get();
   }
 
   public void setMs2Spectrum(MassSpectrum ms2Spectrum) {
     this.ms2Spectrum.set(ms2Spectrum);
   }
 
-  public MultiGraph getGraph() {
-    return graph.get();
+  public ObjectProperty<MassSpectrum> ms2SpectrumProperty() {
+    return ms2Spectrum;
   }
 
-  public ObjectProperty<MultiGraph> graphProperty() {
-    return graph;
+  public MultiGraph getGraph() {
+    return graph.get();
   }
 
   public void setGraph(MultiGraph graph) {
     this.graph.set(graph);
   }
 
-  public boolean isPrecursorFormulaEditable() {
-    return precursorFormulaEditable.get();
+  public ObjectProperty<MultiGraph> graphProperty() {
+    return graph;
   }
 
-  public BooleanProperty precursorFormulaEditableProperty() {
-    return precursorFormulaEditable;
+  public boolean isPrecursorFormulaEditable() {
+    return precursorFormulaEditable.get();
   }
 
   public void setPrecursorFormulaEditable(boolean precursorFormulaEditable) {
     this.precursorFormulaEditable.set(precursorFormulaEditable);
   }
 
+  public BooleanProperty precursorFormulaEditableProperty() {
+    return precursorFormulaEditable;
+  }
+
   public ObservableList<SignalFormulaeModel> getSelectedNodes() {
     return selectedNodes.get();
+  }
+
+  public void setSelectedNodes(List<SignalFormulaeModel> selectedNodes) {
+    this.selectedNodes.setAll(selectedNodes);
   }
 
   public ListProperty<SignalFormulaeModel> selectedNodesProperty() {
     return selectedNodes;
   }
 
-  public void setSelectedNodes(ObservableList<SignalFormulaeModel> selectedNodes) {
-    this.selectedNodes.set(selectedNodes);
-  }
-
   public ObservableList<SignalFormulaeModel> getAllNodes() {
     return allNodes.get();
+  }
+
+  public void setAllNodes(List<SignalFormulaeModel> allNodes) {
+    this.allNodes.setAll(allNodes);
   }
 
   public ListProperty<SignalFormulaeModel> allNodesProperty() {
     return allNodes;
   }
 
-  public void setAllNodes(ObservableList<SignalFormulaeModel> allNodes) {
-    this.allNodes.set(allNodes);
-  }
-
   public ObservableList<SubFormulaEdge> getSelectedEdges() {
     return selectedEdges.get();
   }
 
-  public ListProperty<SubFormulaEdge> selectedEdgesProperty() {
-    return selectedEdges;
+  public void setSelectedEdges(List<SubFormulaEdge> selectedEdges) {
+    this.selectedEdges.setAll(selectedEdges);
   }
 
-  public void setSelectedEdges(ObservableList<SubFormulaEdge> selectedEdges) {
-    this.selectedEdges.set(selectedEdges);
+  public ListProperty<SubFormulaEdge> selectedEdgesProperty() {
+    return selectedEdges;
   }
 
   public ObservableList<SubFormulaEdge> getAllEdges() {
@@ -172,10 +173,6 @@ class FragmentGraphModel {
 
   public ListProperty<SubFormulaEdge> allEdgesProperty() {
     return allEdges;
-  }
-
-  public void setAllEdges(ObservableList<SubFormulaEdge> allEdges) {
-    this.allEdges.set(allEdges);
   }
 
   public Map<String, SignalFormulaeModel> getAllNodesMap() {

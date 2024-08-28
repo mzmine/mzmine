@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,7 +51,7 @@ public class FragmentGraphCalcParameters extends SimpleParameterSet {
       "Fragment ion tolerance", "Maximum allowed tolerance for fragment ions.", 0.005, 10);
 
   public static final ParameterSetParameter<SignalFiltersParameters> ms2SignalFilter = new ParameterSetParameter<>(
-      "Fragment spectrum signal filters",
+      "Fragment signal filters",
       "Refine the MS2 spectrum by narrowing down the fragment ion search in spectra with a lot of signals.",
       (SignalFiltersParameters) (new SignalFiltersParameters().setValue(
           new SpectralSignalFilter(false, 10, 20, 15, 0.95))).cloneParameterSet());
@@ -75,7 +75,7 @@ public class FragmentGraphCalcParameters extends SimpleParameterSet {
       List.of(IonModification.H, IonModification.H_NEG));
 
   public static final ParameterSetParameter<ElementalHeuristicParameters> heuristicParams = new ParameterSetParameter<>(
-      "Heuristics parameters", "Refine calculated precursor and fragment formulae.",
+      "Element heuristics", "Refine calculated precursor and fragment formulae.",
       new ElementalHeuristicParameters());
 
   public FragmentGraphCalcParameters() {

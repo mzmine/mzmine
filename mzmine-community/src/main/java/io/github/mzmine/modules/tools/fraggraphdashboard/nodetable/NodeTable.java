@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,11 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard.nodetable;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.factories.TableColumns.ColumnAlignment;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SignalFormulaeModel;
-import java.text.ParseException;
-import java.util.Comparator;
+import io.github.mzmine.util.Comparators;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -42,11 +43,8 @@ public class NodeTable extends TableView<SignalFormulaeModel> {
     super();
     setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_NEXT_COLUMN);
 
-    final TableColumn<SignalFormulaeModel, String> mzColumn = new TableColumn<>("m/z");
-    mzColumn.setCellValueFactory(cellData -> cellData.getValue().calculatedMzProperty().map(formats::mz));
-    mzColumn.setComparator(Comparator.comparingDouble(this::mzDoubleParser));
-    mzColumn.getStyleClass().add("align-right-column");
-    mzColumn.setMinWidth(70);
+    final TableColumn<SignalFormulaeModel, Number> mzColumn = TableColumns.createColumn("m/z", 70,
+        formats.mzFormat(), ColumnAlignment.RIGHT, SignalFormulaeModel::calculatedMzProperty);
     mzColumn.setReorderable(false);
 
     final TableColumn<SignalFormulaeModel, SignalFormulaeModel> formulaColumn = new TableColumn<>(
@@ -56,38 +54,20 @@ public class NodeTable extends TableView<SignalFormulaeModel> {
     formulaColumn.setMinWidth(150);
     formulaColumn.setReorderable(false);
 
-    final TableColumn<SignalFormulaeModel, String> deltaMzColumn = new TableColumn<>("Δm/z (abs)");
-    deltaMzColumn.setCellValueFactory(
-        param -> param.getValue().deltaMzAbsProperty().map(formats::mz));
-    deltaMzColumn.setMinWidth(90);
+    final TableColumn<SignalFormulaeModel, Number> deltaMzColumn = TableColumns.createColumn(
+        "Δm/z (abs)", 90, formats.mzFormat(), ColumnAlignment.RIGHT,
+        SignalFormulaeModel::deltaMzAbsProperty);
     deltaMzColumn.setReorderable(false);
-    deltaMzColumn.getStyleClass().add("align-right-column");
-    deltaMzColumn.setComparator(Comparator.comparingDouble(this::mzDoubleParser));
+    deltaMzColumn.setComparator(Comparators.COMPARE_ABS_NUMBER);
 
-    final TableColumn<SignalFormulaeModel, String> ppm = new TableColumn<>("Δm/z (ppm)");
-    ppm.setCellValueFactory(param -> param.getValue().deltaMzPpmProperty().map(formats::ppm));
-    ppm.setMinWidth(90);
+    final TableColumn<SignalFormulaeModel, Number> ppm = TableColumns.createColumn("Δm/z (ppm)", 90,
+        formats.ppmFormat(), ColumnAlignment.RIGHT, SignalFormulaeModel::deltaMzPpmProperty);
     ppm.setReorderable(false);
-    ppm.getStyleClass().add("align-right-column");
-    ppm.setComparator(Comparator.comparingDouble(ppmStr -> {
-      try {
-        return formats.ppmFormat().parse(ppmStr).doubleValue();
-      } catch (ParseException e) {
-        return 0.0d;
-      }
-    }));
+    ppm.setComparator(Comparators.COMPARE_ABS_NUMBER);
 
     getColumns().add(formulaColumn);
     getColumns().add(mzColumn);
     getColumns().add(deltaMzColumn);
     getColumns().add(ppm);
-  }
-
-  private double mzDoubleParser(String diffStr) {
-    try {
-      return formats.mzFormat().parse(diffStr).doubleValue();
-    } catch (ParseException e) {
-      return 0.0d;
-    }
   }
 }
