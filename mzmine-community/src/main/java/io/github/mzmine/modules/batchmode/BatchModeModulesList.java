@@ -118,6 +118,7 @@ import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionMo
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.otherdata.align_msother.MsOtherCorrelationModule;
 import io.github.mzmine.modules.dataprocessing.otherdata.featdet_baseline.OtherDataBaselineCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.otherdata.featdet_bin.BinTracesModule;
 import io.github.mzmine.modules.dataprocessing.otherdata.featdet_resolve.OtherDataResolverModule;
 import io.github.mzmine.modules.dataprocessing.otherdata.filt_shifttraces.ShiftTracesModule;
 import io.github.mzmine.modules.dataprocessing.otherdata.filt_trimtraces.TrimTracesModule;
@@ -418,6 +419,7 @@ public class BatchModeModulesList {
       TrimTracesModule.class, //
       OtherDataBaselineCorrectionModule.class, //
       ShiftTracesModule.class, //
+      BinTracesModule.class, //
       OtherDataResolverModule.class, //
       MsOtherCorrelationModule.class //
   );

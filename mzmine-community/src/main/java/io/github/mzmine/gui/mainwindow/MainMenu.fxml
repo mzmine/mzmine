@@ -619,12 +619,14 @@
       userData="io.github.mzmine.modules.dataprocessing.otherdata.filt_trimtraces.TrimTracesModule"/>
     <MenuItem text="Baseline correction" onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.otherdata.featdet_baseline.OtherDataBaselineCorrectionModule"/>
+    <MenuItem text="Bin traces" onAction="#runModule"
+      userData="io.github.mzmine.modules.dataprocessing.otherdata.featdet_bin.BinTracesModule"/>
     <MenuItem text="Shift traces" onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.otherdata.filt_shifttraces.ShiftTracesModule"/>
     <MenuItem text="Resolving" onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.otherdata.featdet_resolve.OtherDataResolverModule"/>
     <MenuItem text="Correlate to MS" onAction="#runModule"
-    userData="io.github.mzmine.modules.dataprocessing.otherdata.align_msother.MsOtherCorrelationModule"/>
+      userData="io.github.mzmine.modules.dataprocessing.otherdata.align_msother.MsOtherCorrelationModule"/>
   </Menu>
 
   <!-- Window control -->

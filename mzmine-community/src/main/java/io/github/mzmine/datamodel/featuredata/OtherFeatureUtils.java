@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.util.MemoryMapStorage;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import javax.annotation.Nonnull;
 
 public class OtherFeatureUtils {
@@ -37,7 +39,8 @@ public class OtherFeatureUtils {
 
   }
 
-  public static OtherFeature shiftRtAxis(MemoryMapStorage storage, @Nonnull OtherFeature feature, float shift) {
+  public static OtherFeature shiftRtAxis(MemoryMapStorage storage, @Nonnull OtherFeature feature,
+      float shift) {
     final OtherTimeSeries timeSeries = feature.getFeatureData();
 
     double[] intensities = new double[timeSeries.getNumberOfValues()];
@@ -48,8 +51,36 @@ public class OtherFeatureUtils {
       rts[i] = timeSeries.getRetentionTime(i) + shift;
     }
 
-    final SimpleOtherTimeSeries shifted = new SimpleOtherTimeSeries(storage, rts,
-        intensities, timeSeries.getName(), timeSeries.getTimeSeriesData());
+    final SimpleOtherTimeSeries shifted = new SimpleOtherTimeSeries(storage, rts, intensities,
+        timeSeries.getName(), timeSeries.getTimeSeriesData());
+
+    return feature.createSubFeature(shifted);
+  }
+
+  public static OtherFeature bin(MemoryMapStorage storage, @Nonnull OtherFeature feature,
+      int width) {
+    final OtherTimeSeries timeSeries = feature.getFeatureData();
+
+    double[] intensities = new double[timeSeries.getNumberOfValues()];
+    timeSeries.getIntensityValues(intensities);
+
+    DoubleArrayList newIntensities = new DoubleArrayList();
+    FloatArrayList newRts = new FloatArrayList();
+    for (int i = 0; i < intensities.length; i += width) {
+      double summedIntensity = 0;
+      float summedRt = 0;
+      int lastJ = 0;
+      for (int j = 0; j < width && i + j < intensities.length; j++) {
+        summedIntensity += intensities[i+j];
+        summedRt += timeSeries.getRetentionTime(i+j);
+        lastJ = j;
+      }
+      newIntensities.add(summedIntensity / (lastJ + 1));
+      newRts.add(summedRt / (lastJ + 1));
+    }
+
+    final SimpleOtherTimeSeries shifted = new SimpleOtherTimeSeries(storage, newRts.toFloatArray(),
+        newIntensities.toDoubleArray(), timeSeries.getName(), timeSeries.getTimeSeriesData());
 
     return feature.createSubFeature(shifted);
   }
