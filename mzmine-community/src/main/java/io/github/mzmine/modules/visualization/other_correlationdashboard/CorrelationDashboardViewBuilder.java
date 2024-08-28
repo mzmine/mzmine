@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelat
 import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
+import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
@@ -125,8 +126,12 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
   public Region build() {
 
     uvPlot = model.getUvPlotController().buildView();
+//    model.getUvPlotController().setTitle("Other detector traces");
     msPlot = model.getMsPlotController().buildView();
+//    model.getMsPlotController().setTitle("MS chromatogram");
     correlatedPlot = model.getCorrelationPlotController().buildView();
+//    model.getCorrelationPlotController().setTitle("Correlated plot");
+    model.getUvPlotController().setRangeAxisStickyZero(true);
 
     model.getMsPlotController().setDomainAxisLabel(formats.unit("RT", "min"));
     model.getMsPlotController().setDomainAxisFormat(formats.rtFormat());
@@ -135,10 +140,15 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
 
     model.getUvPlotController().setDomainAxisLabel(formats.unit("RT", "min"));
     model.getUvPlotController().setDomainAxisFormat(formats.rtFormat());
+    model.getUvPlotController().setRangeAxisFormat(formats.intensityFormat());
 
     model.getCorrelationPlotController().setRangeAxisLabel("Normalized intensity");
     model.getCorrelationPlotController().setDomainAxisLabel(formats.unit("RT", "min"));
     model.getCorrelationPlotController().setDomainAxisFormat(formats.rtFormat());
+
+    final ChartGroup chartGroup = new ChartGroup(false, false, true, false);
+    model.getUvPlotController().setChartGroup(chartGroup);
+    model.getMsPlotController().setChartGroup(chartGroup);
 
     final BorderPane plotsAndControls = new BorderPane();
 
@@ -269,6 +279,18 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
       return;
     }
     model.setSelectedRow(featureTable.getSelectedRow());
+    if(featureTable.getSelectedFeature() != null) {
+      final ModularFeature feature = featureTable.getSelectedFeature();
+      final RawDataFile file = feature.getRawDataFile();
+      if(file != model.getSelectedRawDataFile()) {
+        model.setSelectedRawDataFile(file);
+      }
+      final List<MsOtherCorrelationResult> correlated = feature.get(
+          MsOtherCorrelationResultType.class);
+      if(correlated != null && !correlated.isEmpty()) {
+        otherFeatureSelectionPane.setFeature(correlated.getFirst().otherFeature());
+      }
+    }
   }
 
   private void updateAlreadyCorrelatedBox() {
@@ -335,6 +357,7 @@ public class CorrelationDashboardViewBuilder extends FxViewBuilder<CorrelationDa
     if (trace == null) {
       return;
     }
+    model.getUvPlotController().setTitle(trace.getOtherDataFile().getDescription());
 
     final OtherTimeSeriesData data = trace.getOtherDataFile().getOtherTimeSeriesData();
     model.getUvPlotController().setRangeAxisLabel(
