@@ -152,8 +152,9 @@ public class TableColumns {
       @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
     var column = createColumn(name, valueFactory);
     column.setMinWidth(minWidth);
+    setFormattedCellFactory(column, format);
     if (alignment != null) {
-      setFormattedCellFactory(column, format);
+      setAlignment(alignment, column);
     }
     return column;
   }
@@ -200,7 +201,7 @@ public class TableColumns {
     return column;
   }
 
-  public static enum ColumnAlignment {
+  public enum ColumnAlignment {
     LEFT, CENTER, RIGHT;
 
     public void setToColumn(TableColumn<?, ?> column) {
