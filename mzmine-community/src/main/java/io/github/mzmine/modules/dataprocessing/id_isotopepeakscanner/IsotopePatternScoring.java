@@ -23,9 +23,9 @@ public class IsotopePatternScoring {
    * by comparing the normalised data points of the detected isotope pattern with the calculated (theoretical) pattern
    */
 
-  public Double calculateIsotopeScore (IsotopePattern detectedPattern, IsotopePattern calculatedPattern, MZTolerance mzTolerance) {
-    nDetectedPattern = normalisationOfIsotopePattern(detectedPattern);
-    nCalculatedPattern = normalisationOfIsotopePattern(calculatedPattern);
+  public Double calculateIsotopeScore (IsotopePattern detectedPattern, IsotopePattern calculatedPattern, MZTolerance mzTolerance, double minHeight) {
+    nDetectedPattern = normalisationOfIsotopePattern(detectedPattern, minHeight);
+    nCalculatedPattern = normalisationOfIsotopePattern(calculatedPattern, minHeight);
     DataPoint[] detectedDataPoints = new DataPoint[nDetectedPattern.getNumberOfDataPoints()];
     for (int i = 0; i < detectedDataPoints.length; i++) {
       SimpleDataPoint dp = new SimpleDataPoint ( nDetectedPattern.getMzValue(i), nDetectedPattern.getIntensityValue(i));
@@ -47,7 +47,7 @@ public class IsotopePatternScoring {
     return score;
   }
 
-  public IsotopePattern normalisationOfIsotopePattern (IsotopePattern pattern) {
+  public IsotopePattern normalisationOfIsotopePattern (IsotopePattern pattern, double minHeight) {
     double [] mzs = new double [pattern.getNumberOfDataPoints()];
     double [] intensities = new double [pattern.getNumberOfDataPoints()];
     double [] normalisatedIntensities = new double [pattern.getNumberOfDataPoints()];
@@ -57,6 +57,9 @@ public class IsotopePatternScoring {
       mzs[i] = pattern.getMzValue(i);
       if (intensities[i]> highestIntensity){
         highestIntensity = intensities[i];
+      }
+      if (intensities[i]< minHeight){
+        intensities[i] =0;
       }
     }
     for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {

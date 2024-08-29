@@ -115,14 +115,13 @@ public class IsotopePatternCalculator {
         majorIntensity = pattern.getIsotope(i).getIntensity();
       }
     }
-    DataPoint monoIsotope = new SimpleDataPoint(row.getAverageMZ(), row.getSumIntensity());
+    DataPoint monoIsotope = new SimpleDataPoint(row.getAverageMZ(), row.getBestFeature().getHeight());
 
     DataPoint[] dp = new DataPoint[pattern.getNumberOfIsotopes()];
     for (int j = 0; j < pattern.getNumberOfIsotopes(); j++) {
       double calculatedMass = monoIsotope.getMZ() + massDiff[j];
       double calculatedIntensity =
-          (pattern.getIsotope(j).getIntensity() / majorIntensity) * row.getBestFeature()
-              .getHeight();
+          (pattern.getIsotope(j).getIntensity() / majorIntensity) * monoIsotope.getIntensity();
       dp[j] = new SimpleDataPoint(calculatedMass, calculatedIntensity);
     }
     return dp;
