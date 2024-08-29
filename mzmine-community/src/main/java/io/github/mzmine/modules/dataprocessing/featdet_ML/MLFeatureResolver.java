@@ -31,143 +31,103 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.scans.PeakPickingModel.PeakPickingModel;
+import io.github.mzmine.util.scans.PeakPickingModel.PeakPickingOutput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 
 public class MLFeatureResolver extends AbstractResolver {
-    
+
     private final ParameterSet parameters;
     private final double threshold;
-    private final int inputLength;
+    private final int regionSize;
+    private final int overlap;
     private final PeakPickingModel model;
     double[] xBuffer;
     double[] yBuffer;
 
-    public MLFeatureResolver(ParameterSet parameterSet, ModularFeatureList flist){
+    public MLFeatureResolver(ParameterSet parameterSet, ModularFeatureList flist) {
         super(parameterSet, flist);
         this.parameters = parameterSet;
-        //THRESHOLD FIXED FOR DEBUGGING ONLY!
-        this.threshold = 0.5;
-        this.inputLength = 128;
-        this.model = new PeakPickingModel(); 
+        // THRESHOLD FiXED FOR DEBUGGING ONLY!
+        this.threshold = 0.8;
+        this.regionSize = 128;
+        this.overlap = 32;
+        this.model = new PeakPickingModel();
     }
-    
-    @Override 
-    public Class<? extends MZmineProcessingModule> getModuleClass(){
+
+    @Override
+    public Class<? extends MZmineProcessingModule> getModuleClass() {
         return MLFeatureResolverModule.class;
     }
-    
-    public List<Range<Double>> resolve(double[] x, double[] y){
-        if (x.length != y.length){
+
+    public List<Range<Double>> resolve(double[] x, double[] y) {
+        if (x.length != y.length) {
             throw new AssertionError("Lengths of x, y and indices array do not match.");
         }
-        
-        final int inputLength = x.length;
 
-        List<double[]> standardRegions = SplitSeries.extractRegionBatch(x);
-        //CURRENTLY the is padding to the righ by zeros.
-        List<double[]> standardRegionsRT = SplitSeries.extractRegionBatch(y);
-        List<Map<String,double[]>> resolvedRegions;
-        try{
-        resolvedRegions =  model.predictor.batchPredict(standardRegions); 
-        } catch(Exception e){
+        // Efficiency can be improved by having less overlap (and theorecically by
+        // having longer regions)
+        List<double[]> standardRegions = SplitSeries.extractRegionBatch(y, this.regionSize, this.overlap, "zero");
+        List<double[]> standardRegionsRT = SplitSeries.extractRegionBatch(x, this.regionSize, this.overlap,
+                "lastValue");
+        List<PeakPickingOutput> resolvedRegions;
+        try {
+            resolvedRegions = model.predictor.batchPredict(standardRegions);
+        } catch (Exception e) {
             System.out.println("Error during prediction.");
             e.printStackTrace();
             return null;
-        } 
-        //Converts the prediction to booleans based on >threshold or <threshold
-        //Change this stream to something cleaner
-        List<boolean[]> predLabels = resolvedRegions.stream()
-            .map(r-> 
-                Arrays.stream(r.get("probs"))
-                .mapToObj(prob -> (prob > threshold))
-                .toArray(Boolean[]::new))
-                .map(arr -> {
-                    boolean[] boolArr = new boolean[arr.length];
-                    for (int i = 0; i < arr.length; i++) {
-                        boolArr[i] = arr[i];
-                    }
-                    return boolArr;
-                })
-                //.toArray(boolean[]::new))
-            .collect(Collectors.toList());
-        //Rounds the predictions to Indices and make sure they are insde the bounds
-        List<int[]> leftIndices = resolvedRegions.stream()
-            .map(r-> 
-                Arrays.stream(r.get("left"))
-                .mapToInt(d -> (int) Math.round(d))
-                .map(i -> Math.max(i,0))
-                .toArray())
-            .collect(Collectors.toList());
-        List<int[]> rightIndices = resolvedRegions.stream()
-            .map(r-> 
-                Arrays.stream(r.get("right"))
-                .mapToInt(d -> (int) Math.round(d))
-                .map(i -> Math.min(i, inputLength-1))
-                .toArray())
-            .collect(Collectors.toList());
-        
-        //Converts indices to retention times and writes times into regions 
-        //Getting the compiler to infer the correct types here is horrible
-        int lenList = predLabels.size();
-        int lenFeatures = predLabels.get(0).length;
-        List<Range<Double>[]> allRanges = IntStream.range(0,lenList)
-            .mapToObj(i ->
-                IntStream.range(0,lenFeatures)
-                .mapToObj(j -> (Range<Double>) Range.closed(
-                    Double.valueOf(standardRegionsRT.get(i)[leftIndices.get(i)[j]]),
-                    Double.valueOf(standardRegionsRT.get(i)[rightIndices.get(i)[j]])
-                    )) 
-                    .toArray(size -> (Range<Double>[]) new Range[size])
-                )
+        }
+        // extracts the different predictions and peaks from PeakPickingOutput
+        List<double[]> predProbs = resolvedRegions.stream().map(r -> r.prob())
                 .collect(Collectors.toList());
-            
-            //Filter out only those regions where a peak is predictend
-            // !Maybe do the filtering before do you don't create unnecessary instances of Range<Double>!
-            List<Range<Double>> resolved = new ArrayList<>();
-            IntStream.range(0,lenList)
-                .forEach(i ->
-                IntStream.range(0,lenFeatures)
-                .forEach(j -> {
-                    if(predLabels.get(i)[j]){
-                        resolved.add(allRanges.get(i)[j]);
+
+        List<double[]> predPeaks = resolvedRegions.stream().map(r -> r.peak())
+                .collect(Collectors.toList());
+
+        // Rounds the predictions to Indices and make sure they are insde the bounds
+        List<int[]> leftIndices = resolvedRegions.stream().map(
+                r -> Arrays.stream(r.left()).mapToInt(d -> (int) Math.round(d))
+                        .map(i -> Math.max(Math.min(i, this.regionSize - 1), 0)).toArray())
+                .collect(Collectors.toList());
+        List<int[]> rightIndices = resolvedRegions.stream().map(
+                r -> Arrays.stream(r.right()).mapToInt(d -> (int) Math.round(d))
+                        .map(i -> Math.max(Math.min(i, this.regionSize - 1), 0)).toArray())
+                .collect(Collectors.toList());
+
+        // Converts indices to retention times and writes times into regions
+        // Getting the compiler to infer the correct types here is horrible
+        int lenList = predProbs.size();
+        int lenFeatures = predProbs.get(0).length;
+
+        // iteraltes over lenList and lenFeatures and creates a range if the prediction
+        // is greater than the threshold and left<right (the latter is just a safety
+        // check)
+        List<Range<Double>> resolved = new ArrayList<>();
+        for (int i = 0; i < lenList; i++) {
+            for (int j = 0; j < lenFeatures; j++) {
+                // only selects peaks that are in the inside of the selected region
+                if ((predProbs.get(i)[j] > this.threshold) && (this.overlap / 2) < predPeaks.get(i)[j]
+                        && predPeaks.get(i)[j] < (this.regionSize - this.overlap / 2)) {
+                    Double left = Double.valueOf(standardRegionsRT.get(i)[leftIndices.get(i)[j]]);
+                    Double right = Double.valueOf(standardRegionsRT.get(i)[rightIndices.get(i)[j]]);
+                    if (left < right) {
+                        Range<Double> nextRange = Range.closed(left, right);
+                        resolved.add(nextRange);
                     }
-                })
-            );
-            
-            //Remove duplicate peaks from overlapping regions
-            List<Range<Double>> uniqueResolved = new ArrayList<>();
-            int lenUnique = uniqueResolved.size();
-            for(int i=0; i<lenUnique; i++){
-                //checks overlap for all ranges from index start to i
-                int start = Math.max(0, i-10);
-                boolean overlap = false;
-                for(int j=start;j<i;j++){
-                    Range<Double> intersection = resolved.get(i).intersection(resolved.get(j));
-                    if((intersection.upperEndpoint()-intersection.lowerEndpoint())>3){
-                        overlap = true;
-                    }
-                }
-                if(!overlap){
-                    uniqueResolved.add(resolved.get(i));
                 }
             }
- 
-        return uniqueResolved;
+        }
+
+        return resolved;
     }
 
     public void closeModel() {
-        if(model != null){
+        if (model != null) {
             model.closeModel();
         }
     }
-    
-    public static void main(String[] args){
-        System.out.println("test test 123");
-    }
+
 }
