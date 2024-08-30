@@ -31,7 +31,6 @@ import io.github.mzmine.javafx.components.factories.TableColumns.ColumnAlignment
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.Comparators;
-import java.text.ParseException;
 import javafx.beans.property.ReadOnlyDoubleWrapper;
 import javafx.beans.property.ReadOnlyFloatWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -41,8 +40,6 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaTable extends TableView<ResultFormula> {
 
-  private final NumberFormats formats = ConfigService.getGuiFormats();
-
   public FormulaTable() {
     setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_NEXT_COLUMN);
 
@@ -51,19 +48,18 @@ public class FormulaTable extends TableView<ResultFormula> {
         MolecularFormulaManipulator.getString(cell.getValue().getFormulaAsObject())));
     formula.setMinWidth(150);
 
+    NumberFormats formats = ConfigService.getGuiFormats();
     TableColumn<ResultFormula, Number> mz = TableColumns.createColumn("m/z", 100,
         formats.mzFormat(), ColumnAlignment.RIGHT,
         rf -> new ReadOnlyDoubleWrapper(rf.getExactMass()));
 
-    TableColumn<ResultFormula, Number> ppm = TableColumns.createColumn("Δ (ppm)", 100,
-        formats.ppmFormat(), ColumnAlignment.RIGHT,
+    TableColumn<ResultFormula, Number> ppm = TableColumns.createColumn("Δm/z (ppm)", 100,
+        formats.ppmFormat(), ColumnAlignment.RIGHT, Comparators.COMPARE_ABS_NUMBER,
         rf -> new ReadOnlyFloatWrapper(rf.getPpmDiff()));
-    ppm.setComparator(Comparators.COMPARE_ABS_NUMBER);
 
-    TableColumn<ResultFormula, Number> abs = TableColumns.createColumn("Δ (m/z)", 100,
-        formats.mzFormat(), ColumnAlignment.RIGHT,
+    TableColumn<ResultFormula, Number> abs = TableColumns.createColumn("Δm/z (abs.)", 100,
+        formats.mzFormat(), ColumnAlignment.RIGHT, Comparators.COMPARE_ABS_NUMBER,
         rf -> new ReadOnlyDoubleWrapper(rf.getAbsoluteMzDiff()));
-    abs.setComparator(Comparators.COMPARE_ABS_NUMBER);
 
     TableColumn<ResultFormula, Number> isoScore = TableColumns.createColumn("Isotope score", 100,
         formats.scoreFormat(), ColumnAlignment.RIGHT,
@@ -76,11 +72,4 @@ public class FormulaTable extends TableView<ResultFormula> {
     getColumns().addAll(formula, mz, ppm, abs, isoScore, ms2Score);
   }
 
-  private double mzDoubleParser(String diffStr) {
-    try {
-      return formats.mzFormat().parse(diffStr).doubleValue();
-    } catch (ParseException e) {
-      return 0.0d;
-    }
-  }
 }
