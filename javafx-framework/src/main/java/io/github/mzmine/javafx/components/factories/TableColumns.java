@@ -27,6 +27,7 @@ package io.github.mzmine.javafx.components.factories;
 
 import com.google.common.collect.Range;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import javafx.beans.value.ObservableValue;
@@ -34,6 +35,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Options to manipulate table views and maybe treetableviews
@@ -139,6 +141,27 @@ public class TableColumns {
   /**
    * @param name         column name
    * @param valueFactory defines the value of the cell
+   * @param alignment    the column alignment. uses the default if null.
+   * @param <MODEL>      the table row data model
+   * @param <V>          the value type of the property
+   * @return a new TableColumn
+   */
+  @NotNull
+  public static <MODEL, V extends Number> TableColumn<MODEL, V> createColumn(@NotNull String name,
+      double minWidth, NumberFormat format, @Nullable ColumnAlignment alignment,
+      @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
+    var column = createColumn(name, valueFactory);
+    column.setMinWidth(minWidth);
+    setFormattedCellFactory(column, format);
+    if (alignment != null) {
+      setAlignment(alignment, column);
+    }
+    return column;
+  }
+
+  /**
+   * @param name         column name
+   * @param valueFactory defines the value of the cell
    * @param <MODEL>      the table row data model
    * @param <V>          the value type of the property
    * @return a new TableColumn
@@ -151,4 +174,48 @@ public class TableColumns {
     return column;
   }
 
+  /**
+   * @param name         column name
+   * @param valueFactory defines the value of the cell
+   * @param alignment    the column alignment. uses the default if null.
+   * @param <MODEL>      the table row data model
+   * @param <V>          the value type of the property
+   * @return a new TableColumn
+   */
+  @NotNull
+  public static <MODEL, V extends Number> TableColumn<MODEL, V> createColumn(@NotNull String name,
+      double minWidth, double maxWidth, NumberFormat format, @Nullable ColumnAlignment alignment,
+      @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
+    var column = createColumn(name, minWidth, valueFactory);
+    column.setMaxWidth(maxWidth);
+    setFormattedCellFactory(column, format);
+    if (alignment != null) {
+      setAlignment(alignment, column);
+    }
+    return column;
+  }
+
+  public static <MODEL, V> TableColumn<MODEL, V> setAlignment(ColumnAlignment alignment,
+      TableColumn<MODEL, V> column) {
+    alignment.setToColumn(column);
+    return column;
+  }
+
+  public enum ColumnAlignment {
+    LEFT, CENTER, RIGHT;
+
+    public void setToColumn(TableColumn<?, ?> column) {
+      column.getStyleClass().removeIf(styleClass -> Arrays.stream(ColumnAlignment.values())
+          .anyMatch(align -> align.getStyleClass().equals(styleClass)));
+      column.getStyleClass().add(getStyleClass());
+    }
+
+    String getStyleClass() {
+      return switch (this) {
+        case RIGHT -> "align-right-column";
+        case LEFT -> "align-left-column";
+        case CENTER -> "align-center-column";
+      };
+    }
+  }
 }

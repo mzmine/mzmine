@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,18 +25,16 @@
 
 package io.github.mzmine.parameters.parametertypes.elements;
 
+import io.github.mzmine.parameters.UserParameter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.w3c.dom.Element;
-
-import io.github.mzmine.parameters.UserParameter;
 
 /**
  * Parameter to setup element composition range represented by MolecularFormulaRange (CDK class).
@@ -55,10 +53,10 @@ public class ElementsCompositionRangeParameter
       IsotopeFactory iFac = Isotopes.getInstance();
       value.addIsotope(iFac.getMajorIsotope("C"), 0, 100);
       value.addIsotope(iFac.getMajorIsotope("H"), 0, 100);
-      value.addIsotope(iFac.getMajorIsotope("N"), 0, 50);
-      value.addIsotope(iFac.getMajorIsotope("O"), 0, 50);
-      value.addIsotope(iFac.getMajorIsotope("P"), 0, 30);
-      value.addIsotope(iFac.getMajorIsotope("S"), 0, 30);
+      value.addIsotope(iFac.getMajorIsotope("N"), 0, 5);
+      value.addIsotope(iFac.getMajorIsotope("O"), 0, 10);
+      value.addIsotope(iFac.getMajorIsotope("P"), 0, 1);
+      value.addIsotope(iFac.getMajorIsotope("S"), 0, 2);
     } catch (IOException e) {
       e.printStackTrace();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -724,6 +724,17 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public void setFormulas(List<ResultFormula> formulas) {
     set(FormulaListType.class, formulas);
+  }
+
+  @Override
+  public void addFormula(ResultFormula formula, boolean preferred) {
+    final List<ResultFormula> resultFormulas = new ArrayList<>(getFormulas());
+    if (preferred) {
+      resultFormulas.addFirst(formula);
+    } else {
+      resultFormulas.add(formula);
+    }
+    setFormulas(resultFormulas);
   }
 
   @Override
