@@ -49,7 +49,8 @@ public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
       "Sorting", "Apply sorting to all resulting lists", new FormulaSortParameters(true), true);
 
   public static final ComboParameter<IonizationType> ionization = new ComboParameter<>(
-      "Ionization type", "Ionization type", IonizationType.values());
+      "Ionization type", "Ionization type", IonizationType.values(),
+      IonizationType.POSITIVE_HYDROGEN);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(0.002, 5);
 
