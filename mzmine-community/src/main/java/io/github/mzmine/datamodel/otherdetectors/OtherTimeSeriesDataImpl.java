@@ -33,10 +33,13 @@ import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
+
+  private static final Logger logger = Logger.getLogger(OtherTimeSeriesDataImpl.class.getName());
 
   private final CloseableReentrantReadWriteLock writeLock = new CloseableReentrantReadWriteLock();
 
@@ -44,11 +47,11 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   private final List<OtherFeature> rawTraces = new ArrayList<>();
   private final List<OtherFeature> processedFeatures = new ArrayList<>();
 
-  public @Nullable ChromatogramType chromatogramType = ChromatogramType.UNKNOWN;
-  private @Nullable String timeSeriesDomainLabel = "Retention time";
-  private @Nullable String timeSeriesDomainUnit = "min";
-  private @Nullable String timeSeriesRangeLabel = DEFAULT_UNIT;
-  private @Nullable String timeSeriesRangeUnit = DEFAULT_UNIT;
+  public @NotNull ChromatogramType chromatogramType = ChromatogramType.UNKNOWN;
+  private @NotNull String timeSeriesDomainLabel = "Retention time";
+  private @NotNull String timeSeriesDomainUnit = "min";
+  private @NotNull String timeSeriesRangeLabel = DEFAULT_UNIT;
+  private @NotNull String timeSeriesRangeUnit = DEFAULT_UNIT;
 
   public OtherTimeSeriesDataImpl(OtherDataFile otherDataFile) {
     this.otherDataFile = otherDataFile;
@@ -56,7 +59,7 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
   @Override
   public @NotNull OtherFeature getRawTrace(int index) {
-    try(var _ = writeLock.lockWrite()) {
+    try (var _ = writeLock.lockWrite()) {
       return rawTraces.get(index);
     }
   }
@@ -78,53 +81,60 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   }
 
   @Override
-  public @Nullable String getTimeSeriesDomainLabel() {
+  public @NotNull String getTimeSeriesDomainLabel() {
     return timeSeriesDomainLabel;
   }
 
   public void setTimeSeriesDomainLabel(@Nullable String timeSeriesDomainLabel) {
-    this.timeSeriesDomainLabel = timeSeriesDomainLabel;
+    this.timeSeriesDomainLabel = Objects.requireNonNullElse(timeSeriesDomainLabel, DEFAULT_UNIT);
   }
 
   @Override
-  public @Nullable String getTimeSeriesDomainUnit() {
-    return timeSeriesDomainUnit;
+  public @NotNull String getTimeSeriesDomainUnit() {
+    return timeSeriesRangeLabel;
   }
 
   public void setTimeSeriesDomainUnit(@Nullable String timeSeriesDomainUnit) {
-    this.timeSeriesDomainUnit = timeSeriesDomainUnit;
+    this.timeSeriesDomainUnit = Objects.requireNonNullElse(timeSeriesDomainUnit, DEFAULT_UNIT);
   }
 
   @Override
-  public @Nullable String getTimeSeriesRangeLabel() {
+  public @NotNull String getTimeSeriesRangeLabel() {
     return timeSeriesRangeLabel;
   }
 
   public void setTimeSeriesRangeLabel(@Nullable String timeSeriesRangeLabel) {
-    this.timeSeriesRangeLabel = timeSeriesRangeLabel;
+    if (!DEFAULT_UNIT.equals(this.timeSeriesRangeLabel) && timeSeriesRangeLabel != null
+        && !this.timeSeriesRangeLabel.equals(timeSeriesRangeLabel)) {
+      logger.severe(() -> (
+          "Range axis labels of time series in file %s for chromatogram type %s do not have the "
+              + "same label (old: %s, new: %s)").formatted(getOtherDataFile().getDescription(),
+          getChromatogramType(), this.timeSeriesRangeLabel, timeSeriesRangeLabel));
+    }
+    this.timeSeriesRangeLabel = Objects.requireNonNullElse(timeSeriesRangeLabel, this.timeSeriesRangeLabel);
   }
 
   @Override
-  public @Nullable String getTimeSeriesRangeUnit() {
+  public @NotNull String getTimeSeriesRangeUnit() {
     return timeSeriesRangeUnit;
   }
 
   public void setTimeSeriesRangeUnit(@Nullable String timeSeriesRangeUnit) {
-    this.timeSeriesRangeUnit = timeSeriesRangeUnit;
+    this.timeSeriesRangeUnit = Objects.requireNonNullElse(timeSeriesRangeUnit, DEFAULT_UNIT);
   }
 
   @Override
-  public @Nullable ChromatogramType getChromatogramType() {
+  public @NotNull ChromatogramType getChromatogramType() {
     return chromatogramType;
+  }
+
+  public void setChromatogramType(@Nullable ChromatogramType chromatogramType) {
+    this.chromatogramType = chromatogramType;
   }
 
   @Override
   public List<OtherFeature> getProcessedFeatures() {
     return processedFeatures;
-  }
-
-  public void setChromatogramType(@Nullable ChromatogramType chromatogramType) {
-    this.chromatogramType = chromatogramType;
   }
 
   @Override

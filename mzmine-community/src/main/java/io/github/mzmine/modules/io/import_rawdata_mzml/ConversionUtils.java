@@ -69,6 +69,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -386,42 +387,47 @@ public class ConversionUtils {
         .filter(c -> c instanceof MzMLChromatogram).map(c -> (MzMLChromatogram) c)
         .collect(Collectors.groupingBy(ConversionUtils::getChromatogramType));
 
-    List<OtherDataFile> otherFiles = new ArrayList<>();
+    final List<OtherDataFile> otherFiles = new ArrayList<>();
 
-    for (Entry<ChromatogramType, List<MzMLChromatogram>> grouped : groupedChromatograms.entrySet()
+    for (Entry<ChromatogramType, List<MzMLChromatogram>> groupedByChromType : groupedChromatograms.entrySet()
         .stream().sorted(Comparator.comparing(e -> e.getKey().getDescription())).toList()) {
-      final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
-      final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
-      otherFile.setDetectorType(DetectorType.OTHER);
 
-      timeSeriesData.setChromatogramType(grouped.getKey());
-      otherFile.setDescription(grouped.getKey().getDescription());
+      // group by range unit so we definitely have only one chromatogram type per file.
+      final Map<MzMLUnits, List<MzMLChromatogram>> groupedByUnit = groupByUnit(
+          groupedByChromType.getValue(),
+          c -> MzMLUnits.ofAccession(c.getIntensityBinaryDataInfo().getUnitAccession()));
 
-      for (MzMLChromatogram chrom : grouped.getValue()) {
-        final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
-            file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
-            chrom.getId(), timeSeriesData);
+      for (Entry<MzMLUnits, List<MzMLChromatogram>> unitChromEntry : groupedByUnit.entrySet()) {
+        final MzMLUnits unit = unitChromEntry.getKey();
 
-        final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
-        timeSeriesData.addRawTrace(otherFeature);
+        final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
+        final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
+        otherFile.setDetectorType(DetectorType.OTHER);
+        timeSeriesData.setChromatogramType(groupedByChromType.getKey());
+        otherFile.setDescription(unit +  "_" +
+            groupedByChromType.getKey().getDescription());
 
-        final String unitAccession = chrom.getIntensityBinaryDataInfo().getUnitAccession();
-        final MzMLUnits unit = MzMLUnits.ofAccession(unitAccession);
-        final String currentUnit = timeSeriesData.getTimeSeriesRangeUnit();
-        if (!currentUnit.equals(OtherDataFileImpl.DEFAULT_UNIT) && !currentUnit.equals(
-            unit.getSign())) {
-          logger.severe(
-              () -> "Chromatogram units in file %s do not match.".formatted(file.getName()));
-        } else {
+        for (MzMLChromatogram chrom : unitChromEntry.getValue()) {
+          final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
+              file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
+              chrom.getId(), timeSeriesData);
+
+          final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
+          timeSeriesData.addRawTrace(otherFeature);
+
           timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
           timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
         }
+        otherFile.setOtherTimeSeriesData(timeSeriesData);
+        otherFiles.add(otherFile);
       }
-      otherFile.setOtherTimeSeriesData(timeSeriesData);
-      otherFiles.add(otherFile);
     }
 
     return otherFiles;
+  }
+
+  public static <T, K> Map<K, List<T>> groupByUnit(List<T> values, Function<T, K> getUnit) {
+    return values.stream().collect(Collectors.groupingBy(getUnit));
   }
 
   private static @NotNull ChromatogramType getChromatogramType(MzMLChromatogram c) {

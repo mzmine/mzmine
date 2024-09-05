@@ -190,7 +190,7 @@ dependencies {
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
 
 //    implementation "org.du-lab.adap:adap:4.1.10"
-    implementation "org.xerial:sqlite-jdbc:3.40.0.0"
+    implementation 'org.xerial:sqlite-jdbc:3.41.2.2'
 
     implementation 'com.github.librepdf:openpdf:2.0.0'
     implementation "com.miglayout:miglayout:3.7.4"
