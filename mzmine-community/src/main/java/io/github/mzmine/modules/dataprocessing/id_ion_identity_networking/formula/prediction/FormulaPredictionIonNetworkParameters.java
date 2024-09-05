@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction;
 
 
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
@@ -32,6 +33,7 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionForValues;
@@ -42,18 +44,20 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.maths.MathOperator;
+import org.jetbrains.annotations.NotNull;
 
 public class FormulaPredictionIonNetworkParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(0.002, 5);
 
   public static final DoubleParameter ppmOffset = new DoubleParameter("Center by ppm offset",
-      "Linear correction to mass difference offset. If all correct results are shifted by +4 ppm use -4 ppm to shift these molecular formulae to the center");
+      "Linear correction to mass difference offset. If all correct results are shifted by +4 ppm use -4 ppm to shift these molecular formulae to the center",
+      ConfigService.getGuiFormats().ppmFormat(), 0d);
 
   public static final OptionalModuleParameter<FormulaSortParameters> sorting = new OptionalModuleParameter<FormulaSortParameters>(
-      "Sorting", "Apply sorting to all resulting lists", new FormulaSortParameters(true));
+      "Sorting", "Apply sorting to all resulting lists", new FormulaSortParameters(true), true);
 
   public static final ElementsCompositionRangeParameter elements = new ElementsCompositionRangeParameter(
       "Elements", "Elements and ranges");
@@ -67,22 +71,22 @@ public class FormulaPredictionIonNetworkParameters extends SimpleParameterSet {
       new MathOperator[]{MathOperator.GREATER_EQ},
       new OptionForValues(ValueOption.EXCLUDE, MathOperator.GREATER_EQ, 800));
 
-  public static final OptionalModuleParameter elementalRatios = new OptionalModuleParameter(
+  public static final OptionalModuleParameter<ElementalHeuristicParameters> elementalRatios = new OptionalModuleParameter<>(
       "Element count heuristics",
       "Restrict formulas by heuristic restrictions of elemental counts and ratios",
-      new ElementalHeuristicParameters());
+      new ElementalHeuristicParameters(), true);
 
-  public static final OptionalModuleParameter rdbeRestrictions = new OptionalModuleParameter(
+  public static final OptionalModuleParameter<RDBERestrictionParameters> rdbeRestrictions = new OptionalModuleParameter<>(
       "RDBE restrictions",
       "Search only for formulas which correspond to the given RDBE restrictions",
-      new RDBERestrictionParameters());
+      new RDBERestrictionParameters(), true);
 
-  public static final OptionalModuleParameter isotopeFilter = new OptionalModuleParameter(
+  public static final OptionalModuleParameter<IsotopePatternScoreParameters> isotopeFilter = new OptionalModuleParameter<>(
       "Isotope pattern filter", "Search only for formulas with a isotope pattern similar",
-      new IsotopePatternScoreParameters());
+      new IsotopePatternScoreParameters(), true);
 
-  public static final OptionalModuleParameter msmsFilter = new OptionalModuleParameter(
-      "MS/MS filter", "Check MS/MS data", new MSMSScoreParameters());
+  public static final OptionalModuleParameter<MSMSScoreParameters> msmsFilter = new OptionalModuleParameter<>(
+      "MS/MS filter", "Check MS/MS data", new MSMSScoreParameters(), true);
 
   public FormulaPredictionIonNetworkParameters() {
     this(false);
@@ -94,5 +98,10 @@ public class FormulaPredictionIonNetworkParameters extends SimpleParameterSet {
             rdbeRestrictions, isotopeFilter, msmsFilter}
         : new Parameter[]{PEAK_LISTS, mzTolerance, ppmOffset, sorting, elements, handleHigherMz,
             elementalRatios, rdbeRestrictions, isotopeFilter, msmsFilter});
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }
