@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,11 +47,11 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   private final List<OtherFeature> rawTraces = new ArrayList<>();
   private final List<OtherFeature> processedFeatures = new ArrayList<>();
 
-  public @Nullable ChromatogramType chromatogramType = ChromatogramType.UNKNOWN;
-  private @Nullable String timeSeriesDomainLabel = "Retention time";
-  private @Nullable String timeSeriesDomainUnit = "min";
-  private @Nullable String timeSeriesRangeLabel = DEFAULT_UNIT;
-  private @Nullable String timeSeriesRangeUnit = DEFAULT_UNIT;
+  public @NotNull ChromatogramType chromatogramType = ChromatogramType.UNKNOWN;
+  private @NotNull String timeSeriesDomainLabel = "Retention time";
+  private @NotNull String timeSeriesDomainUnit = "min";
+  private @NotNull String timeSeriesRangeLabel = DEFAULT_UNIT;
+  private @NotNull String timeSeriesRangeUnit = DEFAULT_UNIT;
 
   public OtherTimeSeriesDataImpl(OtherDataFile otherDataFile) {
     this.otherDataFile = otherDataFile;
@@ -81,60 +81,50 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   }
 
   @Override
-  public @Nullable String getTimeSeriesDomainLabel() {
+  public @NotNull String getTimeSeriesDomainLabel() {
     return timeSeriesDomainLabel;
   }
 
   public void setTimeSeriesDomainLabel(@Nullable String timeSeriesDomainLabel) {
-    this.timeSeriesDomainLabel = timeSeriesDomainLabel;
+    this.timeSeriesDomainLabel = Objects.requireNonNullElse(timeSeriesDomainLabel, DEFAULT_UNIT);
   }
 
   @Override
-  public @Nullable String getTimeSeriesDomainUnit() {
-    return timeSeriesDomainUnit;
+  public @NotNull String getTimeSeriesDomainUnit() {
+    return timeSeriesRangeLabel;
   }
 
   public void setTimeSeriesDomainUnit(@Nullable String timeSeriesDomainUnit) {
-    this.timeSeriesDomainUnit = timeSeriesDomainUnit;
+    this.timeSeriesDomainUnit = Objects.requireNonNullElse(timeSeriesDomainUnit, DEFAULT_UNIT);
   }
 
   @Override
-  public @Nullable String getTimeSeriesRangeLabel() {
+  public @NotNull String getTimeSeriesRangeLabel() {
     return timeSeriesRangeLabel;
   }
 
   public void setTimeSeriesRangeLabel(@Nullable String timeSeriesRangeLabel) {
     if (!DEFAULT_UNIT.equals(this.timeSeriesRangeLabel) && timeSeriesRangeLabel != null
-        && this.timeSeriesRangeLabel != null && !this.timeSeriesRangeLabel.equals(
-        timeSeriesRangeLabel)) {
+        && !this.timeSeriesRangeLabel.equals(timeSeriesRangeLabel)) {
       logger.severe(() -> (
           "Range axis labels of time series in file %s for chromatogram type %s do not have the "
               + "same label (old: %s, new: %s)").formatted(getOtherDataFile().getDescription(),
           getChromatogramType(), this.timeSeriesRangeLabel, timeSeriesRangeLabel));
     }
-    this.timeSeriesRangeLabel = timeSeriesRangeLabel;
+    this.timeSeriesRangeLabel = Objects.requireNonNullElse(timeSeriesRangeLabel, this.timeSeriesRangeLabel);
   }
 
   @Override
-  public @Nullable String getTimeSeriesRangeUnit() {
-    if (!(DEFAULT_UNIT).equals(timeSeriesRangeUnit) && timeSeriesRangeUnit != null
-        && this.timeSeriesRangeUnit != null && !this.timeSeriesRangeUnit.equals(
-        timeSeriesRangeUnit)) {
-      logger.severe(() -> (
-          "Warning: Range axis units of time series in file %s for chromatogram type %s do not have the "
-              + "same unit (old: %s, new: %s)").formatted(getOtherDataFile().getDescription(),
-          getChromatogramType(), this.timeSeriesRangeUnit, timeSeriesRangeUnit));
-    }
-
+  public @NotNull String getTimeSeriesRangeUnit() {
     return timeSeriesRangeUnit;
   }
 
   public void setTimeSeriesRangeUnit(@Nullable String timeSeriesRangeUnit) {
-    this.timeSeriesRangeUnit = timeSeriesRangeUnit;
+    this.timeSeriesRangeUnit = Objects.requireNonNullElse(timeSeriesRangeUnit, DEFAULT_UNIT);
   }
 
   @Override
-  public @Nullable ChromatogramType getChromatogramType() {
+  public @NotNull ChromatogramType getChromatogramType() {
     return chromatogramType;
   }
 
