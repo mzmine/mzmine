@@ -173,8 +173,7 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
           IsotopePattern calculatedPattern = ipCalculator.calculateIsotopePattern(row, element,
               charge);
           IsotopePattern detectedPattern = isotopePeakFinder.detectedIsotopePattern(peakList, row,
-              calculatedPattern, mzTolerance, minHeight, calculatedPattern.getDataPointMZRange(),
-              resolvedByMobility, charge);
+              calculatedPattern, mzTolerance, minHeight, resolvedByMobility, charge);
           double score = scoring.calculateIsotopeScore(detectedPattern, calculatedPattern,
               mzTolerance, minHeight);
 
