@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,107 +25,53 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.io.IOException;
 import java.util.HashMap;
 import org.openscience.cdk.formula.IsotopePatternGenerator;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class IsotopePatternCalculator {
 
 
-
+  private final IChemObjectBuilder builder;
+  private final IsotopePatternGenerator generator;
   HashMap<Integer, IsotopePattern> calculatedIsotopePattern = new HashMap<>();
-  private IChemObjectBuilder builder = null;
-  private IChemObjectBuilder builder2 = null;
-  HashMap<String, org.openscience.cdk.formula.IsotopePattern> calculatedPatterns = new HashMap<>();
-  HashMap<String, Double> majorIsotopeOfPattern = new HashMap<>();
-  double majorIntensity;
-  DataPoint[] calculatedPatternDPs;
+  HashMap<String, CdkIsotopePattern> calculatedPatterns = new HashMap<>();
 
-  /**
-   *
-   * @param row
-   * @param formula
-   * @param minPatternIntensity
-   * @param mzTolerance
-   * @param charge
-   * @return theoretical isotope pattern of the given chemical formula and charge with isotope signals
-   * above the minPatternIntensity
-   */
-
-  public IsotopePattern calculateIsotopePattern (FeatureListRow row, String formula, double minPatternIntensity,
-      MZTolerance mzTolerance, int charge) {
-    try {
-      calculatedPatternDPs = calculateIsotopePatternDataPoints(row, formula,
-          minPatternIntensity, mzTolerance, charge);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    calculatedIsotopePattern.put(row.getID(),
-        new SimpleIsotopePattern(calculatedPatternDPs, charge, IsotopePatternStatus.DETECTED,
-            ""));
-    return calculatedIsotopePattern.get(row.getID());
+  public IsotopePatternCalculator(final double minPatternIntensity, final MZTolerance mzTolerance) {
+    builder = SilentChemObjectBuilder.getInstance();
+    generator = new IsotopePatternGenerator(minPatternIntensity);
+    generator.setMinResolution(mzTolerance.getMzTolerance());
   }
 
   /**
-   *
    * @param row
    * @param formula
-   * @param minPatternIntensity
-   * @param mzTolerance
    * @param charge
-   * @return data points of the theoretical isotope pattern
-   * @throws IOException
+   * @return theoretical isotope pattern of the given chemical formula and charge with isotope
+   * signals above the minPatternIntensity
    */
 
-  public DataPoint[] calculateIsotopePatternDataPoints(FeatureListRow row, String formula,
-      double minPatternIntensity, MZTolerance mzTolerance, int charge) throws IOException {
-    if (!calculatedPatterns.containsKey(formula)) {
-      builder = SilentChemObjectBuilder.getInstance();
-      IMolecularFormula elementFormula = MolecularFormulaManipulator.getMolecularFormula(formula,
-          builder);
-      org.openscience.cdk.formula.IsotopePatternGenerator generator = new IsotopePatternGenerator(
-          minPatternIntensity);
-      generator.setMinResolution(mzTolerance.getMzTolerance());
-      calculatedPatterns.put(formula, generator.getIsotopes(elementFormula));
-      builder2 = SilentChemObjectBuilder.getInstance();
-      IMolecularFormula majorElementFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-          formula, builder2);
-      majorIsotopeOfPattern.put(formula, MolecularFormulaManipulator.getMass(majorElementFormula));
-    }
-    org.openscience.cdk.formula.IsotopePattern pattern = calculatedPatterns.get(formula);
-    double[] massDiff = new double[pattern.getNumberOfIsotopes()];
-    pattern.setCharge(charge);
-    for (int i = 0; i < pattern.getNumberOfIsotopes(); i++) {
-      massDiff[i] = (pattern.getIsotope(i).getMass() - majorIsotopeOfPattern.get(formula)) / charge;
-    }
+  public IsotopePattern calculateIsotopePattern(FeatureListRow row, String formula, int charge) {
+    var pattern = calculatedPatterns.computeIfAbsent(formula, this::predictIsotopePattern);
+    var dataPoints = pattern.translateMajorIsotopeTo(row.getAverageMZ(),
+        row.getBestFeature().getHeight(), charge);
+    var chargedPattern = new SimpleIsotopePattern(dataPoints, charge,
+        IsotopePatternStatus.PREDICTED, "");
+    calculatedIsotopePattern.put(row.getID(), chargedPattern);
+    return chargedPattern;
+  }
 
-    for (int i = 0; i < pattern.getNumberOfIsotopes(); i++) {
-      if (mzTolerance.checkWithinTolerance(pattern.getIsotope(i).getMass(),
-          majorIsotopeOfPattern.get(formula))) {
-        majorIntensity = pattern.getIsotope(i).getIntensity();
-      }
-    }
-    DataPoint monoIsotope = new SimpleDataPoint(row.getAverageMZ(), row.getBestFeature().getHeight());
 
-    DataPoint[] dp = new DataPoint[pattern.getNumberOfIsotopes()];
-    for (int j = 0; j < pattern.getNumberOfIsotopes(); j++) {
-      double calculatedMass = monoIsotope.getMZ() + massDiff[j];
-      double calculatedIntensity =
-          (pattern.getIsotope(j).getIntensity() / majorIntensity) * monoIsotope.getIntensity();
-      dp[j] = new SimpleDataPoint(calculatedMass, calculatedIntensity);
-    }
-    return dp;
+  private CdkIsotopePattern predictIsotopePattern(final String formula) {
+    var elementFormula = MolecularFormulaManipulator.getMolecularFormula(formula, builder);
+    return new CdkIsotopePattern(generator.getIsotopes(elementFormula));
   }
 
 
