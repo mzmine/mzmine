@@ -31,15 +31,12 @@ import io.github.mzmine.javafx.components.factories.TableColumns.ColumnAlignment
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.util.Comparators;
-import java.text.ParseException;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
 
 public class EdgeTable extends TableView<SubFormulaEdge> {
-
-  private final NumberFormats formats = ConfigService.getGuiFormats();
 
   public EdgeTable() {
     setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_NEXT_COLUMN);
@@ -61,6 +58,7 @@ public class EdgeTable extends TableView<SubFormulaEdge> {
         SubFormulaEdge::visibleProperty);
     visible.setCellFactory(CheckBoxTableCell.forTableColumn(visible));
 
+    NumberFormats formats = ConfigService.getGuiFormats();
     TableColumn<SubFormulaEdge, Number> signal1 = TableColumns.createColumn("Signal 1", 70,
         formats.mzFormat(), ColumnAlignment.RIGHT, edge -> edge.smaller().calculatedMzProperty());
 
@@ -74,34 +72,16 @@ public class EdgeTable extends TableView<SubFormulaEdge> {
         "Mass diff.\n(meas.)", 85, formats.mzFormat(), ColumnAlignment.RIGHT,
         SubFormulaEdge::measuredMassDiffProperty);
 
-    TableColumn<SubFormulaEdge, String> massErrorAbs = new TableColumn<>("Δm/z\n(abs.)");
-    massErrorAbs.getStyleClass().add("align-right-column");
-    massErrorAbs.setCellValueFactory(
-        cell -> cell.getValue().massErrorAbsProperty().map(formats::mz));
-    massErrorAbs.setMinWidth(70);
-    massErrorAbs.setComparator(
-        (s1, s2) -> Comparators.COMPARE_ABS_NUMBER.compare(mzDoubleParser(s1), mzDoubleParser(s2)));
+    TableColumn<SubFormulaEdge, Double> massErrorAbs = TableColumns.createColumn("Δm/z\n(abs.)", 70,
+        formats.mzFormat(), ColumnAlignment.RIGHT, Comparators.COMPARE_ABS_DOUBLE,
+        SubFormulaEdge::massErrorAbsProperty);
 
-    TableColumn<SubFormulaEdge, String> massErrorPpm = new TableColumn<>("Δm/z\n(ppm)");
-    massErrorPpm.getStyleClass().add("align-right-column");
-    massErrorPpm.setCellValueFactory(
-        cell -> cell.getValue().massErrorPpmProperty().map(formats::ppm));
-    massErrorPpm.setMinWidth(70);
-    massErrorPpm.setComparator(
-        (s1, s2) -> Comparators.COMPARE_ABS_NUMBER.compare(mzDoubleParser(s1), mzDoubleParser(s2)));
+    TableColumn<SubFormulaEdge, Double> massErrorPpm = TableColumns.createColumn("Δm/z\n(ppm)", 70,
+        formats.ppmFormat(), ColumnAlignment.RIGHT, Comparators.COMPARE_ABS_DOUBLE,
+        SubFormulaEdge::massErrorPpmProperty);
 
     getColumns().addAll(visible, signal1, signal2, formulaDifference, massDifferenceAbs,
         massErrorAbs, massErrorPpm);
   }
 
-  private Double mzDoubleParser(String diffStr) {
-    if (diffStr == null || diffStr.isBlank()) {
-      return null;
-    }
-    try {
-      return formats.mzFormat().parse(diffStr).doubleValue();
-    } catch (ParseException e) {
-      return 0.0d;
-    }
-  }
 }

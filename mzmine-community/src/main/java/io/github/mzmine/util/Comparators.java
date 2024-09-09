@@ -26,6 +26,7 @@
 package io.github.mzmine.util;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -33,7 +34,7 @@ import java.util.Comparator;
 public class Comparators {
 
   public static Comparator<Float> COMPARE_ABS_FLOAT = (a, b) -> {
-    if (a == b) {
+    if (Objects.equals(a, b)) {
       return 0;
     } else if (a == null) {
       return -1;
@@ -44,7 +45,7 @@ public class Comparators {
     }
   };
   public static Comparator<Double> COMPARE_ABS_DOUBLE = (a, b) -> {
-    if (a == b) {
+    if (Objects.equals(a, b)) {
       return 0;
     } else if (a == null) {
       return -1;
@@ -55,7 +56,7 @@ public class Comparators {
     }
   };
   public static Comparator<Number> COMPARE_ABS_NUMBER = (a, b) -> {
-    if (a == b) {
+    if (Objects.equals(a, b)) {
       return 0;
     } else if (a == null) {
       return -1;
@@ -66,7 +67,7 @@ public class Comparators {
     }
   };
   public static Comparator<Integer> COMPARE_ABS_INT = (a, b) -> {
-    if (a == b) {
+    if (Objects.equals(a, b)) {
       return 0;
     } else if (a == null) {
       return -1;

@@ -37,37 +37,34 @@ import javafx.scene.control.TableView;
 
 public class NodeTable extends TableView<SignalFormulaeModel> {
 
-  private final NumberFormats formats = ConfigService.getGuiFormats();
-
   public NodeTable() {
     super();
     setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_NEXT_COLUMN);
 
+    NumberFormats formats = ConfigService.getGuiFormats();
     final TableColumn<SignalFormulaeModel, Number> mzColumn = TableColumns.createColumn("m/z", 70,
         formats.mzFormat(), ColumnAlignment.RIGHT, SignalFormulaeModel::calculatedMzProperty);
-    mzColumn.setReorderable(false);
 
     final TableColumn<SignalFormulaeModel, SignalFormulaeModel> formulaColumn = new TableColumn<>(
         "Formula");
     formulaColumn.setCellFactory(_ -> new FormulaComboCell());
     formulaColumn.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
     formulaColumn.setMinWidth(150);
-    formulaColumn.setReorderable(false);
 
     final TableColumn<SignalFormulaeModel, Number> deltaMzColumn = TableColumns.createColumn(
-        "Δm/z (abs)", 90, formats.mzFormat(), ColumnAlignment.RIGHT,
+        "Δm/z (abs)", 90, formats.mzFormat(), ColumnAlignment.RIGHT, Comparators.COMPARE_ABS_NUMBER,
         SignalFormulaeModel::deltaMzAbsProperty);
-    deltaMzColumn.setReorderable(false);
-    deltaMzColumn.setComparator(Comparators.COMPARE_ABS_NUMBER);
 
     final TableColumn<SignalFormulaeModel, Number> ppm = TableColumns.createColumn("Δm/z (ppm)", 90,
-        formats.ppmFormat(), ColumnAlignment.RIGHT, SignalFormulaeModel::deltaMzPpmProperty);
-    ppm.setReorderable(false);
-    ppm.setComparator(Comparators.COMPARE_ABS_NUMBER);
+        formats.ppmFormat(), ColumnAlignment.RIGHT, Comparators.COMPARE_ABS_NUMBER,
+        SignalFormulaeModel::deltaMzPpmProperty);
 
     getColumns().add(formulaColumn);
     getColumns().add(mzColumn);
     getColumns().add(deltaMzColumn);
     getColumns().add(ppm);
+    for (final TableColumn<SignalFormulaeModel, ?> col : getColumns()) {
+      col.setReorderable(false);
+    }
   }
 }
