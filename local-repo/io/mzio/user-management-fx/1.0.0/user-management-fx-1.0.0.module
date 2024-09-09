@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "8.9"
+      "version": "8.10"
     }
   },
   "variants": [
@@ -27,11 +27,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 39603,
-          "sha512": "424482c906d40ca5574dde237e44917bb3fbcd3fff0889c94aef9a32516bc5eaed1257b1ee291fdf7ad9e745135cf1add858dbc1caeb23f52c2f116fbe2b6e94",
-          "sha256": "61083b98620117856ca21705d2485580b936f846aa22c51e514a7c0a55e4da1b",
-          "sha1": "d1d918deaebc5dd5bd743ce1d0fb1102736a07c0",
-          "md5": "e43eff701e216338121cf7be3b09b473"
+          "size": 39607,
+          "sha512": "2760af40412955f90a366c2164a55a663931129474b3d815b5c4f2e9eefb743240501f20dc49f9c6eccf8adf9f0b587f53a2def758023999d49f2f49a0dca2fe",
+          "sha256": "42fd0c16acaed2314e685cf0b94d2732450d0ae1fb0747ad3e8a2ed5fbabf00f",
+          "sha1": "0794ae322a5725d6d441d49c62be1a90846e2d92",
+          "md5": "7b92e80ae17f4464a22d785a512e1005"
         }
       ]
     },
@@ -230,11 +230,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 39603,
-          "sha512": "424482c906d40ca5574dde237e44917bb3fbcd3fff0889c94aef9a32516bc5eaed1257b1ee291fdf7ad9e745135cf1add858dbc1caeb23f52c2f116fbe2b6e94",
-          "sha256": "61083b98620117856ca21705d2485580b936f846aa22c51e514a7c0a55e4da1b",
-          "sha1": "d1d918deaebc5dd5bd743ce1d0fb1102736a07c0",
-          "md5": "e43eff701e216338121cf7be3b09b473"
+          "size": 39607,
+          "sha512": "2760af40412955f90a366c2164a55a663931129474b3d815b5c4f2e9eefb743240501f20dc49f9c6eccf8adf9f0b587f53a2def758023999d49f2f49a0dca2fe",
+          "sha256": "42fd0c16acaed2314e685cf0b94d2732450d0ae1fb0747ad3e8a2ed5fbabf00f",
+          "sha1": "0794ae322a5725d6d441d49c62be1a90846e2d92",
+          "md5": "7b92e80ae17f4464a22d785a512e1005"
         }
       ]
     }

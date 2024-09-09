@@ -40,6 +40,9 @@ public class WavelengthSpectrum implements OtherSpectrum {
 
   public WavelengthSpectrum(final OtherSpectralData spectralData, DoubleBuffer wavelengths,
       DoubleBuffer intensities, MassSpectrumType spectrumType, float rt) {
+    if (wavelengths.limit() != intensities.limit()) {
+      throw new IllegalArgumentException("wavelengths and intensities must be the same length");
+    }
     this.spectralData = spectralData;
     this.wavelengths = wavelengths;
     this.intensities = intensities;

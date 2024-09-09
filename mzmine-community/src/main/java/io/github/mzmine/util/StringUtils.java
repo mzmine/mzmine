@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -230,5 +230,30 @@ public class StringUtils {
 
   public static String inQuotes(String str) {
     return "\"" + str + "\"";
+  }
+
+  /**
+   * Trim input and split at any space comma or tab. comma followed by space will be treated as one
+   * separator. Parts are not trimmed - only input.
+   * <p>
+   * Example:
+   * <p>
+   * String s = "Hello,mzmine	 well, done ! " --> ["Hello", "mzmine", "", "well", "done", "!"]
+   *
+   * @param s input string
+   * @return array of split parts
+   */
+  public static String[] splitAnyCommaTabSpace(String s) {
+    if (isBlank(s)) {
+      return new String[0];
+    }
+    s = s.trim();
+    // solved in one regex below first try to split at , and space so that they will not produce double split
+//    var split = s.split(", ");
+//    if (split.length > 1) {
+//      return split;
+//    }
+    // first split at , AND space combination then split at each , space or tab
+    return s.split(", |[\\t, ]");
   }
 }

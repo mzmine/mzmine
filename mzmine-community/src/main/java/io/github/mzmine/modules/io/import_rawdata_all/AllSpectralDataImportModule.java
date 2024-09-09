@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.import_rawdata_all;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -95,30 +94,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   // needs a storage for mass lists if advanced import with mass detection was selected but not supported for a MS file type
   private MemoryMapStorage storageMassLists = null;
 
-  @Override
-  public @NotNull String getName() {
-    return MODULE_NAME;
-  }
-
-  @NotNull
-  @Override
-  public String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @NotNull
-  @Override
-  public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATAIMPORT;
-  }
-
-  @NotNull
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return AllSpectralDataImportParameters.class;
-  }
-
-
   /**
    * Define filters and processors for scans
    */
@@ -167,8 +142,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    */
   public static File validateBrukerPath(File f) {
     if (f.getParent().endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
-                                         || f.getName().endsWith(".tsf") || f.getName()
-                                             .endsWith(".baf"))) {
+        || f.getName().endsWith(".tsf") || f.getName().endsWith(".baf"))) {
       return f.getParentFile();
     } else {
       return f;
@@ -205,6 +179,29 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public @NotNull String getName() {
+    return MODULE_NAME;
+  }
+
+  @NotNull
+  @Override
+  public String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @NotNull
+  @Override
+  public MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.RAWDATAIMPORT;
+  }
+
+  @NotNull
+  @Override
+  public Class<? extends ParameterSet> getParameterSetClass() {
+    return AllSpectralDataImportParameters.class;
   }
 
   @NotNull
@@ -358,8 +355,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new TSFImportTask(project, file, storage, module, parameters, moduleCallDate,
               scanProcessorConfig);
       // IMS
-      case BRUKER_TDF ->
-          new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, module, parameters,
+      case BRUKER_TDF -> // ims files are big, use own storage
+          new TDFImportTask(project, file, MemoryMapStorage.forRawDataFile(), module, parameters,
               moduleCallDate);
       // MS
       case MZML, MZML_IMS ->
@@ -384,7 +381,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
 //      case AIRD -> throw new IllegalStateException("Unexpected value: " + fileType);
-      case /*WATERS_RAW,*/ SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D ->
+      case WATERS_RAW, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D ->
           new MSConvertImportTask(moduleCallDate, file, scanProcessorConfig, project, module,
               parameters);
     };
@@ -413,8 +410,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case MZXML ->
           new MzXMLImportTask(project, file, newMZmineFile, scanProcessorConfig, module, parameters,
               moduleCallDate);
-      case BRUKER_TDF ->
-          new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, scanProcessorConfig,
+      case BRUKER_TDF -> // ims files are big, use own storage
+          new TDFImportTask(project, file, MemoryMapStorage.forRawDataFile(), scanProcessorConfig,
               module, parameters, moduleCallDate);
       case THERMO_RAW ->
           new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
@@ -425,11 +422,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_BAF ->
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
-      case AGILENT_D, SCIEX_WIFF, SCIEX_WIFF2 ->
+      case AGILENT_D, SCIEX_WIFF, SCIEX_WIFF2, WATERS_RAW ->
           new MSConvertImportTask(moduleCallDate, file, scanProcessorConfig, project, module,
               parameters);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case MZDATA,/* WATERS_RAW,*/ NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
+      case MZDATA, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
           createWrappedAdvancedTask(fileType, project, file, newMZmineFile, scanProcessorConfig,
               module, parameters, moduleCallDate, storage);
     };
@@ -441,7 +438,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
-                   + " and file " + file.getAbsolutePath());
+        + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(getMassListStorage(), newMZmineFile,
         createTask(fileType, project, file, newMZmineFile, scanProcessorConfig, module, parameters,
@@ -456,10 +453,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           MZmineCore.createNewFile(newName, absPath, storage);
       case MZML, MZML_IMS, MZML_ZIP, MZML_GZIP -> null; // created in Mzml import task
       case IMZML -> MZmineCore.createNewImagingFile(newName, absPath, storage);
-      case BRUKER_TDF -> MZmineCore.createNewIMSFile(newName, absPath, storage);
-      case BRUKER_TSF, BRUKER_BAF ->
+      case BRUKER_TSF, BRUKER_BAF, BRUKER_TDF ->
           null; // TSF can be anything: Single shot maldi, imaging, or LC-MS (non ims)
-      case /*WATERS_RAW,*/ SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D -> null;
+      case WATERS_RAW, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D -> null;
     };
   }
 
