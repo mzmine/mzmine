@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,8 +30,11 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.ValueLayout.OfDouble;
+import java.lang.foreign.ValueLayout.OfFloat;
+import java.lang.foreign.ValueLayout.OfInt;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
@@ -58,7 +60,7 @@ public class MemoryMapStorage {
 
   }
 
-  private SegmentAllocator createMappedFile(long capacity) {
+  private static synchronized SegmentAllocator createMappedFile(long capacity) {
     try {
       var file = FileAndPathUtil.createTempFile("mzmine", ".tmp");
       logger.info(() -> "Creating mapped file at " + file.getAbsolutePath());
@@ -87,11 +89,36 @@ public class MemoryMapStorage {
     }
 
     try {
-      final MemorySegment memorySegment = allocator.allocateArray(OfDouble.JAVA_DOUBLE, data);
+      final MemorySegment memorySegment = allocator.allocate(OfDouble.JAVA_DOUBLE, data.length);
+      MemorySegment.copy(data, 0, memorySegment, OfDouble.JAVA_DOUBLE, 0, data.length);
       return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asDoubleBuffer();
     } catch (IndexOutOfBoundsException e) {
       allocator = createMappedFile(STORAGE_FILE_CAPACITY);
-      return allocator.allocateArray(OfDouble.JAVA_DOUBLE, data).asByteBuffer().asDoubleBuffer();
+      final MemorySegment memorySegment = allocator.allocate(OfDouble.JAVA_DOUBLE, data.length);
+      MemorySegment.copy(data, 0, memorySegment, OfDouble.JAVA_DOUBLE, 0, data.length);
+      return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asDoubleBuffer();
+    }
+  }
+
+  public synchronized FloatBuffer storeData(@NotNull final float[] data) {
+    if ((long) data.length * Double.BYTES > STORAGE_FILE_CAPACITY) {
+      throw new RuntimeException(
+          STR."Cannot store double array of length \{data.length} in mapped file of \{STORAGE_FILE_CAPACITY}. File too small.");
+    }
+
+    if (allocator == null) {
+      allocator = createMappedFile(STORAGE_FILE_CAPACITY);
+    }
+
+    try {
+      final MemorySegment memorySegment = allocator.allocate(OfFloat.JAVA_FLOAT, data.length);
+      MemorySegment.copy(data, 0, memorySegment, OfFloat.JAVA_FLOAT, 0, data.length);
+      return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asFloatBuffer();
+    } catch (IndexOutOfBoundsException e) {
+      allocator = createMappedFile(STORAGE_FILE_CAPACITY);
+      final MemorySegment memorySegment = allocator.allocate(OfFloat.JAVA_FLOAT, data.length);
+      MemorySegment.copy(data, 0, memorySegment, OfFloat.JAVA_FLOAT, 0, data.length);
+      return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asFloatBuffer();
     }
   }
 
@@ -106,12 +133,14 @@ public class MemoryMapStorage {
     }
 
     try {
-      return allocator.allocateArray(OfDouble.JAVA_INT, data).asByteBuffer()
-          .order(ByteOrder.nativeOrder()).asIntBuffer();
+      final MemorySegment memorySegment = allocator.allocate(OfInt.JAVA_INT, data.length);
+      MemorySegment.copy(data, 0, memorySegment, OfInt.JAVA_INT, 0, data.length);
+      return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asIntBuffer();
     } catch (IndexOutOfBoundsException e) {
       allocator = createMappedFile(STORAGE_FILE_CAPACITY);
-      return allocator.allocateArray(OfDouble.JAVA_INT, data).asByteBuffer()
-          .order(ByteOrder.nativeOrder()).asIntBuffer();
+      final MemorySegment memorySegment = allocator.allocate(OfInt.JAVA_INT, data.length);
+      MemorySegment.copy(data, 0, memorySegment, OfInt.JAVA_INT, 0, data.length);
+      return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asIntBuffer();
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,6 +25,7 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.featuredata.IonSeries;
+import io.github.mzmine.datamodel.impl.AbstractStorableSpectrum;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
@@ -198,12 +198,7 @@ public class StorageUtils {
 
     FloatBuffer buffer;
     if (storage != null) {
-      try {
-        buffer = storage.storeData(values);
-      } catch (IOException e) {
-        e.printStackTrace();
-        buffer = FloatBuffer.wrap(values);
-      }
+      buffer = storage.storeData(values);
     } else {
       buffer = FloatBuffer.wrap(values);
     }
