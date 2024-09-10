@@ -124,7 +124,6 @@ public class ResultFormula extends MolecularFormulaIdentity {
 
   /**
    * Creates a result formula from the row and the given ionic formula.
-   *
    */
   public ResultFormula(IMolecularFormula ionFormula, FeatureListRow row) {
     super(ionFormula, FormulaUtils.calculateMzRatio(ionFormula));
@@ -147,7 +146,7 @@ public class ResultFormula extends MolecularFormulaIdentity {
         .map(a -> (FeatureAnnotation) a).filter(a -> a.getFormula() != null)
         .<ResultFormula>mapMulti((a, c) -> {
 
-          final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(
+          final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
               a.getFormula());
           if (formula == null) {
             return;

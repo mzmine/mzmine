@@ -27,14 +27,14 @@ package io.github.mzmine.datamodel.identities;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonPart.IonStringFlavor;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
-import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.stream.XMLStreamException;
@@ -92,7 +92,8 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
     // generate name
     String ionParts = parts.stream().map(p -> p.toString(IonStringFlavor.SIMPLE_NO_CHARGE))
         .collect(Collectors.joining());
-    String name = "[" + molecules + ionParts + "]" + IonUtils.getChargeString(totalCharge);
+    String M = molecules > 1 ? molecules + "M" : "M";
+    String name = "[" + M + ionParts + "]" + IonUtils.getChargeString(totalCharge);
     return new IonType(name, parts, totalMass, totalCharge, molecules);
   }
 
@@ -133,13 +134,18 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
   }
 
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement("iontype");
+    writer.writeStartElement(XML_ELEMENT);
     writer.writeAttribute("molecules", String.valueOf(molecules));
-    writer.writeAttribute("charge", String.valueOf(totalCharge));
-    writer.writeAttribute("mass", String.valueOf(totalMass));
-    writer.writeStartElement("adduct");
-    parts.saveToXML(writer);
-    writer.writeEndElement();
+    // charge and mass is calculated from rest
+//    writer.writeAttribute("charge", String.valueOf(totalCharge));
+//    writer.writeAttribute("mass", String.valueOf(totalMass));
+    {
+      writer.writeStartElement("parts");
+      for (final IonPart part : parts) {
+        part.saveToXML(writer);
+      }
+      writer.writeEndElement();
+    }
     writer.writeEndElement();
   }
 
@@ -148,39 +154,37 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
       throw new IllegalStateException("Current element is not an iontype");
     }
 
-    final int molecules = Integer.parseInt(reader.getAttributeValue(null, "molecules"));
-    final int charge = Integer.parseInt(reader.getAttributeValue(null, "charge"));
+    final Integer molecules = ParsingUtils.stringToInteger(
+        reader.getAttributeValue(null, "molecules"));
+    Objects.requireNonNull(molecules);
+    // charge and mass is calculated from rest
+//    final Integer charge = ParsingUtils.stringToInteger(reader.getAttributeValue(null, "charge"));
+//    Objects.requireNonNull(charge);
+//    final Integer mass = ParsingUtils.stringToInteger(reader.getAttributeValue(null, "mass"));
+//    Objects.requireNonNull(mass);
 
-    IonModification adduct = null;
-    IonModification mod = null;
+    final List<@NotNull IonPart> parts = new ArrayList<>();
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals("iontype"))) {
+        .equals(XML_ELEMENT))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
       }
 
-      if (reader.getLocalName().equals("adduct")) {
-        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
-            CONST.XML_DATA_TYPE_ELEMENT)) {
-          adduct = IonModification.loadFromXML(reader);
-        } else {
-          return null;
-        }
-      }
-      if (reader.getLocalName().equals("modification")) {
-        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
-            CONST.XML_DATA_TYPE_ELEMENT)) {
-          mod = IonModification.loadFromXML(reader);
-        }
+      if (reader.getLocalName().equals(IonPart.XML_ELEMENT)) {
+//        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
+//            CONST.XML_DATA_TYPE_ELEMENT)) {
+        var part = IonPart.loadFromXML(reader);
+        Objects.requireNonNull(part);
+        parts.add(part);
       }
     }
+    if (parts.isEmpty()) {
+      throw new IllegalStateException("No ion parts found in xml");
+    }
 
-    assert adduct != null;
-
-    return mod != null ? new io.github.mzmine.datamodel.identities.iontype.IonType(molecules,
-        adduct, mod) : new io.github.mzmine.datamodel.identities.iontype.IonType(molecules, adduct);
+    return IonType.create(parts, molecules);
   }
 
   public boolean hasPartsOverlap(@Nullable IonType a) {
@@ -275,4 +279,11 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
     return result;
   }
 
+  /**
+   * @return number of neutral modifications
+   */
+  public int getModCount() {
+    return parts.stream().filter(IonPart::isNeutralModification).mapToInt(p -> Math.abs(p.count()))
+        .sum();
+  }
 }

@@ -25,15 +25,21 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -54,15 +60,16 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFormula,
                       double absSingleMass, int singleCharge, int count) {
 
+  private static final Logger logger = Logger.getLogger(IonPart.class.getName());
+  public static final String XML_ELEMENT = "ionpart";
   /**
    * losses first then additions. Each sorted by name
    */
   public static final Comparator<IonPart> DEFAULT_ION_ADDUCT_SORTER = Comparator.comparing(
-      IonPart::isAddition).thenComparing(IonPart::name);
+      IonPart::isCharged).thenComparing(IonPart::name);
 
   public static final Pattern PART_PATTERN = Pattern.compile("([+-]?\\d*)(\\w+)");
 
-  private static final Logger logger = Logger.getLogger(IonPart.class.getName());
 
   public IonPart(@NotNull final String name, @Nullable final IMolecularFormula singleFormula,
       final double absSingleMass, final int singleCharge, final int count) {
@@ -93,7 +100,8 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
   }
 
   public IonPart(@NotNull final IMolecularFormula formula, final int count) {
-    this(FormulaUtils.getFormulaString(formula, false), formula, formula.getCharge(), count);
+    this(FormulaUtils.getFormulaString(formula, false), formula,
+        requireNonNullElse(formula.getCharge(), 0), count);
   }
 
   public IonPart(@NotNull final IMolecularFormula formula, final int singleCharge,
@@ -116,6 +124,10 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
     this(name, null, singleMass, singleCharge, count);
   }
 
+  public IonPart(@NotNull String name, @NotNull String formula, final int singleCharge) {
+    this(name, formula, singleCharge, 1);
+  }
+
   public IonPart(@NotNull String name, @NotNull String formula, final int singleCharge,
       final int count) {
     this(name, Objects.requireNonNull(
@@ -125,8 +137,8 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
 
   public IonPart(@NotNull String name, @NotNull IMolecularFormula formula, final int singleCharge,
       final int count) {
-    this(name, formula, FormulaUtils.getMonoisotopicMass(formula, formula.getCharge()),
-        singleCharge, count);
+    this(name, formula, FormulaUtils.getMonoisotopicMass(formula, singleCharge), singleCharge,
+        count);
   }
 
 
@@ -144,17 +156,7 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
 
     String name = StringUtils.orDefault(matcher.group(2), "").trim();
     // try to find predefined parts by name
-
-    // otherwise create new ion trying to parse formula
-    var formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(name);
-    if (formula == null) {
-      logger.warning("Formula for " + name
-                     + " not found during parsing of ion type. This means that the mass remains unknown. Please provide proper formulas or add this name to the mzmine code base");
-      // just create with unknown values
-      return IonPart.unknown(name, count);
-    }
-
-    return new IonPart(formula, count);
+    return IonParts.findPartByNameOrFormula(name, count);
   }
 
   /**
@@ -164,6 +166,10 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
     // need to add a tiny mass difference to allow - or + in toString
     //
     return new IonPart(name, null, 0d, 0, signedCount);
+  }
+
+  public boolean isUnknown() {
+    return singleFormula == null && absSingleMass == 0d;
   }
 
   /**
@@ -221,6 +227,9 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
   }
 
   public IonPart withCount(final int count) {
+    if (count == this.count) {
+      return this;
+    }
     return new IonPart(name, singleFormula, absSingleMass, singleCharge, count);
   }
 
@@ -264,6 +273,11 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
     return count >= 0;
   }
 
+
+  public boolean isNeutralModification() {
+    return !isCharged();
+  }
+
   public Type type() {
     if (isCharged()) {
       return Type.ADDUCT;
@@ -301,12 +315,46 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
     return result;
   }
 
+
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    writer.writeAttribute("name", name);
+    writer.writeAttribute("mass", String.valueOf(absSingleMass));
+    writer.writeAttribute("charge", String.valueOf(singleCharge));
+    writer.writeAttribute("count", String.valueOf(count));
+    if (singleFormula != null) {
+      writer.writeAttribute("formula", FormulaUtils.getFormulaString(singleFormula, false));
+    }
+    writer.writeEndElement();
+  }
+
+  public static IonPart loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals("ionpart"))) {
+      throw new IllegalStateException("Current element is not an ionpart");
+    }
+
+    final Integer charge = ParsingUtils.stringToInteger(reader.getAttributeValue(null, "charge"));
+    final Integer count = ParsingUtils.stringToInteger(reader.getAttributeValue(null, "count"));
+    final Double mass = ParsingUtils.stringToDouble(reader.getAttributeValue(null, "mass"));
+    final String name = reader.getAttributeValue(null, "name");
+    Objects.requireNonNull(charge);
+    Objects.requireNonNull(count);
+    Objects.requireNonNull(mass);
+    Objects.requireNonNull(name);
+    // may be null
+    final String formula = reader.getAttributeValue(null, "formula");
+    final IMolecularFormula parsedFormula =
+        formula == null ? null : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula);
+
+    return new IonPart(name, parsedFormula, mass, charge, count);
+  }
+
   /**
    * @param formula changed in place
    * @param ionize  ionize formula if part has charge
    */
   public void addToFormula(final IMolecularFormula formula, final boolean ionize) {
-    final int formulaCharge = Objects.requireNonNullElse(formula.getCharge(), 0);
+    final int formulaCharge = requireNonNullElse(formula.getCharge(), 0);
     if (ionize) {
       formula.setCharge(formulaCharge + totalCharge());
     }
@@ -321,6 +369,7 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
       }
     }
   }
+
 
   public enum Type {
     /**

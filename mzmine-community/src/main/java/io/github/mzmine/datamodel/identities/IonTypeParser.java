@@ -25,15 +25,10 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -42,11 +37,6 @@ import org.jetbrains.annotations.Nullable;
 public class IonTypeParser {
 
   private static final Logger logger = Logger.getLogger(IonTypeParser.class.getName());
-
-  /**
-   * Pattern that groups +3H2O to  +3 and H2O
-   */
-  public static final Pattern PART_PATTERN = Pattern.compile("([+-]?\\d*)(\\w+)");
 
   @Nullable
   public static IonType parse(final @Nullable String str) {
@@ -78,7 +68,7 @@ public class IonTypeParser {
 
     int molMultiplier = 1;
     boolean molFound = false;
-    List<IonModification> mods = new ArrayList<>();
+    List<IonPart> mods = new ArrayList<>();
 
     for (int i = 0; i < clean.length(); i++) {
       char c = clean.charAt(i);
@@ -117,7 +107,7 @@ public class IonTypeParser {
       parseAndAddIonModifications(mods, remainder);
     }
 
-    IonType ion = createIon(molMultiplier, mods);
+    IonType ion = IonType.create(mods, molMultiplier);
 
     int chargeDiff = 0;
     if (detectedCharge == null && ion.totalCharge() == 0) {
@@ -127,47 +117,18 @@ public class IonTypeParser {
       chargeDiff = detectedCharge - ion.totalCharge();
     }
     if (chargeDiff != 0) {
-      var electron = chargeDiff > 0 ? IonModification.M_PLUS : IonModification.M_MINUS;
-      for (int c = 0; c < Math.abs(chargeDiff); c++) {
-        mods.add(electron);
-      }
-      return createIon(molMultiplier, mods);
+      IonPart electron = IonParts.M_PLUS.withCount(-chargeDiff);
+      mods.add(electron);
+      return IonType.create(mods, molMultiplier);
     } else {
       return ion;
     }
   }
 
-  @NotNull
-  private static IonType createIon(final int molMultiplier, final List<IonModification> mods) {
-    var adducts = mods.stream().filter(Objects::nonNull).filter(m -> m.getAbsCharge() > 0)
-        .toArray(IonModification[]::new);
-    var modifications = mods.stream().filter(Objects::nonNull).filter(m -> m.getAbsCharge() == 0)
-        .toArray(IonModification[]::new);
-
-    var combinedMod =
-        modifications.length == 0 ? null : CombinedIonModification.create(modifications);
-    return new IonType(molMultiplier, CombinedIonModification.create(adducts), combinedMod);
-  }
-
-  private static void parseAndAddIonModifications(final List<IonModification> mods, String mod) {
-    // mod is +Na or -H so with sign
-    // handle +2H by removing the number
-    var matcher = PART_PATTERN_OLD.matcher(mod);
-    if (!matcher.find()) {
-      return;
-    }
-
-    // keep parsing prefix number like this
-    int adductMultiplier = StringUtils.parseIntegerPrefixOrElse(mod, 1);
-
-    // need +H or -H2O to get the correct part
-    String sign = StringUtils.orDefault(matcher.group(1), "+");
-    String part = sign + StringUtils.orDefault(matcher.group(3), "");
-
-    var ionPart = IonModification.parseFromString(part);
-
-    for (int j = 0; j < Math.abs(adductMultiplier); j++) {
-      mods.add(ionPart);
+  private static void parseAndAddIonModifications(final List<IonPart> mods, String mod) {
+    IonPart part = IonPart.parse(mod);
+    if (part != null) {
+      mods.add(part);
     }
   }
 

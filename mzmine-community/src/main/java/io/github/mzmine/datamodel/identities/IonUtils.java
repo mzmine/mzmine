@@ -47,6 +47,9 @@ public class IonUtils {
     if (charge == 0) {
       return "";
     }
+    if (charge == 1) {
+      return "+";
+    }
     return Math.abs(charge) + getSign(charge);
   }
 
@@ -61,7 +64,7 @@ public class IonUtils {
     } else if (n == -1) {
       return "-";
     } else if (n == 1) {
-      return "1";
+      return "+";
     }
     var v = String.valueOf(n);
     return n < 0 ? v : "+" + v;
