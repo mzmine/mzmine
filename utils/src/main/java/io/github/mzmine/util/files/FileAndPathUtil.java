@@ -712,8 +712,9 @@ public class FileAndPathUtil {
 
   private static Path generatePath(String filename, Path dir) {
     Path name = dir.getFileSystem().getPath(filename);
+    // check that filename does not contain parent directory, this would be invalid string
     if (name.getParent() != null) {
-      throw new IllegalArgumentException("prefix or suffix invalid");
+      throw new IllegalArgumentException("filename is invalid and contains parent directory");
     }
     return dir.resolve(name);
   }
