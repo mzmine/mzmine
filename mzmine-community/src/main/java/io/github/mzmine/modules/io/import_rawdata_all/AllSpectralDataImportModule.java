@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -410,9 +409,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case MZXML ->
           new MzXMLImportTask(project, file, newMZmineFile, scanProcessorConfig, module, parameters,
               moduleCallDate);
-      case BRUKER_TDF -> // ims files are big, use own storage
-          new TDFImportTask(project, file, MemoryMapStorage.forRawDataFile(), scanProcessorConfig,
-              module, parameters, moduleCallDate);
+      case BRUKER_TDF ->
+          new TDFImportTask(project, file, storage, scanProcessorConfig, module, parameters,
+              moduleCallDate);
       case THERMO_RAW ->
           new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
               scanProcessorConfig);
