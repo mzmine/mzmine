@@ -24,21 +24,19 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.IOException;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
-import java.lang.foreign.ValueLayout.OfDouble;
-import java.lang.foreign.ValueLayout.OfFloat;
-import java.lang.foreign.ValueLayout.OfInt;
+import java.lang.foreign.ValueLayout;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
-import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,94 +52,104 @@ public class MemoryMapStorage {
   private static boolean storeRawFilesInRam = false;
   private static boolean storeMassListsInRam = false;
 
+  private static AtomicLong tempFileCounter = new AtomicLong(0L);
+
+  private final CloseableReentrantReadWriteLock lock = new CloseableReentrantReadWriteLock();
+
   private SegmentAllocator allocator;
 
   private MemoryMapStorage() {
-
   }
 
-  private static synchronized SegmentAllocator createMappedFile(long capacity) {
-    try {
-      var file = FileAndPathUtil.createTempFile("mzmine", ".tmp");
-      logger.info(() -> "Creating mapped file at " + file.getAbsolutePath());
-      FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.READ,
-          StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-
-      final MemorySegment currentSegment = channel.map(MapMode.READ_WRITE, 0, capacity,
-          Arena.ofAuto());
-
-      file.deleteOnExit();
+  private SegmentAllocator createMappedFile(long capacity) throws IOException {
+    try (var l = lock.lockWrite()) {
+      final MemorySegment currentSegment = FileAndPathUtil.memoryMapSparseTempFile(Arena.ofAuto(),
+          capacity);
 
       return SegmentAllocator.slicingAllocator(currentSegment);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      logger.log(Level.SEVERE, "Error creating temp file. %s".formatted(e.getMessage()), e);
+      throw e;
     }
   }
 
-  public synchronized DoubleBuffer storeData(@NotNull final double[] data) {
+  @NotNull
+  private MemorySegment __storeData(@NotNull Object data, ValueLayout layout, int length) {
+    if (((long) length * layout.byteSize()) > STORAGE_FILE_CAPACITY) {
+      throw new RuntimeException(
+          STR."Cannot store double array of length \{length} in mapped file of \{STORAGE_FILE_CAPACITY}. File too small.");
+    }
+
+    try (var l = lock.lockWrite()) {
+      // check if the allocator exists
+      if (allocator == null) {
+        try {
+          allocator = createMappedFile(STORAGE_FILE_CAPACITY);
+        } catch (IOException e) {
+          logger.log(Level.SEVERE,
+              "Error creating temp file. %s, storing data into RAM.".formatted(e.getMessage()), e);
+
+          final MemorySegment memorySegment = Arena.ofAuto().allocate(layout, length);
+          MemorySegment.copy(data, 0, memorySegment, layout, 0, length);
+          return memorySegment;
+        }
+      }
+
+      try {
+        // success, store in actual mapped file
+        final MemorySegment memorySegment = allocator.allocate(layout, length);
+        MemorySegment.copy(data, 0, memorySegment, layout, 0, length);
+        return memorySegment;
+      } catch (IndexOutOfBoundsException e) {
+        logger.log(Level.FINE, "Cannot memory map array of length %d".formatted(length), e);
+
+        // current mapped file is full
+        try {
+          allocator = createMappedFile(STORAGE_FILE_CAPACITY);
+          // success, store in actual mapped file
+          final MemorySegment memorySegment = allocator.allocate(layout, length);
+          MemorySegment.copy(data, 0, memorySegment, layout, 0, length);
+          return memorySegment;
+
+        } catch (IOException ex) {
+          logger.log(Level.SEVERE, "Error creating temp file. %s".formatted(e.getMessage()), ex);
+
+          final MemorySegment memorySegment = Arena.ofAuto().allocate(layout, length);
+          MemorySegment.copy(data, 0, memorySegment, layout, 0, length);
+          return memorySegment;
+        }
+      }
+    }
+  }
+
+  public DoubleBuffer storeData(@NotNull final double[] data) {
     if ((long) data.length * Double.BYTES > STORAGE_FILE_CAPACITY) {
       throw new RuntimeException(
           STR."Cannot store double array of length \{data.length} in mapped file of \{STORAGE_FILE_CAPACITY}. File too small.");
     }
 
-    if (allocator == null) {
-      allocator = createMappedFile(STORAGE_FILE_CAPACITY);
-    }
-
-    try {
-      final MemorySegment memorySegment = allocator.allocate(OfDouble.JAVA_DOUBLE, data.length);
-      MemorySegment.copy(data, 0, memorySegment, OfDouble.JAVA_DOUBLE, 0, data.length);
-      return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asDoubleBuffer();
-    } catch (IndexOutOfBoundsException e) {
-      allocator = createMappedFile(STORAGE_FILE_CAPACITY);
-      final MemorySegment memorySegment = allocator.allocate(OfDouble.JAVA_DOUBLE, data.length);
-      MemorySegment.copy(data, 0, memorySegment, OfDouble.JAVA_DOUBLE, 0, data.length);
-      return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asDoubleBuffer();
-    }
+    return __storeData(data, ValueLayout.JAVA_DOUBLE, data.length).asByteBuffer()
+        .order(ByteOrder.nativeOrder()).asDoubleBuffer();
   }
 
-  public synchronized FloatBuffer storeData(@NotNull final float[] data) {
-    if ((long) data.length * Double.BYTES > STORAGE_FILE_CAPACITY) {
+  public FloatBuffer storeData(@NotNull final float[] data) {
+    if ((long) data.length * Float.BYTES > STORAGE_FILE_CAPACITY) {
       throw new RuntimeException(
-          STR."Cannot store double array of length \{data.length} in mapped file of \{STORAGE_FILE_CAPACITY}. File too small.");
+          STR."Cannot store float array of length \{data.length} in mapped file of \{STORAGE_FILE_CAPACITY}. File too small.");
     }
 
-    if (allocator == null) {
-      allocator = createMappedFile(STORAGE_FILE_CAPACITY);
-    }
-
-    try {
-      final MemorySegment memorySegment = allocator.allocate(OfFloat.JAVA_FLOAT, data.length);
-      MemorySegment.copy(data, 0, memorySegment, OfFloat.JAVA_FLOAT, 0, data.length);
-      return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asFloatBuffer();
-    } catch (IndexOutOfBoundsException e) {
-      allocator = createMappedFile(STORAGE_FILE_CAPACITY);
-      final MemorySegment memorySegment = allocator.allocate(OfFloat.JAVA_FLOAT, data.length);
-      MemorySegment.copy(data, 0, memorySegment, OfFloat.JAVA_FLOAT, 0, data.length);
-      return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asFloatBuffer();
-    }
+    return __storeData(data, ValueLayout.JAVA_FLOAT, data.length).asByteBuffer()
+        .order(ByteOrder.nativeOrder()).asFloatBuffer();
   }
 
-  public synchronized IntBuffer storeData(@NotNull final int[] data) {
+  public IntBuffer storeData(@NotNull final int[] data) {
     if ((long) data.length * Integer.BYTES > STORAGE_FILE_CAPACITY) {
       throw new RuntimeException(
           STR."Cannot store double array of length \{data.length} in mapped file of \{STORAGE_FILE_CAPACITY}. File too small.");
     }
 
-    if (allocator == null) {
-      allocator = createMappedFile(STORAGE_FILE_CAPACITY);
-    }
-
-    try {
-      final MemorySegment memorySegment = allocator.allocate(OfInt.JAVA_INT, data.length);
-      MemorySegment.copy(data, 0, memorySegment, OfInt.JAVA_INT, 0, data.length);
-      return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asIntBuffer();
-    } catch (IndexOutOfBoundsException e) {
-      allocator = createMappedFile(STORAGE_FILE_CAPACITY);
-      final MemorySegment memorySegment = allocator.allocate(OfInt.JAVA_INT, data.length);
-      MemorySegment.copy(data, 0, memorySegment, OfInt.JAVA_INT, 0, data.length);
-      return memorySegment.asByteBuffer().order(ByteOrder.nativeOrder()).asIntBuffer();
-    }
+    return __storeData(data, ValueLayout.JAVA_INT, data.length).asByteBuffer()
+        .order(ByteOrder.nativeOrder()).asIntBuffer();
   }
 
   /**
