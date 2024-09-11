@@ -169,6 +169,9 @@ public class StorageUtils {
   @NotNull
   public static DoubleBuffer storeValuesToDoubleBuffer(@Nullable final MemoryMapStorage storage,
       @NotNull final double[] values) {
+    if (values.length == 0) {
+      return AbstractStorableSpectrum.EMPTY_BUFFER;
+    }
 
     DoubleBuffer buffer;
     if (storage != null) {
