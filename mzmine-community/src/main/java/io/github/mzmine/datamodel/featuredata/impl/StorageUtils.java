@@ -175,7 +175,7 @@ public class StorageUtils {
 
     DoubleBuffer buffer;
     if (storage != null) {
-      buffer = storage.storeData(values);
+      buffer = storage.storeDataToBuffer(values);
     } else {
       buffer = DoubleBuffer.wrap(values);
     }
@@ -201,7 +201,7 @@ public class StorageUtils {
 
     FloatBuffer buffer;
     if (storage != null) {
-      buffer = storage.storeData(values);
+      buffer = storage.storeDataToBuffer(values);
     } else {
       buffer = FloatBuffer.wrap(values);
     }
@@ -224,7 +224,7 @@ public class StorageUtils {
 
     IntBuffer buffer;
     if (storage != null) {
-      buffer = storage.storeData(values);
+      buffer = storage.storeDataToBuffer(values);
     } else {
       buffer = IntBuffer.wrap(values);
     }
