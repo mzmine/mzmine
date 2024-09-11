@@ -63,10 +63,17 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
   private static final Logger logger = Logger.getLogger(IonPart.class.getName());
   public static final String XML_ELEMENT = "ionpart";
   /**
-   * losses first then additions. Each sorted by name
+   * non charged then charged modifications. Each sorted by name. Used to create the name of
+   * {@link IonType}
    */
-  public static final Comparator<IonPart> DEFAULT_ION_ADDUCT_SORTER = Comparator.comparing(
+  public static final Comparator<IonPart> DEFAULT_NAME_SORTER = Comparator.comparing(
       IonPart::isCharged).thenComparing(IonPart::name);
+
+  /**
+   * sort by charge and then mass
+   */
+  public static final Comparator<IonPart> DEFAULT_CHARGE_MASS_SORTER = Comparator.comparing(
+      IonPart::singleCharge).thenComparing(IonPart::absSingleMass);
 
   public static final Pattern PART_PATTERN = Pattern.compile("([+-]?\\d*)(\\w+)");
 
@@ -184,6 +191,10 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
   }
 
   public String toString(IonStringFlavor flavor) {
+    if (name.isBlank()) {
+      // e,g, {@link IonParts#}
+      return "";
+    }
     String base = IonUtils.getSignedNumberOmit1(count) + name;
     return switch (flavor) {
       case SIMPLE_NO_CHARGE -> base;
@@ -368,6 +379,13 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
         FormulaUtils.addFormula(formula, singleFormula);
       }
     }
+  }
+
+  /**
+   * @return silent charge is the only blank name with charge 1
+   */
+  public boolean isSilentCharge() {
+    return name.isBlank() && singleFormula == null && singleCharge == 1;
   }
 
 

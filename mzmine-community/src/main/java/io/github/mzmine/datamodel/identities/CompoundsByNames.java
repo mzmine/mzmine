@@ -40,14 +40,16 @@ public class CompoundsByNames {
   public static Optional<IonPart> getIonPartByName(@NotNull String name) {
     String simplifiedName = name.toLowerCase().replaceAll("[_-]", " ").trim();
     return Optional.ofNullable(switch (simplifiedName) {
-      case "hfa", "formic acid", "formicacid" -> IonParts.FORMIC_ACID;
-      case "fa", "formate", "formiate" -> IonParts.FORMATE_FA;
-      case "acetate", "ac" -> IonParts.ACETATE_AC;
-      case "hac", "acetic acid", "aceticacid" -> IonParts.ACETIC_ACID;
+      case "e" -> IonParts.M_MINUS;
+      case "hfa", "formic acid", "formicacid", "CH2O2", "HCOOH", "CHOOH" -> IonParts.FORMIC_ACID;
+      case "fa", "formate", "formiate", "CHO2", "HCOO", "CHOO", "CHO2-", "HCOO-", "CHOO-" ->
+          IonParts.FORMATE_FA;
+      case "acetate", "ac", "C2H3O2", "CH3COO", "CH3COO-" -> IonParts.ACETATE_AC;
+      case "hac", "acetic acid", "aceticacid", "C2H4O2", "CH3COOH" -> IonParts.ACETIC_ACID;
       case "water", "h2o" -> IonParts.H2O;
-      case "acn", "acetonitril", "acetonitrile" -> IonParts.ACN;
-      case "ethanol", "etoh" -> IonParts.ETHANOL;
-      case "methanol", "meoh" -> IonParts.METHANOL;
+      case "acn", "acetonitril", "acetonitrile", "CH3CN", "C2H3N" -> IonParts.ACN;
+      case "ethanol", "etoh", "CH3CH2OH", "C2H6O" -> IonParts.ETHANOL;
+      case "methanol", "meoh", "CH3OH", "CH4O" -> IonParts.METHANOL;
       case "isoprop", "iso prop", "isopropanol", "iso propanol", "iproh", "ipr" ->
           IonParts.ISO_PROPANOL;
       case "hydrocholide", "hcl" -> IonParts.HCL;

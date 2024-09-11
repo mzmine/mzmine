@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import static java.util.function.Predicate.not;
+
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonPart.IonStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
@@ -80,7 +82,7 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
     }
 
     // sort so that name will be correct
-    parts = unique.values().stream().sorted(IonPart.DEFAULT_ION_ADDUCT_SORTER).toList();
+    parts = unique.values().stream().sorted(IonPart.DEFAULT_NAME_SORTER).toList();
 
     double totalMass = 0;
     int totalCharge = 0;
@@ -273,8 +275,8 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
     }
 
     // add first then remove
-    parts.stream().filter(IonPart::isAddition).forEach(ion -> ion.addToFormula(formula, ionize));
-    parts.stream().filter(IonPart::isLoss).forEach(ion -> ion.addToFormula(formula, ionize));
+    stream(false).filter(IonPart::isAddition).forEach(ion -> ion.addToFormula(formula, ionize));
+    stream(false).filter(IonPart::isLoss).forEach(ion -> ion.addToFormula(formula, ionize));
 
     return result;
   }
@@ -283,7 +285,16 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
    * @return number of neutral modifications
    */
   public int getModCount() {
-    return parts.stream().filter(IonPart::isNeutralModification).mapToInt(p -> Math.abs(p.count()))
+    return stream(false).filter(IonPart::isNeutralModification).mapToInt(p -> Math.abs(p.count()))
         .sum();
+  }
+
+  /**
+   * @param includeSilentCharges include the silent charges that are used to add or remove charges
+   *                             when it does not sum up
+   * @return a stream of ion parts
+   */
+  public Stream<IonPart> stream(boolean includeSilentCharges) {
+    return includeSilentCharges ? stream() : stream().filter(not(IonPart::isSilentCharge));
   }
 }

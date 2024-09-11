@@ -50,6 +50,9 @@ public class IonUtils {
     if (charge == 1) {
       return "+";
     }
+    if (charge == -1) {
+      return "-";
+    }
     return Math.abs(charge) + getSign(charge);
   }
 

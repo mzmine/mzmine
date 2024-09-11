@@ -65,13 +65,13 @@ class IonTypeParserTest {
 
   @Test
   void testIonTypeParsingMultiple() {
-    final String[] string = new String[]{"[M+NH4]+", "[M-H2O+H]+", "[M -2H2O +H] +",
+    final String[] string = new String[]{"[M +NH4]+", "[M-H2O+H]+", "[M -2H2O +H] +",
         "[M-H2O -H+2Na]+"};
 
     for (String s : string) {
       IonType ionType = IonTypeParser.parse(s);
       Assertions.assertNotNull(ionType);
-      Assertions.assertEquals(s, ionType.toString());
+      Assertions.assertEquals(s.replace(" ", ""), ionType.toString());
     }
   }
 
@@ -101,13 +101,13 @@ class IonTypeParserTest {
     testIonParser("[M-H+CH3]+", "[M+CH3-H]+", 1, 1, 1);
     testIonParser("[M-H+Fe]2+", "[M+Fe-H]2+", 1, 2, 0);
     testIonParser("[M-H+Fe]+2", "[M+Fe-H]2+", 1, 2, 0);
-    testIonParser("M+e", "[M]-", 1, -1, 0);
-    testIonParser("M+2e", "[M]2-", 1, -2, 0);
-    testIonParser("M-e", "[M]+", 1, 1, 0);
-    testIonParser("M-2e", "[M]2+", 1, 2, 0);
+    testIonParser("M+e", "[M+e]-", 1, -1, 0);
+    testIonParser("M+2e", "[M+2e]2-", 1, -2, 0);
+    testIonParser("M-e", "[M-e]+", 1, 1, 0);
+    testIonParser("M-2e", "[M-2e]2+", 1, 2, 0);
 
     testIonParser("M+Cl", "[M+Cl]-", 1, -1, 0);
-    testIonParser("M-HCl+FA", "[M-HCl+FA]-", 1, -1, 1);
+    testIonParser("M-HCl+FA", "[M-HCl+CHO2]-", 1, -1, 1);
 
     // counter intuitve but we expect ions to have a charge and default to 1
     testIonParser("[M-H2O]", "[M-H2O]+", 1, 1, 1);

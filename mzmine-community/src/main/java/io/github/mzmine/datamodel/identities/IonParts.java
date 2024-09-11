@@ -36,6 +36,8 @@ public class IonParts {
 
   private static final Logger logger = Logger.getLogger(IonParts.class.getName());
 
+  public static final IonPart SILENT_CHARGE = new IonPart("", 0d, 1);
+
   public static final IonPart M_MINUS = new IonPart("e", IonUtils.ELECTRON_MASS, -1);
   public static final IonPart M_PLUS = M_MINUS.flipCount();
 
@@ -72,7 +74,7 @@ public class IonParts {
   public static final IonPart NH3 = new IonPart("NH3", "NH3", 0, -1);
   public static final IonPart H2 = new IonPart("H2", 0, -1);
   public static final IonPart C2H4 = new IonPart("C2H4", 0, -1);
-  public static final IonPart HCL = new IonPart("HCl", 0, -1);
+  public static final IonPart HCL = new IonPart("HCl", "HCl", 0, -1);
   public static final IonPart H2O = new IonPart("H2O", 0, -1);
   public static final IonPart H2O_2 = H2O.withCount(-2);
   public static final IonPart H2O_3 = H2O.withCount(-3);

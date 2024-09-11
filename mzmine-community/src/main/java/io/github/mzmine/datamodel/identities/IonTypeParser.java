@@ -117,8 +117,8 @@ public class IonTypeParser {
       chargeDiff = detectedCharge - ion.totalCharge();
     }
     if (chargeDiff != 0) {
-      IonPart electron = IonParts.M_PLUS.withCount(-chargeDiff);
-      mods.add(electron);
+      IonPart chargeChanger = IonParts.SILENT_CHARGE.withCount(chargeDiff);
+      mods.add(chargeChanger);
       return IonType.create(mods, molMultiplier);
     } else {
       return ion;
