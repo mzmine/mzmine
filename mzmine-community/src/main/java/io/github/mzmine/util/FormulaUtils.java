@@ -398,23 +398,41 @@ public class FormulaUtils {
   @Nullable
   public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(String formula) {
     try {
-      // new formula consists of isotopes without exact mass
       IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-      IMolecularFormula f = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-          formula.replace(" ", ""), builder);
+      // generate regular formula first
+      // this method adds missing atoms as isotope with atom number 0
+      // parsing TEST will result in 1 S atom and 3 atoms with number 0 -> check this to validate parsing
+      var f = MolecularFormulaManipulator.getMolecularFormula(formula.replace(" ", ""), builder);
+
+      // new formula consists of isotopes without exact mass
+//      IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+//      IMolecularFormula f = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
+//          formula.replace(" ", ""), builder);
 
       if (f == null) {
         return null;
       }
-      // replace isotopes
-      // needed, as MolecularFormulaManipulator method returns isotopes
-      // without exact mass info
-      try {
-        return replaceAllIsotopesWithoutExactMass(f);
-      } catch (Exception e) {
-        logger.log(Level.SEVERE, "Cannot create formula for: " + formula, e);
-        return null;
+      for (IIsotope iso : f.isotopes()) {
+        if ((iso.getAtomicNumber() == null) || (iso.getAtomicNumber() == 0)) {
+          logger.warning("Cannot parse formula %s as there are unknown atoms".formatted(formula));
+          return null;
+        }
+
+        try {
+          IIsotope major = Isotopes.getInstance().getMajorIsotope(iso.getAtomicNumber());
+          if (major != null) {
+            // replace isotopes
+            // needed, as MolecularFormulaManipulator method returns isotopes
+            // without exact mass info
+            iso.setMassNumber(major.getMassNumber());
+            iso.setExactMass(major.getExactMass());
+            iso.setNaturalAbundance(major.getNaturalAbundance());
+          }
+        } catch (IOException ex) {
+          // ignored
+        }
       }
+      return f;
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Cannot create formula for: " + formula, e);
       return null;

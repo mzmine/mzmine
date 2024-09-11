@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,8 @@
 package io.github.mzmine.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -56,4 +58,23 @@ class FormulaUtilsTest {
     assertEquals("[C]2-", FormulaUtils.getFormulaString(formula("C-2"), true));
   }
 
+  @Test
+  void parseFormulaString() {
+    parseFormula("D2O", true);
+    parseFormula("TEST", true); //
+    parseFormula("GGG", true); //
+    parseFormula("H2o", true);
+    parseFormula("H2O", false);
+  }
+
+  private static IMolecularFormula parseFormula(final String formula, boolean resultNull) {
+    var f = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula);
+    if (resultNull) {
+      assertNull(f, () -> "Parsed formula for %s is %s".formatted(formula,
+          FormulaUtils.getFormulaString(f, false)));
+    } else {
+      assertNotNull(f, "Formula for %s is null".formatted(formula));
+    }
+    return f;
+  }
 }
