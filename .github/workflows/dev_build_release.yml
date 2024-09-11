@@ -48,14 +48,14 @@ jobs:
       # UPLOAD ALL FILES
       - name: Upload windows builds
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_windows_msi_installer
           path: mzmine-community/build/jpackage/*.msi
           retention-days: 7  # store for 7 days
       - name: Upload windows portable builds
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_windows_portable
           path: mzmine-community/build/jpackage/mzmine_Windows_portable.zip
@@ -63,21 +63,21 @@ jobs:
 
       - name: Upload builds ubuntu deb
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_linux_deb_package
           path: mzmine-community/build/jpackage/*.deb
           retention-days: 7  # store for 7 days
       - name: Upload builds ubuntu rpm
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_linux_rpm_package
           path: mzmine-community/build/jpackage/*.rpm
           retention-days: 7  # store for 7 days
       - name: Upload linux portable builds
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_linux_portable
           path: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload macOS installer
         if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_macOS_installer
           path: mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
@@ -140,7 +140,7 @@ jobs:
       #          dest: build/jpackage/mzmine_macOS_portable.zip
       - name: Upload macOS portable builds
         if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_macos_portable
           path: mzmine-community/build/jpackage/mzmine_macOS_portable.zip
