@@ -104,9 +104,9 @@ public class ThermoRawImportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Opening file " + fileToOpen);
 
-    final boolean useMsConvertForThermo =
-        ConfigService.getPreferences().getValue(MZminePreferences.thermoImportChoice)
-            == ThermoImportOptions.MSCONVERT;
+    final boolean useMsConvertForThermo = true;
+//        ConfigService.getPreferences().getValue(MZminePreferences.thermoImportChoice)
+//            == ThermoImportOptions.MSCONVERT;
 
     try {
       final ProcessBuilder builder = useMsConvertForThermo ? createProcessFromMsConvert()
@@ -181,6 +181,7 @@ public class ThermoRawImportTask extends AbstractTask {
 
     final List<String> cmdLine = MSConvertImportTask.buildCommandLine(fileToOpen, msConvertPath,
         false);
+    cmdLine.add("--ignoreUnknownInstrumentError");
     return new ProcessBuilder(cmdLine);
   }
 
@@ -188,8 +189,8 @@ public class ThermoRawImportTask extends AbstractTask {
     if (CurrentUserService.getUser().getUserType() != UserType.ACADEMIC) {
       logger.info(
           "Thermo import via raw file parser selected although the user is not academic. Overriding.");
-      ConfigService.getPreferences()
-          .setParameter(MZminePreferences.thermoImportChoice, ThermoImportOptions.MSCONVERT);
+//      ConfigService.getPreferences()
+//          .setParameter(MZminePreferences.thermoImportChoice, ThermoImportOptions.MSCONVERT);
       // try to launch via msconvert to make it seemless.
       final ProcessBuilder msconvert = createProcessFromMsConvert();
       if (msconvert == null) {
