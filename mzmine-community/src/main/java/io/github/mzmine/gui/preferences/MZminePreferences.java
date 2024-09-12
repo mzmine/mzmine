@@ -31,6 +31,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.download.ExternalAsset;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -45,6 +46,7 @@ import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithDownloadParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -199,9 +201,9 @@ public class MZminePreferences extends SimpleParameterSet {
   private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
   private NumberFormats guiFormat = exportFormat; // default value
 
-  public static final FileNameParameter msConvertPath = new FileNameParameter("MSConvert path",
+  public static final FileNameParameter msConvertPath = new FileNameWithDownloadParameter("MSConvert path",
       "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
-      List.of(ExtensionFilters.EXE, ExtensionFilters.ALL_FILES), FileSelectionType.OPEN, true);
+      List.of(ExtensionFilters.EXE, ExtensionFilters.ALL_FILES), ExternalAsset.MSCONVERT);
 
   public static final BooleanParameter keepConvertedFile = new BooleanParameter(
       "Keep files converted by MSConvert",

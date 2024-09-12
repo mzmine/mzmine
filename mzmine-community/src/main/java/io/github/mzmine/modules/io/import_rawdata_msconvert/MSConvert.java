@@ -84,7 +84,7 @@ public class MSConvert {
         final ExtensionFilter filter = new ExtensionFilter("MSConvert", "msconvert.exe");
         selected.set(
             FxFileChooser.openSelectDialog(FxFileChooser.FileSelectionType.OPEN, List.of(filter),
-                null));
+                null, "Please select the MSConvert path."));
       });
     }
 

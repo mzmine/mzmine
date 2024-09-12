@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.ThermoImportOptions;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -175,13 +176,14 @@ public class ThermoRawImportTask extends AbstractTask {
   private @Nullable ProcessBuilder createProcessFromMsConvert() {
     final File msConvertPath = MSConvert.getMsConvertPath();
     if (msConvertPath == null) {
-      error("MSConvert not found. Please install MSConvert to import thermo raw data files.");
+      error("MSConvert not found. Please install MSConvert to import Thermo raw data files.");
+      DialogLoggerUtil.showMessageDialogForTime("MSConvert required",
+          "Please install MSConvert to import Thermo raw data files.", 5000);
       return null;
     }
 
     final List<String> cmdLine = MSConvertImportTask.buildCommandLine(fileToOpen, msConvertPath,
         false);
-    cmdLine.add("--ignoreUnknownInstrumentError");
     return new ProcessBuilder(cmdLine);
   }
 
