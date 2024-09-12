@@ -35,9 +35,12 @@ import javafx.scene.control.Accordion;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.controlsfx.tools.Borders;
@@ -175,7 +178,7 @@ public class FxLayout {
 
   public static Accordion newAccordion(TitledPane expandedPane, @NotNull TitledPane... panes) {
     final Accordion accordion = newAccordion(panes);
-    if(!accordion.getPanes().contains(expandedPane)) {
+    if (!accordion.getPanes().contains(expandedPane)) {
       accordion.getPanes().add(expandedPane);
     }
     accordion.setExpandedPane(expandedPane);
@@ -183,10 +186,41 @@ public class FxLayout {
   }
 
   public static Accordion newAccordion(boolean expandFirst, TitledPane... panes) {
-    if(expandFirst && panes.length > 0) {
+    if (expandFirst && panes.length > 0) {
       var first = panes[0];
       return newAccordion(first, panes);
     }
     return newAccordion(panes);
+  }
+
+  public static GridPane newGrid2Col(final Node... children) {
+    return newGrid2Col(DEFAULT_PADDING_INSETS, children);
+  }
+
+  public static GridPane newGrid2Col(Insets padding, final Node... children) {
+    var grid = new GridPane(DEFAULT_SPACE, DEFAULT_SPACE);
+    grid.setPadding(padding);
+
+    /*
+     * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
+     * constraints, leaving the GridPane to compute the column's layout based solely on its
+     * content's size preferences and constraints.
+     */
+    ColumnConstraints column1 = new ColumnConstraints();
+    ColumnConstraints column2 = new ColumnConstraints();
+    column2.setFillWidth(true);
+    column2.setHgrow(Priority.ALWAYS);
+    grid.getColumnConstraints().addAll(column1, column2);
+    var row = new RowConstraints();
+    row.setValignment(VPos.CENTER);
+    grid.getRowConstraints().add(row);
+
+    for (int i = 0; i < children.length; i += 2) {
+      grid.add(children[i], 0, i / 2);
+      if (i + 1 < children.length) {
+        grid.add(children[i + 1], 1, i / 2);
+      }
+    }
+    return grid;
   }
 }
