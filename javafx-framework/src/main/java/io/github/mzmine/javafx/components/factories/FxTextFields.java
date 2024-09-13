@@ -25,10 +25,12 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.javafx.components.util.FxLayout;
 import javafx.beans.property.Property;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -111,6 +113,7 @@ public class FxTextFields {
     };
     passwordField.setOnAction(clearAfterHandler);
 
-    return new HBox(passwordField, FxButtons.createButton(buttonLabel, tooltip, clearAfterHandler));
+    return FxLayout.newHBox(Insets.EMPTY, passwordField,
+        FxButtons.createButton(buttonLabel, tooltip, clearAfterHandler));
   }
 }
