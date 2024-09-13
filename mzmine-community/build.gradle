@@ -371,9 +371,10 @@ runtime {
         }
         imageName = "mzmine"
         jvmArgs = ["-showversion",
-                   "-XX:MaxHeapFreeRatio=100",
-                   "-XX:InitialRAMPercentage=30",
-                   "-XX:MinRAMPercentage=80",
+                   "-XX:MinHeapFreeRatio=50",
+                   "-XX:MaxHeapFreeRatio=75",
+                   "-XX:InitialRAMPercentage=5",
+                   "-XX:MinRAMPercentage=75",
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
                    "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
