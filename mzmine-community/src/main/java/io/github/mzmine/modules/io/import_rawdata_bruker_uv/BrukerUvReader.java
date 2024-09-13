@@ -155,7 +155,7 @@ public class BrukerUvReader implements AutoCloseable {
    * @return The loaded spectrum.
    */
   private static @NotNull WavelengthSpectrum getSpectrumFromResult(MemoryMapStorage storage,
-      ResultSet resultSet, OtherSpectralDataImpl spectralData, DoubleBuffer storedDomainAxis,
+      ResultSet resultSet, OtherSpectralDataImpl spectralData, MemorySegment storedDomainAxis,
       double timeOffset) throws SQLException {
     final double rt = (resultSet.getDouble(1) + timeOffset) / 60;
     final byte[] intensitiesArray = resultSet.getBytes(2);
@@ -163,7 +163,7 @@ public class BrukerUvReader implements AutoCloseable {
 
     // intensities are an array of floats
     final float[] intensities = intensitiesSegment.toArray(FLOAT_ARRAY_LAYOUT);
-    assert intensities.length == storedDomainAxis.limit();
+    assert intensities.length == StorageUtils.numDoubles(storedDomainAxis);
 
     final WavelengthSpectrum spectrum = new WavelengthSpectrum(spectralData, storedDomainAxis,
         StorageUtils.storeValuesToDoubleBuffer(storage,
@@ -340,7 +340,7 @@ public class BrukerUvReader implements AutoCloseable {
     description = "Reading spectra.";
     for (SpectrumSource detector : detectors) {
       final double[] xAxisValues = detector.xAxis();
-      final DoubleBuffer storedDomainAxis = StorageUtils.storeValuesToDoubleBuffer(storage,
+      final MemorySegment storedDomainAxis = StorageUtils.storeValuesToDoubleBuffer(storage,
           xAxisValues);
 
       final OtherDataFileImpl spectraFile = new OtherDataFileImpl(msFile);

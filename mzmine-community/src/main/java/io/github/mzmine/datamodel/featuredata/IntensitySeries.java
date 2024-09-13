@@ -25,8 +25,11 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.DoubleBuffer;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -48,8 +51,8 @@ public interface IntensitySeries extends SeriesValueCount {
 
   /**
    * Tests a subset of intensity values of both series for equality. Note that the number of values
-   * and the underlying buffer is checked for equality. However, of the actual series values, only
-   * a subset of five points is compared.
+   * and the underlying buffer is checked for equality. However, of the actual series values, only a
+   * subset of five points is compared.
    */
   static boolean seriesSubsetEqual(IntensitySeries s1, IntensitySeries s2) {
     if (s1.getNumberOfValues() != s2.getNumberOfValues()) {
@@ -74,7 +77,7 @@ public interface IntensitySeries extends SeriesValueCount {
   /**
    * @return All non-zero intensities.
    */
-  DoubleBuffer getIntensityValueBuffer();
+  MemorySegment getIntensityValueBuffer();
 
   /**
    * @param dst results are reflected in this array
@@ -84,7 +87,8 @@ public interface IntensitySeries extends SeriesValueCount {
     if (dst.length < getNumberOfValues()) {
       dst = new double[getNumberOfValues()];
     }
-    getIntensityValueBuffer().get(0, dst, 0, getNumberOfValues());
+    MemorySegment.copy(getIntensityValueBuffer(), ValueLayout.JAVA_DOUBLE, 0, dst, 0,
+        getNumberOfValues());
     return dst;
   }
 
@@ -93,13 +97,13 @@ public interface IntensitySeries extends SeriesValueCount {
    * @return The intensity at the index position. Note that this
    */
   default double getIntensity(int index) {
-    return getIntensityValueBuffer().get(index);
+    return getIntensityValueBuffer().getAtIndex(ValueLayout.JAVA_DOUBLE, index);
   }
 
   /**
    * @return The number of non-zero intensity values in this series.
    */
   default int getNumberOfValues() {
-    return getIntensityValueBuffer().capacity();
+    return (int) StorageUtils.numDoubles(getIntensityValueBuffer());
   }
 }

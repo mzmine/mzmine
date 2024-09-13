@@ -35,6 +35,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
+import java.lang.foreign.MemorySegment;
 import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.List;
@@ -58,8 +59,8 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
 
   protected final List<MobilityScan> scans;
 
-  protected final DoubleBuffer intensityValues;
-  protected final DoubleBuffer mzValues;
+  protected final MemorySegment intensityValues;
+  protected final MemorySegment mzValues;
 
   /**
    * @param storage         May be null if forceStoreInRam is true.
@@ -158,12 +159,12 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
   }
 
   @Override
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     return intensityValues;
   }
 
   @Override
-  public DoubleBuffer getMZValueBuffer() {
+  public MemorySegment getMZValueBuffer() {
     return mzValues;
   }
 

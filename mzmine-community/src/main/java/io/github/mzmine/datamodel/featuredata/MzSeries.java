@@ -26,8 +26,12 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.DoubleBuffer;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -76,7 +80,7 @@ public interface MzSeries extends SeriesValueCount {
   /**
    * @return All mz values corresponding to non-0 intensities.
    */
-  DoubleBuffer getMZValueBuffer();
+  MemorySegment getMZValueBuffer();
 
   /**
    * @param dst results are reflected in this array
@@ -86,7 +90,7 @@ public interface MzSeries extends SeriesValueCount {
     if (dst.length < getNumberOfValues()) {
       dst = new double[getNumberOfValues()];
     }
-    getMZValueBuffer().get(0, dst, 0, getNumberOfValues());
+    MemorySegment.copy(getMZValueBuffer(), ValueLayout.JAVA_DOUBLE, 0, dst, 0, getNumberOfValues());
     return dst;
   }
 
@@ -96,14 +100,14 @@ public interface MzSeries extends SeriesValueCount {
    * @see IonTimeSeries#getMzForSpectrum(Scan)
    */
   default double getMZ(int index) {
-    return getMZValueBuffer().get(index);
+    return getMZValueBuffer().getAtIndex(ValueLayout.JAVA_DOUBLE, index);
   }
 
   /**
    * @return The number of mz values corresponding to non-0 intensities.
    */
   default int getNumberOfValues() {
-    return getMZValueBuffer().capacity();
+    return (int) StorageUtils.numDoubles(getMZValueBuffer());
   }
 
 }

@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.featuredata;
 
 import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Iterator;
@@ -41,7 +42,7 @@ public interface IonSeries extends Iterable<DataPoint>, IntensitySeries, MzSerie
 
   @Override
   default int getNumberOfValues() {
-    return getMZValueBuffer().capacity();
+    return (int) StorageUtils.numDoubles(getMZValueBuffer());
   }
 
   @Override
