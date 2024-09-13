@@ -112,6 +112,7 @@ public class MSConvertImportTask extends AbstractTask {
 //    cmdLine.addAll(List.of("--filter",
 //        "\"titleMaker <RunId>.<ScanNumber>.<ScanNumber>.<ChargeState> File:\"\"\"^<SourcePath^>\"\"\", NativeID:\"\"\"^<Id^>\"\"\"\""));
 
+    cmdLine.add("--ignoreUnknownInstrumentError");
     logger.finest("Running msconvert with command line: %s".formatted(cmdLine.toString()));
     return cmdLine;
   }

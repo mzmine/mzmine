@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.ThermoImportOptions;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -104,9 +105,9 @@ public class ThermoRawImportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Opening file " + fileToOpen);
 
-    final boolean useMsConvertForThermo =
-        ConfigService.getPreferences().getValue(MZminePreferences.thermoImportChoice)
-            == ThermoImportOptions.MSCONVERT;
+    final boolean useMsConvertForThermo = true;
+//        ConfigService.getPreferences().getValue(MZminePreferences.thermoImportChoice)
+//            == ThermoImportOptions.MSCONVERT;
 
     try {
       final ProcessBuilder builder = useMsConvertForThermo ? createProcessFromMsConvert()
@@ -175,7 +176,9 @@ public class ThermoRawImportTask extends AbstractTask {
   private @Nullable ProcessBuilder createProcessFromMsConvert() {
     final File msConvertPath = MSConvert.getMsConvertPath();
     if (msConvertPath == null) {
-      error("MSConvert not found. Please install MSConvert to import thermo raw data files.");
+      error("MSConvert not found. Please install MSConvert to import Thermo raw data files.");
+      DialogLoggerUtil.showMessageDialogForTime("MSConvert required",
+          "Please install MSConvert to import Thermo raw data files.", 5000);
       return null;
     }
 
@@ -188,8 +191,8 @@ public class ThermoRawImportTask extends AbstractTask {
     if (CurrentUserService.getUser().getUserType() != UserType.ACADEMIC) {
       logger.info(
           "Thermo import via raw file parser selected although the user is not academic. Overriding.");
-      ConfigService.getPreferences()
-          .setParameter(MZminePreferences.thermoImportChoice, ThermoImportOptions.MSCONVERT);
+//      ConfigService.getPreferences()
+//          .setParameter(MZminePreferences.thermoImportChoice, ThermoImportOptions.MSCONVERT);
       // try to launch via msconvert to make it seemless.
       final ProcessBuilder msconvert = createProcessFromMsConvert();
       if (msconvert == null) {
