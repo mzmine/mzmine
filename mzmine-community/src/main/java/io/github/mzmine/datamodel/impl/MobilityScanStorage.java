@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import com.sun.jna.Memory;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -38,8 +37,6 @@ import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
-import java.nio.DoubleBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -281,8 +278,13 @@ public class MobilityScanStorage {
    */
   public int getNumberOfRawDatapoints(int index) {
     assert index < getNumberOfMobilityScans();
-    return rawStorageOffsets.getAtIndex(ValueLayout.JAVA_INT, index + 1)
-        - rawStorageOffsets.getAtIndex(ValueLayout.JAVA_INT, index);
+    if (index < getNumberOfMobilityScans() - 1) {
+      return rawStorageOffsets.getAtIndex(ValueLayout.JAVA_INT, index + 1)
+          - rawStorageOffsets.getAtIndex(ValueLayout.JAVA_INT, index);
+    } else {
+      return (int) (StorageUtils.numDoubles(rawMzValues) - rawStorageOffsets.getAtIndex(
+          ValueLayout.JAVA_INT, StorageUtils.numInts(rawStorageOffsets) - 1));
+    }
   }
 
   /**
@@ -364,11 +366,13 @@ public class MobilityScanStorage {
           null);
     }
     assert index < getNumberOfMobilityScans();
-    if (index < StorageUtils.numInts(massListStorageOffsets) - 1) {
+
+    if (index < getNumberOfMobilityScans() - 1) {
       return massListStorageOffsets.getAtIndex(ValueLayout.JAVA_INT, index + 1)
           - massListStorageOffsets.getAtIndex(ValueLayout.JAVA_INT, index);
     } else {
-      throw new IndexOutOfBoundsException("Invalid index: " + index);
+      return (int) (StorageUtils.numDoubles(massListMzValues) - massListStorageOffsets.getAtIndex(
+          ValueLayout.JAVA_INT, StorageUtils.numInts(massListStorageOffsets) - 1));
     }
   }
 
