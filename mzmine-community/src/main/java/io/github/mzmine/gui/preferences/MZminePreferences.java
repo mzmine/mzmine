@@ -111,6 +111,13 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
+  public static final BooleanParameter runGCafterBatchStep = new BooleanParameter(
+      "Free memory in batch (experimental)", """
+      This option runs garbage collection after every step in batch mode.
+      This reclaims free memory, but may also reduce processing throughput slightly, although the impact should be small.
+      Typically the Java Virtual Machine will hold on to RAM and manage it to achieve the highest throughput.
+      The recommendation is to keep this setting turned off.""", false);
+
   public static final OptionalModuleParameter<ProxyParameters> proxySettings = new OptionalModuleParameter<>(
       "Use proxy", "Use proxy for internet connection?", new ProxyParameters(), false);
 
@@ -227,7 +234,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(// start with performance
-        numOfThreads, memoryOption, tempDirectory, proxySettings,
+        numOfThreads, memoryOption, tempDirectory, runGCafterBatchStep, proxySettings,
         /*applyTimsPressureCompensation,*/
         // visuals
         // number formats
@@ -266,7 +273,8 @@ public class MZminePreferences extends SimpleParameterSet {
     GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
 
     // add groups
-    dialog.addParameterGroup("General", numOfThreads, memoryOption, tempDirectory, proxySettings
+    dialog.addParameterGroup("General", numOfThreads, memoryOption, tempDirectory,
+        runGCafterBatchStep, proxySettings
         /*, applyTimsPressureCompensation*/);
     dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
         intensityFormat, ppmFormat, scoreFormat, unitFormat);
