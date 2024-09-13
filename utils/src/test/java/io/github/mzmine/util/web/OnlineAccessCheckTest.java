@@ -23,44 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.mvci;
+package io.github.mzmine.util.web;
 
-import javafx.scene.layout.Region;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * MVCI controller with cached view. This is usually used when a view is expansive to create and may
- * be removed/added from/to the scene graph often. Otherwise, use the base implementation
- * {@link FxController}
- */
-public abstract class FxCachedViewController<ViewModelClass> extends FxController<ViewModelClass> {
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-  @Nullable
-  protected Region cachedView;
+class OnlineAccessCheckTest {
 
-  protected FxCachedViewController(@NotNull ViewModelClass model) {
-    super(model);
-  }
-
-  /**
-   * Returns cached view or builds it if null
-   */
-  public synchronized @NotNull Region buildView() {
-    if (cachedView == null) {
-      cachedView = super.buildView();
-    }
-    return cachedView;
-  }
-
-  /**
-   * Clears the internally cached view and returns the old view
-   *
-   * @return the old view
-   */
-  public synchronized @Nullable Region clearCachedView() {
-    Region internalView = cachedView;
-    cachedView = null;
-    return internalView;
+  @Disabled
+  @Test
+  void hasOnlineAccess() {
+    assertTrue(OnlineAccessCheck.hasOnlineAccess());
   }
 }

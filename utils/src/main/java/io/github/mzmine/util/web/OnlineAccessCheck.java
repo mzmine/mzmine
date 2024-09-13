@@ -23,44 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.mvci;
+package io.github.mzmine.util.web;
 
-import javafx.scene.layout.Region;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.List;
+import java.util.logging.Logger;
 
-/**
- * MVCI controller with cached view. This is usually used when a view is expansive to create and may
- * be removed/added from/to the scene graph often. Otherwise, use the base implementation
- * {@link FxController}
- */
-public abstract class FxCachedViewController<ViewModelClass> extends FxController<ViewModelClass> {
+public class OnlineAccessCheck {
 
-  @Nullable
-  protected Region cachedView;
+  private static final Logger logger = Logger.getLogger(OnlineAccessCheck.class.getName());
 
-  protected FxCachedViewController(@NotNull ViewModelClass model) {
-    super(model);
-  }
-
-  /**
-   * Returns cached view or builds it if null
-   */
-  public synchronized @NotNull Region buildView() {
-    if (cachedView == null) {
-      cachedView = super.buildView();
+  public static boolean hasOnlineAccess() {
+    List<String> urls = List.of("www.example.com", "www.google.com", "www.mzio.io");
+    for (String url : urls) {
+      try {
+        if (InetAddress.getByName(url).isReachable(500)) {
+          return true;
+        }
+      } catch (IOException e) {
+        logger.fine("Cannot find " + url);
+      }
     }
-    return cachedView;
-  }
-
-  /**
-   * Clears the internally cached view and returns the old view
-   *
-   * @return the old view
-   */
-  public synchronized @Nullable Region clearCachedView() {
-    Region internalView = cachedView;
-    cachedView = null;
-    return internalView;
+    return false;
   }
 }
