@@ -90,7 +90,6 @@ public final class MZmineCore {
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
   private static final MZmineCore instance = new MZmineCore();
-
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
   // it is also used in headless mode
   private final Map<String, MZmineModule> initializedModules = new HashMap<>();
@@ -179,7 +178,7 @@ public final class MZmineCore {
         // this will set the current user to CurrentUserService
         // loads all users already logged in from the user folder
         if (StringUtils.hasValue(username)) {
-          new UsersController().setCurrentUserByName(username);
+          UsersController.getInstance().setCurrentUserByName(username);
         }
       }
 
@@ -195,7 +194,7 @@ public final class MZmineCore {
             getDesktop().addTab(UsersTab.showTab());
           } else {
             try {
-              new UsersController().onLoginOrRegister(LoginOptions.CONSOLE);
+              UsersController.getInstance().onLoginOrRegister(LoginOptions.CONSOLE);
             } catch (Exception ex) {
               getDesktop().displayMessage(
                   "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
@@ -285,8 +284,8 @@ public final class MZmineCore {
         if (CurrentUserService.isInvalid()) {
           try {
             logger.info("Requires user login");
-            new UsersController().loginOrRegisterConsoleBlocking(
-                LoginOptions.CONSOLE_ENTER_CREDENTIALS);
+            UsersController.getInstance()
+                .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
           } catch (Exception ex) {
             getDesktop().displayMessage(
                 "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
@@ -324,6 +323,7 @@ public final class MZmineCore {
     }
   }
 
+
   /**
    * @param isCliBatchProcessing
    * @param option
@@ -333,7 +333,7 @@ public final class MZmineCore {
     boolean success = false;
     try {
       logger.info("CLI user login");
-      new UsersController().loginOrRegisterConsoleBlocking(option);
+      UsersController.getInstance().loginOrRegisterConsoleBlocking(option);
       success = true;
     } catch (Exception ex) {
       getDesktop().displayMessage(
