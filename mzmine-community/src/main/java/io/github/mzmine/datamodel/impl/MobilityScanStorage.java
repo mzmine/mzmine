@@ -435,10 +435,10 @@ public class MobilityScanStorage {
     assert getNumberOfMassListDatapoints(mobilityScanIndex) + offset <= dst.length;
 
     final MemorySegment slice = StorageUtils.sliceDoubles(massListMzValues,
-        getRawStorageOffset(mobilityScanIndex),
-        getRawStorageOffset(mobilityScanIndex) + getNumberOfRawDatapoints(mobilityScanIndex));
+        getMassListStorageOffset(mobilityScanIndex),
+        getMassListStorageOffset(mobilityScanIndex) + getNumberOfMassListDatapoints(mobilityScanIndex));
     MemorySegment.copy(slice, ValueLayout.JAVA_DOUBLE, 0, dst, offset,
-        getNumberOfRawDatapoints(mobilityScanIndex));
+        getNumberOfMassListDatapoints(mobilityScanIndex));
   }
 
   public void getAllMassListMzValues(double[] dst) {
@@ -460,10 +460,10 @@ public class MobilityScanStorage {
     assert getNumberOfMassListDatapoints(mobilityScanIndex) + offset <= dst.length;
 
     final MemorySegment slice = StorageUtils.sliceDoubles(massListIntensityValues,
-        getRawStorageOffset(mobilityScanIndex),
-        getRawStorageOffset(mobilityScanIndex) + getNumberOfRawDatapoints(mobilityScanIndex));
+        getMassListStorageOffset(mobilityScanIndex),
+        getMassListStorageOffset(mobilityScanIndex) + getNumberOfMassListDatapoints(mobilityScanIndex));
     MemorySegment.copy(slice, ValueLayout.JAVA_DOUBLE, 0, dst, offset,
-        getNumberOfRawDatapoints(mobilityScanIndex));
+        getNumberOfMassListDatapoints(mobilityScanIndex));
   }
 
   public void getAllMassListIntensityValues(double[] dst) {
