@@ -31,6 +31,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.download.ExternalAsset;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -45,7 +46,7 @@ import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithDownloadParameter;
 import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
@@ -58,8 +59,6 @@ import io.github.mzmine.util.web.Proxy;
 import io.github.mzmine.util.web.ProxyType;
 import io.github.mzmine.util.web.ProxyUtils;
 import io.mzio.users.gui.fx.UsersController;
-import io.mzio.users.service.UserType;
-import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Collection;
@@ -199,9 +198,10 @@ public class MZminePreferences extends SimpleParameterSet {
   private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
   private NumberFormats guiFormat = exportFormat; // default value
 
-  public static final FileNameParameter msConvertPath = new FileNameParameter("MSConvert path",
+  public static final FileNameParameter msConvertPath = new FileNameWithDownloadParameter(
+      "MSConvert path",
       "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
-      List.of(ExtensionFilters.EXE, ExtensionFilters.ALL_FILES), FileSelectionType.OPEN, true);
+      List.of(ExtensionFilters.EXE, ExtensionFilters.ALL_FILES), ExternalAsset.MSCONVERT);
 
   public static final BooleanParameter keepConvertedFile = new BooleanParameter(
       "Keep files converted by MSConvert",
@@ -214,11 +214,11 @@ public class MZminePreferences extends SimpleParameterSet {
       + "Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.",
       true);
 
-  public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
-      "Thermo data import", """
-      Specify which path you want to use for Thermo raw data import. MSConvert allows import of
-      UV spectra and chromatograms and is therefore recommended, but only available on windows.
-      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.MSCONVERT);
+//  public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
+//      "Thermo data import", """
+//      Specify which path you want to use for Thermo raw data import. MSConvert allows import of
+//      UV spectra and chromatograms and is therefore recommended, but only available on windows.
+//      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.MSCONVERT);
 
   public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
       new ParameterSetParameter<>("Apply lockmass on import (Waters)",
@@ -242,7 +242,7 @@ public class MZminePreferences extends SimpleParameterSet {
         // silent parameters without controls
         showTempFolderAlert, username,
         //
-        msConvertPath, keepConvertedFile, applyPeakPicking, thermoImportChoice, watersLockmass);
+        msConvertPath, keepConvertedFile, applyPeakPicking, /*thermoImportChoice,*/ watersLockmass);
 
     darkModeProperty.subscribe(state -> {
       var oldTheme = getValue(theme);
@@ -273,7 +273,7 @@ public class MZminePreferences extends SimpleParameterSet {
     dialog.addParameterGroup("Visuals", defaultColorPalette, defaultPaintScale, chartParam, theme,
         presentationMode, showPrecursorWindow, imageTransformation, imageNormalization);
     dialog.addParameterGroup("MS data import", msConvertPath, keepConvertedFile, applyPeakPicking,
-        thermoImportChoice, watersLockmass);
+        /*thermoImportChoice,*/ watersLockmass);
 //    dialog.addParameterGroup("Other", new Parameter[]{
     // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
 //    });
@@ -511,14 +511,6 @@ public class MZminePreferences extends SimpleParameterSet {
     final boolean superCheck = super.checkParameterValues(errorMessages,
         skipRawDataAndFeatureListParameters);
 
-    if (getValue(MZminePreferences.thermoImportChoice) == ThermoImportOptions.THERMO_RAW_FILE_PARSER
-        && CurrentUserService.getUser() != null
-        && CurrentUserService.getUser().getUserType() != UserType.ACADEMIC) {
-      errorMessages.add(
-          "Importing Thermo raw files via the Thermo raw file parser is only available for academic "
-          + "users. Please select and install MSConvert.");
-      return false;
-    }
     return superCheck;
   }
 }
