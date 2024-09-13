@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -405,41 +405,9 @@ task signApp(dependsOn: jpackage) {
             jarsDir.toFile().listFiles((FilenameFilter) ((d, n) -> n.startsWith('netlib') || n.startsWith('jblas')
                     || n.startsWith('jocl'))).stream().forEach(File::delete)
 
-            getLogger().lifecycle("Signing native ThermoRawFileParser...")
-
-            // Unzip ThermoRawFileParser.zip
-            String mzmineJarName = "mzmine-community-${semver.version}"
-            getLogger().info("tmp mzmine jar unzip to " + "${jarsDir}/${mzmineJarName}/vendorlib/thermo")
-            getLogger().info("check if jar exists " + "${jarsDir.resolve(mzmineJarName).toFile().exists()}")
-            exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
-            exec {
-                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
-                        "ThermoRawFileParser.zip -d ThermoRawFileParser"])
-            }
+            // unzip previously done for internal parser
+//            String mzmineJarName = "mzmine-community-${semver.version}"
 //            exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
-//            exec {
-//                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
-//                        "ThermoRawFileParser.zip -d ThermoRawFileParser"])
-//            }
-
-            // Sign ThermoRawFileParser content
-            for (File f : jarsDir.resolve(mzmineJarName).resolve('vendorlib').resolve('thermo')
-                    .resolve('ThermoRawFileParser').toFile().listFiles()) {
-
-                // ThermoRawFileParserMac is signed by jpackage
-                if (f.toPath().toString().endsWith('ThermoRawFileParserMac')) {
-                    continue
-                }
-                codesign(f.toPath())
-            }
-
-            // Zip ThermoRawFileParser back
-            exec {
-                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo " +
-                        "&& zip -rq ThermoRawFileParser.zip ThermoRawFileParser && rm -rf ThermoRawFileParser"])
-            }
-            exec { commandLine(['sh', '-c', "cd ${jarsDir} && jar cvf ${mzmineJarName}.jar -C ${mzmineJarName}/ ."]) }
-            exec { commandLine(['sh', '-c', "rm -rf ${jarsDir}/${mzmineJarName}"]) }
 
             getLogger().lifecycle("Signing native libraries...")
 
