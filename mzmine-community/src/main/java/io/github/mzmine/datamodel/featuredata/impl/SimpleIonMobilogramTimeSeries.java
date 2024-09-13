@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -358,15 +360,15 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     }
     SimpleIonMobilogramTimeSeries that = (SimpleIonMobilogramTimeSeries) o;
     return Objects.equals(getMobilograms(), that.getMobilograms()) && Objects.equals(frames,
-        that.frames) && Objects.equals(intensityValues, that.intensityValues) && Objects.equals(
+        that.frames) && contentEquals(intensityValues, that.intensityValues) && contentEquals(
         mzValues, that.mzValues) && Objects.equals(getSummedMobilogram(),
-        that.getSummedMobilogram()) && Objects.equals(mobilogramMzValues, that.mobilogramMzValues)
-        && Objects.equals(mobilogramIntensityValues, that.mobilogramIntensityValues);
+        that.getSummedMobilogram()) && contentEquals(mobilogramMzValues, that.mobilogramMzValues)
+        && contentEquals(mobilogramIntensityValues, that.mobilogramIntensityValues);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getMobilograms(), frames, intensityValues, mzValues, getSummedMobilogram(),
-        mobilogramMzValues, mobilogramIntensityValues);
+    return Objects.hash(getMobilograms(), frames, intensityValues.byteSize(), mzValues.byteSize(),
+        getSummedMobilogram(), mobilogramMzValues.byteSize(), mobilogramIntensityValues.byteSize());
   }
 }

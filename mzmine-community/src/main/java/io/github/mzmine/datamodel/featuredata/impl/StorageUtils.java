@@ -278,4 +278,11 @@ public class StorageUtils {
     MemorySegment.copy(src, ValueLayout.JAVA_DOUBLE, fromIndex * ValueLayout.JAVA_DOUBLE.byteSize(),
         dst, 0, (int) (endIndexExclusive - fromIndex));
   }
+
+  public static boolean contentEquals(MemorySegment s1, MemorySegment s2) {
+    if(s1.byteSize() != s2.byteSize()) {
+      return false;
+    }
+    return MemorySegment.mismatch(s1, 0, s1.byteSize(), s2, 0, s2.byteSize()) == -1;
+  }
 }

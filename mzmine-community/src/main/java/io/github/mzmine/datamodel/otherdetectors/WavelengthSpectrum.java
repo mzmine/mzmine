@@ -36,7 +36,7 @@ public class WavelengthSpectrum implements OtherSpectrum {
 
   private final OtherSpectralData spectralData;
   /**
-   * floats
+   * doubles
    */
   private final MemorySegment wavelengths;
   /**
@@ -47,12 +47,12 @@ public class WavelengthSpectrum implements OtherSpectrum {
   private final float rt;
 
   /**
-   * @param wavelengths floats
+   * @param wavelengths doubles
    * @param intensities doubles
    */
   public WavelengthSpectrum(final OtherSpectralData spectralData, MemorySegment wavelengths,
       MemorySegment intensities, MassSpectrumType spectrumType, float rt) {
-    if (StorageUtils.numFloats(wavelengths) != StorageUtils.numDoubles(intensities)) {
+    if (StorageUtils.numDoubles(wavelengths) != StorageUtils.numDoubles(intensities)) {
       throw new IllegalArgumentException("wavelengths and intensities must be the same length");
     }
     this.spectralData = spectralData;

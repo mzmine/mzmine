@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
@@ -59,7 +61,7 @@ public interface IntensitySeries extends SeriesValueCount {
       return false;
     }
 
-    if (!s1.getIntensityValueBuffer().equals(s2.getIntensityValueBuffer())) {
+    if(!contentEquals(s1.getIntensityValueBuffer(), s2.getIntensityValueBuffer())) {
       return false;
     }
 

@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -205,13 +207,13 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
       return false;
     }
     SimpleIonMobilitySeries that = (SimpleIonMobilitySeries) o;
-    return Objects.equals(scans, that.scans) && Objects.equals(intensityValues,
-        that.intensityValues) && Objects.equals(mzValues, that.mzValues)
+    return Objects.equals(scans, that.scans) && contentEquals(intensityValues,
+        that.intensityValues) && contentEquals(mzValues, that.mzValues)
         && IntensitySeries.seriesSubsetEqual(this, that);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(scans, intensityValues, mzValues);
+    return Objects.hash(scans, intensityValues.byteSize(), mzValues.byteSize());
   }
 }

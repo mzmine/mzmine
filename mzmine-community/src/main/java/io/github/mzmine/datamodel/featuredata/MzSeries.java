@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -63,7 +65,7 @@ public interface MzSeries extends SeriesValueCount {
       return false;
     }
 
-    if (!s1.getMZValueBuffer().equals(s2.getMZValueBuffer())) {
+    if(!contentEquals(s1.getMZValueBuffer(), s2.getMZValueBuffer())) {
       return false;
     }
 

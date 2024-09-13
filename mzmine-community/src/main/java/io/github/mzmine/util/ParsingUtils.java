@@ -74,6 +74,7 @@ public class ParsingUtils {
     for (int i = 0; i < strValues.length; i++) {
       values[i] = Double.parseDouble(strValues[i]);
     }
+
     return values;
   }
 

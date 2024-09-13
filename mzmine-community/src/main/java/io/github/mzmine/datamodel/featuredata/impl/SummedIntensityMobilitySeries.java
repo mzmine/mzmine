@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -232,13 +234,13 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
       return false;
     }
     SummedIntensityMobilitySeries that = (SummedIntensityMobilitySeries) o;
-    return Objects.equals(intensityValues, that.intensityValues) && Objects.equals(
+    return contentEquals(intensityValues, that.intensityValues) && contentEquals(
         getMobilityValues(), that.getMobilityValues())
         && IntensitySeries.seriesSubsetEqual(this, that);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(intensityValues, mobilityValues);
+    return Objects.hash(intensityValues.byteSize(), mobilityValues.byteSize());
   }
 }
