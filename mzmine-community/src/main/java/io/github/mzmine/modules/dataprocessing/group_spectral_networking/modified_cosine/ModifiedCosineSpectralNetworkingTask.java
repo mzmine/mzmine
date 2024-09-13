@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -587,7 +587,11 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
     DataPoint[] massDiffB = null;
 
     for (Feature fa : a.getFeatures()) {
-      DataPoint[] dpa = mapFeatureData.get(fa).data();
+      var filteredRowData = mapFeatureData.get(fa);
+      if (filteredRowData == null) {
+        continue; // missing ms2
+      }
+      DataPoint[] dpa = filteredRowData.data();
       if (dpa != null) {
         // create mass diff array
         if (checkNeutralLoss) {
@@ -595,7 +599,11 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
           Arrays.sort(massDiffA, DataPointSorter.DEFAULT_INTENSITY);
         }
         for (Feature fb : b.getFeatures()) {
-          DataPoint[] dpb = mapFeatureData.get(fb).data();
+          var filteredRowDataB = mapFeatureData.get(fb);
+          if (filteredRowDataB == null) {
+            continue; // missing ms2
+          }
+          DataPoint[] dpb = filteredRowDataB.data();
           if (dpb != null) {
             // align and check spectra
             SpectralSimilarity spectralSim = createMS2SimModificationAware(mzTolerance, dpa, dpb,
