@@ -219,6 +219,7 @@ public class MainWindowController {
   private TasksViewController tasksViewController;
   private Region tasksView;
   private Region miniTaskView;
+  private final PauseTransition manualGcDelay = new PauseTransition(Duration.millis(500));
 
 
   @NotNull
@@ -294,6 +295,7 @@ public class MainWindowController {
     selectTab(MZmineIntroductionTab.TITLE);
 
     memoryBar.setOnMouseClicked(event -> handleMemoryBarClick(event));
+    memoryBarLabel.setOnMouseClicked(event -> handleMemoryBarClick(event));
     memoryBar.setTooltip(new Tooltip("Free memory (is done automatically)"));
 
     // Setup the Timeline to update the memory indicator periodically
@@ -896,10 +898,13 @@ public class MainWindowController {
   @FXML
   public void handleMemoryBarClick(Event e) {
     // Run garbage collector on a new thread, so it doesn't block the GUI
-    new Thread(() -> {
-      logger.info("Freeing unused memory");
-      System.gc();
-    }).start();
+    manualGcDelay.playFromStart();
+    manualGcDelay.setOnFinished(_ -> {
+      new Thread(() -> {
+        logger.info("Freeing unused memory");
+        System.gc();
+      }).start();
+    });
   }
 
   public void handleSpectralLibrarySort(Event event) {
