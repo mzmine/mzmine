@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.ThermoImportOptions;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -35,6 +36,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.download.ExternalAsset;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvert;
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
@@ -43,6 +45,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.ZipUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
@@ -268,6 +271,16 @@ public class ThermoRawImportTask extends AbstractTask {
           ConfigService.getPreferences()
               .setParameter(MZminePreferences.thermoRawFileParserPath, defaultLocation);
           return true;
+        }
+
+        // instructions for headless mode.
+        if (DesktopService.isHeadLess()) {
+          logger.severe(
+              "Cannot find thermo raw file parser. Download the parser from %s and unzip the content into %s or edit the mzmine config file (parameter %s).".formatted(
+                  StringUtils.inQuotes(ExternalAsset.ThermoRawFileParser.getDownloadInfoPage()),
+                  StringUtils.inQuotes(DEFAULT_PARSER_DIR.toString()),
+                  StringUtils.inQuotes(MZminePreferences.thermoRawFileParserPath.getName())));
+          return false;
         }
 
         logger.fine(
