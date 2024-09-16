@@ -86,11 +86,7 @@ jobs:
 
 
       # for macOS:
-      # 1. upload the dmg installer
-      # 2. remove the dmg isntaller from path
-      # 3. zip and upload the jpackage directory
-      # This is needed because zipping of the /jpackage/mzmine.app portable version zips the content
-      # of the folder not the folder itself
+      # Build, sign, zip portable version happens in build.gradle
       - name: Setup node for macOS packaging
         if: runner.os == 'macOS'
         uses: actions/setup-node@v3  # To install appdmg
@@ -117,16 +113,21 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           npm install --python=python3.11 -g appdmg
-          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
+          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer_academia.dmg
 
       - name: Upload macOS installer
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
           name: mzmine_macOS_installer_academia
-          path: mzmine-community/build/jpackage/mzmine_macOS_installer*.dmg
+          path: mzmine-community/build/jpackage/mzmine_macOS_installer_academia.dmg
           retention-days: 7  # store for 7 days
 
+      # 1. upload the dmg installer
+      # 2. remove the dmg installer from path
+      # 3. zip and upload the jpackage directory
+      # This is needed because zipping of the /jpackage/mzmine.app portable version zips the content
+      # of the folder not the folder itself
       #      - name: Remove dmg File and Make .app executable
       #        if: runner.os == 'macOS'
       #        run: |
@@ -137,13 +138,13 @@ jobs:
       #        uses: vimtor/action-zip@v1.2
       #        with:
       #          files: build/jpackage/
-      #          dest: build/jpackage/mzmine_macOS_portable.zip
+      #          dest: build/jpackage/mzmine_macOS_portable_academia.zip
       - name: Upload macOS portable builds
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
           name: mzmine_macos_portable_academia
-          path: mzmine-community/build/jpackage/mzmine_macOS_portable.zip
+          path: mzmine-community/build/jpackage/mzmine_macOS_portable_academia.zip
           retention-days: 7  # store for 7 days
 
 

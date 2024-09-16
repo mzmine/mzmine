@@ -110,14 +110,14 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           npm install --python=python3.11 -g appdmg
-          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
+          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer_academia.dmg
 
       - name: Upload macOS installer
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
           name: mzmine_macOS_installer_academia
-          path: mzmine-community/build/jpackage/mzmine_macOS_installer*.dmg
+          path: mzmine-community/build/jpackage/mzmine_macOS_installer_academia.dmg
           retention-days: 7  # store for 7 days
 
 #      - name: Remove dmg File and Make .app executable
@@ -131,10 +131,10 @@ jobs:
 #        with:
 #          files: build/jpackage/
 #          dest: build/jpackage/mzmine_macOS_portable.zip
-      - name: Upload macOS portable builds
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
-        with:
-          name: mzmine_macos_portable_academia
-          path: mzmine-community/build/jpackage/mzmine_macOS_portable.zip
-          retention-days: 7  # store for 7 days
+#      - name: Upload macOS portable builds
+#        if: runner.os == 'macOS'
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: mzmine_macos_portable_academia
+#          path: mzmine-community/build/jpackage/mzmine_macOS_portable.zip
+#          retention-days: 7  # store for 7 days

@@ -336,7 +336,8 @@ runtime {
             ]
         }
         if (OperatingSystem.current().isMacOsX()) {
-            installerType = "dmg"
+//            installerType = "dmg"
+            skipInstaller = true // no installer for macOS as we are generating it in GitHub action
             // additional options for jpackage
             // only sign if all needed information is present
             if (!macSigning) {
@@ -470,7 +471,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().lifecycle("Zipping .app directory...")
             exec {
                 commandLine(['sh', '-c', "cd ${layout.buildDirectory.dir("jpackage").get()} " +
-                        "&& zip -rq mzmine_macOS_portable.zip mzmine.app"])
+                        "&& zip -rq mzmine_macOS_portable_academia.zip mzmine.app"])
             }
         }
     }
