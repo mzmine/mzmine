@@ -2,7 +2,7 @@ name: Development Build Release
 
 on:
   push:
-    branches: [ master ]
+    branches: [ "master", "actions-test" ]
     paths-ignore:
       - 'mzmine-community/src/main/resources/mzmineversion.properties'
 
@@ -162,8 +162,8 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
           prerelease: true
-          title: "Latest Development Build"
-          automatic_release_tag: "Development-release"
+          title: "Latest Test Action Build"
+          automatic_release_tag: "text-action-release"
           files: build/*/*
 
   # bump up patch if dev release finished
