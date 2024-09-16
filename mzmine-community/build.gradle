@@ -320,7 +320,7 @@ runtime {
         if (OperatingSystem.current().isWindows()) {
             // The WiX toolset must be installed, see https://wixtoolset.org/releases/
             installerType = "msi"
-            installerName = "mzmine_Windows_installer-${semver.version}"
+            installerName = "mzmine_Windows_installer"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/mzmineIcon.ico",
                             "--add-launcher", "mzmine_console=gradle/win_console_launcher.properties"
@@ -361,7 +361,7 @@ runtime {
 "--mac-signing-key-user-name", developerID,
                 ]
             }
-            installerName = "mzmine_macOS_installer-${semver.version}-academia"
+            installerName = "mzmine_macOS_installer-academia"
         }
         if (OperatingSystem.current().isLinux()) {
             // leave installer type empty to generate all that match
@@ -380,7 +380,7 @@ runtime {
 
             installerName = "mzmine_Linux_installer"
         }
-        imageName = "mzmine"
+        imageName = appName
         jvmArgs = ["-showversion",
                    "-XX:MinHeapFreeRatio=50",
                    "-XX:MaxHeapFreeRatio=75",
@@ -470,7 +470,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().lifecycle("Zipping .app directory...")
             exec {
                 commandLine(['sh', '-c', "cd ${layout.buildDirectory.dir("jpackage").get()} " +
-                        "&& zip -rq mzmine_macOS_portable-${semver.version}.zip mzmine.app"])
+                        "&& zip -rq mzmine_macOS_portable.zip mzmine.app"])
             }
         }
     }
@@ -487,7 +487,7 @@ task notarizeApp(dependsOn: signApp) {
             ExecResult execResult = exec {
                 commandLine(["xcrun", "notarytool", "submit", "--wait", "--apple-id", "${appleID}",
                              "--password", "${appleIDPassword}", "--team-id", "${appleTeamID}",
-                             "${layout.buildDirectory.dir("jpackage/mzmine_macOS_portable-${semver.version}.zip").get()}"])
+                             "${layout.buildDirectory.dir("jpackage/mzmine_macOS_portable.zip").get()}"])
             }
             int returnCode = execResult.getExitValue()
             if (returnCode != 0) {

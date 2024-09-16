@@ -34,13 +34,13 @@ jobs:
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
         if: runner.os == 'Windows'
-        uses: papeloto/action-zip@v1
+        uses: vimtor/action-zip@v1
         with:
           files: mzmine-community/build/jpackage/mzmine/
           dest: mzmine-community/build/jpackage/mzmine_Windows_portable.zip
       - name: Zip portable linux
         if: runner.os == 'Linux'
-        uses: papeloto/action-zip@v1
+        uses: vimtor/action-zip@v1
         with:
           files: mzmine-community/build/jpackage/mzmine/
           dest: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
@@ -134,7 +134,7 @@ jobs:
       #          chmod a+x build/jpackage/mzmine.app/Contents/MacOS/mzmine
       #      - name: Zip portable macos
       #        if: runner.os == 'macOS'
-      #        uses: papeloto/action-zip@v1
+      #        uses: vimtor/action-zip@v1
       #        with:
       #          files: build/jpackage/
       #          dest: build/jpackage/mzmine_macOS_portable.zip
