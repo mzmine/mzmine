@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.io.import_rawdata_msconvert;
 
+import static io.github.mzmine.util.files.ExtensionFilters.MSCONVERT;
+
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxFileChooser;
@@ -81,9 +83,8 @@ public class MSConvert {
           () -> "Cannot find MSConvert in the regular install directories. Please set the MSConvert path in the config before launching in headless mode.");
     } else {
       FxThread.runOnFxThreadAndWait(() -> {
-        final ExtensionFilter filter = new ExtensionFilter("MSConvert", "msconvert.exe");
         selected.set(
-            FxFileChooser.openSelectDialog(FxFileChooser.FileSelectionType.OPEN, List.of(filter),
+            FxFileChooser.openSelectDialog(FxFileChooser.FileSelectionType.OPEN, List.of(MSCONVERT),
                 null, "Please select the MSConvert path."));
       });
     }
