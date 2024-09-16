@@ -40,18 +40,18 @@ jobs:
       - name: Execute Gradle build (unsigned)
         env:
           TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
-        run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
+        run: ./gradlew -p mzmine-community --info --warning-mode all
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
         if: runner.os == 'Windows'
-        uses: vimtor/action-zip@v1
+        uses: vimtor/action-zip@v1.2
         with:
           files: mzmine-community/build/jpackage/mzmine/
           dest: mzmine-community/build/jpackage/mzmine_Windows_portable.zip
       - name: Zip portable linux
         if: runner.os == 'Linux'
-        uses: vimtor/action-zip@v1
+        uses: vimtor/action-zip@v1.2
         with:
           files: mzmine-community/build/jpackage/mzmine/
           dest: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
@@ -127,7 +127,7 @@ jobs:
 #          chmod a+x build/jpackage/mzmine.app/Contents/MacOS/mzmine
 #      - name: Zip portable macos
 #        if: runner.os == 'macOS'
-#        uses: vimtor/action-zip@v1
+#        uses: vimtor/action-zip@v1.2
 #        with:
 #          files: build/jpackage/
 #          dest: build/jpackage/mzmine_macOS_portable.zip
