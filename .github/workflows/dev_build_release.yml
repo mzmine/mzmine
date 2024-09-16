@@ -123,8 +123,8 @@ jobs:
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
-          name: mzmine_macOS_installer
-          path: mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
+          name: mzmine_macOS_installer_academia
+          path: mzmine-community/build/jpackage/mzmine_macOS_installer*.dmg
           retention-days: 7  # store for 7 days
 
       #      - name: Remove dmg File and Make .app executable
@@ -142,7 +142,7 @@ jobs:
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
-          name: mzmine_macos_portable
+          name: mzmine_macos_portable_academia
           path: mzmine-community/build/jpackage/mzmine_macOS_portable.zip
           retention-days: 7  # store for 7 days
 
