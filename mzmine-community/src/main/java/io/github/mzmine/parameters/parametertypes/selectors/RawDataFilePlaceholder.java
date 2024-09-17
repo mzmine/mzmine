@@ -37,10 +37,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.Color;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
@@ -101,10 +98,6 @@ public class RawDataFilePlaceholder implements RawDataFile {
     return file != null && file.getName().equals(name) && Objects.equals(absPath,
         file.getAbsolutePath()) && (fileHashCode == null || Objects.equals(fileHashCode,
         file.hashCode()));
-  }
-
-  public Path getRelativePath(File projectFile) {
-    return projectFile.toPath().relativize(Paths.get(absPath));
   }
 
   @Override
