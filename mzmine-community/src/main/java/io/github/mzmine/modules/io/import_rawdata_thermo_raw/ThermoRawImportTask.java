@@ -37,11 +37,13 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.download.ExternalAsset;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvert;
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
@@ -90,8 +92,7 @@ public class ThermoRawImportTask extends AbstractTask {
   private MSDKmzMLImportTask msdkTask;
   private int convertedScans;
 
-
-  public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+  protected ThermoRawImportTask(MZmineProject project, File fileToOpen,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate, @NotNull ScanImportProcessorConfig scanProcessorConfig) {
     super(null, moduleCallDate); // storage in raw data file
@@ -114,17 +115,11 @@ public class ThermoRawImportTask extends AbstractTask {
 
   @Override
   public void run() {
-
     setStatus(TaskStatus.PROCESSING);
     logger.info("Opening file " + fileToOpen);
 
-    final boolean useMsConvertForThermo =
-        ConfigService.getPreferences().getValue(MZminePreferences.thermoImportChoice)
-            == ThermoImportOptions.MSCONVERT;
-
     try {
-      final ProcessBuilder builder = useMsConvertForThermo ? createProcessFromMsConvert()
-          : createProcessFromThermoFileParser();
+      final ProcessBuilder builder = createProcessFromThermoFileParser();
       if (builder == null) {
         error("Unable to create thermo parser from MSConvert or the ThermoRawFileParser.");
         return;
@@ -154,7 +149,9 @@ public class ThermoRawImportTask extends AbstractTask {
       parsedScans = msdkTask.getParsedMzMLScans();
       convertedScans = msdkTask.getConvertedScansAfterFilter();
       // Finish
-      dumper.destroy();
+      if (dumper != null) {
+        dumper.destroy();
+      }
 
       if (parsedScans == 0) {
         throw (new RuntimeException("No scans found"));
@@ -165,9 +162,7 @@ public class ThermoRawImportTask extends AbstractTask {
             "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
                 + " out of " + totalScans + ")"));
       }
-
       msdkTask.addAppliedMethodAndAddToProject(dataFile);
-
     } catch (Throwable e) {
       if (dumper != null) {
         dumper.destroy();
@@ -187,20 +182,6 @@ public class ThermoRawImportTask extends AbstractTask {
 
   }
 
-  private @Nullable ProcessBuilder createProcessFromMsConvert() {
-    final File msConvertPath = MSConvert.getMsConvertPath();
-    if (msConvertPath == null) {
-      error("MSConvert not found. Please install MSConvert to import Thermo raw data files.");
-      DialogLoggerUtil.showMessageDialogForTime("MSConvert required",
-          "Please install MSConvert to import Thermo raw data files.", 5000);
-      return null;
-    }
-
-    final List<String> cmdLine = MSConvertImportTask.buildCommandLine(fileToOpen, msConvertPath,
-        false);
-    return new ProcessBuilder(cmdLine);
-  }
-
   private @Nullable ProcessBuilder createProcessFromThermoFileParser() throws IOException {
     taskDescription = "Opening file " + fileToOpen;
 
@@ -208,8 +189,11 @@ public class ThermoRawImportTask extends AbstractTask {
       return null;
     }
 
-    String thermoRawFileParserCommand = ConfigService.getPreference(
-        MZminePreferences.thermoRawFileParserPath).getAbsolutePath();
+    final File parserPath = ConfigService.getPreference(MZminePreferences.thermoRawFileParserPath);
+    if (!isValidParserPathForOs(parserPath)) {
+      return null;
+    }
+    final String thermoRawFileParserCommand = parserPath.getAbsolutePath();
 
     if (Platform.isWindows() && !thermoRawFileParserCommand.endsWith("ThermoRawFileParser.exe")) {
       error("Invalid raw file parser setting for windows. Please select the windows parser.");
