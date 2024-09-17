@@ -45,7 +45,11 @@ Download the latest version, install mzmine, login, and run mzmine. See mzmine [
 
 # or find installer at https://github.com/mzmine/mzmine/releases/latest 
 wget https://github.com/mzmine/mzmine/releases/download/text-action-release/mzmine_4.3.1_amd64.deb
+
+# create required dir and install mzmine
+sudo mkdir -p /usr/share/desktop-directories/
 sudo apt install mzmine*.deb
+
 # potential dependencies that may be required 
 # sudo apt-get install xdg-utils
 # sudo apt-get install libgl1
@@ -66,18 +70,6 @@ code to mzmine.
 ### Java version
 
 mzmine development requires Java Development Kit (JDK) version 21 or newer (http://jdk.java.net).
-
-### Moving old codebase to new modular build system
-
-If there are still changes pending apply those moves first and then create a PR. Create a backup branch.
-
-```bash
-git mv -k -v ./src ./mzmine-community/
-git mv -v ./log ./mzmine-community/    
-git mv -v ./logo ./mzmine-community/    
-git mv -v ./Ontologies ./mzmine-community/    
-```
-
 
 
 ### Building
