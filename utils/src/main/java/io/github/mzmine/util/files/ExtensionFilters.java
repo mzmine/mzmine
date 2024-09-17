@@ -128,6 +128,8 @@ public class ExtensionFilters {
   public static final List<ExtensionFilter> ALL_LIBRARY = List.of(ALL_SPECTRAL_LIBRARY_FILTER,
       JSON_LIBRARY, MGF, MSP, JDCAMX, ALL_FILES);
 
+  public static final ExtensionFilter MSCONVERT = new ExtensionFilter("MSConvert", "msconvert.exe");
+
 
   public static String getExtensionName(ExtensionFilter filter) {
     return filter.getExtensions().stream().findFirst().map(ext -> {

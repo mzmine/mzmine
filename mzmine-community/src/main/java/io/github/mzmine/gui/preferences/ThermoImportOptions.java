@@ -42,7 +42,7 @@ public enum ThermoImportOptions {
   @Override
   public String toString() {
     return switch (this) {
-      case THERMO_RAW_FILE_PARSER -> "Thermo raw file parser (academia only)";
+      case THERMO_RAW_FILE_PARSER -> "Thermo raw file parser";
       case MSCONVERT -> "MSConvert";
     };
   }
