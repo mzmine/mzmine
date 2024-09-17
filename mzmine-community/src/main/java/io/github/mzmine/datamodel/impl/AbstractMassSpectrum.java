@@ -58,14 +58,7 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
 
   protected synchronized void updateMzRangeAndTICValues() {
 
-    final MemorySegment mzValues = getMzValues();
-    final MemorySegment intensityValues = getIntensityValues();
-
-    assert mzValues != null;
-    assert intensityValues != null;
-    assert mzValues.byteSize() == intensityValues.byteSize();
-
-    if (mzValues.byteSize() == 0) {
+    if (getNumberOfDataPoints() == 0) {
       totalIonCurrent = 0.0;
       mzRange = null;
       basePeakIndex = null;
@@ -74,19 +67,19 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
 
     basePeakIndex = 0;
 
-    double lastMz = mzValues.getAtIndex(JAVA_DOUBLE, 0);
-    double maxIntensity = intensityValues.getAtIndex(JAVA_DOUBLE, 0);
+    double lastMz = getMzValue(0);
+    double maxIntensity = getIntensityValue(0);
     totalIonCurrent = maxIntensity;
-    for (int i = 1; i < StorageUtils.numDoubles(mzValues); i++) {
+    for (int i = 1; i < getNumberOfDataPoints(); i++) {
 
       // Check the order of the m/z values
-      double mz = mzValues.getAtIndex(JAVA_DOUBLE, i);
+      double mz = getMzValue(i);
       if (lastMz > mz) {
         throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
       }
 
       // Update base peak index
-      double intensity = intensityValues.getAtIndex(JAVA_DOUBLE, i);
+      double intensity = getIntensityValue(i);
       if (intensity > maxIntensity) {
         basePeakIndex = i;
         maxIntensity = intensity;
@@ -98,8 +91,7 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
       lastMz = mz;
     }
     // set range after checking the order
-    mzRange = Range.closed(mzValues.getAtIndex(JAVA_DOUBLE, 0),
-        mzValues.getAtIndex(JAVA_DOUBLE, StorageUtils.numDoubles(mzValues) - 1));
+    mzRange = Range.closed(getMzValue(0), getMzValue(getNumberOfDataPoints() - 1));
   }
 
 

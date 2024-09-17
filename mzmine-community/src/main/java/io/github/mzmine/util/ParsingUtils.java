@@ -110,7 +110,7 @@ public class ParsingUtils {
 
   public static String doubleBufferToString(MemorySegment buffer) {
     StringBuilder b = new StringBuilder();
-    for (int i = 0, arrayLength = (int) StorageUtils.numDoubles(buffer); i < arrayLength; i++) {
+    for (long i = 0, arrayLength = StorageUtils.numDoubles(buffer); i < arrayLength; i++) {
       double v = buffer.getAtIndex(ValueLayout.JAVA_DOUBLE, i);
       b.append(v);
       if (i < arrayLength - 1) {

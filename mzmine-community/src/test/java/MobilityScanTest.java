@@ -83,7 +83,7 @@ public class MobilityScanTest {
 
     for (int i = 0; i < numbers.length; i++) {
       double[] d = new double[1];
-      StorageUtils.copyDoubles(d, stored, i, i + 1);
+      StorageUtils.copyToBuffer(d, stored, i, i + 1);
       Assert.assertEquals(numbers[i], d[0], 1E-8);
     }
   }

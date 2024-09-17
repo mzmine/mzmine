@@ -258,38 +258,6 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
         summedMobilogram);
   }
 
-  private double[] weightMzs(List<IonMobilitySeries> mobilograms, double[] summedIntensities) {
-    double[] weightedMzs = new double[mobilograms.size()];
-
-    for (int i = 0; i < mobilograms.size(); i++) {
-      IonMobilitySeries ims = mobilograms.get(i);
-      MemorySegment mobilogramIntensities = ims.getIntensityValueBuffer();
-      MemorySegment mobilogramMzs = ims.getMZValueBuffer();
-      double weightedMz = 0;
-      for (int j = 0; j < StorageUtils.numDoubles(mobilogramMzs); j++) {
-        weightedMz += mobilogramMzs.getAtIndex(ValueLayout.JAVA_DOUBLE, j) * (
-            mobilogramIntensities.getAtIndex(ValueLayout.JAVA_DOUBLE, j) / summedIntensities[i]);
-      }
-      // due to added zeros, the summed intensity might have been 0 -> NaN
-      if (Double.compare(weightedMz, Double.NaN) == 0) {
-        weightedMz = 0d;
-      }
-      weightedMzs[i] = weightedMz;
-    }
-    return weightedMzs;
-  }
-
-  private double[] sumIntensities(List<IonMobilitySeries> mobilograms) {
-    double[] summedIntensities = new double[mobilograms.size()];
-    for (int i = 0; i < mobilograms.size(); i++) {
-      IonMobilitySeries ims = mobilograms.get(i);
-      MemorySegment intensities = ims.getIntensityValueBuffer();
-      for (int j = 0; j < StorageUtils.numDoubles(intensities); j++) {
-        summedIntensities[i] += intensities.getAtIndex(ValueLayout.JAVA_DOUBLE, j);
-      }
-    }
-    return summedIntensities;
-  }
 
   private boolean checkRawFileIntegrity(@NotNull List<IonMobilitySeries> mobilograms) {
     RawDataFile file = null;

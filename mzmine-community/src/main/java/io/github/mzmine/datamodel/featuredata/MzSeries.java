@@ -57,8 +57,7 @@ public interface MzSeries extends SeriesValueCount {
 
   /**
    * Tests a subset of the series for equality. Note that the number of values and the underlying
-   * buffer is checked for equality. However, of the actual series values, only a subset of five
-   * points is compared.
+   * buffer is checked for equality.
    */
   static boolean seriesSubsetEqual(MzSeries s1, MzSeries s2) {
     if (s1.getNumberOfValues() != s2.getNumberOfValues()) {
@@ -67,13 +66,6 @@ public interface MzSeries extends SeriesValueCount {
 
     if(!contentEquals(s1.getMZValueBuffer(), s2.getMZValueBuffer())) {
       return false;
-    }
-
-    final int max = s1.getNumberOfValues() - 1;
-    for (int i = 1; i < 5; i++) {
-      if (Double.compare(s1.getMZ(max / i), s2.getMZ(max / i)) != 0) {
-        return false;
-      }
     }
 
     return true;

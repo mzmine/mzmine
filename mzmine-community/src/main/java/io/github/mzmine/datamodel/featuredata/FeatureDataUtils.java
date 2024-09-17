@@ -47,7 +47,6 @@ import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
-import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -217,12 +216,11 @@ public class FeatureDataUtils {
       return 0f;
     }
     float area = 0f;
-    MemorySegment intensities = series.getIntensityValueBuffer();
     List<? extends Scan> scans = series.getSpectra();
-    double lastIntensity = intensities.getAtIndex(ValueLayout.JAVA_DOUBLE, 0);
+    double lastIntensity = series.getIntensity(0);
     float lastRT = scans.get(0).getRetentionTime();
     for (int i = 1; i < series.getNumberOfValues(); i++) {
-      final double thisIntensity = intensities.getAtIndex(ValueLayout.JAVA_DOUBLE, i);
+      final double thisIntensity = series.getIntensity(i);
       final float thisRT = scans.get(i).getRetentionTime();
       area += (thisRT - lastRT) * ((float) (thisIntensity + lastIntensity)) / 2.0;
       lastIntensity = thisIntensity;
@@ -254,14 +252,10 @@ public class FeatureDataUtils {
    */
   public static double calculateCenterMz(@NotNull final IonSeries series,
       @NotNull final CenterFunction cf, int startInclusive, int endInclusive) {
-    double[] mz = new double[endInclusive - startInclusive];
-    double[] intensity = new double[endInclusive - startInclusive];
-
-    StorageUtils.copyDoubles(mz, series.getMZValueBuffer(), startInclusive, endInclusive + 1);
-    StorageUtils.copyDoubles(intensity, series.getIntensityValueBuffer(), startInclusive,
-        endInclusive + 1);
-
-    return cf.calcCenter(mz, intensity);
+    return cf.calcCenter(
+        StorageUtils.copyOfRangeDouble(series.getMZValueBuffer(), startInclusive, endInclusive + 1),
+        StorageUtils.copyOfRangeDouble(series.getIntensityValueBuffer(), startInclusive,
+            endInclusive + 1));
   }
 
   /**

@@ -53,9 +53,8 @@ public interface IntensitySeries extends SeriesValueCount {
 
   /**
    * Tests a subset of intensity values of both series for equality. Note that the number of values
-   * and the underlying buffer is checked for equality. However, of the actual series values, only a
-   * subset of five points is compared.
-   */
+   * and the underlying buffer is checked for equality.
+   **/
   static boolean seriesSubsetEqual(IntensitySeries s1, IntensitySeries s2) {
     if (s1.getNumberOfValues() != s2.getNumberOfValues()) {
       return false;
@@ -63,14 +62,6 @@ public interface IntensitySeries extends SeriesValueCount {
 
     if(!contentEquals(s1.getIntensityValueBuffer(), s2.getIntensityValueBuffer())) {
       return false;
-    }
-
-    final int max = s1.getNumberOfValues() - 1;
-
-    for (int i = 1; i < 5; i++) {
-      if (Double.compare(s1.getIntensity(max / i), s2.getIntensity(max / i)) != 0) {
-        return false;
-      }
     }
 
     return true;

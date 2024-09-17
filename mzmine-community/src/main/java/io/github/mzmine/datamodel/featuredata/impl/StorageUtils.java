@@ -25,13 +25,10 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.featuredata.IonSeries;
-import io.github.mzmine.datamodel.impl.AbstractStorableSpectrum;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +37,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.data.Value;
 
 /**
  * Used to store lists of arrays into a single DoubleBuffer to safe memory.
@@ -268,7 +264,12 @@ public class StorageUtils {
         (endIndexExclusive - startIndex) * ValueLayout.JAVA_INT.byteSize());
   }
 
-  public static void copyDoubles(double[] dst, MemorySegment src, long fromIndex,
+  public static double[] copyOfRangeDouble(MemorySegment segment, long startIndex,
+      long endIndexExclusive) {
+    return sliceDoubles(segment, startIndex, endIndexExclusive).toArray(ValueLayout.JAVA_DOUBLE);
+  }
+
+  public static void copyToBuffer(double[] dst, MemorySegment src, long fromIndex,
       long endIndexExclusive) {
     if (dst.length < endIndexExclusive - fromIndex
         || src.byteSize() / ValueLayout.JAVA_DOUBLE.byteSize() < endIndexExclusive - fromIndex) {
@@ -277,6 +278,22 @@ public class StorageUtils {
 
     MemorySegment.copy(src, ValueLayout.JAVA_DOUBLE, fromIndex * ValueLayout.JAVA_DOUBLE.byteSize(),
         dst, 0, (int) (endIndexExclusive - fromIndex));
+  }
+
+  public static void copyToBuffer(float[] dst, MemorySegment src, long fromIndex,
+      long endIndexExclusive) {
+    if (dst.length < endIndexExclusive - fromIndex
+        || src.byteSize() / ValueLayout.JAVA_FLOAT.byteSize() < endIndexExclusive - fromIndex) {
+      throw new IndexOutOfBoundsException();
+    }
+
+    MemorySegment.copy(src, ValueLayout.JAVA_FLOAT, fromIndex * ValueLayout.JAVA_FLOAT.byteSize(),
+        dst, 0, (int) (endIndexExclusive - fromIndex));
+  }
+
+  public static float[] copyOfRangeFloat(MemorySegment segment, long startIndex,
+      long endIndexExclusive) {
+    return sliceFloats(segment, startIndex, endIndexExclusive).toArray(ValueLayout.JAVA_FLOAT);
   }
 
   public static boolean contentEquals(MemorySegment s1, MemorySegment s2) {
