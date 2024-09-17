@@ -68,6 +68,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.FinishedTask;
 import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.ImagingUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -149,7 +150,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return (adapTask != null ? adapTask.getFinishedPercentage() * 0.5 : 0)
-           + (currentRow / (double) numRows) * 0.5d;
+        + (currentRow / (double) numRows) * 0.5d;
   }
 
   @Override
@@ -163,7 +164,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
     final RawDataFile file = flist.getRawDataFile(0);
     final List<Scan> ms2Scans = List.of(ms2ScanSelection.getMatchingScans(file));
-    if(ms2Scans.isEmpty()) {
+    if (ms2Scans.isEmpty()) {
       flist.getAppliedMethods().add(
           new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
               getModuleCallDate()));
@@ -178,7 +179,7 @@ public class DiaMs2CorrTask extends AbstractTask {
     final MZmineProject dummyProject = new MZmineProjectImpl();
     var ms2Flist = buildChromatograms(dummyProject, file);
 
-    if(ms2Flist == null) {
+    if (ms2Flist == null) {
       flist.getAppliedMethods().add(
           new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
               getModuleCallDate()));
@@ -196,6 +197,16 @@ public class DiaMs2CorrTask extends AbstractTask {
     var size = ms2Eics.asMapOfRanges().size();
     assert ms2Flist.getNumberOfRows() == size;
 
+    processFeatureList(flist.getRows(), file, ms2Eics, ms2Scans, access);
+
+    flist.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
+            getModuleCallDate()));
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  private void processFeatureList(List<FeatureListRow> rows, RawDataFile originalDataFile,
+      final RangeMap<Double, IonTimeSeries<?>> ms2Eics, final List<Scan> ms2Scans, ScanDataAccess ms2ScanAccess) {
     // go through all features and find ms2s
     for (FeatureListRow row : flist.getRows()) {
       currentRow++;
@@ -204,7 +215,7 @@ public class DiaMs2CorrTask extends AbstractTask {
         return;
       }
 
-      final Feature feature = row.getFeature(file);
+      final Feature feature = row.getFeature(originalDataFile);
       if (feature == null || feature.getFeatureStatus() != FeatureStatus.DETECTED
           || feature.getHeight() < minMs1Intensity) {
         continue;
@@ -232,17 +243,17 @@ public class DiaMs2CorrTask extends AbstractTask {
       }
 
       // find m/zs in the closest ms2 scan and get their EICs
-      if (!access.jumpToScan(closestMs2)) {
+      if (!ms2ScanAccess.jumpToScan(closestMs2)) {
         continue;
       }
 
       final List<IonTimeSeries<?>> eligibleEICs = new ArrayList<>();
-      for (int i = 0; i < access.getNumberOfDataPoints(); i++) {
-        if (minMs2Intensity > access.getIntensityValue(i)) {
+      for (int i = 0; i < ms2ScanAccess.getNumberOfDataPoints(); i++) {
+        if (minMs2Intensity > ms2ScanAccess.getIntensityValue(i)) {
           continue;
         }
 
-        final double mz = access.getMzValue(i);
+        final double mz = ms2ScanAccess.getMzValue(i);
         final IonTimeSeries<?> series = ms2Eics.get(mz);
         if (series != null) {
           eligibleEICs.add(series);
@@ -343,25 +354,13 @@ public class DiaMs2CorrTask extends AbstractTask {
         continue;
       }
 
-      /*MergedMsMsSpectrum ms2 = new SimpleMergedMsMsSpectrum(getMemoryMapStorage(),
-          ms2Mzs.toDoubleArray(), ms2Intensities.toDoubleArray(), closestMs2.getMsMsInfo(),
-          closestMs2.getMSLevel(),
-          mergedMobilityScan != null ? mergedMobilityScan.getSourceSpectra() : ms2sInRtRange,
-          IntensityMergingType.MAXIMUM, FeatureDataUtils.DEFAULT_CENTER_FUNCTION,
-          mergedMobilityScan != null ? MsMsMergeType.IMS_DIA : MsMsMergeType.DIA);*/
-
-      PseudoSpectrum ms2 = new SimplePseudoSpectrum(file, 2, feature.getRT(), null,
+      PseudoSpectrum ms2 = new SimplePseudoSpectrum(originalDataFile, 2, feature.getRT(), null,
           ms2Mzs.toDoubleArray(), ms2Intensities.toDoubleArray(),
           feature.getRepresentativeScan().getPolarity(),
           String.format("Pseudo MS2 (R >= %.2f)", minPearson), PseudoSpectrumType.LC_DIA);
 
       feature.setAllMS2FragmentScans(new ArrayList<>(List.of(ms2)));
     }
-
-    flist.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
-            getModuleCallDate()));
-    setStatus(TaskStatus.FINISHED);
   }
 
   private Scan getClosestMs2(float rt, List<Scan> ms2sInRtRange) {
@@ -379,8 +378,8 @@ public class DiaMs2CorrTask extends AbstractTask {
 
   private ModularFeatureList buildChromatograms(MZmineProject dummyProject, RawDataFile file) {
     // currently the consecutive scans are used
-    adapTask = ModularADAPChromatogramBuilderTask.forChromatography(dummyProject, file,adapParameters,
-        getMemoryMapStorage(), getModuleCallDate(), DiaMs2CorrModule.class);
+    adapTask = ModularADAPChromatogramBuilderTask.forChromatography(dummyProject, file,
+        adapParameters, getMemoryMapStorage(), getModuleCallDate(), DiaMs2CorrModule.class);
 
     adapTask.run();
     adapTask = new FinishedTask(adapTask);
@@ -464,7 +463,13 @@ public class DiaMs2CorrTask extends AbstractTask {
 
       if (scan instanceof Frame frame) {
         final Set<IonMobilityMsMsInfo> imsMsMsInfos = frame.getImsMsMsInfos();
-
+        for (IonMobilityMsMsInfo info : imsMsMsInfos) {
+          IsolationWindow window = new IsolationWindow(info.getIsolationWindow(),
+              info.getMobilityRange());
+          final List<Scan> scans = windowScanMap.computeIfAbsent(window, w -> new ArrayList<>());
+          // have to extract some mocked frames later
+          scans.add(scan);
+        }
       } else {
         final MsMsInfo msMsInfo = scan.getMsMsInfo();
         if (msMsInfo == null) {
@@ -472,8 +477,7 @@ public class DiaMs2CorrTask extends AbstractTask {
         }
 
         final Range<Double> mzRange = msMsInfo.getIsolationWindow();
-        IsolationWindow window;
-        window = new IsolationWindow(mzRange, null);
+        IsolationWindow window = new IsolationWindow(mzRange, null);
         final List<Scan> scans = windowScanMap.computeIfAbsent(window, w -> new ArrayList<>());
         scans.add(scan);
       }

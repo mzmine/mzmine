@@ -26,6 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.filter_diams2;
 
 import com.google.common.collect.Range;
+import org.jetbrains.annotations.Nullable;
 
-public record IsolationWindow(Range<Double> mzIsolation, Range<Float> mobilityIsolation) {
+public record IsolationWindow(@Nullable Range<Double> mzIsolation,
+                              @Nullable Range<Float> mobilityIsolation) {
+
 }
