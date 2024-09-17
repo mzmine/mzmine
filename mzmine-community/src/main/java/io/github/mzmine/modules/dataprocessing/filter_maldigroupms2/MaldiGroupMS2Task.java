@@ -151,7 +151,8 @@ public class MaldiGroupMS2Task extends AbstractTask {
           .flatMap(file -> file.getScanNumbers(2).stream()).filter(
               scan -> (scan instanceof ImagingFrame imgFrame)
                       && imgFrame.getMaldiSpotInfo() != null)
-          .flatMap(f -> ((ImagingFrame) f).getImsMsMsInfos().stream())
+          .flatMap(f -> ((ImagingFrame) f).getImsMsMsInfos().stream()
+              .filter(i -> i instanceof PasefMsMsInfo).map(i -> (PasefMsMsInfo) i))
           .sorted(Comparator.comparingDouble(info -> info.getIsolationMz())).toList();
 
       // for all features

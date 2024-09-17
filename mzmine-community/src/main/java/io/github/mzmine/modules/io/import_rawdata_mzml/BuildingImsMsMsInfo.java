@@ -95,6 +95,7 @@ public class BuildingImsMsMsInfo {
   }
 
   public PasefMsMsInfoImpl build(Frame parentFrame, Frame thisFragmentFrame) {
+    // todo read mz isolation from ims-mzml and add it here. then either create pasef or dia msms info
     return new PasefMsMsInfoImpl(precursorMz, Range.closed(firstSpectrumNumber, lastSpectrumNumber),
         collisionEnergy, precursorCharge, parentFrame, thisFragmentFrame, null);
   }

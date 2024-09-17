@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,37 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.msms;
+package io.github.mzmine.modules.dataprocessing.filter_diams2;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.Nullable;
+import com.google.common.collect.Range;
 
-/**
- * Precursor information stored in IMS MS2 frames regarding their respective sub spectra.
- *
- * @author https://github.com/SteffenHeu
- */
-public interface PasefMsMsInfo extends DDAMsMsInfo, IonMobilityMsMsInfo {
-
-  public final int UNKNOWN_CHARGE = 0;
-  public final double UNKNOWN_COLISSIONENERGY = -1d;
-
-  /**
-   * @return The most intense m/z of the detected precursor.
-   */
-  @Nullable double getIsolationMz();
-
-  /**
-   * @return Collision energy this precursor was fragmented at in the given range. May be null if
-   * not set or 0 if unknown.
-   */
-  Float getActivationEnergy();
-
-  /**
-   * @return The charge of the precursor. 0 = unknown.
-   */
-  Integer getPrecursorCharge();
-
-  void writeToXML(XMLStreamWriter writer) throws XMLStreamException;
+public record IsolationWindow(Range<Double> mzIsolation, Range<Float> mobilityIsolation) {
 }

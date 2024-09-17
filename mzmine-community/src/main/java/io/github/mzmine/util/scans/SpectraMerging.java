@@ -558,7 +558,7 @@ public class SpectraMerging {
 
     frame.setMobilityScans(buildingMobilityScans, true);
     frame.setMobilities(mobilities);
-    double[][] mergedSpectrum = calculatedMergedMzsAndIntensities(buildingMobilityScans, tolerance,
+    double[][] mergedSpectrum = calculatedMergedMzsAndIntensities(frames, tolerance,
         intensityMergingType, cf, null, null, null);
     frame.setDataPoints(mergedSpectrum[0], mergedSpectrum[1]);
     return frame;
