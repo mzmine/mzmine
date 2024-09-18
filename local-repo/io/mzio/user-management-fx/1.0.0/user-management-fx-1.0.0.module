@@ -53,111 +53,6 @@
           }
         },
         {
-          "group": "org.openjfx",
-          "module": "javafx-base",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-base",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-graphics",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-graphics",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-controls",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-controls",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-fxml",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-fxml",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-media",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-media",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-swing",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-swing",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-web",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-web",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
           "group": "org.controlsfx",
           "module": "controlsfx",
           "version": {
@@ -223,6 +118,48 @@
           "module": "license3j",
           "version": {
             "requires": "3.2.0"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-base",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-graphics",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-controls",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-fxml",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-swing",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-web",
+          "version": {
+            "requires": "21"
           }
         }
       ],

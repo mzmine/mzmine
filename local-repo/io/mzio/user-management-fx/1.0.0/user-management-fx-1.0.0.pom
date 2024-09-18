@@ -34,55 +34,6 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-base</artifactId>
-      <version>21</version>
-      <classifier>win</classifier>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-graphics</artifactId>
-      <version>21</version>
-      <classifier>win</classifier>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-controls</artifactId>
-      <version>21</version>
-      <classifier>win</classifier>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-fxml</artifactId>
-      <version>21</version>
-      <classifier>win</classifier>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-media</artifactId>
-      <version>21</version>
-      <classifier>win</classifier>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-swing</artifactId>
-      <version>21</version>
-      <classifier>win</classifier>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-web</artifactId>
-      <version>21</version>
-      <classifier>win</classifier>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
       <groupId>org.controlsfx</groupId>
       <artifactId>controlsfx</artifactId>
       <version>11.1.1</version>
@@ -143,6 +94,42 @@
       <groupId>com.javax0.license3j</groupId>
       <artifactId>license3j</artifactId>
       <version>3.2.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-base</artifactId>
+      <version>21</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <version>21</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>21</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-fxml</artifactId>
+      <version>21</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-swing</artifactId>
+      <version>21</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-web</artifactId>
+      <version>21</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>
