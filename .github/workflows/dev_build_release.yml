@@ -163,8 +163,8 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
           prerelease: true
-          title: "Latest Test Action Build"
-          automatic_release_tag: "text-action-release"
+          title: "Latest Development Build"
+          automatic_release_tag: "Development-release"
           files: build/*/*
 
   # bump up patch if dev release finished
