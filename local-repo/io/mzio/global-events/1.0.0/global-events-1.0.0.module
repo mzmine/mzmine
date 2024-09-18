@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "8.9"
+      "version": "8.10"
     }
   },
   "variants": [
@@ -27,11 +27,11 @@
         {
           "name": "global-events-1.0.0.jar",
           "url": "global-events-1.0.0.jar",
-          "size": 2657,
-          "sha512": "a7fbe910eb1c0700dc1c2a18bdeb6355965efb1d6058ded7985b43dc378ff44df39630a7f113e95b03ee4f9125a2d6c63d791081a76d18e454c5ac396e759f7e",
-          "sha256": "9ffa5f093d0c72ecbfc2ab86bc2f3859ebaecc2dbc33463c5d73658126f822a4",
-          "sha1": "ad0b1e9245731bf2ba11caa162b8da2972721b16",
-          "md5": "e93b7d8042ca8679c3ae0487d76f1da2"
+          "size": 3500,
+          "sha512": "f43d7e8517ffe9a5c4906c207005064f32a055d4704ee98d1f793970355575ccec7a1f747af4fc2b11532c574f95633520fb44c318615b2cd41f4a39cd650b9c",
+          "sha256": "cb528570286963babf94a9389d15269b2e830e4dd4f53dbf2122eff17fc9f24f",
+          "sha1": "7d94776fa7623ad4b656de292f0d255c4e6430ff",
+          "md5": "cc0f5e3ccebfab1ca8a5406ad225851b"
         }
       ]
     },
@@ -57,11 +57,11 @@
         {
           "name": "global-events-1.0.0.jar",
           "url": "global-events-1.0.0.jar",
-          "size": 2657,
-          "sha512": "a7fbe910eb1c0700dc1c2a18bdeb6355965efb1d6058ded7985b43dc378ff44df39630a7f113e95b03ee4f9125a2d6c63d791081a76d18e454c5ac396e759f7e",
-          "sha256": "9ffa5f093d0c72ecbfc2ab86bc2f3859ebaecc2dbc33463c5d73658126f822a4",
-          "sha1": "ad0b1e9245731bf2ba11caa162b8da2972721b16",
-          "md5": "e93b7d8042ca8679c3ae0487d76f1da2"
+          "size": 3500,
+          "sha512": "f43d7e8517ffe9a5c4906c207005064f32a055d4704ee98d1f793970355575ccec7a1f747af4fc2b11532c574f95633520fb44c318615b2cd41f4a39cd650b9c",
+          "sha256": "cb528570286963babf94a9389d15269b2e830e4dd4f53dbf2122eff17fc9f24f",
+          "sha1": "7d94776fa7623ad4b656de292f0d255c4e6430ff",
+          "md5": "cc0f5e3ccebfab1ca8a5406ad225851b"
         }
       ]
     }

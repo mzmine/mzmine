@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.DetectorType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectralData;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectralDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectrum;
@@ -59,14 +60,17 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorEl
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
+import java.lang.foreign.MemorySegment;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -240,8 +244,8 @@ public class ConversionUtils {
 
     final MassSpectrumType spectrumType = scan.getSpectrumType();
 
-    final DoubleBuffer wavelengthValues = scan.getWavelengthValues();
-    final DoubleBuffer intensityValues = scan.getDoubleBufferIntensityValues();
+    final MemorySegment wavelengthValues = scan.getWavelengthValues();
+    final MemorySegment intensityValues = scan.getDoubleBufferIntensityValues();
 
     final WavelengthSpectrum spectrum = new WavelengthSpectrum(spectralData, wavelengthValues,
         intensityValues, spectrumType, scan.getRetentionTime());
@@ -270,7 +274,7 @@ public class ConversionUtils {
    * @return a {@link SimpleScan}
    */
   public static Scan mzmlScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
-      DoubleBuffer mzs, DoubleBuffer intensities, MassSpectrumType spectrumType) {
+      MemorySegment mzs, MemorySegment intensities, MassSpectrumType spectrumType) {
     DDAMsMsInfo info = null;
     if (scan.getPrecursorList() != null) {
       final var precursorElements = scan.getPrecursorList().getPrecursorElements();
@@ -376,7 +380,6 @@ public class ConversionUtils {
   /**
    * Converts chromatograms from the MZML and groups them into one {@link OtherDataFile} per
    * chromatogram type. E.g. all pressure, all PDA or all UV chromatograms will be in one file.
-   *
    */
   public static List<OtherDataFile> convertOtherTraces(RawDataFile file,
       List<Chromatogram> chromatograms) {
@@ -385,40 +388,47 @@ public class ConversionUtils {
         .filter(c -> c instanceof MzMLChromatogram).map(c -> (MzMLChromatogram) c)
         .collect(Collectors.groupingBy(ConversionUtils::getChromatogramType));
 
-    List<OtherDataFile> otherFiles = new ArrayList<>();
+    final List<OtherDataFile> otherFiles = new ArrayList<>();
 
-    for (Entry<ChromatogramType, List<MzMLChromatogram>> grouped : groupedChromatograms.entrySet()) {
-      final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
-      final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
-      otherFile.setDetectorType(DetectorType.OTHER);
+    for (Entry<ChromatogramType, List<MzMLChromatogram>> groupedByChromType : groupedChromatograms.entrySet()
+        .stream().sorted(Comparator.comparing(e -> e.getKey().getDescription())).toList()) {
 
-      timeSeriesData.setChromatogramType(grouped.getKey());
-      otherFile.setDescription(grouped.getKey().getDescription());
+      // group by range unit so we definitely have only one chromatogram type per file.
+      final Map<MzMLUnits, List<MzMLChromatogram>> groupedByUnit = groupByUnit(
+          groupedByChromType.getValue(),
+          c -> MzMLUnits.ofAccession(c.getIntensityBinaryDataInfo().getUnitAccession()));
 
-      for (MzMLChromatogram chrom : grouped.getValue()) {
-        final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
-            file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
-            chrom.getId(), timeSeriesData);
+      for (Entry<MzMLUnits, List<MzMLChromatogram>> unitChromEntry : groupedByUnit.entrySet()) {
+        final MzMLUnits unit = unitChromEntry.getKey();
 
-        timeSeriesData.addTimeSeries(timeSeries);
+        final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
+        final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
+        otherFile.setDetectorType(DetectorType.OTHER);
+        timeSeriesData.setChromatogramType(groupedByChromType.getKey());
+        otherFile.setDescription(unit +  "_" +
+            groupedByChromType.getKey().getDescription());
 
-        final String unitAccession = chrom.getIntensityBinaryDataInfo().getUnitAccession();
-        final MzMLUnits unit = MzMLUnits.ofAccession(unitAccession);
-        final String currentUnit = timeSeriesData.getTimeSeriesRangeUnit();
-        if (!currentUnit.equals(OtherDataFileImpl.DEFAULT_UNIT) && !currentUnit.equals(
-            unit.getSign())) {
-          logger.severe(
-              () -> "Chromatogram units in file %s do not match.".formatted(file.getName()));
-        } else {
+        for (MzMLChromatogram chrom : unitChromEntry.getValue()) {
+          final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
+              file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
+              chrom.getId(), timeSeriesData);
+
+          final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
+          timeSeriesData.addRawTrace(otherFeature);
+
           timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
           timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
         }
+        otherFile.setOtherTimeSeriesData(timeSeriesData);
+        otherFiles.add(otherFile);
       }
-      otherFile.setOtherTimeSeriesData(timeSeriesData);
-      otherFiles.add(otherFile);
     }
 
     return otherFiles;
+  }
+
+  public static <T, K> Map<K, List<T>> groupByUnit(List<T> values, Function<T, K> getUnit) {
+    return values.stream().collect(Collectors.groupingBy(getUnit));
   }
 
   private static @NotNull ChromatogramType getChromatogramType(MzMLChromatogram c) {

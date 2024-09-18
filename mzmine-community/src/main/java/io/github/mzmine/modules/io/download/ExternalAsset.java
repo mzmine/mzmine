@@ -39,7 +39,10 @@ public enum ExternalAsset {
   ThermoRawFileParser, MSCONVERT,
 
   // spectral libraries
-  MSnLib;
+  MSnLib,
+
+  // models
+  MS2DEEPSCORE;
 
   @Override
   public String toString() {
@@ -56,6 +59,7 @@ public enum ExternalAsset {
     return switch (this) {
       case ThermoRawFileParser, MSCONVERT -> AssetGroup.TOOLS;
       case MSnLib -> AssetGroup.SPECTRAL_LIBRARIES;
+      case MS2DEEPSCORE -> AssetGroup.MODELS;
     };
   }
 
@@ -66,10 +70,11 @@ public enum ExternalAsset {
   public String getDownloadInfoPage() {
     return switch (this) {
       case ThermoRawFileParser ->
-          "https://github.com/compomics/ThermoRawFileParser/releases/latest";
+          "https://github.com/pluskal-lab/ThermoRawFileParserMacLinux/releases";
       case MSCONVERT -> "https://proteowizard.sourceforge.io/download.html";
       // libraries
       case MSnLib -> "https://zenodo.org/records/11163381";
+      case MS2DEEPSCORE -> "https://zenodo.org/records/12628369";
     };
   }
 

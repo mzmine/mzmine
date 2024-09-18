@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,21 +25,34 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.javafx.components.util.FxLayout;
+import javafx.beans.property.Property;
 import javafx.beans.property.StringProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FxTextFields {
 
   public static TextField newTextField(@Nullable Integer columnCount,
       @Nullable StringProperty textProperty, @Nullable String tooltip) {
-    return newTextField(columnCount, textProperty, tooltip);
+    return newTextField(columnCount, textProperty, null, tooltip);
   }
 
   public static TextField newTextField(@Nullable Integer columnCount,
       @Nullable StringProperty textProperty, @Nullable String prompt, @Nullable String tooltip) {
-    var field = new TextField();
+    return applyToField(new TextField(), columnCount, textProperty, prompt, tooltip);
+  }
+
+  private static TextField applyToField(@NotNull final TextField field,
+      final @Nullable Integer columnCount, final @Nullable StringProperty textProperty,
+      final @Nullable String prompt, final @Nullable String tooltip) {
     if (textProperty != null) {
       field.textProperty().bindBidirectional(textProperty);
     }
@@ -55,4 +68,52 @@ public class FxTextFields {
     return field;
   }
 
+  public static PasswordField newPasswordField(@Nullable Integer columnCount,
+      @Nullable Property<StringBuilder> passwordProperty, @Nullable String prompt,
+      @Nullable String tooltip) {
+    var passField = (PasswordField) applyToField(new PasswordField(), columnCount, null, prompt,
+        tooltip);
+    if (passwordProperty != null) {
+      passwordProperty.setValue((StringBuilder) passField.getCharacters());
+    }
+    return passField;
+  }
+
+  /**
+   * Adds a password field and button to trigger an action event like login.
+   *
+   * @param passwordProperty binds the password but gets cleared right after action
+   * @param onAction         this action will trigger on enter in passwordfield or on button click
+   *                         and then clear the password field right after.
+   * @return a wrapper around the field and button
+   */
+  public static HBox newPasswordFieldButton(@Nullable Integer columnCount,
+      @Nullable Property<StringBuilder> passwordProperty, @Nullable String tooltip,
+      String buttonLabel, Runnable onAction) {
+    return newPasswordFieldButton(columnCount, passwordProperty, null, tooltip, buttonLabel,
+        onAction);
+  }
+
+  /**
+   * Adds a password field and button to trigger an action event like login.
+   *
+   * @param passwordProperty binds the password but gets cleared right after action
+   * @param prompt           in PasswordField
+   * @param onAction         this action will trigger on enter in passwordfield or on button click
+   *                         and then clear the password field right after.
+   * @return a wrapper around the field and button
+   */
+  public static HBox newPasswordFieldButton(@Nullable Integer columnCount,
+      @Nullable Property<StringBuilder> passwordProperty, @Nullable String prompt,
+      @Nullable String tooltip, String buttonLabel, @NotNull Runnable onAction) {
+    final var passwordField = newPasswordField(columnCount, passwordProperty, prompt, tooltip);
+    EventHandler<ActionEvent> clearAfterHandler = _ -> {
+      onAction.run();
+      passwordField.clear();
+    };
+    passwordField.setOnAction(clearAfterHandler);
+
+    return FxLayout.newHBox(Insets.EMPTY, passwordField,
+        FxButtons.createButton(buttonLabel, tooltip, clearAfterHandler));
+  }
 }

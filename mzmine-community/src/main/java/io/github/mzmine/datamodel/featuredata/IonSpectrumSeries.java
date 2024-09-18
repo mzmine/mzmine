@@ -110,5 +110,4 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
   IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
 
-
 }

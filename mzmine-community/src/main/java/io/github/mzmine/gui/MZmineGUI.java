@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,6 +47,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -144,18 +145,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   public static void requestQuit() {
     FxThread.runLater(() -> {
-      Alert alert = new Alert(AlertType.CONFIRMATION);
-      Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-      stage.getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      stage.getIcons().add(mzMineIcon);
-      alert.setTitle("Confirmation");
-      alert.setHeaderText("Exit mzmine");
-      String s = "Are you sure you want to exit?";
-      alert.setContentText(s);
-      Optional<ButtonType> result = alert.showAndWait();
-
-      if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
+      if (DialogLoggerUtil.showDialogYesNo("Exit mzmine", "Are you sure you want to exit?")) {
         // Quit the JavaFX thread
         Platform.exit();
         // Call System.exit() because there are probably some background
@@ -200,7 +190,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     Scene newScene = new Scene(parent);
 
     // Copy CSS styles
-    newScene.getStylesheets().addAll(rootScene.getStylesheets());
+    ConfigService.getConfiguration().getTheme().apply(newScene.getStylesheets());
 
     Stage newStage = new Stage();
     newStage.setTitle(title);
@@ -717,34 +707,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   }
 
   @Override
-  public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
-
-    FutureTask<ButtonType> alertTask = new FutureTask<>(() -> {
-      Alert alert = new Alert(AlertType.CONFIRMATION, "", buttonTypes);
-      alert.getDialogPane().getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      Text text = new Text(msg);
-      text.setWrappingWidth(370);
-      final FlowPane pane = new FlowPane(text);
-      pane.setPadding(new Insets(5));
-      alert.getDialogPane().setContent(pane);
-      alert.setWidth(400);
-      alert.showAndWait();
-      return alert.getResult();
-    });
-
-    // Show the dialog
-    try {
-      if (Platform.isFxApplicationThread()) {
-        alertTask.run();
-      } else {
-        FxThread.runLater(alertTask);
-      }
-      return alertTask.get();
-    } catch (Exception e) {
-      logger.log(Level.WARNING, e.getMessage(), e);
-      return null;
-    }
+  public ButtonType displayConfirmation(final String title, String msg, ButtonType... buttonTypes) {
+    return DialogLoggerUtil.showDialog(AlertType.CONFIRMATION, "null", msg, buttonTypes)
+        .orElse(null);
   }
 
   @Override
@@ -853,8 +818,8 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     // Credits: https://stackoverflow.com/questions/36949595/how-do-i-create-a-javafx-alert-with-a-check-box-for-do-not-ask-again
     FutureTask<ButtonType> task = new FutureTask<>(() -> {
       Alert alert = new Alert(AlertType.WARNING);
-      alert.getDialogPane().getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      ConfigService.getConfiguration().getTheme()
+          .apply(alert.getDialogPane().getScene().getStylesheets());
       // Need to force the alert to layout in order to grab the graphic,
       // as we are replacing the dialog pane with a custom pane
       alert.getDialogPane().applyCss();

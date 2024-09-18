@@ -25,6 +25,16 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import io.github.mzmine.util.MemoryMapStorage;
+import org.jetbrains.annotations.Nullable;
+
 public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
 
+  IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
+
+  IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+      int endIndexExclusive);
+
+  @Nullable
+  MemoryMapStorage getStorage();
 }

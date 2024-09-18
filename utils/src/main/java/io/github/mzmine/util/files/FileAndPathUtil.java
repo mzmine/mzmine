@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,18 +25,31 @@
 
 package io.github.mzmine.util.files;
 
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.SPARSE;
+import static java.nio.file.StandardOpenOption.WRITE;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -690,6 +703,73 @@ public class FileAndPathUtil {
     return tempFile;
   }
 
+  private static final SecureRandom random = new SecureRandom();
+
+  private static Path generateRandomPath(String prefix, String suffix, Path dir) {
+    String s = prefix + Long.toUnsignedString(random.nextLong()) + suffix;
+    return generatePath(s, dir);
+  }
+
+  private static Path generatePath(String filename, Path dir) {
+    Path name = dir.getFileSystem().getPath(filename);
+    // check that filename does not contain parent directory, this would be invalid string
+    if (name.getParent() != null) {
+      throw new IllegalArgumentException("filename is invalid and contains parent directory");
+    }
+    return dir.resolve(name);
+  }
+
+  /**
+   * Sparse files require SPARSE and CREATE_NEW
+   */
+  public static final Set<OpenOption> SPARSE_OPEN_OPTIONS = Set.of(CREATE_NEW, SPARSE, READ, WRITE);
+
+  public static MemorySegment memoryMapSparseTempFile(Arena arena, long size) throws IOException {
+    return memoryMapSparseTempFile("mzmine", ".tmp", getTempDir().toPath(), arena, size);
+  }
+
+  /**
+   * @param prefix of the filename
+   * @param suffix of the filename, usually .tmp
+   * @param dir    temp directory to create file in
+   * @return a new {@link MemorySegment} that maps the sparse file
+   * @throws IOException
+   */
+  public static FileChannel openTempFileChannel(String prefix, String suffix, Path dir)
+      throws IOException {
+
+    // filename first
+    Path f = generatePath(prefix + suffix, dir);
+    while (true) {
+      try {
+        var channel = FileChannel.open(f, SPARSE_OPEN_OPTIONS);
+        f.toFile().deleteOnExit();
+        return channel;
+      } catch (FileAlreadyExistsException e) {
+        // ignore and try next file name
+      }
+      // try adding random numbers
+      f = generateRandomPath(prefix, suffix, dir);
+    }
+  }
+
+  /**
+   * @param prefix of the filename
+   * @param suffix of the filename, usually .tmp
+   * @param dir    temp directory to create file in
+   * @param arena  an arena to manage the {@link MemorySegment}
+   * @param size   The size (in bytes) of the mapped memory backing the memory segment
+   * @return a new {@link MemorySegment} that maps the sparse file
+   * @throws IOException
+   */
+  public static MemorySegment memoryMapSparseTempFile(String prefix, String suffix, Path dir,
+      Arena arena, long size) throws IOException {
+    try (var fc = openTempFileChannel(prefix, suffix, dir)) {
+      // Create a mapped memory segment managed by the arena
+      return fc.map(MapMode.READ_WRITE, 0L, size, arena);
+    }
+  }
+
   /**
    * Creates a temp folder in the set mzmine temp directory.
    */
@@ -699,5 +779,12 @@ public class FileAndPathUtil {
 
   public static Path getWorkingDirectory() {
     return Paths.get("").toAbsolutePath();
+  }
+
+  /**
+   * strip query parameters from URL with split at ?
+   */
+  public static String getFileNameFromUrl(final String downloadUrl) {
+    return FilenameUtils.getName(downloadUrl).split("\\?")[0];
   }
 }

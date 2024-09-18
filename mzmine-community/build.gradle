@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,6 +60,8 @@ semver {
 group = "io.github.mzmine"
 description = "mzmine"
 
+project.ext.appName = "mzmine"
+
 defaultTasks "test", "jpackage", "notarizeApp"
 
 // Check the OS
@@ -68,7 +70,6 @@ if (OperatingSystem.current().isLinux()) project.ext.osSuffix = "Linux"
 if (OperatingSystem.current().isWindows()) project.ext.osSuffix = "Windows"
 if (OperatingSystem.current().isMacOsX()) {
     project.ext.osSuffix = "macOS"
-    project.ext.appName = "mzmine"
     project.ext.appleID = "ansgar.korf@mzio.io"
 
     getLogger().lifecycle('Checking macOS system variables...')
@@ -163,6 +164,7 @@ dependencies {
     implementation(libs.commons.cli)
     implementation(libs.commons.io)
     implementation(libs.commons.lang3)
+    implementation(libs.commons.compress)
     implementation(libs.fastutil)
     implementation(libs.bundles.djl.pytorch)
     implementation "edu.ucar:netcdf4:4.5.5"
@@ -189,7 +191,7 @@ dependencies {
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
 
 //    implementation "org.du-lab.adap:adap:4.1.10"
-    implementation "org.xerial:sqlite-jdbc:3.40.0.0"
+    implementation 'org.xerial:sqlite-jdbc:3.41.2.2'
 
     implementation 'com.github.librepdf:openpdf:2.0.0'
     implementation "com.miglayout:miglayout:3.7.4"
@@ -293,7 +295,7 @@ application {
  * Build the JVM runtime using jlink
  */
 runtime {
-    options = ["--compress=0", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
+    options = ["--compress", "2", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
     modules = ["java.desktop",
                "java.logging",
                "java.net.http",
@@ -323,29 +325,36 @@ runtime {
             imageOptions = ["--icon", "src/main/resources/mzmineIcon.ico",
                             "--add-launcher", "mzmine_console=gradle/win_console_launcher.properties"
             ]
-            installerOptions = ["--win-menu",
-                                "--win-menu-group", "mzmine",
-                                "--win-shortcut",
-                                "--win-dir-chooser",
-                                "--win-upgrade-uuid", "$win_uuid",
-//                                "--license-file", "LICENSE.txt"  not required
+            installerOptions = [
+                    "--vendor", "mzio GmbH",
+                    "--win-menu",
+                    "--win-menu-group", appName,
+                    "--win-shortcut",
+                    "--win-dir-chooser",
+                    "--win-upgrade-uuid", "$win_uuid",
+//                  "--license-file", "LICENSE.txt"  not required
             ]
         }
         if (OperatingSystem.current().isMacOsX()) {
-            installerType = "dmg"
+//            installerType = "dmg"
+            skipInstaller = true // no installer for macOS as we are generating it in GitHub action
             // additional options for jpackage
             // only sign if all needed information is present
             if (!macSigning) {
-                imageOptions = ["--icon", "src/main/resources/mzmineIcon.icns"]
+                imageOptions = [
+                        "--vendor", "mzio GmbH",
+                        "--icon", "src/main/resources/mzmineIcon.icns"
+                ]
 //                installerOptions = ["--license-file", "LICENSE.txt"] not required
                 installerOptions = []
             } else {
-                imageOptions = ["--icon", "src/main/resources/mzmineIcon.icns",
-                                "--mac-sign",
-                                "--mac-package-name", appName,
-                                "--mac-package-identifier", "io.github.mzmine.main",
-                                "--mac-signing-key-user-name", developerID,
-                                "--verbose"
+                imageOptions = [
+                        "--icon", "src/main/resources/mzmineIcon.icns",
+                        "--mac-sign",
+                        "--mac-package-name", appName,
+                        "--mac-package-identifier", "io.github.mzmine.main",
+                        "--mac-signing-key-user-name", developerID,
+                        "--verbose"
                 ]
                 installerOptions = [
 //                        "--license-file", "LICENSE.txt", not required
@@ -353,7 +362,7 @@ runtime {
 "--mac-signing-key-user-name", developerID,
                 ]
             }
-            installerName = "mzmine_macOS_installer"
+            installerName = "mzmine_macOS_installer-academia"
         }
         if (OperatingSystem.current().isLinux()) {
             // leave installer type empty to generate all that match
@@ -361,18 +370,23 @@ runtime {
             // installerType = "deb"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/mzmineIcon.png"]
-            installerOptions = ["--linux-shortcut",
-                                "--linux-menu-group", "mzmine",
-//                                "--license-file", "LICENSE.txt", not required
-                                "--linux-deb-maintainer", "plusik@gmail.com"]
+            installerOptions = [
+                    "--vendor", "mzio GmbH",
+                    "--linux-package-name", appName,
+                    "--linux-shortcut",
+                    "--linux-menu-group", appName,
+//                  "--license-file", "LICENSE.txt", not required
+                    "--linux-deb-maintainer", "plusik@gmail.com"
+            ]
 
             installerName = "mzmine_Linux_installer"
         }
-        imageName = "mzmine"
+        imageName = appName
         jvmArgs = ["-showversion",
-                   "-XX:MaxHeapFreeRatio=100",
-                   "-XX:InitialRAMPercentage=30",
-                   "-XX:MinRAMPercentage=80",
+                   "-XX:MinHeapFreeRatio=50",
+                   "-XX:MaxHeapFreeRatio=75",
+                   "-XX:InitialRAMPercentage=5",
+                   "-XX:MinRAMPercentage=75",
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
                    "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
@@ -404,41 +418,9 @@ task signApp(dependsOn: jpackage) {
             jarsDir.toFile().listFiles((FilenameFilter) ((d, n) -> n.startsWith('netlib') || n.startsWith('jblas')
                     || n.startsWith('jocl'))).stream().forEach(File::delete)
 
-            getLogger().lifecycle("Signing native ThermoRawFileParser...")
-
-            // Unzip ThermoRawFileParser.zip
-            String mzmineJarName = "mzmine-community-${semver.version}"
-            getLogger().info("tmp mzmine jar unzip to " + "${jarsDir}/${mzmineJarName}/vendorlib/thermo")
-            getLogger().info("check if jar exists " + "${jarsDir.resolve(mzmineJarName).toFile().exists()}")
-            exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
-            exec {
-                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
-                        "ThermoRawFileParser.zip -d ThermoRawFileParser"])
-            }
+            // unzip previously done for internal parser
+//            String mzmineJarName = "mzmine-community-${semver.version}"
 //            exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
-//            exec {
-//                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
-//                        "ThermoRawFileParser.zip -d ThermoRawFileParser"])
-//            }
-
-            // Sign ThermoRawFileParser content
-            for (File f : jarsDir.resolve(mzmineJarName).resolve('vendorlib').resolve('thermo')
-                    .resolve('ThermoRawFileParser').toFile().listFiles()) {
-
-                // ThermoRawFileParserMac is signed by jpackage
-                if (f.toPath().toString().endsWith('ThermoRawFileParserMac')) {
-                    continue
-                }
-                codesign(f.toPath())
-            }
-
-            // Zip ThermoRawFileParser back
-            exec {
-                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo " +
-                        "&& zip -rq ThermoRawFileParser.zip ThermoRawFileParser && rm -rf ThermoRawFileParser"])
-            }
-            exec { commandLine(['sh', '-c', "cd ${jarsDir} && jar cvf ${mzmineJarName}.jar -C ${mzmineJarName}/ ."]) }
-            exec { commandLine(['sh', '-c', "rm -rf ${jarsDir}/${mzmineJarName}"]) }
 
             getLogger().lifecycle("Signing native libraries...")
 
@@ -489,7 +471,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().lifecycle("Zipping .app directory...")
             exec {
                 commandLine(['sh', '-c', "cd ${layout.buildDirectory.dir("jpackage").get()} " +
-                        "&& zip -rq mzmine_macOS_portable.zip mzmine.app"])
+                        "&& zip -rq mzmine_macOS_portable_academia.zip mzmine.app"])
             }
         }
     }
@@ -576,7 +558,9 @@ licenseReport {
                 'colt:colt', // https://dst.lbl.gov/ACSSoftware/colt/license.html (CERN license, permissive)
                 'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathPlot', 'com.github.yannrichet:JMathIO', // BSD 2-Clause
                 'net.jcip:jcip-annotations', // Creative Commons Attribution License
-                'io.mzio(.*)']
+                'io.mzio(.*)',
+                'org.openjfx.(.*)',
+    ]
 
     // Don't exclude bom dependencies.
     // If set to true, then all boms will be excluded from the report

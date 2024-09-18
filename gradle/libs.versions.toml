@@ -1,11 +1,11 @@
 [versions]
 jdk = { strictly = "22" }
 javafx = { strictly = "22.0.1" }
-javafx-plugin = "0.0.13"
+javafx-plugin = "0.1.0"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
 licenseplugin = "2.8"
-beryx-runtime = "1.12.7"
+beryx-runtime = "1.13.1"
 semver = "1.0.4"
 msdk = "0.0.27"
 # update to 2.9? from 2.5
@@ -98,6 +98,7 @@ commons-cli = { group = "commons-cli", name = "commons-cli", version = "1.6.0" }
 commons-math = { group = "org.apache.commons", name = "commons-math", version = "2.2" }
 commons-math3 = { group = "org.apache.commons", name = "commons-math3", version = "3.6.1" }
 commons-lang3 = "org.apache.commons:commons-lang3:3.0"
+commons-compress = "org.apache.commons:commons-compress:1.26.2"
 djl-pytorch-engine = { module = "ai.djl.pytorch:pytorch-engine", version.ref = "djl" }
 djl-api = { module = "ai.djl:api", version.ref = "djl" }
 opencsv = { group = "com.opencsv", name = "opencsv", version = "5.8" }

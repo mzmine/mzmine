@@ -506,7 +506,7 @@
         },
         {
             "moduleName": "commons-codec:commons-codec",
-            "moduleVersion": "1.15",
+            "moduleVersion": "1.17.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-codec/"
             ],
@@ -532,7 +532,7 @@
         },
         {
             "moduleName": "commons-io:commons-io",
-            "moduleVersion": "2.15.1",
+            "moduleVersion": "2.16.1",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-io/"
             ],
@@ -1295,7 +1295,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-compress",
-            "moduleVersion": "1.25.0",
+            "moduleVersion": "1.26.2",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-compress/"
             ],
@@ -1308,7 +1308,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-lang3",
-            "moduleVersion": "3.12.0",
+            "moduleVersion": "3.14.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-lang/"
             ],
@@ -2586,104 +2586,6 @@
             ]
         },
         {
-            "moduleName": "org.openjfx:javafx-base",
-            "moduleVersion": "21.0.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-controls",
-            "moduleVersion": "21.0.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-fxml",
-            "moduleVersion": "21",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-graphics",
-            "moduleVersion": "21.0.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-media",
-            "moduleVersion": "21",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-swing",
-            "moduleVersion": "21.0.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-web",
-            "moduleVersion": "21",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
             "moduleName": "org.openscience.cdk:cdk-atomtype",
             "moduleVersion": "2.9",
             "moduleLicenses": [
@@ -3047,7 +2949,7 @@
         },
         {
             "moduleName": "org.xerial:sqlite-jdbc",
-            "moduleVersion": "3.40.0.0",
+            "moduleVersion": "3.41.2.2",
             "moduleUrls": [
                 "https://github.com/xerial/sqlite-jdbc"
             ],

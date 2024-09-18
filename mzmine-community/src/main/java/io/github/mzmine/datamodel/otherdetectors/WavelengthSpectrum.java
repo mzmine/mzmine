@@ -28,18 +28,33 @@ package io.github.mzmine.datamodel.otherdetectors;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.DoubleBuffer;
 
 public class WavelengthSpectrum implements OtherSpectrum {
 
   private final OtherSpectralData spectralData;
-  private final DoubleBuffer wavelengths;
-  private final DoubleBuffer intensities;
+  /**
+   * doubles
+   */
+  private final MemorySegment wavelengths;
+  /**
+   * doubles
+   */
+  private final MemorySegment intensities;
   private final MassSpectrumType spectrumType;
   private final float rt;
 
-  public WavelengthSpectrum(final OtherSpectralData spectralData, DoubleBuffer wavelengths,
-      DoubleBuffer intensities, MassSpectrumType spectrumType, float rt) {
+  /**
+   * @param wavelengths doubles
+   * @param intensities doubles
+   */
+  public WavelengthSpectrum(final OtherSpectralData spectralData, MemorySegment wavelengths,
+      MemorySegment intensities, MassSpectrumType spectrumType, float rt) {
+    if (StorageUtils.numDoubles(wavelengths) != StorageUtils.numDoubles(intensities)) {
+      throw new IllegalArgumentException("wavelengths and intensities must be the same length");
+    }
     this.spectralData = spectralData;
     this.wavelengths = wavelengths;
     this.intensities = intensities;
@@ -63,17 +78,17 @@ public class WavelengthSpectrum implements OtherSpectrum {
 
   @Override
   public double getDomainValue(int index) {
-    return wavelengths.get(index);
+    return wavelengths.getAtIndex(ValueLayout.JAVA_DOUBLE, index);
   }
 
   @Override
   public double getRangeValue(int index) {
-    return intensities.get(index);
+    return intensities.getAtIndex(ValueLayout.JAVA_DOUBLE, index);
   }
 
   @Override
   public int getNumberOfValues() {
-    return intensities.limit();
+    return (int) StorageUtils.numDoubles(intensities);
   }
 
   @Override

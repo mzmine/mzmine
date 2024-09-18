@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,6 +65,12 @@ public class FxButtons {
     return createButton(label, tooltip, FxIconUtil.getFontIcon(icon), _ -> onAction.run());
   }
 
+  public static Button createButton(String label, String tooltip,
+      EventHandler<ActionEvent> onAction) {
+    return createButton(label, tooltip, null, onAction);
+  }
+
+  
   public static Button createButton(@Nullable String label, @Nullable String tooltip,
       @Nullable Node icon, EventHandler<ActionEvent> onAction) {
     Button b = new Button(label, icon);

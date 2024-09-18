@@ -38,6 +38,7 @@ import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adap3d.ADAP3DModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
@@ -115,7 +116,6 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
-import io.github.mzmine.modules.example.export_coding_demo.CodingDemoModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
@@ -268,6 +268,7 @@ public class BatchModeModulesList {
       ADAP3DModule.class, //
       ImsExpanderModule.class, //
       MaldiSpotFeatureDetectionModule.class, //
+      BaselineCorrectionModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
@@ -447,7 +448,7 @@ public class BatchModeModulesList {
       PCAModule.class, //
       VolcanoPlotModule.class //
 
-      , CodingDemoModule.class // only test purpose
+//      , CodingDemoModule.class // only test purpose
   );
 
 

@@ -25,12 +25,18 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
+import java.lang.foreign.ValueLayout.OfDouble;
 import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -52,15 +58,7 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
 
   protected synchronized void updateMzRangeAndTICValues() {
 
-    final DoubleBuffer mzValues = getMzValues();
-    final DoubleBuffer intensityValues = getIntensityValues();
-
-    assert mzValues != null;
-    assert intensityValues != null;
-    assert mzValues.limit() == intensityValues.limit();
-
-
-    if (mzValues.limit() == 0) {
+    if (getNumberOfDataPoints() == 0) {
       totalIonCurrent = 0.0;
       mzRange = null;
       basePeakIndex = null;
@@ -69,19 +67,19 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
 
     basePeakIndex = 0;
 
-    double lastMz = mzValues.get(0);
-    double maxIntensity = intensityValues.get(0);
+    double lastMz = getMzValue(0);
+    double maxIntensity = getIntensityValue(0);
     totalIonCurrent = maxIntensity;
-    for (int i = 1; i < mzValues.limit(); i++) {
+    for (int i = 1; i < getNumberOfDataPoints(); i++) {
 
       // Check the order of the m/z values
-      double mz = mzValues.get(i);
+      double mz = getMzValue(i);
       if (lastMz > mz) {
         throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
       }
 
       // Update base peak index
-      double intensity = intensityValues.get(i);
+      double intensity = getIntensityValue(i);
       if (intensity > maxIntensity) {
         basePeakIndex = i;
         maxIntensity = intensity;
@@ -93,7 +91,7 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
       lastMz = mz;
     }
     // set range after checking the order
-    mzRange = Range.closed(mzValues.get(0), mzValues.get(mzValues.limit() - 1));
+    mzRange = Range.closed(getMzValue(0), getMzValue(getNumberOfDataPoints() - 1));
   }
 
 
@@ -102,7 +100,7 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
    */
   @Override
   public int getNumberOfDataPoints() {
-    return getMzValues().limit();
+    return (int) StorageUtils.numDoubles(getMzValues());
   }
 
   /**
@@ -147,12 +145,12 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
 
   @Override
   public double getMzValue(int index) {
-    return getMzValues().get(index);
+    return getMzValues().getAtIndex(JAVA_DOUBLE, index);
   }
 
   @Override
   public double getIntensityValue(int index) {
-    return getIntensityValues().get(index);
+    return getIntensityValues().getAtIndex(JAVA_DOUBLE, index);
   }
 
   @Override
@@ -161,7 +159,7 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
     if (basePeakIndex == null) {
       return null;
     } else {
-      return getMzValues().get(basePeakIndex);
+      return getMzValues().getAtIndex(JAVA_DOUBLE, basePeakIndex);
     }
   }
 
@@ -171,13 +169,13 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
     if (basePeakIndex == null) {
       return null;
     } else {
-      return getIntensityValues().get(basePeakIndex);
+      return getIntensityValues().getAtIndex(JAVA_DOUBLE, basePeakIndex);
     }
   }
 
-  abstract DoubleBuffer getMzValues();
+  abstract MemorySegment getMzValues();
 
-  abstract DoubleBuffer getIntensityValues();
+  abstract MemorySegment getIntensityValues();
 
   @Override
   public Iterator<DataPoint> iterator() {

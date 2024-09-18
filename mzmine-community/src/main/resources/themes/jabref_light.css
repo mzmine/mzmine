@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,6 +48,7 @@ https://github.com/JabRef/jabref/blob/main/src/main/java/org/jabref/gui/Base.css
     /*-jr-accent: #a3b7e6;*/
     -jr-theme: #3391C1;
     -jr-accent: #156CA2;
+    -jr-accent-below-text: #8cbadc;
     -jr-transparent-accent: rgba(163, 183, 230, 0.16);
     -jr-selected: -jr-accent;
     -jr-checked: -jr-theme;
@@ -1205,17 +1206,25 @@ We want to have a look that matches our icons in the tool-bar */
     -fx-background-color: -jr-sidepane-background;
 }
 
-
-.progress-bar > .bar {
-    -fx-background-color: -jr-theme;
+.progress-bar {
+    -fx-opacity: 1.0;
 }
 
-.progress-bar:indeterminate > .bar {
-    -fx-background-color: -jr-theme;
+.progress-bar > .bar {
+    -fx-background-color: -jr-accent-below-text;
+    -fx-background-insets: 1 2 1 2; /* Remove background insets */
+    -fx-background-radius: 3; /* Remove background radius */
+    -fx-opacity: 1.0;
 }
 
 .progress-bar > .track {
-    -fx-background-color: -jr-accent;
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-outer-border;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-background-insets: 0; /* Remove background insets */
+    -fx-background-radius: 3; /* Remove background radius */
+    -fx-opacity: 1.0;
 }
 
 .jfx-color-picker:armed,

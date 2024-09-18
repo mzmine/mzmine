@@ -430,6 +430,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
         new ChartGesture(Entity.ALL_PLOT_AND_DATA, Event.CLICK, GestureButton.BUTTON1), e -> {
       PlotCursorPosition pos = getCurrentCursorPosition();
       if (pos != null) {
+        pos.setMouseEvent(e.getMouseEvent());
         setCursorPosition(pos);
       }
     }));

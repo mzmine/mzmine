@@ -83,10 +83,11 @@ public class SignalFiltersParameters extends SimpleParameterSet {
         signalThresholdForTargetIntensityPercent, targetIntensityPercentage);
   }
 
-  public void setValue(SpectralSignalFilter filter) {
+  public SignalFiltersParameters setValue(SpectralSignalFilter filter) {
     setParameter(removePrecursor, filter.isRemovePrecursor(), filter.removePrecursorMz());
     setParameter(intensityPercentFilter, filter.targetIntensityPercentage());
     setParameter(signalThresholdIntensityFilter, filter.signalThresholdForTargetIntensityPercent());
     setParameter(cropToMaxSignals, filter.cropToMaxSignals());
+    return this;
   }
 }

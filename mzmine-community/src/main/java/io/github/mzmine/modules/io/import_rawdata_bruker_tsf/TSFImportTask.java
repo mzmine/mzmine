@@ -40,8 +40,10 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFr
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameLaserInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.import_rawdata_bruker_uv.BrukerUvReader;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -163,6 +165,11 @@ public class TSFImportTask extends AbstractTask {
       return;
     }
 
+    synchronized (org.sqlite.JDBC.class) {
+      BrukerUvReader.loadAndAddForFile(dirPath, (RawDataFileImpl) newMZmineFile,
+          getMemoryMapStorage());
+    }
+
     newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
 
     final int numScans = frameTable.getFrameIdColumn().size();
@@ -232,9 +239,8 @@ public class TSFImportTask extends AbstractTask {
 
     synchronized (org.sqlite.JDBC.class) {
       setDescription("Establishing SQL connection to " + tsf.getName());
-      Connection connection;
-      try {
-        connection = DriverManager.getConnection("jdbc:sqlite:" + tsf.getAbsolutePath());
+      try (Connection connection = DriverManager.getConnection(
+          "jdbc:sqlite:" + tsf.getAbsolutePath())) {
 
         setDescription("Reading metadata for " + tsf.getName());
         metaDataTable.executeQuery(connection);
@@ -256,8 +262,6 @@ public class TSFImportTask extends AbstractTask {
           maldiFrameInfoTable.process();
           maldiFrameLaserInfoTable.executeQuery(connection);
         }
-
-        connection.close();
       } catch (Throwable t) {
         t.printStackTrace();
         logger.info("If stack trace contains \"out of memory\" the file was not found.");

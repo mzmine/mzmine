@@ -30,12 +30,12 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.modules.io.download.ExternalAsset;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithDownloadParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -60,10 +60,10 @@ public class MS2DeepscoreNetworkingParameters extends SimpleParameterSet {
   public static final PercentParameter minScore = new PercentParameter("Min similarity",
       "The minimum similarity score to store the MS2Deepscore prediction", 0.9, 0.0, 1.0);
 
-  public static final FileNameParameter ms2deepscoreModelFile = new FileNameParameter(
+  public static final FileNameWithDownloadParameter ms2deepscoreModelFile = new FileNameWithDownloadParameter(
       "MS2Deepscore model",
       "The file location of the MS2Deepscore model, click download to download the model.",
-      List.of(ExtensionFilters.PT), FileSelectionType.OPEN);
+      List.of(ExtensionFilters.PT), ExternalAsset.MS2DEEPSCORE);
 
 
   public MS2DeepscoreNetworkingParameters() {
@@ -84,7 +84,15 @@ public class MS2DeepscoreNetworkingParameters extends SimpleParameterSet {
    */
   @NotNull
   public static File findModelSettingsFile(final File modelFile) {
-    return FileAndPathUtil.getRealFilePathWithSuffix(modelFile, "_settings", "json");
+    File settingsFile = FileAndPathUtil.getRealFilePathWithSuffix(modelFile, "_settings", "json");
+    if (!settingsFile.exists()) {
+      var otherFile = new File(modelFile.getParentFile(), "settings.json");
+      if (otherFile.exists()) {
+        return otherFile;
+      }
+    }
+    // return settings file even if it may not exist
+    return settingsFile;
   }
 
   @Override

@@ -72,7 +72,7 @@ public class StoredMobilityScan implements MobilityScan {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    storage.getRawMobilityScanMzValues(getMobilityScanNumber(), dst, 0);
+    storage.getRawMobilityScanMzValues(getMobilityScanNumber(), dst);
     return dst;
   }
 
@@ -81,7 +81,7 @@ public class StoredMobilityScan implements MobilityScan {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    storage.getRawMobilityScanIntensityValues(getMobilityScanNumber(), dst, 0);
+    storage.getRawMobilityScanIntensityValues(getMobilityScanNumber(), dst);
     return dst;
   }
 

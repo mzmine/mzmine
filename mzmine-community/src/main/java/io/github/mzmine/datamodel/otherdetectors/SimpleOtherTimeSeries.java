@@ -25,38 +25,63 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SimpleOtherTimeSeries implements OtherTimeSeries {
 
-  protected final DoubleBuffer intensityBuffer;
-  protected final FloatBuffer timeBuffer;
+  /**
+   * doubles
+   */
+  protected final MemorySegment intensityBuffer;
+
+  /**
+   * floats
+   */
+  protected final MemorySegment timeBuffer;
   protected final String name;
-  private final OtherTimeSeriesData timeSeriesData;
+  private final @NotNull OtherTimeSeriesData timeSeriesData;
 
   public SimpleOtherTimeSeries(@Nullable MemoryMapStorage storage, @NotNull float[] rtValues,
-      @NotNull double[] intensityValues, String name, OtherTimeSeriesData timeSeriesData) {
+      @NotNull double[] intensityValues, String name, @NotNull OtherTimeSeriesData timeSeriesData) {
+    if (intensityValues.length != rtValues.length) {
+      throw new IllegalArgumentException("Intensities and RT values must have the same length");
+    }
     this.timeSeriesData = timeSeriesData;
     intensityBuffer = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
     timeBuffer = StorageUtils.storeValuesToFloatBuffer(storage, rtValues);
     this.name = name;
   }
 
+  public SimpleOtherTimeSeries(@NotNull MemorySegment rtValues,
+      @NotNull MemorySegment intensityValues, String name,
+      @NotNull OtherTimeSeriesData timeSeriesData) {
+    if (StorageUtils.numDoubles(intensityValues) != StorageUtils.numFloats(rtValues)) {
+      throw new IllegalArgumentException("Intensities and RT values must have the same length");
+    }
+    this.timeSeriesData = timeSeriesData;
+    intensityBuffer = intensityValues;
+    timeBuffer = rtValues;
+    this.name = name;
+  }
+
   @Override
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     return intensityBuffer;
   }
 
   @Override
   public float getRetentionTime(int index) {
-    assert index < timeBuffer.limit();
-    return timeBuffer.get(index);
+    assert index < StorageUtils.numFloats(timeBuffer);
+    return timeBuffer.getAtIndex(ValueLayout.JAVA_FLOAT, index);
   }
 
   @Override
@@ -70,12 +95,49 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
   }
 
   @Override
-  public OtherDataFile getOtherDataFile() {
+  public @NotNull OtherDataFile getOtherDataFile() {
     return timeSeriesData.getOtherDataFile();
   }
 
   @Override
+  @NotNull
   public OtherTimeSeriesData getTimeSeriesData() {
     return timeSeriesData;
+  }
+
+  @Override
+  public OtherTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newIntensities,
+      String newName) {
+    if (getNumberOfValues() != newIntensities.length) {
+      throw new IllegalArgumentException("The number of intensities does not match number of rts.");
+    }
+
+    return new SimpleOtherTimeSeries(timeBuffer,
+        StorageUtils.storeValuesToDoubleBuffer(storage, newIntensities), newName,
+        getTimeSeriesData());
+  }
+
+  @Override
+  public IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end) {
+    // todo does this work with float to double?
+    final IndexRange indexRange = BinarySearch.indexRange(start, end, getNumberOfValues(),
+        this::getRetentionTime);
+    return subSeries(storage, indexRange.min(), indexRange.maxExclusive());
+  }
+
+  @Override
+  public IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+      int endIndexExclusive) {
+
+    return new SimpleOtherTimeSeries(
+        StorageUtils.sliceFloats(timeBuffer, startIndexInclusive, endIndexExclusive),
+        StorageUtils.sliceDoubles(intensityBuffer, startIndexInclusive, endIndexExclusive), name,
+        timeSeriesData);
+  }
+
+  @Override
+  public @Nullable MemoryMapStorage getStorage() {
+    return getTimeSeriesData().getOtherDataFile().getCorrespondingRawDataFile()
+        .getMemoryMapStorage();
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,27 +54,28 @@ public class FxTextFlows {
   public static TextFlow newTextFlow(final TextAlignment textAlignment, Node... nodes) {
     var textFlow = new TextFlow(nodes);
     textFlow.setTextAlignment(textAlignment);
+    textFlow.setPrefHeight(Region.USE_COMPUTED_SIZE);
+    textFlow.setMaxWidth(Double.MAX_VALUE);
+    textFlow.setMaxHeight(Double.MAX_VALUE);
     return textFlow;
   }
 
-  public static Region newTextFlowInAccordion(final String title,
-      Node... nodes) {
+  public static Region newTextFlowInAccordion(final String title, Node... nodes) {
     return newTextFlowInAccordion(title, false, TextAlignment.LEFT, nodes);
   }
 
-  public static Region newTextFlowInAccordion(final String title, boolean expanded,
-      Node... nodes) {
+  public static Region newTextFlowInAccordion(final String title, boolean expanded, Node... nodes) {
     return newTextFlowInAccordion(title, expanded, TextAlignment.LEFT, nodes);
   }
 
-  public static Region newTextFlowInAccordion(final String title, boolean expanded, final TextAlignment textAlignment,
-      Node... nodes) {
+  public static Region newTextFlowInAccordion(final String title, boolean expanded,
+      final TextAlignment textAlignment, Node... nodes) {
     TextFlow textFlow = newTextFlow(nodes);
     textFlow.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
     textFlow.setTextAlignment(textAlignment);
     final TitledPane pane = new TitledPane(title, textFlow);
     final Accordion accordion = new Accordion(pane);
-    if(expanded) {
+    if (expanded) {
       accordion.setExpandedPane(accordion.getPanes().getFirst());
     }
     return accordion;

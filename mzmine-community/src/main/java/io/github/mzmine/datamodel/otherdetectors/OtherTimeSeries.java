@@ -27,6 +27,8 @@ package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.util.MemoryMapStorage;
+import org.jetbrains.annotations.NotNull;
 
 public interface OtherTimeSeries extends IntensityTimeSeries {
 
@@ -34,7 +36,11 @@ public interface OtherTimeSeries extends IntensityTimeSeries {
 
   ChromatogramType getChromatoogramType();
 
+  @NotNull
   OtherDataFile getOtherDataFile();
 
+  @NotNull
   OtherTimeSeriesData getTimeSeriesData();
+
+  OtherTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newIntensities, String newName);
 }

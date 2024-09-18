@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
@@ -340,10 +341,9 @@ public class SimpleParameterSet implements ParameterSet {
       logger.warning("This module does not support ion mobility data.");
       errorMessages.add("This module does not support ion mobility data.");
 
-      boolean returnVal = MZmineCore.getDesktop().displayConfirmation(
+      boolean returnVal = DialogLoggerUtil.showDialogYesNo("Untested IMS support",
           "This module does not support ion mobility data. This will lead to unexpected "
-          + "results. Do you want to continue anyway?", ButtonType.YES, ButtonType.NO)
-                          == ButtonType.YES;
+          + "results. Do you want to continue anyway?");
       if (!returnVal) {
         errorMessages.addAll(nonImsFilesList);
       }
