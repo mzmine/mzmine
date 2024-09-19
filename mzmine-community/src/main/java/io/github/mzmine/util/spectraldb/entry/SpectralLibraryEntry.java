@@ -154,16 +154,16 @@ public interface SpectralLibraryEntry extends MassList {
     }
 
     // merged scans are derived from multiple source scans - add all information here and overwrite
+    String datasetID = entry.getOrElse(DBEntryField.DATASET_ID, null);
+    entry.putIfNotNull(DBEntryField.USI, ScanUtils.extractUSI(scan, datasetID).toList());
+
     if (scan instanceof MergedMassSpectrum merged) {
       entry.putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
       entry.putIfNotNull(DBEntryField.SCAN_NUMBER,
           ScanUtils.extractScanNumbers(merged).boxed().toList());
       entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getMergingType());
-
-      String datasetID = entry.getOrElse(DBEntryField.DATASET_ID, null);
-      entry.putIfNotNull(DBEntryField.USI, ScanUtils.extractUSI(merged, datasetID).toList());
     } else {
-      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, MergingType.SINGLE_SCAN);
+      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, MergingType.SINGLE_BEST_SCAN);
       entry.putIfNotNull(DBEntryField.SCAN_NUMBER, scan.getScanNumber());
     }
 

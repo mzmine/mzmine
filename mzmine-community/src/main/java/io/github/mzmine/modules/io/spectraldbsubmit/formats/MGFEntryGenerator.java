@@ -40,12 +40,16 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
+import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
-import org.jetbrains.annotations.Nullable;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class MGFEntryGenerator {
 
@@ -123,18 +127,10 @@ public class MGFEntryGenerator {
   }
 
   /**
-   * Creates a simple MSP nist format DB entry
+   * Creates a simple mgf format DB entry
+   *
    */
   public static String createMGFEntry(SpectralLibraryEntry entry) {
-    return createMGFEntry(entry, entry.getOrElse(DBEntryField.SCAN_NUMBER, null));
-  }
-
-  /**
-   * Creates a simple MSP nist format DB entry
-   *
-   * @param scanNumber overwrite the scannumber used for this entry
-   */
-  public static String createMGFEntry(SpectralLibraryEntry entry, @Nullable Integer scanNumber) {
     String br = "\n";
     StringBuilder s = new StringBuilder();
     s.append("BEGIN IONS").append(br);
@@ -145,12 +141,21 @@ public class MGFEntryGenerator {
       if (id == null || id.isBlank()) {
         continue;
       }
-      // if scanNumber override is set - replace scan number and featureID (used by GNPS)
-      if (scanNumber != null && (field == DBEntryField.SCAN_NUMBER
-                                 || field == DBEntryField.FEATURE_ID)) {
-        appendValue(s, field, scanNumber);
+      if (field == DBEntryField.SCAN_NUMBER) {
+        Object scans = entry.getOrElse(field, null);
+        final String contentToWrite = switch (scans) {
+          // multiple scans can be written as 1,4,6-9
+          case List<?> list -> {
+            List<Integer> values = list.stream().map(MathUtils::parseInt).filter(Objects::nonNull)
+                .toList();
+            yield IndexRange.findRanges(values).stream().map(Objects::toString)
+                .collect(Collectors.joining(","));
+          }
+          case null -> "-1";
+          default -> scans.toString();
+        };
       } else {
-        // just use the value
+        // write field if present
         entry.getField(field).ifPresent(value -> appendValue(s, field, value));
       }
     }

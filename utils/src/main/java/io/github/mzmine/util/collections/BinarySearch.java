@@ -220,7 +220,7 @@ public class BinarySearch {
     // start to search from lower index
     int upper = BinarySearch.binarySearch(upperValue, DefaultTo.LESS_EQUALS, lower,
         toIndexExclusive, valueAtIndexProvider);
-    return IndexRangeFactory.create(lower, upper);
+    return IndexRange.ofInclusive(lower, upper);
   }
 
   /**

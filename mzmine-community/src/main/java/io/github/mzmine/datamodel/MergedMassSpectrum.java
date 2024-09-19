@@ -65,7 +65,7 @@ public interface MergedMassSpectrum extends Scan {
     /**
      * Single scan so not merged yet
      */
-    SINGLE_SCAN,
+    SINGLE_BEST_SCAN,
     /**
      * SAME_ENERGY merged all spectra from the same energy
      */

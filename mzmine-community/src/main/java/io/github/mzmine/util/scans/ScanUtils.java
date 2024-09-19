@@ -548,7 +548,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-                                                                       - leftNeighbourBinIndex);
+              - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -2131,7 +2131,7 @@ public class ScanUtils {
   }
 
   public static Stream<String> extractUSI(MassSpectrum spectrum, @Nullable String datasetID) {
-    String baseUSI = "mzspec:" + (datasetID == null ? "" : datasetID + ":");
+    String baseUSI = "mzspec:" + (datasetID == null ? "DATASET_ID_PLACEHOLDER" : datasetID) + ":";
     return streamSourceScans(spectrum, Scan.class).map(scan -> scanToUSI(scan, baseUSI)).distinct();
   }
 
@@ -2164,12 +2164,14 @@ public class ScanUtils {
 
   private static void addAllChildren(final MassSpectrum parent,
       final Consumer<MassSpectrum> consumer) {
-    consumer.accept(parent);
 
     if (parent instanceof MergedMassSpectrum merged) {
       for (final MassSpectrum child : merged.getSourceSpectra()) {
         addAllChildren(child, consumer);
       }
+    } else {
+      // add single spectrum
+      consumer.accept(parent);
     }
   }
 

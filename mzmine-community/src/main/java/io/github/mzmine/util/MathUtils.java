@@ -30,6 +30,7 @@ import io.github.mzmine.util.maths.Precision;
 import io.github.mzmine.util.maths.Weighting;
 import java.util.Arrays;
 import java.util.stream.DoubleStream;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Mathematical calculation-related helper class
@@ -393,5 +394,20 @@ public class MathUtils {
       return max;
     }
     return value;
+  }
+
+  public static @Nullable Integer parseInt(Object v) {
+    try {
+      return switch (v) {
+        case Integer i -> i;
+        case String str -> Integer.parseInt(str);
+        case null -> null;
+        case Long l -> l.intValue();
+        case Number n -> n.intValue();
+        default -> null;
+      };
+    } catch (Exception ex) {
+      return null;
+    }
   }
 }

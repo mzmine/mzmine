@@ -37,7 +37,6 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import static io.github.mzmine.util.scans.ScanUtils.extractDataPoints;
-import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
@@ -75,7 +74,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -338,13 +336,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
             entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
       }
     }
-    // add file info
-    int scanNumber = msmsScan.getScanNumber();
-    final String fileUSI = Path.of(requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
-        msmsScan.getDataFile().getName())).getFileName().toString() + ":" + scanNumber;
-
-    entry.getField(DBEntryField.DATASET_ID).ifPresent(
-        dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
 
     // add experimental data
     if (entry.getField(DBEntryField.RT).isEmpty()) {
