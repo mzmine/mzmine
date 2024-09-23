@@ -41,6 +41,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
+import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoImportTaskDelegator;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -123,10 +124,8 @@ public class RawDataFileUtils {
               moduleCallDate);
           break;
         case THERMO_RAW:
-          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
-              storage);
-          newTask = new ThermoRawImportTask(project, fileName, newMZmineFile, module, parameters,
-              moduleCallDate, scanProcessorConfig);
+          newTask = new ThermoImportTaskDelegator(storage, moduleCallDate, fileName, scanProcessorConfig, project,
+              parameters, module);
           break;
 /*        case WATERS_RAW:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),

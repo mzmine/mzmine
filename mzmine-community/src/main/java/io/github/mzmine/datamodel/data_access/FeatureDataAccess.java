@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemorySegment;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -264,7 +265,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
@@ -276,7 +277,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public DoubleBuffer getMZValueBuffer() {
+  public MemorySegment getMZValueBuffer() {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }

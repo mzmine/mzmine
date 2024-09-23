@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -594,6 +594,9 @@ public class FormulaUtils {
         }
       } while (count > 0 && found);
     }
+    final Integer resultCharge = Objects.requireNonNullElse(result.getCharge(), 0);
+    final Integer subtractCharge = Objects.requireNonNullElse(sub.getCharge(), 0);
+    result.setCharge(resultCharge - subtractCharge);
     return result;
   }
 
@@ -769,4 +772,22 @@ public class FormulaUtils {
       throw new RuntimeException(e);
     }
   }
+
+  public static boolean isSubFormula(FormulaWithExactMz a, FormulaWithExactMz b) {
+    if (a.mz() <= b.mz()) {
+      return isSubFormula(a.formula(), b.formula());
+    } else {
+      return isSubFormula(b.formula(), a.formula());
+    }
+  }
+
+  private static boolean isSubFormula(IMolecularFormula smaller, IMolecularFormula larger) {
+    for (IIsotope isotope : smaller.isotopes()) {
+      if (smaller.getIsotopeCount(isotope) > larger.getIsotopeCount(isotope)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 }

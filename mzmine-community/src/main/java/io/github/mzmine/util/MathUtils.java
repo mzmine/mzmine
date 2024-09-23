@@ -360,7 +360,7 @@ public class MathUtils {
   }
 
   public static double getPpmDiff(double calc, double real) {
-    return (real - calc) / calc * 1E6;
+    return (real-calc) / Math.abs(calc) * 1E6;
   }
 
   /**

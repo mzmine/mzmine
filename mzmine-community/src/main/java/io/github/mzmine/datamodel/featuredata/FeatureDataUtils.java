@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
@@ -50,7 +51,9 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
+import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -219,11 +222,10 @@ public class FeatureDataUtils {
       return 0f;
     }
     float area = 0f;
-    DoubleBuffer intensities = series.getIntensityValueBuffer();
-    double lastIntensity = intensities.get(0);
+    double lastIntensity = series.getIntensity(0);
     float lastRT = series.getRetentionTime(0);
     for (int i = 1; i < series.getNumberOfValues(); i++) {
-      final double thisIntensity = intensities.get(i);
+      final double thisIntensity = series.getIntensity(i);
       final float thisRT = series.getRetentionTime(i);
       area += (thisRT - lastRT) * ((float) (thisIntensity + lastIntensity)) / 2.0;
       lastIntensity = thisIntensity;
@@ -255,13 +257,10 @@ public class FeatureDataUtils {
    */
   public static double calculateCenterMz(@NotNull final IonSeries series,
       @NotNull final CenterFunction cf, int startInclusive, int endInclusive) {
-    double[] mz = new double[endInclusive - startInclusive];
-    double[] intensity = new double[endInclusive - startInclusive];
-
-    series.getMZValueBuffer().get(startInclusive, mz, 0, endInclusive - startInclusive);
-    series.getIntensityValueBuffer()
-        .get(startInclusive, intensity, 0, endInclusive - startInclusive);
-    return cf.calcCenter(mz, intensity);
+    return cf.calcCenter(
+        StorageUtils.copyOfRangeDouble(series.getMZValueBuffer(), startInclusive, endInclusive + 1),
+        StorageUtils.copyOfRangeDouble(series.getIntensityValueBuffer(), startInclusive,
+            endInclusive + 1));
   }
 
   /**

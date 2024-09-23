@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,30 +25,31 @@
 
 package io.github.mzmine.util;
 
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
 class StringUtilsTest {
 
   @Test
   void parseIntegerOrElse() {
-    Assertions.assertEquals(123, StringUtils.parseIntegerOrElse("+123", true, 5));
-    Assertions.assertEquals(123, StringUtils.parseIntegerOrElse("123", true, 5));
-    Assertions.assertEquals(123, StringUtils.parseIntegerOrElse("dahklwdhla123dwahjdwhakd", true, 5));
-    Assertions.assertEquals(123, StringUtils.parseIntegerOrElse("dahklwdhla-123dwahjdwhakd", true, 5));
-    Assertions.assertEquals(123, StringUtils.parseIntegerOrElse("dahk-1lwdhla23dwahjdwhakd", true, 5));
-    Assertions.assertEquals(5, StringUtils.parseIntegerOrElse("dahklwdhladwahjdwhakd", true, 5));
-    Assertions.assertEquals(5, StringUtils.parseIntegerOrElse(null, true, 5));
+    assertEquals(123, StringUtils.parseIntegerOrElse("+123", true, 5));
+    assertEquals(123, StringUtils.parseIntegerOrElse("123", true, 5));
+    assertEquals(123, StringUtils.parseIntegerOrElse("dahklwdhla123dwahjdwhakd", true, 5));
+    assertEquals(123, StringUtils.parseIntegerOrElse("dahklwdhla-123dwahjdwhakd", true, 5));
+    assertEquals(123, StringUtils.parseIntegerOrElse("dahk-1lwdhla23dwahjdwhakd", true, 5));
+    assertEquals(5, StringUtils.parseIntegerOrElse("dahklwdhladwahjdwhakd", true, 5));
+    assertEquals(5, StringUtils.parseIntegerOrElse(null, true, 5));
   }
 
   @Test
   void parseIntegerPrefixOrElse() {
-    Assertions.assertEquals(123, StringUtils.parseIntegerPrefixOrElse("+123",  5));
-    Assertions.assertEquals(123, StringUtils.parseIntegerPrefixOrElse("123",  5));
-    Assertions.assertEquals(123, StringUtils.parseIntegerPrefixOrElse("123dahklwdhla123dwahjdwhakd",  5));
-    Assertions.assertEquals(-123, StringUtils.parseIntegerPrefixOrElse("-123dahklwdhla-123dwahjdwhakd",  5));
-    Assertions.assertEquals(5, StringUtils.parseIntegerPrefixOrElse("dahklwdhladwahjdwhakd",  5));
-    Assertions.assertEquals(5, StringUtils.parseIntegerPrefixOrElse(null,  5));
+    assertEquals(123, StringUtils.parseIntegerPrefixOrElse("+123", 5));
+    assertEquals(123, StringUtils.parseIntegerPrefixOrElse("123", 5));
+    assertEquals(123, StringUtils.parseIntegerPrefixOrElse("123dahklwdhla123dwahjdwhakd", 5));
+    assertEquals(-123, StringUtils.parseIntegerPrefixOrElse("-123dahklwdhla-123dwahjdwhakd", 5));
+    assertEquals(5, StringUtils.parseIntegerPrefixOrElse("dahklwdhladwahjdwhakd", 5));
+    assertEquals(5, StringUtils.parseIntegerPrefixOrElse(null, 5));
   }
 
   @Test
@@ -57,36 +58,53 @@ class StringUtilsTest {
 
   @Test
   void parseSignAndIntegerOrElse() {
-    Assertions.assertEquals(123, StringUtils.parseSignAndIntegerOrElse("+123", true, 5));
-    Assertions.assertEquals(123, StringUtils.parseSignAndIntegerOrElse("123", true, 5));
-    Assertions.assertEquals(123, StringUtils.parseSignAndIntegerOrElse("dahklwdhla123dwahjdwhakd", true, 5));
-    Assertions.assertEquals(-123, StringUtils.parseSignAndIntegerOrElse("dahklwdhla-123dwahjdwhakd", true, 5));
-    Assertions.assertEquals(-123, StringUtils.parseSignAndIntegerOrElse("dahk-1lwdhla23dwahjdwhakd", true, 5));
-    Assertions.assertEquals(5, StringUtils.parseSignAndIntegerOrElse("dahklwdhladwahjdwhakd", true, 5));
-    Assertions.assertEquals(5, StringUtils.parseSignAndIntegerOrElse(null, true, 5));
-    Assertions.assertEquals(3, StringUtils.parseSignAndIntegerOrElse("+3", true, 5));
-    Assertions.assertEquals(3, StringUtils.parseSignAndIntegerOrElse("3+", true, 5));
+    assertEquals(123, StringUtils.parseSignAndIntegerOrElse("+123", true, 5));
+    assertEquals(123, StringUtils.parseSignAndIntegerOrElse("123", true, 5));
+    assertEquals(123, StringUtils.parseSignAndIntegerOrElse("dahklwdhla123dwahjdwhakd", true, 5));
+    assertEquals(-123, StringUtils.parseSignAndIntegerOrElse("dahklwdhla-123dwahjdwhakd", true, 5));
+    assertEquals(-123, StringUtils.parseSignAndIntegerOrElse("dahk-1lwdhla23dwahjdwhakd", true, 5));
+    assertEquals(5, StringUtils.parseSignAndIntegerOrElse("dahklwdhladwahjdwhakd", true, 5));
+    assertEquals(5, StringUtils.parseSignAndIntegerOrElse(null, true, 5));
+    assertEquals(3, StringUtils.parseSignAndIntegerOrElse("+3", true, 5));
+    assertEquals(3, StringUtils.parseSignAndIntegerOrElse("3+", true, 5));
   }
 
   @Test
   void getDigits() {
-    Assertions.assertEquals("123", StringUtils.getDigits("+123"));
-    Assertions.assertEquals("123", StringUtils.getDigits("123"));
-    Assertions.assertEquals("123", StringUtils.getDigits("dahklwdhla123dwahjdwhakd"));
-    Assertions.assertEquals("123", StringUtils.getDigits("dahklwdhla-123dwahjdwhakd"));
-    Assertions.assertEquals("123", StringUtils.getDigits("dahk-1lwdhla23dwahjdwhakd"));
-    Assertions.assertEquals("", StringUtils.getDigits("dahklwdhladwahjdwhakd"));
-    Assertions.assertEquals("", StringUtils.getDigits(null));
-    Assertions.assertEquals("3", StringUtils.getDigits("+3"));
-    Assertions.assertEquals("3", StringUtils.getDigits("3+"));
+    assertEquals("123", StringUtils.getDigits("+123"));
+    assertEquals("123", StringUtils.getDigits("123"));
+    assertEquals("123", StringUtils.getDigits("dahklwdhla123dwahjdwhakd"));
+    assertEquals("123", StringUtils.getDigits("dahklwdhla-123dwahjdwhakd"));
+    assertEquals("123", StringUtils.getDigits("dahk-1lwdhla23dwahjdwhakd"));
+    assertEquals("", StringUtils.getDigits("dahklwdhladwahjdwhakd"));
+    assertEquals("", StringUtils.getDigits(null));
+    assertEquals("3", StringUtils.getDigits("+3"));
+    assertEquals("3", StringUtils.getDigits("3+"));
   }
 
   @Test
   void orDefault() {
-    Assertions.assertEquals("default", StringUtils.orDefault("", "default"));
-    Assertions.assertEquals("default", StringUtils.orDefault(" ", "default"));
-    Assertions.assertEquals("default", StringUtils.orDefault("\t", "default"));
-    Assertions.assertEquals("default", StringUtils.orDefault(null, "default"));
-    Assertions.assertEquals("value", StringUtils.orDefault("value", "default"));
+    assertEquals("default", StringUtils.orDefault("", "default"));
+    assertEquals("default", StringUtils.orDefault(" ", "default"));
+    assertEquals("default", StringUtils.orDefault("\t", "default"));
+    assertEquals("default", StringUtils.orDefault(null, "default"));
+    assertEquals("value", StringUtils.orDefault("value", "default"));
+  }
+
+  @Test
+  void splitAnyCommaTabSpace() {
+    String[] s = StringUtils.splitAnyCommaTabSpace("Hello,mzmine\t well, done ! ");
+    assertEquals(6, s.length);
+    assertEquals("Hello", s[0]);
+    assertEquals("mzmine", s[1]);
+    assertEquals("", s[2]);
+    assertEquals("well", s[3]);
+    assertEquals("done", s[4]);
+    assertEquals("!", s[5]);
+
+    String input = "No\nsplit";
+    var noSplit = StringUtils.splitAnyCommaTabSpace(input);
+    assertEquals(1, noSplit.length);
+    assertEquals(input, noSplit[0]);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -76,6 +75,7 @@ public class TDFImportModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     File fileNames[] = parameters.getParameter(TDFImportParameters.fileNames).getValue();
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     if (Arrays.asList(fileNames).contains(null)) {
       logger.warning("List of filenames contains null");
@@ -90,8 +90,6 @@ public class TDFImportModule implements MZmineProcessingModule {
         return ExitCode.ERROR;
       }
 
-      // IMS files are big, reserve a single storage for each file
-      final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
       Task newTask = new TDFImportTask(project, fileNames[i], storage, TDFImportModule.class,
           parameters, moduleCallDate);
       tasks.add(newTask);

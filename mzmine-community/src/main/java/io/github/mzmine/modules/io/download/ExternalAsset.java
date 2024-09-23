@@ -70,7 +70,7 @@ public enum ExternalAsset {
   public String getDownloadInfoPage() {
     return switch (this) {
       case ThermoRawFileParser ->
-          "https://github.com/compomics/ThermoRawFileParser/releases/latest";
+          "https://github.com/pluskal-lab/ThermoRawFileParserMacLinux/releases";
       case MSCONVERT -> "https://proteowizard.sourceforge.io/download.html";
       // libraries
       case MSnLib -> "https://zenodo.org/records/11163381";

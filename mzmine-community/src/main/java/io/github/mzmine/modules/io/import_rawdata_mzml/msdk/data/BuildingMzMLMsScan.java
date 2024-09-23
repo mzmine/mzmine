@@ -49,7 +49,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleS
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -91,9 +91,18 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
   //Final memory-mapped processed data
   //No intermediate results
-  private @Nullable DoubleBuffer mzValues;
-  private @Nullable DoubleBuffer intensityValues;
-  private @Nullable DoubleBuffer wavelengthValues;
+  /**
+   * doubles
+   */
+  private @Nullable MemorySegment mzValues;
+  /**
+   * doubles
+   */
+  private @Nullable MemorySegment intensityValues;
+  /**
+   * doubles
+   */
+  private @Nullable MemorySegment wavelengthValues;
 
   // mobility scans are memory mapped later
   private @Nullable SimpleSpectralArrays mobilityScanSimpleSpectralData;
@@ -179,7 +188,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     return id;
   }
 
-  public DoubleBuffer getDoubleBufferMzValues() {
+  public MemorySegment getDoubleBufferMzValues() {
     if (mzValues == null) {
       throw new UnsupportedOperationException(
           "No data yet. Call load method to load data and memory map the scan.");
@@ -188,7 +197,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   }
 
 
-  public DoubleBuffer getDoubleBufferIntensityValues() {
+  public MemorySegment getDoubleBufferIntensityValues() {
     if (intensityValues == null) {
       throw new UnsupportedOperationException(
           "No data yet. Call load method to load data and memory map the scan.");
@@ -202,7 +211,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       throw new UnsupportedOperationException(
           "No data yet. Call load method to load data and memory map the scan.");
     }
-    return intensityValues.limit();
+    return (int) StorageUtils.numDoubles(intensityValues);
   }
 
   @Override
@@ -746,7 +755,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     return mzBinaryDataInfo != null || mzValues != null;
   }
 
-  public @Nullable DoubleBuffer getWavelengthValues() {
+  public @Nullable MemorySegment getWavelengthValues() {
     return wavelengthValues;
   }
 

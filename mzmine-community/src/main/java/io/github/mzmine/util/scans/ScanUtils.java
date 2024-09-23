@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -234,6 +234,29 @@ public class ScanUtils {
       result[i] = new SimpleDataPoint(mz[i], intensity[i]);
     }
     return result;
+  }
+
+  public static DataPoint[] normalizeSpectrum(@NotNull MassSpectrum spectrum,
+      double normalizedValue) {
+    Integer basePeakIndex = spectrum.getBasePeakIndex();
+    if (basePeakIndex == null || basePeakIndex < 0) {
+      return new DataPoint[0];
+    }
+    final double maxIntensity = spectrum.getIntensityValue(basePeakIndex);
+
+    final int total = spectrum.getNumberOfDataPoints();
+    DataPoint[] newDataPoints = new DataPoint[total];
+    for (int i = 0; i < total; i++) {
+      double mz = spectrum.getMzValue(i);
+      double intensity = spectrum.getIntensityValue(i) / maxIntensity * normalizedValue;
+
+      newDataPoints[i] = new SimpleDataPoint(mz, intensity);
+    }
+    return newDataPoints;
+  }
+
+  public static DataPoint[] normalizeSpectrum(MassSpectrum spec) {
+    return normalizeSpectrum(spec, 1);
   }
 
   /**

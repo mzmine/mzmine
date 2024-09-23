@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -90,3 +90,14 @@
     -fx-icon-color: -jr-selected;
 }
 
+.align-right-column {
+	-fx-alignment: center-right;
+}
+
+.align-left-column {
+	-fx-alignment: center-left;
+}
+
+.align-center-column {
+	-fx-alignment: center-center;
+}

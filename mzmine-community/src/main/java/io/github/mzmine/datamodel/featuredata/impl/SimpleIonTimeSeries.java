@@ -37,6 +37,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
+import java.lang.foreign.MemorySegment;
 import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.Comparator;
@@ -59,8 +60,8 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   public static final String XML_ELEMENT = "simpleiontimeseries";
 
   protected final List<? extends Scan> scans;
-  protected final DoubleBuffer intensityValues;
-  protected final DoubleBuffer mzValues;
+  protected final MemorySegment intensityValues;
+  protected final MemorySegment mzValues;
 
   /**
    * @param storage         may be null if forceStoreInRam is true
@@ -160,12 +161,12 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     return intensityValues;
   }
 
   @Override
-  public DoubleBuffer getMZValueBuffer() {
+  public MemorySegment getMZValueBuffer() {
     return mzValues;
   }
 
@@ -220,6 +221,6 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
   @Override
   public int hashCode() {
-    return Objects.hash(scans, intensityValues.hashCode(), mzValues.hashCode());
+    return Objects.hash(scans, intensityValues.byteSize(), mzValues.byteSize());
   }
 }

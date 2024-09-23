@@ -2,7 +2,7 @@ name: PR Test Build
 
 on:
   pull_request_target:
-    branches: [ "master" ]
+    branches: [ "master", "actions-test" ]
 
 jobs:
   gradle_build:
@@ -40,18 +40,18 @@ jobs:
       - name: Execute Gradle build (unsigned)
         env:
           TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
-        run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
+        run: ./gradlew -p mzmine-community --info --warning-mode all
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
         if: runner.os == 'Windows'
-        uses: papeloto/action-zip@v1
+        uses: vimtor/action-zip@v1.2
         with:
           files: mzmine-community/build/jpackage/mzmine/
           dest: mzmine-community/build/jpackage/mzmine_Windows_portable.zip
       - name: Zip portable linux
         if: runner.os == 'Linux'
-        uses: papeloto/action-zip@v1
+        uses: vimtor/action-zip@v1.2
         with:
           files: mzmine-community/build/jpackage/mzmine/
           dest: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
@@ -59,14 +59,14 @@ jobs:
       # UPLOAD ALL FILES
       - name: Upload windows builds
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_windows_msi_installer
           path: mzmine-community/build/jpackage/*.msi
           retention-days: 7  # store for 7 days
       - name: Upload windows portable builds
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_windows_portable
           path: mzmine-community/build/jpackage/mzmine_Windows_portable.zip
@@ -74,21 +74,21 @@ jobs:
 
       - name: Upload builds ubuntu deb
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_linux_deb_package
           path: mzmine-community/build/jpackage/*.deb
           retention-days: 7  # store for 7 days
       - name: Upload builds ubuntu rpm
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_linux_rpm_package
           path: mzmine-community/build/jpackage/*.rpm
           retention-days: 7  # store for 7 days
       - name: Upload linux portable builds
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_linux_portable
           path: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
@@ -110,14 +110,14 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           npm install --python=python3.11 -g appdmg
-          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
+          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer_academia.dmg
 
       - name: Upload macOS installer
         if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: mzmine_macOS_installer
-          path: mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
+          name: mzmine_macOS_installer_academia
+          path: mzmine-community/build/jpackage/mzmine_macOS_installer_academia.dmg
           retention-days: 7  # store for 7 days
 
 #      - name: Remove dmg File and Make .app executable
@@ -127,14 +127,14 @@ jobs:
 #          chmod a+x build/jpackage/mzmine.app/Contents/MacOS/mzmine
 #      - name: Zip portable macos
 #        if: runner.os == 'macOS'
-#        uses: papeloto/action-zip@v1
+#        uses: vimtor/action-zip@v1.2
 #        with:
 #          files: build/jpackage/
 #          dest: build/jpackage/mzmine_macOS_portable.zip
-      - name: Upload macOS portable builds
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v2
-        with:
-          name: mzmine_macos_portable
-          path: mzmine-community/build/jpackage/mzmine_macOS_portable.zip
-          retention-days: 7  # store for 7 days
+#      - name: Upload macOS portable builds
+#        if: runner.os == 'macOS'
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: mzmine_macos_portable_academia
+#          path: mzmine-community/build/jpackage/mzmine_macOS_portable.zip
+#          retention-days: 7  # store for 7 days

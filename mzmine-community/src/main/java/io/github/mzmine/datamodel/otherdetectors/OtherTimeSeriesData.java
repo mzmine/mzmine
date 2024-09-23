@@ -37,12 +37,16 @@ public interface OtherTimeSeriesData {
 
   OtherDataFile getOtherDataFile();
 
+  @NotNull
   String getTimeSeriesDomainLabel();
 
+  @NotNull
   String getTimeSeriesDomainUnit();
 
+  @NotNull
   String getTimeSeriesRangeLabel();
 
+  @NotNull
   String getTimeSeriesRangeUnit();
 
   /**

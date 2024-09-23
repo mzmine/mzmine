@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.impl.masslist.StoredMobilityScanMassList;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemorySegment;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.function.Function;
@@ -55,8 +56,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class BuildingMobilityScanStorage {
 
-  private final DoubleBuffer mzValues;
-  private final DoubleBuffer intensityValues;
+  private final MemorySegment mzValues;
+  private final MemorySegment intensityValues;
   /**
    * Per scan
    */
@@ -136,7 +137,7 @@ public class BuildingMobilityScanStorage {
     return basePeakIndices;
   }
 
-  private DoubleBuffer memoryMap(final @Nullable MemoryMapStorage storage, final int numDp,
+  private MemorySegment memoryMap(final @Nullable MemoryMapStorage storage, final int numDp,
       final List<BuildingMzMLMsScan> mobilityScans,
       final Function<SimpleSpectralArrays, double[]> dataSupplier) {
     final double[] result = new double[numDp];
@@ -178,15 +179,15 @@ public class BuildingMobilityScanStorage {
    * @return The total number of points in this {@link  MobilityScanStorage}.
    */
   public int getRawTotalNumPoints() {
-    return mzValues.capacity();
+    return (int) StorageUtils.numDoubles(mzValues);
   }
 
 
-  public DoubleBuffer getMzValues() {
+  public MemorySegment getMzValues() {
     return mzValues;
   }
 
-  public DoubleBuffer getIntensityValues() {
+  public MemorySegment getIntensityValues() {
     return intensityValues;
   }
 

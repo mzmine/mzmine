@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ Taken from https://docs.jabref.org/advanced/custom-themes
 .root {
     -jr-theme: #3391C1;
     -jr-accent: #156CA2;
+    -jr-accent-below-text: #1e425d;
     /*-jr-theme: #1982C4;*/
     /*-jr-accent: #156CA2;*/
     -jr-selected: -jr-accent;
