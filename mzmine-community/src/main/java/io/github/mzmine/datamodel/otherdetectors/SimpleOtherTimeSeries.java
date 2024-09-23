@@ -111,8 +111,6 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
       throw new IllegalArgumentException("The number of intensities does not match number of rts.");
     }
 
-    final float[] rts = new float[getNumberOfValues()];
-    timeBuffer.get(0, rts);
     return new SimpleOtherTimeSeries(timeBuffer,
         StorageUtils.storeValuesToDoubleBuffer(storage, newIntensities), newName,
         getTimeSeriesData());
