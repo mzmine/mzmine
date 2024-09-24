@@ -26,7 +26,10 @@
 package io.github.mzmine.util.javafx;
 
 import io.github.mzmine.gui.mainwindow.mainmenu.ModuleMenuItem;
+import io.github.mzmine.gui.mainwindow.mainmenu.Workspace;
+import io.github.mzmine.gui.mainwindow.mainmenu.WorkspaceMenuItem;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import java.util.Collection;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -48,45 +51,59 @@ public class FxMenuUtil {
     return menuItem;
   }
 
-  public static MenuItem addMenuItem(Menu menu, @NotNull String text, @NotNull Runnable onClick,
-      @Nullable KeyCodeCombination accelerator) {
-    final MenuItem item = menuItem(text, onClick, accelerator);
+  public static MenuItem addMenuItem(Menu menu, @NotNull String text, @Nullable Runnable onClick,
+      @Nullable KeyCode mainKey, @Nullable Modifier... modifers) {
+    final MenuItem item = menuItem(text, onClick, null);
+
+    if (mainKey != null && modifers != null) {
+      item.setAccelerator(new KeyCodeCombination(mainKey, modifers));
+    } else if (mainKey != null) {
+      item.setAccelerator(new KeyCodeCombination(mainKey));
+    }
+
     menu.getItems().add(item);
     return item;
   }
 
-  public static MenuItem addMenuItem(Menu menu, @NotNull String text, @NotNull Runnable onClick,
+  public static MenuItem addWorkspaceMenuItem(Menu menu, @NotNull String text,
+      @Nullable Runnable onClick, @NotNull Collection<@NotNull Workspace> workspaces,
+      @Nullable KeyCode mainKey, @Nullable Modifier... modifers) {
+    final MenuItem item = new WorkspaceMenuItem(text, workspaces);
+
+    if (mainKey != null && modifers != null) {
+      item.setAccelerator(new KeyCodeCombination(mainKey, modifers));
+    } else if (mainKey != null) {
+      item.setAccelerator(new KeyCodeCombination(mainKey));
+    }
+
+    if (onClick != null) {
+      item.setOnAction(_ -> onClick.run());
+    }
+
+    menu.getItems().add(item);
+    return item;
+  }
+
+
+  public static ModuleMenuItem addMenuItem(Menu menu, @NotNull String text,
+      @NotNull Class<? extends MZmineRunnableModule> module, @Nullable KeyCode mainKey,
+      @Nullable Modifier... modifers) {
+    return addMenuItem(menu, text, module, Workspace.all(), mainKey, modifers);
+  }
+
+  public static ModuleMenuItem addMenuItem(Menu menu, @NotNull String text,
+      @NotNull Class<? extends MZmineRunnableModule> module, Collection<Workspace> workspaces,
       KeyCode mainKey, Modifier... modifers) {
-    final MenuItem item = menuItem(text, onClick, new KeyCodeCombination(mainKey, modifers));
-    menu.getItems().add(item);
-    return item;
-  }
+    KeyCodeCombination accelerator;
+    if (mainKey != null && modifers != null) {
+      accelerator = new KeyCodeCombination(mainKey, modifers);
+    } else if (mainKey != null && modifers == null) {
+      accelerator = new KeyCodeCombination(mainKey);
+    } else {
+      accelerator = null;
+    }
 
-  public static ModuleMenuItem menuItem(@NotNull String text,
-      @NotNull Class<? extends MZmineRunnableModule> module,
-      @Nullable KeyCodeCombination accelerator) {
-    final ModuleMenuItem item = new ModuleMenuItem(text, null, module, accelerator);
-    return item;
-  }
-
-  public static ModuleMenuItem menuItem(@NotNull String text,
-      @NotNull Class<? extends MZmineRunnableModule> module, KeyCode mainKey,
-      Modifier... modifers) {
-    return menuItem(text, module, new KeyCodeCombination(mainKey, modifers));
-  }
-
-  public static ModuleMenuItem addMenuItem(Menu menu, @NotNull String text,
-      @NotNull Class<? extends MZmineRunnableModule> module,
-      @Nullable KeyCodeCombination accelerator) {
-    final ModuleMenuItem item = menuItem(text, module, accelerator);
-    menu.getItems().add(item);
-    return item;
-  }
-
-  public static ModuleMenuItem addMenuItem(Menu menu, @NotNull String text,
-      @NotNull Class<? extends MZmineRunnableModule> module, KeyCode mainKey,
-      Modifier... modifers) {
-    final ModuleMenuItem item = menuItem(text, module, mainKey, modifers);
+    final ModuleMenuItem item = new ModuleMenuItem(text, null, module, accelerator, workspaces);
     menu.getItems().add(item);
     return item;
   }

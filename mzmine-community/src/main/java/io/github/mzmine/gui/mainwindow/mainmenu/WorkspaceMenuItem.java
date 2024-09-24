@@ -25,15 +25,30 @@
 
 package io.github.mzmine.gui.mainwindow.mainmenu;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
+import java.util.EnumSet;
+import javafx.scene.Node;
+import javafx.scene.control.MenuItem;
+import org.jetbrains.annotations.NotNull;
 
-public enum Workspace {
-  ACADEMIC, PRO_FULL, LIBRARY, LC_MS, IMS, MALDI_MS;
+public class WorkspaceMenuItem extends MenuItem {
 
-  private static final List<Workspace> all = Arrays.asList(Workspace.values());
+  private final EnumSet<Workspace> workspaces;
 
-  public static List<Workspace> all() {
-    return all;
+  public WorkspaceMenuItem(String text, Collection<@NotNull Workspace> workspaces) {
+    this(text, null, workspaces);
+  }
+
+  public WorkspaceMenuItem(String text, Node graphic, Collection<@NotNull Workspace> workspaces) {
+    super(text, graphic);
+    this.workspaces = EnumSet.copyOf(workspaces);
+  }
+
+  public EnumSet<Workspace> getWorkspaces() {
+    return workspaces;
+  }
+
+  public boolean contains(Workspace workspace) {
+    return workspaces.contains(workspace);
   }
 }

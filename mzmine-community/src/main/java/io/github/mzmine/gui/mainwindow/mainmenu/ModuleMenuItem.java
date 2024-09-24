@@ -27,19 +27,21 @@ package io.github.mzmine.gui.mainwindow.mainmenu;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import java.util.Collection;
 import javafx.scene.Node;
-import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCodeCombination;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ModuleMenuItem extends MenuItem {
+public class ModuleMenuItem extends WorkspaceMenuItem {
 
   private final Class<? extends MZmineRunnableModule> moduleClass;
 
-  public ModuleMenuItem(String text, Node icon, @NotNull Class<? extends MZmineRunnableModule> moduleClass,
-      @Nullable KeyCodeCombination accelerator) {
-    super(text, icon);
+  public ModuleMenuItem(String text, Node icon,
+      @NotNull Class<? extends MZmineRunnableModule> moduleClass,
+      @Nullable KeyCodeCombination accelerator,
+      @NotNull Collection<@NotNull Workspace> workspaces) {
+    super(text, icon, workspaces);
     this.moduleClass = moduleClass;
     setOnAction(_ -> MZmineCore.setupAndRunModule(moduleClass));
 

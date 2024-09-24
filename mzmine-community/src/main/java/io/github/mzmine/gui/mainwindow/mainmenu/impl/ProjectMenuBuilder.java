@@ -87,7 +87,7 @@ public class ProjectMenuBuilder extends MenuBuilder {
     return menu;
   }
 
-  private void fillRecentProjects(Menu recentProjectsMenu) {
+  private static void fillRecentProjects(Menu recentProjectsMenu) {
     recentProjectsMenu.getItems().clear();
 
     var recentProjects = MZmineCore.getConfiguration().getLastProjectsParameter().getValue();

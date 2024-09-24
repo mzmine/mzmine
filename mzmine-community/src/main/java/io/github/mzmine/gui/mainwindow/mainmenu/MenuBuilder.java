@@ -25,14 +25,60 @@
 
 package io.github.mzmine.gui.mainwindow.mainmenu;
 
+import io.github.mzmine.gui.mainwindow.mainmenu.impl.ProjectMenuBuilder;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 
 public abstract class MenuBuilder {
 
   public static MenuBuilder forCategory(final MainMenuEntries category) {
-    return null;
+    return switch (category) {
+      case PROJECT -> new ProjectMenuBuilder();
+      case RAW_DATA_METHODS -> null;
+      case FEATURE_DETECTION -> null;
+      case FEATURE_LIST_METHODS -> null;
+      case VISUALISATION -> null;
+      case TOOLS -> null;
+      case MZWIZARD -> null;
+      case WINDOWS -> null;
+      case USERS -> null;
+      case HELP -> null;
+    };
   }
 
   public abstract Menu build(Workspace workspace);
 
+  /**
+   * Removes all {@link WorkspaceMenuItem}s that do not belong in the given workspace. It's the
+   * implementing classes' responsibility to call this method, as some menus may be more specific
+   * than just filtering.
+   *
+   * @param menu      the menu to filter. this instance is mutated.
+   * @param workspace the workspace to filter for.
+   * @return the filtered menu. the same instance as the parameter.
+   */
+  public static Menu filterMenu(final Menu menu, Workspace workspace) {
+
+    List<MenuItem> itemsToRemove = new ArrayList<>();
+    for (MenuItem item : menu.getItems()) {
+      if (item instanceof WorkspaceMenuItem wi) {
+        if (!wi.contains(workspace)) {
+          itemsToRemove.add(item);
+        }
+      }
+
+      // check sub menus recursively
+      if (item instanceof Menu m) {
+        filterMenu(m, workspace);
+        if (m.getItems().isEmpty()) {
+          // remove empty sub menus
+          menu.getItems().remove(m);
+        }
+      }
+    }
+
+    menu.getItems().removeAll(itemsToRemove);
+  }
 }
