@@ -25,20 +25,24 @@
 
 package io.github.mzmine.gui.mainwindow.mainmenu;
 
+import io.github.mzmine.gui.mainwindow.mainmenu.impl.FeatureDetectionMenuBuilder;
 import io.github.mzmine.gui.mainwindow.mainmenu.impl.ProjectMenuBuilder;
+import io.github.mzmine.gui.mainwindow.mainmenu.impl.RawDataMenuBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 
 public abstract class MenuBuilder {
 
   public static MenuBuilder forCategory(final MainMenuEntries category) {
     return switch (category) {
       case PROJECT -> new ProjectMenuBuilder();
-      case RAW_DATA_METHODS -> null;
-      case FEATURE_DETECTION -> null;
+      case RAW_DATA_METHODS -> new RawDataMenuBuilder();
+      case FEATURE_DETECTION -> new FeatureDetectionMenuBuilder();
       case FEATURE_LIST_METHODS -> null;
       case VISUALISATION -> null;
       case TOOLS -> null;
@@ -69,7 +73,8 @@ public abstract class MenuBuilder {
   public static Menu filterMenu(final Menu menu, Collection<Workspace> workspaces) {
 
     List<MenuItem> itemsToRemove = new ArrayList<>();
-    for (MenuItem item : menu.getItems()) {
+    ObservableList<MenuItem> items = menu.getItems();
+    for (MenuItem item : items) {
       if (item instanceof WorkspaceMenuItem wi) {
         if (workspaces.stream().noneMatch(wi::contains)) {
           itemsToRemove.add(item);
@@ -87,6 +92,16 @@ public abstract class MenuBuilder {
     }
 
     menu.getItems().removeAll(itemsToRemove);
+
+    // remove duplicate separators
+    for (int i = 0; i < items.size() - 1; i++) {
+      MenuItem item = items.get(i);
+
+      if(item instanceof SeparatorMenuItem si && items.get(i + 1) instanceof SeparatorMenuItem) {
+        items.remove(si);
+      }
+    }
+
     return menu;
   }
 }

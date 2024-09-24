@@ -47,6 +47,7 @@ import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
+import java.util.Collection;
 import java.util.List;
 import javafx.scene.control.Menu;
 import javafx.scene.input.KeyCode;
@@ -58,7 +59,7 @@ public class RawDataMenuBuilder extends MenuBuilder {
   }
 
   @Override
-  public Menu build(Workspace workspace) {
+  public Menu build(Collection<Workspace> workspaces) {
 
     final Menu menu = new Menu("Raw data methods");
 
@@ -113,6 +114,6 @@ public class RawDataMenuBuilder extends MenuBuilder {
     addMenuItem(specLibs, "Spectral library to feature list",
         SpectralLibraryToFeatureListModule.class, null);
 
-    return filterMenu(menu, workspace);
+    return filterMenu(menu, workspaces);
   }
 }

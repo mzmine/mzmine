@@ -44,6 +44,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Menu;
@@ -57,7 +58,7 @@ public class ProjectMenuBuilder extends MenuBuilder {
   private static final Logger logger = Logger.getLogger(ProjectMenuBuilder.class.getName());
 
   @Override
-  public Menu build(Workspace workspace) {
+  public Menu build(Collection<Workspace> workspaces) {
     final Menu menu = new Menu(MainMenuEntries.PROJECT.toString());
     final Menu recentProjects = new Menu("Recent projects");
 
