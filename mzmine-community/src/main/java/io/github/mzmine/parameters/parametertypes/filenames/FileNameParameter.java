@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.regex.Pattern;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -45,10 +44,6 @@ import org.w3c.dom.NodeList;
  * Simple Parameter implementation
  */
 public class FileNameParameter implements UserParameter<File, FileNameComponent> {
-
-  public static final Pattern FILE_PATH_PATTERN = Pattern.compile(
-      "^(?:[a-zA-Z]:\\\\|\\/)?(?:[^<>:\"/\\\\|?*\\x00-\\x1F]+[\\/\\\\]?)*$");
-  public static final String SPLIT_CHARACTER = "||";
 
   protected static final String CURRENT_FILE_ELEMENT = "current_file";
   protected static final String LAST_FILE_ELEMENT = "last_file";
