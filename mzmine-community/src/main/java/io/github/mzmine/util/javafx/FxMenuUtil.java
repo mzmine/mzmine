@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,18 +25,73 @@
 
 package io.github.mzmine.util.javafx;
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import io.github.mzmine.gui.mainwindow.mainmenu.ModuleMenuItem;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination.Modifier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FxMenuUtil {
 
-  public static MenuItem addMenuItem(Menu menu, String text, EventHandler<ActionEvent> action) {
-    MenuItem newItem = new MenuItem(text);
-    menu.getItems().add(newItem);
-    newItem.setOnAction(action);
-    return newItem;
+  public static MenuItem menuItem(@NotNull String text, @Nullable Runnable onClick,
+      @Nullable KeyCodeCombination accelerator) {
+    MenuItem menuItem = new MenuItem(text);
+    if (onClick != null) {
+      menuItem.setOnAction(_ -> onClick.run());
+    }
+    menuItem.setAccelerator(accelerator);
+    return menuItem;
   }
 
+  public static MenuItem addMenuItem(Menu menu, @NotNull String text, @NotNull Runnable onClick,
+      @Nullable KeyCodeCombination accelerator) {
+    final MenuItem item = menuItem(text, onClick, accelerator);
+    menu.getItems().add(item);
+    return item;
+  }
+
+  public static MenuItem addMenuItem(Menu menu, @NotNull String text, @NotNull Runnable onClick,
+      KeyCode mainKey, Modifier... modifers) {
+    final MenuItem item = menuItem(text, onClick, new KeyCodeCombination(mainKey, modifers));
+    menu.getItems().add(item);
+    return item;
+  }
+
+  public static ModuleMenuItem menuItem(@NotNull String text,
+      @NotNull Class<? extends MZmineRunnableModule> module,
+      @Nullable KeyCodeCombination accelerator) {
+    final ModuleMenuItem item = new ModuleMenuItem(text, null, module, accelerator);
+    return item;
+  }
+
+  public static ModuleMenuItem menuItem(@NotNull String text,
+      @NotNull Class<? extends MZmineRunnableModule> module, KeyCode mainKey,
+      Modifier... modifers) {
+    return menuItem(text, module, new KeyCodeCombination(mainKey, modifers));
+  }
+
+  public static ModuleMenuItem addMenuItem(Menu menu, @NotNull String text,
+      @NotNull Class<? extends MZmineRunnableModule> module,
+      @Nullable KeyCodeCombination accelerator) {
+    final ModuleMenuItem item = menuItem(text, module, accelerator);
+    menu.getItems().add(item);
+    return item;
+  }
+
+  public static ModuleMenuItem addMenuItem(Menu menu, @NotNull String text,
+      @NotNull Class<? extends MZmineRunnableModule> module, KeyCode mainKey,
+      Modifier... modifers) {
+    final ModuleMenuItem item = menuItem(text, module, mainKey, modifers);
+    menu.getItems().add(item);
+    return item;
+  }
+
+  public static void addSeparator(Menu menu) {
+    menu.getItems().add(new SeparatorMenuItem());
+  }
 }
