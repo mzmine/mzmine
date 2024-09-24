@@ -53,6 +53,11 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.collections.IndexRange;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -616,9 +621,19 @@ public enum DBEntryField {
           ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, COLLISION_ENERGY, //
           FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
           MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
-          DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC, //
+           DATASET_ID, USI, SPLASH, QUALITY_CHIMERIC, //
           OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY, PEPTIDE_SEQ, //
           IMS_TYPE, ONLINE_REACTIVITY -> value.toString();
+      case SCAN_NUMBER -> switch (value) {
+        // multiple scans can be written as 1,4,6-9
+        case List<?> list -> {
+          List<Integer> values = list.stream().map(MathUtils::parseInt).filter(Objects::nonNull)
+              .toList();
+          yield IndexRange.findRanges(values).stream().map(Objects::toString)
+              .collect(Collectors.joining(","));
+        }
+        default -> value.toString();
+      };
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present
         case Float f -> "%.2f".formatted(f * 60.f);

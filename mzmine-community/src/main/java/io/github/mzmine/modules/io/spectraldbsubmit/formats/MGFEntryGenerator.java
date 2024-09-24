@@ -40,16 +40,11 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
-import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class MGFEntryGenerator {
 
@@ -141,23 +136,8 @@ public class MGFEntryGenerator {
       if (id == null || id.isBlank()) {
         continue;
       }
-      if (field == DBEntryField.SCAN_NUMBER) {
-        Object scans = entry.getOrElse(field, null);
-        final String contentToWrite = switch (scans) {
-          // multiple scans can be written as 1,4,6-9
-          case List<?> list -> {
-            List<Integer> values = list.stream().map(MathUtils::parseInt).filter(Objects::nonNull)
-                .toList();
-            yield IndexRange.findRanges(values).stream().map(Objects::toString)
-                .collect(Collectors.joining(","));
-          }
-          case null -> "-1";
-          default -> scans.toString();
-        };
-      } else {
         // write field if present
         entry.getField(field).ifPresent(value -> appendValue(s, field, value));
-      }
     }
 
     // num peaks and data

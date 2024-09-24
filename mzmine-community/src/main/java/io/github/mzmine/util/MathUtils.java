@@ -396,7 +396,7 @@ public class MathUtils {
     return value;
   }
 
-  public static @Nullable Integer parseInt(Object v) {
+  public static @Nullable Integer parseInt(@Nullable Object v) {
     try {
       return switch (v) {
         case Integer i -> i;

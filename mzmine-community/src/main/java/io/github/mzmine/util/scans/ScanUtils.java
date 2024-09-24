@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util.scans;
 
+import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsLast;
 import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
@@ -60,6 +62,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceRangeMap;
 import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.BinarySearch;
@@ -85,6 +88,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -92,8 +96,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Scan related utilities
@@ -104,8 +108,25 @@ public class ScanUtils {
    * tolerance to compute and combine precursor m/z
    */
   public static final int DEFAULT_PRECURSOR_MZ_TOLERANCE = 100;
-
+  /**
+   * Sort MassSpectra first by source file and then by scan number
+   */
+  public static final Comparator<MassSpectrum> SCAN_SORTER_RAW_FILE_SCAN_NUMBER = Comparator.comparing(
+          ScanUtils::getSourceFile, nullsLast(naturalOrder()))
+      .thenComparingInt(ScanUtils::extractScanNumber);
   private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
+
+  @Nullable
+  public static String getSourceFile(@NotNull MassSpectrum scan) {
+    return switch (scan) {
+      case Scan s -> s.getDataFile().getFileName();
+      case SpectralLibraryEntry e -> {
+        var lib = e.getLibrary();
+        yield lib == null ? e.getLibraryName() : lib.getPath().getAbsolutePath();
+      }
+      default -> null;
+    };
+  }
 
   /**
    * Common utility method to be used as Scan.toString() method in various Scan implementations
@@ -1652,7 +1673,7 @@ public class ScanUtils {
 
     DataPoint[] result = new DataPoint[integerDataPoints.size()];
     int count = 0;
-    for (Map.Entry<Double, Double> e : integerDataPoints.entrySet()) {
+    for (Entry<Double, Double> e : integerDataPoints.entrySet()) {
       result[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
     }
 
@@ -2121,6 +2142,34 @@ public class ScanUtils {
 
 
   /**
+   * @return the scan number or -1 if none
+   */
+  public static int extractScanNumber(MassSpectrum scan) {
+    return switch (scan) {
+      case Scan s -> s.getScanNumber();
+      case SpectralLibraryEntry e -> {
+        // could be a list of integers
+        Object scanNumber = e.getField(DBEntryField.SCAN_NUMBER).orElse(null);
+        // either integer
+        // or list of integer
+        // or string
+        yield switch (scanNumber) {
+          case List<?> list -> {
+            // merged has multiple numbers - return -1 instead
+            // if single number in list then return single number
+            List<Integer> scanNumbers = list.stream().map(MathUtils::parseInt)
+                .filter(Objects::nonNull).toList();
+            yield scanNumbers.size() == 1 ? scanNumbers.getFirst() : -1;
+          }
+          case null -> -1;
+          default -> requireNonNullElse(MathUtils.parseInt(scanNumber), -1);
+        };
+      }
+      default -> -1;
+    };
+  }
+
+  /**
    * @param spectrum any mass spectrum like {@link MergedMassSpectrum}
    * @return an IntStream of all scan numbers. Flattens the tree of a {@link MergedMassSpectrum} and
    * returns stream of all {@link Scan#getScanNumber()}. Empty stream if parent or source spectra
@@ -2159,7 +2208,8 @@ public class ScanUtils {
       return Stream.of(scan);
     }
 
-    return Stream.of(merged).mapMulti((child, consumer) -> addAllChildren(child, consumer));
+    return Stream.of(merged).mapMulti(ScanUtils::addAllChildren)
+        .sorted(SCAN_SORTER_RAW_FILE_SCAN_NUMBER);
   }
 
   private static void addAllChildren(final MassSpectrum parent,
