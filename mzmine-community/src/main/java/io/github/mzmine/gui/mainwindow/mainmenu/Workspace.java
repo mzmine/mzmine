@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum Workspace {
-  ACADEMIC, PRO_FULL, LIBRARY, LC_MS, IMS, MALDI_MS;
+  ACADEMIC, PRO_FULL, LIBRARY, LC_MS, GC_MS, IMS, MALDI_MS;
 
   private static final List<Workspace> all = Arrays.asList(Workspace.values());
 
