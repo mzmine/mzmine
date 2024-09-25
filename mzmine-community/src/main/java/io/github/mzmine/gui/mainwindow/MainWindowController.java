@@ -36,6 +36,8 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
+import io.github.mzmine.gui.mainwindow.workspaces.Academic;
+import io.github.mzmine.gui.mainwindow.workspaces.WorkspaceTags;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -79,6 +81,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -182,6 +185,7 @@ public class MainWindowController {
   public FlowPane taskViewPane;
   @FXML
   public HBox bottomMenuBar;
+  public BorderPane mainPane;
 
   @FXML
   private Scene mainScene;
@@ -318,6 +322,8 @@ public class MainWindowController {
       memoryBarLabel.setText("%.1f/%.1f GB used".formatted(usedMemGB, totalMemGB));
     }));
     memoryUpdater.play();
+
+    mainPane.setTop(new Academic().buildMainMenu(EnumSet.allOf(WorkspaceTags.class)));
   }
 
   private void initFeatureListsList() {

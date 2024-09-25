@@ -23,72 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow.mainmenu.impl;
+package io.github.mzmine.gui.mainwindow.workspaces;
 
-import static io.github.mzmine.util.javafx.FxMenuUtil.addMenuItem;
-import static io.github.mzmine.util.javafx.FxMenuUtil.addSeparator;
-
-import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.gui.mainwindow.mainmenu.MainMenuEntries;
-import io.github.mzmine.gui.mainwindow.mainmenu.MenuBuilder;
-import io.github.mzmine.gui.mainwindow.mainmenu.Workspace;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.batchmode.BatchModeModule;
-import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
-import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
-import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
-import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.time.Instant;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCombination;
 import javafx.stage.FileChooser;
 
-public class ProjectMenuBuilder extends MenuBuilder {
+/**
+ * Contains static utility methods for workspace related main-menus
+ */
+public class WorkspaceMenuUtils {
 
-  private static final Logger logger = Logger.getLogger(ProjectMenuBuilder.class.getName());
+  private static final Logger logger = Logger.getLogger(WorkspaceMenuUtils.class.getName());
 
-  @Override
-  public Menu build(Collection<Workspace> workspaces) {
-    final Menu menu = new Menu(MainMenuEntries.PROJECT.toString());
-    final Menu recentProjects = new Menu("Recent projects");
-
-    menu.setOnShowing(_ -> fillRecentProjects(recentProjects));
-
-    addMenuItem(menu, "Open project", ProjectLoadModule.class, KeyCode.O,
-        KeyCombination.SHORTCUT_DOWN);
-    addMenuItem(menu, "Save project", ProjectSaveModule.class, KeyCode.S,
-        KeyCombination.SHORTCUT_DOWN);
-    addMenuItem(menu, "Save project as", ProjectSaveAsModule.class, KeyCode.S,
-        KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN);
-    addMenuItem(menu, "Close project", MZmineGUI::requestCloseProject, KeyCode.Q,
-        KeyCombination.SHORTCUT_DOWN);
-    addSeparator(menu);
-    addMenuItem(menu, "Batch mode", BatchModeModule.class, KeyCode.B, KeyCombination.SHORTCUT_DOWN);
-    addSeparator(menu);
-    addMenuItem(menu, "Sample metadata",
-        () -> MZmineCore.getDesktop().addTab(new ProjectMetadataTab()), KeyCode.M,
-        KeyCombination.SHORTCUT_DOWN);
-    addSeparator(menu);
-    addMenuItem(menu, "Set preferences",
-        () -> MZmineCore.getConfiguration().getPreferences().showSetupDialog(true), KeyCode.P,
-        KeyCombination.SHORTCUT_DOWN);
-    addMenuItem(menu, "Save configuration", ProjectMenuBuilder::saveConfiguration, null);
-    addMenuItem(menu, "Load configuration", ProjectMenuBuilder::loadConfiguration, null);
-
-    return menu;
-  }
-
-  private static void fillRecentProjects(Menu recentProjectsMenu) {
+  public static void fillRecentProjects(Menu recentProjectsMenu) {
     recentProjectsMenu.getItems().clear();
 
     var recentProjects = MZmineCore.getConfiguration().getLastProjectsParameter().getValue();
@@ -150,5 +110,26 @@ public class ProjectMenuBuilder extends MenuBuilder {
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot save config", ex);
     }
+  }
+
+  /**
+   * Extracts all modules from a menu. May include duplicates.
+   * @param menu
+   * @return
+   */
+  public static List<Class<? extends MZmineRunnableModule>> extractModules(Menu menu) {
+    List<Class<? extends MZmineRunnableModule>> modules = new ArrayList<>();
+
+    for (MenuItem item : menu.getItems()) {
+      if(item instanceof ModuleMenuItem mmi) {
+        modules.add(mmi.getModuleClass());
+      }
+      else if(item instanceof Menu) {
+        var mods = extractModules((Menu) item);
+        modules.addAll(mods);
+      }
+    }
+
+    return modules;
   }
 }

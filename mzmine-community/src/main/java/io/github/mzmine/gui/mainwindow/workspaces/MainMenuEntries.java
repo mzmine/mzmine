@@ -23,17 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow.mainmenu;
+package io.github.mzmine.gui.mainwindow.workspaces;
 
-import java.util.Arrays;
-import java.util.List;
+public enum MainMenuEntries {
+  PROJECT, RAW_DATA_METHODS, FEATURE_DETECTION, FEATURE_LIST_METHODS, VISUALISATION, TOOLS, MZWIZARD, WINDOWS, USERS, HELP;
 
-public enum Workspace {
-  ACADEMIC, PRO_FULL, LIBRARY, LC_MS, GC_MS, IMS, MALDI_MS;
 
-  private static final List<Workspace> all = Arrays.asList(Workspace.values());
-
-  public static List<Workspace> all() {
-    return all;
+  @Override
+  public String toString() {
+    return switch (this) {
+      case PROJECT -> "Project";
+      case RAW_DATA_METHODS -> "Raw data methods";
+      case FEATURE_DETECTION -> "Feature detection";
+      case FEATURE_LIST_METHODS -> "Feature list methods";
+      case VISUALISATION -> "Visualisation";
+      case TOOLS -> "Tools";
+      case MZWIZARD -> "mzwizard";
+      case WINDOWS -> "Windows";
+      case USERS -> "Users";
+      case HELP -> "Help";
+    };
   }
 }

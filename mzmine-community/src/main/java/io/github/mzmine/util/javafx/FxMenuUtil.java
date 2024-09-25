@@ -25,11 +25,8 @@
 
 package io.github.mzmine.util.javafx;
 
-import io.github.mzmine.gui.mainwindow.mainmenu.ModuleMenuItem;
-import io.github.mzmine.gui.mainwindow.mainmenu.Workspace;
-import io.github.mzmine.gui.mainwindow.mainmenu.WorkspaceMenuItem;
+import io.github.mzmine.gui.mainwindow.workspaces.ModuleMenuItem;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import java.util.Collection;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -65,35 +62,9 @@ public class FxMenuUtil {
     return item;
   }
 
-  public static MenuItem addWorkspaceMenuItem(Menu menu, @NotNull String text,
-      @Nullable Runnable onClick, @NotNull Collection<@NotNull Workspace> workspaces,
-      @Nullable KeyCode mainKey, @Nullable Modifier... modifers) {
-    final MenuItem item = new WorkspaceMenuItem(text, workspaces);
-
-    if (mainKey != null && modifers != null) {
-      item.setAccelerator(new KeyCodeCombination(mainKey, modifers));
-    } else if (mainKey != null) {
-      item.setAccelerator(new KeyCodeCombination(mainKey));
-    }
-
-    if (onClick != null) {
-      item.setOnAction(_ -> onClick.run());
-    }
-
-    menu.getItems().add(item);
-    return item;
-  }
-
-
-  public static ModuleMenuItem addMenuItem(Menu menu, @NotNull String text,
-      @NotNull Class<? extends MZmineRunnableModule> module, @Nullable KeyCode mainKey,
-      @Nullable Modifier... modifers) {
-    return addMenuItem(menu, text, module, Workspace.all(), mainKey, modifers);
-  }
-
-  public static ModuleMenuItem addMenuItem(Menu menu, @NotNull String text,
-      @NotNull Class<? extends MZmineRunnableModule> module, Collection<Workspace> workspaces,
-      KeyCode mainKey, Modifier... modifers) {
+  public static ModuleMenuItem addModuleMenuItem(Menu menu,
+      @NotNull Class<? extends MZmineRunnableModule> module, KeyCode mainKey,
+      Modifier... modifers) {
     KeyCodeCombination accelerator;
     if (mainKey != null && modifers != null) {
       accelerator = new KeyCodeCombination(mainKey, modifers);
@@ -103,10 +74,38 @@ public class FxMenuUtil {
       accelerator = null;
     }
 
-    final ModuleMenuItem item = new ModuleMenuItem(text, null, module, accelerator, workspaces);
+    final ModuleMenuItem item = new ModuleMenuItem(module, accelerator);
     menu.getItems().add(item);
     return item;
   }
+
+  public static Menu addModuleMenuItems(Menu menu,
+      @NotNull Class<? extends MZmineRunnableModule>... modules) {
+    for (@NotNull Class<? extends MZmineRunnableModule> module : modules) {
+      addModuleMenuItem(menu, module, null);
+    }
+    return menu;
+  }
+
+  public static Menu addModuleMenuItems(String title,
+      @NotNull Class<? extends MZmineRunnableModule>... modules) {
+    return addModuleMenuItems(new Menu(title), modules);
+  }
+
+  /**
+   * Creates a sub menu with the name {@code subMenuTitle}, adds all modules to the sub menu and
+   * adds the sub menu to the {@code menu}.
+   *
+   * @return The created subMenu.
+   */
+  public static Menu addModuleMenuItems(Menu menu, String subMenuTitle,
+      @NotNull Class<? extends MZmineRunnableModule>... modules) {
+    final Menu subMenu = new Menu(subMenuTitle);
+    addModuleMenuItems(subMenu, modules);
+    menu.getItems().add(subMenu);
+    return subMenu;
+  }
+
 
   public static void addSeparator(Menu menu) {
     menu.getItems().add(new SeparatorMenuItem());

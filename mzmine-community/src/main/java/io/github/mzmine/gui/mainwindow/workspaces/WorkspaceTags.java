@@ -23,35 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow.mainmenu;
+package io.github.mzmine.gui.mainwindow.workspaces;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineRunnableModule;
-import java.util.Collection;
-import javafx.scene.Node;
-import javafx.scene.input.KeyCodeCombination;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-public class ModuleMenuItem extends WorkspaceMenuItem {
-
-  private final Class<? extends MZmineRunnableModule> moduleClass;
-
-  public ModuleMenuItem(String text, Node icon,
-      @NotNull Class<? extends MZmineRunnableModule> moduleClass,
-      @Nullable KeyCodeCombination accelerator,
-      @NotNull Collection<@NotNull Workspace> workspaces) {
-    super(text, icon, workspaces);
-    this.moduleClass = moduleClass;
-    setOnAction(_ -> MZmineCore.setupAndRunModule(moduleClass));
-
-    if (accelerator != null) {
-      setAccelerator(accelerator);
-    }
-  }
-
-  public Class<? extends MZmineRunnableModule> getModuleClass() {
-    return moduleClass;
-  }
-
+public enum WorkspaceTags {
+  IMS, LIBRARY;
 }
