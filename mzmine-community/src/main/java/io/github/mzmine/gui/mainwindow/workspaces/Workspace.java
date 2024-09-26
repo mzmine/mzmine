@@ -26,13 +26,21 @@
 package io.github.mzmine.gui.mainwindow.workspaces;
 
 import static io.github.mzmine.util.javafx.FxMenuUtil.addMenuItem;
+import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItem;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItems;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addSeparator;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.WindowLocation;
+import io.github.mzmine.gui.mainwindow.UsersTab;
+import io.github.mzmine.gui.mainwindow.dependenciestab.DependenciesTab;
+import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
+import io.github.mzmine.modules.batchmode.ModuleQuickSelectDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule;
@@ -80,15 +88,48 @@ import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sql.SQLExportModule;
 import io.github.mzmine.modules.io.export_features_venn.VennExportModule;
+import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
+import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
 import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
 import io.github.mzmine.modules.io.import_feature_networks.ImportFeatureNetworksSimpleModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
+import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
+import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
+import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
+import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
+import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
+import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
+import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
+import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
+import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
+import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
+import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
+import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
+import io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule;
+import io.github.mzmine.modules.visualization.otherdetectors.multidetector.MultidetectorVisualizerModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
-import io.github.mzmine.util.javafx.FxMenuUtil;
+import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
+import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
+import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
+import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule;
+import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule;
+import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
+import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import io.mzio.links.MzioMZmineLinks;
+import io.mzio.users.client.UserAuthStore;
+import io.mzio.users.gui.fx.UsersViewState;
+import io.mzio.users.user.CurrentUserService;
 import java.util.EnumSet;
 import java.util.List;
 import javafx.scene.control.Menu;
@@ -121,17 +162,14 @@ public sealed interface Workspace permits Academic {
 
     menu.setOnShowing(_ -> WorkspaceMenuUtils.fillRecentProjects(recentProjects));
 
-    FxMenuUtil.addModuleMenuItem(menu, ProjectLoadModule.class, KeyCode.O,
-        KeyCombination.SHORTCUT_DOWN);
-    FxMenuUtil.addModuleMenuItem(menu, ProjectSaveModule.class, KeyCode.S,
-        KeyCombination.SHORTCUT_DOWN);
-    FxMenuUtil.addModuleMenuItem(menu, ProjectSaveAsModule.class, KeyCode.S,
-        KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN);
+    addModuleMenuItem(menu, ProjectLoadModule.class, KeyCode.O, KeyCombination.SHORTCUT_DOWN);
+    addModuleMenuItem(menu, ProjectSaveModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN);
+    addModuleMenuItem(menu, ProjectSaveAsModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN,
+        KeyCombination.SHIFT_DOWN);
     addMenuItem(menu, "Close project", MZmineGUI::requestCloseProject, KeyCode.Q,
         KeyCombination.SHORTCUT_DOWN);
     addSeparator(menu);
-    FxMenuUtil.addModuleMenuItem(menu, BatchModeModule.class, KeyCode.B,
-        KeyCombination.SHORTCUT_DOWN);
+    addModuleMenuItem(menu, BatchModeModule.class, KeyCode.B, KeyCombination.SHORTCUT_DOWN);
     addSeparator(menu);
     addMenuItem(menu, "Sample metadata",
         () -> MZmineCore.getDesktop().addTab(new ProjectMetadataTab()), KeyCode.M,
@@ -218,6 +256,110 @@ public sealed interface Workspace permits Academic {
     addModuleMenuItems(menu, "EC-MS workflow", CalcEcmsPotentialModule.class);
     menu.getItems().add(new SeparatorMenuItem());
     addModuleMenuItems(menu, ClearFeatureAnnotationsModule.class);
+    return menu;
+  }
+
+  default Menu buildDefaultVisualizationMenu() {
+    final Menu menu = new Menu("Visualization");
+
+    final Menu rawDataVis = addModuleMenuItems(menu, "Raw data", RawDataOverviewModule.class,
+        IMSRawDataOverviewModule.class, ImageVisualizerModule.class,
+        MultidetectorVisualizerModule.class);
+    addSeparator(rawDataVis);
+    addModuleMenuItems(rawDataVis, ChromatogramVisualizerModule.class, TwoDVisualizerModule.class,
+        Fx3DVisualizerModule.class, MsMsVisualizerModule.class,
+        MassvoltammogramFromFileModule.class);
+    addSeparator(rawDataVis);
+    addModuleMenuItems(rawDataVis, RawDataSummaryModule.class, ScanHistogramModule.class,
+        InjectTimeAnalysisModule.class);
+
+    final Menu featureVis = addModuleMenuItems(menu, "Feature list",
+        FeatureNetworkOverviewModule.class, CorrelatedFeaturesMzHistogramModule.class,
+        FeatureCorrelationHistogramModule.class);
+    addSeparator(featureVis);
+    addModuleMenuItems(featureVis, ScatterPlotVisualizerModule.class,
+        FeatureHistogramPlotModule.class, IntensityPlotModule.class);
+    addSeparator(featureVis);
+    addModuleMenuItems(featureVis, KendrickMassPlotModule.class, VanKrevelenDiagramModule.class,
+        MassvoltammogramFromFeatureListModule.class);
+
+    addModuleMenuItems(menu, MSnTreeVisualizerModule.class);
+
+    return menu;
+  }
+
+  default Menu buildDefaultToolsMenu() {
+    final Menu menu = new Menu("Tools");
+    addMenuItem(menu, "Quick search", ModuleQuickSelectDialog::openQuickSearch, KeyCode.F,
+        KeyCombination.SHORTCUT_DOWN);
+    addModuleMenuItems(menu, IsotopePatternPreviewModule.class, QualityParametersModule.class);
+    addModuleMenuItems(menu, "Libraries", LibraryAnalysisCSVExportModule.class,
+        MsMsQualityExportModule.class);
+    addModuleMenuItems(menu, "timsTOF fleX", TimsTOFMaldiAcquisitionModule.class,
+        SimsefImagingSchedulerModule.class);
+    return menu;
+  }
+
+  default Menu buildDefaultWizardMenu() {
+    final Menu menu = new Menu("mzwizard");
+    addModuleMenuItem(menu, BatchWizardModule.class, KeyCode.W, KeyCombination.SHORTCUT_DOWN);
+    return menu;
+  }
+
+  default Menu buildDefaultWindowsMenu() {
+    final WindowsMenu menu = new WindowsMenu();
+
+    final Menu tasks = new Menu("Task manager");
+    addMenuItem(tasks, "Hide",
+        () -> MZmineGUI.handleTaskManagerLocationChange(WindowLocation.HIDDEN));
+    addMenuItem(tasks, "Main window",
+        () -> MZmineGUI.handleTaskManagerLocationChange(WindowLocation.MAIN));
+    addMenuItem(tasks, "External window",
+        () -> MZmineGUI.handleTaskManagerLocationChange(WindowLocation.EXTERNAL));
+    addMenuItem(tasks, "Tab", () -> MZmineGUI.handleTaskManagerLocationChange(WindowLocation.TAB));
+
+    menu.getItems().addAll(tasks, new SeparatorMenuItem());
+    return menu;
+  }
+
+  default Menu buildDefaultHelpMenu() {
+    final Menu menu = new Menu("Help");
+    addMenuItem(menu, "Open documentation", () -> MZmineCore.getDesktop()
+        .openWebPage("https://mzmine.github.io/mzmine_documentation/"));
+    addMenuItem(menu, "Open landing page",
+        () -> MZmineCore.getDesktop().addTab(new MZmineIntroductionTab()));
+
+    addSeparator(menu);
+
+    addMenuItem(menu, "Open landing page",
+        () -> MZmineCore.getDesktop().addTab(new MZmineIntroductionTab()));
+    addMenuItem(menu, "Support", () -> MZmineCore.getDesktop()
+        .openWebPage("https://mzmine.github.io/mzmine_documentation/troubleshooting.html"));
+    addMenuItem(menu, "Report an issue",
+        () -> MZmineCore.getDesktop().openWebPage("http://mzmine.github.io/support.html"));
+    addMenuItem(menu, "Show log file", WorkspaceMenuUtils::handleShowLogFile);
+
+    addSeparator(menu);
+
+    addMenuItem(menu, "Check for updates", WorkspaceMenuUtils::versionCheck);
+
+    addSeparator(menu);
+
+    addMenuItem(menu, "About mzmine", MZmineGUI::showAboutWindow);
+    addMenuItem(menu, "Dependencies", () -> MZmineCore.getDesktop().addTab(new DependenciesTab()));
+    return menu;
+  }
+
+  default Menu buildDefaultUsersMenu() {
+    final Menu menu = new Menu("Users");
+    addMenuItem(menu, "Manage users", () -> FxThread.runLater(UsersTab::showTab), KeyCode.U,
+        KeyCombination.SHORTCUT_DOWN); // why fx thread?
+    addMenuItem(menu, "Sign in / Sign up", () -> UsersTab.showTab(UsersViewState.LOGIN));
+    addMenuItem(menu, "Remove user", () -> addMenuItem(menu, "Remove user",
+        () -> UserAuthStore.removeUserFile(CurrentUserService.getUser())));
+    addMenuItem(menu, "Open users directory", WorkspaceMenuUtils::openUsersDirectory);
+    addMenuItem(menu, "Manage user online",
+        () -> DesktopService.getDesktop().openWebPage(MzioMZmineLinks.USER_CONSOLE.getUrl()));
     return menu;
   }
 }

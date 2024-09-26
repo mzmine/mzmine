@@ -48,6 +48,10 @@ public class FxMenuUtil {
     return menuItem;
   }
 
+  public static MenuItem addMenuItem(Menu menu, @NotNull String text, @Nullable Runnable onClick) {
+    return addMenuItem(menu, text, onClick, null);
+  }
+
   public static MenuItem addMenuItem(Menu menu, @NotNull String text, @Nullable Runnable onClick,
       @Nullable KeyCode mainKey, @Nullable Modifier... modifers) {
     final MenuItem item = menuItem(text, onClick, null);

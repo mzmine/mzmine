@@ -103,6 +103,11 @@ public final class Academic implements Workspace {
     menuBar.getMenus().add(buildRawDataMenu());
     menuBar.getMenus().add(buildFeatureDetectionMenu());
     menuBar.getMenus().add(buildFeatureListMethodsMenu());
+    menuBar.getMenus().add(buildDefaultVisualizationMenu());
+    menuBar.getMenus().add(buildDefaultWizardMenu());
+    menuBar.getMenus().add(buildDefaultWindowsMenu());
+    menuBar.getMenus().add(buildDefaultUsersMenu());
+    menuBar.getMenus().add(buildDefaultHelpMenu());
     return menuBar;
   }
 

@@ -25,13 +25,24 @@
 
 package io.github.mzmine.gui.mainwindow.workspaces;
 
+import io.github.mzmine.gui.MZmineDesktop;
+import io.github.mzmine.gui.NewVersionCheck;
+import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
+import io.github.mzmine.taskcontrol.SimpleRunnableTask;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.mzio.users.client.UserAuthStore;
+import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +51,7 @@ import java.util.logging.Logger;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.stage.FileChooser;
+import org.apache.commons.io.FileUtils;
 
 /**
  * Contains static utility methods for workspace related main-menus
@@ -114,6 +126,7 @@ public class WorkspaceMenuUtils {
 
   /**
    * Extracts all modules from a menu. May include duplicates.
+   *
    * @param menu
    * @return
    */
@@ -121,15 +134,48 @@ public class WorkspaceMenuUtils {
     List<Class<? extends MZmineRunnableModule>> modules = new ArrayList<>();
 
     for (MenuItem item : menu.getItems()) {
-      if(item instanceof ModuleMenuItem mmi) {
+      if (item instanceof ModuleMenuItem mmi) {
         modules.add(mmi.getModuleClass());
-      }
-      else if(item instanceof Menu) {
+      } else if (item instanceof Menu) {
         var mods = extractModules((Menu) item);
         modules.addAll(mods);
       }
     }
 
     return modules;
+  }
+
+  public static void handleShowLogFile() {
+    /*
+     * There doesn't seem to be any way to obtain the log file name from the logging FileHandler, so
+     * it is hard-coded here for now
+     */
+    final Path logFilePath = Paths.get(
+        FileUtils.getUserDirectory() + File.separator + "mzmine_0_0.log");
+
+    try {
+      MZmineDesktop gui = MZmineCore.getDesktop();
+      gui.openWebPage(logFilePath.toUri().toURL());
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void versionCheck() {
+    // Check for new version of MZmine
+    logger.info("Checking for new MZmine version");
+    NewVersionCheck NVC = new NewVersionCheck(CheckType.MENU);
+    TaskService.getController().addTask(new SimpleRunnableTask("New version check", NVC));
+  }
+
+  public static void openUsersDirectory() {
+    if (!Desktop.isDesktopSupported()) {
+      return;
+    }
+    try {
+      Desktop desktop = Desktop.getDesktop();
+      desktop.open(UserAuthStore.getUserPath());
+    } catch (IOException e) {
+    }
   }
 }
