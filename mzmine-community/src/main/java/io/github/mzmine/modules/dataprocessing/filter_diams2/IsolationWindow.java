@@ -26,9 +26,28 @@
 package io.github.mzmine.modules.dataprocessing.filter_diams2;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.features.Feature;
 import org.jetbrains.annotations.Nullable;
 
 public record IsolationWindow(@Nullable Range<Double> mzIsolation,
                               @Nullable Range<Float> mobilityIsolation) {
 
+  boolean contains(MobilityScan scan) {
+    return mobilityIsolation == null || mobilityIsolation.contains((float) scan.getMobility());
+  }
+
+  boolean contains(Feature f) {
+    final Double mz = f.getMZ();
+    final Float mobility = f.getMobility();
+
+    if (mzIsolation != null && !mzIsolation.contains(mz)) {
+      return false;
+    }
+
+    if (mobilityIsolation != null && (mobility != null && !mobilityIsolation.contains(mobility))) {
+      return false;
+    }
+    return true;
+  }
 }

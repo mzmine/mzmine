@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -68,7 +68,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.FinishedTask;
 import io.github.mzmine.util.ArrayUtils;
-import io.github.mzmine.util.ImagingUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -206,7 +205,8 @@ public class DiaMs2CorrTask extends AbstractTask {
   }
 
   private void processFeatureList(List<FeatureListRow> rows, RawDataFile originalDataFile,
-      final RangeMap<Double, IonTimeSeries<?>> ms2Eics, final List<Scan> ms2Scans, ScanDataAccess ms2ScanAccess) {
+      final RangeMap<Double, IonTimeSeries<?>> ms2Eics, final List<Scan> ms2Scans,
+      ScanDataAccess ms2ScanAccess) {
     // go through all features and find ms2s
     for (FeatureListRow row : flist.getRows()) {
       currentRow++;
