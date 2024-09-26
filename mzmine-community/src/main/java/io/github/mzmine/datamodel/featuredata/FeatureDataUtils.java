@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
@@ -44,15 +45,16 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Used to uniformly calculate feature describing values by the series stored in {@link
- * ModularFeature#getFeatureData()} (and it's super/extending classes).
+ * Used to uniformly calculate feature describing values by the series stored in
+ * {@link ModularFeature#getFeatureData()} (and it's super/extending classes).
  *
  * @author https://github.com/SteffenHeu
  */
@@ -206,20 +208,19 @@ public class FeatureDataUtils {
 
   /**
    * @param series The series.
-   * @return The area of the given series in retention time dimension (= for {@link
-   * IonMobilogramTimeSeries}, the intensities in one frame are summed.).
+   * @return The area of the given series in retention time dimension (= for
+   * {@link IonMobilogramTimeSeries}, the intensities in one frame are summed.).
    */
   public static float calculateArea(IonTimeSeries<? extends Scan> series) {
     if (series.getNumberOfValues() <= 1) {
       return 0f;
     }
     float area = 0f;
-    DoubleBuffer intensities = series.getIntensityValueBuffer();
     List<? extends Scan> scans = series.getSpectra();
-    double lastIntensity = intensities.get(0);
+    double lastIntensity = series.getIntensity(0);
     float lastRT = scans.get(0).getRetentionTime();
     for (int i = 1; i < series.getNumberOfValues(); i++) {
-      final double thisIntensity = intensities.get(i);
+      final double thisIntensity = series.getIntensity(i);
       final float thisRT = scans.get(i).getRetentionTime();
       area += (thisRT - lastRT) * ((float) (thisIntensity + lastIntensity)) / 2.0;
       lastIntensity = thisIntensity;
@@ -251,13 +252,10 @@ public class FeatureDataUtils {
    */
   public static double calculateCenterMz(@NotNull final IonSeries series,
       @NotNull final CenterFunction cf, int startInclusive, int endInclusive) {
-    double[] mz = new double[endInclusive - startInclusive];
-    double[] intensity = new double[endInclusive - startInclusive];
-
-    series.getMZValueBuffer().get(startInclusive, mz, 0, endInclusive - startInclusive);
-    series.getIntensityValueBuffer()
-        .get(startInclusive, intensity, 0, endInclusive - startInclusive);
-    return cf.calcCenter(mz, intensity);
+    return cf.calcCenter(
+        StorageUtils.copyOfRangeDouble(series.getMZValueBuffer(), startInclusive, endInclusive + 1),
+        StorageUtils.copyOfRangeDouble(series.getIntensityValueBuffer(), startInclusive,
+            endInclusive + 1));
   }
 
   /**
@@ -271,8 +269,8 @@ public class FeatureDataUtils {
 
   /**
    * @param feature          The feature
-   * @param mzCenterFunction Center function for m/z calculation. Default = {@link
-   *                         FeatureDataUtils#DEFAULT_CENTER_FUNCTION}
+   * @param mzCenterFunction Center function for m/z calculation. Default =
+   *                         {@link FeatureDataUtils#DEFAULT_CENTER_FUNCTION}
    * @param calcQuality      specifies if quality parameters (FWHM, asymmetry, tailing) shall be
    *                         calculated.
    */

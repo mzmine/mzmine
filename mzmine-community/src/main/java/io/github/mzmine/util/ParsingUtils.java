@@ -32,8 +32,11 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -71,6 +74,7 @@ public class ParsingUtils {
     for (int i = 0; i < strValues.length; i++) {
       values[i] = Double.parseDouble(strValues[i]);
     }
+
     return values;
   }
 
@@ -96,6 +100,18 @@ public class ParsingUtils {
     StringBuilder b = new StringBuilder();
     for (int i = 0, arrayLength = buffer.capacity(); i < arrayLength; i++) {
       double v = buffer.get(i);
+      b.append(v);
+      if (i < arrayLength - 1) {
+        b.append(SEPARATOR);
+      }
+    }
+    return b.toString();
+  }
+
+  public static String doubleBufferToString(MemorySegment buffer) {
+    StringBuilder b = new StringBuilder();
+    for (long i = 0, arrayLength = StorageUtils.numDoubles(buffer); i < arrayLength; i++) {
+      double v = buffer.getAtIndex(ValueLayout.JAVA_DOUBLE, i);
       b.append(v);
       if (i < arrayLength - 1) {
         b.append(SEPARATOR);

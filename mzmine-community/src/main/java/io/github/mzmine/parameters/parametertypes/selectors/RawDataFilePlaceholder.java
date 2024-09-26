@@ -37,6 +37,8 @@ import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.Color;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
@@ -302,6 +304,9 @@ public class RawDataFilePlaceholder implements RawDataFile {
 
   @Override
   public List<OtherDataFile> getOtherDataFiles() {
+    if (getMatchingFile() != null) {
+      return getMatchingFile().getOtherDataFiles();
+    }
     return List.of();
   }
 

@@ -60,6 +60,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorEl
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
+import java.lang.foreign.MemorySegment;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -243,8 +244,8 @@ public class ConversionUtils {
 
     final MassSpectrumType spectrumType = scan.getSpectrumType();
 
-    final DoubleBuffer wavelengthValues = scan.getWavelengthValues();
-    final DoubleBuffer intensityValues = scan.getDoubleBufferIntensityValues();
+    final MemorySegment wavelengthValues = scan.getWavelengthValues();
+    final MemorySegment intensityValues = scan.getDoubleBufferIntensityValues();
 
     final WavelengthSpectrum spectrum = new WavelengthSpectrum(spectralData, wavelengthValues,
         intensityValues, spectrumType, scan.getRetentionTime());
@@ -273,7 +274,7 @@ public class ConversionUtils {
    * @return a {@link SimpleScan}
    */
   public static Scan mzmlScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
-      DoubleBuffer mzs, DoubleBuffer intensities, MassSpectrumType spectrumType) {
+      MemorySegment mzs, MemorySegment intensities, MassSpectrumType spectrumType) {
     DDAMsMsInfo info = null;
     if (scan.getPrecursorList() != null) {
       final var precursorElements = scan.getPrecursorList().getPrecursorElements();

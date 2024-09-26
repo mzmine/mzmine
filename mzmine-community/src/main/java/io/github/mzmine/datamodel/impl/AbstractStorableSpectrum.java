@@ -30,6 +30,8 @@ import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.util.logging.Logger;
@@ -41,11 +43,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
-  public static final DoubleBuffer EMPTY_BUFFER = DoubleBuffer.wrap(new double[0]);
-  public static final FloatBuffer EMPTY_FLOAT_BUFFER = FloatBuffer.wrap(new float[0]);
   private static final Logger logger = Logger.getLogger(AbstractStorableSpectrum.class.getName());
-  protected DoubleBuffer mzValues;
-  protected DoubleBuffer intensityValues;
+  protected MemorySegment mzValues;
+  protected MemorySegment intensityValues;
 
   /**
    * Note: mz and intensity values for a scan shall only be set once and are enforced to be
@@ -65,14 +65,14 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     setDataPoints(storage, mzValues, intensityValues);
   }
 
-  public AbstractStorableSpectrum(@Nullable DoubleBuffer mzValues,
-      @Nullable DoubleBuffer intensityValues) {
+  public AbstractStorableSpectrum(@Nullable MemorySegment mzValues,
+      @Nullable MemorySegment intensityValues) {
     if (mzValues == null ^ intensityValues == null) {
       // one is null the other not
       throw new IllegalArgumentException(
           "%s is null and the other not".formatted(mzValues == null ? "mzs" : "intensities"));
     } else if (mzValues != null) {
-      assert mzValues.limit() == intensityValues.limit();
+      assert mzValues.byteSize() == intensityValues.byteSize();
       this.mzValues = mzValues;
       this.intensityValues = intensityValues;
       //todo transfer checks
@@ -109,17 +109,17 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     updateMzRangeAndTICValues();
   }
 
-  DoubleBuffer getMzValues() {
+  MemorySegment getMzValues() {
     if (mzValues == null) {
-      return EMPTY_BUFFER;
+      return StorageUtils.EMPTY_DOUBLE_SEGMENT;
     } else {
       return mzValues;
     }
   }
 
-  DoubleBuffer getIntensityValues() {
+  MemorySegment getIntensityValues() {
     if (intensityValues == null) {
-      return EMPTY_BUFFER;
+      return StorageUtils.EMPTY_DOUBLE_SEGMENT;
     } else {
       return intensityValues;
     }
@@ -133,7 +133,7 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    mzValues.get(0, dst, 0, getNumberOfDataPoints());
+    MemorySegment.copy(mzValues, ValueLayout.JAVA_DOUBLE, 0, dst, 0, getNumberOfDataPoints());
     return dst;
   }
 
@@ -146,7 +146,7 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    intensityValues.get(0, dst, 0, getNumberOfDataPoints());
+    MemorySegment.copy(intensityValues, ValueLayout.JAVA_DOUBLE, 0, dst, 0, getNumberOfDataPoints());
     return dst;
   }
 
