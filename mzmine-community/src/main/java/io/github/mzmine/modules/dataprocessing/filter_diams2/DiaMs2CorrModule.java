@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -62,7 +62,7 @@ public class DiaMs2CorrModule implements MZmineProcessingModule {
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (ModularFeatureList matchingFeatureList : parameters.getValue(DiaMs2CorrParameters.flists)
         .getMatchingFeatureLists()) {
-      tasks.add(new DiaMs2CorrTask(storage, moduleCallDate, matchingFeatureList, parameters));
+      tasks.add(new DiaMs2CorrTaskNew(storage, moduleCallDate, matchingFeatureList, parameters));
     }
     return ExitCode.OK;
   }

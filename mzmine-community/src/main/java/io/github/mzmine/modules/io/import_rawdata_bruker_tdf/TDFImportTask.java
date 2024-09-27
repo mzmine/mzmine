@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -62,7 +62,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.time.Instant;
@@ -72,7 +71,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import org.jetbrains.annotations.NotNull;
@@ -283,8 +281,6 @@ public class TDFImportTask extends AbstractTask {
           return;
         }
       }
-    } catch (IOException e) {
-      logger.log(Level.SEVERE, e.getMessage(), e);
     } catch (IndexOutOfBoundsException e) {
       // happens on corrupt data
       logger.warning("Cannot import raw data from " + tdf.getName() + ", data is corrupt.");

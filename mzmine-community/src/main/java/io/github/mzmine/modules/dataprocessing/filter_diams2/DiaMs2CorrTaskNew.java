@@ -31,16 +31,17 @@ import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -51,6 +52,7 @@ import io.github.mzmine.datamodel.features.correlation.CorrelationData;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.main.MZmineCore;
@@ -59,7 +61,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.M
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureCorrelationUtil.DIA;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -69,13 +70,17 @@ import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.collections.EmptyIndexRange;
+import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.lang.foreign.ValueLayout;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,6 +92,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -148,13 +154,12 @@ public class DiaMs2CorrTaskNew extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "DIA MS2 for feature list: " + flist.getName() + " " + (
-        adapTask != null && !adapTask.isFinished() ? adapTask.getTaskDescription() : description);
+    return "DIA MS2 for feature list: " + flist.getName();
   }
 
   @Override
   public double getFinishedPercentage() {
-    return (adapTask != null ? adapTask.getFinishedPercentage() * 0.5 : 0)
+    return isolationWindowMergingProgress * 0.25 + adapTaskProgess * 0.25
         + (currentRow / (double) numRows) * 0.5d;
   }
 
@@ -173,7 +178,7 @@ public class DiaMs2CorrTaskNew extends AbstractTask {
         isolationWindowScanMap);
     final Map<IsolationWindow, FeatureList> ms2Flists = buildChromatograms(isolationWindowFileMap);
     final Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> isoWindowEicsMap = mapIsoWindowToEics(
-        ms2Flists, file);
+        ms2Flists);
     final Set<IsolationWindow> isolationWindows = isoWindowEicsMap.keySet();
 
     for (FeatureListRow row : flist.getRows()) {
@@ -189,9 +194,13 @@ public class DiaMs2CorrTaskNew extends AbstractTask {
       }
 
       final List<IsolationWindow> matchingWindows = getIsolationWindows(feature, isolationWindows);
-      processIsolationWindows(feature, matchingWindows, isoWindowEicsMap, isolationWindowScanMap);
+      final List<@NotNull PseudoSpectrum> correlatedMs2s = processIsolationWindows(feature,
+          matchingWindows, isoWindowEicsMap, isolationWindowScanMap);
 
-
+      PseudoSpectrum reoccurringIons = refineMs2s(correlatedMs2s);
+      if (reoccurringIons != null) {
+        feature.setAllMS2FragmentScans(List.of(reoccurringIons));
+      }
     }
 
     if (ms2Flists.isEmpty()) {
@@ -202,29 +211,83 @@ public class DiaMs2CorrTaskNew extends AbstractTask {
       return;
     }
 
-    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST,
-        ms2ScanSelection);
-
     flist.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
             getModuleCallDate()));
     setStatus(TaskStatus.FINISHED);
   }
 
-  private void processIsolationWindows(Feature feature, List<IsolationWindow> matchingWindows,
+  /**
+   * @param correlatedMs2s A list of all correlated ms2 spectra.
+   * @return A new PseudoSpectrum, which only contains ions that appear in every individual pseudo
+   * spectrum. Null if no ions were found or the list was empty.
+   */
+  private @Nullable PseudoSpectrum refineMs2s(
+      @NotNull List<@NotNull PseudoSpectrum> correlatedMs2s) {
+    if (correlatedMs2s.isEmpty()) {
+      return null;
+    }
+    if (correlatedMs2s.size() == 1) {
+      return correlatedMs2s.getFirst();
+    }
+
+    PseudoSpectrum mostIntense = correlatedMs2s.stream()
+        .max(Comparator.comparing(ps -> Objects.requireNonNullElse(ps.getTIC(), 0d))).orElse(null);
+    if (mostIntense == null) {
+      return null;
+    }
+
+    DoubleArrayList mzs = new DoubleArrayList();
+    DoubleArrayList intensities = new DoubleArrayList();
+
+    for (int i = 0; i < mostIntense.getNumberOfDataPoints(); i++) {
+      final double mzInMostIntense = mostIntense.getMzValue(i);
+      boolean foundInAll = true;
+
+      for (@NotNull PseudoSpectrum ms2 : correlatedMs2s) {
+        if (ms2 == mostIntense) {
+          continue;
+        }
+        final int closestIndex = ms2.binarySearch(mzInMostIntense, DefaultTo.CLOSEST_VALUE);
+        if (!mzTolerance.checkWithinTolerance(mzInMostIntense, ms2.getMzValue(closestIndex))) {
+          foundInAll = false;
+          break;
+        }
+      }
+      if (foundInAll) {
+        mzs.add(mzInMostIntense);
+        intensities.add(mostIntense.getIntensityValue(i));
+      }
+    }
+
+    if (mzs.isEmpty()) {
+      logger.finest("No reoccurring ions found in %d spectra.".formatted(correlatedMs2s.size()));
+      return null;
+    }
+
+    return new SimplePseudoSpectrum(mostIntense.getDataFile(), mostIntense.getMSLevel(),
+        mostIntense.getRetentionTime(), null, mzs.toDoubleArray(), mzs.toDoubleArray(),
+        mostIntense.getPolarity(), mostIntense.getScanDefinition(),
+        mostIntense.getPseudoSpectrumType());
+  }
+
+  private @NotNull List<@NotNull PseudoSpectrum> processIsolationWindows(Feature feature,
+      List<IsolationWindow> matchingWindows,
       Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> isoWindowEicsMap,
       Map<IsolationWindow, List<Scan>> isoWindowScansMap) {
     final IonTimeSeries<? extends Scan> ms1Eic = feature.getFeatureData();
     final double[][] shape = extractPointsAroundMaximum(feature.getHeight() * correlationThreshold,
         ms1Eic, feature.getRepresentativeScan());
     if (shape == null || shape[0].length < minCorrPoints) {
-      return;
+      return List.of();
     }
 
     final double[] ms1Rts = shape[0];
     final double[] ms1Intensities = shape[1];
     final Range<Float> correlationRange = Range.closed((float) ms1Rts[0],
         (float) ms1Rts[ms1Rts.length - 1]);
+
+    final List<PseudoSpectrum> correlatedMs2s = new ArrayList<>();
 
     for (IsolationWindow window : matchingWindows) {
       var ms2Scans = isoWindowScansMap.get(window);
@@ -240,103 +303,156 @@ public class DiaMs2CorrTaskNew extends AbstractTask {
         continue;
       }
 
-      final PseudoSpectrum ms2 = extractCorrelatedMs2(feature, correlationRange, eligibleEics,
-          ms1Rts, ms1Intensities);
+      final PseudoSpectrum ms2 = extractCorrelatedMs2(feature,
+          () -> extractMergedMobilityScan(feature, closestMs2,
+              ms2Scans.stream().filter(s -> correlationRange.contains(s.getRetentionTime()))
+                  .toList()), correlationRange, eligibleEics, ms1Rts, ms1Intensities);
 
-      if (ms2 == null) {
-        continue;
+      if (ms2 != null) {
+        correlatedMs2s.add(ms2);
       }
-
-      ms2.getRetentionTime()
-
     }
 
+    return correlatedMs2s;
   }
 
+  /**
+   * @param feature                   The feature to extract the ms2 for
+   * @param extractMergedMobilityScan A supplier to get a merged mobility scan for this feature.
+   *                                  Only called if necessary
+   * @param correlationRange          The rt correlation range between the ms1 and ms2 traces.
+   * @param eligibleEics              The MS2 EICs that appear during the elution of the MS1
+   *                                  feature.
+   * @param ms1Rts                    The rt values of the ms1 feature during the correlation range
+   * @param ms1Intensities            The intensity values of the ms1 feature during the correlation
+   *                                  range
+   * @return A {@link PseudoSpectrum} or null.
+   */
   private @Nullable PseudoSpectrum extractCorrelatedMs2(Feature feature,
-      Range<Float> correlationRange, List<IonTimeSeries<?>> eligibleEics, double[] ms1Rts,
-      double[] ms1Intensities) {
+      Supplier<MergedMassSpectrum> extractMergedMobilityScan, Range<Float> correlationRange,
+      List<IonTimeSeries<?>> eligibleEics, double[] ms1Rts, double[] ms1Intensities) {
     DoubleArrayList ms2Mzs = new DoubleArrayList();
     DoubleArrayList ms2Intensities = new DoubleArrayList();
+    MergedMassSpectrum mergedMobilityScan = null; // lazy initialization
 
     for (IonTimeSeries<?> ms2Eic : eligibleEics) {
+      // todo: to make this efficient, merge PR #2016
       final IntensityTimeSeries subSeries = ms2Eic.subSeries(getMemoryMapStorage(),
           correlationRange.lowerEndpoint(), correlationRange.upperEndpoint());
-      final int num = subSeries.getNumberOfValues();
-      final double[] intensities = new double[num];
-      final double[] rts = new double[num];
-      for (int i = 0; i < num; i++) {
-        intensities[i] = subSeries.getIntensity(i);
+      final double[] rts = new double[subSeries.getNumberOfValues()];
+      for (int i = 0; i < subSeries.getNumberOfValues(); i++) {
         rts[i] = subSeries.getRetentionTime(i);
       }
 
       final CorrelationData correlationData = DIA.corrFeatureShape(ms1Rts, ms1Intensities, rts,
-          intensities, minCorrPoints, 2, minMs2Intensity / 3);
-      if (correlationData != null && correlationData.isValid() && correlationData.getPearsonR() > 0
-          && correlationData.getPearsonR() > minPearson) {
-        int startIndex = -1;
-        int endIndex = -1;
-        double maxIntensity = Double.NEGATIVE_INFINITY;
-
-        final List<Scan> spectra = (List<Scan>) ms2Eic.getSpectra();
-        for (int j = 0; j < spectra.size(); j++) {
-          Scan spectrum = spectra.get(j);
-          if (startIndex == -1 && correlationRange.contains(spectrum.getRetentionTime())) {
-            startIndex = j;
-          }
-          if (startIndex != -1 && ms2Eic.getIntensity(j) > maxIntensity) {
-            maxIntensity = ms2Eic.getIntensity(j);
-          }
-          if (startIndex != -1 && !correlationRange.contains(spectrum.getRetentionTime())) {
-            endIndex = j - 1;
-            break;
-          }
-        }
-        // no value in ms1 feature rt range
-        if (startIndex == -1) {
-          continue;
-        }
-        // all values in ms1 feature rt range
-        if (endIndex == -1) {
-          endIndex = ms2Eic.getNumberOfValues() - 1;
-        }
-
-        final double mz = FeatureDataUtils.calculateCenterMz(ms2Eic,
-            FeatureDataUtils.DEFAULT_CENTER_FUNCTION, startIndex, endIndex);
-
-        // for IMS measurements, the ion must be present in the MS2 mobility scans in the during
-        // the feature's rt window and within the mobility scans of the feature's mobility window.
-        // we could also look at mobility shape and correlate that, but it would probably take a
-        // lot of optimisation and/or too long to compute
-        if (mergedMobilityScan != null && mergedMobilityScan.getNumberOfDataPoints() > 1) {
-          boolean mzFound = false;
-          final double upper = mzTolerance.getToleranceRange(mz).upperEndpoint();
-          for (int i = 0; i < mergedMobilityScan.getNumberOfDataPoints(); i++) {
-            if (mzTolerance.checkWithinTolerance(mz, mergedMobilityScan.getMzValue(i))) {
-              mzFound = true;
-              break;
-            } else if (mergedMobilityScan.getMzValue(i) > upper) {
-              break;
-            }
-          }
-          if (!mzFound) {
-            continue; // dont add this mz
-          }
-        }
-        ms2Mzs.add(mz);
-        ms2Intensities.add(maxIntensity);
+          subSeries.getIntensityValueBuffer().toArray(ValueLayout.JAVA_DOUBLE), minCorrPoints, 2,
+          minMs2Intensity / 5);
+      if (correlationData == null || !correlationData.isValid()
+          || correlationData.getPearsonR() < minPearson) {
+        continue;
       }
+
+      final IndexRange ms2CorrelatedIndexRange = BinarySearch.indexRange(
+          correlationRange.lowerEndpoint(), correlationRange.upperEndpoint(),
+          ms2Eic.getNumberOfValues(), ms2Eic::getRetentionTime);
+      if (ms2CorrelatedIndexRange.equals(EmptyIndexRange.INSTANCE)
+          || ms2CorrelatedIndexRange.min() == -1) {
+        continue;
+      }
+
+      double maxIntensity = Double.NEGATIVE_INFINITY;
+      for (int j = ms2CorrelatedIndexRange.min(); j < ms2CorrelatedIndexRange.maxExclusive(); j++) {
+        if (ms2Eic.getIntensity(j) > maxIntensity) {
+          maxIntensity = ms2Eic.getIntensity(j);
+        }
+      }
+
+      final double mz = FeatureDataUtils.calculateCenterMz(ms2Eic,
+          FeatureDataUtils.DEFAULT_CENTER_FUNCTION, ms2CorrelatedIndexRange.min(),
+          ms2CorrelatedIndexRange.maxInclusive());
+
+      // lazy initialization, in case we never get here in the first place.
+      mergedMobilityScan =
+          mergedMobilityScan == null ? extractMergedMobilityScan.get() : mergedMobilityScan;
+
+      // for IMS measurements, the ion must be present in the MS2 mobility scans in the during
+      // the feature's rt window and within the mobility scans of the feature's mobility window.
+      // we could also look at mobility shape and correlate that, but it would probably take a
+      // lot of optimisation and/or too long to compute
+      if (!checkIfMzAppearsInMergedMobilityScan(mergedMobilityScan, mz, mzTolerance)) {
+        continue; // dont add this mz
+      }
+
+      ms2Mzs.add(mz);
+      ms2Intensities.add(maxIntensity);
     }
 
     if (ms2Mzs.isEmpty()) {
       return null;
     }
 
-    PseudoSpectrum ms2 = new SimplePseudoSpectrum(originalDataFile, 2, feature.getRT(), null,
-        ms2Mzs.toDoubleArray(), ms2Intensities.toDoubleArray(),
+    return new SimplePseudoSpectrum(feature.getRawDataFile(),
+        Objects.requireNonNullElse(ms2ScanSelection.msLevel().getSingleMsLevelOrNull(), 2),
+        feature.getRT(), null, ms2Mzs.toDoubleArray(), ms2Intensities.toDoubleArray(),
         feature.getRepresentativeScan().getPolarity(),
         String.format("Pseudo MS2 (R >= %.2f)", minPearson), PseudoSpectrumType.LC_DIA);
-    return ms2;
+  }
+
+  /**
+   * @param mergedMobilityScan The merged mobility scan
+   * @param mz                 The mz to search for
+   * @param mzTolerance        The allowed tolerance.
+   * @return true if the mz appears in the merged mobility scan within the given mzTolerance or if
+   * the merged mobility scan is null (no ims data).
+   */
+  private boolean checkIfMzAppearsInMergedMobilityScan(
+      @Nullable MergedMassSpectrum mergedMobilityScan, double mz, MZTolerance mzTolerance) {
+    // no ims-ms data
+    if (mergedMobilityScan == null) {
+      return true;
+    }
+
+    final int closestIndex = mergedMobilityScan.binarySearch(mz, DefaultTo.CLOSEST_VALUE);
+    if (!mzTolerance.checkWithinTolerance(mz, mergedMobilityScan.getMzValue(closestIndex))) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * @param feature       the feature
+   * @param closestMs2    the closest ms2 scan
+   * @param ms2sInRtRange A list of spectra to extract the {@link MobilityScan}s from. Ideally only
+   *                      in the rt-correlation range of the feature.
+   * @return A summed mobility scan across all {@code ms2sInRtRange} in the mobility fwhm of the
+   * feature or null if the feature is not an IMS feature.
+   */
+  private MergedMassSpectrum extractMergedMobilityScan(Feature feature, Scan closestMs2,
+      List<Scan> ms2sInRtRange) {
+    if (!(closestMs2 instanceof Frame)
+        || !(feature.getFeatureData() instanceof IonMobilogramTimeSeries imts)) {
+      return null;
+    }
+
+    final MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(feature);
+    if (bestMobilityScan == null) {
+      return null;
+    }
+
+    // for ims data, later check if we can find the mz in the closest ms2 frame with the same mobility
+    final Range<Float> mobilityRange = IonMobilityUtils.getMobilityFWHM(imts.getSummedMobilogram());
+    if (mobilityRange == null) {
+      return null;
+    }
+
+    final List<MobilityScan> mobilityScans = ms2sInRtRange.stream()
+        .flatMap(s -> ((Frame) s).getMobilityScans().stream())
+        .filter(m -> mobilityRange.contains((float) m.getMobility())).toList();
+    if (mobilityScans.isEmpty()) {
+      return null; // if we have ims data, and there are no mobility scans to be merged, something is fishy.
+    }
+    return SpectraMerging.mergeSpectra(mobilityScans, mzTolerance, MergingType.ALL_ENERGIES, null);
   }
 
   private List<IonTimeSeries<?>> getEligibleEics(Scan ms2,
@@ -371,10 +487,11 @@ public class DiaMs2CorrTaskNew extends AbstractTask {
   }
 
   private static @NotNull Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> mapIsoWindowToEics(
-      Map<IsolationWindow, FeatureList> ms2Flists, RawDataFile file) {
+      Map<IsolationWindow, FeatureList> ms2Flists) {
     final Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> isoWindowEicsMap = new HashMap<>();
 
     for (Entry<IsolationWindow, FeatureList> entry : ms2Flists.entrySet()) {
+      final RawDataFile file = entry.getValue().getRawDataFile(0);
       // store feature data in TreeRangeMap, to query by m/z in ms2 spectra
       var ms2Flist = entry.getValue();
       final RangeMap<Double, IonTimeSeries<?>> ms2Eics = TreeRangeMap.create();
@@ -429,6 +546,7 @@ public class DiaMs2CorrTaskNew extends AbstractTask {
               scan.getSpectrumType(), scan.getPolarity(), scan.getScanDefinition(),
               scan.getScanningMZRange(), ((Frame) scan).getMobilityType(), null,
               scan.getInjectionTime());
+          newFrame.addMassList(new ScanPointerMassList(newFrame));
           windowFile.addScan(newFrame);
         }
 
@@ -480,6 +598,7 @@ public class DiaMs2CorrTaskNew extends AbstractTask {
     final Map<IsolationWindow, FeatureList> result = new HashMap<>();
     for (Entry<IsolationWindow, RawDataFile> entry : isolationWindowFilesMap.entrySet()) {
       final MZmineProjectImpl dummyProject = new MZmineProjectImpl();
+      dummyProject.addFile(entry.getValue());
       // currently the consecutive scans are used
       var adapTask = ModularADAPChromatogramBuilderTask.forChromatography(dummyProject,
           entry.getValue(), adapParameters, getMemoryMapStorage(), getModuleCallDate(),
@@ -556,16 +675,12 @@ public class DiaMs2CorrTaskNew extends AbstractTask {
   @Override
   public void cancel() {
     super.cancel();
-    if (adapTask != null) {
-      adapTask.cancel();
-    }
   }
 
   private Map<IsolationWindow, List<Scan>> extractIsolationWindows(
       @NotNull final RawDataFile file) {
-    final ScanSelection scanSelection = new ScanSelection(MsLevelFilter.of(2));
     Map<IsolationWindow, List<Scan>> windowScanMap = new HashMap<>();
-    for (Scan scan : scanSelection.getMatchingScans(file)) {
+    for (Scan scan : ms2ScanSelection.getMatchingScans(file)) {
 
       if (scan instanceof Frame frame) {
         final Set<IonMobilityMsMsInfo> imsMsMsInfos = frame.getImsMsMsInfos();

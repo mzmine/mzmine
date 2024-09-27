@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -66,7 +66,6 @@ import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpec
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -131,12 +130,7 @@ public class RegularScanTypesTest {
     scans.add(ms3Scan);
 
     for (Scan scan : scans) {
-      try {
-        file.addScan(scan);
-      } catch (IOException e) {
-        e.printStackTrace();
-        Assertions.fail("Cannot add scans to raw data file.");
-      }
+      file.addScan(scan);
     }
 
     flist.setSelectedScans(file, scans);

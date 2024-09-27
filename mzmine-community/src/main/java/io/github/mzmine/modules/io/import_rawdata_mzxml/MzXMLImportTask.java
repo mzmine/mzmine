@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -320,15 +320,8 @@ public class MzXMLImportTask extends AbstractTask {
           numOpenScans = 0;
         }
         if (numOpenScans == 0) {
-          try {
-            for (final SimpleScan scan : parentStack) {
-              newMZmineFile.addScan(scan);
-            }
-          } catch (IOException e) {
-            logger.log(Level.WARNING, "Cannot store scan. " + e.getMessage(), e);
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("IO error: " + e);
-            throw new SAXException("Parsing error: " + e);
+          for (final SimpleScan scan : parentStack) {
+            newMZmineFile.addScan(scan);
           }
           parentStack.clear();
         }
