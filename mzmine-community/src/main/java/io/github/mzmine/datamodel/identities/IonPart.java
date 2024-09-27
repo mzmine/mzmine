@@ -284,6 +284,10 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
     return count >= 0;
   }
 
+  @Nullable
+  public String singleFormulaUnchargedString() {
+    return singleFormula == null ? null : FormulaUtils.getFormulaString(singleFormula, false);
+  }
 
   public boolean isNeutralModification() {
     return !isCharged();

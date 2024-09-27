@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FxLabels {
@@ -63,8 +64,16 @@ public class FxLabels {
     return label;
   }
 
+  public static Label newBoldLabel(ObservableValue<? extends String> name) {
+    return attachProperty(newBoldLabel(""), name);
+  }
+
   public static Label newBoldLabel(String name) {
     return styled(name, Styles.BOLD.getStyleClass());
+  }
+
+  public static Label newItalicLabel(ObservableValue<? extends String> name) {
+    return attachProperty(newItalicLabel(""), name);
   }
 
   public static Label newItalicLabel(String name) {
@@ -74,6 +83,15 @@ public class FxLabels {
   public static Label underlined(String name) {
     final Label label = new Label(name);
     label.setUnderline(true);
+    return label;
+  }
+
+  @NotNull
+  public static Label attachProperty(@NotNull Label label,
+      @Nullable ObservableValue<? extends String> property) {
+    if (property != null) {
+      label.textProperty().bind(property);
+    }
     return label;
   }
 
@@ -114,10 +132,8 @@ public class FxLabels {
   }
 
   public static Label newLabel(Styles style, @Nullable Color color,
-      @Nullable TextAlignment textAlignment, ObservableValue<? extends String> binding) {
-    Label label = newLabel(style, color, textAlignment, "");
-    label.textProperty().bind(binding);
-    return label;
+      @Nullable TextAlignment textAlignment, @Nullable ObservableValue<? extends String> binding) {
+    return attachProperty(newLabel(style, color, textAlignment, ""), binding);
   }
 
   public static Label newBoldTitle(String text) {

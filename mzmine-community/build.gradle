@@ -156,6 +156,8 @@ dependencies {
     implementation(project(":javafx-framework"))
     // mzmine version parsing
     implementation(libs.semver4j)
+    // try
+    implementation(libs.validatorfx)
 //    implementation "org.graphstream:gs-core:2.0"
     // use patched version via jitpack from https://github.com/robinschmid/gs-core/tree/patch-1
     implementation(libs.guava)

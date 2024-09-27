@@ -25,50 +25,74 @@
 
 package io.github.mzmine.util.components;
 
-import io.github.mzmine.util.FormulaUtils;
-import javafx.beans.binding.Bindings;
+import io.github.mzmine.util.StringUtils;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TextField;
-import javafx.util.StringConverter;
+import javafx.scene.control.TextFormatter;
+import org.controlsfx.validation.ValidationSupport;
+import org.controlsfx.validation.Validator;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaTextField extends TextField {
 
-  private final ObjectProperty<@Nullable IMolecularFormula> formula = new SimpleObjectProperty<>();
+  private final TextFormatter<IMolecularFormula> textFormatter;
 
   public FormulaTextField() {
+    this(true);
+  }
 
-    Bindings.bindBidirectional(textProperty(), formulaProperty(), new StringConverter<>() {
-      @Override
-      public String toString(IMolecularFormula object) {
-        if (object == null) {
-          return "";
-        }
-        return MolecularFormulaManipulator.getString(object);
-      }
+  public FormulaTextField(boolean showCharge) {
+    final IMolecularFormulaStringConverter stringConverter = new IMolecularFormulaStringConverter(
+        showCharge);
+    textFormatter = new TextFormatter<>(stringConverter);
+    setTextFormatter(textFormatter);
 
-      @Override
-      public IMolecularFormula fromString(String string) {
-        final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
-            string);
-        return formula;
-      }
-    });
+    // validation support after text formatter - maybe conflict of order with converting the types
+    var validSupport = new ValidationSupport();
+//    validSupport.registerValidator(this,
+//        (Control c, String value) -> ValidationResult.fromErrorIf(this, "Formula is invalid",
+//            StringUtils.hasValue(value) && formula.get() == null));
+    validSupport.registerValidator(this, Validator.<String>createPredicateValidator(
+        value -> StringUtils.hasValue(value) && getFormula() == null, "Formula is invalid"));
+  }
+
+  /**
+   * Create formula field and bind bidirectionally
+   *
+   * @param showCharge      show charge in formula
+   * @param formulaProperty bind bidirectional
+   * @return formula field
+   */
+  public static FormulaTextField newFormulaTextField(final boolean showCharge,
+      final @NotNull ObjectProperty<@Nullable IMolecularFormula> formulaProperty) {
+    var field = new FormulaTextField(showCharge);
+    field.formulaProperty().bindBidirectional(formulaProperty);
+    return field;
+  }
+
+  /**
+   * Create formula field and bind bidirectionally
+   *
+   * @param formulaProperty bind bidirectional
+   * @return formula field
+   */
+  public static FormulaTextField newFormulaTextField(
+      final @NotNull ObjectProperty<@Nullable IMolecularFormula> formulaProperty) {
+    return newFormulaTextField(true, formulaProperty);
   }
 
 
   public @Nullable IMolecularFormula getFormula() {
-    return formula.get();
+    return formulaProperty().get();
   }
 
   public ObjectProperty<@Nullable IMolecularFormula> formulaProperty() {
-    return formula;
+    return textFormatter.valueProperty();
   }
 
   public void setFormula(@Nullable IMolecularFormula formula) {
-    this.formula.set(formula);
+    this.formulaProperty().set(formula);
   }
 }
