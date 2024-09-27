@@ -33,16 +33,20 @@ import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.DIAImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.BuildingPASEFMsMsInfo;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.DiaFrameMsMsInfoTable;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.DiaFrameMsMsWindowTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.PrmFrameTargetTable;
@@ -69,9 +73,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,6 +105,8 @@ public class TDFImportTask extends AbstractTask {
   private PrmFrameTargetTable prmFrameTargetTable;
   private TDFMaldiFrameInfoTable maldiFrameInfoTable;
   private TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
+  private DiaFrameMsMsWindowTable diaFrameMsMsWindowTable;
+  private DiaFrameMsMsInfoTable diaFrameMsMsInfoTable;
   private IMSRawDataFile newMZmineFile;
   private boolean isMaldi;
   private String description;
@@ -193,6 +202,9 @@ public class TDFImportTask extends AbstractTask {
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
     maldiFrameLaserInfoTable = new TDFMaldiFrameLaserInfoTable();
     isMaldi = false;
+
+    diaFrameMsMsInfoTable = new DiaFrameMsMsInfoTable();
+    diaFrameMsMsWindowTable = new DiaFrameMsMsWindowTable();
 
     readMetadata();
     if (isMaldi) {
@@ -290,6 +302,7 @@ public class TDFImportTask extends AbstractTask {
 
     // now assign MS/MS infos
     constructMsMsInfo(newMZmineFile, framePrecursorTable);
+    assignDiaMsMsInfo(newMZmineFile, diaFrameMsMsWindowTable, diaFrameMsMsInfoTable);
 
     tdfUtils.close();
 
@@ -357,8 +370,12 @@ public class TDFImportTask extends AbstractTask {
           maldiFrameLaserInfoTable.executeQuery(connection);
         }
 
+        setDescription("Reading DIA info for " + tdf.getName());
+        diaFrameMsMsInfoTable.executeQuery(connection);
+        diaFrameMsMsWindowTable.executeQuery(connection);
+
       } catch (Throwable t) {
-        t.printStackTrace();
+        logger.log(Level.FINE, t.getMessage(), t);
         logger.info("If stack trace contains \"out of memory\" the file was not found.");
         setStatus(TaskStatus.ERROR);
         setErrorMessage(t.toString());
@@ -496,6 +513,31 @@ public class TDFImportTask extends AbstractTask {
     logger.info(
         "Construced " + constructed + " ImsMsMsInfos for " + file.getFrames().size() + " in " + (
             end.getTime() - start.getTime()) + " ms");
+  }
+
+  private void assignDiaMsMsInfo(IMSRawDataFile file, DiaFrameMsMsWindowTable diaWindows,
+      DiaFrameMsMsInfoTable diaInfo) {
+    final Map<Long, Long> frameToGroup = diaInfo.getFrameToWindowGroupMap();
+    final Map<Long, Set<DIAImsMsMsInfoImpl>> groupInfoMap = diaWindows.getWindowGroupMsMsInfoMap();
+
+    if(frameToGroup.isEmpty() || groupInfoMap.isEmpty()) {
+      return;
+    }
+
+    for (Frame frame : file.getFrames()) {
+      final Long group = frameToGroup.get((long) frame.getFrameId());
+      if (group != null) {
+        final Set<DIAImsMsMsInfoImpl> infos = groupInfoMap.get(group);
+        // set the parent frame
+        final Set<IonMobilityMsMsInfo> newInfos = infos.stream()
+            .<IonMobilityMsMsInfo>mapMulti((info, c) -> {
+              final IonMobilityMsMsInfo copy = info.createCopy();
+              copy.setMsMsScan(frame);
+              c.accept(copy);
+            }).collect(Collectors.toSet());
+        ((SimpleFrame) frame).setPrecursorInfos(newInfos);
+      }
+    }
   }
 
   @Nullable

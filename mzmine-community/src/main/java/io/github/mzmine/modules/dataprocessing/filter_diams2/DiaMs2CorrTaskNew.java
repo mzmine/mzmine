@@ -339,6 +339,9 @@ public class DiaMs2CorrTaskNew extends AbstractTask {
       // todo: to make this efficient, merge PR #2016
       final IntensityTimeSeries subSeries = ms2Eic.subSeries(getMemoryMapStorage(),
           correlationRange.lowerEndpoint(), correlationRange.upperEndpoint());
+      if(subSeries.getNumberOfValues() < minCorrPoints) {
+        continue;
+      }
       final double[] rts = new double[subSeries.getNumberOfValues()];
       for (int i = 0; i < subSeries.getNumberOfValues(); i++) {
         rts[i] = subSeries.getRetentionTime(i);
@@ -413,7 +416,7 @@ public class DiaMs2CorrTaskNew extends AbstractTask {
     }
 
     final int closestIndex = mergedMobilityScan.binarySearch(mz, DefaultTo.CLOSEST_VALUE);
-    if (!mzTolerance.checkWithinTolerance(mz, mergedMobilityScan.getMzValue(closestIndex))) {
+    if (closestIndex == -1 || !mzTolerance.checkWithinTolerance(mz, mergedMobilityScan.getMzValue(closestIndex))) {
       return false;
     }
 

@@ -80,6 +80,9 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   default IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end) {
     final IndexRange indexRange = BinarySearch.indexRange(Range.closed(start, end), getSpectra(),
         Scan::getRetentionTime);
+    if(indexRange.isEmpty()) {
+      return EMPTY;
+    }
     return subSeries(storage, getSpectra().subList(indexRange.min(), indexRange.maxExclusive()));
   }
 

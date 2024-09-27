@@ -53,6 +53,4 @@ public interface IonMobilityMsMsInfo extends MsMsInfo {
   }
 
   Frame getMsMsFrame();
-
-  Frame getParentFrame();
 }
