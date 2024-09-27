@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -145,7 +145,8 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
     } else {
       ms2Module = MaldiMs2AcquisitionWriters.createDefault();
     }
-    ms2ImagingMode = ms2Module.equals(MZmineCore.getModuleInstance(SingleSpotMs2Writer.class))
+    ms2ImagingMode = ms2Module.getClass().getName()
+        .equals(MZmineCore.getModuleInstance(SingleSpotMs2Writer.class).getClass().getName())
         ? Ms2ImagingMode.SINGLE : Ms2ImagingMode.TRIPLE;
 
     totalMsMsPerFeature = numMsMs * collisionEnergies.size();
