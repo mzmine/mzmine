@@ -233,8 +233,7 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         .collect(Collectors.toSet());
     List<UniqueSignal> ms1FragmentedSignalMatchesMs2AllPrecursors = ms1Signals.stream()
         .filter(signal -> precursorMzSet.contains(signal.mz()))
-        .filter(signal -> ms2SignalRangeMapAllPrecursors.get(signal.mz()) != null)
-        .toList();
+        .filter(signal -> ms2SignalRangeMapAllPrecursors.get(signal.mz()) != null).toList();
 
     List<UniqueSignal> ms1FragmentedSignalMatchesMs2 = ms1Signals.stream()
         .filter(signal -> precursorMzSet.contains(signal.mz()))
@@ -246,7 +245,10 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         calcSumIntensity(findUniquePrecursors(ms1SignalRangeMap, allPrecursorsMs2Scans))
             / ms1IntensityTotal;
     double ms1IntensityMatched = calcSumIntensity(ms1SignalMatchesMs2);
+    double ms1IntensityMatchedAllPrecursors = calcSumIntensity(ms1SignalMatchesMs2AllPrecursors);
     double ms1IntensityMatchedPercent = ms1IntensityMatched / ms1IntensityTotal;
+    double ms1IntensityMatchedPercentAllPrecursors =
+        ms1IntensityMatchedAllPrecursors / ms1IntensityTotal;
 
     int ms1SignalsTotal = ms1Signals.size();
     int ms1SignalsFragmented = findUniquePrecursors(ms1SignalRangeMap,
@@ -285,7 +287,8 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         ms1SignalsFragmentedLikelyISFPercent, signalsMatched, signalsMatchedAllPrecursors,
         ms1SignalsTotal, ms2SignalsAllPrecursorsTotal, ms1SignalsFragmented,
         ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent, ms1SignalsMatchedPercent,
-        ms1IntensityMatchedPercent, ms2SignalsTotal, ms2SignalsMatchedPercent,
+        ms1IntensityMatchedPercentAllPrecursors, ms1IntensityMatchedPercent, ms2SignalsTotal,
+        ms2SignalsMatchedPercent, ms2IntensityMatchedPercentAllPrecursors,
         ms2IntensityMatchedPercent);
 
     return new SignalsAnalysisResult(results);
