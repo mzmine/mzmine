@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -786,14 +786,17 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
   protected void makeAndAddMassDetectorSteps(final BatchQueue q) {
     if (isImsActive) {
-      final boolean isImsFromMzml = Arrays.stream(dataFiles)
-          .anyMatch(file -> file.getName().toLowerCase().endsWith(".mzml"));
+      // waters raw is technically also an mzml import.
+      final boolean isImsFromMzml = Arrays.stream(dataFiles).anyMatch(
+          file -> file.getName().toLowerCase().endsWith(".mzml") || file.getName().toLowerCase()
+              .endsWith(".raw"));
       if (!isImsFromMzml) { // == Bruker file
         makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.FRAMES);
       }
       makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.MOBLITY_SCANS);
       makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.MOBLITY_SCANS);
-      if (isImsFromMzml) {
+      if (isImsFromMzml || imsInstrumentType == MobilityType.DRIFT_TUBE
+          || imsInstrumentType == MobilityType.TRAVELING_WAVE) {
         makeAndAddMobilityScanMergerStep(q);
       }
     } else {
@@ -969,10 +972,16 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     ParameterSet param = MZmineCore.getConfiguration().getModuleParameters(ImsExpanderModule.class)
         .cloneParameterSet();
 
+    // waters raw is technically also an mzml import.
+    final boolean isImsFromMzml = Arrays.stream(dataFiles).anyMatch(
+        file -> file.getName().toLowerCase().endsWith(".mzml") || file.getName().toLowerCase()
+            .endsWith(".raw"));
+
     param.setParameter(ImsExpanderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(ImsExpanderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ImsExpanderParameters.useRawData, true);
+    param.setParameter(ImsExpanderParameters.useRawData,
+        isImsFromMzml || imsInstrumentType != MobilityType.TIMS ? false : true);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
     param.setParameter(ImsExpanderParameters.mzTolerance, true);
     param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
