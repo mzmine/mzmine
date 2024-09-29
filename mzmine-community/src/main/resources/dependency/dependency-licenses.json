@@ -2,7 +2,7 @@
     "dependencies": [
         {
             "moduleName": "ai.djl.pytorch:pytorch-engine",
-            "moduleVersion": "0.26.0",
+            "moduleVersion": "0.30.0",
             "moduleUrls": [
                 "http://www.djl.ai/engines/pytorch/pytorch-engine"
             ],
@@ -14,10 +14,49 @@
             ]
         },
         {
+            "moduleName": "ai.djl.pytorch:pytorch-jni",
+            "moduleVersion": "2.4.0-0.30.0",
+            "moduleUrls": [
+                "http://www.djl.ai/engines/pytorch/pytorch-jni"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "ai.djl.pytorch:pytorch-native-cpu",
+            "moduleVersion": "2.4.0",
+            "moduleUrls": [
+                "http://www.djl.ai/engines/pytorch/pytorch-native"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "ai.djl:api",
-            "moduleVersion": "0.26.0",
+            "moduleVersion": "0.30.0",
             "moduleUrls": [
                 "http://www.djl.ai/api"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "ai.djl:bom",
+            "moduleVersion": "0.30.0",
+            "moduleUrls": [
+                "http://www.djl.ai/bom"
             ],
             "moduleLicenses": [
                 {
@@ -279,9 +318,9 @@
         },
         {
             "moduleName": "com.google.code.gson:gson",
-            "moduleVersion": "2.10.1",
+            "moduleVersion": "2.11.0",
             "moduleUrls": [
-                "https://github.com/google/gson/gson"
+                "https://github.com/google/gson"
             ],
             "moduleLicenses": [
                 {
@@ -292,7 +331,7 @@
         },
         {
             "moduleName": "com.google.errorprone:error_prone_annotations",
-            "moduleVersion": "2.23.0",
+            "moduleVersion": "2.27.0",
             "moduleUrls": [
                 "https://errorprone.info/error_prone_annotations"
             ],
@@ -506,7 +545,7 @@
         },
         {
             "moduleName": "commons-codec:commons-codec",
-            "moduleVersion": "1.17.0",
+            "moduleVersion": "1.17.1",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-codec/"
             ],
@@ -1196,7 +1235,7 @@
         },
         {
             "moduleName": "net.java.dev.jna:jna",
-            "moduleVersion": "5.13.0",
+            "moduleVersion": "5.14.0",
             "moduleUrls": [
                 "https://github.com/java-native-access/jna"
             ],
@@ -1295,7 +1334,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-compress",
-            "moduleVersion": "1.26.2",
+            "moduleVersion": "1.27.1",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-compress/"
             ],
@@ -1308,7 +1347,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-lang3",
-            "moduleVersion": "3.14.0",
+            "moduleVersion": "3.16.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-lang/"
             ],
@@ -2857,11 +2896,15 @@
         },
         {
             "moduleName": "org.slf4j:slf4j-api",
-            "moduleVersion": "1.7.36",
+            "moduleVersion": "2.0.16",
             "moduleUrls": [
                 "http://www.slf4j.org"
             ],
             "moduleLicenses": [
+                {
+                    "moduleLicense": null,
+                    "moduleLicenseUrl": "http://www.opensource.org/licenses/mit-license.php"
+                },
                 {
                     "moduleLicense": "MIT License",
                     "moduleLicenseUrl": "https://opensource.org/licenses/MIT"
@@ -2870,11 +2913,15 @@
         },
         {
             "moduleName": "org.slf4j:slf4j-jdk14",
-            "moduleVersion": "1.7.32",
+            "moduleVersion": "2.0.16",
             "moduleUrls": [
                 "http://www.slf4j.org"
             ],
             "moduleLicenses": [
+                {
+                    "moduleLicense": null,
+                    "moduleLicenseUrl": "http://www.opensource.org/licenses/mit-license.php"
+                },
                 {
                     "moduleLicense": "MIT License",
                     "moduleLicenseUrl": "https://opensource.org/licenses/MIT"

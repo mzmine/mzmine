@@ -3,6 +3,8 @@ name: PR Test Build
 on:
   pull_request_target:
     branches: [ "master", "actions-test" ]
+  push:
+    branches: [ "local-djl-pytorch" ]
 
 jobs:
   gradle_build:
