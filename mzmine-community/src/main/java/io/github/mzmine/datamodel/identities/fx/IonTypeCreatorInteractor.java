@@ -25,40 +25,24 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import io.github.mzmine.datamodel.identities.fx.sub.IonPartCreatorPane;
-import io.github.mzmine.datamodel.identities.fx.sub.IonTypeCreatorPane;
-import io.github.mzmine.javafx.components.util.FxTabs;
-import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import javafx.scene.Node;
-import javafx.scene.control.TabPane;
-import javafx.scene.layout.Region;
+import io.github.mzmine.datamodel.identities.GlobalIonLibrary;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.mvci.FxInteractor;
+import javafx.collections.FXCollections;
 
-public class IonTypeCreatorViewBuilder extends FxViewBuilder<IonTypeCreatorModel> {
+public class IonTypeCreatorInteractor extends FxInteractor<IonTypeCreatorModel> {
 
-  public IonTypeCreatorViewBuilder(final IonTypeCreatorModel model) {
+  protected IonTypeCreatorInteractor(IonTypeCreatorModel model) {
     super(model);
-
+    updateModel();
   }
 
   @Override
-  public Region build() {
-    var main = new TabPane(//
-        FxTabs.newTab("Ion lists", createIonListsPane()),
-        FxTabs.newTab("Define ion types", createIonTypesPane()),
-        FxTabs.newTab("Define building blocks", createIonPartsPane()));
-
-    return main;
-  }
-
-  private Node createIonListsPane() {
-    return null;
-  }
-
-  private Node createIonTypesPane() {
-    return new IonTypeCreatorPane(model.ionTypesProperty());
-  }
-
-  private Node createIonPartsPane() {
-    return new IonPartCreatorPane(model.partsProperty());
+  public void updateModel() {
+    final GlobalIonLibrary global = GlobalIonLibrary.loadGlobalIonLibrary();
+    FxThread.runLater(() -> {
+      model.partsProperty().set(FXCollections.observableList(global.parts()));
+      model.ionTypesProperty().set(FXCollections.observableList(global.ionTypes()));
+    });
   }
 }

@@ -23,42 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.fx;
+package io.github.mzmine.datamodel.identities.io;
 
-import io.github.mzmine.datamodel.identities.fx.sub.IonPartCreatorPane;
-import io.github.mzmine.datamodel.identities.fx.sub.IonTypeCreatorPane;
-import io.github.mzmine.javafx.components.util.FxTabs;
-import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import javafx.scene.Node;
-import javafx.scene.control.TabPane;
-import javafx.scene.layout.Region;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import io.github.mzmine.util.FormulaUtils;
+import java.io.IOException;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public class IonTypeCreatorViewBuilder extends FxViewBuilder<IonTypeCreatorModel> {
+public class IMolecularFormulaSerializer extends JsonSerializer<IMolecularFormula> {
 
-  public IonTypeCreatorViewBuilder(final IonTypeCreatorModel model) {
-    super(model);
-
-  }
-
-  @Override
-  public Region build() {
-    var main = new TabPane(//
-        FxTabs.newTab("Ion lists", createIonListsPane()),
-        FxTabs.newTab("Define ion types", createIonTypesPane()),
-        FxTabs.newTab("Define building blocks", createIonPartsPane()));
-
-    return main;
-  }
-
-  private Node createIonListsPane() {
-    return null;
-  }
-
-  private Node createIonTypesPane() {
-    return new IonTypeCreatorPane(model.ionTypesProperty());
-  }
-
-  private Node createIonPartsPane() {
-    return new IonPartCreatorPane(model.partsProperty());
+  public void serialize(IMolecularFormula value, JsonGenerator gen, SerializerProvider serializers)
+      throws IOException {
+    if (value == null) {
+      return;
+    }
+    gen.writeString(FormulaUtils.getFormulaString(value, true));
   }
 }

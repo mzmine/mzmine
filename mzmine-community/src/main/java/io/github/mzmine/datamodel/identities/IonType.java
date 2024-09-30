@@ -27,6 +27,8 @@ package io.github.mzmine.datamodel.identities;
 
 import static java.util.function.Predicate.not;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonPart.IonStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
@@ -62,6 +64,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * @param totalCharge total charge from all ion parts
  * @param molecules   number of M molecules in cluster, e.g., M or 2M
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> parts, double totalMass,
                       int totalCharge, int molecules) {
 
@@ -104,10 +107,12 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
     return name;
   }
 
+  @JsonIgnore
   public double absTotalMass() {
     return Math.abs(totalMass);
   }
 
+  @JsonIgnore
   public int absTotalCharge() {
     return Math.abs(totalCharge);
   }
@@ -248,6 +253,7 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
   }
 
 
+  @JsonIgnore
   public PolarityType getPolarity() {
     if (totalCharge() == 0) {
       return PolarityType.NEUTRAL;
@@ -284,6 +290,7 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
   /**
    * @return number of neutral modifications
    */
+  @JsonIgnore
   public int getModCount() {
     return stream(false).filter(IonPart::isNeutralModification).mapToInt(p -> Math.abs(p.count()))
         .sum();

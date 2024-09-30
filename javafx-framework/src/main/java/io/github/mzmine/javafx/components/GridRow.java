@@ -23,42 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.fx;
+package io.github.mzmine.javafx.components;
 
-import io.github.mzmine.datamodel.identities.fx.sub.IonPartCreatorPane;
-import io.github.mzmine.datamodel.identities.fx.sub.IonTypeCreatorPane;
-import io.github.mzmine.javafx.components.util.FxTabs;
-import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import javafx.scene.Node;
-import javafx.scene.control.TabPane;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 
-public class IonTypeCreatorViewBuilder extends FxViewBuilder<IonTypeCreatorModel> {
+/**
+ * Fills a complete row in a gridpane
+ */
+public class GridRow extends HBox {
 
-  public IonTypeCreatorViewBuilder(final IonTypeCreatorModel model) {
-    super(model);
-
+  public GridRow(final Node... children) {
+    super(FxLayout.DEFAULT_SPACE, children);
   }
 
-  @Override
-  public Region build() {
-    var main = new TabPane(//
-        FxTabs.newTab("Ion lists", createIonListsPane()),
-        FxTabs.newTab("Define ion types", createIonTypesPane()),
-        FxTabs.newTab("Define building blocks", createIonPartsPane()));
-
-    return main;
-  }
-
-  private Node createIonListsPane() {
-    return null;
-  }
-
-  private Node createIonTypesPane() {
-    return new IonTypeCreatorPane(model.ionTypesProperty());
-  }
-
-  private Node createIonPartsPane() {
-    return new IonPartCreatorPane(model.partsProperty());
+  /**
+   * Add to gridpane
+   */
+  public GridRow fillRow(GridPane grid, int row) {
+    grid.add(this, 0, row, grid.getColumnCount(), 1);
+    return this;
   }
 }

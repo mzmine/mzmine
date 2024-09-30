@@ -228,6 +228,10 @@ public class StringUtils {
     return str == null || str.isBlank();
   }
 
+  public static String requireValueOrElse(@Nullable String str, @Nullable String defaultValue) {
+    return isBlank(str) ? defaultValue : str;
+  }
+
   public static String inQuotes(String str) {
     return "\"" + str + "\"";
   }

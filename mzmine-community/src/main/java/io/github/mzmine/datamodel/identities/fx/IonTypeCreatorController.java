@@ -25,9 +25,23 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import io.github.mzmine.javafx.mvci.FxCachedViewController;
 import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import org.jetbrains.annotations.NotNull;
 
-public class IonTypeCreatorController extends FxController<> {
+public class IonTypeCreatorController extends FxController<IonTypeCreatorModel> {
 
+  private final IonTypeCreatorViewBuilder viewBuilder;
+  private final IonTypeCreatorInteractor interactor;
+
+  protected IonTypeCreatorController() {
+    super(new IonTypeCreatorModel());
+    interactor = new IonTypeCreatorInteractor(model);
+    viewBuilder = new IonTypeCreatorViewBuilder(model);
+  }
+
+  @Override
+  protected @NotNull FxViewBuilder<IonTypeCreatorModel> getViewBuilder() {
+    return viewBuilder;
+  }
 }

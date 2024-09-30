@@ -25,6 +25,42 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.IonType;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 public class IonTypeCreatorModel {
 
+  private final ListProperty<IonPart> parts = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+
+  private final ListProperty<IonType> ionTypes = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+
+  public ObservableList<IonPart> getParts() {
+    return parts.get();
+  }
+
+  public ListProperty<IonPart> partsProperty() {
+    return parts;
+  }
+
+  public void setParts(final ObservableList<IonPart> parts) {
+    this.parts.set(parts);
+  }
+
+  public ObservableList<IonType> getIonTypes() {
+    return ionTypes.get();
+  }
+
+  public ListProperty<IonType> ionTypesProperty() {
+    return ionTypes;
+  }
+
+  public void setIonTypes(final ObservableList<IonType> ionTypes) {
+    this.ionTypes.set(ionTypes);
+  }
 }

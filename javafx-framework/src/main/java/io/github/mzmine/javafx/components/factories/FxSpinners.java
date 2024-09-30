@@ -29,26 +29,48 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
+import org.jetbrains.annotations.Nullable;
 
 public class FxSpinners {
 
   public static Spinner<Integer> newSpinner(IntegerProperty valueProperty) {
-    return newSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, valueProperty);
+    return newSpinner(valueProperty, null);
+  }
+
+  public static Spinner<Integer> newSpinner(IntegerProperty valueProperty,
+      @Nullable String tooltip) {
+    return newSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, valueProperty, tooltip);
   }
 
   public static Spinner<Integer> newSpinner(ObjectProperty<Integer> valueProperty) {
-    return newSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, valueProperty);
+    return newSpinner(valueProperty, null);
+  }
+
+  public static Spinner<Integer> newSpinner(ObjectProperty<Integer> valueProperty,
+      @Nullable String tooltip) {
+    return newSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, valueProperty, tooltip);
   }
 
   public static Spinner<Integer> newSpinner(int min, int max, IntegerProperty valueProperty) {
-    return newSpinner(min, max, valueProperty.asObject());
+    return newSpinner(min, max, valueProperty, null);
+  }
+
+  public static Spinner<Integer> newSpinner(int min, int max, IntegerProperty valueProperty,
+      @Nullable String tooltip) {
+    return newSpinner(min, max, valueProperty.asObject(), tooltip);
   }
 
   public static Spinner<Integer> newSpinner(int min, int max,
       ObjectProperty<Integer> valueProperty) {
+    return newSpinner(min, max, valueProperty, null);
+  }
+
+  public static Spinner<Integer> newSpinner(int min, int max, ObjectProperty<Integer> valueProperty,
+      @Nullable String tooltip) {
     var spinner = new Spinner<Integer>();
     spinner.setValueFactory(new IntegerSpinnerValueFactory(min, max));
     spinner.getValueFactory().valueProperty().bindBidirectional(valueProperty);
+
     return spinner;
   }
 

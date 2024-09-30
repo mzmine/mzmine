@@ -30,23 +30,25 @@ import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.util.converter.NumberStringConverter;
+import org.jetbrains.annotations.NotNull;
 
 public class NumberTextField extends TextField {
 
   private final TextFormatter<Number> textFormatter;
 
-  public NumberTextField(NumberFormat format) {
+  public NumberTextField(@NotNull NumberFormat format) {
     super();
     setText("0.0");
 
     textFormatter = new TextFormatter<>(new NumberStringConverter(format));
     setTextFormatter(textFormatter);
-
   }
 
-  public NumberTextField(NumberFormat format, Double value) {
+  public NumberTextField(@NotNull NumberFormat format, Double value) {
     this(format);
-
+    if (value != null) {
+      setValue(value);
+    }
   }
 
   public ObjectProperty<Number> valueProperty() {

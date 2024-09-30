@@ -27,7 +27,14 @@ package io.github.mzmine.datamodel.identities;
 
 import static java.util.Objects.requireNonNullElse;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.io.IMolecularFormulaDeserializer;
+import io.github.mzmine.datamodel.identities.io.IMolecularFormulaSerializer;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
@@ -57,8 +64,12 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * @param count         the singed multiplier of this single item, non-zero. e.g., 2 for 2Na and -1
  *                      for -H
  */
-public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFormula,
-                      double absSingleMass, int singleCharge, int count) {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record IonPart(@NotNull String name,
+                      @JsonSerialize(using = IMolecularFormulaSerializer.class) //
+                      @JsonDeserialize(using = IMolecularFormulaDeserializer.class) //
+                      @Nullable IMolecularFormula singleFormula, double absSingleMass,
+                      int singleCharge, int count) {
 
   private static final Logger logger = Logger.getLogger(IonPart.class.getName());
   public static final String XML_ELEMENT = "ionpart";
@@ -75,9 +86,12 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
   public static final Comparator<IonPart> DEFAULT_CHARGE_MASS_SORTER = Comparator.comparing(
       IonPart::singleCharge).thenComparing(IonPart::absSingleMass);
 
-  public static final Pattern PART_PATTERN = Pattern.compile("([+-]?\\d*)(\\w+)");
+  // may have charge defined or not
+  // -2Cl or +Fe+2
+  public static final Pattern PART_PATTERN = Pattern.compile("([+-]\\d*)(\\w+)([+-]\\d*)?");
 
 
+  @JsonCreator
   public IonPart(@NotNull final String name, @Nullable final IMolecularFormula singleFormula,
       final double absSingleMass, final int singleCharge, final int count) {
     this.name = name;
@@ -162,8 +176,18 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
     int count = sign.length() == 1 ? (sign.equals("-") ? -1 : 1) : Integer.parseInt(sign);
 
     String name = StringUtils.orDefault(matcher.group(2), "").trim();
+
+    String chargeStr = StringUtils.orDefault(matcher.group(3), "").trim();
+
     // try to find predefined parts by name
-    return IonParts.findPartByNameOrFormula(name, count);
+    var ionPart = IonParts.findPartByNameOrFormula(name, count);
+    if (StringUtils.hasValue(chargeStr)) {
+      Integer charge = StringUtils.parseSignAndIntegerOrElse(chargeStr, true, null);
+      if (charge != null && charge != ionPart.singleCharge) {
+        return ionPart.withSingleCharge(charge);
+      }
+    }
+    return ionPart;
   }
 
   /**
@@ -175,6 +199,7 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
     return new IonPart(name, null, 0d, 0, signedCount);
   }
 
+  @JsonIgnore
   public boolean isUnknown() {
     return singleFormula == null && absSingleMass == 0d;
   }
@@ -198,10 +223,9 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
     String base = IonUtils.getSignedNumberOmit1(count) + name;
     return switch (flavor) {
       case SIMPLE_NO_CHARGE -> base;
-      case SIMPLE_WITH_CHARGE -> base + IonUtils.getChargeString(singleCharge());
-      case FULL ->
-          base + IonUtils.getChargeString(singleCharge()) + " (" + ConfigService.getExportFormats()
-              .mz(absSingleMass()) + " Da)";
+      case SIMPLE_WITH_CHARGE -> "[%s]%s".formatted(base, IonUtils.getChargeString(totalCharge()));
+      case FULL -> "[%s]%s (%s Da)".formatted(base, IonUtils.getChargeString(totalCharge()),
+          ConfigService.getExportFormats().mz(absSingleMass()));
     };
   }
 
@@ -244,15 +268,25 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
     return new IonPart(name, singleFormula, absSingleMass, singleCharge, count);
   }
 
+  private IonPart withSingleCharge(final Integer singleCharge) {
+    if (this.singleCharge == singleCharge) {
+      return this;
+    }
+    return new IonPart(name, singleFormula, absSingleMass, singleCharge, count);
+  }
 
+
+  @JsonIgnore
   public int totalCharge() {
     return singleCharge * count;
   }
 
+  @JsonIgnore
   public int absTotalCharge() {
     return Math.abs(totalCharge());
   }
 
+  @JsonIgnore
   public boolean isCharged() {
     return singleCharge != 0;
   }
@@ -260,39 +294,48 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
   /**
    * Polarity of total charge so charge * count which may flip sign of singleCharge
    */
+  @JsonIgnore
   public PolarityType totalChargePolarity() {
     return totalCharge() < 0 ? PolarityType.NEGATIVE : PolarityType.POSITIVE;
   }
 
+  @JsonIgnore
   public double totalMass() {
     return absSingleMass * count;
   }
 
+  @JsonIgnore
   public double absTotalMass() {
     return Math.abs(totalMass());
   }
 
+  @JsonIgnore
   public String partSign() {
     return isLoss() ? "-" : "+";
   }
 
+  @JsonIgnore
   public boolean isLoss() {
     return count < 0;
   }
 
+  @JsonIgnore
   public boolean isAddition() {
     return count >= 0;
   }
 
+  @JsonIgnore
   @Nullable
   public String singleFormulaUnchargedString() {
     return singleFormula == null ? null : FormulaUtils.getFormulaString(singleFormula, false);
   }
 
+  @JsonIgnore
   public boolean isNeutralModification() {
     return !isCharged();
   }
 
+  @JsonIgnore
   public Type type() {
     if (isCharged()) {
       return Type.ADDUCT;
@@ -307,6 +350,19 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
    * @param o the reference object with which to compare.
    * @return true if equals
    */
+  public boolean equalsWithoutCount(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof final IonPart ionPart)) {
+      return false;
+    }
+
+    return singleCharge == ionPart.singleCharge && Precision.equals(absSingleMass,
+        ionPart.absSingleMass, 0.0000001) && name.equals(ionPart.name) && Objects.equals(
+        singleFormula, ionPart.singleFormula);
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -317,10 +373,15 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
     }
 
     return singleCharge == ionPart.singleCharge && Precision.equals(absSingleMass,
-        ionPart.absSingleMass, 0.0000000) && name.equals(ionPart.name) && Objects.equals(
-        singleFormula, ionPart.singleFormula);
+        ionPart.absSingleMass, 0.0000001) && name.equals(ionPart.name) && Objects.equals(
+        singleFormula, ionPart.singleFormula) && Objects.equals(count, ionPart.count);
   }
 
+  /**
+   * Hash does not include the count - idea is to find the same adduct in maps
+   *
+   * @return
+   */
   @Override
   public int hashCode() {
     int result = name.hashCode();
@@ -388,6 +449,7 @@ public record IonPart(@NotNull String name, @Nullable IMolecularFormula singleFo
   /**
    * @return silent charge is the only blank name with charge 1
    */
+  @JsonIgnore
   public boolean isSilentCharge() {
     return name.isBlank() && singleFormula == null && singleCharge == 1;
   }

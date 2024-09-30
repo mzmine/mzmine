@@ -25,12 +25,12 @@
 
 package io.github.mzmine.util.components;
 
-import io.github.mzmine.util.StringUtils;
+import static io.github.mzmine.util.StringUtils.hasValue;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import org.controlsfx.validation.ValidationSupport;
-import org.controlsfx.validation.Validator;
+import net.synedra.validatorfx.Validator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -39,23 +39,41 @@ public class FormulaTextField extends TextField {
 
   private final TextFormatter<IMolecularFormula> textFormatter;
 
+  /**
+   * Shows charge and allows empty value
+   */
   public FormulaTextField() {
-    this(true);
+    this(true, false);
   }
 
-  public FormulaTextField(boolean showCharge) {
+  public FormulaTextField(boolean requireValue) {
+    this(true, requireValue);
+  }
+
+  public FormulaTextField(boolean showCharge, final boolean requireValue) {
     final IMolecularFormulaStringConverter stringConverter = new IMolecularFormulaStringConverter(
         showCharge);
     textFormatter = new TextFormatter<>(stringConverter);
     setTextFormatter(textFormatter);
 
     // validation support after text formatter - maybe conflict of order with converting the types
-    var validSupport = new ValidationSupport();
+//    var validSupport = new ValidationSupport();
 //    validSupport.registerValidator(this,
 //        (Control c, String value) -> ValidationResult.fromErrorIf(this, "Formula is invalid",
 //            StringUtils.hasValue(value) && formula.get() == null));
-    validSupport.registerValidator(this, Validator.<String>createPredicateValidator(
-        value -> StringUtils.hasValue(value) && getFormula() == null, "Formula is invalid"));
+//    validSupport.registerValidator(this, Validator.<String>createPredicateValidator(
+//        value -> StringUtils.hasValue(value) && getFormula() == null, "Formula is invalid"));
+    new Validator().createCheck() //
+        .dependsOn("formula", formulaProperty()) //
+//        .dependsOn("text", textProperty()) //
+        .decorates(this).withMethod(c -> {
+          IMolecularFormula formula = c.get("formula");
+//      String text = c.get("text");
+          if ((requireValue || hasValue(getText())) && formula == null) {
+            String format = showCharge ? "[Fe]+2" : "Fe";
+            c.error("Cannot parse formula, required format: " + format);
+          }
+        }).immediate();
   }
 
   /**
@@ -66,8 +84,9 @@ public class FormulaTextField extends TextField {
    * @return formula field
    */
   public static FormulaTextField newFormulaTextField(final boolean showCharge,
+      final boolean requireValue,
       final @NotNull ObjectProperty<@Nullable IMolecularFormula> formulaProperty) {
-    var field = new FormulaTextField(showCharge);
+    var field = new FormulaTextField(showCharge, requireValue);
     field.formulaProperty().bindBidirectional(formulaProperty);
     return field;
   }
@@ -80,7 +99,7 @@ public class FormulaTextField extends TextField {
    */
   public static FormulaTextField newFormulaTextField(
       final @NotNull ObjectProperty<@Nullable IMolecularFormula> formulaProperty) {
-    return newFormulaTextField(true, formulaProperty);
+    return newFormulaTextField(false, false, formulaProperty);
   }
 
 

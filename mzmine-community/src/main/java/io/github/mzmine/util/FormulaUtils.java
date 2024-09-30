@@ -114,7 +114,10 @@ public class FormulaUtils {
    *
    * @param showCharge append charge or not
    */
-  public static String getFormulaString(IMolecularFormula formula, boolean showCharge) {
+  public static String getFormulaString(@Nullable IMolecularFormula formula, boolean showCharge) {
+    if (formula == null) {
+      return null;
+    }
     String string = MolecularFormulaManipulator.getString(formula);
     if (showCharge) {
       return string;
