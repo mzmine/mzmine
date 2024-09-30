@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.impl.SimpleMergedMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
@@ -66,6 +67,8 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
 
       writer.writeEndElement();
     } else if (scan instanceof MergedMsMsSpectrum merged) {
+      merged.saveToXML(writer);
+    } else if (scan instanceof MergedMassSpectrum merged) {
       merged.saveToXML(writer);
     } else {
       throw new UnsupportedOperationException(
@@ -115,6 +118,9 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
       case SimplePseudoSpectrum.XML_SCAN_TYPE -> {
         return SimplePseudoSpectrum.loadFromXML(reader, file);
       }
+      case SimpleMergedMassSpectrum.XML_SCAN_TYPE -> {
+        return SimpleMergedMassSpectrum.loadFromXML(reader, file, possibleFiles);
+      }
       default -> throw new IllegalArgumentException(
           "Cannot load scan from xml. Scan type not recognized.");
     }
@@ -123,8 +129,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   /**
    * @return RawDataFile containing this Scan
    */
-  @NotNull
-  RawDataFile getDataFile();
+  @NotNull RawDataFile getDataFile();
 
   /**
    * @return Scan number

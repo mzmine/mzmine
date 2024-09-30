@@ -31,6 +31,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
@@ -343,6 +344,20 @@ public class RegularScanTypesTest {
     // test fail
     Assertions.assertThrows(AssertionFailedError.class,
         () -> comparePseudoSpectra(spectrum, spectrum2));
+
+    // merged pseudo spectra
+    final MergedMassSpectrum mergedPseudo = SpectraMerging.mergeSpectra(
+        List.of(spectrum, spectrum2), SpectraMerging.defaultMs2MergeTol, MergingType.ALL_ENERGIES,
+        null);
+    final SimplePseudoSpectrum convertedMerged = new SimplePseudoSpectrum(file,
+        mergedPseudo.getMSLevel(), mergedPseudo.getRetentionTime(), null,
+        mergedPseudo.getMzValues(new double[0]), mergedPseudo.getIntensityValues(new double[0]),
+        mergedPseudo.getPolarity(), mergedPseudo.getScanDefinition(),
+        spectrum.getPseudoSpectrumType());
+
+    List<PseudoSpectrum> loaded = (List<PseudoSpectrum>) DataTypeTestUtils.saveAndLoad(
+        new FragmentScanNumbersType(), List.of(mergedPseudo), project, flist, row, feature, file);
+    comparePseudoSpectra(convertedMerged, loaded.get(0));
   }
 
   private static void comparePseudoSpectra(PseudoSpectrum value, PseudoSpectrum loaded) {
