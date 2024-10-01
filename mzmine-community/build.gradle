@@ -390,6 +390,7 @@ runtime {
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
                    "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
+                   "-Djava.net.useSystemProxies=true",
                    "--enable-preview",
         ]
     }
