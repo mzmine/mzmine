@@ -220,6 +220,9 @@ dependencies {
     // the defacto standard parser in jackson?
     implementation(libs.woodstox.core)
     implementation(libs.aalto.xml)
+
+    // test only
+    testImplementation(libs.bundles.mzio.test)
 }
 
 /*
