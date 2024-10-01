@@ -23,19 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode.timing;
+package io.github.mzmine.util.io;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import java.time.Duration;
+import java.util.List;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public record StepTimeMeasurement(int step, double secondsToFinish, String name) {
+class CsvWriterTest {
 
-  public StepTimeMeasurement(final int stepNumber, final String name, final Duration duration) {
-    this(stepNumber, duration.toMillis() / 1000.0, name);
+  @Test
+  void writeToString() throws JsonProcessingException {
+    List<StepTimeMeasurement> steps = List.of( //
+        new StepTimeMeasurement(0, "test", Duration.ofSeconds(5)), //
+        new StepTimeMeasurement(1, "test2", Duration.ofSeconds(2)) //
+    );
+    String csv = CsvWriter.writeToString(steps, StepTimeMeasurement.class, '\t', true);
+    Assertions.assertNotNull(csv);
+    assertTrue(csv.length() > 10);
   }
-
-  @Override
-  public String toString() {
-    return STR."Step \{step + 1}: \{name} took \{secondsToFinish} seconds to finish";
-  }
-
 }
