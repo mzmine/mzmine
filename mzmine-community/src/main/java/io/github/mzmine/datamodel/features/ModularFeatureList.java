@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,6 +54,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
@@ -140,6 +141,10 @@ public class ModularFeatureList implements FeatureList {
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull List<RawDataFile> dataFiles) {
     setName(name);
+    // sort data files by name to have the same order in export and GUI FeatureTableFx
+    dataFiles = new ArrayList<>(dataFiles);
+    dataFiles.sort(Comparator.comparing(RawDataFile::getName));
+    ((ArrayList) dataFiles).trimToSize();
     this.dataFiles = FXCollections.observableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
