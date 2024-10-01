@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,11 +26,11 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
 import java.util.List;
 
 public record MobilogramStorageResult(List<IonMobilitySeries> storedMobilograms,
-                                      DoubleBuffer storedMzValues,
-                                      DoubleBuffer storedIntensityValues) {
+                                      MemorySegment storedMzValues,
+                                      MemorySegment storedIntensityValues) {
 
 }

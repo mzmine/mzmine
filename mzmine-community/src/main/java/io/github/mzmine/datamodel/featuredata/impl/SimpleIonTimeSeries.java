@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,7 +39,6 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -88,9 +87,10 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
     this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
   }
 
-  public SimpleIonTimeSeries(DoubleBuffer mzValues, DoubleBuffer intensityValues,
+  public SimpleIonTimeSeries(MemorySegment mzValues, MemorySegment intensityValues,
       @NotNull List<? extends Scan> scans) {
-    if (mzValues.limit() != intensityValues.limit() || mzValues.limit() != scans.size()) {
+    if (mzValues.byteSize() != intensityValues.byteSize()
+        || StorageUtils.numDoubles(mzValues) != scans.size()) {
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
     }
     for (int i = 1; i < scans.size(); i++) {
@@ -183,8 +183,8 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       int endIndexExclusive) {
 
     return new SimpleIonTimeSeries(
-        mzValues.slice(startIndexInclusive, endIndexExclusive - startIndexInclusive),
-        intensityValues.slice(startIndexInclusive, endIndexExclusive - startIndexInclusive),
+        StorageUtils.sliceDoubles(mzValues, startIndexInclusive, endIndexExclusive),
+        StorageUtils.sliceDoubles(intensityValues, startIndexInclusive, endIndexExclusive),
         scans.subList(startIndexInclusive, endIndexExclusive));
   }
 

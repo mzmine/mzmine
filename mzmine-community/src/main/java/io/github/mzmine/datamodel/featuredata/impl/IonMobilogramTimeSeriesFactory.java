@@ -35,7 +35,7 @@ import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -219,7 +219,7 @@ public class IonMobilogramTimeSeriesFactory {
           (List<StorableIonMobilitySeries>) (List<? extends IonMobilitySeries>) mobilograms);
     }
     final int[] offsets = new int[mobilograms.size()];
-    final DoubleBuffer[] stored = StorageUtils.storeIonSeriesToSingleBuffer(storage, mobilograms,
+    final MemorySegment[] stored = StorageUtils.storeIonSeriesToSingleBuffer(storage, mobilograms,
         offsets);
 
     List<IonMobilitySeries> storedMobilograms = new ArrayList<>();
@@ -270,13 +270,15 @@ public class IonMobilogramTimeSeriesFactory {
       storedMobilograms.add(stored);
     }
 
-    final DoubleBuffer intensityValues = originalTrace.mobilogramIntensityValues.slice(start,
-        lastValue - start);
-    final DoubleBuffer mzValues = originalTrace.mobilogramMzValues.slice(start, lastValue - start);
+    final MemorySegment intensityValues = StorageUtils.sliceDoubles(
+        originalTrace.mobilogramIntensityValues, start, lastValue);
+    final MemorySegment mzValues = StorageUtils.sliceDoubles(originalTrace.mobilogramMzValues,
+        start, lastValue);
 
-    // rudimentary test
+//     rudimentary test
 //    assert mobilograms.getLast().getIntensity(mobilograms.getLast().getNumberOfValues() - 1)
-//        == intensityValues.get(intensityValues.limit() - 1);
+//        == intensityValues.getAtIndex(OfDouble.JAVA_DOUBLE,
+//        StorageUtils.numDoubles(intensityValues) - 1);
 
     return new MobilogramStorageResult(storedMobilograms, mzValues, intensityValues);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,10 +44,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.Mobilo
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
 import java.lang.foreign.ValueLayout.OfDouble;
-import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -199,7 +196,6 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
         mobilogramBinning);
   }
 
-  // todo
   @Override
   public IonMobilogramTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
       int endIndexExclusive, BinningMobilogramDataAccess mobilogramBinning) {
@@ -209,8 +205,8 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     mobilogramBinning.setMobilogram(mobilograms);
 
     return new SimpleIonMobilogramTimeSeries(
-        mzValues.slice(startIndexInclusive, endIndexExclusive - startIndexInclusive),
-        intensityValues.slice(startIndexInclusive, endIndexExclusive - startIndexInclusive),
+        StorageUtils.sliceDoubles(mzValues, startIndexInclusive, endIndexExclusive),
+        StorageUtils.sliceDoubles(intensityValues, startIndexInclusive, endIndexExclusive),
         storage, mobilograms, frames.subList(startIndexInclusive, endIndexExclusive),
         mobilogramBinning.toSummedMobilogram(storage));
   }
