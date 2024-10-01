@@ -29,16 +29,24 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramTyp
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Coollects traces from a single detector. these traces may be read from the raw data or created
+ * from {@link OtherSpectralData} by slicing along the retention time axis.
+ */
 public interface OtherTimeSeriesData {
 
   OtherDataFile getOtherDataFile();
 
+  @NotNull
   String getTimeSeriesDomainLabel();
 
+  @NotNull
   String getTimeSeriesDomainUnit();
 
+  @NotNull
   String getTimeSeriesRangeLabel();
 
+  @NotNull
   String getTimeSeriesRangeUnit();
 
   @NotNull

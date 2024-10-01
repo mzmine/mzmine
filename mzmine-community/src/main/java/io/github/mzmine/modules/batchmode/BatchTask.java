@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,10 @@
  */
 
 package io.github.mzmine.modules.batchmode;
+
+import static io.github.mzmine.gui.preferences.MZminePreferences.runGCafterBatchStep;
+import static io.github.mzmine.main.ConfigService.getPreference;
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -226,6 +230,9 @@ public class BatchTask extends AbstractTask {
       // run step
       processQueueStep(i % stepsPerDataset);
       processedSteps++;
+      if (requireNonNullElse(getPreference(runGCafterBatchStep), false)) {
+        System.gc();
+      }
 
       // If we are canceled or ran into error, stop here
       if (isCanceled()) {

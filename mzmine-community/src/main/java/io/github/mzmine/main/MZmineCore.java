@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -90,7 +90,6 @@ public final class MZmineCore {
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
   private static final MZmineCore instance = new MZmineCore();
-
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
   // it is also used in headless mode
   private final Map<String, MZmineModule> initializedModules = new HashMap<>();
@@ -179,7 +178,7 @@ public final class MZmineCore {
         // this will set the current user to CurrentUserService
         // loads all users already logged in from the user folder
         if (StringUtils.hasValue(username)) {
-          new UsersController().setCurrentUserByName(username);
+          UsersController.getInstance().setCurrentUserByName(username);
         }
       }
 
@@ -195,7 +194,7 @@ public final class MZmineCore {
             getDesktop().addTab(UsersTab.showTab());
           } else {
             try {
-              new UsersController().onLoginOrRegister(LoginOptions.CONSOLE);
+              UsersController.getInstance().onLoginOrRegister(LoginOptions.CONSOLE);
             } catch (Exception ex) {
               getDesktop().displayMessage(
                   "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
@@ -246,37 +245,17 @@ public final class MZmineCore {
       File batchFile = argsParser.getBatchFile();
       boolean isCliBatchProcessing = batchFile != null;
 
+      // login user by cli direct password
+      if (argsParser.isCliLoginPassword()) {
+        if (commandLineLogin(isCliBatchProcessing, LoginOptions.CONSOLE_ENTER_CREDENTIALS)) {
+          return;
+        }
+      }
+
       // login user if cli option
       if (argsParser.isCliLogin()) {
-        boolean success = false;
-        try {
-          logger.info("CLI user login");
-          new UsersController().loginOrRegisterConsoleBlocking();
-          success = true;
-        } catch (Exception ex) {
-          getDesktop().displayMessage(
-              "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
-          if (!isCliBatchProcessing) {
-            System.exit(1);
-            return;
-          }
-        }
-        // if no batch select - that means it was only a login call.
-        // save config and close mzmine
-        if (success && !isCliBatchProcessing) {
-          String currentUserName = CurrentUserService.getUserName().orElse("");
-          ConfigService.getPreferences().setParameter(MZminePreferences.username, currentUserName);
-          if (!ConfigService.saveUserConfig()) {
-            logger.severe(
-                "Failed to save user config after login. A solution may be to delete the .mzconfig file in the system user directory /.mzmine/");
-            System.exit(1);
-            return;
-          } else {
-            logger.info("User login successful, user configuration is saved with the new user "
-                        + currentUserName);
-            System.exit(0);
-            return;
-          }
+        if (commandLineLogin(isCliBatchProcessing, LoginOptions.CONSOLE)) {
+          return;
         }
       }
 
@@ -305,7 +284,8 @@ public final class MZmineCore {
         if (CurrentUserService.isInvalid()) {
           try {
             logger.info("Requires user login");
-            new UsersController().loginOrRegisterConsoleBlocking();
+            UsersController.getInstance()
+                .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
           } catch (Exception ex) {
             getDesktop().displayMessage(
                 "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
@@ -341,6 +321,46 @@ public final class MZmineCore {
       logger.log(Level.SEVERE, "Error during mzmine start up", ex);
       exit(null);
     }
+  }
+
+
+  /**
+   * @param isCliBatchProcessing
+   * @param option
+   * @return true if application finished
+   */
+  private static boolean commandLineLogin(final boolean isCliBatchProcessing, LoginOptions option) {
+    boolean success = false;
+    try {
+      logger.info("CLI user login");
+      UsersController.getInstance().loginOrRegisterConsoleBlocking(option);
+      success = true;
+    } catch (Exception ex) {
+      getDesktop().displayMessage(
+          "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+      if (!isCliBatchProcessing) {
+        System.exit(1);
+        return true;
+      }
+    }
+    // if no batch select - that means it was only a login call.
+    // save config and close mzmine
+    if (success && !isCliBatchProcessing) {
+      String currentUserName = CurrentUserService.getUserName().orElse("");
+      ConfigService.getPreferences().setParameter(MZminePreferences.username, currentUserName);
+      if (!ConfigService.saveUserConfig()) {
+        logger.severe(
+            "Failed to save user config after login. A solution may be to delete the .mzconfig file in the system user directory /.mzmine/");
+        System.exit(1);
+        return true;
+      } else {
+        logger.info("User login successful, user configuration is saved with the new user "
+                    + currentUserName);
+        System.exit(0);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

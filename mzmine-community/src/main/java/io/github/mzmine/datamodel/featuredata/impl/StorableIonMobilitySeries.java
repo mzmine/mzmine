@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemorySegment;
 import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.List;
@@ -118,12 +119,12 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
   }
 
   @Override
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     return ionTrace.getMobilogramIntensityValues(this);
   }
 
   @Override
-  public DoubleBuffer getMZValueBuffer() {
+  public MemorySegment getMZValueBuffer() {
     return ionTrace.getMobilogramMzValues(this);
   }
 

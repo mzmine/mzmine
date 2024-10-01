@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -219,6 +219,7 @@ public class MainWindowController {
   private TasksViewController tasksViewController;
   private Region tasksView;
   private Region miniTaskView;
+  private final PauseTransition manualGcDelay = new PauseTransition(Duration.millis(500));
 
 
   @NotNull
@@ -294,6 +295,7 @@ public class MainWindowController {
     selectTab(MZmineIntroductionTab.TITLE);
 
     memoryBar.setOnMouseClicked(event -> handleMemoryBarClick(event));
+    memoryBarLabel.setOnMouseClicked(event -> handleMemoryBarClick(event));
     memoryBar.setTooltip(new Tooltip("Free memory (is done automatically)"));
 
     // Setup the Timeline to update the memory indicator periodically
@@ -307,13 +309,13 @@ public class MainWindowController {
       // Obtain the settings of max concurrent threads
       var numOfThreads = MZmineCore.getConfiguration().getNumOfThreads();
       MZmineCore.getTaskController().setNumberOfThreads(numOfThreads);
-
-      final long freeMemMB = Runtime.getRuntime().freeMemory() / (1024 * 1024);
-      final long totalMemMB = Runtime.getRuntime().totalMemory() / (1024 * 1024);
-      final double memory = ((double) (totalMemMB - freeMemMB)) / totalMemMB;
+      final double GB = 1 << 30; // 1 GB
+      final double totalMemGB = Runtime.getRuntime().totalMemory() / GB;
+      final double usedMemGB = totalMemGB - Runtime.getRuntime().freeMemory() / GB;
+      final double memory = usedMemGB / totalMemGB;
 
       memoryBar.setProgress(memory);
-      memoryBarLabel.setText(freeMemMB + "/" + totalMemMB + " MB free");
+      memoryBarLabel.setText("%.1f/%.1f GB used".formatted(usedMemGB, totalMemGB));
     }));
     memoryUpdater.play();
   }
@@ -896,10 +898,13 @@ public class MainWindowController {
   @FXML
   public void handleMemoryBarClick(Event e) {
     // Run garbage collector on a new thread, so it doesn't block the GUI
-    new Thread(() -> {
-      logger.info("Freeing unused memory");
-      System.gc();
-    }).start();
+    manualGcDelay.playFromStart();
+    manualGcDelay.setOnFinished(_ -> {
+      new Thread(() -> {
+        logger.info("Freeing unused memory");
+        System.gc();
+      }).start();
+    });
   }
 
   public void handleSpectralLibrarySort(Event event) {

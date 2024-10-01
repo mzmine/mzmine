@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,12 +25,10 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.featuredata.IonSeries;
-import io.github.mzmine.datamodel.impl.AbstractStorableSpectrum;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.io.IOException;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +44,9 @@ import org.jetbrains.annotations.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public class StorageUtils {
+
+  public static final MemorySegment EMPTY_DOUBLE_SEGMENT = MemorySegment.ofArray(new double[0]);
+  public static final MemorySegment EMPTY_FLOAT_SEGMENT = MemorySegment.ofArray(new float[0]);
 
   public static <T> List<double[][]> mapTo2dDoubleArrayList(List<T> objects,
       Function<T, double[]> firstDimension, Function<T, double[]> secondDimension) {
@@ -66,7 +66,7 @@ public class StorageUtils {
    * @param <T>        A class extending {@link IonSeries}.
    * @return Two double buffers. [0] containing m/z values, [1] containing intensity values.
    */
-  public static <T extends IonSeries> DoubleBuffer[] storeIonSeriesToSingleBuffer(
+  public static <T extends IonSeries> MemorySegment[] storeIonSeriesToSingleBuffer(
       @Nullable final MemoryMapStorage storage, final List<T> seriesList, int[] offsets) {
     assert offsets.length == seriesList.size();
 
@@ -84,7 +84,7 @@ public class StorageUtils {
 
     final int numDp =
         offsets[offsets.length - 1] + mzIntensities.get(mzIntensities.size() - 1)[0].length;
-    final DoubleBuffer[] storedValues = new DoubleBuffer[2];
+    final MemorySegment[] storedValues = new MemorySegment[2];
     double[] storageBuffer = new double[numDp];
 
     for (int i = 0; i < 2; i++) {
@@ -161,30 +161,25 @@ public class StorageUtils {
   /**
    * Stores the given array into a double buffer.
    *
-   * @param storage The storage to be used. If null, the values will be wrapped using {@link
-   *                DoubleBuffer#wrap(double[])}.
+   * @param storage The storage to be used. If null, the values will be wrapped using
+   *                {@link MemorySegment#ofArray(double[])}.
    * @param values  The values to be stored. If storage is null, a double buffer will be wrapped
    *                around this array. Changes in the array will therefore be reflected in the
    *                DoubleBuffer.
    * @return The double buffer the values were stored in.
    */
   @NotNull
-  public static DoubleBuffer storeValuesToDoubleBuffer(@Nullable final MemoryMapStorage storage,
+  public static MemorySegment storeValuesToDoubleBuffer(@Nullable final MemoryMapStorage storage,
       @NotNull final double[] values) {
     if (values.length == 0) {
-      return AbstractStorableSpectrum.EMPTY_BUFFER;
+      return EMPTY_DOUBLE_SEGMENT;
     }
 
-    DoubleBuffer buffer;
+    MemorySegment buffer;
     if (storage != null) {
-      try {
-        buffer = storage.storeData(values);
-      } catch (IOException e) {
-        e.printStackTrace();
-        buffer = DoubleBuffer.wrap(values);
-      }
+      buffer = storage.storeData(values);
     } else {
-      buffer = DoubleBuffer.wrap(values);
+      buffer = MemorySegment.ofArray(values);
     }
     return buffer;
   }
@@ -193,29 +188,24 @@ public class StorageUtils {
    * Stores the given array into a double buffer.
    *
    * @param storage The storage to be used. If null, the values will be wrapped using
-   *                {@link DoubleBuffer#wrap(double[])}.
+   *                {@link MemorySegment#ofArray(float[])}.
    * @param values  The values to be stored. If storage is null, a double buffer will be wrapped
    *                around this array. Changes in the array will therefore be reflected in the
    *                DoubleBuffer.
    * @return The double buffer the values were stored in.
    */
   @NotNull
-  public static FloatBuffer storeValuesToFloatBuffer(@Nullable final MemoryMapStorage storage,
+  public static MemorySegment storeValuesToFloatBuffer(@Nullable final MemoryMapStorage storage,
       @NotNull final float[] values) {
     if (values.length == 0) {
-      return AbstractStorableSpectrum.EMPTY_FLOAT_BUFFER;
+      return EMPTY_FLOAT_SEGMENT;
     }
 
-    FloatBuffer buffer;
+    MemorySegment buffer;
     if (storage != null) {
-      try {
-        buffer = storage.storeData(values);
-      } catch (IOException e) {
-        e.printStackTrace();
-        buffer = FloatBuffer.wrap(values);
-      }
+      buffer = storage.storeData(values);
     } else {
-      buffer = FloatBuffer.wrap(values);
+      buffer = MemorySegment.ofArray(values);
     }
     return buffer;
   }
@@ -223,28 +213,93 @@ public class StorageUtils {
   /**
    * Stores the given array into an int buffer.
    *
-   * @param storage The storage to be used. If null, the values will be wrapped using {@link
-   *                IntBuffer#wrap(int[])}.
+   * @param storage The storage to be used. If null, the values will be wrapped using
+   *                {@link IntBuffer#wrap(int[])}.
    * @param values  The values to be stored. If storage is null, an int buffer will be wrapped
    *                around this array. Changes in the array will therefore be reflected in the
    *                DoubleBuffer.
    * @return The int buffer the values were stored in.
    */
   @NotNull
-  public static IntBuffer storeValuesToIntBuffer(@Nullable final MemoryMapStorage storage,
+  public static MemorySegment storeValuesToIntBuffer(@Nullable final MemoryMapStorage storage,
       @NotNull final int[] values) {
 
-    IntBuffer buffer;
+    MemorySegment buffer;
     if (storage != null) {
-      try {
-        buffer = storage.storeData(values);
-      } catch (IOException e) {
-        e.printStackTrace();
-        buffer = IntBuffer.wrap(values);
-      }
+      buffer = storage.storeData(values);
     } else {
-      buffer = IntBuffer.wrap(values);
+      buffer = MemorySegment.ofArray(values);
     }
+
     return buffer;
+  }
+
+  public static long numFloats(MemorySegment segment) {
+    return segment.byteSize() / ValueLayout.JAVA_FLOAT.byteSize();
+  }
+
+  public static long numDoubles(MemorySegment segment) {
+    return segment.byteSize() / ValueLayout.JAVA_DOUBLE.byteSize();
+  }
+
+  public static long numInts(MemorySegment segment) {
+    return segment.byteSize() / ValueLayout.JAVA_INT.byteSize();
+  }
+
+  public static MemorySegment sliceDoubles(MemorySegment segment, long startIndex,
+      long endIndexExclusive) {
+    return segment.asSlice(startIndex * ValueLayout.JAVA_DOUBLE.byteSize(),
+        (endIndexExclusive - startIndex) * ValueLayout.JAVA_DOUBLE.byteSize());
+  }
+
+  public static MemorySegment sliceFloats(MemorySegment segment, long startIndex,
+      long endIndexExclusive) {
+    return segment.asSlice(startIndex * ValueLayout.JAVA_FLOAT.byteSize(),
+        (endIndexExclusive - startIndex) * ValueLayout.JAVA_FLOAT.byteSize());
+  }
+
+  public static MemorySegment sliceInts(MemorySegment segment, long startIndex,
+      long endIndexExclusive) {
+    return segment.asSlice(startIndex * ValueLayout.JAVA_INT.byteSize(),
+        (endIndexExclusive - startIndex) * ValueLayout.JAVA_INT.byteSize());
+  }
+
+  public static double[] copyOfRangeDouble(MemorySegment segment, long startIndex,
+      long endIndexExclusive) {
+    return sliceDoubles(segment, startIndex, endIndexExclusive).toArray(ValueLayout.JAVA_DOUBLE);
+  }
+
+  public static void copyToBuffer(double[] dst, MemorySegment src, long fromIndex,
+      long endIndexExclusive) {
+    if (dst.length < endIndexExclusive - fromIndex
+        || src.byteSize() / ValueLayout.JAVA_DOUBLE.byteSize() < endIndexExclusive - fromIndex) {
+      throw new IndexOutOfBoundsException();
+    }
+
+    MemorySegment.copy(src, ValueLayout.JAVA_DOUBLE, fromIndex * ValueLayout.JAVA_DOUBLE.byteSize(),
+        dst, 0, (int) (endIndexExclusive - fromIndex));
+  }
+
+  public static void copyToBuffer(float[] dst, MemorySegment src, long fromIndex,
+      long endIndexExclusive) {
+    if (dst.length < endIndexExclusive - fromIndex
+        || src.byteSize() / ValueLayout.JAVA_FLOAT.byteSize() < endIndexExclusive - fromIndex) {
+      throw new IndexOutOfBoundsException();
+    }
+
+    MemorySegment.copy(src, ValueLayout.JAVA_FLOAT, fromIndex * ValueLayout.JAVA_FLOAT.byteSize(),
+        dst, 0, (int) (endIndexExclusive - fromIndex));
+  }
+
+  public static float[] copyOfRangeFloat(MemorySegment segment, long startIndex,
+      long endIndexExclusive) {
+    return sliceFloats(segment, startIndex, endIndexExclusive).toArray(ValueLayout.JAVA_FLOAT);
+  }
+
+  public static boolean contentEquals(MemorySegment s1, MemorySegment s2) {
+    if(s1.byteSize() != s2.byteSize()) {
+      return false;
+    }
+    return MemorySegment.mismatch(s1, 0, s1.byteSize(), s2, 0, s2.byteSize()) == -1;
   }
 }

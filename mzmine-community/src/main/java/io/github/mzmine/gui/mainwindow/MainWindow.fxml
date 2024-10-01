@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~ Copyright (c) 2004-2024 The mzmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -63,14 +63,14 @@
           <rightItems>
             <HBox spacing="5" fx:id="bottomMenuBar">
                 <StackPane scaleShape="true">
+                  <ProgressBar minWidth="150" opacity="0.3"
+                    prefWidth="150" fx:id="memoryBar"/>
                   <Label alignment="CENTER"
                     minWidth="150" prefWidth="150" fx:id="memoryBarLabel">
                     <tooltip>
                       <Tooltip text="Free/total Java heap size"/>
                     </tooltip>
                   </Label>
-                  <ProgressBar minWidth="150" opacity="0.3"
-                    prefWidth="150" fx:id="memoryBar"/>
                 </StackPane>
               </HBox>
           </rightItems>

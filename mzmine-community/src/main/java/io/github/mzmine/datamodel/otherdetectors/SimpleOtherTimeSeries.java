@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,28 +31,42 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramTyp
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SimpleOtherTimeSeries implements OtherTimeSeries {
 
-  protected final DoubleBuffer intensityBuffer;
-  protected final FloatBuffer timeBuffer;
+  /**
+   * doubles
+   */
+  protected final MemorySegment intensityBuffer;
+
+  /**
+   * floats
+   */
+  protected final MemorySegment timeBuffer;
   protected final String name;
   private final @NotNull OtherTimeSeriesData timeSeriesData;
 
   public SimpleOtherTimeSeries(@Nullable MemoryMapStorage storage, @NotNull float[] rtValues,
       @NotNull double[] intensityValues, String name, @NotNull OtherTimeSeriesData timeSeriesData) {
+    if (intensityValues.length != rtValues.length) {
+      throw new IllegalArgumentException("Intensities and RT values must have the same length");
+    }
     this.timeSeriesData = timeSeriesData;
     intensityBuffer = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
     timeBuffer = StorageUtils.storeValuesToFloatBuffer(storage, rtValues);
     this.name = name;
   }
 
-  public SimpleOtherTimeSeries(@NotNull FloatBuffer rtValues, @NotNull DoubleBuffer intensityValues,
-      String name, @NotNull OtherTimeSeriesData timeSeriesData) {
+  public SimpleOtherTimeSeries(@NotNull MemorySegment rtValues,
+      @NotNull MemorySegment intensityValues, String name,
+      @NotNull OtherTimeSeriesData timeSeriesData) {
+    if (StorageUtils.numDoubles(intensityValues) != StorageUtils.numFloats(rtValues)) {
+      throw new IllegalArgumentException("Intensities and RT values must have the same length");
+    }
     this.timeSeriesData = timeSeriesData;
     intensityBuffer = intensityValues;
     timeBuffer = rtValues;
@@ -60,14 +74,14 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
   }
 
   @Override
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     return intensityBuffer;
   }
 
   @Override
   public float getRetentionTime(int index) {
-    assert index < timeBuffer.limit();
-    return timeBuffer.get(index);
+    assert index < StorageUtils.numFloats(timeBuffer);
+    return timeBuffer.getAtIndex(ValueLayout.JAVA_FLOAT, index);
   }
 
   @Override
@@ -92,6 +106,18 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
   }
 
   @Override
+  public OtherTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newIntensities,
+      String newName) {
+    if (getNumberOfValues() != newIntensities.length) {
+      throw new IllegalArgumentException("The number of intensities does not match number of rts.");
+    }
+
+    return new SimpleOtherTimeSeries(timeBuffer,
+        StorageUtils.storeValuesToDoubleBuffer(storage, newIntensities), newName,
+        getTimeSeriesData());
+  }
+
+  @Override
   public IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end) {
     // todo does this work with float to double?
     final IndexRange indexRange = BinarySearch.indexRange(start, end, getNumberOfValues(),
@@ -104,8 +130,8 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
       int endIndexExclusive) {
 
     return new SimpleOtherTimeSeries(
-        timeBuffer.slice(startIndexInclusive, endIndexExclusive - startIndexInclusive),
-        intensityBuffer.slice(startIndexInclusive, endIndexExclusive - startIndexInclusive), name,
+        StorageUtils.sliceFloats(timeBuffer, startIndexInclusive, endIndexExclusive),
+        StorageUtils.sliceDoubles(intensityBuffer, startIndexInclusive, endIndexExclusive), name,
         timeSeriesData);
   }
 

@@ -145,13 +145,14 @@ public class TmpFileCleanup implements Runnable {
       }
     }
 
+    /*
     for (final MemoryMapStorage storage : MemoryMapStorages.getStorageList()) {
       try {
         storage.discard(theUnsafe);
       } catch (IOException e) {
         e.printStackTrace();
       }
-    }
+    }*/
 
   }
 

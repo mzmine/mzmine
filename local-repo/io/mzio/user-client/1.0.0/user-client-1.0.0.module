@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "8.9"
+      "version": "8.10"
     }
   },
   "variants": [
@@ -27,11 +27,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 32293,
-          "sha512": "9e5ee0393ddeb1d63b0362ab34478910da32f4152b07f380194f65012037cdd01708267245174edcb4429027edca0034118295346eb501badd51a890f07ca98c",
-          "sha256": "1319f215b9b7abbb4f178c96aba82724112822014b7df71ea784dc2efa2d99b3",
-          "sha1": "a49ff0a7d42a8ce397c877057cfb2d0612046021",
-          "md5": "b6734c8f14187c38460dd13817b9f8b6"
+          "size": 33903,
+          "sha512": "6f311d2a818b670d6e58ee56be8195deb2d29c4ae309909b3b63930331bbf1cdb6b01a42f45484181ab800fdb642dd983a60a5c1328dda43feab9add9331094e",
+          "sha256": "ae1b4030070620528704f0b9622bc61ad087221e4893194995ee3cf6e9b55b57",
+          "sha1": "50739a17e9c9b427b1ee26a526c3433ce6bc9726",
+          "md5": "8e049e6f53fd5df21ed411a85ca72b22"
         }
       ]
     },
@@ -92,11 +92,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 32293,
-          "sha512": "9e5ee0393ddeb1d63b0362ab34478910da32f4152b07f380194f65012037cdd01708267245174edcb4429027edca0034118295346eb501badd51a890f07ca98c",
-          "sha256": "1319f215b9b7abbb4f178c96aba82724112822014b7df71ea784dc2efa2d99b3",
-          "sha1": "a49ff0a7d42a8ce397c877057cfb2d0612046021",
-          "md5": "b6734c8f14187c38460dd13817b9f8b6"
+          "size": 33903,
+          "sha512": "6f311d2a818b670d6e58ee56be8195deb2d29c4ae309909b3b63930331bbf1cdb6b01a42f45484181ab800fdb642dd983a60a5c1328dda43feab9add9331094e",
+          "sha256": "ae1b4030070620528704f0b9622bc61ad087221e4893194995ee3cf6e9b55b57",
+          "sha1": "50739a17e9c9b427b1ee26a526c3433ce6bc9726",
+          "md5": "8e049e6f53fd5df21ed411a85ca72b22"
         }
       ]
     }

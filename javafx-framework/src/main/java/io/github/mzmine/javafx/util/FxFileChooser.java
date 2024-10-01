@@ -27,6 +27,7 @@ package io.github.mzmine.javafx.util;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.Nullable;
@@ -39,9 +40,14 @@ public class FxFileChooser {
 
   public static File openSelectDialog(final FileSelectionType type,
       final List<ExtensionFilter> filters, @Nullable File initialDir) {
+    return openSelectDialog(type, filters, initialDir, null);
+  }
+
+  public static File openSelectDialog(final FileSelectionType type,
+      final List<ExtensionFilter> filters, @Nullable File initialDir, @Nullable String title) {
     // Create chooser.
     FileChooser fileChooser = new FileChooser();
-    fileChooser.setTitle("Select file");
+    fileChooser.setTitle(Objects.requireNonNullElse(title, "Select file"));
     if (filters != null) {
       fileChooser.getExtensionFilters().addAll(filters);
     }

@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "8.9"
+      "version": "8.10"
     }
   },
   "variants": [
@@ -27,11 +27,11 @@
         {
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
-          "size": 10081,
-          "sha512": "3fc7c4e6f212da83f42f6873be878c41164bc8e453162bf7dd6159df6927d0747b32728b765bdb0d157c93634720ea7a10a34a4d0a8be8cd28c4ccc328955fdc",
-          "sha256": "4953cdeed5c56da037d6340f45f333e77a753e510a8d5045495d0a07ebc05df4",
-          "sha1": "c30364b03befbaf40c75cd6301a13ffb7a26fb5d",
-          "md5": "6aa0b12a050c76ef88f0bb37db51263b"
+          "size": 10246,
+          "sha512": "c411861ebf6e82b38fb57915a99f68f07d8bb6334b4790e826061ceb4b5524b3bf2d96289e3a1f999dba16f445614aa4bc491633b3944c5bfffaeecf314ab8a3",
+          "sha256": "4eacf7f1028975f4e4cfd2c8348a892a14626d18862a2a8aed8c263d0a155d00",
+          "sha1": "6dc62265dd6fc3c38ac9d06cea07f2535dde758c",
+          "md5": "2aa72d356cbb239d9315bfacb59c117a"
         }
       ]
     },
@@ -89,11 +89,11 @@
         {
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
-          "size": 10081,
-          "sha512": "3fc7c4e6f212da83f42f6873be878c41164bc8e453162bf7dd6159df6927d0747b32728b765bdb0d157c93634720ea7a10a34a4d0a8be8cd28c4ccc328955fdc",
-          "sha256": "4953cdeed5c56da037d6340f45f333e77a753e510a8d5045495d0a07ebc05df4",
-          "sha1": "c30364b03befbaf40c75cd6301a13ffb7a26fb5d",
-          "md5": "6aa0b12a050c76ef88f0bb37db51263b"
+          "size": 10246,
+          "sha512": "c411861ebf6e82b38fb57915a99f68f07d8bb6334b4790e826061ceb4b5524b3bf2d96289e3a1f999dba16f445614aa4bc491633b3944c5bfffaeecf314ab8a3",
+          "sha256": "4eacf7f1028975f4e4cfd2c8348a892a14626d18862a2a8aed8c263d0a155d00",
+          "sha1": "6dc62265dd6fc3c38ac9d06cea07f2535dde758c",
+          "md5": "2aa72d356cbb239d9315bfacb59c117a"
         }
       ]
     }

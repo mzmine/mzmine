@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemorySegment;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -137,7 +138,7 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
   }
 
   @Override
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     throw new IllegalArgumentException(
         "MobilogramDataAccess shall be used to iterate over the mzs and intensities.");
   }
@@ -148,7 +149,7 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
   }
 
   @Override
-  public DoubleBuffer getMZValueBuffer() {
+  public MemorySegment getMZValueBuffer() {
     throw new IllegalArgumentException(
         "MobilogramDataAccess shall be used to iterate over the mzs and intensities.");
   }
