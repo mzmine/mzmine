@@ -34,7 +34,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -153,7 +152,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
           .cloneParameterSet();
       moduleParameters.loadValuesFromXML(parametersElement);
     } catch (Exception | NoClassDefFoundError e) {
-      logger.log(Level.SEVERE, "Cannot parse module parameters", e);
+      logger.info("Cannot parse module parameters for class %s".formatted(moduleClassName));
       moduleClass = PlaceholderModule.class;
       moduleParameters = PlaceholderModuleParameters.forElement(moduleClassName, parametersElement);
     }

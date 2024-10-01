@@ -283,9 +283,5 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
     ChangeOutputFilesUtils.applyTo(this, baseFile);
     logger.info("Done changing output file paths.");
   }
-
-  @Override
-  public void add(int index, MZmineProcessingStep<MZmineProcessingModule> element) {
-    super.add(index, element);
-  }
 }
+
