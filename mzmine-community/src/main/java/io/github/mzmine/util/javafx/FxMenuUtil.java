@@ -25,7 +25,6 @@
 
 package io.github.mzmine.util.javafx;
 
-import io.github.mzmine.gui.mainwindow.workspaces.ModuleMenuItem;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -38,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class FxMenuUtil {
 
-  public static MenuItem menuItem(@NotNull String text, @Nullable Runnable onClick,
+  public static MenuItem newMenuItem(@NotNull String text, @Nullable Runnable onClick,
       @Nullable KeyCodeCombination accelerator) {
     MenuItem menuItem = new MenuItem(text);
     if (onClick != null) {
@@ -54,7 +53,7 @@ public class FxMenuUtil {
 
   public static MenuItem addMenuItem(Menu menu, @NotNull String text, @Nullable Runnable onClick,
       @Nullable KeyCode mainKey, @Nullable Modifier... modifers) {
-    final MenuItem item = menuItem(text, onClick, null);
+    final MenuItem item = newMenuItem(text, onClick, null);
 
     if (mainKey != null && modifers != null) {
       item.setAccelerator(new KeyCodeCombination(mainKey, modifers));
