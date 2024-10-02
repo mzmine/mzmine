@@ -247,6 +247,27 @@ public class ScanUtils {
   }
 
   /**
+   * MSn energies for merged spectra are quite complex
+   * <p>
+   * [MS2, MS3, MS4] and multiple energies in last level due to merging
+   *
+   * @return energies for each merged scan as [[MS2, MS3, MS4], [MS2, MS3, MS4]]. List<List<Float>>
+   */
+  public static @NotNull List<List<Float>> extractMSnCollisionEnergies(final MassSpectrum scan) {
+    return ScanUtils.streamSourceScans(scan, Scan.class).map(s -> {
+      if (s.getMsMsInfo() instanceof MSnInfoImpl msn) {
+        List<DDAMsMsInfo> precursors = msn.getPrecursors();
+        if (precursors == null) {
+          return null;
+        }
+        return precursors.stream().map(DDAMsMsInfo::getActivationEnergy).filter(Objects::nonNull)
+            .toList();
+      }
+      return null;
+    }).filter(Objects::nonNull).distinct().toList();
+  }
+
+  /**
    * DataPoint usage is discouraged when used to stare data. It can be used when sorting of data
    * points is needed etc.
    *

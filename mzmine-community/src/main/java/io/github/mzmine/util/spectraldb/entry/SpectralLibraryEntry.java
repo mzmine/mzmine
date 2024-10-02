@@ -137,9 +137,16 @@ public interface SpectralLibraryEntry extends MassList {
 
     MsMsInfo msMsInfo = scan.getMsMsInfo();
     if (msMsInfo instanceof MSnInfoImpl msnInfo) {
+      // energies are quite complex
+      // [MS2, MS3, MS4] and multiple energies in last level due to merging
+      var msnEnergies = ScanUtils.extractMSnCollisionEnergies(scan);
+      if (msnEnergies.size() == 1) {
+        entry.putIfNotNull(DBEntryField.MSN_COLLISION_ENERGIES, msnEnergies.getFirst());
+      } else if (msnEnergies.size() > 1) {
+        entry.putIfNotNull(DBEntryField.MSN_COLLISION_ENERGIES, msnEnergies);
+      }
+      //
       List<DDAMsMsInfo> precursors = msnInfo.getPrecursors();
-      entry.putIfNotNull(DBEntryField.MSN_COLLISION_ENERGIES,
-          extractJsonList(precursors, DDAMsMsInfo::getActivationEnergy));
       entry.putIfNotNull(DBEntryField.MSN_PRECURSOR_MZS,
           extractJsonList(precursors, DDAMsMsInfo::getIsolationMz));
       entry.putIfNotNull(DBEntryField.MSN_FRAGMENTATION_METHODS,
@@ -150,13 +157,18 @@ public interface SpectralLibraryEntry extends MassList {
       }));
       entry.putIfNotNull(DBEntryField.MS_LEVEL, msnInfo.getMsLevel());
     } else if (msMsInfo != null) {
-      entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, msMsInfo.getActivationEnergy());
       entry.putIfNotNull(DBEntryField.FRAGMENTATION_METHOD, msMsInfo.getActivationMethod());
       Range<Double> window = msMsInfo.getIsolationWindow();
       if (window != null) {
         entry.putIfNotNull(DBEntryField.ISOLATION_WINDOW, RangeUtils.rangeLength(window));
       }
       entry.putIfNotNull(DBEntryField.MS_LEVEL, msMsInfo.getMsLevel());
+    }
+    List<Float> energies = ScanUtils.extractCollisionEnergies(scan);
+    if (energies.size() == 1) {
+      entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, energies.getFirst());
+    } else if (energies.size() > 1) {
+      entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, energies);
     }
 
     // merged scans are derived from multiple source scans - add all information here and overwrite
