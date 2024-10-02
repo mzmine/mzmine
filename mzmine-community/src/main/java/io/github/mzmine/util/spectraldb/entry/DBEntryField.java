@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -94,7 +94,7 @@ public enum DBEntryField {
   // Dataset ID is for MassIVE or other repositories
   DATASET_ID, FILENAME, USI,
   /**
-   * `   * int or a {@code List<Integer>} `
+   * int or a {@code List<Integer>} `
    */
   SCAN_NUMBER, SPLASH,
 
@@ -243,19 +243,21 @@ public enum DBEntryField {
    */
   public Class<? extends DataType> getDataType() {
     return switch (this) {
-      case UNSPECIFIED, ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, //
-          INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM,  //
-          CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
-          QUALITY, QUALITY_CHIMERIC, FILENAME, //
-          SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, //
-          IMS_TYPE -> StringType.class;
+      case UNSPECIFIED, ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR,
+           INSTRUMENT, //
+           INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM,  //
+           CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
+           QUALITY, QUALITY_CHIMERIC, FILENAME, //
+           SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N,
+           OTHER_MATCHED_COMPOUNDS_NAMES, //
+           IMS_TYPE -> StringType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
       case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
       case CHARGE -> ChargeType.class;
       // TODO change to float
-      case COLLISION_ENERGY, ISOLATION_WINDOW, QUALITY_EXPLAINED_INTENSITY, QUALITY_EXPLAINED_SIGNALS ->
-          DoubleType.class;
+      case COLLISION_ENERGY, ISOLATION_WINDOW, QUALITY_EXPLAINED_INTENSITY,
+           QUALITY_EXPLAINED_SIGNALS -> DoubleType.class;
       case QUALITY_PRECURSOR_PURITY -> FloatType.class;
       case FORMULA -> FormulaType.class;
       case INCHI -> InChIStructureType.class;
@@ -274,8 +276,8 @@ public enum DBEntryField {
       // are there other formats that define those properly?
       case FEATURE_MS1_HEIGHT -> HeightType.class;
       case FEATURE_MS1_REL_HEIGHT -> RelativeHeightType.class;
-      case MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS ->
-          StringType.class;
+      case MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
+           MSN_ISOLATION_WINDOWS -> StringType.class;
     };
   }
 
@@ -379,7 +381,8 @@ public enum DBEntryField {
       case CCS -> "CCS";
       case SMILES -> "SMILES";
       case INCHI -> "INCHI";
-      case ACQUISITION, GNPS_ID, MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, MOLWEIGHT, PUBCHEM, PUBMED, PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR ->
+      case ACQUISITION, GNPS_ID, MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, MOLWEIGHT, PUBCHEM,
+           PUBMED, PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR ->
           this.name().toLowerCase();
       case PEPTIDE_SEQ -> "peptide_sequence";
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
@@ -440,7 +443,7 @@ public enum DBEntryField {
       case SPLASH -> "SPLASH";
       case NUM_PEAKS -> toString(); // Num peaks
       case ACQUISITION, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, GNPS_ID, MONA_ID, CHEMSPIDER, //
-          PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY -> name();
+           PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY -> name();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
       case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
@@ -504,7 +507,7 @@ public enum DBEntryField {
       case MERGED_SPEC_TYPE -> "SPECTYPE";
       case NUM_PEAKS -> toString(); // Num peaks
       case GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
-          MOLWEIGHT, SOFTWARE, COLLISION_ENERGY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT ->
+           MOLWEIGHT, SOFTWARE, COLLISION_ENERGY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT ->
           this.name();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
@@ -615,15 +618,18 @@ public enum DBEntryField {
   public String formatForMgf(@NotNull final Object value) {
     return switch (this) {
       case UNSPECIFIED, QUALITY, QUALITY_EXPLAINED_INTENSITY, QUALITY_EXPLAINED_SIGNALS, GNPS_ID, //
-          PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, PUBMED, SYNONYMS, NAME, ENTRY_ID, NUM_PEAKS, //
-          MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, //
-          COMMENT, DESCRIPTION, MOLWEIGHT, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS, //
-          ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, COLLISION_ENERGY, //
-          FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
-          MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
+           PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, PUBMED, SYNONYMS, NAME, ENTRY_ID, NUM_PEAKS, //
+           MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, //
+           COMMENT, DESCRIPTION, MOLWEIGHT, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS, //
+           ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
+           COLLISION_ENERGY, //
+           FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES,
+           MSN_PRECURSOR_MZS, //
+           MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
            DATASET_ID, USI, SPLASH, QUALITY_CHIMERIC, //
-          OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY, PEPTIDE_SEQ, //
-          IMS_TYPE, ONLINE_REACTIVITY -> value.toString();
+           OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY,
+           PEPTIDE_SEQ, //
+           IMS_TYPE, ONLINE_REACTIVITY -> value.toString();
       case SCAN_NUMBER -> switch (value) {
         // multiple scans can be written as 1,4,6-9
         case List<?> list -> {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -219,8 +219,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     // if multiple compounds match, they are sorted by score descending
     matches = CompoundAnnotationUtils.getBestMatchesPerCompoundName(matches);
 
-    if (matches.stream()
-        .noneMatch(match -> msMsQualityChecker.matchesName(match, featureList))) {
+    if (matches.stream().noneMatch(match -> msMsQualityChecker.matchesName(match, featureList))) {
       return;
     }
 
@@ -302,14 +301,13 @@ public class LibraryBatchGenerationTask extends AbstractTask {
    * @return the new spectral library entry
    */
   @NotNull
-  private SpectralLibraryEntry createEntry(final FeatureListRow row,
-      final FeatureAnnotation match, final Map<Scan, ChimericPrecursorResults> chimericMap,
-      final Scan msmsScan, final MSMSScore score, final DataPoint[] dps,
+  private SpectralLibraryEntry createEntry(final FeatureListRow row, final FeatureAnnotation match,
+      final Map<Scan, ChimericPrecursorResults> chimericMap, final Scan msmsScan,
+      final MSMSScore score, final DataPoint[] dps,
       final List<FeatureAnnotation> allMatchedCompounds) {
     // add instrument type etc by parameter
-    SpectralLibraryEntry entry = SpectralLibraryEntry.create(row, library.getStorage(), msmsScan, match,
-        dps);
-    entry.putAll(metadataMap);
+    SpectralLibraryEntry entry = SpectralLibraryEntry.create(row, library.getStorage(), msmsScan,
+        match, dps, metadataMap);
 
     // matched against mutiple compounds in the same sample?
     // usually metadata is filtered so that raw data files only contain specific compounds without interference

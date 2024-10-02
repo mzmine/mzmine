@@ -361,7 +361,7 @@ public class MathUtils {
   }
 
   public static double getPpmDiff(double calc, double real) {
-    return (real-calc) / Math.abs(calc) * 1E6;
+    return (real - calc) / Math.abs(calc) * 1E6;
   }
 
   /**
@@ -396,14 +396,17 @@ public class MathUtils {
     return value;
   }
 
+  /**
+   * Parse int from any object
+   */
   public static @Nullable Integer parseInt(@Nullable Object v) {
     try {
       return switch (v) {
         case Integer i -> i;
         case String str -> Integer.parseInt(str);
-        case null -> null;
         case Long l -> l.intValue();
         case Number n -> n.intValue();
+        case null -> null;
         default -> null;
       };
     } catch (Exception ex) {

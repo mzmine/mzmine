@@ -109,20 +109,23 @@ public class ScanUtils {
    */
   public static final int DEFAULT_PRECURSOR_MZ_TOLERANCE = 100;
   /**
-   * Sort MassSpectra first by source file and then by scan number
+   * Sort MassSpectra first by source file and then by scan number, nulls last
    */
   public static final Comparator<MassSpectrum> SCAN_SORTER_RAW_FILE_SCAN_NUMBER = Comparator.comparing(
           ScanUtils::getSourceFile, nullsLast(naturalOrder()))
       .thenComparingInt(ScanUtils::extractScanNumber);
   private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
 
+  /**
+   * Source file of scan is defined of other MassSpectra may be undefined and return null
+   */
   @Nullable
   public static String getSourceFile(@NotNull MassSpectrum scan) {
     return switch (scan) {
       case Scan s -> s.getDataFile().getFileName();
       case SpectralLibraryEntry e -> {
         var lib = e.getLibrary();
-        yield lib == null ? e.getLibraryName() : lib.getPath().getAbsolutePath();
+        yield lib == null ? e.getLibraryName() : lib.getPath().getName();
       }
       default -> null;
     };
@@ -569,7 +572,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-              - leftNeighbourBinIndex);
+                                                                       - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -2179,16 +2182,36 @@ public class ScanUtils {
     return streamSourceScans(spectrum, Scan.class).mapToInt(Scan::getScanNumber).distinct();
   }
 
+  /**
+   * Extracts all universal spectrum identifier USI from source scans. If spectrum is merged this
+   * will return multiple source USI otherwise just a Stream of one elemen.
+   */
   public static Stream<String> extractUSI(MassSpectrum spectrum, @Nullable String datasetID) {
     String baseUSI = "mzspec:" + (datasetID == null ? "DATASET_ID_PLACEHOLDER" : datasetID) + ":";
     return streamSourceScans(spectrum, Scan.class).map(scan -> scanToUSI(scan, baseUSI)).distinct();
   }
 
-  public static String scanToUSI(Scan scan, String baseUSI) {
-    String filename = FileAndPathUtil.eraseFormat(scan.getDataFile().getFileName());
-    int scanNumber = scan.getScanNumber();
+  /**
+   * Create USI for scan. This involves finding the scan number and source file name
+   */
+  @NotNull
+  public static String scanToUSI(MassSpectrum scan, @Nullable String datasetID) {
+    String baseUSI = "mzspec:" + (datasetID == null ? "DATASET_ID_PLACEHOLDER" : datasetID) + ":";
+    return __scanToUSI(scan, baseUSI);
+  }
+
+  /**
+   * Create USI for scan. This involves finding the scan number and source file name
+   *
+   * @param baseUSI usually mzspec:datasetID:
+   */
+  @NotNull
+  private static String __scanToUSI(MassSpectrum scan, String baseUSI) {
+    String fileName = getSourceFile(scan);
+    fileName = fileName == null ? "" : FileAndPathUtil.eraseFormat(fileName);
+    int scanNumber = extractScanNumber(scan);
     // map to USI
-    return baseUSI + filename + ":" + scanNumber;
+    return baseUSI + fileName + ":" + scanNumber;
   }
 
   public static <T extends MassSpectrum> Stream<T> streamSourceScans(final MassSpectrum scan,

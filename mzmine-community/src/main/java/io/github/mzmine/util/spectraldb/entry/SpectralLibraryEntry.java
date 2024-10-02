@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -107,16 +107,23 @@ public interface SpectralLibraryEntry extends MassList {
   /**
    * Create a new spectral library entry from any {@link FeatureAnnotation} but new spectral data
    *
-   * @param scan       only used for scan metadata - data is provided through dataPoints
-   * @param match      the annotation for additional metadata
-   * @param dataPoints the actual data
+   * @param scan        only used for scan metadata - data is provided through dataPoints
+   * @param match       the annotation for additional metadata
+   * @param dataPoints  the actual data
+   * @param metadataMap add additional fields to the spectral library entry
    * @return spectral library entry
    */
   static SpectralLibraryEntry create(final FeatureListRow row, @Nullable MemoryMapStorage storage,
-      final Scan scan, final FeatureAnnotation match, final DataPoint[] dataPoints) {
+      final Scan scan, final FeatureAnnotation match, final DataPoint[] dataPoints,
+      final @Nullable Map<DBEntryField, Object> metadataMap) {
 
     Double precursorMZ = Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz());
     SpectralLibraryEntry entry = create(storage, precursorMZ, dataPoints);
+
+    // add additional fields early
+    if (metadataMap != null) {
+      entry.putAll(metadataMap);
+    }
 
     // transfer match to fields
     entry.addFeatureAnnotationFields(match);
@@ -127,7 +134,6 @@ public interface SpectralLibraryEntry extends MassList {
       entry.putIfNotNull(DBEntryField.CHARGE, charge);
     }
     entry.putIfNotNull(DBEntryField.POLARITY, scan.getPolarity());
-
 
     MsMsInfo msMsInfo = scan.getMsMsInfo();
     if (msMsInfo instanceof MSnInfoImpl msnInfo) {
@@ -172,6 +178,7 @@ public interface SpectralLibraryEntry extends MassList {
 
   /**
    * Add metadata to spectral library entry from feature annotation.
+   *
    * @param match
    */
   default void addFeatureAnnotationFields(FeatureAnnotation match) {
