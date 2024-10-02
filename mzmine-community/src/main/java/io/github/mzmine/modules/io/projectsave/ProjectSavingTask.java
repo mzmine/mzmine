@@ -151,6 +151,11 @@ public class ProjectSavingTask extends AbstractTask {
         case REFERENCING -> savedProject.setStandalone(false);
       }
 
+      // Update the location of the project
+      // set the location before starting the save process, so we can also determine relative
+      // paths for this project.
+      savedProject.setProjectFile(saveFile);
+
       // Prepare a temporary ZIP file. We create this file in the same
       // directory as the final saveFile to avoid moving between
       // filesystems in the last stage (renameTo)
@@ -229,9 +234,6 @@ public class ProjectSavingTask extends AbstractTask {
             "Could not move the temporary file " + tempFile + " to the final location " + saveFile);
       }
 
-      // Update the location of the project
-      savedProject.setProjectFile(saveFile);
-
       // Update the window title to reflect the new name of the project
       // if (MZmineCore.getDesktop() instanceof MainWindow) {
       // MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
@@ -254,7 +256,7 @@ public class ProjectSavingTask extends AbstractTask {
       } else {
         setErrorMessage(
             "Failed saving the project. Error while saving " + currentSavedObjectName + ": "
-            + ExceptionUtils.exceptionToString(e));
+                + ExceptionUtils.exceptionToString(e));
       }
 
     }
