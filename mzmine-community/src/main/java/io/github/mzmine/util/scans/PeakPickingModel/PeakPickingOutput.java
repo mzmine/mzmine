@@ -1,4 +1,4 @@
 package io.github.mzmine.util.scans.PeakPickingModel;
 
-public record PeakPickingOutput(double[] prob, double[] peak, double[] left, double[] right){
+public record PeakPickingOutput(float[] prob, float[] peak, float[] left, float[] right){
 }

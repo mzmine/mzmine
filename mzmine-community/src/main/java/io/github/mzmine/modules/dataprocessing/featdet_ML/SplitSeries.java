@@ -14,8 +14,10 @@ public class SplitSeries {
     //How should .orElse be handeled?
     final double maxIntensity = Arrays.stream(standardRegion).max().orElse(0);
     if (maxIntensity != 0) {
-      Arrays.stream(standardRegion).map(n -> n / maxIntensity).toArray();
-    }
+      Arrays.stream(standardRegion).map(n -> (2*n / maxIntensity -1)).toArray();
+    } else {
+            Arrays.stream(standardRegion).map(n -> (n-1)).toArray();
+        }
     return standardRegion;
   }
 
@@ -23,7 +25,7 @@ public class SplitSeries {
   public static final List<double[]> extractRegionBatch(double[] fullSeries, int regionSize,
       int overlap, String paddingType) {
     int seriesLength = fullSeries.length;
-    //The first region takes regionSize from overlap or regionSize-overlap from seriesLength-overlap.
+    //The first region takes regionSize from seriesLength or regionSize-overlap from seriesLength-overlap.
     //Every additional region takes (regionSize-overlap).
     //Should check that SeriesLength, regionSize > overlap
     int numRegions = (seriesLength - overlap) / (regionSize - overlap);
@@ -47,6 +49,6 @@ public class SplitSeries {
 
   //@brief extract batch with default length 128
   public static final List<double[]> extractRegionBatch(double[] fullSeries) {
-    return extractRegionBatch(fullSeries, 128, 64, "zero");
+    return extractRegionBatch(fullSeries, 128, 32, "zero");
   }
 }
