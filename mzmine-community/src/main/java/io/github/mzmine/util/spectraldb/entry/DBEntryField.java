@@ -69,7 +69,8 @@ public enum DBEntryField {
   ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
       Double.class), // structure
   FORMULA, INCHI, INCHIKEY, SMILES, PEPTIDE_SEQ, // identifier
-  CAS, PUBMED, PUBCHEM, GNPS_ID, MONA_ID, CHEMSPIDER, FEATURE_ID,
+  CAS, PUBMED, PUBCHEM, GNPS_ID, MONA_ID, CHEMSPIDER, // sometimes just ID sometimes feature list name:id
+  FEATURE_ID,
 
   // spectrum specific
   MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(

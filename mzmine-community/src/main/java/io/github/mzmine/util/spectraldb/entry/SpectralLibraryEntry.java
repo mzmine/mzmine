@@ -125,6 +125,12 @@ public interface SpectralLibraryEntry extends MassList {
       entry.putAll(metadataMap);
     }
 
+    // write feature ID as feature list and row ID to identify MSn trees or MS2 spectra of the same row
+    var flist = row.getFeatureList();
+    if (flist != null) {
+      entry.putIfNotNull(DBEntryField.FEATURE_ID, flist.getName() + ":" + row.getID());
+    }
+
     // transfer match to fields
     entry.addFeatureAnnotationFields(match);
 
