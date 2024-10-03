@@ -48,6 +48,8 @@ package testutils;/*
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import static io.mzio.testing.MZmineTestInitializer.init;
+
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -146,9 +148,11 @@ public class MZmineTestUtil {
       lock.countDown();
     });
 
-    // wait
-    if (!lock.await(timeout, unit)) {
-      return new TaskResult.TIMEOUT(moduleClass);
+    if (!abstractTasks.stream().allMatch(t -> t.isFinished() || t.isCanceled())) {
+      // wait
+      if (!lock.await(timeout, unit)) {
+        return new TaskResult.TIMEOUT(moduleClass);
+      }
     }
 
     if (errorMessage.size() > 0) {
@@ -225,29 +229,7 @@ public class MZmineTestUtil {
 
   public static void startMzmineCore() {
     try {
-      // for debugging purpose of github actions
-//      for (final String s : List.of("TESTRUNNER_USER_GIT_ENV", "TESTRUNNER_USER", "USER_BASE64")) {
-//        String testRunner = System.getenv(s);
-//        if (testRunner != null) {
-//          logger.info(
-//              STR."Found testrunner env variable \{s} length \{testRunner.length()}\n\{testRunner}");
-//        }
-//      }
-//      var userFiles = List.of("testrunner", "user_base64");
-//      for (final String uf : userFiles) {
-//        var file = UserFileReader.resolveInUsersPath(STR."\{uf}.mzuserstr");
-//        try {
-//          if (!file.exists()) {
-//            logger.info("Cannot find file "+file.getAbsolutePath());
-//          }
-//          var user = UserFileReader.readUserFile(file);
-//          if (user.isValid()) {
-//            logger.info("Valid testrunner user for "+uf);
-//          }
-//        } catch (Exception e) {
-//          logger.info("Error parsing userfile "+file.getAbsolutePath());
-//        }
-//      }
+      init();
 
       try {
         logger.fine("Trying to find TESTRUNNER_USER env");
