@@ -34,7 +34,7 @@ import java.util.List;
 
 public class PeakPickingModel {
     //NEED TO TRACE MODEL AGAIN WITH (1,128) INPUT SHAPE (this is what _test.py is)
-    private static final String modelPath = "/MLModels/traced_check1.pt";
+    private static final String modelPath = "/MLModels/currentSave_traced.pth";
     private final Model model;
     private final NDManager manager;
     public final Predictor<double[], PeakPickingOutput> predictor;
