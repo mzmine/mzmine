@@ -43,6 +43,8 @@ public class MLFeatureResolver extends AbstractResolver {
     private final double threshold;
     private final int regionSize;
     private final int overlap;
+    private final int minWidth;
+    private final boolean correctRanges;
     private final PeakPickingModel model;
     double[] xBuffer;
     double[] yBuffer;
@@ -51,15 +53,48 @@ public class MLFeatureResolver extends AbstractResolver {
         super(parameterSet, flist);
         this.parameters = parameterSet;
         // THRESHOLD FiXED FOR DEBUGGING ONLY!
-        this.threshold = 0.8;
+        this.threshold = 0.5;
         this.regionSize = 128;
         this.overlap = 32;
+        this.minWidth = 2;
+        this.correctRanges = true;
         this.model = new PeakPickingModel();
     }
 
     @Override
     public Class<? extends MZmineProcessingModule> getModuleClass() {
         return MLFeatureResolverModule.class;
+    }
+
+    public boolean isValidRange(double prob, int indexLeft, int indexPeak, int indexRight, double valuePeak) {
+        if (prob < this.threshold) {
+            return false;
+        }
+        if (indexLeft >= indexPeak) {
+            return false;
+        }
+        if (indexRight <= indexPeak) {
+            return false;
+        }
+        if (valuePeak == 0.0) {
+            return false;
+        }
+        if (indexPeak < this.overlap / 2) {
+            return false;
+        }
+        if (indexPeak > (this.regionSize - this.overlap / 2)) {
+            return false;
+        }
+        return true;
+    }
+
+    // This should probably be located somewhere else
+    public int[] roundFloatArray(float[] input, int min, int max) {
+        int[] output = new int[input.length];
+        for (int i = 0; i < input.length; i++) {
+            output[i] = Math.max(Math.min(Math.round(input[i]), max), min);
+        }
+        return output;
     }
 
     public List<Range<Double>> resolve(double[] x, double[] y) {
@@ -81,24 +116,22 @@ public class MLFeatureResolver extends AbstractResolver {
             return null;
         }
         // extracts the different predictions and peaks from PeakPickingOutput
-        List<double[]> predProbs = resolvedRegions.stream().map(r -> r.prob())
+        List<float[]> predProbs = resolvedRegions.stream().map(r -> r.prob())
                 .collect(Collectors.toList());
 
-        List<double[]> predPeaks = resolvedRegions.stream().map(r -> r.peak())
-                .collect(Collectors.toList());
+        // List<double[]> predPeaks = resolvedRegions.stream().map(r -> r.peak())
+        // .collect(Collectors.toList());
 
         // Rounds the predictions to Indices and make sure they are insde the bounds
+        List<int[]> peakIndices = resolvedRegions.stream().map(
+                r -> roundFloatArray(r.peak(), 0, this.regionSize - 1)).collect(Collectors.toList());
         List<int[]> leftIndices = resolvedRegions.stream().map(
-                r -> Arrays.stream(r.left()).mapToInt(d -> (int) Math.round(d))
-                        .map(i -> Math.max(Math.min(i, this.regionSize - 1), 0)).toArray())
+                r -> roundFloatArray(r.left(), 0, this.regionSize - 1))
                 .collect(Collectors.toList());
         List<int[]> rightIndices = resolvedRegions.stream().map(
-                r -> Arrays.stream(r.right()).mapToInt(d -> (int) Math.round(d))
-                        .map(i -> Math.max(Math.min(i, this.regionSize - 1), 0)).toArray())
+                r -> roundFloatArray(r.right(), 0, this.regionSize -1))
                 .collect(Collectors.toList());
 
-        // Converts indices to retention times and writes times into regions
-        // Getting the compiler to infer the correct types here is horrible
         int lenList = predProbs.size();
         int lenFeatures = predProbs.get(0).length;
 
@@ -108,12 +141,37 @@ public class MLFeatureResolver extends AbstractResolver {
         List<Range<Double>> resolved = new ArrayList<>();
         for (int i = 0; i < lenList; i++) {
             for (int j = 0; j < lenFeatures; j++) {
-                // only selects peaks that are in the inside of the selected region
-                if ((predProbs.get(i)[j] > this.threshold) && (this.overlap / 2) < predPeaks.get(i)[j]
-                        && predPeaks.get(i)[j] < (this.regionSize - this.overlap / 2)) {
-                    Double left = Double.valueOf(standardRegionsRT.get(i)[leftIndices.get(i)[j]]);
-                    Double right = Double.valueOf(standardRegionsRT.get(i)[rightIndices.get(i)[j]]);
-                    if (left < right) {
+                double prob = predProbs.get(i)[j];
+                int indexLeft = leftIndices.get(i)[j];
+                int indexRight = rightIndices.get(i)[j];
+                int indexPeak = peakIndices.get(i)[j];
+                double peakValue = standardRegions.get(i)[indexPeak];
+                if (this.isValidRange(prob, indexLeft, indexPeak, indexRight, peakValue)) {
+                    Double left = Double.POSITIVE_INFINITY;
+                    Double right = Double.POSITIVE_INFINITY;
+                    if (this.correctRanges) {
+                        int correctionRegion = 1;
+                        for (int n = 0; n < correctionRegion + 1; n++) {
+                            int currentLeftIndex = Math.max(
+                                    Math.min(
+                                            Math.min(leftIndices.get(i)[j] - n, indexPeak),
+                                            this.regionSize - 1),
+                                    0);
+                            int currentRightIndex = Math.max(Math.min(
+                                    Math.max(rightIndices.get(i)[j] + n, indexPeak), this.regionSize - 1), 0);
+                            if (standardRegions.get(i)[currentLeftIndex] < left) {
+                                left = standardRegions.get(i)[currentLeftIndex];
+                                indexLeft = currentLeftIndex;
+                            }
+                            if (standardRegions.get(i)[currentRightIndex] < right) {
+                                right = standardRegions.get(i)[currentRightIndex];
+                                indexRight = currentRightIndex;
+                            }
+                        }
+                    }
+                    if (indexLeft + this.minWidth <= indexRight) {
+                        left = Double.valueOf(standardRegionsRT.get(i)[indexLeft]);
+                        right = Double.valueOf(standardRegionsRT.get(i)[indexRight]);
                         Range<Double> nextRange = Range.closed(left, right);
                         resolved.add(nextRange);
                     }
