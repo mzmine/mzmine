@@ -105,6 +105,7 @@ public class MLFeatureResolver extends AbstractResolver {
         // Efficiency can be improved by having less overlap (and theorecically by
         // having longer regions)
         List<double[]> standardRegions = SplitSeries.extractRegionBatch(y, this.regionSize, this.overlap, "zero");
+        System.out.println("input Length: "+standardRegions.size());
         List<double[]> standardRegionsRT = SplitSeries.extractRegionBatch(x, this.regionSize, this.overlap,
                 "lastValue");
         List<PeakPickingOutput> resolvedRegions;
@@ -118,6 +119,7 @@ public class MLFeatureResolver extends AbstractResolver {
         // extracts the different predictions and peaks from PeakPickingOutput
         List<float[]> predProbs = resolvedRegions.stream().map(r -> r.prob())
                 .collect(Collectors.toList());
+        System.out.println("output length: " + predProbs.size());
 
         // List<double[]> predPeaks = resolvedRegions.stream().map(r -> r.peak())
         // .collect(Collectors.toList());
