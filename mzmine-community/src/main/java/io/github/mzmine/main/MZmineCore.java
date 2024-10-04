@@ -194,10 +194,17 @@ public final class MZmineCore {
             getDesktop().addTab(UsersTab.showTab());
           } else {
             try {
-              UsersController.getInstance().onLoginOrRegister(LoginOptions.CONSOLE);
+              if (DesktopService.hasTerminalInput()) {
+                UsersController.getInstance()
+                    .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
+              }
+              getDesktop().displayMessage(
+                  "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+              System.exit(1);
             } catch (Exception ex) {
               getDesktop().displayMessage(
                   "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+              System.exit(1);
             }
           }
         }
@@ -280,21 +287,24 @@ public final class MZmineCore {
         // set headless desktop globally
         DesktopService.setDesktop(new HeadLessDesktop());
 
-        // requires user
-        if (CurrentUserService.isInvalid()) {
-          try {
-            logger.info("Requires user login");
-            UsersController.getInstance()
-                .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
-          } catch (Exception ex) {
-            getDesktop().displayMessage(
-                "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
-          }
+        // ask for login if terminal input is available
+        if (DesktopService.hasTerminalInput()) {
+          // requires user
           if (CurrentUserService.isInvalid()) {
-            logger.warning(
-                "No valid user. Please login via the GUI or CLI or provide a user via command line argument -user path/user.mzuser");
-            System.exit(1);
-            return;
+            try {
+              logger.info("Requires user login");
+              UsersController.getInstance()
+                  .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
+            } catch (Exception ex) {
+              getDesktop().displayMessage(
+                  "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+            }
+            if (CurrentUserService.isInvalid()) {
+              logger.warning(
+                  "No valid user. Please login via the GUI or CLI or provide a user via command line argument -user path/user.mzuser");
+              System.exit(1);
+              return;
+            }
           }
         }
 

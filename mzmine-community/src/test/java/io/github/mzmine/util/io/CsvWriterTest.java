@@ -23,38 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui;
+package io.github.mzmine.util.io;
 
-import org.jetbrains.annotations.NotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Get the desktop that may be headless or GUI
- */
-public class DesktopService {
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
+import java.time.Duration;
+import java.util.List;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-  public static Desktop instance = new DefaultHeadlessDesktop();
+class CsvWriterTest {
 
-  public static synchronized void setDesktop(@NotNull Desktop desktop) {
-    instance = desktop;
-  }
-
-  @NotNull
-  public static Desktop getDesktop() {
-    return instance;
-  }
-
-  public static boolean isHeadLess() {
-    return instance.isHeadLess();
-  }
-
-  public static boolean isGUI() {
-    return instance.isGUI();
-  }
-
-  /**
-   * True if {@link System#console#isTerminal} is true and shows that console input is available
-   */
-  public static boolean hasTerminalInput() {
-    return System.console().isTerminal();
+  @Test
+  void writeToString() throws JsonProcessingException {
+    List<StepTimeMeasurement> steps = List.of( //
+        new StepTimeMeasurement(0, "test", Duration.ofSeconds(5)), //
+        new StepTimeMeasurement(1, "test2", Duration.ofSeconds(2)) //
+    );
+    String csv = CsvWriter.writeToString(steps, StepTimeMeasurement.class, '\t', true);
+    Assertions.assertNotNull(csv);
+    assertTrue(csv.length() > 10);
   }
 }

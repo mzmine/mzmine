@@ -61,6 +61,7 @@ import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.CsvWriter;
 import java.io.File;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -69,11 +70,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -100,7 +99,7 @@ public class BatchTask extends AbstractTask {
   private Boolean createResultsDir;
   private File parentDir;
   private int currentDataset;
-  private List<StepTimeMeasurement> stepTimes = new ArrayList<>();
+  private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
 
   BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     this(project, parameters, moduleCallDate,
@@ -195,7 +194,7 @@ public class BatchTask extends AbstractTask {
 
         // print step times
         if (!stepTimes.isEmpty()) {
-          printBatchTimes(batchStart);
+          printBatchTimes();
           stepTimes.clear();
         }
 
@@ -266,17 +265,23 @@ public class BatchTask extends AbstractTask {
 
     logger.info("Finished a batch of " + totalSteps + " steps");
     setStatus(TaskStatus.FINISHED);
-    printBatchTimes(batchStart);
     Duration duration = Duration.between(batchStart, Instant.now());
-    stepTimes.addFirst(new StepTimeMeasurement(0, getName(), duration));
+    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration));
+    printBatchTimes();
   }
 
-  private void printBatchTimes(final Instant batchStart) {
-    Duration duration = Duration.between(batchStart, Instant.now());
-    String times = stepTimes.stream().map(Objects::toString).collect(Collectors.joining("\n"));
-    logger.info(STR."""
-    Timing: Whole batch took \{duration} to finish
-    \{times}""");
+  private void printBatchTimes() {
+    String csv = CsvWriter.writeToString(stepTimes, StepTimeMeasurement.class, '\t', true);
+    logger.info("""
+        Timing: Whole batch took %.3f seconds to finish
+        %s""".formatted(stepTimes.getLast().secondsToFinish(), csv));
+
+//    CsvWriter.writeToFile();
+//    logger.info(csv);
+//    String times = stepTimes.stream().map(Objects::toString).collect(Collectors.joining("\n"));
+//    logger.info(STR."""
+//    Timing: Whole batch took \{duration} to finish
+//    \{times}""");
   }
 
   private void setOutputFiles(final File parentDir, final boolean createResultsDir,
@@ -423,7 +428,7 @@ public class BatchTask extends AbstractTask {
     }
 
     Duration duration = Duration.between(start, Instant.now());
-    stepTimes.add(new StepTimeMeasurement(stepNumber, method.getName(), duration));
+    stepTimes.add(new StepTimeMeasurement(stepNumber + 1, method.getName(), duration));
   }
 
   /**
