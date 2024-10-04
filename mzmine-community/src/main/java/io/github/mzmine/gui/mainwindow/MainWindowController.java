@@ -79,6 +79,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -182,6 +183,7 @@ public class MainWindowController {
   public FlowPane taskViewPane;
   @FXML
   public HBox bottomMenuBar;
+  public BorderPane mainPane;
 
   @FXML
   private Scene mainScene;
@@ -1031,4 +1033,7 @@ public class MainWindowController {
     return notificationPane;
   }
 
+  public BorderPane getMainPane() {
+    return mainPane;
+  }
 }

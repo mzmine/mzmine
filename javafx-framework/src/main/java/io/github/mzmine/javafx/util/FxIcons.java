@@ -36,7 +36,8 @@ public enum FxIcons implements IconCodeSupplier {
   DARK_MODE_SWITCH, BATCH,
 
   //
-  USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, TOOL, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, ROCKET,
+  USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, TOOL, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, //
+  ROCKET, LIGHTBULB,
 
   // ACTIONS
   SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD;
@@ -78,6 +79,7 @@ public enum FxIcons implements IconCodeSupplier {
       case EDIT -> "bi-pencil-square";
       case DOWNLOAD -> "bi-download";
       case PLUS -> "bi-plus";
+      case LIGHTBULB -> "bi-lightbulb";
     };
   }
 }

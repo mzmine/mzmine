@@ -104,6 +104,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -866,5 +867,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       logger.log(Level.WARNING, e.getMessage(), e);
     }
     return ButtonType.NO;
+  }
+
+  public void setMenubar(MenuBar menubar) {
+    mainWindowController.getMainPane().setTop(menubar);
   }
 }
