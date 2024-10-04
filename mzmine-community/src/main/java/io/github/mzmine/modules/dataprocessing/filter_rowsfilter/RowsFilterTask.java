@@ -38,9 +38,6 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
-import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
@@ -63,7 +60,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -250,10 +246,9 @@ public class RowsFilterTask extends AbstractTask {
           logger.info("Finished feature list rows filter");
         }
       } catch (Throwable t) {
-
-        setErrorMessage(t.getMessage());
-        setStatus(TaskStatus.ERROR);
+        error(t.getMessage());
         logger.log(Level.SEVERE, "Feature list row filter error", t);
+        return;
       }
     }
   }
@@ -302,21 +297,16 @@ public class RowsFilterTask extends AbstractTask {
       int numMinSamples = minSamples.getMaximumValue(totalSamples);
       if (numMinSamples > totalSamples) {
         var filterName = RowsFilterParameters.MIN_FEATURE_COUNT.getName();
-        var error = """
+        var errorMessage = """
             The "%s" parameter in the feature list rows filter step requires %d samples, but \
             the processed feature list %s only contains %d samples. Check the feature list rows \
             filter and adjust the minimum number of samples. Relative percentages help to scale this parameter automatically from small to large datasets.
-            mzmine will set the minimum required samples to the total samples in this feature list.""".formatted(
+            The current processing step and all following will be cancelled.""".formatted(
             filterName, numMinSamples, featureList, totalSamples);
-        logger.warning(error);
 
-        // maybe kill the whole job - this is usually a misconfiguration...
-        // for now just reset the minSamples filter to require exactly all of totalSamples
-        minSamples = new AbsoluteAndRelativeInt(totalSamples, 0);
-        if (DesktopService.isGUI()) {
-          FxThread.runLater(() -> DialogLoggerUtil.showDialog(AlertType.WARNING,
-              "Minimum samples filter mismatch", error));
-        }
+        // kill the job this is a misconfiguration that needs to be handled
+        error(errorMessage);
+        return null;
       }
     }
 
