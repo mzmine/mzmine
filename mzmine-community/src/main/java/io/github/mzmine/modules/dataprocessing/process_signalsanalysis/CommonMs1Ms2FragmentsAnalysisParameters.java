@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
 
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -49,11 +50,18 @@ public class CommonMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet 
           + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
       ScanDataType.values(), ScanDataType.MASS_LIST);
 
+  public static final BooleanParameter considerAdductsAndCo = new BooleanParameter(
+      "Consider adducts and co NOT IMPLEMENTED",
+      "Consider adducts, multimers, and multicharged ions when counting.", false);
+
+  public static final BooleanParameter considerIsotopes = new BooleanParameter(
+      "Consider isotopes NOT IMPLEMENTED", "Consider isotopes when counting.", false);
+
   public CommonMs1Ms2FragmentsAnalysisParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(featureLists, scanDataType, tolerance);
+    super(featureLists, scanDataType, tolerance, considerAdductsAndCo, considerIsotopes);
   }
 
 }

@@ -72,6 +72,8 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
   private final List<FeatureList> featureLists;
   private final boolean useMassList;
   private final MZTolerance tolerance;
+  private final Boolean considerAdductsAndCo;
+  private final Boolean considerIsotopes;
 
   /**
    * Constructor to initialize the task with necessary parameters.
@@ -92,6 +94,11 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     this.useMassList = parameters.getValue(CommonMs1Ms2FragmentsAnalysisParameters.scanDataType)
         == ScanDataType.MASS_LIST;
     this.tolerance = parameters.getValue(CommonMs1Ms2FragmentsAnalysisParameters.tolerance);
+    // TODO not implemented yet
+    this.considerAdductsAndCo = parameters.getValue(
+        CommonMs1Ms2FragmentsAnalysisParameters.considerAdductsAndCo);
+    this.considerIsotopes = parameters.getValue(
+        CommonMs1Ms2FragmentsAnalysisParameters.considerIsotopes);
   }
 
   private static double calcSumIntensity(List<UniqueSignal> signals) {
@@ -288,8 +295,7 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         ms1SignalsTotal, ms2SignalsAllPrecursorsTotal, ms1SignalsFragmented,
         ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent, ms1SignalsCommonPercent,
         ms1IntensityCommonPercentAllPrecursors, ms1IntensityCommonPercent, ms2SignalsTotal,
-        ms2SignalsCommonPercent, ms2IntensityCommonPercentAllPrecursors,
-        ms2IntensityCommonPercent);
+        ms2SignalsCommonPercent, ms2IntensityCommonPercentAllPrecursors, ms2IntensityCommonPercent);
 
     return new SignalsAnalysisResult(results);
   }
