@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -339,13 +339,7 @@ public class MzDataImportTask extends AbstractTask {
          */
         if (parentStack.size() > 10) {
           SimpleScan scan = parentStack.removeLast();
-          try {
-            newMZmineFile.addScan(scan);
-          } catch (IOException e) {
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("IO error: " + e);
-            throw new SAXException("Parsing cancelled");
-          }
+          newMZmineFile.addScan(scan);
           parsedScans++;
         }
 
@@ -419,13 +413,7 @@ public class MzDataImportTask extends AbstractTask {
     public void endDocument() throws SAXException {
       while (!parentStack.isEmpty()) {
         SimpleScan scan = parentStack.removeLast();
-        try {
-          newMZmineFile.addScan(scan);
-        } catch (IOException e) {
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage("IO error: " + e);
-          throw new SAXException("Parsing cancelled");
-        }
+        newMZmineFile.addScan(scan);
         parsedScans++;
       }
     }

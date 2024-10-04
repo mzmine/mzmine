@@ -815,8 +815,9 @@ public class ScanUtils {
     List<PasefMsMsInfo> featureMsMsInfos = new ArrayList<>();
     Collection<? extends Frame> ms2Frames = imsRawDataFile.getFrames(2, rtRange);
     for (Frame frame : ms2Frames) {
-      Set<PasefMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
-      for (PasefMsMsInfo msmsInfo : frameMsMsInfos) {
+      final List<PasefMsMsInfo> infos = frame.getImsMsMsInfos().stream()
+          .filter(info -> info instanceof PasefMsMsInfo).map(info -> (PasefMsMsInfo) info).toList();
+      for (PasefMsMsInfo msmsInfo : infos) {
         if (mzRange.contains(msmsInfo.getIsolationMz())) {
           featureMsMsInfos.add(msmsInfo);
         }

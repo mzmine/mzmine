@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -361,7 +362,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     var scans = frameStorage.getMobilityScans();
 
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
-    Set<PasefMsMsInfo> finishedImsMsMsInfos;
+    Set<IonMobilityMsMsInfo> finishedImsMsMsInfos;
     int mobilityScanNumberCounter = 0;
 
     int[] storageOffsets = new int[mobilities.length];

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.DIAImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
 import java.util.List;
@@ -69,6 +70,8 @@ public interface MsMsInfo {
       case DDAMsMsInfoImpl.XML_TYPE_NAME ->
           DDAMsMsInfoImpl.loadFromXML(reader, file, allProjectFiles);
       case MSnInfoImpl.XML_TYPE_NAME -> MSnInfoImpl.loadFromXML(reader, file, allProjectFiles);
+      case DIAImsMsMsInfoImpl.XML_TYPE_NAME ->
+          DIAImsMsMsInfoImpl.loadFromXML(reader, (IMSRawDataFile) file, allProjectFiles);
       default -> throw new IllegalStateException("Unknown msms info type");
     };
   }
@@ -98,7 +101,8 @@ public interface MsMsInfo {
    * @return The activation method of this fragmentation. {@link ActivationMethod#UNKNOWN} if
    * unknown.
    */
-  @NotNull ActivationMethod getActivationMethod();
+  @NotNull
+  ActivationMethod getActivationMethod();
 
   /**
    * @return The isolation window of this msms event. May be null if unknown or not set, cover a
