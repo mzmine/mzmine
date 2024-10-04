@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.util;
 
+import io.github.mzmine.javafx.components.GridRow;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -33,6 +34,7 @@ import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
@@ -207,20 +209,52 @@ public class FxLayout {
      * content's size preferences and constraints.
      */
     ColumnConstraints column1 = new ColumnConstraints();
+    column1.setHgrow(Priority.NEVER);
+    column1.setHalignment(HPos.RIGHT);
     ColumnConstraints column2 = new ColumnConstraints();
     column2.setFillWidth(true);
     column2.setHgrow(Priority.ALWAYS);
     grid.getColumnConstraints().addAll(column1, column2);
-    var row = new RowConstraints();
-    row.setValignment(VPos.CENTER);
-    grid.getRowConstraints().add(row);
+    var rowConstraint = new RowConstraints();
+    rowConstraint.setValignment(VPos.CENTER);
+    grid.getRowConstraints().add(rowConstraint);
 
-    for (int i = 0; i < children.length; i += 2) {
-      grid.add(children[i], 0, i / 2);
-      if (i + 1 < children.length) {
-        grid.add(children[i + 1], 1, i / 2);
+    return addToGrid(grid, children);
+  }
+
+  /**
+   * Add all children to grid. Special handling of {@link GridRow} which fills a full row
+   */
+  public static GridPane addToGrid(final GridPane grid, final Node... children) {
+    int cols = grid.getColumnCount();
+    int row = 0;
+    int col = 0;
+    for (final Node child : children) {
+      // always fills a full row. If row is started this will flow into the new row
+      if (child instanceof GridRow || child instanceof Separator) {
+        if (col > 0) {
+          row++;
+        }
+        grid.add(child, 0, row, 2, 1);
+        col = 0;
+        row++;
+      } else {
+        grid.add(child, col, row);
+        col++;
+      }
+      if (col == cols) {
+        col = 0;
+        row++;
       }
     }
     return grid;
+  }
+
+  /**
+   * Fill a full
+   * {@link GridPane) row if combined with factory methods like {@link #newGrid2Col(Node...)}
+   */
+  public static GridRow gridRow(Node... children) {
+    return new GridRow(children);
   }
 }

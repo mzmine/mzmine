@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.datamodel.identities.fx.IonTypeCreatorTab;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
@@ -325,6 +326,10 @@ public class MainMenuController {
 
   public void openUserAccountConsole(final ActionEvent e) {
     DesktopService.getDesktop().openWebPage(MzioMZmineLinks.USER_CONSOLE.getUrl());
+  }
+
+  public void showDefineIonLibraries(final ActionEvent e) {
+    IonTypeCreatorTab.showTab();
   }
 }
 
