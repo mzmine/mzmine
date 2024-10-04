@@ -37,10 +37,10 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SharedMs1Ms2FragmentsAnalysisModule extends TaskPerFeatureListModule {
+public class CommonMs1Ms2FragmentsAnalysisModule extends TaskPerFeatureListModule {
 
-  public SharedMs1Ms2FragmentsAnalysisModule() {
-    super("Shared MS1-MS2 fragments analysis", SharedMs1Ms2FragmentsAnalysisParameters.class,
+  public CommonMs1Ms2FragmentsAnalysisModule() {
+    super("Common MS1-MS2 fragments analysis", CommonMs1Ms2FragmentsAnalysisParameters.class,
         MZmineModuleCategory.FEATURELISTEXPORT, false, """
             This is a module performing fragments analysis on both the MS1 and MS2 signals.
             It compares signals found in MS1 scans and related MS2 scans in the same RT range.""");
@@ -50,7 +50,7 @@ public class SharedMs1Ms2FragmentsAnalysisModule extends TaskPerFeatureListModul
   public @NotNull Task createTask(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
       final @Nullable MemoryMapStorage storage, final @NotNull FeatureList featureList) {
-    return new SharedMs1Ms2FragmentsAnalysisTask(project, List.of(featureList), parameters, storage,
+    return new CommonMs1Ms2FragmentsAnalysisTask(project, List.of(featureList), parameters, storage,
         moduleCallDate, this.getClass());
   }
 

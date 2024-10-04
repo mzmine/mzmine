@@ -32,47 +32,47 @@ import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.analysis.IsLikelyISFragmentType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms1SharedIntensityPercentAllPrecursorsType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms1SharedIntensityPercentType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms1SharedSignalsPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonIntensityPercentAllPrecursorsType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonIntensityPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonSignalsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1SignalsType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms2SharedIntensityPercentAllPrecursorsType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms2SharedIntensityPercentType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms2SharedSignalsPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms2CommonIntensityPercentAllPrecursorsType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms2CommonIntensityPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms2CommonSignalsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsLikelyISFragmentInMs1PercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsType;
-import io.github.mzmine.datamodel.features.types.analysis.SharedSignalsAllPrecursorsType;
-import io.github.mzmine.datamodel.features.types.analysis.SharedSignalsType;
+import io.github.mzmine.datamodel.features.types.analysis.CommonSignalsAllPrecursorsType;
+import io.github.mzmine.datamodel.features.types.analysis.CommonSignalsType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
                                               double ms1FragmentedLikelyISFPercent,
-                                              int sharedSignals, int sharedSignalsAllPrecursors,
+                                              int commonSignals, int commonSignalsAllPrecursors,
                                               int ms1Signals, int ms2SignalsAllPrecursors,
                                               int ms1Fragmented, double ms1FragmentedPercent,
                                               double ms1IntensityFragmentedPercent,
-                                              double ms1SharedPercent,
-                                              double ms1IntensitySharedPercentAllPrecursors,
-                                              double ms1IntensitySharedPercent, int ms2Signals,
-                                              double ms2SharedPercent,
-                                              double ms2IntensitySharedPercentAllPrecursors,
-                                              double ms2IntensitySharedPercent) implements
+                                              double ms1CommonPercent,
+                                              double ms1IntensityCommonPercentAllPrecursors,
+                                              double ms1IntensityCommonPercent, int ms2Signals,
+                                              double ms2CommonPercent,
+                                              double ms2IntensityCommonPercentAllPrecursors,
+                                              double ms2IntensityCommonPercent) implements
     ModularDataRecord {
 
   // Constructor without isLikelyISF
-//  public InSourceFragmentAnalysisResults(double ms1FragmentedLikelyISFPercent, int sharedSignals,
+//  public InSourceFragmentAnalysisResults(double ms1FragmentedLikelyISFPercent, int commonSignals,
 //      int ms1Count, int ms1Fragmented, double ms1FragmentedPercent,
-//      double ms1IntensityFragmentedPercent, double ms1SharedPercent,
-//      double ms1IntensitySharedPercent, int ms2Count, double ms2SharedPercent,
-//      double ms2IntensitySharedPercent) {
-//    this(false, sharedSignals, ms1FragmentedLikelyISFPercent, ms1Count, , ms1Fragmented,
-//        ms1FragmentedPercent, ms1IntensityFragmentedPercent, ms1SharedPercent,
-//        ms1IntensitySharedPercent, ms2Count, ms2SharedPercent, ms2IntensitySharedPercent);
+//      double ms1IntensityFragmentedPercent, double ms1CommonPercent,
+//      double ms1IntensityCommonPercent, int ms2Count, double ms2CommonPercent,
+//      double ms2IntensityCommonPercent) {
+//    this(false, commonSignals, ms1FragmentedLikelyISFPercent, ms1Count, , ms1Fragmented,
+//        ms1FragmentedPercent, ms1IntensityFragmentedPercent, ms1CommonPercent,
+//        ms1IntensityCommonPercent, ms2Count, ms2CommonPercent, ms2IntensityCommonPercent);
 //  }
 
   @SuppressWarnings("rawtypes")
@@ -80,17 +80,17 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
     return DataTypes.getAll( //
         IsLikelyISFragmentType.class, //
         PrecursorIonsLikelyISFragmentInMs1PercentType.class, //
-        SharedSignalsType.class, //
-        SharedSignalsAllPrecursorsType.class, //
+        CommonSignalsType.class, //
+        CommonSignalsAllPrecursorsType.class, //
         Ms1SignalsType.class, //
         Ms2SignalsAllPrecursorsType.class, //
         Ms2SignalsType.class, //
-        Ms1SharedSignalsPercentType.class, //
-        Ms2SharedSignalsPercentType.class, //
-        Ms1SharedIntensityPercentAllPrecursorsType.class, //
-        Ms1SharedIntensityPercentType.class, //
-        Ms2SharedIntensityPercentAllPrecursorsType.class, //
-        Ms2SharedIntensityPercentType.class, //
+        Ms1CommonSignalsPercentType.class, //
+        Ms2CommonSignalsPercentType.class, //
+        Ms1CommonIntensityPercentAllPrecursorsType.class, //
+        Ms1CommonIntensityPercentType.class, //
+        Ms2CommonIntensityPercentAllPrecursorsType.class, //
+        Ms2CommonIntensityPercentType.class, //
         PrecursorIonsType.class, //
         PrecursorIonsPercentType.class, //
         PrecursorIonsIntensityPercentType.class //
@@ -102,20 +102,20 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
     return new InSourceFragmentAnalysisResults( //
         requireNonNullElse(values.get(IsLikelyISFragmentType.class), false),
         requireNonNullElse(values.get(PrecursorIonsLikelyISFragmentInMs1PercentType.class), -1f),
-        requireNonNullElse(values.get(SharedSignalsType.class), -1),
-        requireNonNullElse(values.get(SharedSignalsAllPrecursorsType.class), -1),
+        requireNonNullElse(values.get(CommonSignalsType.class), -1),
+        requireNonNullElse(values.get(CommonSignalsAllPrecursorsType.class), -1),
         requireNonNullElse(values.get(Ms1SignalsType.class), -1),
         requireNonNullElse(values.get(Ms2SignalsAllPrecursorsType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(PrecursorIonsPercentType.class), -1f),
-        requireNonNullElse(values.get(Ms1SharedSignalsPercentType.class), -1f),
-        requireNonNullElse(values.get(Ms1SharedIntensityPercentAllPrecursorsType.class), -1f),
-        requireNonNullElse(values.get(Ms1SharedIntensityPercentType.class), -1f),
+        requireNonNullElse(values.get(Ms1CommonSignalsPercentType.class), -1f),
+        requireNonNullElse(values.get(Ms1CommonIntensityPercentAllPrecursorsType.class), -1f),
+        requireNonNullElse(values.get(Ms1CommonIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(Ms2SignalsType.class), -1),
-        requireNonNullElse(values.get(Ms2SharedSignalsPercentType.class), -1f),
-        requireNonNullElse(values.get(Ms2SharedIntensityPercentAllPrecursorsType.class), -1f),
-        requireNonNullElse(values.get(Ms2SharedIntensityPercentType.class), -1f));
+        requireNonNullElse(values.get(Ms2CommonSignalsPercentType.class), -1f),
+        requireNonNullElse(values.get(Ms2CommonIntensityPercentAllPrecursorsType.class), -1f),
+        requireNonNullElse(values.get(Ms2CommonIntensityPercentType.class), -1f));
   }
 
   // Method to create a new instance with updated isLikelyISF
@@ -123,20 +123,20 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
     return new InSourceFragmentAnalysisResults( //
         isLikelyISF, //
         this.ms1FragmentedLikelyISFPercent, //
-        this.sharedSignals, //
-        this.sharedSignalsAllPrecursors, //
+        this.commonSignals, //
+        this.commonSignalsAllPrecursors, //
         this.ms1Signals, //
         this.ms2SignalsAllPrecursors, //
         this.ms1Fragmented, //
         this.ms1FragmentedPercent, //
         this.ms1IntensityFragmentedPercent, //
-        this.ms1SharedPercent, //
-        this.ms1IntensitySharedPercentAllPrecursors, //
-        this.ms1IntensitySharedPercent, //
+        this.ms1CommonPercent, //
+        this.ms1IntensityCommonPercentAllPrecursors, //
+        this.ms1IntensityCommonPercent, //
         this.ms2Signals, //
-        this.ms2SharedPercent, //
-        this.ms2IntensitySharedPercentAllPrecursors, //
-        this.ms2IntensitySharedPercent);
+        this.ms2CommonPercent, //
+        this.ms2IntensityCommonPercentAllPrecursors, //
+        this.ms2IntensityCommonPercent);
   }
 
   /**
@@ -149,22 +149,22 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
   public Object getValue(final DataType sub) {
     return switch (sub) {
       case IsLikelyISFragmentType _ -> isLikelyISF;
-      case SharedSignalsType _ -> sharedSignals;
-      case SharedSignalsAllPrecursorsType _ -> sharedSignalsAllPrecursors;
+      case CommonSignalsType _ -> commonSignals;
+      case CommonSignalsAllPrecursorsType _ -> commonSignalsAllPrecursors;
       case PrecursorIonsLikelyISFragmentInMs1PercentType _ -> ms1FragmentedLikelyISFPercent;
       case Ms1SignalsType _ -> ms1Signals;
       case Ms2SignalsAllPrecursorsType _ -> ms2SignalsAllPrecursors;
       case PrecursorIonsIntensityPercentType _ -> ms1IntensityFragmentedPercent;
       case PrecursorIonsType _ -> ms1Fragmented;
       case PrecursorIonsPercentType _ -> ms1FragmentedPercent;
-      case Ms1SharedIntensityPercentAllPrecursorsType _ -> ms1IntensitySharedPercentAllPrecursors;
-      case Ms1SharedIntensityPercentType _ -> ms1IntensitySharedPercent;
-      case Ms1SharedSignalsPercentType _ -> ms1SharedPercent;
+      case Ms1CommonIntensityPercentAllPrecursorsType _ -> ms1IntensityCommonPercentAllPrecursors;
+      case Ms1CommonIntensityPercentType _ -> ms1IntensityCommonPercent;
+      case Ms1CommonSignalsPercentType _ -> ms1CommonPercent;
       //MS2
       case Ms2SignalsType _ -> ms2Signals;
-      case Ms2SharedIntensityPercentAllPrecursorsType _ -> ms2IntensitySharedPercentAllPrecursors;
-      case Ms2SharedIntensityPercentType _ -> ms2IntensitySharedPercent;
-      case Ms2SharedSignalsPercentType _ -> ms2SharedPercent;
+      case Ms2CommonIntensityPercentAllPrecursorsType _ -> ms2IntensityCommonPercentAllPrecursors;
+      case Ms2CommonIntensityPercentType _ -> ms2IntensityCommonPercent;
+      case Ms2CommonSignalsPercentType _ -> ms2CommonPercent;
       default -> throw new IllegalStateException("Unexpected value: " + sub);
     };
   }

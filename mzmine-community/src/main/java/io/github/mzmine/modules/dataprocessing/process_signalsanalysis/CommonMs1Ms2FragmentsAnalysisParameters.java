@@ -37,7 +37,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  * <p>
  * var flists = parameters.getValue(EmptyFeatureListParameters.featureLists);
  */
-public class SharedMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet {
+public class CommonMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
@@ -49,7 +49,7 @@ public class SharedMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet 
           + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
       ScanDataType.values(), ScanDataType.MASS_LIST);
 
-  public SharedMs1Ms2FragmentsAnalysisParameters() {
+  public CommonMs1Ms2FragmentsAnalysisParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */

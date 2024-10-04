@@ -29,19 +29,19 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents the count of shared signals between MS1 and MS2 signals. It extends the
+ * Represents the count of common signals between MS1 and MS2 signals. It extends the
  * {@link IntegerType} class. This value is typically used in the context of in source fragments
  * analysis.
  */
-public class SharedSignalsType extends IntegerType {
+public class CommonSignalsType extends IntegerType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "shared_signals";
+    return "common_signals";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Shared signals";
+    return "Common signals";
   }
 }

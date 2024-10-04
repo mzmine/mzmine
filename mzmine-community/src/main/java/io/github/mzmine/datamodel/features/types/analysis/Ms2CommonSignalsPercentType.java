@@ -29,19 +29,19 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents shared intensity between MS1 and MS2 signals (all precursors), over MS1 total
- * intensity (%). It extends the {@link PercentType} class. This value is typically used in the
- * context of in source fragments analysis.
+ * Represents common signals between MS1 and MS2 signals, over MS2 total signals (%). It extends the
+ * {@link PercentType} class. This value is typically used in the context of in source fragments
+ * analysis.
  */
-public class Ms1SharedIntensityPercentAllPrecursorsType extends PercentType {
+public class Ms2CommonSignalsPercentType extends PercentType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms1_shared_intensity_percent_all_precursors";
+    return "ms2_common_signals_percent";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS1 shared intensity (all precursors)";
+    return "MS2 common signals";
   }
 }

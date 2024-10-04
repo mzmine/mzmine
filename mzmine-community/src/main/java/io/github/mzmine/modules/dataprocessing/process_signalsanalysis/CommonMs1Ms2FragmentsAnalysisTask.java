@@ -65,10 +65,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Analyzes MS1 and MS2 signals from feature lists to compare MS1 signals with MS2 fragment scans.
  */
-class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
+class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
 
   private static final Logger logger = Logger.getLogger(
-      SharedMs1Ms2FragmentsAnalysisTask.class.getName());
+      CommonMs1Ms2FragmentsAnalysisTask.class.getName());
   private final List<FeatureList> featureLists;
   private final boolean useMassList;
   private final MZTolerance tolerance;
@@ -83,15 +83,15 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
    * @param moduleCallDate The date the module was called.
    * @param moduleClass    The class of the calling module.
    */
-  public SharedMs1Ms2FragmentsAnalysisTask(MZmineProject project, List<FeatureList> featureLists,
+  public CommonMs1Ms2FragmentsAnalysisTask(MZmineProject project, List<FeatureList> featureLists,
       ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.featureLists = featureLists;
     this.totalItems = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).sum();
-    this.useMassList = parameters.getValue(SharedMs1Ms2FragmentsAnalysisParameters.scanDataType)
+    this.useMassList = parameters.getValue(CommonMs1Ms2FragmentsAnalysisParameters.scanDataType)
         == ScanDataType.MASS_LIST;
-    this.tolerance = parameters.getValue(SharedMs1Ms2FragmentsAnalysisParameters.tolerance);
+    this.tolerance = parameters.getValue(CommonMs1Ms2FragmentsAnalysisParameters.tolerance);
   }
 
   private static double calcSumIntensity(List<UniqueSignal> signals) {
@@ -244,11 +244,11 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     double ms1IntensityFragmentedPercent =
         calcSumIntensity(findUniquePrecursors(ms1SignalRangeMap, allPrecursorsMs2Scans))
             / ms1IntensityTotal;
-    double ms1IntensityMatched = calcSumIntensity(ms1SignalMatchesMs2);
-    double ms1IntensityMatchedAllPrecursors = calcSumIntensity(ms1SignalMatchesMs2AllPrecursors);
-    double ms1IntensityMatchedPercent = ms1IntensityMatched / ms1IntensityTotal;
-    double ms1IntensityMatchedPercentAllPrecursors =
-        ms1IntensityMatchedAllPrecursors / ms1IntensityTotal;
+    double ms1IntensityCommon = calcSumIntensity(ms1SignalMatchesMs2);
+    double ms1IntensityCommonAllPrecursors = calcSumIntensity(ms1SignalMatchesMs2AllPrecursors);
+    double ms1IntensityCommonPercent = ms1IntensityCommon / ms1IntensityTotal;
+    double ms1IntensityCommonPercentAllPrecursors =
+        ms1IntensityCommonAllPrecursors / ms1IntensityTotal;
 
     int ms1SignalsTotal = ms1Signals.size();
     int ms1SignalsFragmented = findUniquePrecursors(ms1SignalRangeMap,
@@ -256,23 +256,23 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     double ms1SignalsFragmentedPercent = (double) ms1SignalsFragmented / ms1SignalsTotal;
 
     int ms2SignalsAllPrecursorsTotal = ms2SignalsAllPrecursors.size();
-    int signalsMatchedAllPrecursors = ms1SignalMatchesMs2AllPrecursors.size();
-    double ms1SignalsMatchedPercentAllPrecursors =
-        (double) signalsMatchedAllPrecursors / ms1SignalsTotal;
-    double ms2SignalsMatchedPercentAllPrecursors =
+    int signalsCommonAllPrecursors = ms1SignalMatchesMs2AllPrecursors.size();
+    double ms1SignalsCommonPercentAllPrecursors =
+        (double) signalsCommonAllPrecursors / ms1SignalsTotal;
+    double ms2SignalsCommonPercentAllPrecursors =
         (double) ms2SignalMatchesMs1AllPrecursors.size() / ms2SignalsAllPrecursorsTotal;
-    double ms2IntensityMatchedAllPrecursors = calcSumIntensity(ms2SignalMatchesMs1AllPrecursors);
+    double ms2IntensityCommonAllPrecursors = calcSumIntensity(ms2SignalMatchesMs1AllPrecursors);
     double ms2IntensityTotalAllPrecursors = calcSumIntensity(ms2SignalsAllPrecursors);
-    double ms2IntensityMatchedPercentAllPrecursors =
-        ms2IntensityMatchedAllPrecursors / ms2IntensityTotalAllPrecursors;
+    double ms2IntensityCommonPercentAllPrecursors =
+        ms2IntensityCommonAllPrecursors / ms2IntensityTotalAllPrecursors;
 
     int ms2SignalsTotal = ms2Signals.size();
-    int signalsMatched = ms1SignalMatchesMs2.size();
-    double ms1SignalsMatchedPercent = (double) signalsMatched / ms1SignalsTotal;
-    double ms2SignalsMatchedPercent = (double) ms2SignalMatchesMs1.size() / ms2SignalsTotal;
-    double ms2IntensityMatched = calcSumIntensity(ms2SignalMatchesMs1);
+    int signalsCommon = ms1SignalMatchesMs2.size();
+    double ms1SignalsCommonPercent = (double) signalsCommon / ms1SignalsTotal;
+    double ms2SignalsCommonPercent = (double) ms2SignalMatchesMs1.size() / ms2SignalsTotal;
+    double ms2IntensityCommon = calcSumIntensity(ms2SignalMatchesMs1);
     double ms2IntensityTotal = calcSumIntensity(ms2Signals);
-    double ms2IntensityMatchedPercent = ms2IntensityMatched / ms2IntensityTotal;
+    double ms2IntensityCommonPercent = ms2IntensityCommon / ms2IntensityTotal;
 
     // Step 5: Determine ISF likelihood
     double ms1SignalsFragmentedLikelyISFPercent =
@@ -284,12 +284,12 @@ class SharedMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
 
     // Step 6: Create results object
     InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(isLikelyISF,
-        ms1SignalsFragmentedLikelyISFPercent, signalsMatched, signalsMatchedAllPrecursors,
+        ms1SignalsFragmentedLikelyISFPercent, signalsCommon, signalsCommonAllPrecursors,
         ms1SignalsTotal, ms2SignalsAllPrecursorsTotal, ms1SignalsFragmented,
-        ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent, ms1SignalsMatchedPercent,
-        ms1IntensityMatchedPercentAllPrecursors, ms1IntensityMatchedPercent, ms2SignalsTotal,
-        ms2SignalsMatchedPercent, ms2IntensityMatchedPercentAllPrecursors,
-        ms2IntensityMatchedPercent);
+        ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent, ms1SignalsCommonPercent,
+        ms1IntensityCommonPercentAllPrecursors, ms1IntensityCommonPercent, ms2SignalsTotal,
+        ms2SignalsCommonPercent, ms2IntensityCommonPercentAllPrecursors,
+        ms2IntensityCommonPercent);
 
     return new SignalsAnalysisResult(results);
   }
