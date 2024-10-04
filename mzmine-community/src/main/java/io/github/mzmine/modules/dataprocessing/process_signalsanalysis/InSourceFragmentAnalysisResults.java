@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.features.ModularDataRecord;
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.analysis.CommonSignalsAllPrecursorsType;
+import io.github.mzmine.datamodel.features.types.analysis.CommonSignalsType;
 import io.github.mzmine.datamodel.features.types.analysis.IsLikelyISFragmentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonIntensityPercentAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonIntensityPercentType;
@@ -45,8 +47,6 @@ import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsIntensity
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsLikelyISFragmentInMs1PercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsType;
-import io.github.mzmine.datamodel.features.types.analysis.CommonSignalsAllPrecursorsType;
-import io.github.mzmine.datamodel.features.types.analysis.CommonSignalsType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
