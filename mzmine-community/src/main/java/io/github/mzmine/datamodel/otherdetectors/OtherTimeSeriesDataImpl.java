@@ -45,6 +45,7 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
   private final OtherDataFile otherDataFile;
   private final List<OtherFeature> rawTraces = new ArrayList<>();
+  private final List<OtherFeature> preprocessedTraces = new ArrayList<>();
   private final List<OtherFeature> processedFeatures = new ArrayList<>();
 
   public @NotNull ChromatogramType chromatogramType = ChromatogramType.UNKNOWN;
@@ -69,9 +70,36 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
     return List.copyOf(rawTraces);
   }
 
+  @Override
+  public @NotNull List<@NotNull OtherFeature> getPreprocessedTraces() {
+    if (preprocessedTraces.isEmpty()) {
+      return getRawTraces();
+    }
+    return preprocessedTraces;
+  }
+
+  @Override
+  public void setPreprocessedTraces(@NotNull List<@NotNull OtherFeature> preprocessedTraces) {
+    this.preprocessedTraces.clear();
+    this.preprocessedTraces.addAll(preprocessedTraces);
+  }
+
   public void addRawTrace(@NotNull OtherFeature series) {
     try (var _ = writeLock.lockWrite()) {
       this.rawTraces.add(series);
+    }
+  }
+
+  public void setRawTraces(@NotNull List<@NotNull OtherFeature> rawTraces) {
+    try (var _ = writeLock.lockWrite()) {
+      this.rawTraces.clear();
+      // if this is a processed feature, but set as raw trace, it replaces it's own raw trace.
+      // so set RawTraceType.class to null, so we don't produce memory leaks and don't point to a
+      // trace that cannot be found anymore.
+      // this may be needed after certain processing, e.g. after baseline correction.
+      rawTraces.forEach(t -> t.set(RawTraceType.class, null));
+      this.rawTraces.addAll(rawTraces);
+      processedFeatures.clear();
     }
   }
 
@@ -140,6 +168,15 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   @Override
   @NotNull
   public List<OtherFeature> getProcessedFeaturesForTrace(OtherFeature rawTrace) {
+    final OtherFeature original = rawTrace.get(RawTraceType.class);
+    // in case a baseline corrected raw trace was given, get the raw trace of the baseline corrected one.
+    if(original != null) {
+      try (var _ = writeLock.lockRead()) {
+        return processedFeatures.stream()
+            .filter(f -> Objects.equals(f.get(RawTraceType.class), original)).toList();
+      }
+    }
+
     try (var _ = writeLock.lockRead()) {
       return processedFeatures.stream()
           .filter(f -> Objects.equals(f.get(RawTraceType.class), rawTrace)).toList();
@@ -178,5 +215,10 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
     try (var _ = writeLock.lockWrite()) {
       processedFeatures.add(newFeature);
     }
+  }
+
+  @Override
+  public String toString() {
+    return chromatogramType + " " + timeSeriesRangeLabel + "/" + timeSeriesRangeUnit;
   }
 }

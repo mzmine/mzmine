@@ -23,24 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
+package io.github.mzmine.datamodel.otherdetectors;
 
-import io.github.mzmine.javafx.mvci.FxController;
-import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import org.jetbrains.annotations.NotNull;
-
-public class MultidetectorVisualizerController extends FxController<MultidetectorVisualizerModel> {
-
-  private final MultidetectorVisualizerBuilder builder;
-
-  public MultidetectorVisualizerController() {
-    super(new MultidetectorVisualizerModel());
-    builder = new MultidetectorVisualizerBuilder(model);
-  }
-
-  @Override
-  protected @NotNull FxViewBuilder<MultidetectorVisualizerModel> getViewBuilder() {
-
-    return builder;
-  }
+public enum MsOtherCorrelationType {
+  MANUAL, CALCULATED;
 }

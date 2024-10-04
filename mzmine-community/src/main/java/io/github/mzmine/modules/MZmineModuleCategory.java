@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,7 +54,8 @@ public enum MZmineModuleCategory {
   VISUALIZATION_RAW_AND_FEATURE("Visualization data"), //
   DATAANALYSIS("Data analysis"), //
   HELPSYSTEM("Help"), //
-  TOOLS("Tools"); //
+  TOOLS("Tools"),
+  OTHER_DATA_PROCESSING("Processing other data"); //
 
   private final String name;
 
@@ -83,6 +84,7 @@ public enum MZmineModuleCategory {
       // no main category
       case HELPSYSTEM, TOOLS -> MainCategory.OTHER;
       // no default so that the compiler marks missing cases
+      case OTHER_DATA_PROCESSING -> MainCategory.OTHER_DATA;
     };
   }
 
@@ -94,7 +96,9 @@ public enum MZmineModuleCategory {
     FEATURE_FILTERING("Feature filtering"), //
     FEATURE_PROCESSING("Feature processing"), //
     FEATURE_IO("Feature IO"), //
-    VISUALIZATION("Visualization"), OTHER("Other");
+    VISUALIZATION("Visualization"), //
+    OTHER("Other"), //
+    OTHER_DATA("UV/Other data");
 
     private final String name;
 

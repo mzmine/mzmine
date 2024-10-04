@@ -23,8 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
+package io.github.mzmine.datamodel.features.types.otherdectectors;
 
-public class MultidetectorVisualizerModel {
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
+import org.jetbrains.annotations.NotNull;
+
+public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelationResult> {
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return "ms_other_correlation_result";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Correlated traces";
+  }
 
 }

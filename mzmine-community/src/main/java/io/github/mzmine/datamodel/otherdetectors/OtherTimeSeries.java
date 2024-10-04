@@ -42,5 +42,12 @@ public interface OtherTimeSeries extends IntensityTimeSeries {
   @NotNull
   OtherTimeSeriesData getTimeSeriesData();
 
+  @Override
+  OtherTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+      int endIndexExclusive);
+
+  @Override
+  OtherTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
+
   OtherTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newIntensities, String newName);
 }

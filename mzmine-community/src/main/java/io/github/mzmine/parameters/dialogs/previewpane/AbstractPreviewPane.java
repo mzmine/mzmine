@@ -43,6 +43,9 @@ public abstract class AbstractPreviewPane<T> extends BorderPane implements Previ
   protected final ParameterSet parameters;
   protected final LatestTaskScheduler scheduler = new LatestTaskScheduler();
 
+  /**
+   * sets chart to the center of this pane.
+   */
   public AbstractPreviewPane(final ParameterSet parameters) {
     this.parameters = parameters;
     chart = createChart();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -306,5 +306,13 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
   public void close() {
     featureTable.closeTable();
+  }
+
+  public void setRtFilterString(String filterString) {
+    rtSearchField.setText(filterString);
+  }
+
+  public void setMzFilterString(String filterString) {
+    mzSearchField.setText(filterString);
   }
 }
