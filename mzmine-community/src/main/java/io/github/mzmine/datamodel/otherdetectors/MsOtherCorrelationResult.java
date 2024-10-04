@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,15 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
+package io.github.mzmine.datamodel.otherdetectors;
 
-enum State {
-  SETTING_LEFT, SETTING_RIGHT, NOT_INTEGRATING;
+public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrelationType type) {
 
-  boolean isIntegrating() {
-    return switch (this) {
-      case SETTING_LEFT, SETTING_RIGHT -> true;
-      case NOT_INTEGRATING -> false;
-    };
-  }
 }

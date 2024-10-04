@@ -116,12 +116,6 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
-import io.github.mzmine.modules.dataprocessing.otherdata.align_msother.MsOtherCorrelationModule;
-import io.github.mzmine.modules.dataprocessing.otherdata.featdet_baseline.OtherDataBaselineCorrectionModule;
-import io.github.mzmine.modules.dataprocessing.otherdata.featdet_bin.BinTracesModule;
-import io.github.mzmine.modules.dataprocessing.otherdata.featdet_resolve.OtherDataResolverModule;
-import io.github.mzmine.modules.dataprocessing.otherdata.filt_shifttraces.ShiftTracesModule;
-import io.github.mzmine.modules.dataprocessing.otherdata.filt_trimtraces.TrimTracesModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
@@ -180,8 +174,6 @@ import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramF
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule;
-import io.github.mzmine.modules.visualization.other_correlationdashboard.CorrelationDashboardModule;
-import io.github.mzmine.modules.visualization.otherdetectors.multidetector.MultidetectorVisualizerModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule;
@@ -191,285 +183,276 @@ import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizer
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BatchModeModulesList {
 
-  public static final List<Class<? extends MZmineProcessingModule>> MODULES = List.of(
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#PROJECT}
-       */
-      ProjectLoadModule.class, //
-      ProjectSaveModule.class, //
-      ProjectSaveAsModule.class, //
-      ClearProjectModule.class, //
+  public static final List<Class<? extends MZmineProcessingModule>> MODULES = new ArrayList<>(
+      List.of(
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#PROJECT}
+           */
+          ProjectLoadModule.class, //
+          ProjectSaveModule.class, //
+          ProjectSaveAsModule.class, //
+          ClearProjectModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
-       * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAIMPORT}
-       */
-      AllSpectralDataImportModule.class, //
-      TDFImportModule.class, //
-      ImzMLImportModule.class, //
-      MzDataImportModule.class, //
-      MSDKmzMLImportModule.class, //
-      MzXMLImportModule.class, //
-      NetCDFImportModule.class, //
-      ThermoRawImportModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAIMPORT}
+           */
+          AllSpectralDataImportModule.class, //
+          TDFImportModule.class, //
+          ImzMLImportModule.class, //
+          MzDataImportModule.class, //
+          MSDKmzMLImportModule.class, //
+          MzXMLImportModule.class, //
+          NetCDFImportModule.class, //
+          ThermoRawImportModule.class, //
 //      WatersRawImportModule.class, //
-      ZipImportModule.class, //
-      SpectralLibraryImportModule.class, //
-      SpectralLibraryToFeatureListModule.class, //
+          ZipImportModule.class, //
+          SpectralLibraryImportModule.class, //
+          SpectralLibraryToFeatureListModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#PROJECT}
-       * {@link io.github.mzmine.modules.MZmineModuleCategory#PROJECTMETADATA}
-       */
-      ProjectMetadataImportModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#PROJECT}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#PROJECTMETADATA}
+           */
+          ProjectMetadataImportModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
-       * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATA}
-       */
-      MassDetectionModule.class, //
-      MassCalibrationModule.class, //
-      MobilityScanMergerModule.class, //
-      RawFileMergeModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATA}
+           */
+          MassDetectionModule.class, //
+          MassCalibrationModule.class, //
+          MobilityScanMergerModule.class, //
+          RawFileMergeModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
-       * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAFILTERING}
-       */
-      AlignScansModule.class, //
-      CropFilterModule.class, //
-      ShoulderPeaksFilterModule.class, //
-      ScanSignalRemovalModule.class, //
-      ScanFiltersModule.class, //
-      ScanSmoothingModule.class, //
-      MaldiPseudoFileGeneratorModule.class, //
-      DenormalizeScansMultiplyByInjectTimeModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAFILTERING}
+           */
+          AlignScansModule.class, //
+          CropFilterModule.class, //
+          ShoulderPeaksFilterModule.class, //
+          ScanSignalRemovalModule.class, //
+          ScanFiltersModule.class, //
+          ScanSmoothingModule.class, //
+          MaldiPseudoFileGeneratorModule.class, //
+          DenormalizeScansMultiplyByInjectTimeModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
-       * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAEXPORT}
-       */
-      ExtractScansModule.class, //
-      ExportScansFromRawFilesModule.class, //
-      MzMLExportModule.class, //
-      MSnTreeExportModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAEXPORT}
+           */
+          ExtractScansModule.class, //
+          ExportScansFromRawFilesModule.class, //
+          MzMLExportModule.class, //
+          MSnTreeExportModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
-       * {@link io.github.mzmine.modules.MZmineModuleCategory#EIC_BUILDING}
-       */
-      ModularADAPChromatogramBuilderModule.class, //
-      MsnTreeFeatureDetectionModule.class, //
-      GridMassModule.class, //
-      IonMobilityTraceBuilderModule.class, //
-      RecursiveIMSBuilderModule.class, //
-      ImageBuilderModule.class, //
-      MsnFeatureDetectionModule.class, //
-      TargetedFeatureDetectionModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#EIC_BUILDING}
+           */
+          ModularADAPChromatogramBuilderModule.class, //
+          MsnTreeFeatureDetectionModule.class, //
+          GridMassModule.class, //
+          IonMobilityTraceBuilderModule.class, //
+          RecursiveIMSBuilderModule.class, //
+          ImageBuilderModule.class, //
+          MsnFeatureDetectionModule.class, //
+          TargetedFeatureDetectionModule.class, //
 //      ADAPHierarchicalClusteringModule.class, //
 //      ADAPMultivariateCurveResolutionModule.class, //
-      SpectralDeconvolutionGCModule.class, //
-      ADAP3DModule.class, //
-      ImsExpanderModule.class, //
-      MaldiSpotFeatureDetectionModule.class, //
-      BaselineCorrectionModule.class, //
+          SpectralDeconvolutionGCModule.class, //
+          ADAP3DModule.class, //
+          ImsExpanderModule.class, //
+          MaldiSpotFeatureDetectionModule.class, //
+          BaselineCorrectionModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
-       * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_RESOLVING}
-       */
-      SmoothingModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_RESOLVING}
+           */
+          SmoothingModule.class, //
 //      AdapResolverModule.class, //
-      MinimumSearchFeatureResolverModule.class, //
-      NoiseAmplitudeResolverModule.class, //
-      SavitzkyGolayResolverModule.class, //
+          MinimumSearchFeatureResolverModule.class, //
+          NoiseAmplitudeResolverModule.class, //
+          SavitzkyGolayResolverModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
-       * {@link io.github.mzmine.modules.MZmineModuleCategory#ALIGNMENT}
-       */
-      JoinAlignerModule.class, //
-      GCAlignerModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#ALIGNMENT}
+           */
+          JoinAlignerModule.class, //
+          GCAlignerModule.class, //
 //      ADAP3AlignerModule.class, //
 //      HierarAlignerGcModule.class, // not MIT compatible license
-      PathAlignerModule.class, //
-      RansacAlignerModule.class, //
+          PathAlignerModule.class, //
+          RansacAlignerModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
-       * {@link io.github.mzmine.modules.MZmineModuleCategory#GAPFILLING}
-       */
-      PeakFinderModule.class, //
-      MultiThreadPeakFinderModule.class, //
-      SameRangeGapFillerModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#GAPFILLING}
+           */
+          PeakFinderModule.class, //
+          MultiThreadPeakFinderModule.class, //
+          SameRangeGapFillerModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_FILTERING}
-       */
-      FeatureFilterModule.class, //
-      RowsFilterModule.class, //
-      IsotopeGrouperModule.class, //
-      IsotopeFinderModule.class, //
-      FeatureListBlankSubtractionModule.class, //
-      DuplicateFilterModule.class, //
-      MobilityMzRegionExtractionModule.class, //
-      NeutralLossFilterModule.class, //
-      PeakComparisonRowFilterModule.class, //
-      RegionExtractionModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_FILTERING}
+           */
+          FeatureFilterModule.class, //
+          RowsFilterModule.class, //
+          IsotopeGrouperModule.class, //
+          IsotopeFinderModule.class, //
+          FeatureListBlankSubtractionModule.class, //
+          DuplicateFilterModule.class, //
+          MobilityMzRegionExtractionModule.class, //
+          NeutralLossFilterModule.class, //
+          PeakComparisonRowFilterModule.class, //
+          RegionExtractionModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}
-       */
-      ClearFeatureAnnotationsModule.class, //
-      LinearNormalizerModule.class, //
-      RTCorrectionModule.class, //
-      StandardCompoundNormalizerModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}
+           */
+          ClearFeatureAnnotationsModule.class, //
+          LinearNormalizerModule.class, //
+          RTCorrectionModule.class, //
+          StandardCompoundNormalizerModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}
-       */
-      CorrelateGroupingModule.class, //
-      ImageCorrelateGroupingModule.class, //
-      MainSpectralNetworkingModule.class, //
-      AnnotateIsomersModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}
+           */
+          CorrelateGroupingModule.class, //
+          ImageCorrelateGroupingModule.class, //
+          MainSpectralNetworkingModule.class, //
+          AnnotateIsomersModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory#ION_IDENTITY_NETWORKS}
-       */
-      IonNetworkingModule.class, //
-      AddIonNetworkingModule.class, //
-      IonNetworkRefinementModule.class, //
-      IonNetworkMSMSCheckModule.class, //
-      FormulaPredictionIonNetworkModule.class, //
-      CreateAvgNetworkFormulasModule.class, //
-      IonNetRelationsModule.class, //
-      OnlineLcReactivityModule.class, //
-      ClearIonIdentitiesModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#ION_IDENTITY_NETWORKS}
+           */
+          IonNetworkingModule.class, //
+          AddIonNetworkingModule.class, //
+          IonNetworkRefinementModule.class, //
+          IonNetworkMSMSCheckModule.class, //
+          FormulaPredictionIonNetworkModule.class, //
+          CreateAvgNetworkFormulasModule.class, //
+          IonNetRelationsModule.class, //
+          OnlineLcReactivityModule.class, //
+          ClearIonIdentitiesModule.class, //
 
       /*
         {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_ANNOTATION}
        */
-      CCSCalcModule.class, //
-      ExternalCCSCalibrationModule.class, //
-      ReferenceCCSCalibrationModule.class, //
-      CliqueMSModule.class, //
-      GroupMS2Module.class, //
-      GroupedMs2RefinementModule.class, //
-      ImsMs2RefinementModule.class, //
-      PrecursorPurityCheckerModule.class, //
-      IntraFeatureRowMs2SimilarityModule.class, //
-      DiaMs2CorrModule.class, //
-      MaldiGroupMS2Module.class, //
-      FormulaPredictionFeatureListModule.class, //
-      IsotopePeakScannerModule.class, //
-      LipidAnnotationModule.class, //
-      LocalCSVDatabaseSearchModule.class, //
-      Ms2SearchModule.class, //
-      NistMsSearchModule.class, //
-      PrecursorDBSearchModule.class, //
-      SpectralLibrarySearchModule.class, //
-      BioTransformerModule.class, //
+          CCSCalcModule.class, //
+          ExternalCCSCalibrationModule.class, //
+          ReferenceCCSCalibrationModule.class, //
+          CliqueMSModule.class, //
+          GroupMS2Module.class, //
+          GroupedMs2RefinementModule.class, //
+          ImsMs2RefinementModule.class, //
+          PrecursorPurityCheckerModule.class, //
+          IntraFeatureRowMs2SimilarityModule.class, //
+          DiaMs2CorrModule.class, //
+          MaldiGroupMS2Module.class, //
+          FormulaPredictionFeatureListModule.class, //
+          IsotopePeakScannerModule.class, //
+          LipidAnnotationModule.class, //
+          LocalCSVDatabaseSearchModule.class, //
+          Ms2SearchModule.class, //
+          NistMsSearchModule.class, //
+          PrecursorDBSearchModule.class, //
+          SpectralLibrarySearchModule.class, //
+          BioTransformerModule.class, //
 
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_IO}
-       */
-      GnpsFbmnExportAndSubmitModule.class, //
-      GnpsGcExportAndSubmitModule.class, //
-      ExportCorrAnnotationModule.class, //
-      ImportFeatureNetworksSimpleModule.class, //
-      NetworkGraphMlExportModule.class, //
-      MetaboAnalystExportModule.class, //
-      AdapMgfExportModule.class, //
-      GNPSResultsImportModule.class, //
-      AdapMspExportModule.class, //
-      MZTabmExportModule.class, //
-      NetCDFExportModule.class, //
-      SiriusExportModule.class, //
-      MZTabmImportModule.class, //
-      CSVExportModularModule.class, //
-      LegacyCSVExportModule.class, //
-      CompoundAnnotationsCSVExportModule.class, //
-      LibraryAnalysisCSVExportModule.class, //
-      LibraryBatchGenerationModule.class, //
-      GNPSLibraryBatchExportModule.class, //
-      FeatureMLExportModularModule.class, //
-      MsMsQualityExportModule.class, //
-      ExportAllIdsGraphicalModule.class, //
-      CcsBaseExportModule.class, //
+          /*
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_IO}
+           */
+          GnpsFbmnExportAndSubmitModule.class, //
+          GnpsGcExportAndSubmitModule.class, //
+          ExportCorrAnnotationModule.class, //
+          ImportFeatureNetworksSimpleModule.class, //
+          NetworkGraphMlExportModule.class, //
+          MetaboAnalystExportModule.class, //
+          AdapMgfExportModule.class, //
+          GNPSResultsImportModule.class, //
+          AdapMspExportModule.class, //
+          MZTabmExportModule.class, //
+          NetCDFExportModule.class, //
+          SiriusExportModule.class, //
+          MZTabmImportModule.class, //
+          CSVExportModularModule.class, //
+          LegacyCSVExportModule.class, //
+          CompoundAnnotationsCSVExportModule.class, //
+          LibraryAnalysisCSVExportModule.class, //
+          LibraryBatchGenerationModule.class, //
+          GNPSLibraryBatchExportModule.class, //
+          FeatureMLExportModularModule.class, //
+          MsMsQualityExportModule.class, //
+          ExportAllIdsGraphicalModule.class, //
+          CcsBaseExportModule.class, //
 
-      /*
-       * needed in batch mode?
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#VISUALIZATION}
-       */
+          /*
+           * needed in batch mode?
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#VISUALIZATION}
+           */
 
-      /*
-       * needed in batch mode?
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#OTHER}
-       */
-      TimsTOFMaldiAcquisitionModule.class, //
-      SimsefImagingSchedulerModule.class, //
-
-      /*
-       * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#OTHER_DATA_PROCESSING}
-       */
-      TrimTracesModule.class, //
-      OtherDataBaselineCorrectionModule.class, //
-      ShiftTracesModule.class, //
-      BinTracesModule.class, //
-      OtherDataResolverModule.class, //
-      MsOtherCorrelationModule.class //
-  );
+          /*
+           * needed in batch mode?
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#OTHER}
+           */
+          TimsTOFMaldiAcquisitionModule.class, //
+          SimsefImagingSchedulerModule.class //
+      ));
 
 
   /**
    * Those modules are not available from batch mode but from quick start. Change against automatic
    * way?
    */
-  public static final List<Class<? extends MZmineRunnableModule>> TOOLS_AND_VISUALIZERS = List.of(
-      // tools
-      IsotopePatternPreviewModule.class, //
-      QualityParametersModule.class, //
-      LibraryAnalysisCSVExportModule.class, //
-      MsMsQualityExportModule.class, //
-      BatchWizardModule.class, //
+  public static final List<Class<? extends MZmineRunnableModule>> TOOLS_AND_VISUALIZERS = new ArrayList<>(
+      List.of(
+          // tools
+          IsotopePatternPreviewModule.class, //
+          QualityParametersModule.class, //
+          LibraryAnalysisCSVExportModule.class, //
+          MsMsQualityExportModule.class, //
+          BatchWizardModule.class, //
 
-      // visualizers
-      SpectraVisualizerModule.class, //
-      FrameVisualizerModule.class, //
-      ChromatogramVisualizerModule.class, //
-      TwoDVisualizerModule.class, //
-      Fx3DVisualizerModule.class, //
-      MassvoltammogramFromFileModule.class, //
-      MassvoltammogramFromFeatureListModule.class, //
-      MSnTreeVisualizerModule.class, //
-      MsMsVisualizerModule.class, //
-      FeatureNetworkOverviewModule.class, //
-      CorrelatedFeaturesMzHistogramModule.class, //
-      FeatureCorrelationHistogramModule.class, //
-      RawDataSummaryModule.class, //
-      ScanHistogramModule.class, //
-      FeatureHistogramPlotModule.class, //
-      InjectTimeAnalysisModule.class, //
-      ScatterPlotVisualizerModule.class, //
-      IntensityPlotModule.class, //
-      KendrickMassPlotModule.class, //
-      VanKrevelenDiagramModule.class, //
-      EquivalentCarbonNumberModule.class, //
-      LipidAnnotationSummaryModule.class, //
-      MultidetectorVisualizerModule.class, //
-      CorrelationDashboardModule.class, //
+          // visualizers
+          SpectraVisualizerModule.class, //
+          FrameVisualizerModule.class, //
+          ChromatogramVisualizerModule.class, //
+          TwoDVisualizerModule.class, //
+          Fx3DVisualizerModule.class, //
+          MassvoltammogramFromFileModule.class, //
+          MassvoltammogramFromFeatureListModule.class, //
+          MSnTreeVisualizerModule.class, //
+          MsMsVisualizerModule.class, //
+          FeatureNetworkOverviewModule.class, //
+          CorrelatedFeaturesMzHistogramModule.class, //
+          FeatureCorrelationHistogramModule.class, //
+          RawDataSummaryModule.class, //
+          ScanHistogramModule.class, //
+          FeatureHistogramPlotModule.class, //
+          InjectTimeAnalysisModule.class, //
+          ScatterPlotVisualizerModule.class, //
+          IntensityPlotModule.class, //
+          KendrickMassPlotModule.class, //
+          VanKrevelenDiagramModule.class, //
+          EquivalentCarbonNumberModule.class, //
+          LipidAnnotationSummaryModule.class, //
 
-      // stats
-      StatsDasboardModule.class, //
-      PCAModule.class, //
-      VolcanoPlotModule.class //
+          // stats
+          StatsDasboardModule.class, //
+          PCAModule.class, //
+          VolcanoPlotModule.class //
 
 //      , CodingDemoModule.class // only test purpose
-  );
+      ));
 
 
   private BatchModeModulesList() {

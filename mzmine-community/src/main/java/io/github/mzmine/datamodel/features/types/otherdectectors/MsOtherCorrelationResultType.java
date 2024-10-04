@@ -26,7 +26,7 @@
 package io.github.mzmine.datamodel.features.types.otherdectectors;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import io.github.mzmine.modules.dataprocessing.otherdata.align_msother.MsOtherCorrelationResult;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import org.jetbrains.annotations.NotNull;
 
 public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelationResult> {

@@ -506,9 +506,6 @@
         userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
       <MenuItem onAction="#runModule" text="Image viewer"
         userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
-      <MenuItem onAction="#runModule" text="Multi detector visualizer"
-        userData="io.github.mzmine.modules.visualization.otherdetectors.multidetector.MultidetectorVisualizerModule"/>
-
 
       <SeparatorMenuItem/>
 
@@ -612,21 +609,6 @@
           control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
-  </Menu>
-
-  <Menu text="Other data">
-    <MenuItem text="Trim traces" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.otherdata.filt_trimtraces.TrimTracesModule"/>
-    <MenuItem text="Baseline correction" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.otherdata.featdet_baseline.OtherDataBaselineCorrectionModule"/>
-    <MenuItem text="Bin traces" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.otherdata.featdet_bin.BinTracesModule"/>
-    <MenuItem text="Shift traces" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.otherdata.filt_shifttraces.ShiftTracesModule"/>
-    <MenuItem text="Resolving" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.otherdata.featdet_resolve.OtherDataResolverModule"/>
-    <MenuItem text="Correlate to MS" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.otherdata.align_msother.MsOtherCorrelationModule"/>
   </Menu>
 
   <!-- Window control -->
