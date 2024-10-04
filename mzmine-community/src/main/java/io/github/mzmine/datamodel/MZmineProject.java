@@ -33,6 +33,7 @@ import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
 import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Hashtable;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -128,14 +129,16 @@ public interface MZmineProject {
    *
    * @return copy of the current feature lists
    */
-  @NotNull List<FeatureList> getCurrentFeatureLists();
+  @NotNull
+  List<FeatureList> getCurrentFeatureLists();
 
   /**
    * Unmodifiable copy of current list
    *
    * @return copy of current raw data files
    */
-  @NotNull List<RawDataFile> getCurrentRawDataFiles();
+  @NotNull
+  List<RawDataFile> getCurrentRawDataFiles();
 
   void addProjectListener(ProjectChangeListener newListener);
 
@@ -159,9 +162,11 @@ public interface MZmineProject {
    * @param name the exact name of the feature list
    * @return the last feature list with that name or null
    */
-  @Nullable FeatureList getFeatureList(String name);
+  @Nullable
+  FeatureList getFeatureList(String name);
 
-  @Nullable Boolean isStandalone();
+  @Nullable
+  Boolean isStandalone();
 
   void setStandalone(Boolean standalone);
 
@@ -189,7 +194,8 @@ public interface MZmineProject {
    *
    * @return current list of preloaded libraries
    */
-  @NotNull List<SpectralLibrary> getCurrentSpectralLibraries();
+  @NotNull
+  List<SpectralLibrary> getCurrentSpectralLibraries();
 
   /**
    * Remove preloaded spectral library
@@ -219,7 +225,8 @@ public interface MZmineProject {
 
   int getNumberOfDataFiles();
 
-  @NotNull MetadataTable getProjectMetadata();
+  @NotNull
+  MetadataTable getProjectMetadata();
 
   /**
    * find data file by name. Acquires read lock on files for synchronization.
@@ -227,5 +234,19 @@ public interface MZmineProject {
    * @param name name of the file, compared with ignore case
    * @return the RawDataFile or null if the name was null or no such file exists
    */
-  @Nullable RawDataFile getDataFileByName(@Nullable String name);
+  @Nullable
+  RawDataFile getDataFileByName(@Nullable String name);
+
+  /**
+   * @return The relative path of the file/folder with regard to the project file. Null if the path
+   * or the project file are null.
+   */
+  @Nullable
+  Path getRelativePath(@Nullable Path path);
+
+  /**
+   * @return A
+   */
+  @Nullable
+  File resolveRelativePathToFile(@Nullable String path);
 }

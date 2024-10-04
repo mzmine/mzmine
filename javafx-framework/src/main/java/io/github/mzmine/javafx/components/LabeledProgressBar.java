@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,6 +45,10 @@ public class LabeledProgressBar extends StackPane {
     progressBar.setMaxWidth(Double.MAX_VALUE);
     label = new Label("");
     label.setMouseTransparent(true);
+
+    // if invisible - change layout and do not reserve space
+    managedProperty().bind(visibleProperty());
+    setMinWidth(80);
 
     this.getChildren().addAll();
 
