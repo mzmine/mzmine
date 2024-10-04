@@ -308,7 +308,7 @@
       <MenuItem onAction="#runModule" text="Assign MALDI MS2 to features"
         userData="io.github.mzmine.modules.dataprocessing.filter_maldigroupms2.MaldiGroupMS2Module"/>
       <MenuItem text="Fragments analysis" onAction="#runModule"
-                userData="io.github.mzmine.modules.dataprocessing.process_signalsanalysis.SharedMs1Ms2FragmentsAnalysisModule"/>
+                userData="io.github.mzmine.modules.dataprocessing.process_signalsanalysis.CommonMs1Ms2FragmentsAnalysisModule"/>
       <MenuItem onAction="#runModule" text="Refine IMS-MS2 spectra"
         userData="io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement.ImsMs2RefinementModule"/>
       <MenuItem onAction="#runModule" text="Refine fragmentation scans of features"
