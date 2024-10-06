@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.types.analysis.IsLikelyISFragmentType
 import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonIntensityPercentAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonSignalsPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms1IsotopesType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1SignalsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2CommonIntensityPercentAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2CommonIntensityPercentType;
@@ -54,7 +55,8 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
                                               double ms1FragmentedLikelyISFPercent,
                                               int commonSignals, int commonSignalsAllPrecursors,
                                               int ms1Signals, int ms2SignalsAllPrecursors,
-                                              int ms1Fragmented, double ms1FragmentedPercent,
+                                              int ms1Isotopes, int ms1Fragmented,
+                                              double ms1FragmentedPercent,
                                               double ms1IntensityFragmentedPercent,
                                               double ms1CommonPercent,
                                               double ms1IntensityCommonPercentAllPrecursors,
@@ -63,17 +65,6 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
                                               double ms2IntensityCommonPercentAllPrecursors,
                                               double ms2IntensityCommonPercent) implements
     ModularDataRecord {
-
-  // Constructor without isLikelyISF
-//  public InSourceFragmentAnalysisResults(double ms1FragmentedLikelyISFPercent, int commonSignals,
-//      int ms1Count, int ms1Fragmented, double ms1FragmentedPercent,
-//      double ms1IntensityFragmentedPercent, double ms1CommonPercent,
-//      double ms1IntensityCommonPercent, int ms2Count, double ms2CommonPercent,
-//      double ms2IntensityCommonPercent) {
-//    this(false, commonSignals, ms1FragmentedLikelyISFPercent, ms1Count, , ms1Fragmented,
-//        ms1FragmentedPercent, ms1IntensityFragmentedPercent, ms1CommonPercent,
-//        ms1IntensityCommonPercent, ms2Count, ms2CommonPercent, ms2IntensityCommonPercent);
-//  }
 
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
@@ -84,6 +75,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
         CommonSignalsAllPrecursorsType.class, //
         Ms1SignalsType.class, //
         Ms2SignalsAllPrecursorsType.class, //
+        Ms1IsotopesType.class, //
         Ms2SignalsType.class, //
         Ms1CommonSignalsPercentType.class, //
         Ms2CommonSignalsPercentType.class, //
@@ -106,6 +98,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
         requireNonNullElse(values.get(CommonSignalsAllPrecursorsType.class), -1),
         requireNonNullElse(values.get(Ms1SignalsType.class), -1),
         requireNonNullElse(values.get(Ms2SignalsAllPrecursorsType.class), -1),
+        requireNonNullElse(values.get(Ms1IsotopesType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(PrecursorIonsPercentType.class), -1f),
@@ -127,6 +120,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
         this.commonSignalsAllPrecursors, //
         this.ms1Signals, //
         this.ms2SignalsAllPrecursors, //
+        this.ms1Isotopes, //
         this.ms1Fragmented, //
         this.ms1FragmentedPercent, //
         this.ms1IntensityFragmentedPercent, //
@@ -154,6 +148,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
       case PrecursorIonsLikelyISFragmentInMs1PercentType _ -> ms1FragmentedLikelyISFPercent;
       case Ms1SignalsType _ -> ms1Signals;
       case Ms2SignalsAllPrecursorsType _ -> ms2SignalsAllPrecursors;
+      case Ms1IsotopesType _ -> ms1Isotopes;
       case PrecursorIonsIntensityPercentType _ -> ms1IntensityFragmentedPercent;
       case PrecursorIonsType _ -> ms1Fragmented;
       case PrecursorIonsPercentType _ -> ms1FragmentedPercent;

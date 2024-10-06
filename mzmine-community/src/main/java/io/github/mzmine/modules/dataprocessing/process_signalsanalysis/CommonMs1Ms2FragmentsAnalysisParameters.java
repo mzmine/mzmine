@@ -50,18 +50,18 @@ public class CommonMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet 
           + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
       ScanDataType.values(), ScanDataType.MASS_LIST);
 
-  public static final BooleanParameter considerAdductsAndCo = new BooleanParameter(
-      "Consider adducts and co NOT IMPLEMENTED",
-      "Consider adducts, multimers, and multicharged ions when counting.", false);
+  public static final BooleanParameter removeAdductsAndCo = new BooleanParameter(
+      "Remove adducts and co NOT IMPLEMENTED",
+      "Remove adducts, multimers, and multicharged ions when counting.", true);
 
-  public static final BooleanParameter considerIsotopes = new BooleanParameter(
-      "Consider isotopes NOT IMPLEMENTED", "Consider isotopes when counting.", false);
+  public static final BooleanParameter removeIsotopes = new BooleanParameter(
+      "Remove isotopes NOT IMPLEMENTED", "Remove isotopes when counting.", true);
 
   public CommonMs1Ms2FragmentsAnalysisParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(featureLists, scanDataType, tolerance, considerAdductsAndCo, considerIsotopes);
+    super(featureLists, scanDataType, tolerance, removeAdductsAndCo, removeIsotopes);
   }
 
 }

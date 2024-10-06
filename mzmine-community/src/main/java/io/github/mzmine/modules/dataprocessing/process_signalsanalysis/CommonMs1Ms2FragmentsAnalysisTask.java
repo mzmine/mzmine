@@ -46,12 +46,15 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.IsotopesUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -61,6 +64,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.Element;
 
 /**
  * Analyzes MS1 and MS2 signals from feature lists to compare MS1 signals with MS2 fragment scans.
@@ -72,8 +76,8 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
   private final List<FeatureList> featureLists;
   private final boolean useMassList;
   private final MZTolerance tolerance;
-  private final Boolean considerAdductsAndCo;
-  private final Boolean considerIsotopes;
+  private final Boolean removeAdductsAndCo;
+  private final Boolean removeIsotopes;
 
   /**
    * Constructor to initialize the task with necessary parameters.
@@ -95,10 +99,10 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         == ScanDataType.MASS_LIST;
     this.tolerance = parameters.getValue(CommonMs1Ms2FragmentsAnalysisParameters.tolerance);
     // TODO not implemented yet
-    this.considerAdductsAndCo = parameters.getValue(
-        CommonMs1Ms2FragmentsAnalysisParameters.considerAdductsAndCo);
-    this.considerIsotopes = parameters.getValue(
-        CommonMs1Ms2FragmentsAnalysisParameters.considerIsotopes);
+    this.removeAdductsAndCo = parameters.getValue(
+        CommonMs1Ms2FragmentsAnalysisParameters.removeAdductsAndCo);
+    this.removeIsotopes = parameters.getValue(
+        CommonMs1Ms2FragmentsAnalysisParameters.removeIsotopes);
   }
 
   private static double calcSumIntensity(List<UniqueSignal> signals) {
@@ -142,15 +146,66 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         allPrecursorsMs2Scans.addAll(
             categorizedScans.getOrDefault("ms2ScansAllPrecursors", new ArrayList<>()));
 
-        SignalsAnalysisResult analysisResult = analyzeSignals(ms1Scans, ms2Scans,
-            allPrecursorsMs2Scans, tolerance, row.getAverageMZ());
-        row.set(InSourceFragmentsAnalysisType.class, analysisResult.results);
-
       } catch (Exception ex) {
-        logger.log(Level.WARNING, "Error processing feature: " + ex.getMessage(), ex);
+        logger.log(Level.WARNING, "Error categorizing scans for feature: " + ex.getMessage(), ex);
       }
     }
+
+    try {
+      List<DataPoint> isotopeList = processIsotopes(row);
+
+      SignalsAnalysisResult analysisResult = analyzeSignals(ms1Scans, ms2Scans,
+          allPrecursorsMs2Scans, tolerance, row.getAverageMZ(), isotopeList);
+      row.set(InSourceFragmentsAnalysisType.class, analysisResult.results);
+
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Error processing row: " + ex.getMessage(), ex);
+    }
     return new GroupedSignalScans(row, ms1Scans, ms2Scans, allPrecursorsMs2Scans);
+  }
+
+  private List<DataPoint> processIsotopes(FeatureListRow row) {
+    Set<DataPoint> isotopeSet = new HashSet<>();
+    int isotopeMaxCharge = 2;
+
+    DoubleArrayList[] isoMzDiffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(
+        Arrays.asList(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
+            new Element("S")), isotopeMaxCharge);
+
+    double[] maxIsoMzDiff = new double[isotopeMaxCharge];
+    for (int i = 0; i < isotopeMaxCharge; i++) {
+      for (double diff : isoMzDiffsForCharge[i]) {
+        maxIsoMzDiff[i] = Math.max(maxIsoMzDiff[i], diff);
+      }
+      maxIsoMzDiff[i] += 10 * tolerance.getMzToleranceForMass(maxIsoMzDiff[i]);
+    }
+
+    for (Feature feature : row.getFeatures()) {
+      Scan representativeScan = feature.getRepresentativeScan();
+      if (representativeScan != null && representativeScan.getMSLevel() == 1) {
+        List<DataPoint> dataPoints = Arrays.asList(
+            ScanUtils.extractDataPoints(representativeScan, useMassList));
+
+        if (!dataPoints.isEmpty()) {
+          for (int i = 0; i < isotopeMaxCharge; i++) {
+            final DoubleArrayList currentChargeDiffs = isoMzDiffsForCharge[i];
+            final double currentMaxDiff = maxIsoMzDiff[i];
+
+            for (DataPoint dataPoint : dataPoints) {
+              List<DataPoint> foundIsotopes = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
+                  currentMaxDiff, tolerance, representativeScan, dataPoint);
+
+              double threshold = dataPoint.getMZ() + 0.2;
+              foundIsotopes.removeIf(found -> found.getMZ() <= threshold);
+
+              isotopeSet.addAll(foundIsotopes);
+            }
+          }
+        }
+      }
+    }
+
+    return new ArrayList<>(isotopeSet);
   }
 
   /**
@@ -210,16 +265,20 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
    * @param allPrecursorsMs2Scans The MS2 scans from all precursors.
    * @param tolerance             The MZ tolerance.
    * @param precursorMz           The precursor MZ value.
+   * @param isotopeList           The isotopes list.
    * @return The analysis result.
    */
   private SignalsAnalysisResult analyzeSignals(List<Scan> ms1Scans, List<Scan> ms2Scans,
-      List<Scan> allPrecursorsMs2Scans, MZTolerance tolerance, Double precursorMz) {
+      List<Scan> allPrecursorsMs2Scans, MZTolerance tolerance, Double precursorMz,
+      List<DataPoint> isotopeList) {
 
     // Step 1: Analyze MS1 signals
-    // require signal to be in 90% of MS1 scans
-    int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);
+    int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);  // Require signal in 90% of scans
     var ms1SignalRangeMap = filterMap(collectUniqueSignals(ms1Scans, tolerance), minMs1Scans);
     List<UniqueSignal> ms1Signals = new ArrayList<>(ms1SignalRangeMap.asMapOfRanges().values());
+    // TODO THIS IS NOT WORKING RIGHT NOW
+    var isotopesSignalsMap = collectSignalsFromDataPoints(isotopeList, tolerance);
+    List<UniqueSignal> ms1SignalsIsotopes = findMatches(ms1Signals, isotopesSignalsMap);
 
     // Step 2a: Analyze MS2 signals for all precursors
     var ms2SignalRangeMapAllPrecursors = collectUniqueSignals(allPrecursorsMs2Scans, tolerance);
@@ -258,6 +317,7 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         ms1IntensityCommonAllPrecursors / ms1IntensityTotal;
 
     int ms1SignalsTotal = ms1Signals.size();
+    int ms1SignalsIsotopesTotal = ms1SignalsIsotopes.size();
     int ms1SignalsFragmented = findUniquePrecursors(ms1SignalRangeMap,
         allPrecursorsMs2Scans).size();
     double ms1SignalsFragmentedPercent = (double) ms1SignalsFragmented / ms1SignalsTotal;
@@ -292,12 +352,18 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     // Step 6: Create results object
     InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(isLikelyISF,
         ms1SignalsFragmentedLikelyISFPercent, signalsCommon, signalsCommonAllPrecursors,
-        ms1SignalsTotal, ms2SignalsAllPrecursorsTotal, ms1SignalsFragmented,
-        ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent, ms1SignalsCommonPercent,
-        ms1IntensityCommonPercentAllPrecursors, ms1IntensityCommonPercent, ms2SignalsTotal,
-        ms2SignalsCommonPercent, ms2IntensityCommonPercentAllPrecursors, ms2IntensityCommonPercent);
+        ms1SignalsTotal, ms1SignalsIsotopesTotal, ms2SignalsAllPrecursorsTotal,
+        ms1SignalsFragmented, ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent,
+        ms1SignalsCommonPercent, ms1IntensityCommonPercentAllPrecursors, ms1IntensityCommonPercent,
+        ms2SignalsTotal, ms2SignalsCommonPercent, ms2IntensityCommonPercentAllPrecursors,
+        ms2IntensityCommonPercent);
 
     return new SignalsAnalysisResult(results);
+  }
+
+  private boolean isWithinTolerance(DataPoint dp1, DataPoint dp2, MZTolerance tolerance) {
+    double mzTolerance = tolerance.getMzTolerance();
+    return Math.abs(dp1.getMZ() - dp2.getMZ()) <= mzTolerance;
   }
 
   /**
@@ -342,25 +408,54 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
   private RangeMap<Double, UniqueSignal> collectUniqueSignals(List<Scan> scans,
       MZTolerance tolerance) {
     RangeMap<Double, UniqueSignal> unique = TreeRangeMap.create();
+
     for (Scan scan : scans) {
-      DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
-      if (scan.getMSLevel() > 1) {
-        // TODO arbitrarily removing 1 around precursor for now
-        dataPoints = removePrecursorMz(dataPoints, scan.getPrecursorMz(), 1);
-      }
-      // start with most abundant signals first as they are usually more important
-      Arrays.stream(dataPoints).sorted(DataPointSorter.DEFAULT_INTENSITY).forEach(dp -> {
-        var uniqueSignal = unique.get(dp.getMZ());
-        if (uniqueSignal == null) {
-          uniqueSignal = new UniqueSignal(dp, scan);
-          unique.put(tolerance.getToleranceRange(dp.getMZ()), uniqueSignal);
-        } else {
-          uniqueSignal.add(dp, scan);
-        }
-      });
+      collectSignalsFromScan(scan, unique, tolerance);
     }
 
     return unique;
+  }
+
+  /**
+   * Collects signals from a DataPoint list and updates a newly created RangeMap.
+   *
+   * @param dataPoints The list of DataPoints.
+   * @param tolerance  The MZ tolerance.
+   * @return A RangeMap populated with unique signals.
+   */
+  private RangeMap<Double, UniqueSignal> collectSignalsFromDataPoints(List<DataPoint> dataPoints,
+      MZTolerance tolerance) {
+    RangeMap<Double, UniqueSignal> unique = TreeRangeMap.create();
+
+    dataPoints.stream().sorted(DataPointSorter.DEFAULT_INTENSITY).forEach(dp -> {
+      var uniqueSignal = unique.get(dp.getMZ());
+      if (uniqueSignal == null) {
+        uniqueSignal = new UniqueSignal(dp, null);
+        unique.put(tolerance.getToleranceRange(dp.getMZ()), uniqueSignal);
+      } else {
+        uniqueSignal.add(dp, null);
+      }
+    });
+
+    return unique;
+  }
+
+  /**
+   * Collects signals from a single scan and adds them to the unique signal map.
+   *
+   * @param scan      The scan to extract signals from.
+   * @param unique    The RangeMap of unique signals to populate.
+   * @param tolerance The MZ tolerance.
+   */
+  private void collectSignalsFromScan(Scan scan, RangeMap<Double, UniqueSignal> unique,
+      MZTolerance tolerance) {
+    DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
+    if (scan.getMSLevel() > 1) {
+      dataPoints = removePrecursorMz(dataPoints, scan.getPrecursorMz(), 1);
+    }
+    RangeMap<Double, UniqueSignal> scanUniqueSignals = collectSignalsFromDataPoints(Arrays.asList(dataPoints),
+        tolerance);
+    scanUniqueSignals.asMapOfRanges().forEach(unique::put);
   }
 
   /**
