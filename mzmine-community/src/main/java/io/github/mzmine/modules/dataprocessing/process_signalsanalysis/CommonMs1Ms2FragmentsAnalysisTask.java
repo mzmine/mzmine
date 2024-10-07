@@ -276,7 +276,6 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);  // Require signal in 90% of scans
     var ms1SignalRangeMap = filterMap(collectUniqueSignals(ms1Scans, tolerance), minMs1Scans);
     List<UniqueSignal> ms1Signals = new ArrayList<>(ms1SignalRangeMap.asMapOfRanges().values());
-    // TODO THIS IS NOT WORKING RIGHT NOW
     var isotopesSignalsMap = collectSignalsFromDataPoints(isotopeList, tolerance);
     List<UniqueSignal> ms1SignalsIsotopes = findMatches(ms1Signals, isotopesSignalsMap);
 
@@ -352,7 +351,7 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     // Step 6: Create results object
     InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(isLikelyISF,
         ms1SignalsFragmentedLikelyISFPercent, signalsCommon, signalsCommonAllPrecursors,
-        ms1SignalsTotal, ms1SignalsIsotopesTotal, ms2SignalsAllPrecursorsTotal,
+        ms1SignalsTotal, ms2SignalsAllPrecursorsTotal, ms1SignalsIsotopesTotal,
         ms1SignalsFragmented, ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent,
         ms1SignalsCommonPercent, ms1IntensityCommonPercentAllPrecursors, ms1IntensityCommonPercent,
         ms2SignalsTotal, ms2SignalsCommonPercent, ms2IntensityCommonPercentAllPrecursors,
