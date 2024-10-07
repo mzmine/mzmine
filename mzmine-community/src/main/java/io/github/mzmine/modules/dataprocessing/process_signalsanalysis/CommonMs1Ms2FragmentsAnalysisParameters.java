@@ -42,7 +42,11 @@ public class CommonMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet 
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final MZToleranceParameter tolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter toleranceMs1 = new MZToleranceParameter("ms1 tolerance",
+      "Tolerance for MS1", 0.005, 10);
+
+  public static final MZToleranceParameter toleranceMs2 = new MZToleranceParameter("ms2 tolerance",
+      "Tolerance for MS2", 0.01, 20);
 
   public static final ComboParameter<ScanDataType> scanDataType = new ComboParameter<>(
       "MS data selection",
@@ -61,7 +65,8 @@ public class CommonMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet 
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(featureLists, scanDataType, tolerance, removeAdductsAndCo, removeIsotopes);
+    super(featureLists, scanDataType, toleranceMs1, toleranceMs2, removeAdductsAndCo,
+        removeIsotopes);
   }
 
 }
