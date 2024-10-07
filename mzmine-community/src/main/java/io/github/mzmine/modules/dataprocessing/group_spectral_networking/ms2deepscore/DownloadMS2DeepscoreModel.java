@@ -52,14 +52,14 @@ public class DownloadMS2DeepscoreModel {
   }
 
   public static File downloadSettings(File saveDirectory) {
-    String fileURL = "https://zenodo.org/records/12628369/files/settings.json?download=1";
+    String fileURL = "https://zenodo.org/records/12628368/files/settings.json?download=1";
     File settingsFile = new File(saveDirectory, "ms2deepscore_model_settings.json");
     downloadFile(fileURL, settingsFile);
     return settingsFile;
   }
 
   public static File downloadModel(File saveDirectory) {
-    String fileURL = "https://zenodo.org/records/12628369/files/ms2deepscore_model_java.pt?download=1";
+    String fileURL = "https://zenodo.org/records/12628368/files/ms2deepscore_model_java.pt?download=1";
     File modelFile = new File(saveDirectory, "ms2deepscore_model.pt");
     downloadFile(fileURL, modelFile);
     return modelFile;
