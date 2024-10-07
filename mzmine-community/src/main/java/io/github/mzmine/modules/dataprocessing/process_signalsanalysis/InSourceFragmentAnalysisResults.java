@@ -37,6 +37,9 @@ import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonIntensityPerc
 import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonSignalsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1IsotopesType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1SignalsType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms1UnexplainedIntensityPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms1UnexplainedPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms1UnexplainedType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2CommonIntensityPercentAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2CommonSignalsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsAllPrecursorsType;
@@ -49,12 +52,14 @@ import org.jetbrains.annotations.NotNull;
 public record InSourceFragmentAnalysisResults(int commonSignalsAllPrecursors, int ms1Signals,
                                               int ms2SignalsAllPrecursors, int ms1AdductsAndCo,
                                               int ms1Isotopes, int ms1Fragmented,
-                                              double ms1FragmentedPercent,
-                                              double ms1IntensityFragmentedPercent,
+                                              int ms1Unexplained, double ms1FragmentedPercent,
+                                              double ms1FragmentedIntensityPercent,
                                               double ms1CommonPercent,
                                               double ms1CommonIntensityPercent,
                                               double ms2CommonPercent,
-                                              double ms2CommonIntensityPercent) implements
+                                              double ms2CommonIntensityPercent,
+                                              double ms1UnexplainedPercent,
+                                              double ms1UnexplainedIntensityPercent) implements
     ModularDataRecord {
 
   @SuppressWarnings("rawtypes")
@@ -65,6 +70,9 @@ public record InSourceFragmentAnalysisResults(int commonSignalsAllPrecursors, in
         Ms2SignalsAllPrecursorsType.class, //
         Ms1AdductsAndCoType.class, //
         Ms1IsotopesType.class, //
+        Ms1UnexplainedType.class, //
+        Ms1UnexplainedPercentType.class, //
+        Ms1UnexplainedIntensityPercentType.class, //
         Ms1CommonSignalsPercentType.class, //
         Ms2CommonSignalsPercentType.class, //
         Ms1CommonIntensityPercentAllPrecursorsType.class, //
@@ -84,12 +92,15 @@ public record InSourceFragmentAnalysisResults(int commonSignalsAllPrecursors, in
         requireNonNullElse(values.get(Ms1AdductsAndCoType.class), -1),
         requireNonNullElse(values.get(Ms1IsotopesType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsType.class), -1),
+        requireNonNullElse(values.get(Ms1UnexplainedType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(PrecursorIonsPercentType.class), -1f),
         requireNonNullElse(values.get(Ms1CommonSignalsPercentType.class), -1f),
         requireNonNullElse(values.get(Ms1CommonIntensityPercentAllPrecursorsType.class), -1f),
         requireNonNullElse(values.get(Ms2CommonSignalsPercentType.class), -1f),
-        requireNonNullElse(values.get(Ms2CommonIntensityPercentAllPrecursorsType.class), -1f));
+        requireNonNullElse(values.get(Ms2CommonIntensityPercentAllPrecursorsType.class), -1f),
+        requireNonNullElse(values.get(Ms1UnexplainedPercentType.class), -1f),
+        requireNonNullElse(values.get(Ms1UnexplainedIntensityPercentType.class), -1f));
   }
 
   /**
@@ -106,8 +117,11 @@ public record InSourceFragmentAnalysisResults(int commonSignalsAllPrecursors, in
       case Ms2SignalsAllPrecursorsType _ -> ms2SignalsAllPrecursors;
       case Ms1AdductsAndCoType _ -> ms1AdductsAndCo;
       case Ms1IsotopesType _ -> ms1Isotopes;
-      case PrecursorIonsIntensityPercentType _ -> ms1IntensityFragmentedPercent;
+      case PrecursorIonsIntensityPercentType _ -> ms1FragmentedIntensityPercent;
       case PrecursorIonsType _ -> ms1Fragmented;
+      case Ms1UnexplainedType _ -> ms1Unexplained;
+      case Ms1UnexplainedIntensityPercentType _ -> ms1UnexplainedIntensityPercent;
+      case Ms1UnexplainedPercentType _ -> ms1UnexplainedPercent;
       case PrecursorIonsPercentType _ -> ms1FragmentedPercent;
       case Ms1CommonIntensityPercentAllPrecursorsType _ -> ms1CommonIntensityPercent;
       case Ms1CommonSignalsPercentType _ -> ms1CommonPercent;

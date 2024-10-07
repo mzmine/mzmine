@@ -25,23 +25,22 @@
 
 package io.github.mzmine.datamodel.features.types.analysis;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents how many of the MS1 signals in the corresponding MS1 scans were fragmented (%).
- * Measured by their intensity. It extends the {@link PercentType} class. This value is typically
- * used in the context of in source fragments analysis.
+ * Represents count of isotopes found in MS1 scan(s). It extends the {@link IntegerType} class. This
+ * value is typically used in the context of in source fragments analysis.
  */
-public class PrecursorIonsIntensityPercentType extends PercentType {
+public class Ms1UnexplainedType extends IntegerType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "precursor_ions_intensity_in_ms1_percent";
+    return "ms1_unexplained";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Precursor ions intensity in MS1";
+    return "MS1 unexplained";
   }
 }

@@ -297,21 +297,14 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     List<UniqueSignal> uniquePrecursorsSignals = findUniquePrecursors(ms1SignalRangeMap,
         allPrecursorsMs2Scans);
 
-    // We are very generous and associate also eventual isotopes/adducts fragmented BEFORE FILTERING.
-    // For the opposite, we do it AFTER (see 5b below)
+    // We are generous and collect also eventual fragments from isotopes, adducts, and co
     List<UniqueSignal> ms2SignalMatchesMs1AllPrecursors = findMatches(ms2SignalsAllPrecursors,
         ms1SignalRangeMap);
 
     // Step 3: Calculate summed intensity
     double ms1Intensity = calcSumIntensity(ms1Signals); // done before
-    // double ms1IntensityAdductsAndCo = calcSumIntensity(ms1SignalsAdductsAndCo);
-    // double ms1IntensityIsotopes = calcSumIntensity(ms1SignalsIsotopes);
     double ms1IntensityFragmented = calcSumIntensity(uniquePrecursorsSignals);
-    // double ms1IntensityCommon = calcSumIntensity(ms1SignalMatchesMs2);
-    // double ms2Intensity = calcSumIntensity(ms2Signals);
     double ms2IntensityAllPrecursors = calcSumIntensity(ms2SignalsAllPrecursors);
-    // double ms2IntensityCommon = calcSumIntensity(ms2SignalMatchesMs1);
-    // double commonMs1IntensityAllPrecursors = calcSumIntensity(ms1SignalMatchesMs2AllPrecursors); // done later
     double commonMs2IntensityAllPrecursors = calcSumIntensity(ms2SignalMatchesMs1AllPrecursors);
 
     // Step 4: Analyze isotopes, adducts, and co
@@ -321,56 +314,57 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     List<UniqueSignal> ms1SignalsIsotopes = findMatches(ms1Signals, isotopesSignalsMap);
 
     // Step 4b optional: remove isotopes, adducts, and co
+    List<UniqueSignal> ms1SignalsUnexplained = ms1Signals;
     if (removeAdductsAndCo) {
       Set<UniqueSignal> adductsAndCoSet = new HashSet<>(ms1SignalsAdductsAndCo);
-      ms1Signals = filterSignals(ms1Signals, adductsAndCoSet);
+      ms1SignalsUnexplained = filterSignals(ms1SignalsUnexplained, adductsAndCoSet);
       // ms2Signals = filterSignals(ms2Signals, adductsAndCoSet);
       ms2SignalsAllPrecursors = filterSignals(ms2SignalsAllPrecursors, adductsAndCoSet);
     }
     if (removeIsotopes) {
       Set<UniqueSignal> isotopesSet = new HashSet<>(ms1SignalsIsotopes);
-      ms1Signals = filterSignals(ms1Signals, isotopesSet);
+      ms1SignalsUnexplained = filterSignals(ms1SignalsUnexplained, isotopesSet);
       // ms2Signals = filterSignals(ms2Signals, isotopesSet);
       ms2SignalsAllPrecursors = filterSignals(ms2SignalsAllPrecursors, isotopesSet);
     }
 
-    // Step 5a: Analyze MS2 signals for classically associated precursors
-    // List<UniqueSignal> ms1SignalMatchesMs2 = findMatches(ms1Signals, ms2SignalRangeMap);
-    // List<UniqueSignal> ms2SignalMatchesMs1 = findMatches(ms2Signals, ms1SignalRangeMap);
-
-    // Step 5b: Analyze MS2 signals for all precursors
-    List<UniqueSignal> ms1SignalMatchesMs2AllPrecursors = findMatches(ms1Signals,
+    // Step 5: Analyze MS2 signals for all precursors
+    List<UniqueSignal> ms1SignalMatchesMs2AllPrecursors = findMatches(ms1SignalsUnexplained,
         ms2SignalRangeMapAllPrecursors);
-    // List<UniqueSignal> ms2SignalMatchesMs1AllPrecursors =
-    // findMatches(ms2SignalsAllPrecursors, ms1SignalRangeMap); // done before
+    Set<UniqueSignal> commonSet = new HashSet<>(ms1SignalMatchesMs2AllPrecursors);
+    ms1SignalsUnexplained = filterSignals(ms1SignalsUnexplained, commonSet);
     double commonMs1IntensityAllPrecursors = calcSumIntensity(ms1SignalMatchesMs2AllPrecursors);
+    double ms1IntensityUnexplained = calcSumIntensity(ms1SignalsUnexplained);
 
     // Step 6: Find signals sizes
     int ms1SignalsCount = ms1Signals.size();
     int ms1SignalsAdductsAndCoCount = ms1SignalsAdductsAndCo.size();
     int ms1SignalsIsotopesCount = ms1SignalsIsotopes.size();
     int ms1SignalsFragmentedCount = uniquePrecursorsSignals.size();
+    int ms1SignalsUnexplainedCount = ms1SignalsUnexplained.size();
     int ms2SignalsAllPrecursorsCount = ms2SignalsAllPrecursors.size();
-    // int ms2SignalsCount = ms2Signals.size();
     int commonSignalsAllPrecursorsCount = ms1SignalMatchesMs2AllPrecursors.size();
 
     // Step 7: Calculate percentages
     // counts
     double ms1SignalsFragmentedPercent = (double) ms1SignalsFragmentedCount / ms1SignalsCount;
+    double ms1SignalsUnexplainedPercent = (double) ms1SignalsUnexplainedCount / ms1SignalsCount;
     double ms1CommonPercent = (double) commonSignalsAllPrecursorsCount / ms1SignalsCount;
     double ms2CommonPercent =
         (double) commonSignalsAllPrecursorsCount / ms2SignalsAllPrecursorsCount;
     // intensities
-    double ms1IntensityFragmentedPercent = ms1IntensityFragmented / ms1Intensity;
+    double ms1FragmentedIntensityPercent = ms1IntensityFragmented / ms1Intensity;
+    double ms1UnexplainedIntensityPercent = ms1IntensityUnexplained / ms1Intensity;
     double ms1CommonIntensityPercent = commonMs1IntensityAllPrecursors / ms1Intensity;
     double ms2CommonIntensityPercent = commonMs2IntensityAllPrecursors / ms2IntensityAllPrecursors;
 
     // Step 8: Create results object
     InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(
         commonSignalsAllPrecursorsCount, ms1SignalsCount, ms2SignalsAllPrecursorsCount,
-        ms1SignalsAdductsAndCoCount, ms1SignalsIsotopesCount, ms1SignalsFragmentedCount,
-        ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent, ms1CommonPercent,
-        ms1CommonIntensityPercent, ms2CommonPercent, ms2CommonIntensityPercent);
+        ms1SignalsAdductsAndCoCount, ms1SignalsIsotopesCount, ms1SignalsUnexplainedCount,
+        ms1SignalsFragmentedCount, ms1SignalsFragmentedPercent, ms1FragmentedIntensityPercent,
+        ms1CommonPercent, ms1CommonIntensityPercent, ms2CommonPercent, ms2CommonIntensityPercent,
+        ms1SignalsUnexplainedPercent, ms1UnexplainedIntensityPercent);
 
     return new SignalsAnalysisResult(results);
   }
