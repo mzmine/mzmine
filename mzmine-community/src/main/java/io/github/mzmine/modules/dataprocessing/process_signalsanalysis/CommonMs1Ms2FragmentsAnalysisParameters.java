@@ -54,8 +54,8 @@ public class CommonMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet 
       "Remove adducts and co NOT IMPLEMENTED",
       "Remove adducts, multimers, and multicharged ions when counting.", true);
 
-  public static final BooleanParameter removeIsotopes = new BooleanParameter(
-      "Remove isotopes NOT IMPLEMENTED", "Remove isotopes when counting.", true);
+  public static final BooleanParameter removeIsotopes = new BooleanParameter("Remove isotopes",
+      "Remove isotopes when counting.", true);
 
   public CommonMs1Ms2FragmentsAnalysisParameters() {
     /*
