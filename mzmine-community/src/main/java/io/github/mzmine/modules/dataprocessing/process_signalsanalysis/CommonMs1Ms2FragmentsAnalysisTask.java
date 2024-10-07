@@ -214,7 +214,7 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
                   15.9739, // Na K
               };
 
-              // TODO Add dataPoint specific diffs later
+              // TODO Add dataPoint specific diffs later (like 2M, etc.)
 
               for (double massDiff : knownMassDifferences) {
                 List<DataPoint> foundAdductsAndCo = findMassDifferences(dataPoints, dataPoint,
@@ -313,40 +313,40 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
       Double precursorMz, List<DataPoint> adductsAndCoList, List<DataPoint> isotopeList,
       boolean removeAdductsAndCo, boolean removeIsotopes) {
 
-    // Step 1: Analyze MS1 signals
+    // Step 1: Collect MS1 and MS2 signals
     int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);  // Require signal in 90% of scans
     var ms1SignalRangeMap = filterMap(collectUniqueSignals(ms1Scans, toleranceMs1), minMs1Scans);
     List<UniqueSignal> ms1Signals = new ArrayList<>(ms1SignalRangeMap.asMapOfRanges().values());
+    var ms2SignalRangeMap = collectUniqueSignals(ms2Scans, toleranceMs2);
+    List<UniqueSignal> ms2Signals = mapToList(ms2SignalRangeMap);
+
+    // Step 2: Analyze isotopes, adducts, and co
     var adductsAndCoSignalMap = collectSignalsFromDataPoints(adductsAndCoList, toleranceMs1);
     var isotopesSignalsMap = collectSignalsFromDataPoints(isotopeList, toleranceMs1);
     List<UniqueSignal> ms1SignalsAdductsAndCo = findMatches(ms1Signals, adductsAndCoSignalMap);
     List<UniqueSignal> ms1SignalsIsotopes = findMatches(ms1Signals, isotopesSignalsMap);
     if (removeAdductsAndCo) {
       Set<UniqueSignal> adductsAndCoSet = new HashSet<>(ms1SignalsAdductsAndCo);
-      List<UniqueSignal> filteredMs1Signals = ms1Signals.stream()
-          .filter(signal -> !adductsAndCoSet.contains(signal)).collect(Collectors.toList());
-      ms1Signals = filteredMs1Signals;
+      ms1Signals = filterSignals(ms1Signals, adductsAndCoSet);
+      ms2Signals = filterSignals(ms2Signals, adductsAndCoSet);
     }
     if (removeIsotopes) {
       Set<UniqueSignal> isotopesSet = new HashSet<>(ms1SignalsIsotopes);
-      List<UniqueSignal> filteredMs1Signals = ms1Signals.stream()
-          .filter(signal -> !isotopesSet.contains(signal)).collect(Collectors.toList());
-      ms1Signals = filteredMs1Signals;
+      ms1Signals = filterSignals(ms1Signals, isotopesSet);
+      ms2Signals = filterSignals(ms2Signals, isotopesSet);
     }
 
-    // Step 2a: Analyze MS2 signals for all precursors
+    // Step 3a: Analyze MS2 signals for classically associated precursors
+    List<UniqueSignal> ms1SignalMatchesMs2 = findMatches(ms1Signals, ms2SignalRangeMap);
+    List<UniqueSignal> ms2SignalMatchesMs1 = findMatches(ms2Signals, ms1SignalRangeMap);
+
+    // Step 3b: Analyze MS2 signals for all precursors
     var ms2SignalRangeMapAllPrecursors = collectUniqueSignals(allPrecursorsMs2Scans, toleranceMs2);
     List<UniqueSignal> ms2SignalsAllPrecursors = mapToList(ms2SignalRangeMapAllPrecursors);
     List<UniqueSignal> ms1SignalMatchesMs2AllPrecursors = findMatches(ms1Signals,
         ms2SignalRangeMapAllPrecursors);
     List<UniqueSignal> ms2SignalMatchesMs1AllPrecursors = findMatches(ms2SignalsAllPrecursors,
         ms1SignalRangeMap);
-
-    // Step 2b: Analyze MS2 signals for classically associated precursors
-    var ms2SignalRangeMap = collectUniqueSignals(ms2Scans, toleranceMs2);
-    List<UniqueSignal> ms2Signals = mapToList(ms2SignalRangeMap);
-    List<UniqueSignal> ms1SignalMatchesMs2 = findMatches(ms1Signals, ms2SignalRangeMap);
-    List<UniqueSignal> ms2SignalMatchesMs1 = findMatches(ms2Signals, ms1SignalRangeMap);
 
     // Step 3: Calculate percentages and totals
     Set<Double> precursorMzSet = ms1SignalMatchesMs2.stream().map(UniqueSignal::mz)
@@ -414,6 +414,15 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         ms2SignalsCommonPercent, ms2IntensityCommonPercentAllPrecursors, ms2IntensityCommonPercent);
 
     return new SignalsAnalysisResult(results);
+  }
+
+  /**
+   * Filters out some signals.
+   */
+  private List<UniqueSignal> filterSignals(List<UniqueSignal> signals, Set<UniqueSignal> signalsToRemove) {
+    return signals.stream()
+        .filter(signal -> !signalsToRemove.contains(signal))
+        .collect(Collectors.toList());
   }
 
   /**
