@@ -26,38 +26,16 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.BafImportModule;
-import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.BafImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportModule;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportModule;
-import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportModule;
-import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportModule;
-import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportModule;
-import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule;
-import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportModule;
-import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule;
-import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule;
-import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportParameters;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.project.ProjectService;
 import java.util.Objects;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,21 +73,16 @@ public class BatchUtils {
    */
   public static int getTotalNumImportedFiles(final @NotNull BatchQueue b,
       final boolean includeProjectFiles) {
-    // all import steps
-    int total = //
-        getNumFiles(b, AllSpectralDataImportModule.class, AllSpectralDataImportParameters.fileNames)
-        + getNumFiles(b, ThermoRawImportModule.class, ThermoRawImportParameters.fileNames) //
-        + getNumFiles(b, ImzMLImportModule.class, ImzMLImportParameters.fileNames) //
-        + getNumFiles(b, MzDataImportModule.class, MzDataImportParameters.fileNames) //
-        + getNumFiles(b, MSDKmzMLImportModule.class, MSDKmzMLImportParameters.fileNames) //
-        + getNumFiles(b, MzXMLImportModule.class, MzXMLImportParameters.fileNames) //
-        + getNumFiles(b, NetCDFImportModule.class, NetCDFImportParameters.fileNames) //
-        + getNumFiles(b, ZipImportModule.class, ZipImportParameters.fileNames) //
-        + getNumFiles(b, TDFImportModule.class, TDFImportParameters.fileNames) //
-        + getNumFiles(b, TSFImportModule.class, TSFImportParameters.fileNames) //
-        + getNumFiles(b, MSConvertImportModule.class, MSConvertImportParameters.fileNames) //
-        + getNumFiles(b, IcpMsCVSImportModule.class, IcpMsCVSImportParameters.fileNames) //
-        + getNumFiles(b, BafImportModule.class, BafImportParameters.files);
+
+    // total files to be imported
+    int total = streamRawDataImportSteps(b).map(MZmineProcessingStep::getParameterSet)
+        .map(params -> {
+          if (params == null) {
+            return null;
+          }
+          // first file names parameter should be import of files
+          return params.streamForClass(FileNamesParameter.class).findFirst().orElse(null);
+        }).filter(Objects::nonNull).mapToInt(FileNamesParameter::numFiles).sum();
 
     // maybe already imported?
     if (includeProjectFiles) {
@@ -119,6 +92,18 @@ public class BatchUtils {
       }
     }
     return total;
+  }
+
+  /**
+   * All steps that are flagged as {@link MZmineModuleCategory#RAWDATAIMPORT}
+   *
+   * @param b batch
+   * @return stream of raw data import steps
+   */
+  private static @NotNull Stream<MZmineProcessingStep<MZmineProcessingModule>> streamRawDataImportSteps(
+      final @NotNull BatchQueue b) {
+    return b.stream()
+        .filter(step -> step.getModule().getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT);
   }
 
   /**
