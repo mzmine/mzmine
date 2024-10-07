@@ -51,8 +51,8 @@ public class CommonMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet 
       ScanDataType.values(), ScanDataType.MASS_LIST);
 
   public static final BooleanParameter removeAdductsAndCo = new BooleanParameter(
-      "Remove adducts and co NOT IMPLEMENTED",
-      "Remove adducts, multimers, and multicharged ions when counting.", true);
+      "Remove adducts and co", "Remove adducts, multimers, and multicharged ions when counting.",
+      true);
 
   public static final BooleanParameter removeIsotopes = new BooleanParameter("Remove isotopes",
       "Remove isotopes when counting.", true);

@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.analysis.CommonSignalsAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.CommonSignalsType;
 import io.github.mzmine.datamodel.features.types.analysis.IsLikelyISFragmentType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms1AdductsAndCoType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonIntensityPercentAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonSignalsPercentType;
@@ -55,8 +56,8 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
                                               double ms1FragmentedLikelyISFPercent,
                                               int commonSignals, int commonSignalsAllPrecursors,
                                               int ms1Signals, int ms2SignalsAllPrecursors,
-                                              int ms1Isotopes, int ms1Fragmented,
-                                              double ms1FragmentedPercent,
+                                              int ms1AdductsAndCo, int ms1Isotopes,
+                                              int ms1Fragmented, double ms1FragmentedPercent,
                                               double ms1IntensityFragmentedPercent,
                                               double ms1CommonPercent,
                                               double ms1IntensityCommonPercentAllPrecursors,
@@ -75,6 +76,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
         CommonSignalsAllPrecursorsType.class, //
         Ms1SignalsType.class, //
         Ms2SignalsAllPrecursorsType.class, //
+        Ms1AdductsAndCoType.class, //
         Ms1IsotopesType.class, //
         Ms2SignalsType.class, //
         Ms1CommonSignalsPercentType.class, //
@@ -98,6 +100,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
         requireNonNullElse(values.get(CommonSignalsAllPrecursorsType.class), -1),
         requireNonNullElse(values.get(Ms1SignalsType.class), -1),
         requireNonNullElse(values.get(Ms2SignalsAllPrecursorsType.class), -1),
+        requireNonNullElse(values.get(Ms1AdductsAndCoType.class), -1),
         requireNonNullElse(values.get(Ms1IsotopesType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsIntensityPercentType.class), -1f),
@@ -120,6 +123,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
         this.commonSignalsAllPrecursors, //
         this.ms1Signals, //
         this.ms2SignalsAllPrecursors, //
+        this.ms1AdductsAndCo, //
         this.ms1Isotopes, //
         this.ms1Fragmented, //
         this.ms1FragmentedPercent, //
@@ -148,6 +152,7 @@ public record InSourceFragmentAnalysisResults(boolean isLikelyISF,
       case PrecursorIonsLikelyISFragmentInMs1PercentType _ -> ms1FragmentedLikelyISFPercent;
       case Ms1SignalsType _ -> ms1Signals;
       case Ms2SignalsAllPrecursorsType _ -> ms2SignalsAllPrecursors;
+      case Ms1AdductsAndCoType _ -> ms1AdductsAndCo;
       case Ms1IsotopesType _ -> ms1Isotopes;
       case PrecursorIonsIntensityPercentType _ -> ms1IntensityFragmentedPercent;
       case PrecursorIonsType _ -> ms1Fragmented;

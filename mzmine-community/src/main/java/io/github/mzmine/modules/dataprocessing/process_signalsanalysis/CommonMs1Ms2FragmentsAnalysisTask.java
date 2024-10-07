@@ -152,10 +152,11 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     }
 
     try {
-      List<DataPoint> isotopeList = processIsotopes(row);
+      IsotopeAndAdducts isotopeAndAdducts = processIsotopesAndAdducts(row);
 
       SignalsAnalysisResult analysisResult = analyzeSignals(ms1Scans, ms2Scans,
-          allPrecursorsMs2Scans, tolerance, row.getAverageMZ(), isotopeList, removeIsotopes);
+          allPrecursorsMs2Scans, tolerance, row.getAverageMZ(), isotopeAndAdducts.getAdducts(),
+          isotopeAndAdducts.getIsotopes(), removeAdductsAndCo, removeIsotopes);
       row.set(InSourceFragmentsAnalysisType.class, analysisResult.results);
 
     } catch (Exception ex) {
@@ -164,8 +165,9 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     return new GroupedSignalScans(row, ms1Scans, ms2Scans, allPrecursorsMs2Scans);
   }
 
-  private List<DataPoint> processIsotopes(FeatureListRow row) {
+  private IsotopeAndAdducts processIsotopesAndAdducts(FeatureListRow row) {
     Set<DataPoint> isotopeSet = new HashSet<>();
+    Set<DataPoint> adductsAndCoSet = new HashSet<>();
     int isotopeMaxCharge = 2;
 
     DoubleArrayList[] isoMzDiffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(
@@ -200,13 +202,44 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
               foundIsotopes.removeIf(found -> found.getMZ() <= threshold);
 
               isotopeSet.addAll(foundIsotopes);
+
+              // Most occurring mass diffs taken from 10.1021/acs.analchem.4c00966
+              double[] knownMassDifferences = {67.9874, // sodium formate
+                  0.5017,  //double charge C
+                  21.9819, // H Na
+                  57.9586, // NaCl
+                  46.0055, // formic acid
+                  15.9739, // Na K
+              };
+
+              // TODO Add dataPoint specific diffs later
+
+              for (double massDiff : knownMassDifferences) {
+                List<DataPoint> foundAdductsAndCo = findMassDifferences(dataPoints, dataPoint,
+                    massDiff);
+                adductsAndCoSet.addAll(foundAdductsAndCo);
+              }
             }
           }
         }
       }
     }
+    return new IsotopeAndAdducts(new ArrayList<>(isotopeSet), new ArrayList<>(adductsAndCoSet));
+  }
 
-    return new ArrayList<>(isotopeSet);
+  private List<DataPoint> findMassDifferences(List<DataPoint> dataPoints, DataPoint target,
+      double massDiff) {
+    List<DataPoint> matchingPoints = new ArrayList<>();
+    double targetMZ = target.getMZ();
+
+    for (DataPoint point : dataPoints) {
+      double diff = point.getMZ() - targetMZ;
+      if (Math.abs(diff - massDiff) <= tolerance.getMzToleranceForMass(massDiff)) {
+        matchingPoints.add(point);
+      }
+    }
+
+    return matchingPoints;
   }
 
   /**
@@ -266,20 +299,31 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
    * @param allPrecursorsMs2Scans The MS2 scans from all precursors.
    * @param tolerance             The MZ tolerance.
    * @param precursorMz           The precursor MZ value.
+   * @param adductsAndCoList      The adducts and co list
    * @param isotopeList           The isotopes list.
+   * @param removeAdductsAndCo    Boolean to remove adducts and co from count.
    * @param removeIsotopes        Boolean to remove isotopes from count.
    * @return The analysis result.
    */
   private SignalsAnalysisResult analyzeSignals(List<Scan> ms1Scans, List<Scan> ms2Scans,
       List<Scan> allPrecursorsMs2Scans, MZTolerance tolerance, Double precursorMz,
-      List<DataPoint> isotopeList, boolean removeIsotopes) {
+      List<DataPoint> adductsAndCoList, List<DataPoint> isotopeList, boolean removeAdductsAndCo,
+      boolean removeIsotopes) {
 
     // Step 1: Analyze MS1 signals
     int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);  // Require signal in 90% of scans
     var ms1SignalRangeMap = filterMap(collectUniqueSignals(ms1Scans, tolerance), minMs1Scans);
     List<UniqueSignal> ms1Signals = new ArrayList<>(ms1SignalRangeMap.asMapOfRanges().values());
+    var adductsAndCoSignalMap = collectSignalsFromDataPoints(adductsAndCoList, tolerance);
     var isotopesSignalsMap = collectSignalsFromDataPoints(isotopeList, tolerance);
+    List<UniqueSignal> ms1SignalsAdductsAndCo = findMatches(ms1Signals, adductsAndCoSignalMap);
     List<UniqueSignal> ms1SignalsIsotopes = findMatches(ms1Signals, isotopesSignalsMap);
+    if (removeAdductsAndCo) {
+      Set<UniqueSignal> adductsAndCoSet = new HashSet<>(ms1SignalsAdductsAndCo);
+      List<UniqueSignal> filteredMs1Signals = ms1Signals.stream()
+          .filter(signal -> !adductsAndCoSet.contains(signal)).collect(Collectors.toList());
+      ms1Signals = filteredMs1Signals;
+    }
     if (removeIsotopes) {
       Set<UniqueSignal> isotopesSet = new HashSet<>(ms1SignalsIsotopes);
       List<UniqueSignal> filteredMs1Signals = ms1Signals.stream()
@@ -324,6 +368,7 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         ms1IntensityCommonAllPrecursors / ms1IntensityTotal;
 
     int ms1SignalsTotal = ms1Signals.size();
+    int ms1SignalsAdductsAndCoTotal = ms1SignalsAdductsAndCo.size();
     int ms1SignalsIsotopesTotal = ms1SignalsIsotopes.size();
     int ms1SignalsFragmented = findUniquePrecursors(ms1SignalRangeMap,
         allPrecursorsMs2Scans).size();
@@ -359,11 +404,11 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     // Step 6: Create results object
     InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(isLikelyISF,
         ms1SignalsFragmentedLikelyISFPercent, signalsCommon, signalsCommonAllPrecursors,
-        ms1SignalsTotal, ms2SignalsAllPrecursorsTotal, ms1SignalsIsotopesTotal,
-        ms1SignalsFragmented, ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent,
-        ms1SignalsCommonPercent, ms1IntensityCommonPercentAllPrecursors, ms1IntensityCommonPercent,
-        ms2SignalsTotal, ms2SignalsCommonPercent, ms2IntensityCommonPercentAllPrecursors,
-        ms2IntensityCommonPercent);
+        ms1SignalsTotal, ms2SignalsAllPrecursorsTotal, ms1SignalsAdductsAndCoTotal,
+        ms1SignalsIsotopesTotal, ms1SignalsFragmented, ms1SignalsFragmentedPercent,
+        ms1IntensityFragmentedPercent, ms1SignalsCommonPercent,
+        ms1IntensityCommonPercentAllPrecursors, ms1IntensityCommonPercent, ms2SignalsTotal,
+        ms2SignalsCommonPercent, ms2IntensityCommonPercentAllPrecursors, ms2IntensityCommonPercent);
 
     return new SignalsAnalysisResult(results);
   }
@@ -381,7 +426,6 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     return signals.stream().filter(signal -> signalRangeMap.get(signal.mz()) != null)
         .collect(Collectors.toList());
   }
-
 
   private List<UniqueSignal> mapToList(final RangeMap<Double, UniqueSignal> map) {
     return new ArrayList<>(map.asMapOfRanges().values());
@@ -480,5 +524,24 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
 
   private record SignalsAnalysisResult(InSourceFragmentAnalysisResults results) {
 
+  }
+
+  public class IsotopeAndAdducts {
+
+    private final List<DataPoint> isotopes;
+    private final List<DataPoint> adducts;
+
+    public IsotopeAndAdducts(List<DataPoint> isotopes, List<DataPoint> adducts) {
+      this.isotopes = isotopes;
+      this.adducts = adducts;
+    }
+
+    public List<DataPoint> getIsotopes() {
+      return isotopes;
+    }
+
+    public List<DataPoint> getAdducts() {
+      return adducts;
+    }
   }
 }
