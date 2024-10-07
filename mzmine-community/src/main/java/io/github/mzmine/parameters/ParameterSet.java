@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -230,7 +230,8 @@ public interface ParameterSet extends ParameterContainer {
    */
   BooleanProperty parametersChangeProperty();
 
-  @Nullable String getOnlineHelpUrl();
+  @Nullable
+  String getOnlineHelpUrl();
 
   String getModuleNameAttribute();
 
@@ -254,8 +255,8 @@ public interface ParameterSet extends ParameterContainer {
         .anyMatch(name -> Objects.equals(p.getName(), name));
   }
 
-  @SuppressWarnings("unchecked")
   default <V, T extends Parameter<V>> Stream<T> streamForClass(Class<T> parameterClass) {
-    return Arrays.stream(getParameters()).filter(parameterClass::isInstance).map(p -> (T) p);
+    return Arrays.stream(getParameters()).filter(parameterClass::isInstance)
+        .map(parameterClass::cast);
   }
 }

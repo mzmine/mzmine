@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,8 +44,11 @@ import io.github.mzmine.util.javafx.ArrayObservableList;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -282,5 +285,27 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
     ChangeOutputFilesUtils.applyTo(this, baseFile);
     logger.info("Done changing output file paths.");
+  }
+
+  /**
+   * @param moduleClass filter steps for this module class
+   * @return stream of ParameterSets of specific steps
+   */
+  @NotNull
+  public Stream<ParameterSet> streamStepParameterSets(
+      @NotNull final Class<? extends MZmineModule> moduleClass) {
+    return stream().filter(
+            step -> step.getModule().getClass().getName().equals(moduleClass.getName()))
+        .map(MZmineProcessingStep::getParameterSet).filter(Objects::nonNull);
+  }
+
+  /**
+   * @param moduleClass filter steps for this module class
+   * @return stream of ParameterSets of specific steps
+   */
+  @NotNull
+  public Optional<ParameterSet> findFirst(
+      @NotNull final Class<? extends MZmineModule> moduleClass) {
+    return streamStepParameterSets(moduleClass).findFirst();
   }
 }
