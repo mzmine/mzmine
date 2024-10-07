@@ -53,10 +53,8 @@ import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -140,15 +138,26 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
 
     for (ModularFeature feature : row.getFeatures()) {
       try {
-        Map<String, List<Scan>> categorizedScans = categorizeScans(feature);
+        Scan representativeMs1 = feature.getRepresentativeScan();
+        if (representativeMs1 != null) {
+          ms1Scans.add(representativeMs1);
 
-        ms1Scans.addAll(categorizedScans.getOrDefault("ms1Scans", new ArrayList<>()));
-        ms2Scans.addAll(categorizedScans.getOrDefault("ms2Scans", new ArrayList<>()));
-        allPrecursorsMs2Scans.addAll(
-            categorizedScans.getOrDefault("ms2ScansAllPrecursors", new ArrayList<>()));
+          List<Scan> fragmentScans = feature.getAllMS2FragmentScans();
+          ms2Scans.addAll(fragmentScans);
 
+          Range<Float> rawRtRange = feature.getRawDataPointsRTRange();
+          RawDataFile raw = feature.getRawDataFile();
+          DataPoint[] dataPoints = ScanUtils.extractDataPoints(representativeMs1, useMassList);
+
+          for (DataPoint dp : dataPoints) {
+            double ms1SignalMz = dp.getMZ();
+            Scan[] broadFragmentScans = findAllMS2FragmentScans(raw, rawRtRange,
+                toleranceMs2.getToleranceRange(ms1SignalMz));
+            allPrecursorsMs2Scans.addAll(Arrays.asList(broadFragmentScans));
+          }
+        }
       } catch (Exception ex) {
-        logger.log(Level.WARNING, "Error categorizing scans for feature: " + ex.getMessage(), ex);
+        logger.log(Level.WARNING, "Error gathering scans for feature: " + ex.getMessage(), ex);
       }
     }
 
@@ -242,45 +251,6 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     }
 
     return matchingPoints;
-  }
-
-  /**
-   * Categorizes MS1 and MS2 scans for a given feature.
-   *
-   * @param feature The feature to process.
-   * @return A map of categorized scans.
-   */
-  private Map<String, List<Scan>> categorizeScans(Feature feature) {
-    List<Scan> ms1Scans = new ArrayList<>();
-    List<Scan> ms2Scans = new ArrayList<>();
-    List<Scan> allPrecursorsMs2Scans = new ArrayList<>();
-
-    Scan representativeMs1 = feature.getRepresentativeScan();
-    if (representativeMs1 != null) {
-      ms1Scans.add(representativeMs1);
-
-      List<Scan> fragmentScans = feature.getAllMS2FragmentScans();
-      ms2Scans.addAll(fragmentScans);
-
-      // TODO: This could be a parameter to get it over the whole file instead
-      Range<Float> rawRtRange = feature.getRawDataPointsRTRange();
-      RawDataFile raw = feature.getRawDataFile();
-      DataPoint[] dataPoints = ScanUtils.extractDataPoints(representativeMs1, useMassList);
-
-      for (DataPoint dp : dataPoints) {
-        double ms1SignalMz = dp.getMZ();
-        Scan[] broadFragmentScans = findAllMS2FragmentScans(raw, rawRtRange,
-            toleranceMs2.getToleranceRange(ms1SignalMz));
-        allPrecursorsMs2Scans.addAll(Arrays.asList(broadFragmentScans));
-      }
-    }
-
-    Map<String, List<Scan>> result = new HashMap<>();
-    result.put("ms1Scans", ms1Scans);
-    result.put("ms2Scans", ms2Scans);
-    result.put("ms2ScansAllPrecursors", allPrecursorsMs2Scans);
-
-    return result;
   }
 
   @Override
@@ -419,9 +389,9 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
   /**
    * Filters out some signals.
    */
-  private List<UniqueSignal> filterSignals(List<UniqueSignal> signals, Set<UniqueSignal> signalsToRemove) {
-    return signals.stream()
-        .filter(signal -> !signalsToRemove.contains(signal))
+  private List<UniqueSignal> filterSignals(List<UniqueSignal> signals,
+      Set<UniqueSignal> signalsToRemove) {
+    return signals.stream().filter(signal -> !signalsToRemove.contains(signal))
         .collect(Collectors.toList());
   }
 
