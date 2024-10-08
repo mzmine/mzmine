@@ -246,6 +246,10 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
       double diff = point.getMZ() - targetMZ;
       if (Math.abs(diff - massDiff) <= toleranceMs1.getMzToleranceForMass(massDiff)) {
         matchingPoints.add(point);
+        // Add the target to the list if it's not already there
+        if (!matchingPoints.contains(target)) {
+          matchingPoints.add(target);
+        }
       }
     }
 
