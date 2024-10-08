@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,7 +39,7 @@ public enum ExternalAsset {
   ThermoRawFileParser, MSCONVERT,
 
   // spectral libraries
-  MSnLib,
+  MSnLib, GNPS_LIB, MONA_LIB, MASSBANK_EU,
 
   // models
   MS2DEEPSCORE;
@@ -58,7 +58,7 @@ public enum ExternalAsset {
   public AssetGroup getGroup() {
     return switch (this) {
       case ThermoRawFileParser, MSCONVERT -> AssetGroup.TOOLS;
-      case MSnLib -> AssetGroup.SPECTRAL_LIBRARIES;
+      case MSnLib, GNPS_LIB, MONA_LIB, MASSBANK_EU -> AssetGroup.SPECTRAL_LIBRARIES;
       case MS2DEEPSCORE -> AssetGroup.MODELS;
     };
   }
@@ -73,8 +73,11 @@ public enum ExternalAsset {
           "https://github.com/pluskal-lab/ThermoRawFileParserMacLinux/releases";
       case MSCONVERT -> "https://proteowizard.sourceforge.io/download.html";
       // libraries
-      case MSnLib -> "https://zenodo.org/records/11163381";
-      case MS2DEEPSCORE -> "https://zenodo.org/records/12628369";
+      case MSnLib -> "https://zenodo.org/records/11163380";
+      case GNPS_LIB -> "https://external.gnps2.org/gnpslibrary";
+      case MONA_LIB -> "https://mona.fiehnlab.ucdavis.edu/downloads";
+      case MASSBANK_EU -> "https://github.com/MassBank/MassBank-data/releases/latest";
+      case MS2DEEPSCORE -> "https://zenodo.org/records/12628368";
     };
   }
 
