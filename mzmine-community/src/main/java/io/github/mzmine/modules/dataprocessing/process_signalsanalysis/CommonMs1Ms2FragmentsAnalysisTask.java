@@ -253,11 +253,6 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
       }
     }
 
-    // Add the target to the list if it's not already there
-    if (!matchingPoints.contains(target)) {
-      matchingPoints.add(target);
-    }
-
     return matchingPoints;
   }
 
