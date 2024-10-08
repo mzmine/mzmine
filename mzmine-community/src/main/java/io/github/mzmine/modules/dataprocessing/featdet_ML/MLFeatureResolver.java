@@ -38,15 +38,13 @@ import io.github.mzmine.util.scans.PeakPickingModel.PeakPickingOutput;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class MLFeatureResolver extends AbstractResolver {
 
     private final ParameterSet parameters;
-    private int numFeatures;
-    private int resHighProb;
-    private int numberValidRanges;
     private final double threshold;
     private final int regionSize;
     private final int overlap;
@@ -56,29 +54,15 @@ public class MLFeatureResolver extends AbstractResolver {
     double[] xBuffer;
     double[] yBuffer;
 
-    public int getNumFeatures() {
-        return numFeatures;
-    }
-
-    public int getNumberValidRanges() {
-        return numberValidRanges;
-    }
-
-    public int getResHighProb() {
-        return resHighProb;
-    }
 
     public MLFeatureResolver(ParameterSet parameterSet, ModularFeatureList flist) {
         super(parameterSet, flist);
-        this.numFeatures = 0;
-        this.resHighProb = 0;
-        this.numberValidRanges = 0;
         this.parameters = parameterSet;
         // THRESHOLD FiXED FOR DEBUGGING ONLY!
-        this.threshold = 0.5;
+        this.threshold = parameterSet.getParameter(MLFeatureResolverParameters.threshold).getValue();
         this.regionSize = 128;
         this.overlap = 32;
-        this.minWidth = 2;
+        this.minWidth = parameterSet.getParameter(MLFeatureResolverParameters.minWidth).getValue();
         this.correctRanges = true;
         this.model = new PeakPickingModel();
     }
@@ -120,12 +104,28 @@ public class MLFeatureResolver extends AbstractResolver {
         return output;
     }
 
+    private double findTime(double[] timeArray,double[]  intensityArray,double  intensityToFind){
+        if(timeArray.length != intensityArray.length){
+            System.out.println("Arrays lenghts to not match when looking for retention time corresponding to intensity value");
+            return 0.;
+        }
+        for(int i=0;i<timeArray.length;i++){
+            if(intensityArray[i]!=intensityToFind){
+                continue;
+            }
+            return timeArray[i];
+        }
+        System.out.println("Intensity could not be found");
+        return 0.;
+    }
+
     public String[] doubleArrayToString(double[] time, double[] intensity) {
-        String[] outputArray = new String[time.length+1];
+        String[] outputArray = new String[time.length + 1];
         String header = "x\ty\n";
         outputArray[0] = header;
-        for (int i = 1; i < time.length+1; i++) {
-            String nextString = String.valueOf((float) time[i-1]) +"\t"+String.valueOf((float) intensity[i-1]) + "\n";
+        for (int i = 1; i < time.length + 1; i++) {
+            String nextString = String.valueOf((float) time[i - 1]) + "\t" + String.valueOf((float) intensity[i - 1])
+                    + "\n";
             outputArray[i] = nextString;
         }
         return outputArray;
@@ -143,15 +143,15 @@ public class MLFeatureResolver extends AbstractResolver {
         List<double[]> standardRegionsRT = SplitSeries.extractRegionBatch(x, this.regionSize,
                 this.overlap, "time", false);
         // try (var writer = new FileWriter("/home/max/Programming/testFeature.tsv")){
-        //     double[] time = standardRegionsRT.get(0);
-        //     double[] intensity = standardRegions.get(0);
-        //     String[] rows = doubleArrayToString(time , intensity);
-        //     for(int i=0; i<rows.length;i++){
-        //         writer.write(rows[i]);
-        //     }
+        // double[] time = standardRegionsRT.get(0);
+        // double[] intensity = standardRegions.get(0);
+        // String[] rows = doubleArrayToString(time , intensity);
+        // for(int i=0; i<rows.length;i++){
+        // writer.write(rows[i]);
+        // }
         // } catch(Exception e) {
-        //     e.printStackTrace();
-        //     throw new Error("Error instanciating writer");
+        // e.printStackTrace();
+        // throw new Error("Error instanciating writer");
         // }
         List<PeakPickingOutput> resolvedRegions;
         try {
@@ -185,6 +185,7 @@ public class MLFeatureResolver extends AbstractResolver {
         // is greater than the threshold and left<right (the latter is just a safety
         // check)
         List<Range<Double>> resolved = new ArrayList<>();
+        double previousMaxRT = 0;
         for (int i = 0; i < lenList; i++) {
             for (int j = 0; j < lenFeatures; j++) {
                 double prob = predProbs.get(i)[j];
@@ -192,39 +193,43 @@ public class MLFeatureResolver extends AbstractResolver {
                 int indexRight = rightIndices.get(i)[j];
                 int indexPeak = peakIndices.get(i)[j];
                 double peakValue = standardRegions.get(i)[indexPeak];
-                if (prob > this.threshold) {
-                    this.resHighProb++;
+                if (!this.isValidRange(prob, indexLeft, indexPeak, indexRight, peakValue)) {
+                    continue;
                 }
-                if (this.isValidRange(prob, indexLeft, indexPeak, indexRight, peakValue)) {
-                    this.numberValidRanges++;
-                    Double left = Double.POSITIVE_INFINITY;
-                    Double right = Double.POSITIVE_INFINITY;
-                    if (this.correctRanges) {
-                        int correctionRegion = 1;
-                        for (int n = 0; n < correctionRegion + 1; n++) {
-                            int currentLeftIndex = Math.max(
-                                    Math.min(Math.min(leftIndices.get(i)[j] - n, indexPeak), this.regionSize - 1), 0);
-                            int currentRightIndex = Math.max(
-                                    Math.min(Math.max(rightIndices.get(i)[j] + n, indexPeak), this.regionSize - 1),
-                                    0);
-                            if (standardRegions.get(i)[currentLeftIndex] < left) {
-                                left = standardRegions.get(i)[currentLeftIndex];
-                                indexLeft = currentLeftIndex;
-                            }
-                            if (standardRegions.get(i)[currentRightIndex] < right) {
-                                right = standardRegions.get(i)[currentRightIndex];
-                                indexRight = currentRightIndex;
-                            }
+                Double left = Double.POSITIVE_INFINITY;
+                Double right = Double.POSITIVE_INFINITY;
+                if (this.correctRanges) {
+                    int correctionRegion = 1;
+                    for (int n = 0; n < correctionRegion + 1; n++) {
+                        int currentLeftIndex = Math.max(
+                                Math.min(Math.min(leftIndices.get(i)[j] - n, indexPeak), this.regionSize - 1), 0);
+                        int currentRightIndex = Math.max(
+                                Math.min(Math.max(rightIndices.get(i)[j] + n, indexPeak), this.regionSize - 1),
+                                0);
+                        if (standardRegions.get(i)[currentLeftIndex] < left) {
+                            left = standardRegions.get(i)[currentLeftIndex];
+                            indexLeft = currentLeftIndex;
+                        }
+                        if (standardRegions.get(i)[currentRightIndex] < right) {
+                            right = standardRegions.get(i)[currentRightIndex];
+                            indexRight = currentRightIndex;
                         }
                     }
-
-                    if (indexLeft + this.minWidth <= indexRight) {
-                        left = Double.valueOf(standardRegionsRT.get(i)[indexLeft]);
-                        right = Double.valueOf(standardRegionsRT.get(i)[indexRight]);
-                        Range<Double> nextRange = Range.closed(left, right);
-                        resolved.add(nextRange);
-                        this.numFeatures++;
-                    }
+                }
+                double[] currentRegion = Arrays.copyOfRange(standardRegions.get(i), indexLeft, indexRight +1 );
+                double currentMaxIntensity = Arrays.stream(currentRegion).max().orElse(0);
+                double currentMaxRT = findTime(standardRegionsRT.get(i), standardRegions.get(i), currentMaxIntensity);
+                //checks if the current peak is a duplicate of the previous one by
+                //comparing the retention times at which the maximal intensity is reached
+                if(currentMaxRT == previousMaxRT){
+                    continue;
+                }
+                if (indexLeft + this.minWidth <= indexRight) {
+                    previousMaxRT = currentMaxRT;
+                    left = Double.valueOf(standardRegionsRT.get(i)[indexLeft]);
+                    right = Double.valueOf(standardRegionsRT.get(i)[indexRight]);
+                    Range<Double> nextRange = Range.closed(left, right);
+                    resolved.add(nextRange);
                 }
             }
         }
