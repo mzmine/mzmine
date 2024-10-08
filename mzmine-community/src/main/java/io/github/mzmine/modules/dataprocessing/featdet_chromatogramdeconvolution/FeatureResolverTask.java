@@ -286,9 +286,6 @@ public class FeatureResolverTask extends AbstractTask {
         }
 
         if (resolver instanceof MLFeatureResolver mlFeatureResolver) {
-            System.out.println("Number of final ranges that are output :" + ((MLFeatureResolver) resolver).getNumFeatures());
-            System.out.println("Output that passes vaid check in processing: " + ((MLFeatureResolver) resolver).getNumberValidRanges());
-            System.out.println("Output with prob higher than threshold: "+((MLFeatureResolver) resolver).getResHighProb());
             mlFeatureResolver.closeModel();
         }
 

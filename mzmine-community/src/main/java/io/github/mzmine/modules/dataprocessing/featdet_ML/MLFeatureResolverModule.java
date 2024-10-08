@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class MLFeatureResolverModule extends FeatureResolverModule {
 
-  public static final String NAME = "Local minimum feature resolver";
+  public static final String NAME = "ML Resolver";
 
   @NotNull
   @Override
