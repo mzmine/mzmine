@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,12 @@
 
 package io.github.mzmine.util.web;
 
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpResponse;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -41,8 +47,18 @@ public record RequestResponse(String response, String url, int statusCode) {
   private static final Logger logger = Logger.getLogger(RequestResponse.class.getName());
   public static RequestResponse NONE = new RequestResponse("", "", -1);
 
+  public RequestResponse(final HttpResponse<String> response) {
+    this(response.body(), response.uri().toString(), response.statusCode());
+  }
+
   public void openURL() {
-    WebUtils.openURL(url);
+    if (url != null && Desktop.isDesktopSupported() && !url.isBlank()) {
+      try {
+        Desktop.getDesktop().browse(new URI(url));
+      } catch (IOException | URISyntaxException e) {
+        logger.log(Level.WARNING, "Cannot open browser for URL: " + url, e);
+      }
+    }
   }
 
   public boolean isSuccess() {

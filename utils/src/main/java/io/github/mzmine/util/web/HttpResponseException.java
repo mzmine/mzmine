@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,21 +23,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore;
+package io.github.mzmine.util.web;
 
-import java.io.File;
-import java.nio.file.Path;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import java.util.Objects;
 
-@Disabled
-class DownloadMS2DeepscoreModelTest {
+public final class HttpResponseException extends Exception {
 
-  @Test
-  void downloadSettings(@TempDir Path tempDir) {
-    File file = DownloadMS2DeepscoreModel.downloadSettings(tempDir.toFile());
-    Assertions.assertTrue(file.exists());
+  private final RequestResponse response;
+
+  public HttpResponseException(RequestResponse response) {
+    this.response = response;
   }
+
+  public RequestResponse response() {
+    return response;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != this.getClass()) {
+      return false;
+    }
+    var that = (HttpResponseException) obj;
+    return Objects.equals(this.response, that.response);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(response);
+  }
+
+  @Override
+  public String toString() {
+    return "HttpResponseException[" + "response=" + response + ']';
+  }
+
+
 }
