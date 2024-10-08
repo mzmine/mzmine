@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,7 +38,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Download a single file. If stopped then removes downloaded file. Preferred use by
@@ -48,7 +47,6 @@ public class FileDownloader {
 
   private static final Logger logger = Logger.getLogger(FileDownloader.class.getName());
   private static final long PACKAGE_BYTE_SIZE = 10_000_000L;
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(FileDownloader.class);
   private final String downloadUrl;
   private final File localFile;
   private final DownloadProgressCallback progressCallback;
@@ -71,10 +69,32 @@ public class FileDownloader {
    */
   public FileDownloader(String downloadUrl, File localDirectory,
       DownloadProgressCallback progressCallback) {
+    this(downloadUrl, localDirectory, progressCallback,
+        // strip query parameters from URL with split at ?
+        FileAndPathUtil.getFileNameFromUrl(downloadUrl));
+  }
+
+  /**
+   * @param downloadUrl      remote file URL to download
+   * @param localDirectory   local file directory to copy file into
+   * @param progressCallback called on each progress change
+   * @param fileName         name of the final file
+   */
+  public FileDownloader(String downloadUrl, String localDirectory,
+      DownloadProgressCallback progressCallback, String fileName) {
+    this(downloadUrl, new File(localDirectory), progressCallback, fileName);
+  }
+
+  /**
+   * @param downloadUrl      remote file URL to download
+   * @param localDirectory   local file directory to copy file into
+   * @param progressCallback called on each progress change
+   * @param fileName         name of the final file
+   */
+  public FileDownloader(String downloadUrl, File localDirectory,
+      DownloadProgressCallback progressCallback, String fileName) {
     this.downloadUrl = downloadUrl;
 
-    // strip query parameters from URL with split at ?
-    String fileName = FileAndPathUtil.getFileNameFromUrl(downloadUrl);
     this.localFile = new File(localDirectory, fileName);
     this.progressCallback = progressCallback;
   }
@@ -89,7 +109,7 @@ public class FileDownloader {
           var fos = new FileOutputStream(localFile)) {
         setStatus(DownloadStatus.DOWNLOADING);
 
-        log.info("Starting to download %s to %s".formatted(downloadUrl, localFile));
+        logger.info("Starting to download %s to %s".formatted(downloadUrl, localFile));
         // transfer packages to react to potential cancel calls
         int currentPackage = 0;
         long actuallyReadBytes = 0;
@@ -134,7 +154,7 @@ public class FileDownloader {
   }
 
   public void cancel() {
-    log.info("Cancelling file download " + localFile);
+    logger.info("Cancelling file download " + localFile);
     setStatus(DownloadStatus.CANCEL_REMOVE);
   }
 

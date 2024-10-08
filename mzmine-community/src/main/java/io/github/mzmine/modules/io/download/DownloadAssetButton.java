@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -110,10 +110,10 @@ public class DownloadAssetButton extends HBox {
   }
 
   private ButtonBase addDownloadLinksButton(final List<DownloadAsset> assets) {
-    FxIconButtonBuilder buttonBuilder;
+    FxIconButtonBuilder<?> buttonBuilder;
     if (assets.size() == 1) {
       DownloadAsset asset = assets.getFirst();
-      buttonBuilder = new FxIconButtonBuilder(new Button(), FxIcons.DOWNLOAD);
+      buttonBuilder = new FxIconButtonBuilder<>(new Button(), FxIcons.DOWNLOAD);
       buttonBuilder.onAction(() -> download(assets.getFirst()));
       buttonBuilder.tooltip(asset.getDownloadDescription());
     } else {
@@ -122,7 +122,7 @@ public class DownloadAssetButton extends HBox {
       var menuItems = assets.stream()
           .map(asset -> MenuItems.create(asset.getLabel(false), () -> download(asset))).toList();
       menuButton.getItems().setAll(FXCollections.observableList(menuItems));
-      buttonBuilder = new FxIconButtonBuilder(menuButton, FxIcons.DOWNLOAD);
+      buttonBuilder = new FxIconButtonBuilder<>(menuButton, FxIcons.DOWNLOAD);
     }
     var downloadButton = buttonBuilder.build();
     downloadButton.disableProperty().bind(isDownloading);
