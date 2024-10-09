@@ -23,24 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.analysis;
+package io.github.mzmine.modules.dataprocessing.id_ion_type;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.util.List;
 
-/**
- * Represents count of signals found in MS1 scan(s). It extends the {@link IntegerType} class. This
- * value is typically used in the context of ion type analysis.
- */
-public class Ms1SignalsType extends IntegerType {
+public record GroupedSignalScans(FeatureListRow row, List<Scan> ms1Scans,
+                                 List<Scan> ms2ScansAllPrecursors) {
 
-  @Override
-  public @NotNull String getUniqueID() {
-    return "ms1_signals";
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "MS1 signals";
-  }
 }

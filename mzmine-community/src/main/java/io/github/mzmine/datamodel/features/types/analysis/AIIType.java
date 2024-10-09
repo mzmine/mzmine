@@ -23,13 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
+package io.github.mzmine.datamodel.features.types.analysis;
 
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.List;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import org.jetbrains.annotations.NotNull;
 
-public record GroupedSignalScans(FeatureListRow row, List<Scan> ms1Scans, List<Scan> ms2Scans,
-                                 List<Scan> ms2ScansAllPrecursors) {
+/**
+ * Represents count of adducts and isotopes annotations found in MS1 scan(s). It extends the
+ * {@link IntegerType} class. This value is typically used in the context of ion type analysis.
+ */
+public class AIIType extends IntegerType {
 
+  @Override
+  public @NotNull String getUniqueID() {
+    return "ms1_aii";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "MS1 aii";
+  }
 }

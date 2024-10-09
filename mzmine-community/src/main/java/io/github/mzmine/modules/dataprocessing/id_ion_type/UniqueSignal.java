@@ -23,24 +23,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.analysis;
+package io.github.mzmine.modules.dataprocessing.id_ion_type;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
 
-/**
- * Represents count of signals found in MS1 scan(s). It extends the {@link IntegerType} class. This
- * value is typically used in the context of ion type analysis.
- */
-public class Ms1SignalsType extends IntegerType {
+public record UniqueSignal(double mz, List<DataPoint> dps, Set<Scan> scans) {
 
-  @Override
-  public @NotNull String getUniqueID() {
-    return "ms1_signals";
+  public UniqueSignal(DataPoint dp, Scan scan) {
+    this(dp.getMZ(), new ArrayList<>(), new HashSet<>());
+    add(dp, scan);
   }
 
-  @Override
-  public @NotNull String getHeaderString() {
-    return "MS1 signals";
+  public double sumIntensity() {
+    return dps.stream().mapToDouble(DataPoint::getIntensity).sum();
+  }
+
+  public int numberOfScans() {
+    return scans.size();
+  }
+
+  public void add(final DataPoint dp, final Scan scan) {
+    dps.add(dp);
+    scans.add(scan);
+  }
+
+  public Stream<Double> streamPrecursorMzs() {
+    return scans.stream().map(Scan::getPrecursorMz).filter(Objects::nonNull);
   }
 }

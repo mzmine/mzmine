@@ -25,23 +25,22 @@
 
 package io.github.mzmine.datamodel.features.types.analysis;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents common intensity between MS1 and MS2 signals, over MS2 total intensity (%). It extends
- * the {@link PercentType} class. This value is typically used in the context of in source fragments
- * analysis.
+ * Represents count of isotopes and fragments annotations found in MS1 scan(s). It extends the
+ * {@link IntegerType} class. This value is typically used in the context of ion type analysis.
  */
-public class Ms2CommonIntensityPercentAllPrecursorsType extends PercentType {
+public class IICType extends IntegerType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms2_common_intensity_percent_all_precursors";
+    return "ms1_iic";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS2 common intensity (all precursors)";
+    return "MS1 iic";
   }
 }

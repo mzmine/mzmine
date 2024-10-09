@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
+package io.github.mzmine.modules.dataprocessing.id_ion_type;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -37,12 +37,12 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CommonMs1Ms2FragmentsAnalysisModule extends TaskPerFeatureListModule {
+public class IonTypeAnalysisModule extends TaskPerFeatureListModule {
 
-  public CommonMs1Ms2FragmentsAnalysisModule() {
-    super("Common MS1-MS2 fragments analysis", CommonMs1Ms2FragmentsAnalysisParameters.class,
+  public IonTypeAnalysisModule() {
+    super("Ion type analysis", IonTypeAnalysisParameters.class,
         MZmineModuleCategory.FEATURELISTEXPORT, false, """
-            This is a module performing fragments analysis on both the MS1 and MS2 signals.
+            This is a module performing ion type analysis based on both the MS1 and MS2 signals.
             It compares signals found in MS1 scans and related MS2 scans in the same RT range.""");
   }
 
@@ -50,7 +50,7 @@ public class CommonMs1Ms2FragmentsAnalysisModule extends TaskPerFeatureListModul
   public @NotNull Task createTask(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
       final @Nullable MemoryMapStorage storage, final @NotNull FeatureList featureList) {
-    return new CommonMs1Ms2FragmentsAnalysisTask(project, List.of(featureList), parameters, storage,
+    return new IonTypeAnalysisTask(project, List.of(featureList), parameters, storage,
         moduleCallDate, this.getClass());
   }
 

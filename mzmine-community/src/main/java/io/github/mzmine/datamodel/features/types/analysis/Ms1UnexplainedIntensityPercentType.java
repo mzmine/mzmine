@@ -29,19 +29,19 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents how many of the MS1 signals could not be explained (%).
- * Measured by their intensity. It extends the {@link PercentType} class. This value is typically
- * used in the context of in source fragments analysis.
+ * Represents how many of the MS1 signals could not be explained (%). Measured by their intensity.
+ * It extends the {@link PercentType} class. This value is typically used in the context of ion type
+ * analysis.
  */
 public class Ms1UnexplainedIntensityPercentType extends PercentType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "unexplained_intensity_in_ms1_percent";
+    return "ms1_unexplained_intensity_percent";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Unexplained ions intensity in MS1";
+    return "MS1 unexplained intensity %";
   }
 }

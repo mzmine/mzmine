@@ -23,11 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
+package io.github.mzmine.modules.dataprocessing.id_ion_type;
 
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -38,7 +37,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  * <p>
  * var flists = parameters.getValue(EmptyFeatureListParameters.featureLists);
  */
-public class CommonMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet {
+public class IonTypeAnalysisParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
@@ -54,19 +53,11 @@ public class CommonMs1Ms2FragmentsAnalysisParameters extends SimpleParameterSet 
           + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
       ScanDataType.values(), ScanDataType.MASS_LIST);
 
-  public static final BooleanParameter removeAdductsAndCo = new BooleanParameter(
-      "Remove adducts and co", "Remove adducts, multimers, and multicharged ions when counting.",
-      true);
-
-  public static final BooleanParameter removeIsotopes = new BooleanParameter("Remove isotopes",
-      "Remove isotopes when counting.", true);
-
-  public CommonMs1Ms2FragmentsAnalysisParameters() {
+  public IonTypeAnalysisParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(featureLists, scanDataType, toleranceMs1, toleranceMs2, removeAdductsAndCo,
-        removeIsotopes);
+    super(featureLists, scanDataType, toleranceMs1, toleranceMs2);
   }
 
 }

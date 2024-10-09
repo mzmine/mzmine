@@ -29,18 +29,18 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents count of signals found in MS1 scan(s). It extends the {@link IntegerType} class. This
- * value is typically used in the context of ion type analysis.
+ * Represents the count of common signals between MS1 and MS2 signals (all precursors). It extends
+ * the {@link IntegerType} class. This value is typically used in the context of ion type analysis.
  */
-public class Ms1SignalsType extends IntegerType {
+public class CommonSignalsType extends IntegerType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms1_signals";
+    return "common_signals";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS1 signals";
+    return "Common signals";
   }
 }

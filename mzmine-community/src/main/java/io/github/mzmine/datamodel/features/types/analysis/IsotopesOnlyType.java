@@ -29,18 +29,18 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents count of signals found in MS1 scan(s). It extends the {@link IntegerType} class. This
- * value is typically used in the context of ion type analysis.
+ * Represents count of isotopes without other annotations found in MS1 scan(s). It extends the
+ * {@link IntegerType} class. This value is typically used in the context of ion type analysis.
  */
-public class Ms1SignalsType extends IntegerType {
+public class IsotopesOnlyType extends IntegerType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms1_signals";
+    return "ms1_io";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS1 signals";
+    return "MS1 io";
   }
 }

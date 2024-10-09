@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
+package io.github.mzmine.modules.dataprocessing.id_ion_type;
 
 import static java.util.Objects.requireNonNullElse;
 
@@ -31,62 +31,64 @@ import io.github.mzmine.datamodel.features.ModularDataRecord;
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.analysis.CommonSignalsAllPrecursorsType;
+import io.github.mzmine.datamodel.features.types.analysis.AICType;
+import io.github.mzmine.datamodel.features.types.analysis.AIIType;
+import io.github.mzmine.datamodel.features.types.analysis.AdductsOnlyType;
+import io.github.mzmine.datamodel.features.types.analysis.CommonOnlyType;
+import io.github.mzmine.datamodel.features.types.analysis.CommonSignalsType;
+import io.github.mzmine.datamodel.features.types.analysis.ExplainedIType;
+import io.github.mzmine.datamodel.features.types.analysis.IICType;
+import io.github.mzmine.datamodel.features.types.analysis.IsotopesOnlyType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1AdductsAndCoType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonIntensityPercentAllPrecursorsType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonSignalsPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms1CommonIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1IsotopesType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1SignalsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1UnexplainedIntensityPercentType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms1UnexplainedPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1UnexplainedType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms2CommonIntensityPercentAllPrecursorsType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms2CommonSignalsPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms2CommonIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsIntensityPercentType;
-import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public record InSourceFragmentAnalysisResults(int commonSignalsAllPrecursors, int ms1Signals,
-                                              int ms2SignalsAllPrecursors, int ms1AdductsAndCo,
-                                              int ms1Isotopes, int ms1Fragmented,
-                                              int ms1Unexplained, double ms1FragmentedPercent,
-                                              double ms1FragmentedIntensityPercent,
-                                              double ms1CommonPercent,
-                                              double ms1CommonIntensityPercent,
-                                              double ms2CommonPercent,
-                                              double ms2CommonIntensityPercent,
-                                              double ms1UnexplainedPercent,
-                                              double ms1UnexplainedIntensityPercent) implements
-    ModularDataRecord {
+public record IonTypeAnalysisResults(int commonSignalsAllPrecursors, int ms1Signals,
+                                     int ms2SignalsAllPrecursors, int ms1AdductsAndCo,
+                                     int ms1Isotopes, int ms1Fragmented, int ms1Unexplained,
+                                     double ms1FragmentedIntensityPercent,
+                                     double ms1CommonIntensityPercent,
+                                     double ms2CommonIntensityPercent,
+                                     double ms1UnexplainedIntensityPercent, int adductsOnly,
+                                     int isotopesOnly, int commonOnly, int aIC, int aII, int iIC,
+                                     int explainedI) implements ModularDataRecord {
 
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
     return DataTypes.getAll( //
-        CommonSignalsAllPrecursorsType.class, //
+        CommonSignalsType.class, //
         Ms1SignalsType.class, //
         Ms2SignalsAllPrecursorsType.class, //
         Ms1AdductsAndCoType.class, //
         Ms1IsotopesType.class, //
-        Ms1UnexplainedType.class, //
-        Ms1UnexplainedPercentType.class, //
-        Ms1UnexplainedIntensityPercentType.class, //
-        Ms1CommonSignalsPercentType.class, //
-        Ms2CommonSignalsPercentType.class, //
-        Ms1CommonIntensityPercentAllPrecursorsType.class, //
-        Ms2CommonIntensityPercentAllPrecursorsType.class, //
         PrecursorIonsType.class, //
-        PrecursorIonsPercentType.class, //
-        PrecursorIonsIntensityPercentType.class //
+        Ms1UnexplainedType.class, //
+        Ms1CommonIntensityPercentType.class, //
+        Ms2CommonIntensityPercentType.class, //
+        PrecursorIonsIntensityPercentType.class, //
+        Ms1UnexplainedIntensityPercentType.class, //
+        AdductsOnlyType.class, //
+        IsotopesOnlyType.class, //
+        CommonOnlyType.class, //
+        AIIType.class, //
+        AICType.class, //
+        IICType.class, //
+        ExplainedIType.class //
     );
   }
 
-  public static InSourceFragmentAnalysisResults create(
-      final @NotNull SimpleModularDataModel values) {
-    return new InSourceFragmentAnalysisResults( //
-        requireNonNullElse(values.get(CommonSignalsAllPrecursorsType.class), -1),
+  public static IonTypeAnalysisResults create(final @NotNull SimpleModularDataModel values) {
+    return new IonTypeAnalysisResults( //
+        requireNonNullElse(values.get(CommonSignalsType.class), -1),
         requireNonNullElse(values.get(Ms1SignalsType.class), -1),
         requireNonNullElse(values.get(Ms2SignalsAllPrecursorsType.class), -1),
         requireNonNullElse(values.get(Ms1AdductsAndCoType.class), -1),
@@ -94,13 +96,16 @@ public record InSourceFragmentAnalysisResults(int commonSignalsAllPrecursors, in
         requireNonNullElse(values.get(PrecursorIonsType.class), -1),
         requireNonNullElse(values.get(Ms1UnexplainedType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsIntensityPercentType.class), -1f),
-        requireNonNullElse(values.get(PrecursorIonsPercentType.class), -1f),
-        requireNonNullElse(values.get(Ms1CommonSignalsPercentType.class), -1f),
-        requireNonNullElse(values.get(Ms1CommonIntensityPercentAllPrecursorsType.class), -1f),
-        requireNonNullElse(values.get(Ms2CommonSignalsPercentType.class), -1f),
-        requireNonNullElse(values.get(Ms2CommonIntensityPercentAllPrecursorsType.class), -1f),
-        requireNonNullElse(values.get(Ms1UnexplainedPercentType.class), -1f),
-        requireNonNullElse(values.get(Ms1UnexplainedIntensityPercentType.class), -1f));
+        requireNonNullElse(values.get(Ms1CommonIntensityPercentType.class), -1f),
+        requireNonNullElse(values.get(Ms2CommonIntensityPercentType.class), -1f),
+        requireNonNullElse(values.get(Ms1UnexplainedIntensityPercentType.class), -1f),
+        requireNonNullElse(values.get(AdductsOnlyType.class), -1),
+        requireNonNullElse(values.get(IsotopesOnlyType.class), -1),
+        requireNonNullElse(values.get(CommonOnlyType.class), -1),
+        requireNonNullElse(values.get(AIIType.class), -1),
+        requireNonNullElse(values.get(AICType.class), -1),
+        requireNonNullElse(values.get(IICType.class), -1),
+        requireNonNullElse(values.get(ExplainedIType.class), -1));
   }
 
   /**
@@ -112,21 +117,25 @@ public record InSourceFragmentAnalysisResults(int commonSignalsAllPrecursors, in
   @Override
   public Object getValue(final DataType sub) {
     return switch (sub) {
-      case CommonSignalsAllPrecursorsType _ -> commonSignalsAllPrecursors;
+      case CommonSignalsType _ -> commonSignalsAllPrecursors;
       case Ms1SignalsType _ -> ms1Signals;
       case Ms2SignalsAllPrecursorsType _ -> ms2SignalsAllPrecursors;
       case Ms1AdductsAndCoType _ -> ms1AdductsAndCo;
       case Ms1IsotopesType _ -> ms1Isotopes;
-      case PrecursorIonsIntensityPercentType _ -> ms1FragmentedIntensityPercent;
       case PrecursorIonsType _ -> ms1Fragmented;
       case Ms1UnexplainedType _ -> ms1Unexplained;
+      case PrecursorIonsIntensityPercentType _ -> ms1FragmentedIntensityPercent;
+      case Ms1CommonIntensityPercentType _ -> ms1CommonIntensityPercent;
+      case Ms2CommonIntensityPercentType _ -> ms2CommonIntensityPercent;
       case Ms1UnexplainedIntensityPercentType _ -> ms1UnexplainedIntensityPercent;
-      case Ms1UnexplainedPercentType _ -> ms1UnexplainedPercent;
-      case PrecursorIonsPercentType _ -> ms1FragmentedPercent;
-      case Ms1CommonIntensityPercentAllPrecursorsType _ -> ms1CommonIntensityPercent;
-      case Ms1CommonSignalsPercentType _ -> ms1CommonPercent;
-      case Ms2CommonIntensityPercentAllPrecursorsType _ -> ms2CommonIntensityPercent;
-      case Ms2CommonSignalsPercentType _ -> ms2CommonPercent;
+      case AdductsOnlyType _ -> adductsOnly;
+      case IsotopesOnlyType _ -> isotopesOnly;
+      case CommonOnlyType _ -> commonOnly;
+      case AIIType _ -> aII;
+      case AICType _ -> aIC;
+      case IICType _ -> iIC;
+      case ExplainedIType _ -> explainedI;
+
       default -> throw new IllegalStateException("Unexpected value: " + sub);
     };
   }

@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents count of precursors found in MS1. It extends the {@link IntegerType} class. This value
- * is typically used in the context of in source fragments analysis.
+ * is typically used in the context of ion type analysis.
  */
 public class PrecursorIonsType extends IntegerType {
 

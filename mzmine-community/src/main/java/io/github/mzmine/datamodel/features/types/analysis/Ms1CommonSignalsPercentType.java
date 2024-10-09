@@ -30,8 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents common signals between MS1 and MS2 signals, over MS1 total signals (%). It extends the
- * {@link PercentType} class. This value is typically used in the context of in source fragments
- * analysis.
+ * {@link PercentType} class. This value is typically used in the context of ion type analysis.
  */
 public class Ms1CommonSignalsPercentType extends PercentType {
 

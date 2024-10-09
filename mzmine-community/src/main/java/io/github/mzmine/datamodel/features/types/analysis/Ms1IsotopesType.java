@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents count of isotopes found in MS1 scan(s). It extends the {@link IntegerType} class. This
- * value is typically used in the context of in source fragments analysis.
+ * value is typically used in the context of ion type analysis.
  */
 public class Ms1IsotopesType extends IntegerType {
 

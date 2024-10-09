@@ -25,22 +25,23 @@
 
 package io.github.mzmine.datamodel.features.types.analysis;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents count of signals found in MS1 scan(s). It extends the {@link IntegerType} class. This
- * value is typically used in the context of ion type analysis.
+ * Represents common intensity between MS1 and MS2 signals (all precursors), over MS1 total
+ * intensity (%). It extends the {@link PercentType} class. This value is typically used in the
+ * context of ion type analysis.
  */
-public class Ms1SignalsType extends IntegerType {
+public class Ms1CommonIntensityPercentType extends PercentType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms1_signals";
+    return "ms1_common_intensity_percent";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS1 signals";
+    return "MS1 common intensity";
   }
 }

@@ -29,49 +29,49 @@ import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.modules.dataprocessing.process_signalsanalysis.InSourceFragmentAnalysisResults;
+import io.github.mzmine.modules.dataprocessing.id_ion_type.IonTypeAnalysisResults;
 import java.util.List;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Type of {@link InSourceFragmentAnalysisResults}
+ * Type of {@link IonTypeAnalysisResults}
  */
-public class InSourceFragmentsAnalysisType extends
-    SimpleSubColumnsType<InSourceFragmentAnalysisResults> implements SubColumnsFactory {
+public class IonTypeAnalysisType extends SimpleSubColumnsType<IonTypeAnalysisResults> implements
+    SubColumnsFactory {
 
   @NotNull
   @Override
   public String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "insource_fragment_analysis";
+    return "ion_type_analysis";
   }
 
   @NotNull
   @Override
   public String getHeaderString() {
-    return "In-source fragment analysis";
+    return "Ion type analysis";
   }
 
   @Override
   public @NotNull List<DataType> getSubDataTypes() {
-    return InSourceFragmentAnalysisResults.getSubTypes();
+    return IonTypeAnalysisResults.getSubTypes();
   }
 
   @Override
-  public Property<InSourceFragmentAnalysisResults> createProperty() {
+  public Property<IonTypeAnalysisResults> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
   @Override
-  protected InSourceFragmentAnalysisResults createRecord(final SimpleModularDataModel model) {
-    return InSourceFragmentAnalysisResults.create(model);
+  protected IonTypeAnalysisResults createRecord(final SimpleModularDataModel model) {
+    return IonTypeAnalysisResults.create(model);
   }
 
   @Override
-  public Class<InSourceFragmentAnalysisResults> getValueClass() {
-    return InSourceFragmentAnalysisResults.class;
+  public Class<IonTypeAnalysisResults> getValueClass() {
+    return IonTypeAnalysisResults.class;
   }
 
   @Override

@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
+package io.github.mzmine.modules.dataprocessing.id_ion_type;
 
 import static io.github.mzmine.util.DataPointUtils.removePrecursorMz;
 import static io.github.mzmine.util.scans.ScanUtils.findAllMS2FragmentScans;
@@ -40,7 +40,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.types.analysis.InSourceFragmentsAnalysisType;
+import io.github.mzmine.datamodel.features.types.analysis.IonTypeAnalysisType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -60,6 +60,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
@@ -67,16 +68,13 @@ import org.openscience.cdk.Element;
 /**
  * Analyzes MS1 and MS2 signals from feature lists to compare MS1 signals with MS2 fragment scans.
  */
-class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
+class IonTypeAnalysisTask extends AbstractFeatureListTask {
 
-  private static final Logger logger = Logger.getLogger(
-      CommonMs1Ms2FragmentsAnalysisTask.class.getName());
+  private static final Logger logger = Logger.getLogger(IonTypeAnalysisTask.class.getName());
   private final List<FeatureList> featureLists;
   private final boolean useMassList;
   private final MZTolerance toleranceMs1;
   private final MZTolerance toleranceMs2;
-  private final Boolean removeAdductsAndCo;
-  private final Boolean removeIsotopes;
 
   /**
    * Constructor to initialize the task with necessary parameters.
@@ -88,20 +86,16 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
    * @param moduleCallDate The date the module was called.
    * @param moduleClass    The class of the calling module.
    */
-  public CommonMs1Ms2FragmentsAnalysisTask(MZmineProject project, List<FeatureList> featureLists,
+  public IonTypeAnalysisTask(MZmineProject project, List<FeatureList> featureLists,
       ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.featureLists = featureLists;
     this.totalItems = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).sum();
-    this.useMassList = parameters.getValue(CommonMs1Ms2FragmentsAnalysisParameters.scanDataType)
-        == ScanDataType.MASS_LIST;
-    this.toleranceMs1 = parameters.getValue(CommonMs1Ms2FragmentsAnalysisParameters.toleranceMs1);
-    this.toleranceMs2 = parameters.getValue(CommonMs1Ms2FragmentsAnalysisParameters.toleranceMs2);
-    this.removeAdductsAndCo = parameters.getValue(
-        CommonMs1Ms2FragmentsAnalysisParameters.removeAdductsAndCo);
-    this.removeIsotopes = parameters.getValue(
-        CommonMs1Ms2FragmentsAnalysisParameters.removeIsotopes);
+    this.useMassList =
+        parameters.getValue(IonTypeAnalysisParameters.scanDataType) == ScanDataType.MASS_LIST;
+    this.toleranceMs1 = parameters.getValue(IonTypeAnalysisParameters.toleranceMs1);
+    this.toleranceMs2 = parameters.getValue(IonTypeAnalysisParameters.toleranceMs2);
   }
 
   private static double calcSumIntensity(List<UniqueSignal> signals) {
@@ -133,7 +127,6 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
    */
   private GroupedSignalScans createGroupedSignalScans(FeatureListRow row) {
     List<Scan> ms1Scans = new ArrayList<>();
-    List<Scan> ms2Scans = new ArrayList<>();
     List<Scan> allPrecursorsMs2Scans = new ArrayList<>();
 
     for (ModularFeature feature : row.getFeatures()) {
@@ -141,9 +134,6 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         Scan representativeMs1 = feature.getRepresentativeScan();
         if (representativeMs1 != null) {
           ms1Scans.add(representativeMs1);
-
-          List<Scan> fragmentScans = feature.getAllMS2FragmentScans();
-          ms2Scans.addAll(fragmentScans);
 
           Range<Float> rawRtRange = feature.getRawDataPointsRTRange();
           RawDataFile raw = feature.getRawDataFile();
@@ -164,15 +154,15 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     try {
       IsotopeAndAdducts isotopeAndAdducts = processIsotopesAndAdducts(row);
 
-      SignalsAnalysisResult analysisResult = analyzeSignals(ms1Scans, ms2Scans,
-          allPrecursorsMs2Scans, toleranceMs1, toleranceMs2, isotopeAndAdducts.getAdducts(),
-          isotopeAndAdducts.getIsotopes(), removeAdductsAndCo, removeIsotopes);
-      row.set(InSourceFragmentsAnalysisType.class, analysisResult.results);
+      SignalsAnalysisResult analysisResult = analyzeSignals(ms1Scans, allPrecursorsMs2Scans,
+          toleranceMs1, toleranceMs2, isotopeAndAdducts.getAdducts(),
+          isotopeAndAdducts.getIsotopes());
+      row.set(IonTypeAnalysisType.class, analysisResult.results);
 
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Error processing row: " + ex.getMessage(), ex);
     }
-    return new GroupedSignalScans(row, ms1Scans, ms2Scans, allPrecursorsMs2Scans);
+    return new GroupedSignalScans(row, ms1Scans, allPrecursorsMs2Scans);
   }
 
   private IsotopeAndAdducts processIsotopesAndAdducts(FeatureListRow row) {
@@ -214,7 +204,8 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
               isotopeSet.addAll(foundIsotopes);
 
               // Most occurring mass diffs taken from 10.1021/acs.analchem.4c00966
-              double[] knownMassDifferences = {67.9874, // sodium formate
+              double[] knownMassDifferences = { //
+                  67.9874, // sodium formate
                   0.5017,  //double charge C
                   21.9819, // H Na
                   57.9586, // NaCl
@@ -270,105 +261,94 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
    * Analyzes unique signals between MS1 and MS2 scans.
    *
    * @param ms1Scans              The MS1 scans.
-   * @param ms2Scans              The MS2 scans.
    * @param allPrecursorsMs2Scans The MS2 scans from all precursors.
    * @param toleranceMs1          The tolerance in MS1.
    * @param toleranceMs2          The tolerance in MS1.
    * @param adductsAndCoList      The adducts and co list
    * @param isotopeList           The isotopes list.
-   * @param removeAdductsAndCo    Boolean to remove adducts and co from count.
-   * @param removeIsotopes        Boolean to remove isotopes from count.
    * @return The analysis result.
    */
-  private SignalsAnalysisResult analyzeSignals(List<Scan> ms1Scans, List<Scan> ms2Scans,
+  private SignalsAnalysisResult analyzeSignals(List<Scan> ms1Scans,
       List<Scan> allPrecursorsMs2Scans, MZTolerance toleranceMs1, MZTolerance toleranceMs2,
-      List<DataPoint> adductsAndCoList, List<DataPoint> isotopeList, boolean removeAdductsAndCo,
-      boolean removeIsotopes) {
+      List<DataPoint> adductsAndCoList, List<DataPoint> isotopeList) {
 
     // Step 1: Collect signals
     // MS1
     int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);  // Require signal in 90% of scans
     var ms1SignalRangeMap = filterMap(collectUniqueSignals(ms1Scans, toleranceMs1), minMs1Scans);
     List<UniqueSignal> ms1Signals = new ArrayList<>(ms1SignalRangeMap.asMapOfRanges().values());
-    // MS2
-    var ms2SignalRangeMap = collectUniqueSignals(ms2Scans, toleranceMs2);
-    List<UniqueSignal> ms2Signals = mapToList(ms2SignalRangeMap);
     // MS2 (all precursors)
-    var ms2SignalRangeMapAllPrecursors = collectUniqueSignals(allPrecursorsMs2Scans, toleranceMs2);
-    List<UniqueSignal> ms2SignalsAllPrecursors = mapToList(ms2SignalRangeMapAllPrecursors);
+    var ms2SignalRangeMap = collectUniqueSignals(allPrecursorsMs2Scans, toleranceMs2);
+    List<UniqueSignal> ms2SignalsAllPrecursors = mapToList(ms2SignalRangeMap);
 
     // Step 2: Find unique precursors
     List<UniqueSignal> uniquePrecursorsSignals = findUniquePrecursors(ms1SignalRangeMap,
         allPrecursorsMs2Scans);
-
-    // We are generous and collect also eventual fragments from isotopes, adducts, and co
     List<UniqueSignal> ms2SignalMatchesMs1AllPrecursors = findMatches(ms2SignalsAllPrecursors,
         ms1SignalRangeMap);
 
-    // Step 3: Calculate summed intensity
-    double ms1Intensity = calcSumIntensity(ms1Signals); // done before
-    double ms1IntensityFragmented = calcSumIntensity(uniquePrecursorsSignals);
-    double ms2IntensityAllPrecursors = calcSumIntensity(ms2SignalsAllPrecursors);
-    double commonMs2IntensityAllPrecursors = calcSumIntensity(ms2SignalMatchesMs1AllPrecursors);
-
-    // Step 4: Analyze isotopes, adducts, and co
+    // Step 3: Analyze isotopes, adducts, and co
     var adductsAndCoSignalMap = collectSignalsFromDataPoints(adductsAndCoList, toleranceMs1);
     var isotopesSignalsMap = collectSignalsFromDataPoints(isotopeList, toleranceMs1);
     List<UniqueSignal> ms1SignalsAdductsAndCo = findMatches(ms1Signals, adductsAndCoSignalMap);
     List<UniqueSignal> ms1SignalsIsotopes = findMatches(ms1Signals, isotopesSignalsMap);
 
-    // Step 4b optional: remove isotopes, adducts, and co
-    List<UniqueSignal> ms1SignalsUnexplained = ms1Signals;
-    if (removeAdductsAndCo) {
-      Set<UniqueSignal> adductsAndCoSet = new HashSet<>(ms1SignalsAdductsAndCo);
-      ms1SignalsUnexplained = filterSignals(ms1SignalsUnexplained, adductsAndCoSet);
-      // ms2Signals = filterSignals(ms2Signals, adductsAndCoSet);
-      ms2SignalsAllPrecursors = filterSignals(ms2SignalsAllPrecursors, adductsAndCoSet);
-    }
-    if (removeIsotopes) {
-      Set<UniqueSignal> isotopesSet = new HashSet<>(ms1SignalsIsotopes);
-      ms1SignalsUnexplained = filterSignals(ms1SignalsUnexplained, isotopesSet);
-      // ms2Signals = filterSignals(ms2Signals, isotopesSet);
-      ms2SignalsAllPrecursors = filterSignals(ms2SignalsAllPrecursors, isotopesSet);
-    }
+    // Step 4: Analyze MS2 signals for all precursors
+    List<UniqueSignal> commonSignals = findMatches(ms1Signals, ms2SignalRangeMap);
 
-    // Step 5: Analyze MS2 signals for all precursors
-    List<UniqueSignal> ms1SignalMatchesMs2AllPrecursors = findMatches(ms1SignalsUnexplained,
-        ms2SignalRangeMapAllPrecursors);
-    Set<UniqueSignal> commonSet = new HashSet<>(ms1SignalMatchesMs2AllPrecursors);
-    ms1SignalsUnexplained = filterSignals(ms1SignalsUnexplained, commonSet);
-    double commonMs1IntensityAllPrecursors = calcSumIntensity(ms1SignalMatchesMs2AllPrecursors);
+    // Step 5: Get intersects
+    List<UniqueSignal> adductsICommon = findMatches(ms1SignalsAdductsAndCo, ms2SignalRangeMap);
+    List<UniqueSignal> adductsIIsotopes = findMatches(ms1SignalsAdductsAndCo, isotopesSignalsMap);
+    List<UniqueSignal> isotopesICommon = findMatches(ms1SignalsIsotopes, ms2SignalRangeMap);
+    List<UniqueSignal> explainedISet = findMatches(adductsICommon, isotopesSignalsMap);
+
+    // Filter unexplained signals
+    List<UniqueSignal> ms1SignalsUnexplained = filterSignals(ms1Signals,
+        union(ms1SignalsAdductsAndCo, union(ms1SignalsIsotopes, commonSignals)));
+
+    // Step 6: Get summed intensities
+    double commonMs1IntensityAllPrecursors = calcSumIntensity(commonSignals);
+    double ms1Intensity = calcSumIntensity(ms1Signals);
+    double ms2IntensityAllPrecursors = calcSumIntensity(ms2SignalsAllPrecursors);
+    double ms1IntensityFragmented = calcSumIntensity(uniquePrecursorsSignals);
     double ms1IntensityUnexplained = calcSumIntensity(ms1SignalsUnexplained);
+    double commonMs2IntensityAllPrecursors = calcSumIntensity(ms2SignalMatchesMs1AllPrecursors);
 
-    // Step 6: Find signals sizes
+    // Step 7: Get signals sizes
     int ms1SignalsCount = ms1Signals.size();
     int ms1SignalsAdductsAndCoCount = ms1SignalsAdductsAndCo.size();
     int ms1SignalsIsotopesCount = ms1SignalsIsotopes.size();
     int ms1SignalsFragmentedCount = uniquePrecursorsSignals.size();
     int ms1SignalsUnexplainedCount = ms1SignalsUnexplained.size();
     int ms2SignalsAllPrecursorsCount = ms2SignalsAllPrecursors.size();
-    int commonSignalsAllPrecursorsCount = ms1SignalMatchesMs2AllPrecursors.size();
+    int commonSignalsCount = commonSignals.size();
 
-    // Step 7: Calculate percentages
-    // counts
-    double ms1SignalsFragmentedPercent = (double) ms1SignalsFragmentedCount / ms1SignalsCount;
-    double ms1SignalsUnexplainedPercent = (double) ms1SignalsUnexplainedCount / ms1SignalsCount;
-    double ms1CommonPercent = (double) commonSignalsAllPrecursorsCount / ms1SignalsCount;
-    double ms2CommonPercent =
-        (double) commonSignalsAllPrecursorsCount / ms2SignalsAllPrecursorsCount;
-    // intensities
+    int adductsOnlyCount =
+        ms1SignalsAdductsAndCoCount - adductsICommon.size() - adductsIIsotopes.size()
+            + explainedISet.size();
+    int isotopesOnlyCount =
+        ms1SignalsIsotopesCount - adductsIIsotopes.size() - isotopesICommon.size()
+            + explainedISet.size();
+    int commonOnlyCount =
+        commonSignalsCount - adductsICommon.size() - isotopesICommon.size() + explainedISet.size();
+    int aICCount = adductsICommon.size() - explainedISet.size();
+    int aIICount = adductsIIsotopes.size() - explainedISet.size();
+    int iICCount = isotopesICommon.size() - explainedISet.size();
+    int explainedICount = explainedISet.size();
+
+    // Step 8: Calculate intensities percentages
     double ms1FragmentedIntensityPercent = ms1IntensityFragmented / ms1Intensity;
     double ms1UnexplainedIntensityPercent = ms1IntensityUnexplained / ms1Intensity;
     double ms1CommonIntensityPercent = commonMs1IntensityAllPrecursors / ms1Intensity;
     double ms2CommonIntensityPercent = commonMs2IntensityAllPrecursors / ms2IntensityAllPrecursors;
 
-    // Step 8: Create results object
-    InSourceFragmentAnalysisResults results = new InSourceFragmentAnalysisResults(
-        commonSignalsAllPrecursorsCount, ms1SignalsCount, ms2SignalsAllPrecursorsCount,
-        ms1SignalsAdductsAndCoCount, ms1SignalsIsotopesCount, ms1SignalsUnexplainedCount,
-        ms1SignalsFragmentedCount, ms1SignalsFragmentedPercent, ms1FragmentedIntensityPercent,
-        ms1CommonPercent, ms1CommonIntensityPercent, ms2CommonPercent, ms2CommonIntensityPercent,
-        ms1SignalsUnexplainedPercent, ms1UnexplainedIntensityPercent);
+    // Step 9: Create results object
+    IonTypeAnalysisResults results = new IonTypeAnalysisResults(commonSignalsCount, ms1SignalsCount,
+        ms2SignalsAllPrecursorsCount, ms1SignalsAdductsAndCoCount, ms1SignalsIsotopesCount,
+        ms1SignalsFragmentedCount, ms1SignalsUnexplainedCount, ms1FragmentedIntensityPercent,
+        ms1CommonIntensityPercent, ms2CommonIntensityPercent, ms1UnexplainedIntensityPercent,
+        adductsOnlyCount, isotopesOnlyCount, commonOnlyCount, aICCount, aIICount, iICCount,
+        explainedICount);
 
     return new SignalsAnalysisResult(results);
   }
@@ -377,8 +357,16 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
    * Filters out some signals.
    */
   private List<UniqueSignal> filterSignals(List<UniqueSignal> signals,
-      Set<UniqueSignal> signalsToRemove) {
+      List<UniqueSignal> signalsToRemove) {
     return signals.stream().filter(signal -> !signalsToRemove.contains(signal)).distinct()
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the union of two lists, retaining all unique elements present in either list.
+   */
+  private List<UniqueSignal> union(List<UniqueSignal> signals1, List<UniqueSignal> signals2) {
+    return Stream.concat(signals1.stream(), signals2.stream()).distinct()
         .collect(Collectors.toList());
   }
 
@@ -391,6 +379,9 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Converts the RangeMap to a Set of UniqueSignal
+   */
   private List<UniqueSignal> mapToList(final RangeMap<Double, UniqueSignal> map) {
     return new ArrayList<>(map.asMapOfRanges().values());
   }
@@ -468,9 +459,8 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
     if (scan.getMSLevel() > 1) {
       dataPoints = removePrecursorMz(dataPoints, scan.getPrecursorMz(), 1);
     }
-    RangeMap<Double, UniqueSignal> scanUniqueSignals = collectSignalsFromDataPoints(
-        Arrays.asList(dataPoints), tolerance);
-    scanUniqueSignals.asMapOfRanges().forEach(unique::put);
+    collectSignalsFromDataPoints(Arrays.asList(dataPoints), tolerance).asMapOfRanges()
+        .forEach(unique::put);
   }
 
   /**
@@ -486,7 +476,7 @@ class CommonMs1Ms2FragmentsAnalysisTask extends AbstractFeatureListTask {
         .map(ms1SignalRangeMap::get).filter(Objects::nonNull).distinct().toList();
   }
 
-  private record SignalsAnalysisResult(InSourceFragmentAnalysisResults results) {
+  private record SignalsAnalysisResult(IonTypeAnalysisResults results) {
 
   }
 
