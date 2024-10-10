@@ -2216,8 +2216,7 @@ public class ScanUtils {
    * Create USI for scan. This involves finding the scan number and source file name
    */
   @NotNull
-  public static String scanToUSI(MassSpectrum scan, @Nullable String datasetID) {
-    String baseUSI = "mzspec:" + (datasetID == null ? "DATASET_ID_PLACEHOLDER" : datasetID) + ":";
+  public static String scanToUSI(MassSpectrum scan, @Nullable String baseUSI) {
     return __scanToUSI(scan, baseUSI);
   }
 
