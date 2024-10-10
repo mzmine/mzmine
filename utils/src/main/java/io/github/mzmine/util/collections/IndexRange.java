@@ -28,9 +28,72 @@ package io.github.mzmine.util.collections;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.IntConsumer;
+import org.jetbrains.annotations.NotNull;
 
 public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, SingleIndexRange {
+
+  static List<IndexRange> findRanges(List<Integer> values) {
+    if (values == null || values.isEmpty()) {
+      return List.of();
+    }
+    List<Integer> sorted = values.stream().filter(Objects::nonNull).sorted().distinct().toList();
+    List<IndexRange> ranges = new ArrayList<>();
+    // 1    3 4 5     8 9
+    Integer first = sorted.getFirst();
+    Integer lastInRange = first;
+
+    for (int i = 1; i < sorted.size(); i++) {
+      Integer currentNumber = sorted.get(i);
+
+      if (lastInRange + 1 == currentNumber) {
+        lastInRange = currentNumber; // consecutive numbers
+        continue;
+      }
+      // gap detected
+      ranges.add(IndexRange.ofInclusive(first, lastInRange));
+      first = currentNumber;
+      lastInRange = first;
+    }
+
+    // ADD LAST
+    ranges.add(IndexRange.ofInclusive(first, lastInRange));
+
+    return ranges;
+  }
+
+  /**
+   * Creates an {@link IndexRange} from min to maxInclusive. Use {@link IndexRange#isEmpty()} to
+   * check for elements
+   *
+   * @param min          first index
+   * @param maxExclusive is last included index + 1
+   * @return an {@link IndexRange} that may be empty
+   */
+  @NotNull
+  static IndexRange ofExclusive(int min, int maxExclusive) {
+    return ofInclusive(min, maxExclusive - 1);
+  }
+
+  /**
+   * Creates an {@link IndexRange} from min to maxInclusive. Use {@link IndexRange#isEmpty()} to
+   * check for elements
+   *
+   * @param min          first index
+   * @param maxInclusive last included index
+   * @return an {@link IndexRange} that may be empty
+   */
+  @NotNull
+  static IndexRange ofInclusive(int min, int maxInclusive) {
+    if (maxInclusive < min || min == -1 || maxInclusive == -1) {
+      return EmptyIndexRange.INSTANCE;
+    }
+    if (maxInclusive == min) {
+      return new SingleIndexRange(min);
+    }
+    return new SimpleIndexRange(min, maxInclusive);
+  }
 
   int size();
 

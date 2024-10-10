@@ -25,27 +25,30 @@
 
 package io.github.mzmine.util.collections;
 
-import org.jetbrains.annotations.NotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class IndexRangeFactory {
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
-  /**
-   * Creates an {@link IndexRange} from min to maxInclusive. Use {@link IndexRange#isEmpty()} to
-   * check for elements
-   *
-   * @param min          first index
-   * @param maxInclusive last included index
-   * @return an {@link IndexRange} that may be empty
-   */
-  @NotNull
-  public static IndexRange create(int min, int maxInclusive) {
-    if (maxInclusive < min || min == -1 || maxInclusive == -1) {
-      return EmptyIndexRange.INSTANCE;
-    }
-    if (maxInclusive == min) {
-      return new SingleIndexRange(min);
-    }
-    return new SimpleIndexRange(min, maxInclusive);
+class IndexRangeTest {
+
+  @Test
+  void findRanges() {
+    List<IndexRange> ranges = IndexRange.findRanges(List.of(1, 3, 4, 5, 8, 9));
+    assertEquals(3, ranges.size());
+    assertEquals(1, ranges.get(0).min());
+    assertEquals(1, ranges.get(0).maxInclusive());
+    assertEquals(2, ranges.get(0).maxExclusive());
+
+    assertEquals(3, ranges.get(1).min());
+    assertEquals(5, ranges.get(1).maxInclusive());
+    assertEquals(6, ranges.get(1).maxExclusive());
+
+    assertEquals(8, ranges.get(2).min());
+    assertEquals(9, ranges.get(2).maxInclusive());
+    assertEquals(10, ranges.get(2).maxExclusive());
+
+    ranges = IndexRange.findRanges(List.of());
+    assertEquals(0, ranges.size());
   }
-
 }
