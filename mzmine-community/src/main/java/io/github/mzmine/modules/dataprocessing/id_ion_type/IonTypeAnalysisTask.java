@@ -213,6 +213,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
   private void findAndAddMassDifferences(DataPoint[] dataPoints, DataPoint target,
       Set<DataPoint> adductsAndCoSet) {
     double[] knownMassDifferences = { //
+        // Most occurring mass diffs taken from 10.1021/acs.analchem.4c00966
         67.9874, // sodium formate
         0.5017,  // double charge C
         21.9819, // H Na
