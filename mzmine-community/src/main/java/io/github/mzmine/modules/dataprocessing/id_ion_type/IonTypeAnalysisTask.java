@@ -128,6 +128,24 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
   private GroupedSignalScans createGroupedSignalScans(FeatureListRow row) {
     List<Scan> ms1Scans = new ArrayList<>();
     List<Scan> allPrecursorsMs2Scans = new ArrayList<>();
+    Set<DataPoint> isotopeSet = new HashSet<>();
+    Set<DataPoint> adductsAndCoSet = new HashSet<>();
+    int isotopeMaxCharge = 2; // Consider making this a constant or parameterized value
+
+    // Precompute isotope mass differences
+    DoubleArrayList[] isoMzDiffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(
+        Arrays.asList(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
+            new Element("S"), new Element("F"), new Element("Cl"), new Element("Br")),
+        isotopeMaxCharge);
+
+    // Precompute max isotope MZ differences
+    double[] maxIsoMzDiff = new double[isotopeMaxCharge];
+    for (int i = 0; i < isotopeMaxCharge; i++) {
+      for (double diff : isoMzDiffsForCharge[i]) {
+        maxIsoMzDiff[i] = Math.max(maxIsoMzDiff[i], diff);
+      }
+      maxIsoMzDiff[i] += 10 * toleranceMs1.getMzToleranceForMass(maxIsoMzDiff[i]);
+    }
 
     for (ModularFeature feature : row.getFeatures()) {
       try {
@@ -145,6 +163,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
                 toleranceMs2.getToleranceRange(ms1SignalMz));
             allPrecursorsMs2Scans.addAll(Arrays.asList(broadFragmentScans));
           }
+          processIsotopesAndAdductsForFeature(feature, isotopeSet, adductsAndCoSet, isoMzDiffsForCharge, maxIsoMzDiff);
         }
       } catch (Exception ex) {
         logger.log(Level.WARNING, "Error gathering scans for feature: " + ex.getMessage(), ex);
@@ -152,8 +171,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     }
 
     try {
-      IsotopeAndAdducts isotopeAndAdducts = processIsotopesAndAdducts(row);
-
+      IsotopeAndAdducts isotopeAndAdducts = new IsotopeAndAdducts(new ArrayList<>(isotopeSet), new ArrayList<>(adductsAndCoSet));
       SignalsAnalysisResult analysisResult = analyzeSignals(ms1Scans, allPrecursorsMs2Scans,
           toleranceMs1, toleranceMs2, isotopeAndAdducts.getAdducts(),
           isotopeAndAdducts.getIsotopes());
@@ -165,68 +183,49 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     return new GroupedSignalScans(row, ms1Scans, allPrecursorsMs2Scans);
   }
 
-  private IsotopeAndAdducts processIsotopesAndAdducts(FeatureListRow row) {
-    Set<DataPoint> isotopeSet = new HashSet<>();
-    Set<DataPoint> adductsAndCoSet = new HashSet<>();
-    int isotopeMaxCharge = 2;
+  private void processIsotopesAndAdductsForFeature(Feature feature, Set<DataPoint> isotopeSet, Set<DataPoint> adductsAndCoSet, DoubleArrayList[] isoMzDiffsForCharge, double[] maxIsoMzDiff) {
+    Scan representativeScan = feature.getRepresentativeScan();
+    if (representativeScan != null && representativeScan.getMSLevel() == 1) {
+      List<DataPoint> dataPoints = Arrays.asList(ScanUtils.extractDataPoints(representativeScan, useMassList));
 
-    DoubleArrayList[] isoMzDiffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(
-        Arrays.asList(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
-            new Element("S"), new Element("F"), new Element("Cl"), new Element("Br")),
-        isotopeMaxCharge);
+      if (!dataPoints.isEmpty()) {
+        for (int i = 0; i < isoMzDiffsForCharge.length; i++) {
+          DoubleArrayList currentChargeDiffs = isoMzDiffsForCharge[i];
+          double currentMaxDiff = maxIsoMzDiff[i];
 
-    double[] maxIsoMzDiff = new double[isotopeMaxCharge];
-    for (int i = 0; i < isotopeMaxCharge; i++) {
-      for (double diff : isoMzDiffsForCharge[i]) {
-        maxIsoMzDiff[i] = Math.max(maxIsoMzDiff[i], diff);
-      }
-      maxIsoMzDiff[i] += 10 * toleranceMs1.getMzToleranceForMass(maxIsoMzDiff[i]);
-    }
+          for (DataPoint dataPoint : dataPoints) {
+            List<DataPoint> foundIsotopes = IsotopesUtils.findIsotopesInScan(currentChargeDiffs, currentMaxDiff, toleranceMs1, representativeScan, dataPoint);
+            foundIsotopes.removeIf(found -> found.getMZ() <= dataPoint.getMZ() + 0.2);
+            isotopeSet.addAll(foundIsotopes);
 
-    for (Feature feature : row.getFeatures()) {
-      Scan representativeScan = feature.getRepresentativeScan();
-      if (representativeScan != null && representativeScan.getMSLevel() == 1) {
-        List<DataPoint> dataPoints = Arrays.asList(
-            ScanUtils.extractDataPoints(representativeScan, useMassList));
-
-        if (!dataPoints.isEmpty()) {
-          for (int i = 0; i < isotopeMaxCharge; i++) {
-            final DoubleArrayList currentChargeDiffs = isoMzDiffsForCharge[i];
-            final double currentMaxDiff = maxIsoMzDiff[i];
-
-            for (DataPoint dataPoint : dataPoints) {
-              List<DataPoint> foundIsotopes = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
-                  currentMaxDiff, toleranceMs1, representativeScan, dataPoint);
-
-              double threshold = dataPoint.getMZ() + 0.2;
-              foundIsotopes.removeIf(found -> found.getMZ() <= threshold);
-
-              isotopeSet.addAll(foundIsotopes);
-
-              // Most occurring mass diffs taken from 10.1021/acs.analchem.4c00966
-              double[] knownMassDifferences = { //
-                  67.9874, // sodium formate
-                  0.5017,  //double charge C
-                  21.9819, // H Na
-                  57.9586, // NaCl
-                  46.0055, // formic acid
-                  15.9739, // Na K
-              };
-
-              // TODO Add dataPoint specific diffs later (like 2M, etc.)
-
-              for (double massDiff : knownMassDifferences) {
-                List<DataPoint> foundAdductsAndCo = findMassDifferences(dataPoints, dataPoint,
-                    massDiff);
-                adductsAndCoSet.addAll(foundAdductsAndCo);
-              }
-            }
+            findAndAddMassDifferences(dataPoints, dataPoint, adductsAndCoSet);
           }
         }
       }
     }
-    return new IsotopeAndAdducts(new ArrayList<>(isotopeSet), new ArrayList<>(adductsAndCoSet));
   }
+
+  private void findAndAddMassDifferences(List<DataPoint> dataPoints, DataPoint target, Set<DataPoint> adductsAndCoSet) {
+    double[] knownMassDifferences = { //
+        67.9874, // sodium formate
+        0.5017,  //double charge C
+        21.9819, // H Na
+        57.9586, // NaCl
+        46.0055, // formic acid
+        15.9739, // Na K
+        // TODO Add dataPoint specific diffs later (like 2M, etc.)
+    };
+    double targetMZ = target.getMZ();
+
+    for (double massDiff : knownMassDifferences) {
+      for (DataPoint point : dataPoints) {
+        if (Math.abs(point.getMZ() - targetMZ - massDiff) <= toleranceMs1.getMzToleranceForMass(massDiff)) {
+          adductsAndCoSet.add(point);
+        }
+      }
+    }
+  }
+
 
   private List<DataPoint> findMassDifferences(List<DataPoint> dataPoints, DataPoint target,
       double massDiff) {
