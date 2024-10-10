@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ion_type;
 
-import static io.github.mzmine.util.DataPointUtils.removePrecursorMz;
 import static io.github.mzmine.util.scans.ScanUtils.findAllMS2FragmentScans;
 
 import com.google.common.collect.Range;
@@ -163,7 +162,8 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
                 toleranceMs2.getToleranceRange(ms1SignalMz));
             allPrecursorsMs2Scans.addAll(Arrays.asList(broadFragmentScans));
           }
-          processIsotopesAndAdductsForFeature(feature, isotopeSet, adductsAndCoSet, isoMzDiffsForCharge, maxIsoMzDiff);
+          processIsotopesAndAdductsForFeature(feature, isotopeSet, adductsAndCoSet,
+              isoMzDiffsForCharge, maxIsoMzDiff);
         }
       } catch (Exception ex) {
         logger.log(Level.WARNING, "Error gathering scans for feature: " + ex.getMessage(), ex);
@@ -171,7 +171,8 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     }
 
     try {
-      IsotopeAndAdducts isotopeAndAdducts = new IsotopeAndAdducts(new ArrayList<>(isotopeSet), new ArrayList<>(adductsAndCoSet));
+      IsotopeAndAdducts isotopeAndAdducts = new IsotopeAndAdducts(new ArrayList<>(isotopeSet),
+          new ArrayList<>(adductsAndCoSet));
       SignalsAnalysisResult analysisResult = analyzeSignals(ms1Scans, allPrecursorsMs2Scans,
           toleranceMs1, toleranceMs2, isotopeAndAdducts.getAdducts(),
           isotopeAndAdducts.getIsotopes());
@@ -183,18 +184,22 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     return new GroupedSignalScans(row, ms1Scans, allPrecursorsMs2Scans);
   }
 
-  private void processIsotopesAndAdductsForFeature(Feature feature, Set<DataPoint> isotopeSet, Set<DataPoint> adductsAndCoSet, DoubleArrayList[] isoMzDiffsForCharge, double[] maxIsoMzDiff) {
+  private void processIsotopesAndAdductsForFeature(Feature feature, Set<DataPoint> isotopeSet,
+      Set<DataPoint> adductsAndCoSet, DoubleArrayList[] isoMzDiffsForCharge,
+      double[] maxIsoMzDiff) {
     Scan representativeScan = feature.getRepresentativeScan();
     if (representativeScan != null && representativeScan.getMSLevel() == 1) {
-      List<DataPoint> dataPoints = Arrays.asList(ScanUtils.extractDataPoints(representativeScan, useMassList));
+      DataPoint[] dataPoints = ScanUtils.extractDataPoints(representativeScan, useMassList);
 
-      if (!dataPoints.isEmpty()) {
+      if (dataPoints.length > 0) {
+        Arrays.sort(dataPoints, DataPointSorter.DEFAULT_INTENSITY);
         for (int i = 0; i < isoMzDiffsForCharge.length; i++) {
           DoubleArrayList currentChargeDiffs = isoMzDiffsForCharge[i];
           double currentMaxDiff = maxIsoMzDiff[i];
 
           for (DataPoint dataPoint : dataPoints) {
-            List<DataPoint> foundIsotopes = IsotopesUtils.findIsotopesInScan(currentChargeDiffs, currentMaxDiff, toleranceMs1, representativeScan, dataPoint);
+            List<DataPoint> foundIsotopes = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
+                currentMaxDiff, toleranceMs1, representativeScan, dataPoint);
             foundIsotopes.removeIf(found -> found.getMZ() <= dataPoint.getMZ() + 0.2);
             isotopeSet.addAll(foundIsotopes);
 
@@ -205,10 +210,11 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     }
   }
 
-  private void findAndAddMassDifferences(List<DataPoint> dataPoints, DataPoint target, Set<DataPoint> adductsAndCoSet) {
+  private void findAndAddMassDifferences(DataPoint[] dataPoints, DataPoint target,
+      Set<DataPoint> adductsAndCoSet) {
     double[] knownMassDifferences = { //
         67.9874, // sodium formate
-        0.5017,  //double charge C
+        0.5017,  // double charge C
         21.9819, // H Na
         57.9586, // NaCl
         46.0055, // formic acid
@@ -218,32 +224,20 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     double targetMZ = target.getMZ();
 
     for (double massDiff : knownMassDifferences) {
+      boolean hasMatchingPoint = false; // Flag to track if a matching point is found
+
       for (DataPoint point : dataPoints) {
-        if (Math.abs(point.getMZ() - targetMZ - massDiff) <= toleranceMs1.getMzToleranceForMass(massDiff)) {
+        if (Math.abs(point.getMZ() - targetMZ - massDiff) <= toleranceMs1.getMzToleranceForMass(
+            massDiff)) {
           adductsAndCoSet.add(point);
+          hasMatchingPoint = true; // Set flag to true if a match is found
         }
       }
-    }
-  }
-
-
-  private List<DataPoint> findMassDifferences(List<DataPoint> dataPoints, DataPoint target,
-      double massDiff) {
-    List<DataPoint> matchingPoints = new ArrayList<>();
-    double targetMZ = target.getMZ();
-
-    for (DataPoint point : dataPoints) {
-      double diff = point.getMZ() - targetMZ;
-      if (Math.abs(diff - massDiff) <= toleranceMs1.getMzToleranceForMass(massDiff)) {
-        matchingPoints.add(point);
-        // Add the target to the list if it's not already there
-        if (!matchingPoints.contains(target)) {
-          matchingPoints.add(target);
-        }
+      // Add the target to the set if at least one matching point was found
+      if (hasMatchingPoint) {
+        adductsAndCoSet.add(target);
       }
     }
-
-    return matchingPoints;
   }
 
   @Override
@@ -415,9 +409,19 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     RangeMap<Double, UniqueSignal> unique = TreeRangeMap.create();
 
     for (Scan scan : scans) {
-      collectSignalsFromScan(scan, unique, tolerance);
-    }
+      DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
+      Arrays.sort(dataPoints, DataPointSorter.DEFAULT_INTENSITY);
+      for (DataPoint dp : dataPoints) {
+        Range<Double> mzRange = tolerance.getToleranceRange(dp.getMZ());
+        UniqueSignal signal = unique.get(dp.getMZ());
 
+        if (signal == null) {
+          unique.put(mzRange, new UniqueSignal(dp, scan));
+        } else {
+          signal.add(dp, scan);
+        }
+      }
+    }
     return unique;
   }
 
@@ -443,23 +447,6 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     });
 
     return unique;
-  }
-
-  /**
-   * Collects signals from a single scan and adds them to the unique signal map.
-   *
-   * @param scan      The scan to extract signals from.
-   * @param unique    The RangeMap of unique signals to populate.
-   * @param tolerance The MZ tolerance.
-   */
-  private void collectSignalsFromScan(Scan scan, RangeMap<Double, UniqueSignal> unique,
-      MZTolerance tolerance) {
-    DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
-    if (scan.getMSLevel() > 1) {
-      dataPoints = removePrecursorMz(dataPoints, scan.getPrecursorMz(), 1);
-    }
-    collectSignalsFromDataPoints(Arrays.asList(dataPoints), tolerance).asMapOfRanges()
-        .forEach(unique::put);
   }
 
   /**
