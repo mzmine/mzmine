@@ -42,6 +42,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.jdom2.internal.ArrayCopy;
+
 public class MLFeatureResolver extends AbstractResolver {
 
     private final ParameterSet parameters;
@@ -49,11 +51,11 @@ public class MLFeatureResolver extends AbstractResolver {
     private final int regionSize;
     private final int overlap;
     private final int minWidth;
+    private final boolean resizeRanges;
     private final boolean correctRanges;
     private final PeakPickingModel model;
     double[] xBuffer;
     double[] yBuffer;
-
 
     public MLFeatureResolver(ParameterSet parameterSet, ModularFeatureList flist) {
         super(parameterSet, flist);
@@ -63,6 +65,7 @@ public class MLFeatureResolver extends AbstractResolver {
         this.regionSize = 128;
         this.overlap = 32;
         this.minWidth = parameterSet.getParameter(MLFeatureResolverParameters.minWidth).getValue();
+        this.resizeRanges = parameterSet.getParameter(MLFeatureResolverParameters.resizeRanges).getValue();
         this.correctRanges = true;
         this.model = new PeakPickingModel();
     }
@@ -72,7 +75,7 @@ public class MLFeatureResolver extends AbstractResolver {
         return MLFeatureResolverModule.class;
     }
 
-    public boolean isValidRange(double prob, int indexLeft, int indexPeak, int indexRight,
+    private boolean isValidRange(double prob, int indexLeft, int indexPeak, int indexRight,
             double valuePeak) {
         if (prob < this.threshold) {
             return false;
@@ -95,6 +98,39 @@ public class MLFeatureResolver extends AbstractResolver {
         return true;
     }
 
+    // corrects bounds of ranges in case they overlap
+    private List<Range<Double>> correctRanges(List<Range<Double>> ranges, double[] time, double[] intensity) {
+        int numRanges = ranges.size();
+        // if there are less than two ranges there is nothing to do
+        if (numRanges < 2) {
+            return ranges;
+        }
+        List<Range<Double>> correctedRanges = new ArrayList<>();
+        Range<Double> currentRange = ranges.get(0);
+        Range<Double> nextRange = ranges.get(1);
+        for (int i = 0; i < numRanges - 1; i++) {
+            Double currentRight = currentRange.upperEndpoint();
+            Double nextLeft = nextRange.lowerEndpoint();
+            if (currentRight <= nextLeft) {
+                continue;
+            }
+            int currentRightIndex = Arrays.binarySearch(time, currentRight);
+            int nextLeftIndex = Arrays.binarySearch(time, nextLeft);
+            double[] intensityOverlap = new double[currentRightIndex - nextLeftIndex + 1];
+            System.arraycopy(time, nextLeftIndex, intensityOverlap, 0, currentRightIndex - nextLeftIndex + 1);
+            double minIntensity = Arrays.stream(intensityOverlap).min().orElse(0);
+            int minIntensityIndex = Arrays.binarySearch(intensityOverlap, minIntensity) + nextLeftIndex;
+            double minIntensityTime = time[minIntensityIndex];
+            Range<Double> updatedCurrentRange = Range.closed(currentRange.lowerEndpoint(), minIntensityTime);
+            correctedRanges.add(updatedCurrentRange);
+            // updates for the next iteration. Next range (with corrected left bound) is now
+            // the new current range
+            currentRange = Range.closed(minIntensityTime, nextRange.upperEndpoint());
+            nextRange = ranges.get(i + 1);
+        }
+        return correctedRanges;
+    }
+
     // This should probably be located somewhere else
     public int[] roundFloatArray(float[] input, int min, int max) {
         int[] output = new int[input.length];
@@ -104,13 +140,14 @@ public class MLFeatureResolver extends AbstractResolver {
         return output;
     }
 
-    private double findTime(double[] timeArray,double[]  intensityArray,double  intensityToFind){
-        if(timeArray.length != intensityArray.length){
-            System.out.println("Arrays lenghts to not match when looking for retention time corresponding to intensity value");
+    private double findTime(double[] timeArray, double[] intensityArray, double intensityToFind) {
+        if (timeArray.length != intensityArray.length) {
+            System.out.println(
+                    "Arrays lenghts to not match when looking for retention time corresponding to intensity value");
             return 0.;
         }
-        for(int i=0;i<timeArray.length;i++){
-            if(intensityArray[i]!=intensityToFind){
+        for (int i = 0; i < timeArray.length; i++) {
+            if (intensityArray[i] != intensityToFind) {
                 continue;
             }
             return timeArray[i];
@@ -185,7 +222,7 @@ public class MLFeatureResolver extends AbstractResolver {
         // is greater than the threshold and left<right (the latter is just a safety
         // check)
         List<Range<Double>> resolved = new ArrayList<>();
-        double previousMaxRT = 0;
+        List<Double> peakTimes = new ArrayList<>();
         for (int i = 0; i < lenList; i++) {
             for (int j = 0; j < lenFeatures; j++) {
                 double prob = predProbs.get(i)[j];
@@ -216,16 +253,16 @@ public class MLFeatureResolver extends AbstractResolver {
                         }
                     }
                 }
-                double[] currentRegion = Arrays.copyOfRange(standardRegions.get(i), indexLeft, indexRight +1 );
+                double[] currentRegion = Arrays.copyOfRange(standardRegions.get(i), indexLeft, indexRight + 1);
                 double currentMaxIntensity = Arrays.stream(currentRegion).max().orElse(0);
                 double currentMaxRT = findTime(standardRegionsRT.get(i), standardRegions.get(i), currentMaxIntensity);
-                //checks if the current peak is a duplicate of the previous one by
-                //comparing the retention times at which the maximal intensity is reached
-                if(currentMaxRT == previousMaxRT){
+                // checks if the current peak is a duplicate of the previous one by
+                // comparing the retention times at which the maximal intensity is reached
+                if (peakTimes.contains(currentMaxRT)) {
                     continue;
                 }
                 if (indexLeft + this.minWidth <= indexRight) {
-                    previousMaxRT = currentMaxRT;
+                    peakTimes.add(currentMaxRT);
                     left = Double.valueOf(standardRegionsRT.get(i)[indexLeft]);
                     right = Double.valueOf(standardRegionsRT.get(i)[indexRight]);
                     Range<Double> nextRange = Range.closed(left, right);
@@ -233,7 +270,9 @@ public class MLFeatureResolver extends AbstractResolver {
                 }
             }
         }
-
+        if (this.resizeRanges) {
+            resolved = correctRanges(resolved, x, y);
+        }
         return resolved;
     }
 
