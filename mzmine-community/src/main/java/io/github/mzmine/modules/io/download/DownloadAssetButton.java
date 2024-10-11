@@ -58,6 +58,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DownloadAssetButton extends HBox {
 
@@ -66,11 +67,15 @@ public class DownloadAssetButton extends HBox {
   private final DoubleProperty progress = new SimpleDoubleProperty(0);
   private final ButtonBase downloadButton;
 
-  private Consumer<File> onDownloadFinished;
+  private Consumer<List<File>> onDownloadFinished;
   private FileDownloadTask task;
 
 
-  public DownloadAssetButton(@NotNull final ExternalAsset asset,
+  public DownloadAssetButton(@NotNull final List<DownloadAsset> assets) {
+    this(null, assets);
+  }
+
+  public DownloadAssetButton(@Nullable final ExternalAsset asset,
       @NotNull final List<DownloadAsset> assets) {
     downloadButton = addDownloadLinksButton(assets);
 
@@ -89,10 +94,12 @@ public class DownloadAssetButton extends HBox {
       getChildren().add(firstPane);
     }
 
-    String downloadInfoPage = asset.getDownloadInfoPage();
-    if (downloadInfoPage != null) {
-      getChildren().add(FxIconUtil.newIconButton(FxIcons.WEBSITE, "Open asset website",
-          () -> DesktopService.getDesktop().openWebPage(asset.getDownloadInfoPage())));
+    if (asset != null) {
+      String downloadInfoPage = asset.getDownloadInfoPage();
+      if (downloadInfoPage != null) {
+        getChildren().add(FxIconUtil.newIconButton(FxIcons.WEBSITE, "Open asset website",
+            () -> DesktopService.getDesktop().openWebPage(asset.getDownloadInfoPage())));
+      }
     }
   }
 
@@ -105,7 +112,7 @@ public class DownloadAssetButton extends HBox {
   /**
    * Action called once download is finished
    */
-  public void setOnDownloadFinished(final Consumer<File> onDownloadFinished) {
+  public void setOnDownloadFinished(final Consumer<List<File>> onDownloadFinished) {
     this.onDownloadFinished = onDownloadFinished;
   }
 
@@ -146,7 +153,7 @@ public class DownloadAssetButton extends HBox {
           new ButtonType("Download", ButtonData.APPLY));
       // cancel or use existing will just set the filename
       if (resultButton.isEmpty() || resultButton.get().getButtonData() == ButtonData.CANCEL_CLOSE) {
-        onDownloadFinished.accept(finalFile);
+        onDownloadFinished.accept(List.of(finalFile));
         return;
       }
       // otherwise download
@@ -160,10 +167,10 @@ public class DownloadAssetButton extends HBox {
       }
       if (task.isFinished() && onDownloadFinished != null) {
         // search for main file and set it to parameter
-        task.getDownloadedFiles().stream().filter(
-                file -> asset.mainFileName() == null || file.getName()
-                    .equalsIgnoreCase(asset.mainFileName())).findFirst()
-            .ifPresent(file -> onDownloadFinished.accept(file));
+        var files = task.getDownloadedFiles().stream().filter(
+            file -> asset.mainFileName() == null || file.getName()
+                .equalsIgnoreCase(asset.mainFileName())).toList();
+        onDownloadFinished.accept(files);
       }
     });
     TaskService.getController().addTask(task, TaskPriority.HIGH);

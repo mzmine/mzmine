@@ -56,17 +56,18 @@ public sealed interface DownloadAsset permits UrlDownloadAsset, ZenodoDownloadAs
   }
 
   default String getLabel(boolean includeUrl) {
-    if (!includeUrl) {
+    var extAsset = extAsset().getLabel();
+    if (!includeUrl || url() == null) {
       if (version() == null) {
-        return extAsset().toString();
+        return extAsset;
       }
-      return "%s (%s)".formatted(extAsset(), version());
+      return "%s (%s)".formatted(extAsset, version());
     }
 
     if (version() == null) {
-      return "%s, %s".formatted(extAsset(), url());
+      return "%s, %s".formatted(extAsset, url());
     }
-    return "%s (%s), %s".formatted(extAsset(), version(), url());
+    return "%s (%s), %s".formatted(extAsset, version(), url());
   }
 
 

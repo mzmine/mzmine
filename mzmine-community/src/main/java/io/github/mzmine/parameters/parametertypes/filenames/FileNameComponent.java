@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.io.download.DownloadAsset;
 import io.github.mzmine.modules.io.download.DownloadAssetButton;
 import io.github.mzmine.modules.io.download.ExternalAsset;
@@ -112,7 +113,8 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
     }
     if (extAsset != null) {
       var downloadButton = new DownloadAssetButton(extAsset, downloadLinks);
-      downloadButton.setOnDownloadFinished(file -> setValue(file));
+      downloadButton.setOnDownloadFinished(
+          files -> FxThread.runLater(() -> setValue(files.stream().findFirst().orElse(null))));
       getChildren().add(downloadButton);
     }
 

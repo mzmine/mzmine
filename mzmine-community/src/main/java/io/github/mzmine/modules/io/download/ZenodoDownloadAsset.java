@@ -67,16 +67,17 @@ public record ZenodoDownloadAsset(@NotNull ExternalAsset extAsset, @Nullable Str
 
   public String getDownloadDescription() {
     if (version == null) {
-      return "Download %s from Zenodo record %s".formatted(extAsset, recordId);
+      return "Download %s from Zenodo record %s".formatted(extAsset.getLabel(), recordId);
     }
-    return "Download %s version %s from Zenodo record %s".formatted(extAsset, version, recordId);
+    return "Download %s version %s from Zenodo record %s".formatted(extAsset.getLabel(), version,
+        recordId);
   }
 
   public String getLabel(boolean includeUrl) {
     if (version == null) {
-      return "%s, Zenodo: %s".formatted(extAsset, recordId);
+      return "%s, Zenodo: %s".formatted(extAsset.getLabel(), recordId);
     }
-    return "%s (%s), Zenodo: %s".formatted(extAsset, version, recordId);
+    return "%s (%s), Zenodo: %s".formatted(extAsset.getLabel(), version, recordId);
   }
 
   /**
