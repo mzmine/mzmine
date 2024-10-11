@@ -45,6 +45,8 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
@@ -126,6 +128,18 @@ public class EmptyParameterSetupDialogBase extends Stage {
     mainPane = new BorderPane(paramPane);
     mainPane.setMaxHeight(calcMaxHeight());
     Scene scene = new Scene(new StackPane(mainPane));
+    scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+      if (event.getCode() == KeyCode.ESCAPE) {
+        logger.finest("Escape pressed on dialog %s".formatted(parameters.getModuleNameAttribute()));
+        event.consume();
+        closeDialog(ExitCode.CANCEL);
+      }
+      if (event.getCode() == KeyCode.ENTER && event.isShortcutDown()) {
+        event.consume();
+        closeDialog(ExitCode.OK);
+      }
+    });
+
 
     // Use main CSS
     scene.getStylesheets()
@@ -140,6 +154,14 @@ public class EmptyParameterSetupDialogBase extends Stage {
     centerOnScreen();
   }
 
+  private static double calcMaxHeight() {
+    return MZmineCore.getDesktop().getMainWindow().getScene().getHeight() * 0.95;
+  }
+
+  private static double calcMaxWidth() {
+    return MZmineCore.getDesktop().getMainWindow().getScene().getWidth() * 0.95;
+  }
+
   /**
    * Adds a button to check the parameter
    */
@@ -148,14 +170,6 @@ public class EmptyParameterSetupDialogBase extends Stage {
       return;
     }
     paramPane.addCheckParametersButton();
-  }
-
-  private static double calcMaxHeight() {
-    return MZmineCore.getDesktop().getMainWindow().getScene().getHeight() * 0.95;
-  }
-
-  private static double calcMaxWidth() {
-    return MZmineCore.getDesktop().getMainWindow().getScene().getWidth() * 0.95;
   }
 
   private void addSizeChangeListeners(final Map<String, Node> parametersAndComponents) {

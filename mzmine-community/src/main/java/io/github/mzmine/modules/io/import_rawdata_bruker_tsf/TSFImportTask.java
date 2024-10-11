@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,13 +34,16 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameLaserInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.import_rawdata_bruker_uv.BrukerUvReader;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -70,6 +73,7 @@ public class TSFImportTask extends AbstractTask {
   private final String rawDataFileName;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
+  private final ScanImportProcessorConfig config;
   private boolean isMaldi = false;
   private String description;
   private File tsf;
@@ -79,7 +83,7 @@ public class TSFImportTask extends AbstractTask {
 
   public TSFImportTask(MZmineProject project, File fileName, @Nullable MemoryMapStorage storage,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+      @NotNull Instant moduleCallDate, ScanImportProcessorConfig config) {
     super(storage, moduleCallDate);
 
     this.project = project;
@@ -87,6 +91,7 @@ public class TSFImportTask extends AbstractTask {
     rawDataFileName = fileName.getName();
     this.parameters = parameters;
     this.module = module;
+    this.config = config;
 
     metaDataTable = new TDFMetaDataTable();
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
@@ -160,6 +165,11 @@ public class TSFImportTask extends AbstractTask {
       return;
     }
 
+    synchronized (org.sqlite.JDBC.class) {
+      BrukerUvReader.loadAndAddForFile(dirPath, (RawDataFileImpl) newMZmineFile,
+          getMemoryMapStorage());
+    }
+
     newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
 
     final int numScans = frameTable.getFrameIdColumn().size();
@@ -189,7 +199,7 @@ public class TSFImportTask extends AbstractTask {
       setDescription("Importing " + rawDataFileName + ": Scan " + frameId + "/" + numScans);
 
       final Scan scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
-          frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType);
+          frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
 
       try {
         newMZmineFile.addScan(scan);
@@ -229,9 +239,8 @@ public class TSFImportTask extends AbstractTask {
 
     synchronized (org.sqlite.JDBC.class) {
       setDescription("Establishing SQL connection to " + tsf.getName());
-      Connection connection;
-      try {
-        connection = DriverManager.getConnection("jdbc:sqlite:" + tsf.getAbsolutePath());
+      try (Connection connection = DriverManager.getConnection(
+          "jdbc:sqlite:" + tsf.getAbsolutePath())) {
 
         setDescription("Reading metadata for " + tsf.getName());
         metaDataTable.executeQuery(connection);
@@ -253,8 +262,6 @@ public class TSFImportTask extends AbstractTask {
           maldiFrameInfoTable.process();
           maldiFrameLaserInfoTable.executeQuery(connection);
         }
-
-        connection.close();
       } catch (Throwable t) {
         t.printStackTrace();
         logger.info("If stack trace contains \"out of memory\" the file was not found.");

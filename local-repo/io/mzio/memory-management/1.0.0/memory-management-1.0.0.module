@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "8.5"
+      "version": "8.10"
     }
   },
   "variants": [
@@ -27,11 +27,11 @@
         {
           "name": "memory-management-1.0.0.jar",
           "url": "memory-management-1.0.0.jar",
-          "size": 5787,
-          "sha512": "fe1337f04297225f2de3c44fcfca4034293e554b99ab3a3f8db5fa359ad9849dad0261aa6f4e40b18e16c631efa2e9061f2ebb14ee70fc87549b057ef1bc4773",
-          "sha256": "11fa72402b4319f96c46ff46da97fec844108ff2d31dc4b1e2e76f0de8a4068f",
-          "sha1": "e0c69f8c55d6362055b6fac0c32a9489bb1254bd",
-          "md5": "86ec22cbe6ee0ef528984c80da0b2d89"
+          "size": 5030,
+          "sha512": "3090a769e86c4fc6c50a5525c8abb7597ab297a8c7cb39d743d03e331c689ea72bc87fb42a0a949383693afd5defa0f1dee2bae21d69bb6ecfea472ba0eedb6b",
+          "sha256": "123d355756a491657dc14527806bf2637380b89554bbbd87d921a1a14a77fcc8",
+          "sha1": "302087353269f3f3db08cc270a06f5bc27c5cc5a",
+          "md5": "454de6584a3176b45a1b8685d0ab4dd9"
         }
       ]
     },
@@ -61,11 +61,11 @@
         {
           "name": "memory-management-1.0.0.jar",
           "url": "memory-management-1.0.0.jar",
-          "size": 5787,
-          "sha512": "fe1337f04297225f2de3c44fcfca4034293e554b99ab3a3f8db5fa359ad9849dad0261aa6f4e40b18e16c631efa2e9061f2ebb14ee70fc87549b057ef1bc4773",
-          "sha256": "11fa72402b4319f96c46ff46da97fec844108ff2d31dc4b1e2e76f0de8a4068f",
-          "sha1": "e0c69f8c55d6362055b6fac0c32a9489bb1254bd",
-          "md5": "86ec22cbe6ee0ef528984c80da0b2d89"
+          "size": 5030,
+          "sha512": "3090a769e86c4fc6c50a5525c8abb7597ab297a8c7cb39d743d03e331c689ea72bc87fb42a0a949383693afd5defa0f1dee2bae21d69bb6ecfea472ba0eedb6b",
+          "sha256": "123d355756a491657dc14527806bf2637380b89554bbbd87d921a1a14a77fcc8",
+          "sha1": "302087353269f3f3db08cc270a06f5bc27c5cc5a",
+          "md5": "454de6584a3176b45a1b8685d0ab4dd9"
         }
       ]
     }

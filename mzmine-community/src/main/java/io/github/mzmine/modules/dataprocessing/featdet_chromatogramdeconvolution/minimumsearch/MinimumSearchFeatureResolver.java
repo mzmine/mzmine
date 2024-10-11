@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,9 +35,12 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.util.MathUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +59,8 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
   private final ParameterSet parameters;
   private final double chromThreshold;
   private final int minDataPoints;
+  private final double minAbsoluteHeight;
+  private final double minRelativeHeight;
   double[] xBuffer;
   double[] yBuffer;
 
@@ -67,6 +72,37 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
     xRange = parameters.getParameter(PEAK_DURATION).getValue();
     searchXWidth = parameters.getParameter(SEARCH_RT_RANGE).getValue();
     minRatio = parameters.getParameter(MIN_RATIO).getValue();
+    minAbsoluteHeight = parameters.getParameter(MIN_ABSOLUTE_HEIGHT).getValue();
+    minRelativeHeight = parameters.getParameter(MIN_RELATIVE_HEIGHT).getValue();
+  }
+
+  /**
+   * Creates a resolver meant for internal use in other modules. MS2 grouping is disabled by
+   * default.
+   */
+  public MinimumSearchFeatureResolver(ModularFeatureList flist, ResolvingDimension dimension,
+      double chromThreshold, double searchRange, double minRelativeHeight, double minAbsoluteHeight,
+      double minRatio, Range<Double> duration, int minDataPoints) {
+    final ParameterSet resolverParam = ConfigService.getConfiguration()
+        .getModuleParameters(MinimumSearchFeatureResolverModule.class).cloneParameterSet();
+    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
+        new FeatureListsSelection(flist));
+    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, false);
+
+    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.dimension, dimension);
+    resolverParam.setParameter(
+        MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL, chromThreshold);
+    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE, searchRange);
+    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT,
+        minRelativeHeight);
+    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT,
+        minAbsoluteHeight);
+    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RATIO, minRatio);
+    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION, duration);
+    resolverParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS,
+        minDataPoints);
+
+    this(resolverParam, flist);
   }
 
   @Override
@@ -108,8 +144,7 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
       }
     }
 
-    final double minHeight = Math.max(parameters.getParameter(MIN_ABSOLUTE_HEIGHT).getValue(),
-        parameters.getParameter(MIN_RELATIVE_HEIGHT).getValue() * maxY);
+    final double minHeight = Math.max(minAbsoluteHeight, minRelativeHeight * maxY);
 
     // Current region is a region between two minima, representing a
     // candidate for a resolved peak.
@@ -143,10 +178,28 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
           // Check the shape of the peak.
           if (numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
               && currentRegionHeight >= peakMinLeft * minRatio
-              && currentRegionHeight >= peakMinRight * minRatio && xRange
-              .contains(x[currentRegionEnd] - x[currentRegionStart])) {
+              && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
+              x[currentRegionEnd] - x[currentRegionStart])) {
 
-            resolved.add(Range.closed(x[currentRegionStart], x[currentRegionEnd]));
+            // adjust start and end points of signals to produce better peak shapes
+            // (e.g. include 0 intensity points on the edges.), as start and end points of this
+            // resolver will never be 0.
+            int start;
+            if (y[currentRegionStart] != 0 && y[Math.max(currentRegionStart - 1, 0)] == 0.0) {
+              start = currentRegionStart - 1;
+            } else {
+              start = currentRegionStart;
+            }
+
+            int end;
+            if (y[currentRegionEnd] != 0
+                && y[Math.min(currentRegionEnd + 1, y.length - 1)] == 0.0) {
+              end = currentRegionEnd + 1;
+            } else {
+              end = currentRegionEnd;
+            }
+
+            resolved.add(Range.closed(x[start], x[end]));
           }
 
           // Set the next region start to current region end - 1
@@ -203,8 +256,8 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
             // Check the shape of the peak.
             if (numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
                 && currentRegionHeight >= peakMinLeft * minRatio
-                && currentRegionHeight >= peakMinRight * minRatio && xRange
-                .contains(x[currentRegionEnd] - x[currentRegionStart])) {
+                && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
+                x[currentRegionEnd] - x[currentRegionStart])) {
 
               resolved.add(Range.closed(x[currentRegionStart], x[currentRegionEnd]));
             }

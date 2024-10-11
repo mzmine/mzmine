@@ -54,6 +54,7 @@ public class RawDataFilesSelection implements Cloneable {
   public RawDataFilesSelection(RawDataFilesSelectionType selectionType) {
     this.selectionType = selectionType;
   }
+
   public RawDataFilesSelection(RawDataFile[] specificDataFiles) {
     this.selectionType = RawDataFilesSelectionType.SPECIFIC_FILES;
     setSpecificFiles(specificDataFiles);
@@ -87,8 +88,8 @@ public class RawDataFilesSelection implements Cloneable {
     final RawDataFile[] matchingFiles;
     switch (selectionType) {
       case GUI_SELECTED_FILES -> matchingFiles = MZmineCore.getDesktop().getSelectedDataFiles();
-      case ALL_FILES -> matchingFiles = ProjectService.getProjectManager().getCurrentProject()
-          .getDataFiles();
+      case ALL_FILES ->
+          matchingFiles = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
       case SPECIFIC_FILES -> matchingFiles = getSpecificFiles();
       case NAME_PATTERN -> {
         if (Strings.isNullOrEmpty(namePattern)) {
@@ -115,8 +116,8 @@ public class RawDataFilesSelection implements Cloneable {
         }
         matchingFiles = matchingDataFiles.toArray(new RawDataFile[0]);
       }
-      case BATCH_LAST_FILES -> matchingFiles = Objects.requireNonNullElseGet(batchLastFiles,
-          () -> new RawDataFile[0]);
+      case BATCH_LAST_FILES ->
+          matchingFiles = Objects.requireNonNullElseGet(batchLastFiles, () -> new RawDataFile[0]);
       default -> throw new IllegalStateException("Unexpected value: " + selectionType);
     }
 
@@ -141,8 +142,9 @@ public class RawDataFilesSelection implements Cloneable {
 
   public void resetSelection() {
     if (evaluatedSelection != null) {
-      logger.finest(() -> "Resetting file selection. Previously evaluated files: " + Arrays
-          .toString(evaluatedSelection));
+      logger.finest(
+          () -> "Resetting file selection. Previously evaluated files: " + Arrays.toString(
+              evaluatedSelection));
     }
     evaluatedSelection = null;
   }
@@ -161,10 +163,8 @@ public class RawDataFilesSelection implements Cloneable {
       for (RawDataFile file : ProjectService.getProjectManager().getCurrentProject()
           .getCurrentRawDataFiles()) {
         if (file.getName().equals(specificFile.getName()) && (file.getAbsolutePath() == null
-                                                              || specificFile.getAbsolutePath()
-                                                                 == null || file.getAbsolutePath()
-                                                                  .equals(
-                                                                      specificFile.getAbsolutePath()))) {
+            || specificFile.getAbsolutePath() == null || file.getAbsolutePath()
+            .equals(specificFile.getAbsolutePath()))) {
           c.accept(file);
           break;
         }
@@ -247,8 +247,8 @@ public class RawDataFilesSelection implements Cloneable {
     }
     RawDataFilesSelection that = (RawDataFilesSelection) o;
 
-    if (getSelectionType() != that.getSelectionType() || !Objects
-        .equals(getNamePattern(), that.getNamePattern())) {
+    if (getSelectionType() != that.getSelectionType() || !Objects.equals(getNamePattern(),
+        that.getNamePattern())) {
       return false;
     }
 

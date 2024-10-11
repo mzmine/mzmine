@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,25 +40,38 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Weighted (mz and intensity) cosine similarity. Similar to the NIST search / MassBank search
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction {
+
+  private final Weights weights;
+  private final double minCos;
+  private final HandleUnmatchedSignalOptions handleUnmatched;
+
+  /**
+   * required default constructor in module for initial instance in config
+   */
+  public WeightedCosineSpectralSimilarity() {
+    weights = Weights.SQRT;
+    minCos = 0.7;
+    handleUnmatched = HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO;
+  }
+
+  public WeightedCosineSpectralSimilarity(ParameterSet parameters) {
+    weights = parameters.getParameter(WeightedCosineSpectralSimilarityParameters.weight).getValue();
+    minCos = parameters.getParameter(WeightedCosineSpectralSimilarityParameters.minCosine)
+        .getValue();
+    handleUnmatched = parameters.getParameter(
+        WeightedCosineSpectralSimilarityParameters.handleUnmatched).getValue();
+  }
 
   /**
    * Returns mass and intensity values detected in given scan
    */
   @Override
-  public SpectralSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol, int minMatch,
-      DataPoint[] library, DataPoint[] query) {
-    Weights weights =
-        parameters.getParameter(WeightedCosineSpectralSimilarityParameters.weight).getValue();
-    double minCos =
-        parameters.getParameter(WeightedCosineSpectralSimilarityParameters.minCosine).getValue();
-    HandleUnmatchedSignalOptions handleUnmatched = parameters
-        .getParameter(WeightedCosineSpectralSimilarityParameters.handleUnmatched).getValue();
-
+  public SpectralSimilarity getSimilarity(MZTolerance mzTol, int minMatch, DataPoint[] library,
+      DataPoint[] query) {
     // align
     List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
     // removes all signals which were not found in both masslists
@@ -69,13 +82,14 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
 
     if (overlap >= minMatch) {
       // weighted cosine
-      double[][] diffArray =
-          ScanAlignment.toIntensityMatrixWeighted(aligned, weights.getIntensity(), weights.getMz());
+      double[][] diffArray = ScanAlignment.toIntensityMatrixWeighted(aligned,
+          weights.getIntensity(), weights.getMz());
       double diffCosine = Similarity.COSINE.calc(diffArray);
-      if (diffCosine >= minCos)
+      if (diffCosine >= minCos) {
         return new SpectralSimilarity(getName(), diffCosine, overlap, library, query, aligned);
-      else
+      } else {
         return null;
+      }
     }
     return null;
   }

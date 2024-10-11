@@ -134,8 +134,6 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule"/>
       <MenuItem text="Crop filter" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule"/>
-      <MenuItem text="Baseline correction" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule"/>
       <MenuItem text="Align scans (MS1)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
       <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
@@ -238,8 +236,6 @@
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule"/>
       <!--<MenuItem text="ADAP resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule"/>-->
-      <MenuItem text="Baseline resolver" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverModule"/>
       <MenuItem text="Noise amplitude resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule"/>
       <MenuItem text="Savitzky Golay resolver" onAction="#runModule"
@@ -333,11 +329,11 @@
     </Menu>
 
     <Menu text="Isotopes">
-      <MenuItem onAction="#runModule" text="13C isotope filter (formerly: isotope grouper)"
+      <MenuItem onAction="#runModule" text="13C isotope feature filter (formerly: isotope grouper)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule"/>
-      <MenuItem onAction="#runModule" text="Isotope pattern finder"
+      <MenuItem onAction="#runModule" text="Isotopic signal finder (In scans)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule"/>
-      <MenuItem text="Isotope peak scanner" onAction="#runModule"
+      <MenuItem text="Isotope feature scanner" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
     </Menu>
 
@@ -346,8 +342,8 @@
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
       <MenuItem text="Ion identity networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"/>
-      <MenuItem text="MS/MS spectral networking" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule"/>
+      <MenuItem text="Spectral / Molecular Networking" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingModule"/>
       <MenuItem text="Add more ion identities" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule"/>
       <MenuItem text="Refine ion identities" onAction="#runModule"
@@ -435,9 +431,9 @@
     </Menu>
 
     <Menu text="Normalization">
-      <MenuItem text="Retention time calibration"
+      <MenuItem text="Retention time correction"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule"/>
       <MenuItem text="Linear normalizer" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule"/>
       <MenuItem text="Standard compound normalizer"
@@ -512,6 +508,9 @@
         userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
       <MenuItem onAction="#runModule" text="Image viewer"
         userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
+      <MenuItem onAction="#runModule" text="Multi detector visualizer"
+        userData="io.github.mzmine.modules.visualization.otherdetectors.multidetector.MultidetectorVisualizerModule"/>
+
 
       <SeparatorMenuItem/>
 
@@ -557,8 +556,8 @@
 
       <MenuItem text="Scatter plot" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule"/>
-      <MenuItem text="Histogram plot" onAction="#runModule"
-        userData="io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModule"/>
+      <MenuItem text="Feature histogram plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule"/>
       <MenuItem text="Feature intensity plot" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule"/>
 

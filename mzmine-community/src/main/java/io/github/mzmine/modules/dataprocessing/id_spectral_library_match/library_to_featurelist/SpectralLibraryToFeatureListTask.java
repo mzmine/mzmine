@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,6 +43,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarityParameters;
@@ -174,9 +175,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       // add all scans as matches
       List<SpectralDBAnnotation> matches = new ArrayList<>();
       for (final LibraryEntryWrappedScan scan : compound) {
-        var similarity = WeightedCosineSpectralSimilarity.weightedCosine.getSimilarity(
-            scoringParameters, mzTol, 0, scan.getEntry().getDataPoints(),
-            scan.getEntry().getDataPoints());
+        var similarity = SpectralSimilarity.ofMatchIdentity(scan.getEntry());
         // add spectral lib match
         var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null);
         matches.add(match);
@@ -212,9 +211,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       var feature = createFeature(flist, libRaw, scan);
 
       var row = new ModularFeatureListRow(flist, scan.getScanNumber(), feature);
-      var similarity = WeightedCosineSpectralSimilarity.weightedCosine.getSimilarity(
-          scoringParameters, mzTol, 0, scan.getEntry().getDataPoints(),
-          scan.getEntry().getDataPoints());
+      var similarity = SpectralSimilarity.ofMatchIdentity(scan.getEntry());
       // add spectral lib match
       var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null);
       row.addSpectralLibraryMatch(match);

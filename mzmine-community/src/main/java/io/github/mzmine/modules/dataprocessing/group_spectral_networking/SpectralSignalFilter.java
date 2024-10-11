@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -37,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Filter used before spectral matching to reduce number of signals, see
- * {@link SignalFiltersParameters} and {@link SpectralNetworkingTask}
+ * {@link SignalFiltersParameters} and {@link ModifiedCosineSpectralNetworkingTask}
  *
  * @param isRemovePrecursor                        remove precursor signals
  * @param removePrecursorMz                        range to remove around the precursor +-
@@ -122,7 +123,7 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
    */
   @Nullable
   public DataPoint[] applyFilterAndSortByIntensity(final @NotNull DataPoint[] dps,
-      final double precursorMz) {
+      final Double precursorMz) {
     return applyFilterAndSortByIntensity(dps, precursorMz, -1);
   }
 
@@ -137,9 +138,9 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
    */
   @Nullable
   public DataPoint[] applyFilterAndSortByIntensity(@NotNull DataPoint[] dps,
-      final double precursorMz, final int minDP) {
+      final Double precursorMz, final int minDP) {
     // remove precursor signals
-    if (isRemovePrecursor && removePrecursorMz > 0) {
+    if (isRemovePrecursor && removePrecursorMz > 0 && precursorMz != null && precursorMz > 0) {
       dps = DataPointUtils.removePrecursorMz(dps, precursorMz, removePrecursorMz);
       if (dps.length < minDP) {
         return null;

@@ -39,6 +39,7 @@ import io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_ML.MLFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adap3d.ADAP3DModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
@@ -88,7 +89,7 @@ import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFil
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule;
@@ -114,7 +115,7 @@ import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBS
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
@@ -161,10 +162,10 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionMod
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
+import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
-import io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModule;
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
@@ -268,6 +269,7 @@ public class BatchModeModulesList {
       ADAP3DModule.class, //
       ImsExpanderModule.class, //
       MaldiSpotFeatureDetectionModule.class, //
+      BaselineCorrectionModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
@@ -318,7 +320,7 @@ public class BatchModeModulesList {
        */
       ClearFeatureAnnotationsModule.class, //
       LinearNormalizerModule.class, //
-      RTCalibrationModule.class, //
+      RTCorrectionModule.class, //
       StandardCompoundNormalizerModule.class, //
 
       /*
@@ -326,7 +328,7 @@ public class BatchModeModulesList {
        */
       CorrelateGroupingModule.class, //
       ImageCorrelateGroupingModule.class, //
-      SpectralNetworkingModule.class, //
+      MainSpectralNetworkingModule.class, //
       AnnotateIsomersModule.class, //
 
       /*
@@ -434,9 +436,9 @@ public class BatchModeModulesList {
       FeatureCorrelationHistogramModule.class, //
       RawDataSummaryModule.class, //
       ScanHistogramModule.class, //
+      FeatureHistogramPlotModule.class, //
       InjectTimeAnalysisModule.class, //
       ScatterPlotVisualizerModule.class, //
-      HistogramVisualizerModule.class, //
       IntensityPlotModule.class, //
       KendrickMassPlotModule.class, //
       VanKrevelenDiagramModule.class, //
@@ -448,6 +450,7 @@ public class BatchModeModulesList {
       PCAModule.class, //
       VolcanoPlotModule.class //
 
+//      , CodingDemoModule.class // only test purpose
   );
 
 

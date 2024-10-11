@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -68,6 +68,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.R
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.TempIMTrace;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -83,14 +84,15 @@ import org.jetbrains.annotations.NotNull;
 public class FeatureConvertors {
 
   /**
-   * Creates a ModularFeature on the basis of chromatogram results with the {@link
-   * DataTypeUtils#addDefaultChromatographicTypeColumns(ModularFeatureList)} columns
+   * Creates a ModularFeature on the basis of chromatogram results with the
+   * {@link DataTypeUtils#addDefaultChromatographicTypeColumns(ModularFeatureList)} columns
    *
    * @param chromatogram input ADAP chromatogram
+   * @param mzTolerance
    * @return output modular feature
    */
   static public ModularFeature ADAPChromatogramToModularFeature(ModularFeatureList featureList,
-      RawDataFile dataFile, @NotNull ADAPChromatogram chromatogram) {
+      RawDataFile dataFile, @NotNull ADAPChromatogram chromatogram, final MZTolerance mzTolerance) {
     // Data points of feature
     final Collection<DataPoint> dataPoints = chromatogram.getDataPoints();
     final Collection<Scan> scans = chromatogram.getScanNumbers();
@@ -104,9 +106,11 @@ public class FeatureConvertors {
     ModularFeature modularFeature = new ModularFeature(featureList, dataFile, timeSeries,
         FeatureStatus.DETECTED);
 
+    // use wider mz range to group MS2 with chromatogram
+    Range<Double> toleranceRange = mzTolerance.getToleranceRange(modularFeature.getMZ());
+    Range<Double> mzRange = toleranceRange.span(modularFeature.getRawDataPointsMZRange());
     List<Scan> allMS2 = ScanUtils.streamAllMS2FragmentScans(dataFile,
-            modularFeature.getRawDataPointsRTRange(), modularFeature.getRawDataPointsMZRange())
-        .toList();
+        modularFeature.getRawDataPointsRTRange(), mzRange).toList();
     modularFeature.setAllMS2FragmentScans(allMS2);
 
     return modularFeature;
@@ -179,8 +183,8 @@ public class FeatureConvertors {
   }
 
   /**
-   * Creates a ModularFeature on the basis of manually picked feature {@link
-   * ManualFeatureUtils#pickFeatureManually(RawDataFile, Range, Range)}
+   * Creates a ModularFeature on the basis of manually picked feature
+   * {@link ManualFeatureUtils#pickFeatureManually(RawDataFile, Range, Range)}
    *
    * @param manualFeature input manual feature
    * @return output modular feature
@@ -272,8 +276,7 @@ public class FeatureConvertors {
     final List<Entry<Scan, DataPoint>> sorted = dataPointsMap.entrySet().stream()
         .sorted(Comparator.comparing(Entry::getKey)).toList();
     SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(featureList.getMemoryMapStorage(),
-        sorted.stream().map(Entry::getValue).toList(),
-        sorted.stream().map(Entry::getKey).toList());
+        sorted.stream().map(Entry::getValue).toList(), sorted.stream().map(Entry::getKey).toList());
 
     ModularFeature modularFeature = new ModularFeature(featureList, sameRangePeak.getRawDataFile(),
         timeSeries, FeatureStatus.DETECTED);

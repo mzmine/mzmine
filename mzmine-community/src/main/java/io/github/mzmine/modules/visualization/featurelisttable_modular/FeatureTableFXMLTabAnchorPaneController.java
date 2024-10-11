@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,12 +31,12 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Set;
@@ -124,6 +124,9 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
     typeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> filterRows());
     featureTable.featureListProperty().addListener(((observable, oldValue, newValue) -> {
+      if(newValue == null) {
+        return;
+      }
       typeComboBox.setItems(FXCollections.observableArrayList(newValue.getRowTypes()));
       if (!typeComboBox.getItems().isEmpty()) {
         typeComboBox.setValue(typeComboBox.getItems().get(0));

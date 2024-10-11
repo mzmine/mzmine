@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,46 +26,31 @@
 package io.github.mzmine.javafx.dialogs;
 
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.JavaFxDesktop;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DialogLoggerUtil {
 
   private static final Logger logger = Logger.getLogger(DialogLoggerUtil.class.getName());
 
-  /*
-   * Dialogs
-   */
-  public static void showErrorDialog(String message, Exception e) {
-    Alert alert = new Alert(AlertType.ERROR, message + " \n" + e.getMessage());
-    alert.showAndWait();
-  }
-
   public static void showErrorDialog(String title, String message) {
-    logger.info(title + ": " + message);
-    if (DesktopService.isHeadLess()) {
-      return;
-    }
-    Alert alert = new Alert(AlertType.ERROR, null);
-    alert.setTitle(title);
-    // seems like a good size for the dialog message when an old batch is loaded into new version
-    Text label = new Text(message);
-    label.setWrappingWidth(415);
-    HBox box = new HBox(label);
-    box.setPadding(new Insets(5));
-    alert.getDialogPane().setContent(box);
-    alert.showAndWait();
+    showDialog(AlertType.ERROR, title, message, true);
   }
 
   @Nullable
@@ -79,15 +64,7 @@ public class DialogLoggerUtil {
     if (DesktopService.isHeadLess()) {
       return null;
     }
-    Alert alert = new Alert(AlertType.INFORMATION, null);
-    alert.setTitle(title);
-    alert.setHeaderText(title);
-    // seems like a good size for the dialog message when an old batch is loaded into new version
-    Text label = new Text(message);
-    label.setWrappingWidth(415);
-    HBox box = new HBox(label);
-    box.setPadding(new Insets(5));
-    alert.getDialogPane().setContent(box);
+    var alert = createAlert(AlertType.INFORMATION, title, message);
     if (modal) {
       alert.showAndWait();
     } else {
@@ -96,11 +73,110 @@ public class DialogLoggerUtil {
     return alert;
   }
 
+  public static void applyMainWindowStyle(final Alert alert) {
+    if (DesktopService.getDesktop() instanceof JavaFxDesktop fx) {
+      var alertScene = alert.getDialogPane().getScene();
+      alertScene.getStylesheets().setAll(fx.getMainWindow().getScene().getStylesheets());
+
+      if (alertScene.getWindow() instanceof Stage alertStage) {
+        alertStage.getIcons().setAll(fx.getMainWindow().getIcons());
+      }
+    }
+  }
+
+  /**
+   * @return true if yes was clicked, false on No and on cancel
+   */
   public static boolean showDialogYesNo(String title, String message) {
-    Alert alert = new Alert(AlertType.CONFIRMATION, message, ButtonType.YES, ButtonType.NO);
+    return showDialogYesNo(AlertType.CONFIRMATION, title, message);
+  }
+
+  /**
+   * @return true if yes was clicked, false on No and on cancel
+   */
+  public static boolean showDialogYesNo(AlertType type, String title, String message) {
+    return showDialog(type, title, message, ButtonType.YES, ButtonType.NO).map(
+        res -> res == ButtonType.YES).orElse(false);
+  }
+
+  /**
+   * @param type    usually uses {@link AlertType#CONFIRMATION}
+   * @param title   title of dialog and also repeated in dialog header
+   * @param message message in box wrapped
+   * @param buttons Either use predefined buttons or define new buttons with
+   *                {@link ButtonType#ButtonType(String, ButtonData)} (String, ButtonData)}requires
+   *                a {@link ButtonData#CANCEL_CLOSE} or {@link ButtonData#NO} button that will also
+   *                trigger on X close button. Otherwise X button will not work
+   * @return optional button type. Easy to use the ButtonData or title to match the button
+   */
+  public static Optional<ButtonType> showDialog(AlertType type, String title, String message,
+      @Nullable ButtonType... buttons) {
+    return showDialog(type, title, message, true, buttons);
+  }
+
+  /**
+   * @param type          usually uses {@link AlertType#CONFIRMATION}
+   * @param title         title of dialog and also repeated in dialog header
+   * @param message       message in box wrapped
+   * @param blockingModal open dialog and block
+   * @return optional button type. Easy to use the ButtonData or title to match the button
+   */
+  public static Optional<ButtonType> showDialog(AlertType type, String title, String message,
+      boolean blockingModal) {
+    return showDialog(type, title, message, blockingModal, null);
+  }
+
+  /**
+   * @param type          usually uses {@link AlertType#CONFIRMATION}
+   * @param title         title of dialog and also repeated in dialog header
+   * @param message       message in box wrapped
+   * @param blockingModal open dialog and block
+   * @param buttons       Either use predefined buttons or define new buttons with
+   *                      {@link ButtonType#ButtonType(String, ButtonData)} (String,
+   *                      ButtonData)}requires a {@link ButtonData#CANCEL_CLOSE} or
+   *                      {@link ButtonData#NO} button that will also trigger on X close button.
+   *                      Otherwise X button will not work
+   * @return optional button type. Easy to use the ButtonData or title to match the button
+   */
+  public static Optional<ButtonType> showDialog(AlertType type, String title, String message,
+      boolean blockingModal, @Nullable ButtonType... buttons) {
+    if (DesktopService.isHeadLess()) {
+      logger.info(title + ": " + message);
+      return Optional.empty();
+    }
+    if (blockingModal) {
+      final AtomicReference<Optional<ButtonType>> result = new AtomicReference<>();
+      FxThread.runOnFxThreadAndWait(() -> {
+        var alert = createAlert(type, title, message, buttons);
+        result.set(alert.showAndWait());
+      });
+      return result.get();
+    } else {
+      // non blocking
+      FxThread.runLater(() -> {
+        createAlert(type, title, message, buttons).show();
+      });
+      return Optional.empty();
+    }
+  }
+
+  /**
+   * Internal method to create an alert. use {@link #showDialog}
+   */
+  private static @NotNull Alert createAlert(final AlertType type, final String title,
+      final String message, @Nullable final ButtonType... buttons) {
+    Alert alert = new Alert(type, message, buttons);
+    applyMainWindowStyle(alert);
+
     alert.setTitle(title);
-    Optional<ButtonType> result = alert.showAndWait();
-    return (result.isPresent() && result.get() == ButtonType.YES);
+    alert.setHeaderText(title);
+    // seems like a good size for the dialog message when an old batch is loaded into new version
+    Text label = new Text(message);
+    label.setWrappingWidth(415);
+    HBox box = new HBox(label);
+    box.setPadding(new Insets(5));
+    alert.getDialogPane().setContent(box);
+    return alert;
   }
 
   /**

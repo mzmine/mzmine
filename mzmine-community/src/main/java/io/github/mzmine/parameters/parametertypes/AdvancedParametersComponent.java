@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
+import io.github.mzmine.parameters.FullColumnComponent;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import javafx.beans.property.DoubleProperty;
@@ -37,7 +38,7 @@ import javafx.scene.control.TitledPane;
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
 public class AdvancedParametersComponent extends Accordion implements
-    EstimatedComponentHeightProvider {
+    EstimatedComponentHeightProvider, FullColumnComponent {
 
   private final ParameterSetupPane paramPane;
   private final CheckBox checkBox;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,7 +49,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleS
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,7 +76,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   private final MzMLProductList productList;
   private final MzMLScanList scanList;
   private final @NotNull String id;
-  private final int scanNumber;
+  private int scanNumber;
   private final int numOfDataPoints;
   private MassSpectrumType spectrumType;
   private Float retentionTime;
@@ -87,11 +87,22 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   // temporary - set to null after load
   private MzMLBinaryDataInfo mzBinaryDataInfo;
   private MzMLBinaryDataInfo intensityBinaryDataInfo;
+  private MzMLBinaryDataInfo wavelengthBinaryDataInfo;
 
   //Final memory-mapped processed data
   //No intermediate results
-  private @Nullable DoubleBuffer mzValues;
-  private @Nullable DoubleBuffer intensityValues;
+  /**
+   * doubles
+   */
+  private @Nullable MemorySegment mzValues;
+  /**
+   * doubles
+   */
+  private @Nullable MemorySegment intensityValues;
+  /**
+   * doubles
+   */
+  private @Nullable MemorySegment wavelengthValues;
 
   // mobility scans are memory mapped later
   private @Nullable SimpleSpectralArrays mobilityScanSimpleSpectralData;
@@ -118,6 +129,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     this.mzScanWindowRange = null;
     this.mzValues = null;
     this.intensityValues = null;
+    this.wavelengthValues = null;
   }
 
   public MzMLCVGroup getCVParams() {
@@ -176,7 +188,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     return id;
   }
 
-  public DoubleBuffer getDoubleBufferMzValues() {
+  public MemorySegment getDoubleBufferMzValues() {
     if (mzValues == null) {
       throw new UnsupportedOperationException(
           "No data yet. Call load method to load data and memory map the scan.");
@@ -185,7 +197,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   }
 
 
-  public DoubleBuffer getDoubleBufferIntensityValues() {
+  public MemorySegment getDoubleBufferIntensityValues() {
     if (intensityValues == null) {
       throw new UnsupportedOperationException(
           "No data yet. Call load method to load data and memory map the scan.");
@@ -199,7 +211,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       throw new UnsupportedOperationException(
           "No data yet. Call load method to load data and memory map the scan.");
     }
-    return intensityValues.limit();
+    return (int) StorageUtils.numDoubles(intensityValues);
   }
 
   @Override
@@ -457,7 +469,8 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
         // check accession
         switch (accession) {
-          case MzMLCV.MS_RT_SCAN_START, MzMLCV.MS_RT_RETENTION_TIME, MzMLCV.MS_RT_RETENTION_TIME_LOCAL, MzMLCV.MS_RT_RETENTION_TIME_NORMALIZED -> {
+          case MzMLCV.MS_RT_SCAN_START, MzMLCV.MS_RT_RETENTION_TIME,
+               MzMLCV.MS_RT_RETENTION_TIME_LOCAL, MzMLCV.MS_RT_RETENTION_TIME_NORMALIZED -> {
             if (value.isEmpty()) {
               throw new IllegalStateException(
                   "For retention time cvParam the `value` must have been specified");
@@ -529,6 +542,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     return getCVValue(cvParams, accession);
   }
 
+
   /**
    * <p>
    * Search for the CV Parameter value for the given accession in the given
@@ -549,6 +563,15 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
           value = Optional.ofNullable("");
         }
         return value;
+      }
+    }
+    return Optional.empty();
+  }
+
+  public Optional<MzMLCVParam> getCVParam(String accession) {
+    for (MzMLCVParam cvParam : cvParams.getCVParamsList()) {
+      if (cvParam.getAccession().equals(accession)) {
+        return Optional.of(cvParam);
       }
     }
     return Optional.empty();
@@ -583,10 +606,10 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
    *
    * @return false if
    */
-  public boolean loadProcessMemMapData(final MemoryMapStorage storage,
+  public boolean loadProcessMemMapMzData(final MemoryMapStorage storage,
       final @NotNull ScanImportProcessorConfig config) {
     try {
-      SimpleSpectralArrays specData = loadData();
+      SimpleSpectralArrays specData = loadMzData();
       if (specData == null) {
         // may be null for UV spectra
         return false;
@@ -622,7 +645,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
    *
    * @return null if no data available otherwise the spectral arrays
    */
-  private @Nullable SimpleSpectralArrays loadData() throws MSDKException, IOException {
+  private @Nullable SimpleSpectralArrays loadMzData() throws MSDKException, IOException {
     if (mzBinaryDataInfo == null) {
       // maybe UV spectrum
       clearUnusedData();
@@ -632,7 +655,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     if (mzBinaryDataInfo.getArrayLength() != intensityBinaryDataInfo.getArrayLength()) {
       logger.warning(
           "Binary data array contains an array of different length than the default array length of the scan (#"
-          + getScanNumber() + ")");
+              + getScanNumber() + ")");
     }
     double[] mzs = MzMLPeaksDecoder.decodeToDouble(mzBinaryDataInfo);
     double[] intensities = MzMLPeaksDecoder.decodeToDouble(intensityBinaryDataInfo);
@@ -644,6 +667,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   public void clearUnusedData() {
     mzBinaryDataInfo = null;
     intensityBinaryDataInfo = null;
+    wavelengthBinaryDataInfo = null;
   }
 
   /**
@@ -660,5 +684,77 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
    */
   public void clearMobilityData() {
     mobilityScanSimpleSpectralData = null;
+  }
+
+  public void setWavelengthBinaryDataInfo(MzMLBinaryDataInfo binaryDataInfo) {
+    this.wavelengthBinaryDataInfo = binaryDataInfo;
+  }
+
+  public boolean isUVSpectrum() {
+    return (mzBinaryDataInfo == null && (intensityBinaryDataInfo != null
+        && wavelengthBinaryDataInfo != null)) || (mzValues == null && (intensityValues != null
+        && wavelengthValues != null));
+  }
+
+  /**
+   * Called when spectrum end is read. Load, process data points and memory map resulting data to
+   * disk to save RAM.
+   *
+   * @return false if no data was loaded.
+   */
+  public boolean loadProcessMemMapUvData(final MemoryMapStorage storage,
+      final @NotNull ScanImportProcessorConfig config) {
+    try {
+      SimpleSpectralArrays specData = loadUVData();
+      if (specData == null) {
+        return false;
+      }
+
+      this.wavelengthValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
+      this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
+          specData.intensities());
+
+    } catch (MSDKException | IOException e) {
+      logger.warning("Could not load data of scan #%d".formatted(getScanNumber()));
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Decode and load data from binary arrays
+   *
+   * @return null if no data available otherwise the spectral arrays. Wavelengths are represented as
+   * mz as an intermediate.
+   */
+  private @Nullable SimpleSpectralArrays loadUVData() throws MSDKException, IOException {
+    if (wavelengthBinaryDataInfo == null) {
+      // maybe UV spectrum
+      clearUnusedData();
+      return null;
+    }
+
+    if (wavelengthBinaryDataInfo.getArrayLength() != intensityBinaryDataInfo.getArrayLength()) {
+      logger.warning(
+          "Binary data array contains an array of different length than the default array length of the scan (#"
+              + getScanNumber() + ")");
+    }
+    double[] wavelength = MzMLPeaksDecoder.decodeToDouble(wavelengthBinaryDataInfo);
+    double[] intensities = MzMLPeaksDecoder.decodeToDouble(intensityBinaryDataInfo);
+
+    clearUnusedData();
+    return new SimpleSpectralArrays(wavelength, intensities);
+  }
+
+  public boolean isMassSpectrum() {
+    return mzBinaryDataInfo != null || mzValues != null;
+  }
+
+  public @Nullable MemorySegment getWavelengthValues() {
+    return wavelengthValues;
+  }
+
+  public void setScanNumber(int newScanNumber) {
+    this.scanNumber = newScanNumber;
   }
 }

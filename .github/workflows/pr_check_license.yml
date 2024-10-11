@@ -24,7 +24,7 @@ jobs:
 
       - name: Upload license report
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: license_report
           path: mzmine-community/licensereport/*.json

@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "8.5"
+      "version": "8.10"
     }
   },
   "variants": [
@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 17,
+        "org.gradle.jvm.version": 22,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
-          "size": 23833,
-          "sha512": "de5733799c19ed0833c2cd92f74f3ff197c5f6dbb8c143cb21e6625108254cd907f1dbf96cc62abf56a07ce7318d9143a31102b9885847d7028bb2a93512b6a1",
-          "sha256": "2067a3650381236a1a161a0c00e2f384651eef89416de271c437b43e04f85b19",
-          "sha1": "e972982acd8dee580d41856439a6b7a53261b01b",
-          "md5": "a9727f90785d14dbf8a7d91a1d56227e"
+          "size": 22484,
+          "sha512": "2e9f906f7da40ef7473c7c9cc1654ba1d4f7a3ca14b06a74fc0130d64c82be8b9447a0e00f8a2523706a48a3b1636b1a992c710ccec8ad14f963aab0aac261d1",
+          "sha256": "5f7d2f0f9e2547d48b8ad0d710c25f3cee1fce8fee45d7e2b1753fe68ea0a871",
+          "sha1": "6c544a1625ed855456aecafadbf89c3e91e32e98",
+          "md5": "ca2bb9a9f81e2d366400df363590f15a"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 17,
+        "org.gradle.jvm.version": 22,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -71,11 +71,11 @@
         {
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
-          "size": 23833,
-          "sha512": "de5733799c19ed0833c2cd92f74f3ff197c5f6dbb8c143cb21e6625108254cd907f1dbf96cc62abf56a07ce7318d9143a31102b9885847d7028bb2a93512b6a1",
-          "sha256": "2067a3650381236a1a161a0c00e2f384651eef89416de271c437b43e04f85b19",
-          "sha1": "e972982acd8dee580d41856439a6b7a53261b01b",
-          "md5": "a9727f90785d14dbf8a7d91a1d56227e"
+          "size": 22484,
+          "sha512": "2e9f906f7da40ef7473c7c9cc1654ba1d4f7a3ca14b06a74fc0130d64c82be8b9447a0e00f8a2523706a48a3b1636b1a992c710ccec8ad14f963aab0aac261d1",
+          "sha256": "5f7d2f0f9e2547d48b8ad0d710c25f3cee1fce8fee45d7e2b1753fe68ea0a871",
+          "sha1": "6c544a1625ed855456aecafadbf89c3e91e32e98",
+          "md5": "ca2bb9a9f81e2d366400df363590f15a"
         }
       ]
     }

@@ -1,6 +1,32 @@
 {
     "dependencies": [
         {
+            "moduleName": "ai.djl.pytorch:pytorch-engine",
+            "moduleVersion": "0.26.0",
+            "moduleUrls": [
+                "http://www.djl.ai/engines/pytorch/pytorch-engine"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "ai.djl:api",
+            "moduleVersion": "0.26.0",
+            "moduleUrls": [
+                "http://www.djl.ai/api"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "c3p0:c3p0",
             "moduleVersion": "0.9.1.1",
             "moduleUrls": [
@@ -253,7 +279,7 @@
         },
         {
             "moduleName": "com.google.code.gson:gson",
-            "moduleVersion": "2.8.9",
+            "moduleVersion": "2.10.1",
             "moduleUrls": [
                 "https://github.com/google/gson/gson"
             ],
@@ -480,7 +506,7 @@
         },
         {
             "moduleName": "commons-codec:commons-codec",
-            "moduleVersion": "1.15",
+            "moduleVersion": "1.17.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-codec/"
             ],
@@ -506,7 +532,7 @@
         },
         {
             "moduleName": "commons-io:commons-io",
-            "moduleVersion": "2.15.1",
+            "moduleVersion": "2.16.1",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-io/"
             ],
@@ -1170,7 +1196,7 @@
         },
         {
             "moduleName": "net.java.dev.jna:jna",
-            "moduleVersion": "5.10.0",
+            "moduleVersion": "5.13.0",
             "moduleUrls": [
                 "https://github.com/java-native-access/jna"
             ],
@@ -1269,7 +1295,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-compress",
-            "moduleVersion": "1.20",
+            "moduleVersion": "1.26.2",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-compress/"
             ],
@@ -1277,16 +1303,12 @@
                 {
                     "moduleLicense": "Apache License, Version 2.0",
                     "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                },
-                {
-                    "moduleLicense": "PUBLIC DOMAIN",
-                    "moduleLicenseUrl": null
                 }
             ]
         },
         {
             "moduleName": "org.apache.commons:commons-lang3",
-            "moduleVersion": "3.12.0",
+            "moduleVersion": "3.14.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-lang/"
             ],
@@ -2564,104 +2586,6 @@
             ]
         },
         {
-            "moduleName": "org.openjfx:javafx-base",
-            "moduleVersion": "21.0.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-controls",
-            "moduleVersion": "21.0.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-fxml",
-            "moduleVersion": "21",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-graphics",
-            "moduleVersion": "21.0.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-media",
-            "moduleVersion": "21",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-swing",
-            "moduleVersion": "21.0.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.openjfx:javafx-web",
-            "moduleVersion": "21",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
             "moduleName": "org.openscience.cdk:cdk-atomtype",
             "moduleVersion": "2.9",
             "moduleLicenses": [
@@ -2933,7 +2857,7 @@
         },
         {
             "moduleName": "org.slf4j:slf4j-api",
-            "moduleVersion": "1.7.32",
+            "moduleVersion": "1.7.36",
             "moduleUrls": [
                 "http://www.slf4j.org"
             ],
@@ -3025,7 +2949,7 @@
         },
         {
             "moduleName": "org.xerial:sqlite-jdbc",
-            "moduleVersion": "3.40.0.0",
+            "moduleVersion": "3.41.2.2",
             "moduleUrls": [
                 "https://github.com/xerial/sqlite-jdbc"
             ],

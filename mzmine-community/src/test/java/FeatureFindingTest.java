@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.M
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.FeatureSmoothingOptions;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
@@ -53,7 +54,6 @@ import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameter
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
-import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.ParameterSet;
@@ -67,7 +67,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.project.ProjectService;
-import io.mzio.users.user.CurrentUserService;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -122,13 +121,6 @@ public class FeatureFindingTest {
     MZmineTestUtil.startMzmineCore();
     logger.info("Getting project");
     project = ProjectService.getProjectManager().getCurrentProject();
-
-    // check access level
-    if (!CurrentUserService.isValid()) {
-      var msg = "No test user supplied add user to TESTRUNNER_USER environment var";
-      logger.warning(msg);
-      throw new UnsupportedOperationException(msg);
-    }
   }
 
   @AfterAll
@@ -293,18 +285,16 @@ public class FeatureFindingTest {
     assertNotNull(lastFlistA);
     assertNotNull(lastFlistB);
 
-    ParameterSet sgParam = new SavitzkyGolayParameters().cloneParameterSet();
-    sgParam.setParameter(SavitzkyGolayParameters.mobilitySmoothing, false);
-    sgParam.getParameter(SavitzkyGolayParameters.rtSmoothing).setValue(true);
-    sgParam.getParameter(SavitzkyGolayParameters.rtSmoothing).getEmbeddedParameter().setValue(5);
-
-    SmoothingParameters paramSmooth = new SmoothingParameters();
+    ParameterSet paramSmooth = new SmoothingParameters().cloneParameterSet();
     paramSmooth.getParameter(SmoothingParameters.featureLists)
         .setValue(new FeatureListsSelection(lastFlistA, lastFlistB));
     paramSmooth.setParameter(SmoothingParameters.handleOriginal, OriginalFeatureListOption.KEEP);
-    paramSmooth.setParameter(SmoothingParameters.smoothingAlgorithm,
-        new MZmineProcessingStepImpl<>(SmoothingParameters.sgSmoothing, sgParam));
     paramSmooth.setParameter(SmoothingParameters.suffix, smoothSuffix);
+    paramSmooth.setParameter(SmoothingParameters.smoothingAlgorithm,
+        FeatureSmoothingOptions.SAVITZKY_GOLAY);
+    var sgParam = paramSmooth.getEmbeddedParameterValue(SmoothingParameters.smoothingAlgorithm);
+    sgParam.setParameter(SavitzkyGolayParameters.mobilitySmoothing, false);
+    sgParam.setParameter(SavitzkyGolayParameters.rtSmoothing, true, 5);
 
     logger.info("Testing chromatogram smoothing (RT, 5 dp)");
     TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30, SmoothingModule.class,

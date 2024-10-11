@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -35,6 +37,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
+import java.lang.foreign.MemorySegment;
 import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.List;
@@ -58,8 +61,8 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
 
   protected final List<MobilityScan> scans;
 
-  protected final DoubleBuffer intensityValues;
-  protected final DoubleBuffer mzValues;
+  protected final MemorySegment intensityValues;
+  protected final MemorySegment mzValues;
 
   /**
    * @param storage         May be null if forceStoreInRam is true.
@@ -158,12 +161,12 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
   }
 
   @Override
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     return intensityValues;
   }
 
   @Override
-  public DoubleBuffer getMZValueBuffer() {
+  public MemorySegment getMZValueBuffer() {
     return mzValues;
   }
 
@@ -204,13 +207,13 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
       return false;
     }
     SimpleIonMobilitySeries that = (SimpleIonMobilitySeries) o;
-    return Objects.equals(scans, that.scans) && Objects.equals(intensityValues,
-        that.intensityValues) && Objects.equals(mzValues, that.mzValues)
+    return Objects.equals(scans, that.scans) && contentEquals(intensityValues,
+        that.intensityValues) && contentEquals(mzValues, that.mzValues)
         && IntensitySeries.seriesSubsetEqual(this, that);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(scans, intensityValues, mzValues);
+    return Objects.hash(scans, intensityValues.byteSize(), mzValues.byteSize());
   }
 }

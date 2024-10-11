@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,12 +40,12 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.gui.mainwindow.FeatureListSummaryController;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFAcquisitionUtils;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionTask;
-import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.MaldiMs2AcqusitionWriter;
+import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.MaldiMs2AcquisitionWriter;
+import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.MaldiMs2AcquisitionWriters;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.SingleSpotMs2Writer;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
 import io.github.mzmine.parameters.Parameter;
@@ -97,8 +97,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
   private final int[] spotsFeatureCounter;
 
   private final Ms2ImagingMode ms2ImagingMode;
-  private final @Nullable ParameterSet ms2ModuleParameters;
-  private final @NotNull MaldiMs2AcqusitionWriter ms2Module;
+  private final @NotNull MaldiMs2AcquisitionWriter ms2Module;
   private final List<Double> collisionEnergies;
   private final CeSteppingTables ceSteppingTables;
   private final int totalMsMsPerFeature;
@@ -138,15 +137,14 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
         0d); // isolation window typically wider than set
 //    ms2Module = parameters.getValue(TimsTOFImageMsMsParameters.ms2ImagingMode).getModule();
     if (advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.ms2ImagingMode, false)) {
-      ms2Module = advancedParam.getEmbeddedParameters()
-          .getEmbeddedParameterValue(AdvancedImageMsMsParameters.ms2ImagingMode).getModule();
-      ms2ModuleParameters = advancedParam.getEmbeddedParameters()
-          .getEmbeddedParameterValue(AdvancedImageMsMsParameters.ms2ImagingMode).getParameterSet();
+      var acquisitionModeParam = advancedParam.getEmbeddedParameters()
+          .getParameter(AdvancedImageMsMsParameters.ms2ImagingMode).getEmbeddedParameter()
+          .getValueWithParameters();
+      ms2Module = MaldiMs2AcquisitionWriters.createOption(acquisitionModeParam);
     } else {
-      ms2Module = AdvancedImageMsMsParameters.single;
-      ms2ModuleParameters = AdvancedImageMsMsParameters.defaultSpotWriterParam;
+      ms2Module = MaldiMs2AcquisitionWriters.createDefault();
     }
-    ms2ImagingMode = ms2Module.equals(MZmineCore.getModuleInstance(SingleSpotMs2Writer.class))
+    ms2ImagingMode = ms2Module.getClass().getName().equals(SingleSpotMs2Writer.class.getName())
         ? Ms2ImagingMode.SINGLE : Ms2ImagingMode.TRIPLE;
 
     totalMsMsPerFeature = numMsMs * collisionEnergies.size();
@@ -282,8 +280,8 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
           e2.getKey().getMaldiSpotInfo().yIndexPos());
     }).map(Entry::getValue).toList();
 
-    ms2Module.writeAcqusitionFile(acqFile, sortedSpots, ceSteppingTables, ms2ModuleParameters,
-        this::isCanceled, savePathDir);
+    ms2Module.writeAcqusitionFile(acqFile, sortedSpots, ceSteppingTables, this::isCanceled,
+        savePathDir);
 
     try {
       dumpImagingSpotInfos(sortedSpots);

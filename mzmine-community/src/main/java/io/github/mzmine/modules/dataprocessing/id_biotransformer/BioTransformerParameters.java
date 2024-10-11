@@ -94,9 +94,9 @@ public class BioTransformerParameters extends SimpleParameterSet {
 
   public BioTransformerParameters(boolean singleRow) {
     super(singleRow ? new Parameter[]{bioPath, transformationType, steps, mzTol, ionLibrary,
-        filterParam}
+        filterParam, advanced}
         : new Parameter[]{flists, bioPath, transformationType, steps, mzTol, ionLibrary,
-            filterParam});
+            filterParam, advanced});
   }
 
   @Override

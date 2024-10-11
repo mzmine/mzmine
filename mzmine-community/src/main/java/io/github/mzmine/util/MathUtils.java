@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -225,16 +225,21 @@ public class MathUtils {
   }
 
   public static double calcStd(double[] values) {
+    return calcStd(values, 0, values.length);
+  }
 
+  public static double calcStd(double[] values, int start, int end) {
     double avg, stdev;
     double sum = 0;
-    for (double d : values) {
+    for (int i = start; i < end; i++) {
+      double d = values[i];
       sum += d;
     }
     avg = sum / values.length;
 
     sum = 0;
-    for (double d : values) {
+    for (int i = start; i < end; i++) {
+      double d = values[i];
       sum += (d - avg) * (d - avg);
     }
 
@@ -355,7 +360,7 @@ public class MathUtils {
   }
 
   public static double getPpmDiff(double calc, double real) {
-    return (real-calc) / calc * 1E6;
+    return (real-calc) / Math.abs(calc) * 1E6;
   }
 
   /**

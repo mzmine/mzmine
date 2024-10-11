@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,15 +27,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
+import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import java.io.File;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.Objects;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -46,7 +47,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import testutils.MZmineTestUtil;
-import testutils.TaskResult;
 
 @DisplayName("Test Project Load Finding")
 @TestInstance(Lifecycle.PER_CLASS)
@@ -56,6 +56,11 @@ public class ProjectLoadTest {
 
   private MZmineProject currentProject;
 
+  @BeforeAll
+  public void init() {
+    //    logger.info("Running MZmine");
+    MZmineTestUtil.startMzmineCore();
+  }
 
   @AfterAll
   public void tearDown() {
@@ -70,9 +75,8 @@ public class ProjectLoadTest {
     param.setParameter(ProjectLoaderParameters.projectFile, new File(
         ProjectLoaderParameters.class.getClassLoader().getResource("rawdatafiles/dom_test.mzmine")
             .getFile()));
-    final TaskResult result = MZmineTestUtil.callModuleWithTimeout(300, ProjectLoadModule.class,
-        param);
-    Assertions.assertInstanceOf(TaskResult.FINISHED.class, result, result.description());
+    ProjectOpeningTask newTask = new ProjectOpeningTask(param, Instant.now());
+    newTask.run();
 
     var flist = ProjectService.getProjectManager().getCurrentProject()
         .getFeatureList("Aligned feature list corr PEARSON r greq 0.85 dp greq 5");

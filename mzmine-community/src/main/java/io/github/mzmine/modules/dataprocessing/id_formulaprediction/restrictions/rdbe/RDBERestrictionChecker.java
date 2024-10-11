@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,29 +34,6 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public class RDBERestrictionChecker {
 
   /**
-   * This table defines the ground valence states. Typically, in most molecules atoms will have the
-   * lowest (ground) valence.
-   */
-  private static final Map<String, Integer> valences = new HashMap<String, Integer>();
-
-  static {
-    valences.put("H", 1);
-    valences.put("C", 4);
-    valences.put("N", 3);
-    valences.put("O", 2);
-    valences.put("Si", 4);
-    valences.put("P", 3);
-    valences.put("S", 2);
-    valences.put("F", 1);
-    valences.put("Cl", 1);
-    valences.put("Br", 1);
-    valences.put("I", 1);
-    valences.put("Na", 1);
-    valences.put("K", 1);
-
-  }
-
-  /**
    * Calculates possible RDBE (degree of unsaturation) values according to the formula:
    * <p>
    * RDBE = 1 + Sum(ni x vi - 2) / 2
@@ -68,6 +45,10 @@ public class RDBERestrictionChecker {
 
     double sum = 0;
 
+    /**
+     * This table defines the ground valence states. Typically, in most molecules atoms will have the
+     * lowest (ground) valence.
+     */
     Map<String, Integer> valences2 = new HashMap<String, Integer>();
     valences2.put("H", 1);
     valences2.put("C", 4);
@@ -82,6 +63,9 @@ public class RDBERestrictionChecker {
     valences2.put("I", 1);
     valences2.put("Na", 1);
     valences2.put("K", 1);
+    valences2.put("Mg", 2);
+    valences2.put("Ca", 2);
+    valences2.put("Ba", 2);
 
     for (IIsotope isotope : formula.isotopes()) {
 
