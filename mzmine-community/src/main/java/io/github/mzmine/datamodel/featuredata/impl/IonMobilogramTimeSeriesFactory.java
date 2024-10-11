@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -54,14 +55,14 @@ public class IonMobilogramTimeSeriesFactory {
 
   /**
    * Stores a list of mobilograms. A summed intensity of each mobilogram is automatically calculated
-   * and represents this series when plotted as a 2D intensity-vs time chart (accessed via {@link
-   * SimpleIonMobilogramTimeSeries#getMZ(int)} and {@link SimpleIonMobilogramTimeSeries#getIntensity(int)}).
-   * The mz representing a mobilogram is calculated by a weighted average based on the mzs in eah
-   * mobility scan.
+   * and represents this series when plotted as a 2D intensity-vs time chart (accessed via
+   * {@link SimpleIonMobilogramTimeSeries#getMZ(int)} and
+   * {@link SimpleIonMobilogramTimeSeries#getIntensity(int)}). The mz representing a mobilogram is
+   * calculated by a weighted average based on the mzs in eah mobility scan.
    *
    * @param storage     May be null if values shall be stored in ram.
    * @param mobilograms
-   * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[])
+   * @see IonSpectrumSeries#copyAndReplace(MemoryMapStorage, double[], double[], List)
    */
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
       @NotNull final List<IonMobilitySeries> mobilograms,
@@ -197,12 +198,12 @@ public class IonMobilogramTimeSeriesFactory {
           int[] indices = ParsingUtils.stringToIntArray(reader.getElementText());
           scans = ParsingUtils.getSublistFromIndices((List<Frame>) file.getFrames(), indices);
         }
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
-            reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils.stringToDoubleArray(
-            reader.getElementText());
-        case SummedIntensityMobilitySeries.XML_ELEMENT -> summedMobilogram = SummedIntensityMobilitySeries.loadFromXML(
-            reader, storage);
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case SummedIntensityMobilitySeries.XML_ELEMENT ->
+            summedMobilogram = SummedIntensityMobilitySeries.loadFromXML(reader, storage);
       }
     }
 

@@ -94,7 +94,8 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
 
   @Override
   IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
+      final @NotNull List<@NotNull T> scans);
 
   /**
    * @param writer   The writer.

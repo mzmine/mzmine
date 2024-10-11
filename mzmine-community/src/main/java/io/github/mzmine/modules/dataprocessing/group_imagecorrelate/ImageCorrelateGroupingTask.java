@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.FeatureDataType;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
-import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -215,19 +214,13 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
   @Nullable
   private ImageCorrelateGroupingTask.FilteredRowData getDataAndFilter(@NotNull FeatureListRow row,
       FeatureDataAccess featureDataAccess) {
-
-    if (featureDataAccess instanceof FeatureFullDataAccess) {
-      while (featureDataAccess.hasNextFeature()) {
-        featureDataAccess.nextFeature();
-        if (featureDataAccess.getFeature().getRow().equals(row)) {
-          double[] intensities = ((FeatureFullDataAccess) featureDataAccess).getIntensityValues()
-              .clone();
-          return intensities.length > 0 ? new ImageCorrelateGroupingTask.FilteredRowData(row,
-              intensities) : null;
-        }
+    while (featureDataAccess.hasNextFeature()) {
+      featureDataAccess.nextFeature();
+      if (featureDataAccess.getFeature().getRow().equals(row)) {
+        double[] intensities = featureDataAccess.getIntensityValuesCopy();
+        return intensities.length > 0 ? new ImageCorrelateGroupingTask.FilteredRowData(row,
+            intensities) : null;
       }
-    } else {
-      return null;
     }
     return null;
   }

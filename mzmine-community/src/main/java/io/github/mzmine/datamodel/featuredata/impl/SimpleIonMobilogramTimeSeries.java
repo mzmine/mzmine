@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,9 +45,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.Mobilo
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
 import java.lang.foreign.ValueLayout.OfDouble;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -235,7 +233,8 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
   @Override
   public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
+      final @NotNull List<@NotNull Frame> frames) {
     return IonMobilogramTimeSeriesFactory.of(storage, newMzValues, newIntensityValues, mobilograms,
         frames, summedMobilogram.copy(storage));
   }
@@ -331,7 +330,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
         that.frames) && contentEquals(intensityValues, that.intensityValues) && contentEquals(
         mzValues, that.mzValues) && Objects.equals(getSummedMobilogram(),
         that.getSummedMobilogram()) && contentEquals(mobilogramMzValues, that.mobilogramMzValues)
-        && contentEquals(mobilogramIntensityValues, that.mobilogramIntensityValues);
+           && contentEquals(mobilogramIntensityValues, that.mobilogramIntensityValues);
   }
 
   @Override

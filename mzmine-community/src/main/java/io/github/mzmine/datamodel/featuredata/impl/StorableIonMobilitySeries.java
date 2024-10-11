@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -42,8 +41,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Stores data points of several {@link MobilityScan}s. Usually wrapped in a {@link
- * SimpleIonMobilogramTimeSeries} representing the same feature with mobility resolution.
+ * Stores data points of several {@link MobilityScan}s. Usually wrapped in a
+ * {@link SimpleIonMobilogramTimeSeries} representing the same feature with mobility resolution.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -161,7 +160,8 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
 
   @Override
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
+      final @NotNull List<@NotNull MobilityScan> scans) {
     return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
   }
 
@@ -175,7 +175,7 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
     }
     StorableIonMobilitySeries that = (StorableIonMobilitySeries) o;
     return numValues == that.numValues && Objects.equals(scans, that.scans)
-        && IntensitySeries.seriesSubsetEqual(this, that);
+           && IntensitySeries.seriesSubsetEqual(this, that);
   }
 
   @Override
