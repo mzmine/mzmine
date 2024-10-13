@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -161,8 +160,8 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
 
   /**
    * Set the data to the next feature, if available. Returns the feature for additional data access.
-   * retention time and intensity values should be accessed from this data class via {@link
-   * #getRetentionTime(int)} and {@link #getIntensity(int)}
+   * retention time and intensity values should be accessed from this data class via
+   * {@link #getRetentionTime(int)} and {@link #getIntensity(int)}
    *
    * @return the feature or null
    */
@@ -185,8 +184,8 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
       } else {
         currentRowIndex++;
         // single data file
-        feature = getRow()
-            .getFeature(dataFile != null ? dataFile : getRow().getRawDataFiles().get(0));
+        feature = getRow().getFeature(
+            dataFile != null ? dataFile : getRow().getRawDataFiles().get(0));
       }
 
       featureData = (IonTimeSeries<Scan>) feature.getFeatureData();
@@ -224,9 +223,9 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   /**
-   * For feature lists of one RawDataFile, num of features equals to {@link
-   * #getNumOfFeatureListRows()}. For aligned feature lists two options are available: Either all
-   * features or all features of a selected RawDataFile
+   * For feature lists of one RawDataFile, num of features equals to
+   * {@link #getNumOfFeatureListRows()}. For aligned feature lists two options are available: Either
+   * all features or all features of a selected RawDataFile
    *
    * @return number of features
    */
@@ -241,6 +240,11 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   public int getNumberOfValues() {
     return currentNumberOfDataPoints;
   }
+
+  /**
+   * @return the maximum number of values
+   */
+  public abstract int getMaxNumberOfValues();
 
   //#######################################
   // Unsupported methods due to different intended use

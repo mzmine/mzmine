@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -142,8 +142,8 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
 
   /**
    * Set the data to the next feature, if available. Returns the feature for additional data access.
-   * retention time and intensity values should be accessed from this data class via {@link
-   * #getRetentionTime(int)} and {@link #getIntensity(int)}
+   * retention time and intensity values should be accessed from this data class via
+   * {@link #getRetentionTime(int)} and {@link #getIntensity(int)}
    *
    * @return the feature or null
    */
@@ -180,6 +180,11 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
     return feature;
   }
 
+  @Override
+  public int getMaxNumberOfValues() {
+    return mzs.length;
+  }
+
   /**
    * Usage of this method is strongly discouraged because it returns the internal buffer of this
    * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
@@ -188,7 +193,8 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
    * the length of this buffer, which is set to the longest XIC. The current number of data points
    * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
    * <p></p>
-   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getIntensity(int)} (int)} is more appropriate.
+   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getIntensity(int)} (int)} is
+   * more appropriate.
    *
    * @return The intensity buffer of this data access.
    */
@@ -204,7 +210,8 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
    * the length of this buffer, which is set to the longest XIC. The current number of data points
    * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
    * <p></p>
-   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getMZ(int)} is more appropriate.
+   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getMZ(int)} is more
+   * appropriate.
    *
    * @return The m/z buffer of this data access.
    */

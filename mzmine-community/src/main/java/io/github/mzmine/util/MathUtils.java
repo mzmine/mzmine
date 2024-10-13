@@ -360,7 +360,7 @@ public class MathUtils {
   }
 
   public static double getPpmDiff(double calc, double real) {
-    return (real-calc) / Math.abs(calc) * 1E6;
+    return (real - calc) / Math.abs(calc) * 1E6;
   }
 
   /**
@@ -393,5 +393,15 @@ public class MathUtils {
       return max;
     }
     return value;
+  }
+
+  /**
+   * Regular bounds check
+   *
+   * @return value in truncated to min and max values, if value less than min then return min, if
+   * value greater maxExclusive -1 return this
+   */
+  public static int withinBounds(int value, int minInclusive, int maxExclusive) {
+    return Math.min(Math.max(value, minInclusive), maxExclusive - 1);
   }
 }
