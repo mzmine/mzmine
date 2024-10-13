@@ -185,36 +185,12 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
     return mzs.length;
   }
 
-  /**
-   * Usage of this method is strongly discouraged because it returns the internal buffer of this
-   * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
-   * access might be necessary to avoid copying arrays. Since the chromatograms might originate from
-   * different raw data files, the number of data points in that raw file might be different from
-   * the length of this buffer, which is set to the longest XIC. The current number of data points
-   * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
-   * <p></p>
-   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getIntensity(int)} (int)} is
-   * more appropriate.
-   *
-   * @return The intensity buffer of this data access.
-   */
+  @Override
   public double[] getIntensityValues() {
     return intensities;
   }
 
-  /**
-   * Usage of this method is strongly discouraged because it returns the internal buffer of this
-   * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
-   * access might be necessary to avoid copying arrays. Since the chromatograms might originate from
-   * different raw data files, the number of data points in that raw file might be different from
-   * the length of this buffer, which is set to the longest XIC. The current number of data points
-   * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
-   * <p></p>
-   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getMZ(int)} is more
-   * appropriate.
-   *
-   * @return The m/z buffer of this data access.
-   */
+  @Override
   public double[] getMzValues() {
     return mzs;
   }

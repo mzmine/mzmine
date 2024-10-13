@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,7 +38,6 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -194,7 +193,8 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
 
   @Override
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
+      final @NotNull List<@NotNull MobilityScan> scans) {
     return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
   }
 
@@ -207,9 +207,9 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
       return false;
     }
     SimpleIonMobilitySeries that = (SimpleIonMobilitySeries) o;
-    return Objects.equals(scans, that.scans) && contentEquals(intensityValues,
-        that.intensityValues) && contentEquals(mzValues, that.mzValues)
-        && IntensitySeries.seriesSubsetEqual(this, that);
+    return Objects.equals(scans, that.scans) && contentEquals(intensityValues, that.intensityValues)
+           && contentEquals(mzValues, that.mzValues) && IntensitySeries.seriesSubsetEqual(this,
+        that);
   }
 
   @Override

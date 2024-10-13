@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,7 +38,6 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -190,9 +189,10 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
   @Override
   public IonTimeSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
+      final @NotNull List<@NotNull Scan> scans) {
 
-    return new SimpleIonTimeSeries(storage, newMzValues, newIntensityValues, this.scans);
+    return new SimpleIonTimeSeries(storage, newMzValues, newIntensityValues, scans);
   }
 
   @Override
@@ -216,7 +216,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       return false;
     }
     return Objects.equals(scans, that.scans) && IntensitySeries.seriesSubsetEqual(this, that)
-        && MzSeries.seriesSubsetEqual(this, that);
+           && MzSeries.seriesSubsetEqual(this, that);
   }
 
   @Override

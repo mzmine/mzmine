@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -119,7 +119,7 @@ public abstract class AbstractResolver implements Resolver {
         }
       }
     } else if (dimension == ResolvingDimension.MOBILITY
-        && originalSeries instanceof IonMobilogramTimeSeries originalTrace) {
+               && originalSeries instanceof IonMobilogramTimeSeries originalTrace) {
       setSeriesToMobilogramDataAccess(series);
       final List<Range<Double>> resolvedRanges = resolveMobility(mobilogramDataAccess);
 
@@ -147,7 +147,7 @@ public abstract class AbstractResolver implements Resolver {
     } else {
       throw new IllegalStateException(
           "Cannot resolve " + originalSeries.getClass().getName() + " in " + dimension
-              + " mobility dimension.");
+          + " mobility dimension.");
     }
     return resolved;
   }
@@ -170,7 +170,7 @@ public abstract class AbstractResolver implements Resolver {
     } else {
       throw new IllegalArgumentException(
           "Unexpected type of ion series (" + series.getClass().getName()
-              + "). Please contact the developers. ");
+          + "). Please contact the developers. ");
     }
   }
 
@@ -195,7 +195,7 @@ public abstract class AbstractResolver implements Resolver {
       // if the date comes from a different source, the results might be inconsistent.
       throw new IllegalArgumentException(
           "This resolver has been set to use data from a " + chromatogramDataSource.toString()
-              + ". The current data os passed from a " + series.getClass().toString());
+          + ". The current data os passed from a " + series.getClass().toString());
     }
 
     xBuffer = extractRtValues(series, xBuffer);
@@ -211,6 +211,7 @@ public abstract class AbstractResolver implements Resolver {
       Arrays.fill(yBuffer, 0d);
       yBuffer = series.getIntensityValues(yBuffer);
 
+      // TODO this might be an issue x y buffer may contain empty values at the end - this might distort the results?
       return resolve(xBuffer, yBuffer);
     }
   }
@@ -223,7 +224,7 @@ public abstract class AbstractResolver implements Resolver {
       // if the date comes from a different source, the results might be inconsistent.
       throw new IllegalArgumentException(
           "This resolver has been set to use data from a " + mobilogramDataSource.toString()
-              + ". The current data os passed from a " + series.getClass().toString());
+          + ". The current data os passed from a " + series.getClass().toString());
     }
 
     if (series instanceof BinningMobilogramDataAccess dataAccess) {
