@@ -23,11 +23,16 @@ public class MLFeatureResolverParameters extends GeneralResolverParameters {
             "Confidence level from 0 to 1", "description for ML resolver",
             0.5d, 0d, 1d);
 
-    public static final IntegerParameter minWidth = new IntegerParameter(
+    public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter(
             "Minimal number of datapoints per range",
             "The minimal number of datapoints that are required to lie in the Range", 3);
 
-    public static final BooleanParameter resizeRanges = new BooleanParameter("Resize Ranges", "Resizes ranges such that there is no overlap");
+    public static final BooleanParameter resizeRanges = new BooleanParameter("Resize Ranges",
+            "Resizes ranges such that there is no overlap");
+
+    public static final BooleanParameter correctRanges = new BooleanParameter("Correct ranges (for debugging)", "extends ranges if slope to next data point is sufficiently high");
+
+    public static final BooleanParameter withOffset = new BooleanParameter("Use model which uses offset for later predictions", "");
 
     public MLFeatureResolverParameters() {
         super(createParams(Setup.FULL),
@@ -43,9 +48,8 @@ public class MLFeatureResolverParameters extends GeneralResolverParameters {
         return switch (setup) {
             case FULL -> new Parameter[] { PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters,
                     dimension, threshold,
-                    minWidth, resizeRanges, MIN_NUMBER_OF_DATAPOINTS, CLASSIFY_FEATURES };
+                    resizeRanges,correctRanges, MIN_NUMBER_OF_DATAPOINTS, withOffset  };
             case INTEGRATED -> new Parameter[] { threshold,
-                    minWidth,
                     MIN_NUMBER_OF_DATAPOINTS };
         };
     }
