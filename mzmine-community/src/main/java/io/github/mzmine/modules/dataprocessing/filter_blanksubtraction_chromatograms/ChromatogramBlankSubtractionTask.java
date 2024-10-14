@@ -112,26 +112,28 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
       return;
     }
 
-    PreparedInput input = splitInputFeatureListsPrepareBlanks();
-    if (isCanceled()) {
+    final DataInput input = splitInputFeatureLists();
+    if (input == null || isCanceled()) {
       return;
     }
+
+    // prepare blanks - merge chromatograms across all blank samples
+    final List<CommonRtAxisChromatogram> mzSortedBlanks = prepareBlanks(input.blanks);
 
     // use map because forEach in parallel does not wait for complete
     resultFeatureLists = input.samples.stream().parallel().map(flist -> {
       if (isCanceled()) {
         return null;
       }
-      return subtractBlanks(flist, input.mzSortedBlanks);
+      return subtractBlanks(flist, mzSortedBlanks);
     }).toList();
 
-    // test: also apply to blanks
-    // TODO remove this part
+    // test: also apply to blanks - just to check
     var resultBlanks = input.blanks.stream().parallel().map(flist -> {
       if (isCanceled()) {
         return null;
       }
-      return subtractBlanks(flist, input.mzSortedBlanks);
+      return subtractBlanks(flist, mzSortedBlanks);
     }).toList();
     resultBlanks.forEach(project::addFeatureList);
 
@@ -205,6 +207,9 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
             intensities[i] = Math.max(data.getIntensity(i) - maxBlankIntensity, 0);
             changed = true;
           }
+          // TODO remove as this is only for testing and seeing results in feature list
+//          intensities[i] = maxBlankIntensity;
+//          changed = true;
         }
         // only apply changes if really changed
         if (changed) {
@@ -218,7 +223,11 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
       }
     }
 
+    // remove rows that are completely empty
     resultFlist.removeRows(rowsToRemove.toIntArray());
+    logger.fine(
+        "Blank subtraction removed %d chromatograms that are now empty from feature list: %s".formatted(
+            rowsToRemove.size(), resultFlist.getName()));
 
     return resultFlist;
   }
@@ -232,7 +241,7 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
     FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
   }
 
-  private @Nullable PreparedInput splitInputFeatureListsPrepareBlanks() {
+  private @Nullable ChromatogramBlankSubtractionTask.DataInput splitInputFeatureLists() {
     Set<RawDataFile> blankRaws = Set.copyOf(
         project.getProjectMetadata().getFilesOfSampleType(SampleType.BLANK));
     if (blankRaws.isEmpty()) {
@@ -259,11 +268,8 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
       return null;
     }
 
-    // prepare blanks
-    List<CommonRtAxisChromatogram> mzSortedBlanks = prepareBlanks(blanks);
-
     // use array list to be able to sort
-    return new PreparedInput(blanks, samples, mzSortedBlanks);
+    return new DataInput(blanks, samples);
   }
 
   private @Nullable List<CommonRtAxisChromatogram> prepareBlanks(final List<FeatureList> blanks) {
@@ -328,12 +334,16 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
     float minRetentionTime = Float.MAX_VALUE;
     float maxRetentionTime = 0;
     for (final List<? extends Scan> scans : flistScans) {
-      float rt = scans.getFirst().getRetentionTime();
-      if (rt < minRetentionTime) {
-        minRetentionTime = rt;
+      if (scans.isEmpty()) {
+        continue;
       }
-      if (rt > maxRetentionTime) {
-        maxRetentionTime = rt;
+      float minRt = scans.getFirst().getRetentionTime();
+      float maxRt = scans.getLast().getRetentionTime();
+      if (minRt < minRetentionTime) {
+        minRetentionTime = minRt;
+      }
+      if (maxRt > maxRetentionTime) {
+        maxRetentionTime = maxRt;
       }
     }
 
@@ -386,8 +396,7 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
     return "Feature blank subtraction: " + description;
   }
 
-  record PreparedInput(List<FeatureList> blanks, List<FeatureList> samples,
-                       List<CommonRtAxisChromatogram> mzSortedBlanks) {
+  record DataInput(List<FeatureList> blanks, List<FeatureList> samples) {
 
   }
 }
