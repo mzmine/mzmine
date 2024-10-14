@@ -25,13 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_using_eic;
 
-import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.RatioType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -45,22 +42,14 @@ public class FeatureBlankSubtractionByChromatogramParameters extends SimpleParam
   public static final MZToleranceParameter mzTol = new MZToleranceParameter(
       ToleranceType.SAMPLE_TO_SAMPLE);
 
-  public static final ComboParameter<RatioType> ratioType = new ComboParameter<RatioType>(
-      "Ratio type",
-      "Use either the maximum or the average blank value for calculating the blank-ratio. ",
-      RatioType.values(), RatioType.MAXIMUM);
-
-  public static final OptionalParameter<PercentParameter> foldChange = new OptionalParameter<>(
-      new PercentParameter("Fold change increase",
-          "Specifies a percentage of increase of the intensity of a feature. If the intensity in the list to be"
-          + " filtered increases more than the given percentage to the blank, it will not be deleted from "
-          + "the feature list.", 3.0, 1.0, 1E5));
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      true);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix for the new feature list.", "-blanks");
 
   public FeatureBlankSubtractionByChromatogramParameters() {
-    super(new Parameter[]{featureLists, mzTol, ratioType, foldChange, suffix},
+    super(new Parameter[]{featureLists, mzTol, suffix, handleOriginal},
         // TODO add docs
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_blanksubtraction/filter_blanksubtraction.html");
   }

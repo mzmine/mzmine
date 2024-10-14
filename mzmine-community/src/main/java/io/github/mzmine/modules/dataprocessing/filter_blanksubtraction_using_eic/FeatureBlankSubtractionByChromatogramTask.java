@@ -32,12 +32,14 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -45,12 +47,13 @@ import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerTask;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
-import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.collections.IndexRange;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -69,7 +72,10 @@ public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureLi
   private final MZmineProject project;
   private final @NotNull FeatureList[] featureLists;
   private final MZTolerance mzTol;
+  private final String suffix;
+  private final OriginalFeatureListOption handleOriginal;
   private String description = "";
+  private List<FeatureList> resultFeatureLists;
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -89,6 +95,9 @@ public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureLi
     this.project = project;
     this.featureLists = featureLists;
     mzTol = parameters.getValue(FeatureBlankSubtractionByChromatogramParameters.mzTol);
+    suffix = parameters.getValue(FeatureBlankSubtractionByChromatogramParameters.suffix);
+    handleOriginal = parameters.getValue(
+        FeatureBlankSubtractionByChromatogramParameters.handleOriginal);
   }
 
 
@@ -106,30 +115,51 @@ public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureLi
     }
 
     // use map because forEach in parallel does not wait for complete
-    int success = input.samples.stream().parallel().mapToInt(flist -> {
+    resultFeatureLists = input.samples.stream().parallel().map(flist -> {
       if (isCanceled()) {
-        return 0;
+        return null;
       }
-      subtractBlanks(flist, input.mzSortedBlanks);
-      return 1;
-    }).sum();
+      return subtractBlanks(flist, input.mzSortedBlanks);
+    }).toList();
 
-  }
+    // test: also apply to blanks
+    // TODO remove this part
+    var resultBlanks = input.blanks.stream().parallel().map(flist -> {
+      if (isCanceled()) {
+        return null;
+      }
+      return subtractBlanks(flist, input.mzSortedBlanks);
+    }).toList();
+    resultBlanks.forEach(project::addFeatureList);
 
-  /**
-   * subract blanks from all features and create new feature data.
-   * Use row average mz and mzTol to find matching blank chromatograms (maybe multiple).
-   * Subtract maximum intensity over all blanks from sample intensity.
-   * @param flist
-   * @param mzSortedBlanks
-   */
-  private void subtractBlanks(final FeatureList flist,
-      final List<CommonRtAxisChromatogram> mzSortedBlanks) {
-    if (flist.getNumberOfRows() == 0) {
+    if (isCanceled()) {
       return;
     }
 
-    var sortedRows = flist.getRows().stream().sorted(FeatureListRowSorter.MZ_ASCENDING).toList();
+    // reflect changes
+    handleOriginal.reflectChangesToProject(project, suffix, featureLists, resultFeatureLists);
+  }
+
+  /**
+   * subract blanks from all features and create new feature data. Use row average mz and mzTol to
+   * find matching blank chromatograms (maybe multiple). Subtract maximum intensity over all blanks
+   * from sample intensity.
+   *
+   * @param oldFeatureList
+   * @param mzSortedBlanks
+   * @return
+   */
+  private FeatureList subtractBlanks(final FeatureList oldFeatureList,
+      final List<CommonRtAxisChromatogram> mzSortedBlanks) {
+    var resultFlist = handleOriginal == OriginalFeatureListOption.PROCESS_IN_PLACE ? oldFeatureList
+        : FeatureListUtils.createCopy(oldFeatureList, suffix, getMemoryMapStorage(), true);
+
+    if (resultFlist.getNumberOfRows() == 0) {
+      return resultFlist;
+    }
+
+    var sortedRows = resultFlist.getRows().stream().sorted(FeatureListRowSorter.MZ_ASCENDING)
+        .toList();
 
     int startIndex = 0;
 
@@ -137,7 +167,9 @@ public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureLi
       Range<Double> mzRange = mzTol.getToleranceRange(row.getAverageMZ());
       IndexRange indexRange = BinarySearch.indexRange(mzRange, mzSortedBlanks, startIndex,
           CommonRtAxisChromatogram::mz);
-      startIndex = indexRange.min(); // helps skip some
+      if (!indexRange.isEmpty()) {
+        startIndex = indexRange.min(); // helps skip some
+      }
 
       List<CommonRtAxisChromatogram> matchingBlanks = indexRange.sublist(mzSortedBlanks);
       if (matchingBlanks.isEmpty()) {
@@ -145,8 +177,12 @@ public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureLi
       }
 
       for (final ModularFeature feature : row.getFeatures()) {
-        IonTimeSeries<? extends Scan> data = feature.getFeatureData();
+        if (isCanceled()) {
+          return resultFlist;
+        }
+        boolean changed = false;
 
+        IonTimeSeries<? extends Scan> data = feature.getFeatureData();
         double[] intensities = new double[data.getNumberOfValues()];
         for (int i = 0; i < intensities.length; i++) {
           float rt = data.getRetentionTime(i);
@@ -158,13 +194,21 @@ public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureLi
               .orElse(0);
 
           // non negative
-          intensities[i] = Math.max(data.getIntensity(i)- maxBlankIntensity, 0);
+          if (maxBlankIntensity > 0) {
+            intensities[i] = Math.max(data.getIntensity(i) - maxBlankIntensity, 0);
+            changed = true;
+          }
         }
-
-        data.copyAndReplace
+        // only apply changes if really changed
+        if (changed) {
+          IonSpectrumSeries<? extends Scan> blankSubractedData = data.copyAndReplace(
+              getMemoryMapStorage(), intensities);
+          feature.set(FeatureDataType.class, (IonTimeSeries<? extends Scan>) blankSubractedData);
+        }
       }
     }
 
+    return resultFlist;
   }
 
   private @Nullable PreparedInput splitInputFeatureListsPrepareBlanks() {
@@ -181,7 +225,7 @@ public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureLi
     List<FeatureList> samples = new ArrayList<>(
         Math.max(1, featureLists.length - blankRaws.size()));
     for (final FeatureList flist : featureLists) {
-      if (blankRaws.contains(flist.getRawDataFile(1))) {
+      if (blankRaws.contains(flist.getRawDataFile(0))) {
         blanks.add(flist);
       } else {
         samples.add(flist);
@@ -313,7 +357,7 @@ public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureLi
 
   @Override
   protected @NotNull List<FeatureList> getProcessedFeatureLists() {
-    return List.of();
+    return resultFeatureLists;
   }
 
   @Override

@@ -84,7 +84,7 @@ public record CommonRtAxisChromatogram(double mz, float minRT, float maxRT, floa
   public double getMaxIntensity(final int minIndex, final int maxIndexInclusive) {
     assert maxIndexInclusive >= minIndex;
     double max = 0;
-    for (int i = minIndex; i <= maxIndexInclusive; i++) {
+    for (int i = Math.max(minIndex, 0); i <= Math.min(maxIndexInclusive, size() - 1); i++) {
       max = Math.max(max, intensities[i]);
     }
     return max;

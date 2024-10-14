@@ -232,9 +232,18 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   }
 
   @Override
+  public IonMobilogramTimeSeries copyAndReplace(@Nullable final MemoryMapStorage storage,
+      @NotNull final double[] newIntensityValues) {
+    // TODO maybe reuse memory segment for mzs
+    var mzs = getMzValues(new double[newIntensityValues.length]);
+    return IonMobilogramTimeSeriesFactory.of(storage, mzs, newIntensityValues, mobilograms, frames,
+        summedMobilogram.copy(storage));
+  }
+
+  @Override
   public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
-      final @NotNull List<@NotNull Frame> frames) {
+      final @NotNull List<@NotNull Frame> scans) {
     return IonMobilogramTimeSeriesFactory.of(storage, newMzValues, newIntensityValues, mobilograms,
         frames, summedMobilogram.copy(storage));
   }

@@ -262,6 +262,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
    * @param newIntensityValues
    * @return
    */
+  @Override
   public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newIntensityValues) {
     return copyAndReplace(storage, getMzValuesCopy(), newIntensityValues, getSpectra());

@@ -355,8 +355,11 @@ public class BinarySearch {
    */
   public static int binarySearch(double value, @NotNull DefaultTo noMatchDefault, int fromIndex,
       int toIndexExclusive, IntToDoubleFunction valueAtIndexProvider) {
-    if (toIndexExclusive == 0) {
+    if (toIndexExclusive <= 0) {
       return -1;
+    }
+    if (fromIndex < 0) {
+      throw new IllegalArgumentException("fromIndex < 0 in binary search");
     }
 
     int low = fromIndex;

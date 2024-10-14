@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.util.StringUtils;
 import java.util.List;
 import org.w3c.dom.Element;
 
@@ -55,13 +56,11 @@ public class OriginalFeatureListHandlingParameter extends
     this.value = startValue;
   }
 
-  public OriginalFeatureListHandlingParameter(String name, String description, boolean includeProcessInPlace) {
-    super(name,
-        description,
-        includeProcessInPlace ? OriginalFeatureListOption.values()
-            : new OriginalFeatureListOption[]{OriginalFeatureListOption.KEEP,
-                OriginalFeatureListOption.REMOVE},
-        OriginalFeatureListOption.KEEP);
+  public OriginalFeatureListHandlingParameter(String name, String description,
+      boolean includeProcessInPlace) {
+    super(name, description, includeProcessInPlace ? OriginalFeatureListOption.values()
+        : new OriginalFeatureListOption[]{OriginalFeatureListOption.KEEP,
+            OriginalFeatureListOption.REMOVE}, OriginalFeatureListOption.KEEP);
     this.includeProcessInPlace = includeProcessInPlace;
   }
 
@@ -100,14 +99,29 @@ public class OriginalFeatureListHandlingParameter extends
 
     /**
      * Add aligned feature list and remove input lists if {@link #REMOVE} was selected
+     *
      * @param alignedFeatureList list to add
-     * @param listsToRemove lists to remove
+     * @param listsToRemove      lists to remove
      */
-    public void reflectNewFeatureListToProject(final MZmineProject project, final ModularFeatureList alignedFeatureList, final List<FeatureList> listsToRemove) {
+    public void reflectNewFeatureListToProject(final MZmineProject project,
+        final ModularFeatureList alignedFeatureList, final List<FeatureList> listsToRemove) {
       if (this == REMOVE) {
         project.removeFeatureLists(listsToRemove);
       }
       project.addFeatureList(alignedFeatureList);
+    }
+
+    public void reflectChangesToProject(final MZmineProject project, final String suffix,
+        final FeatureList[] oldLists, final List<FeatureList> newLists) {
+      if (StringUtils.hasValue(suffix)) {
+        newLists.forEach(flist -> flist.setName(flist.getName() + ' ' + suffix));
+      }
+      if (this == REMOVE) {
+        project.removeFeatureList(oldLists);
+      }
+      if (this != PROCESS_IN_PLACE) {
+        newLists.forEach(project::addFeatureList);
+      }
     }
   }
 
