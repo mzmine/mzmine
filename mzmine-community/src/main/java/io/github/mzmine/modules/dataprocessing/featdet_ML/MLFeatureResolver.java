@@ -50,9 +50,11 @@ public class MLFeatureResolver extends AbstractResolver {
     private final double threshold;
     private final int regionSize;
     private final int overlap;
+    private final boolean withOffset;
     private final int minWidth;
     private final boolean resizeRanges;
     private final boolean correctRanges;
+    private final float minSlope;
     private final PeakPickingModel model;
     double[] xBuffer;
     double[] yBuffer;
@@ -64,10 +66,14 @@ public class MLFeatureResolver extends AbstractResolver {
         this.threshold = parameterSet.getParameter(MLFeatureResolverParameters.threshold).getValue();
         this.regionSize = 128;
         this.overlap = 32;
-        this.minWidth = parameterSet.getParameter(MLFeatureResolverParameters.minWidth).getValue();
+        //this is for debugging purposes. In the final version this should either alawys be true or false, depending on what works best.
+        this.withOffset = parameterSet.getParameter(MLFeatureResolverParameters.withOffset).getValue();
+        this.minWidth = parameterSet.getParameter(MLFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS).getValue();
         this.resizeRanges = parameterSet.getParameter(MLFeatureResolverParameters.resizeRanges).getValue();
-        this.correctRanges = true;
-        this.model = new PeakPickingModel();
+        this.correctRanges = parameterSet.getParameter(MLFeatureResolverParameters.correctRanges).getValue();        // minimal slope (relative to previous value) before ranges correction stops.
+        // I.e. the next intensity has to be at least 20% less than the previous
+        this.minSlope = (float) 0.1;
+        this.model = new PeakPickingModel(this.withOffset);
     }
 
     @Override
@@ -233,25 +239,29 @@ public class MLFeatureResolver extends AbstractResolver {
                 if (!this.isValidRange(prob, indexLeft, indexPeak, indexRight, peakValue)) {
                     continue;
                 }
-                Double left = Double.POSITIVE_INFINITY;
-                Double right = Double.POSITIVE_INFINITY;
+
                 if (this.correctRanges) {
-                    int correctionRegion = 1;
-                    for (int n = 0; n < correctionRegion + 1; n++) {
-                        int currentLeftIndex = Math.max(
-                                Math.min(Math.min(leftIndices.get(i)[j] - n, indexPeak), this.regionSize - 1), 0);
-                        int currentRightIndex = Math.max(
-                                Math.min(Math.max(rightIndices.get(i)[j] + n, indexPeak), this.regionSize - 1),
-                                0);
-                        if (standardRegions.get(i)[currentLeftIndex] < left) {
-                            left = standardRegions.get(i)[currentLeftIndex];
-                            indexLeft = currentLeftIndex;
+                    int currentLeftIndex = indexLeft;
+                    while (currentLeftIndex > 0) {
+                        //left derivative at currentLeftIndex normalized by intensity at currentLeftIndex
+                        if (-standardRegions.get(i)[currentLeftIndex - 1] / standardRegions.get(i)[currentLeftIndex]+1
+                                 < this.minSlope) {
+                            break;
                         }
-                        if (standardRegions.get(i)[currentRightIndex] < right) {
-                            right = standardRegions.get(i)[currentRightIndex];
-                            indexRight = currentRightIndex;
-                        }
+                        currentLeftIndex--;
                     }
+                    indexLeft = currentLeftIndex;
+
+                    int currentRightIndex = indexRight;
+                    while (currentRightIndex < this.regionSize - 1) {
+                        //right derivative at currentRightIndex normalized by intensity at currentRightIndex
+                        if ( standardRegions.get(i)[currentRightIndex + 1]
+                                / standardRegions.get(i)[currentRightIndex] -1> -this.minSlope) {
+                            break;
+                        }
+                        currentRightIndex++;
+                    }
+                    indexRight = currentRightIndex;
                 }
                 double[] currentRegion = Arrays.copyOfRange(standardRegions.get(i), indexLeft, indexRight + 1);
                 double currentMaxIntensity = Arrays.stream(currentRegion).max().orElse(0);
@@ -263,16 +273,16 @@ public class MLFeatureResolver extends AbstractResolver {
                 }
                 if (indexLeft + this.minWidth <= indexRight) {
                     peakTimes.add(currentMaxRT);
-                    left = Double.valueOf(standardRegionsRT.get(i)[indexLeft]);
-                    right = Double.valueOf(standardRegionsRT.get(i)[indexRight]);
+                    double left = Double.valueOf(standardRegionsRT.get(i)[indexLeft]);
+                    double right = Double.valueOf(standardRegionsRT.get(i)[indexRight]);
                     Range<Double> nextRange = Range.closed(left, right);
                     resolved.add(nextRange);
                 }
             }
         }
-        if (this.resizeRanges) {
-            resolved = correctRanges(resolved, x, y);
-        }
+        // if (this.resizeRanges) {
+        //     resolved = correctRanges(resolved, x, y);
+        // }
         return resolved;
     }
 

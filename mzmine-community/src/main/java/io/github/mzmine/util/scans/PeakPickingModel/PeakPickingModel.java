@@ -31,53 +31,61 @@ import ai.djl.ndarray.NDManager;
 import ai.djl.translate.TranslateException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class PeakPickingModel {
-    //NEED TO TRACE MODEL AGAIN WITH (1,128) INPUT SHAPE (this is what _test.py is)
     private static final String modelPath = "/MLModels/currentSave_traced.pth";
+    private static final String modelOffsetPath = "/MLModels/currentSave_offset_traced.pth";
+    private final boolean withOffset;
     private final Model model;
     private final NDManager manager;
     public final Predictor<double[], PeakPickingOutput> predictor;
+    private static final Logger logger = Logger.getLogger("PeakPickingModel logger");
 
-    public PeakPickingModel(){
+    public PeakPickingModel(boolean withOffset) {
+        this.withOffset = withOffset;
         this.model = Model.newInstance("PeakPicking");
-        try{
-            final InputStream resourceAsStream = this.getClass().getResourceAsStream(modelPath);
+        try {
+            final InputStream resourceAsStream;
+            if (this.withOffset) {
+                resourceAsStream = this.getClass().getResourceAsStream(modelOffsetPath);
+            } else {
+                resourceAsStream = this.getClass().getResourceAsStream(modelPath);
+            }
             model.load(resourceAsStream);
         } catch (Exception e) {
-            System.out.println("Encountered exception when loading the model.");
+            logger.warning("Encountered exception when loading the model. Can not proceed with processing");
             e.printStackTrace();
         }
         this.manager = NDManager.newBaseManager();
-        PeakPickingTranslator translator = new PeakPickingTranslator();
+        PeakPickingTranslator translator = new PeakPickingTranslator(this.withOffset);
         this.predictor = model.newPredictor(translator);
     }
 
-    public void closeModel(){
+    public void closeModel() {
         this.manager.close();
         this.predictor.close();
         this.model.close();
     }
 
-    public PeakPickingOutput singlePrediction(double[] inputArray){
-        try{
+    public PeakPickingOutput singlePrediction(double[] inputArray) {
+        try {
             return this.predictor.predict(inputArray);
-        } catch(TranslateException e){
-            System.out.println("Encountered exception when trying to predict a single input.");
+        } catch (TranslateException e) {
+            logger.warning("Encountered exception when trying to predict a single input.");
             e.printStackTrace();
             return null;
         }
     }
 
-    public List<PeakPickingOutput> batchPrediction(List<double[]> inputBatch){
-       try{
-        return this.predictor.batchPredict(inputBatch);
-       } catch (TranslateException e){
-        System.out.println("Encountered exception when trying to predict a batch of inputs.");
-        e.printStackTrace();
-        return null;
-       }
+    public List<PeakPickingOutput> batchPrediction(List<double[]> inputBatch) {
+        try {
+            return this.predictor.batchPredict(inputBatch);
+        } catch (TranslateException e) {
+            logger.warning("Encountered exception when trying to predict a batch on inputs");
+            e.printStackTrace();
+            return null;
+        }
     }
-
 
 }
