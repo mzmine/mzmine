@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_using_eic;
+package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -36,20 +36,26 @@ import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureBlankSubtractionByChromatogramModule extends SingleTaskFeatureListsModule {
+/**
+ * Subtract blank chromatograms from samples chromatograms. Only runs before feature resolver, which
+ * is checked in preconditions in the task. Uses the maximum intensity over all blanks for a
+ * specific mz and retention time to subtract.
+ */
+public class ChromatogramBlankSubtractionModule extends SingleTaskFeatureListsModule {
 
-  public FeatureBlankSubtractionByChromatogramModule() {
-    super("Feature blank subtraction by chromatograms",
-        FeatureBlankSubtractionByChromatogramParameters.class,
-        MZmineModuleCategory.FEATURELISTFILTERING, """
-            Uses chromatograms to remove features that show high intensity in blanks.""");
+  public ChromatogramBlankSubtractionModule() {
+    super("Chromatogram blank subtraction", ChromatogramBlankSubtractionParameters.class,
+        MZmineModuleCategory.FEATURE_PROCESSING, """
+            Subtracts blank chromatograms from samples. Uses the maximum intensity of m/z chromatogram across all blanks.
+            This results in blank subtracted extracted ion chromatograms as input to any feature resolver.
+            Feature resolving then describes the minimum height and other feature constraints.""");
   }
 
   @Override
   public @NotNull Task createTask(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
       final @Nullable MemoryMapStorage storage, final @NotNull FeatureList[] featureList) {
-    return new FeatureBlankSubtractionByChromatogramTask(storage, moduleCallDate, parameters,
-        getClass(), project, featureList);
+    return new ChromatogramBlankSubtractionTask(storage, moduleCallDate, parameters, getClass(),
+        project, featureList);
   }
 }

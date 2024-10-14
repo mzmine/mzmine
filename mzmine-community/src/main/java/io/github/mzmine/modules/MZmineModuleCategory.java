@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ public enum MZmineModuleCategory {
   ISOTOPES("Isotopes"), //
   FEATURELIST("Feature list methods"), //
   FEATURE_RESOLVING("Resolving"), //
+  FEATURE_PROCESSING("Feature processing"), //
   FEATURE_GROUPING("Feature grouping"), //
   ION_IDENTITY_NETWORKS("Ion identity networking"), //
   SPECTRALDECONVOLUTION("Spectral deconvolution"), //
@@ -71,8 +72,8 @@ public enum MZmineModuleCategory {
     return switch (this) {
       case PROJECT, PROJECTIO, PROJECTMETADATA -> MainCategory.PROJECT;
       case RAWDATAIMPORT, RAWDATAEXPORT, RAWDATA, RAWDATAFILTERING -> MainCategory.SPECTRAL_DATA;
-      case EIC_DETECTION, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT, FEATURELIST ->
-          MainCategory.FEATURE_DETECTION;
+      case EIC_DETECTION, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT, FEATURELIST,
+           FEATURE_PROCESSING -> MainCategory.FEATURE_DETECTION;
       case ISOTOPES, SPECTRALDECONVOLUTION, FEATURELISTFILTERING -> MainCategory.FEATURE_FILTERING;
       case NORMALIZATION, ANNOTATION, DATAANALYSIS, FEATURE_GROUPING, ION_IDENTITY_NETWORKS ->
           MainCategory.FEATURE_PROCESSING;

@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_using_eic;
+package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms;
 
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;

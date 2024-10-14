@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_using_eic;
+package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import org.jetbrains.annotations.NotNull;
 
-public class FeatureBlankSubtractionByChromatogramParameters extends SimpleParameterSet {
+public class ChromatogramBlankSubtractionParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
@@ -48,7 +48,7 @@ public class FeatureBlankSubtractionByChromatogramParameters extends SimpleParam
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix for the new feature list.", "-blanks");
 
-  public FeatureBlankSubtractionByChromatogramParameters() {
+  public ChromatogramBlankSubtractionParameters() {
     super(new Parameter[]{featureLists, mzTol, suffix, handleOriginal},
         // TODO add docs
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_blanksubtraction/filter_blanksubtraction.html");

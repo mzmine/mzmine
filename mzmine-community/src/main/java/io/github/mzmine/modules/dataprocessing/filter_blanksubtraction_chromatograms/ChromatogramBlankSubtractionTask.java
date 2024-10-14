@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_using_eic;
+package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms;
 
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_TYPE_HEADER;
 
@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -55,8 +56,11 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -65,10 +69,10 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureListTask {
+public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
 
   private static final Logger logger = Logger.getLogger(
-      FeatureBlankSubtractionByChromatogramTask.class.getName());
+      ChromatogramBlankSubtractionTask.class.getName());
   private final MZmineProject project;
   private final @NotNull FeatureList[] featureLists;
   private final MZTolerance mzTol;
@@ -87,17 +91,16 @@ public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureLi
    * @param project
    * @param featureLists
    */
-  protected FeatureBlankSubtractionByChromatogramTask(final @Nullable MemoryMapStorage storage,
+  protected ChromatogramBlankSubtractionTask(final @Nullable MemoryMapStorage storage,
       final @NotNull Instant moduleCallDate, @NotNull final ParameterSet parameters,
       @NotNull final Class<? extends MZmineModule> moduleClass,
       final @NotNull MZmineProject project, final @NotNull FeatureList[] featureLists) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.project = project;
     this.featureLists = featureLists;
-    mzTol = parameters.getValue(FeatureBlankSubtractionByChromatogramParameters.mzTol);
-    suffix = parameters.getValue(FeatureBlankSubtractionByChromatogramParameters.suffix);
-    handleOriginal = parameters.getValue(
-        FeatureBlankSubtractionByChromatogramParameters.handleOriginal);
+    mzTol = parameters.getValue(ChromatogramBlankSubtractionParameters.mzTol);
+    suffix = parameters.getValue(ChromatogramBlankSubtractionParameters.suffix);
+    handleOriginal = parameters.getValue(ChromatogramBlankSubtractionParameters.handleOriginal);
   }
 
 
@@ -163,7 +166,11 @@ public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureLi
 
     int startIndex = 0;
 
-    for (final FeatureListRow row : sortedRows) {
+    // flag rows to remove
+    IntList rowsToRemove = new IntArrayList();
+
+    for (int rowIndex = 0; rowIndex < sortedRows.size(); rowIndex++) {
+      final FeatureListRow row = sortedRows.get(rowIndex);
       Range<Double> mzRange = mzTol.getToleranceRange(row.getAverageMZ());
       IndexRange indexRange = BinarySearch.indexRange(mzRange, mzSortedBlanks, startIndex,
           CommonRtAxisChromatogram::mz);
@@ -201,14 +208,28 @@ public class FeatureBlankSubtractionByChromatogramTask extends AbstractFeatureLi
         }
         // only apply changes if really changed
         if (changed) {
-          IonSpectrumSeries<? extends Scan> blankSubractedData = data.copyAndReplace(
-              getMemoryMapStorage(), intensities);
-          feature.set(FeatureDataType.class, (IonTimeSeries<? extends Scan>) blankSubractedData);
+          // all 0 then remove feature
+          if (Arrays.stream(intensities).noneMatch(v -> v > 0)) {
+            rowsToRemove.add(rowIndex);
+          } else {
+            replaceFeatureData(feature, data, intensities);
+          }
         }
       }
     }
 
+    resultFlist.removeRows(rowsToRemove.toIntArray());
+
     return resultFlist;
+  }
+
+  private void replaceFeatureData(final ModularFeature feature,
+      final IonTimeSeries<? extends Scan> data, final double[] intensities) {
+    IonSpectrumSeries<? extends Scan> blankSubtractedData = data.copyAndReplace(
+        getMemoryMapStorage(), intensities);
+
+    feature.set(FeatureDataType.class, (IonTimeSeries<? extends Scan>) blankSubtractedData);
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
   }
 
   private @Nullable PreparedInput splitInputFeatureListsPrepareBlanks() {

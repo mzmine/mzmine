@@ -79,6 +79,6 @@ public class SmoothingModule implements MZmineProcessingModule {
   @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.EIC_DETECTION;
+    return MZmineModuleCategory.FEATURE_PROCESSING;
   }
 }
