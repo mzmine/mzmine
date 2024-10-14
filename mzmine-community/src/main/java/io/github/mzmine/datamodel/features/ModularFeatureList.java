@@ -47,6 +47,7 @@ import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -605,17 +606,12 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(int rowNum) {
-    removeRow(featureListRows.get(rowNum));
+    removeRow(featureListRows.remove(rowNum));
   }
 
-  /**
-   *
-   */
   @Override
-  public void removeRow(int rowNum, FeatureListRow row) {
-    removeRow(featureListRows.get(rowNum));
-    // remove buffered charts, otherwise the reference is kept alive. What references the row, though?
-    featureListRows.remove(rowNum);
+  public void removeRows(final int[] indexes) {
+    CollectionUtils.removeIndicesInPlaceBitSet(featureListRows, indexes);
   }
 
   @Override
@@ -773,6 +769,7 @@ public class ModularFeatureList implements FeatureList {
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners() {
     return rowTypeListeners;
   }
+
 
   /**
    * create copy of all feature list rows and features

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -62,7 +62,8 @@ public interface FeatureList {
   /**
    * @return Short descriptive name for the feature list
    */
-  @NotNull String getName();
+  @NotNull
+  String getName();
 
   /**
    * Change the name of this feature list
@@ -222,8 +223,6 @@ public interface FeatureList {
     return parallel ? parallelStream() : stream();
   }
 
-  void removeRow(int rowNum, FeatureListRow row);
-
   /**
    * Creates a stream of FeatureListRows
    *
@@ -284,7 +283,8 @@ public interface FeatureList {
    * @return The scans used to build this feature list. For ion mobility data, the frames are
    * returned.
    */
-  @Nullable List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
+  @Nullable
+  List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
 
   /**
    * Returns all rows with average retention time within given range
@@ -460,7 +460,8 @@ public interface FeatureList {
    *
    * @return a map that stores different relationship maps
    */
-  @NotNull R2RNetworkingMaps getRowMaps();
+  @NotNull
+  R2RNetworkingMaps getRowMaps();
 
   /**
    * Maps {@link Feature} DataType listeners, e.g., for calculating the mean values for a DataType
@@ -468,14 +469,16 @@ public interface FeatureList {
    *
    * @return map of feature DataType listeners
    */
-  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
+  @NotNull
+  Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
 
   /**
    * Maps {@link FeatureListRow} DataType listeners, e.g., for graphical representations
    *
    * @return map of feature DataType listeners
    */
-  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
+  @NotNull
+  Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
 
   /**
    * @param row
@@ -519,6 +522,8 @@ public interface FeatureList {
     var master = getRowMaps();
     master.addAll(maps);
   }
+
+  void removeRows(int[] indexes);
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge
