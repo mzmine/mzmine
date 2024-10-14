@@ -221,6 +221,9 @@ public class CollectionUtils {
    * @return the input list that is changed in place
    */
   public static <T> List<T> removeIndicesInPlaceSorted(List<T> list, int[] indicesToRemove) {
+    if (indicesToRemove.length == 0) {
+      return list;
+    }
     int size = list.size();
 
     int indicesToRemoveIndex = 0;
@@ -269,6 +272,10 @@ public class CollectionUtils {
    * @return the input list that is changed in place
    */
   public static <T> List<T> removeIndicesInPlaceBitSet(List<T> list, int[] indicesToRemove) {
+    if (indicesToRemove.length == 0) {
+      return list;
+    }
+
     int size = list.size();
     BitSet toRemove = new BitSet(size);
 
