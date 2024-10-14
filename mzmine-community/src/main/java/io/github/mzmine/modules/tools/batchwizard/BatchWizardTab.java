@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -38,6 +40,8 @@ import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
@@ -46,6 +50,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
@@ -458,9 +463,26 @@ public class BatchWizardTab extends SimpleTab {
     updateAllParametersFromUi();
     sequenceSteps.forEach(step -> step.checkParameterValues(errorMessages));
 
+    final int numFiles = Objects.requireNonNullElse(sequenceSteps.get(WizardPart.DATA_IMPORT).get()
+        .getParameter(DataImportWizardParameters.fileNames).getValue(), new File[0]).length;
+    final AbsoluteAndRelativeInt minSamples = sequenceSteps.get(WizardPart.FILTER)
+        .map(p -> p.getParameter(FilterWizardParameters.minNumberOfSamples).getValue())
+        .orElse(new AbsoluteAndRelativeInt(0, 0));
+
     if (!errorMessages.isEmpty()) {
       MZmineCore.getDesktop().displayErrorMessage("Please check the parameters.\n" + errorMessages);
       return null;
+    }
+
+    if (minSamples.getMaximumValue(numFiles) > numFiles) {
+      final boolean continueAnyway = DialogLoggerUtil.showDialogYesNo("Warning", """
+          The number of %s (Filters tab) does not match the number of imported data files. This will avoid correlation grouping. 
+          Continue anyway?""".formatted(
+          inQuotes(FilterWizardParameters.minNumberOfSamples.getName())));
+
+      if(!continueAnyway) {
+        return null;
+      }
     }
     return sequenceSteps;
   }

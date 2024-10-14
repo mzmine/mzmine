@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,8 +24,6 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore;
-
-import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask.addNetworkStatisticsToRows;
 
 import ai.djl.MalformedModelException;
 import ai.djl.repository.zoo.ModelNotFoundException;
@@ -146,7 +144,8 @@ public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
         similarityMatrix);
     R2RNetworkingMaps rowMaps = featureList.getRowMaps();
     rowMaps.addAllRowsRelationships(relationsMap, Type.MS2Deepscore);
-    addNetworkStatisticsToRows(featureList, rowMaps);
+    // stats are currently only available for modified cosine
+//    addNetworkStatisticsToRows(featureList, rowMaps);
 
   }
 

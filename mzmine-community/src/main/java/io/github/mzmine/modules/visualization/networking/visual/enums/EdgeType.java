@@ -74,7 +74,7 @@ public enum EdgeType implements ElementType {
 
   public static List<EdgeType> getDefaultVisibleColumns() {
     return List.of(ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE,
-        OTHER);
+        MS2Deepscore, OTHER);
   }
 
   @Override

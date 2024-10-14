@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,30 +52,25 @@ import org.openscience.cdk.tools.periodictable.PeriodicTable;
 
 public class PeriodicTableDialogController {
 
+  private final ObservableList<Element> selectedElements = FXCollections.observableArrayList();
+  /**
+   * HashMap to store styles of elements buttons defined in the FXML file
+   */
+  private final Map<Button, String> buttonsStyles = new HashMap<>();
   @FXML
   public Label textLabelup = new Label();
-
   @FXML
   public Label textLabelbottom = new Label();
-
   @FXML
   public AnchorPane pnRoot;
   public GridPane gridPane;
-
   /**
    * Type of chemical element selection. False means that only one element can be selected at once
    * and the newly selected element will replace the previously selected one; this is a default value.
    * True means that multiple elements can be selected simultaneously.
    */
   private boolean multipleSelection = false;
-
   private String handledSymbol = "";
-  private final ObservableList<Element> selectedElements = FXCollections.observableArrayList();
-
-  /**
-   * HashMap to store styles of elements buttons defined in the FXML file
-   */
-  private final Map<Button, String> buttonsStyles = new HashMap<>();
 
   @FXML
   public void handleMouseEnter(MouseEvent event) {
@@ -183,7 +178,7 @@ public class PeriodicTableDialogController {
           "Only one element can selected if multipleSelection is set to false.");
     }
 
-    selectedElements.addAll(elements);
+    selectedElements.setAll(elements);
 
     // Highlight corresponding buttons
     for (Node children : gridPane.getChildren()) {

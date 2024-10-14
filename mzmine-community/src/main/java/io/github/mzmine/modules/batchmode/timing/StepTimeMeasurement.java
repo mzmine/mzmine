@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,10 +27,15 @@ package io.github.mzmine.modules.batchmode.timing;
 
 import java.time.Duration;
 
-public record StepTimeMeasurement(int stepNumber, String name, Duration duration) {
+public record StepTimeMeasurement(int step, double secondsToFinish, String name) {
+
+  public StepTimeMeasurement(final int stepNumber, final String name, final Duration duration) {
+    this(stepNumber, duration.toMillis() / 1000.0, name);
+  }
 
   @Override
   public String toString() {
-    return STR."Step \{stepNumber + 1}: \{name} took \{duration} to finish";
+    return STR."Step \{step + 1}: \{name} took \{secondsToFinish} seconds to finish";
   }
+
 }

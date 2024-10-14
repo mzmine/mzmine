@@ -159,7 +159,7 @@ public class BatchSpeedTestMain {
           ObjectMapper jsonMapper = new ObjectMapper();
 
           for (final StepTimeMeasurement step : finished) {
-            double seconds = step.duration().toMillis() / 1000.0;
+            double seconds = step.secondsToFinish();
             var nFiles =
                 files == null ? ProjectService.getProject().getNumberOfDataFiles() : files.size();
             var sm = new SpeedMeasurement(step.name(), new File(batchFile).getName(), description,

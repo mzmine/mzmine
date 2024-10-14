@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.gui.mainwindow.FeatureListSummaryController;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFAcquisitionUtils;
@@ -145,7 +144,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
     } else {
       ms2Module = MaldiMs2AcquisitionWriters.createDefault();
     }
-    ms2ImagingMode = ms2Module.equals(MZmineCore.getModuleInstance(SingleSpotMs2Writer.class))
+    ms2ImagingMode = ms2Module.getClass().getName().equals(SingleSpotMs2Writer.class.getName())
         ? Ms2ImagingMode.SINGLE : Ms2ImagingMode.TRIPLE;
 
     totalMsMsPerFeature = numMsMs * collisionEnergies.size();
