@@ -276,7 +276,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
         {0.5017, "12C 13C double charge"}, //
         {21.9819, "H Na"}, //
         {135.9748, "2 sodium formate"}, //
-        {0.3345, "12C 13C double charge"}, //
+        {0.3345, "12C 13C triple charge"}, //
         {57.9586, "NaCl"}, //
         {46.0055, "formic acid"}, //
         {15.9739, "Na K"} //
