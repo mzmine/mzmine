@@ -128,8 +128,8 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     accordion.setExpandedPane(controls);
     pane.setBottom(accordion);
 
-    scoresPlot.setMinSize(300, 300);
-    loadingsPlot.setMinSize(300, 300);
+    scoresPlot.setMinSize(200, 200);
+    loadingsPlot.setMinSize(200, 200);
 
     final GridPane plotPane = createPlotPane();
 
