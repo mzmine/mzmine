@@ -187,6 +187,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
   private void processIsotopesAndAdductsForFeature(Feature feature, Set<DataPoint> isotopeSet,
       Set<DataPoint> adductsAndCoSet, DoubleArrayList[] isoMzDiffsForCharge,
       double[] maxIsoMzDiff) {
+
     Scan representativeScan = feature.getRepresentativeScan();
     if (representativeScan != null && representativeScan.getMSLevel() == 1) {
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(representativeScan, useMassList);
@@ -200,6 +201,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
           for (DataPoint dataPoint : dataPoints) {
             List<DataPoint> foundIsotopes = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
                 currentMaxDiff, toleranceMs1, representativeScan, dataPoint);
+
             // Only add it if we have evidence for it (so more than 1 ion)
             if (foundIsotopes.size() > 1) {
               isotopeSet.addAll(foundIsotopes);
@@ -223,6 +225,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
         46.0055, // formic acid
         15.9739, // Na K
     };
+
     double proton = 1.007276;
     double targetMZ = target.getMZ();
 
@@ -247,12 +250,14 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
           hasMatchingPoint = true; // Set flag to true if a match is found
         }
       }
+
       // Add the target to the set if at least one matching point was found
       if (hasMatchingPoint) {
         adductsAndCoSet.add(target);
       }
     }
   }
+
 
   @Override
   public String getTaskDescription() {
