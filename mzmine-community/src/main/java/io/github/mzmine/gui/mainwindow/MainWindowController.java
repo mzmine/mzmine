@@ -182,6 +182,9 @@ public class MainWindowController {
   public FlowPane taskViewPane;
   @FXML
   public HBox bottomMenuBar;
+  public Tab tabMsData;
+  public Tab tabFeatureLists;
+  public Tab tabLibraries;
 
   @FXML
   private Scene mainScene;
@@ -204,6 +207,8 @@ public class MainWindowController {
   @FXML
   private RawDataOverviewWindowController rawDataOverviewController;
 
+  @FXML
+  public TabPane projectTabPane;
   @FXML
   private TabPane mainTabPane;
 
@@ -1031,4 +1036,16 @@ public class MainWindowController {
     return notificationPane;
   }
 
+  public ProjectTab getSelectedProjectTab() {
+    if (tabMsData.isSelected()) {
+      return ProjectTab.DATA_FILES;
+    }
+    if (tabFeatureLists.isSelected()) {
+      return ProjectTab.FEATURE_LISTS;
+    }
+    if (tabLibraries.isSelected()) {
+      return ProjectTab.LIBRARIES;
+    }
+    return ProjectTab.DATA_FILES; // should not happen
+  }
 }

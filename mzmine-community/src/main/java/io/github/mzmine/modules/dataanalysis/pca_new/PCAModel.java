@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
+
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -108,8 +110,9 @@ public class PCAModel {
     return metadataColumn;
   }
 
+  @NotNull
   public List<FeatureList> getFlists() {
-    return flists.get();
+    return requireNonNullElse(flists.get(), List.of());
   }
 
   public void setFlists(List<FeatureList> flists) {

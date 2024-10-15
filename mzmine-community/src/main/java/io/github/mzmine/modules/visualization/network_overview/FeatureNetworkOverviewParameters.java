@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.visualization.network_overview;
 
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
-public class FeatureNetworkOverviewParameters extends SimpleParameterSet {
+public class FeatureNetworkOverviewParameters extends CurrentProjectNoDialogParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 

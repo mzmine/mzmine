@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataanalysis.statsdashboard;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -72,7 +73,8 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
 
   private void initFeatureListListeners() {
     model.flistsProperty().addListener((_, _, flists) -> table.setFeatureList(
-        flists.isEmpty() ? null : (ModularFeatureList) flists.getFirst()));
+        (ModularFeatureList) flists.stream().filter(FeatureList::isAligned).findFirst()
+            .orElse(null)));
 
     // select correct row in table
     model.selectedRowsProperty().addListener((_, _, rows) -> {
