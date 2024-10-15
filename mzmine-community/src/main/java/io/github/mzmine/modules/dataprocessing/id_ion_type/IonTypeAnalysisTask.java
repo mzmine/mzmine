@@ -220,14 +220,24 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
    * Checks if the isotopic pattern is valid by ensuring that the intensity of each isotope is
    * significantly lower than the previous one, with customizable ratios for each step.
    *
-   * @param isotopes        The list of isotopes to check.
+   * @param isotopes The list of isotopes to check.
    * @return true if the pattern is valid, false otherwise.
    */
   private boolean isValidIsotopicPattern(List<DataPoint> isotopes) {
+    // At least three isotopes are needed to form a pattern
     if (isotopes.size() < 3) {
-      return false; // At least three isotopes are needed to form a pattern.
+      return false;
     }
-    // TODO implement a better logic, mostly based on existing IsotopePatternCalculator, etc.
+
+    // Do not allow for missing isotopes
+    for (int i = 0; i < isotopes.size() - 1; i++) {
+      double diff = Math.abs(isotopes.get(i + 1).getMZ() - isotopes.get(i).getMZ());
+      if (diff > 1.03) {
+        return false;
+      }
+    }
+
+    // TODO implement a better logic
 
     return true;
   }
