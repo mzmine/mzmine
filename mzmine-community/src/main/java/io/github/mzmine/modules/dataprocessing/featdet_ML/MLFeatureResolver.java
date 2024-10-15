@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.logging.Logger;
 
 import org.jdom2.internal.ArrayCopy;
 
@@ -52,28 +53,54 @@ public class MLFeatureResolver extends AbstractResolver {
     private final int overlap;
     private final boolean withOffset;
     private final int minWidth;
-    private final boolean resizeRanges;
+    // private final boolean resizeRanges;
     private final boolean correctRanges;
+    private final boolean correctIntersections;
     private final float minSlope;
     private final PeakPickingModel model;
+
+    private final Logger logger;
+
+    // for debugging
+    private final int numFeaturesOffset;
+    public int overlapFound;
+
     double[] xBuffer;
     double[] yBuffer;
 
     public MLFeatureResolver(ParameterSet parameterSet, ModularFeatureList flist) {
         super(parameterSet, flist);
+        this.numFeaturesOffset = 8;
+
         this.parameters = parameterSet;
-        // THRESHOLD FiXED FOR DEBUGGING ONLY!
         this.threshold = parameterSet.getParameter(MLFeatureResolverParameters.threshold).getValue();
         this.regionSize = 128;
         this.overlap = 32;
-        //this is for debugging purposes. In the final version this should either alawys be true or false, depending on what works best.
+        // this is for debugging purposes. In the final version this should either
+        // alawys be true or false, depending on what works best.
         this.withOffset = parameterSet.getParameter(MLFeatureResolverParameters.withOffset).getValue();
         this.minWidth = parameterSet.getParameter(MLFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS).getValue();
-        this.resizeRanges = parameterSet.getParameter(MLFeatureResolverParameters.resizeRanges).getValue();
-        this.correctRanges = parameterSet.getParameter(MLFeatureResolverParameters.correctRanges).getValue();        // minimal slope (relative to previous value) before ranges correction stops.
+        // this.resizeRanges =
+        // parameterSet.getParameter(MLFeatureResolverParameters.resizeRanges).getValue();
+        this.correctRanges = parameterSet.getParameter(MLFeatureResolverParameters.correctRanges).getValue(); // minimal
+                                                                                                              // slope
+                                                                                                              // (relative
+                                                                                                              // to
+                                                                                                              // previous
+                                                                                                              // value)
+                                                                                                              // before
+                                                                                                              // ranges
+                                                                                                              // correction
+                                                                                                              // stops.
+        this.correctIntersections = parameterSet.getParameter(MLFeatureResolverParameters.correctIntersections)
+                .getValue();
         // I.e. the next intensity has to be at least 20% less than the previous
-        this.minSlope = (float) 0.1;
-        this.model = new PeakPickingModel(this.withOffset);
+        this.minSlope = (float) 0.0;
+        this.model = new PeakPickingModel(this.withOffset, this.numFeaturesOffset);
+
+        this.logger = Logger.getLogger("MLFeatureResolverLogger");
+
+        this.overlapFound = 0;
     }
 
     @Override
@@ -104,8 +131,15 @@ public class MLFeatureResolver extends AbstractResolver {
         return true;
     }
 
+    private double calculateDerivative(double[] intensity, int index, int epsilon) {
+        int indexEpsilon = Math.min(Math.max(index + epsilon, 0), intensity.length);
+        return (intensity[indexEpsilon] - intensity[index]) / epsilon;
+    }
+
     // corrects bounds of ranges in case they overlap
-    private List<Range<Double>> correctRanges(List<Range<Double>> ranges, double[] time, double[] intensity) {
+    // this assumes that there are at most two ranges overlapping at the same point
+    // (which I hope is reasonable)
+    private List<Range<Double>> correctInter(List<Range<Double>> ranges, double[] time, double[] intensity) {
         int numRanges = ranges.size();
         // if there are less than two ranges there is nothing to do
         if (numRanges < 2) {
@@ -113,8 +147,8 @@ public class MLFeatureResolver extends AbstractResolver {
         }
         List<Range<Double>> correctedRanges = new ArrayList<>();
         Range<Double> currentRange = ranges.get(0);
-        Range<Double> nextRange = ranges.get(1);
         for (int i = 0; i < numRanges - 1; i++) {
+            Range<Double> nextRange = ranges.get(i + 1);
             Double currentRight = currentRange.upperEndpoint();
             Double nextLeft = nextRange.lowerEndpoint();
             if (currentRight <= nextLeft) {
@@ -122,18 +156,42 @@ public class MLFeatureResolver extends AbstractResolver {
             }
             int currentRightIndex = Arrays.binarySearch(time, currentRight);
             int nextLeftIndex = Arrays.binarySearch(time, nextLeft);
-            double[] intensityOverlap = new double[currentRightIndex - nextLeftIndex + 1];
-            System.arraycopy(time, nextLeftIndex, intensityOverlap, 0, currentRightIndex - nextLeftIndex + 1);
-            double minIntensity = Arrays.stream(intensityOverlap).min().orElse(0);
-            int minIntensityIndex = Arrays.binarySearch(intensityOverlap, minIntensity) + nextLeftIndex;
-            double minIntensityTime = time[minIntensityIndex];
+            double[] intensityOverlap = new double[currentRightIndex - nextLeftIndex +
+                    1];
+            System.arraycopy(time, nextLeftIndex, intensityOverlap, 0, currentRightIndex
+                    - nextLeftIndex + 1);
+            double minIntensity = Arrays.stream(intensityOverlap).min().orElse(-1);
+            if (minIntensity == -1) {
+                this.logger.warning(
+                        "Encountered exception when tryin to correct intersections after ML resolver. Skipping this range and procceed with next range");
+                continue;
+            }
+            int minIndex = 0;
+            for (int j = 0; j < intensityOverlap.length; j++) {
+                if (intensityOverlap[j] == minIntensity) {
+                    minIndex = j;
+                    break;
+                }
+            }
+            int globalMinIntensityIndex = nextLeftIndex + minIndex;
+            double minIntensityTime = time[globalMinIntensityIndex];
+            if (currentRange.lowerEndpoint() >= minIntensityTime) {
+                System.out.println("lower end too big");
+            }
             Range<Double> updatedCurrentRange = Range.closed(currentRange.lowerEndpoint(), minIntensityTime);
             correctedRanges.add(updatedCurrentRange);
-            // updates for the next iteration. Next range (with corrected left bound) is now
+            // updates for the next iteration. Next range (with corrected left bound) is
+            // now
             // the new current range
+            if (minIntensityTime >= nextRange.upperEndpoint()) {
+                System.out.println("upper end too small");
+            }
             currentRange = Range.closed(minIntensityTime, nextRange.upperEndpoint());
-            nextRange = ranges.get(i + 1);
         }
+        // need to add last Range because it has no next range and the previous step
+        // does not apply
+        correctedRanges.add(currentRange);
+        System.out.println(ranges.size() - correctedRanges.size());
         return correctedRanges;
     }
 
@@ -243,9 +301,15 @@ public class MLFeatureResolver extends AbstractResolver {
                 if (this.correctRanges) {
                     int currentLeftIndex = indexLeft;
                     while (currentLeftIndex > 0) {
-                        //left derivative at currentLeftIndex normalized by intensity at currentLeftIndex
-                        if (-standardRegions.get(i)[currentLeftIndex - 1] / standardRegions.get(i)[currentLeftIndex]+1
-                                 < this.minSlope) {
+                        // left derivative at currentLeftIndex normalized by intensity at
+                        // currentLeftIndex
+                        if (this.calculateDerivative(standardRegions.get(i), currentLeftIndex, -1) < this.minSlope
+                                * standardRegions.get(i)[currentLeftIndex]) {
+                            System.out.println("Total overlaps found: " + this.overlapFound);
+                            // positive derivative means intensity if increasing with increasing retention
+                            // time.
+                            // if the derivative is not small enough anymore (in relation to the current
+                            // intensity) we stop the process.
                             break;
                         }
                         currentLeftIndex--;
@@ -254,9 +318,14 @@ public class MLFeatureResolver extends AbstractResolver {
 
                     int currentRightIndex = indexRight;
                     while (currentRightIndex < this.regionSize - 1) {
-                        //right derivative at currentRightIndex normalized by intensity at currentRightIndex
-                        if ( standardRegions.get(i)[currentRightIndex + 1]
-                                / standardRegions.get(i)[currentRightIndex] -1> -this.minSlope) {
+                        // right derivative at currentRightIndex normalized by intensity at
+                        // currentRightIndex
+                        if (this.calculateDerivative(standardRegions.get(i), currentRightIndex, 1) > -this.minSlope
+                                * standardRegions.get(i)[currentRightIndex]) {
+                            // negative derivative means intensity is falling with increasing retention
+                            // time.
+                            // if the derivative is not small enough anymore (in relation to the current
+                            // intensity) we stop the process.
                             break;
                         }
                         currentRightIndex++;
@@ -280,9 +349,9 @@ public class MLFeatureResolver extends AbstractResolver {
                 }
             }
         }
-        // if (this.resizeRanges) {
-        //     resolved = correctRanges(resolved, x, y);
-        // }
+        if (this.correctIntersections) {
+            resolved = correctInter(resolved, x, y);
+        }
         return resolved;
     }
 
