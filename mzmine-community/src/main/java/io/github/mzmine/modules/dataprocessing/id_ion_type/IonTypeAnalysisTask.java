@@ -200,8 +200,6 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
           for (DataPoint dataPoint : dataPoints) {
             List<DataPoint> foundIsotopes = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
                 currentMaxDiff, toleranceMs1, representativeScan, dataPoint);
-            System.out.println("DataPoint: " + dataPoint);
-            System.out.println("Found Isotopes: " + foundIsotopes);
             // Only add it if we have evidence for it (so more than 1 ion)
             if (foundIsotopes.size() > 1) {
               isotopeSet.addAll(foundIsotopes);
