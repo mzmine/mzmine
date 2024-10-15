@@ -32,6 +32,7 @@ public class MLFeatureResolverParameters extends GeneralResolverParameters {
 
     public static final BooleanParameter correctRanges = new BooleanParameter("Correct ranges (for debugging)", "extends ranges if slope to next data point is sufficiently high");
 
+    public static final BooleanParameter correctIntersections = new BooleanParameter("correct intersections (for debugging)", "Resizes ranges in case of overlap");
     public static final BooleanParameter withOffset = new BooleanParameter("Use model which uses offset for later predictions", "");
 
     public MLFeatureResolverParameters() {
@@ -48,7 +49,7 @@ public class MLFeatureResolverParameters extends GeneralResolverParameters {
         return switch (setup) {
             case FULL -> new Parameter[] { PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters,
                     dimension, threshold,
-                    resizeRanges,correctRanges, MIN_NUMBER_OF_DATAPOINTS, withOffset  };
+                    resizeRanges,correctRanges, correctIntersections, MIN_NUMBER_OF_DATAPOINTS, withOffset  };
             case INTEGRATED -> new Parameter[] { threshold,
                     MIN_NUMBER_OF_DATAPOINTS };
         };
