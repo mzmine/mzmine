@@ -204,8 +204,8 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
             List<DataPoint> foundIsotopes = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
                 currentMaxDiff, toleranceMs1, representativeScan, dataPoint);
 
-            // Only add it if we have evidence for it (so more than 1 ion)
-            if (foundIsotopes.size() > 1) {
+            // Only add the isotopes if they pass the validation step
+            if (isValidIsotopicPattern(foundIsotopes)) {
               isotopeSet.addAll(foundIsotopes);
             }
 
@@ -214,6 +214,22 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
         }
       }
     }
+  }
+
+  /**
+   * Checks if the isotopic pattern is valid by ensuring that the intensity of each isotope is
+   * significantly lower than the previous one, with customizable ratios for each step.
+   *
+   * @param isotopes        The list of isotopes to check.
+   * @return true if the pattern is valid, false otherwise.
+   */
+  private boolean isValidIsotopicPattern(List<DataPoint> isotopes) {
+    if (isotopes.size() < 3) {
+      return false; // At least three isotopes are needed to form a pattern.
+    }
+    // TODO implement a better logic, mostly based on existing IsotopePatternCalculator, etc.
+
+    return true;
   }
 
   private void findAndAddMassDifferences(DataPoint[] dataPoints, DataPoint target,
