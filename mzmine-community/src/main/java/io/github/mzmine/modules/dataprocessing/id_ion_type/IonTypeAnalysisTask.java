@@ -107,9 +107,8 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
 
     // Precompute isotope mass differences
     DoubleArrayList[] isoMzDiffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(
-        Arrays.asList(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
-            new Element("S"), new Element("F"), new Element("Cl"), new Element("Br"),
-            new Element("I")), isotopeMaxCharge);
+        Arrays.asList(new Element("C"), new Element("S"), new Element("Cl"), new Element("Br")),
+        isotopeMaxCharge);
 
     // Precompute max isotope MZ differences
     double[] maxIsoMzDiff = new double[isotopeMaxCharge];
