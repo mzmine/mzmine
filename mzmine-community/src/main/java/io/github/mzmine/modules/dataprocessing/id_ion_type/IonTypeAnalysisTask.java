@@ -216,14 +216,16 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
 
   private void findAndAddMassDifferences(DataPoint[] dataPoints, DataPoint target,
       Set<DataPoint> adductsAndCoSet) {
-    double[] knownMassDifferences = { //
-        // Most occurring mass diffs taken from 10.1021/acs.analchem.4c00966
-        67.9874, // sodium formate
-        0.5017,  // double charge C
-        21.9819, // H Na
-        57.9586, // NaCl
-        46.0055, // formic acid
-        15.9739, // Na K
+
+    // COMMENT: For now the names are not used, but in case for the future
+    // Most occurring mass diffs taken from 10.1021/acs.analchem.4c00966
+    Object[][] knownMassDifferences = { //
+        {67.9874, "sodium formate"}, //
+        {21.9819, "H Na"}, //
+        {135.9748, "2 sodium formate"}, //
+        {57.9586, "NaCl"}, //
+        {46.0055, "formic acid"}, //
+        {15.9739, "Na K"} //
     };
 
     double proton = 1.007276;
@@ -233,21 +235,29 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     double single_proton = targetMZ + proton;
     double diff_dimer_single = 2 * targetMZ + proton - single_proton;
     double diff_single_double = single_proton - (targetMZ + 2 * proton) / 2;
-    ArrayList<Double> updatedMassDifferences = new ArrayList<>();
-    for (double diff : knownMassDifferences) {
-      updatedMassDifferences.add(diff);
-    }
-    updatedMassDifferences.add(diff_dimer_single);
-    updatedMassDifferences.add(diff_single_double);
 
-    for (double massDiff : updatedMassDifferences) {
+    // Adding M specific differences with names
+    ArrayList<Object[]> updatedMassDifferences = new ArrayList<>();
+    updatedMassDifferences.addAll(Arrays.asList(knownMassDifferences));
+    updatedMassDifferences.add(new Object[]{diff_dimer_single, "dimer - single"});
+    updatedMassDifferences.add(new Object[]{diff_single_double, "single - double"});
+
+    for (Object[] massDiffPair : updatedMassDifferences) {
+      double massDiff = (double) massDiffPair[0];
+      String diffName = (String) massDiffPair[1];
       boolean hasMatchingPoint = false; // Flag to track if a matching point is found
 
       for (DataPoint point : dataPoints) {
-        if (Math.abs(point.getMZ() - targetMZ - massDiff) <= toleranceMs1.getMzToleranceForMass(
-            massDiff)) {
+        double diffToPoint = Math.abs(point.getMZ() - targetMZ - massDiff);
+
+        if (diffToPoint <= toleranceMs1.getMzToleranceForMass(massDiff)) {
           adductsAndCoSet.add(point);
           hasMatchingPoint = true; // Set flag to true if a match is found
+
+          // COMMENT: In case for later
+          // System.out.printf(
+          //     "Match found: DataPoint[m/z=%.4f] matches with target[m/z=%.4f] using %s with mass diff %.4f%n",
+          //     point.getMZ(), targetMZ, diffName, massDiff);
         }
       }
 
