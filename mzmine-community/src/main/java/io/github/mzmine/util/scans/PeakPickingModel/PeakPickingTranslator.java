@@ -10,9 +10,11 @@ import ai.djl.translate.TranslatorContext;
 
 public class PeakPickingTranslator implements Translator<double[], PeakPickingOutput> {
     private final boolean withOffset;
+    private final int numFeaturesOffset;
 
-    public PeakPickingTranslator(boolean withOffset) {
+    public PeakPickingTranslator(boolean withOffset, int numFeaturesOffset) {
         this.withOffset = withOffset;
+        this.numFeaturesOffset = numFeaturesOffset;
     }
 
     @Override
@@ -36,7 +38,7 @@ public class PeakPickingTranslator implements Translator<double[], PeakPickingOu
 
         if (this.withOffset) {
             float binSize = ((float) 128) / 10;
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < this.numFeaturesOffset; i++) {
                 leftBounds[i] = (int) (i * binSize) + leftBounds[i];
                 rightBounds[i] = (int) (i * binSize) + rightBounds[i];
                 predictedPeaks[i] = (int) (i * binSize) + predictedPeaks[i];

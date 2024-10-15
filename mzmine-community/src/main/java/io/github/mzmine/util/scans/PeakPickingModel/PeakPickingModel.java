@@ -37,13 +37,15 @@ public class PeakPickingModel {
     private static final String modelPath = "/MLModels/currentSave_traced.pth";
     private static final String modelOffsetPath = "/MLModels/currentSave_offset_traced.pth";
     private final boolean withOffset;
+    private final int numFeaturesOffset;
     private final Model model;
     private final NDManager manager;
     public final Predictor<double[], PeakPickingOutput> predictor;
     private static final Logger logger = Logger.getLogger("PeakPickingModel logger");
 
-    public PeakPickingModel(boolean withOffset) {
+    public PeakPickingModel(boolean withOffset, int numFeaturesOffset) {
         this.withOffset = withOffset;
+        this.numFeaturesOffset = numFeaturesOffset;
         this.model = Model.newInstance("PeakPicking");
         try {
             final InputStream resourceAsStream;
@@ -58,7 +60,7 @@ public class PeakPickingModel {
             e.printStackTrace();
         }
         this.manager = NDManager.newBaseManager();
-        PeakPickingTranslator translator = new PeakPickingTranslator(this.withOffset);
+        PeakPickingTranslator translator = new PeakPickingTranslator(this.withOffset, this.numFeaturesOffset);
         this.predictor = model.newPredictor(translator);
     }
 
