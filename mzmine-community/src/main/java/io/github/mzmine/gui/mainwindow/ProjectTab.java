@@ -23,20 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.spectra.msn_tree;
+package io.github.mzmine.gui.mainwindow;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-
-public class MSnTreeVisualizerParameters extends CurrentProjectNoDialogParameterSet {
-
-  public static final MZToleranceParameter mzTol = new MZToleranceParameter("m/z tolerance",
-      "Tolerance to group precursor ions into trees", 0.004, 20);
-
-  public MSnTreeVisualizerParameters() {
-    super(new Parameter[]{mzTol},
-        "https://mzmine.github.io/mzmine_documentation/visualization_modules/raw_data_overview/raw_data_additional.html#msn-spectra-tree");
-  }
-
+public enum ProjectTab {
+  DATA_FILES, FEATURE_LISTS, LIBRARIES;
 }

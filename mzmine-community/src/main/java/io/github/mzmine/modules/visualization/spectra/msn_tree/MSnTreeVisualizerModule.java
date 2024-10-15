@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,8 @@ package io.github.mzmine.modules.visualization.spectra.msn_tree;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.mainwindow.ProjectTab;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -38,6 +40,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,22 +51,39 @@ public class MSnTreeVisualizerModule implements MZmineRunnableModule {
   public static final String DESCRIPTION = "Open fragment spectra trees of MS2 to MSn.";
 
   public static void showNewTab() {
-    RawDataFile[] raw = MZmineCore.getDesktop().getSelectedDataFiles();
-    FeatureList[] flists = MZmineCore.getDesktop().getSelectedPeakLists();
-    if ((raw == null || raw.length == 0) && (flists == null || flists.length == 0)) {
-      DialogLoggerUtil.showMessageDialogForTime("Selection needed",
-          "Select a data file or feature list in the main window to open the MSn tree", 5000);
-      return;
+    if (!(MZmineCore.getDesktop() instanceof MZmineGUI desktop)) {
+      throw new IllegalStateException("Cannot open msn trees in CLI");
     }
 
+    ProjectTab selectedTab = desktop.getSelectedProjectTab();
+
     FxThread.runLater(() -> {
-      MSnTreeTab tab = new MSnTreeTab();
-      MZmineCore.getDesktop().addTab(tab);
-      if (raw != null && raw.length > 0) {
-        tab.setRawDataFile(raw[0]);
+      String errorMessage = null;
+      switch (selectedTab) {
+        case LIBRARIES -> errorMessage = "data file or a feature list";
+        case DATA_FILES -> {
+          List<RawDataFile> raws = MZmineGUI.getSelectedRawDataFiles();
+          if (raws.isEmpty()) {
+            errorMessage = "data file";
+          }
+          MSnTreeTab tab = new MSnTreeTab();
+          desktop.addTab(tab);
+          tab.setRawDataFile(raws.getFirst());
+        }
+        case FEATURE_LISTS -> {
+          List<FeatureList> featureLists = MZmineGUI.getSelectedFeatureLists();
+          if (featureLists.isEmpty()) {
+            errorMessage = "feature list";
+          }
+          MSnTreeTab tab = new MSnTreeTab();
+          desktop.addTab(tab);
+          tab.setFeatureList(featureLists.getFirst());
+        }
       }
-      if (flists != null && flists.length > 0) {
-        tab.setFeatureList(flists[0]);
+
+      if (errorMessage != null) {
+        DialogLoggerUtil.showMessageDialogForTime("Selection needed",
+            "Select a %s in the main window to open an MSn tree".formatted(errorMessage), 5000);
       }
     });
   }
