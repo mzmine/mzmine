@@ -206,6 +206,11 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
 
             // Only add the isotopes if they pass the validation step
             if (isValidIsotopicPattern(foundIsotopes)) {
+              // System.out.printf("Match found: DataPoint[m/z=%.4f]%n", dataPoint.getMZ());
+              // System.out.println("Found Isotopes:");
+              // for (DataPoint isotope : foundIsotopes) {
+              //   System.out.printf("Isotope DataPoint[m/z=%.4f, intensity=%.2f]%n", isotope.getMZ(), isotope.getIntensity());
+              // }
               isotopeSet.addAll(foundIsotopes);
             }
 
@@ -229,16 +234,35 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
       return false;
     }
 
-    // Do not allow for missing isotopes
+    // Iterate through the isotopes to check m/z differences and intensity
     for (int i = 0; i < isotopes.size() - 1; i++) {
-      double diff = Math.abs(isotopes.get(i + 1).getMZ() - isotopes.get(i).getMZ());
-      if (diff > 1.03) {
+      double mzDiff = Math.abs(isotopes.get(i + 1).getMZ() - isotopes.get(i).getMZ());
+      double intensityFirst = isotopes.get(i).getIntensity();
+      double intensitySecond = isotopes.get(i + 1).getIntensity();
+
+      // Do not allow missing isotopes (m/z difference should not exceed 1.03)
+      if (mzDiff > 1.04) {
+        return false;
+      }
+
+      // Do not allow M + 1 to be higher than M (logic valid up to ~~C75)
+      if (mzDiff < 0.98) {
+        if (i + 2 < isotopes.size()) {
+          double intensityThird = isotopes.get(i + 2).getIntensity();
+          if (intensityThird >= intensityFirst) {
+            return false;
+          }
+        }
+        continue;
+      }
+      if (intensitySecond >= intensityFirst) {
         return false;
       }
     }
 
-    // TODO implement a better logic
+    // TODO: Implement better logic
 
+    // If all checks passed, return true
     return true;
   }
 
