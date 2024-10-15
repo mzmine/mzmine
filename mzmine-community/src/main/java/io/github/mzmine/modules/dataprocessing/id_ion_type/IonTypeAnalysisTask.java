@@ -103,33 +103,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    List<GroupedSignalScans> groupedScans = gatherSpectra();
-    logger.info("Collected spectra - now starting to analyze the grouped scans.");
-  }
-
-  /**
-   * Gathers spectra from feature lists.
-   *
-   * @return A list of grouped signal scans.
-   */
-  private List<GroupedSignalScans> gatherSpectra() {
-    return featureLists.stream()
-        .flatMap(featureList -> featureList.getRows().stream().map(this::createGroupedSignalScans))
-        .distinct().collect(Collectors.toList());
-  }
-
-  /**
-   * Creates grouped signal scans for a given row.
-   *
-   * @param row The feature list row.
-   * @return The grouped signal scans.
-   */
-  private GroupedSignalScans createGroupedSignalScans(FeatureListRow row) {
-    List<Scan> ms1Scans = new ArrayList<>();
-    List<Scan> allPrecursorsMs2Scans = new ArrayList<>();
-    Set<DataPoint> isotopeSet = new HashSet<>();
-    Set<DataPoint> adductsAndCoSet = new HashSet<>();
-    int isotopeMaxCharge = 2; // Consider making this a constant or parameterized value
+    int isotopeMaxCharge = 2;  // TODO fix for now
 
     // Precompute isotope mass differences
     DoubleArrayList[] isoMzDiffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(
@@ -145,6 +119,35 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
       }
       maxIsoMzDiff[i] += 10 * toleranceMs1.getMzToleranceForMass(maxIsoMzDiff[i]);
     }
+
+    List<GroupedSignalScans> groupedScans = gatherSpectra(isoMzDiffsForCharge, maxIsoMzDiff);
+    logger.info("Collected spectra - now starting to analyze the grouped scans.");
+  }
+
+  /**
+   * Gathers spectra from feature lists.
+   *
+   * @return A list of grouped signal scans.
+   */
+  private List<GroupedSignalScans> gatherSpectra(DoubleArrayList[] isoMzDiffsForCharge,
+      double[] maxIsoMzDiff) {
+    return featureLists.stream().flatMap(featureList -> featureList.getRows().stream()
+            .map(row -> createGroupedSignalScans(row, isoMzDiffsForCharge, maxIsoMzDiff))).distinct()
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Creates grouped signal scans for a given row.
+   *
+   * @param row The feature list row.
+   * @return The grouped signal scans.
+   */
+  private GroupedSignalScans createGroupedSignalScans(FeatureListRow row,
+      DoubleArrayList[] isoMzDiffsForCharge, double[] maxIsoMzDiff) {
+    List<Scan> ms1Scans = new ArrayList<>();
+    List<Scan> allPrecursorsMs2Scans = new ArrayList<>();
+    Set<DataPoint> isotopeSet = new HashSet<>();
+    Set<DataPoint> adductsAndCoSet = new HashSet<>();
 
     for (ModularFeature feature : row.getFeatures()) {
       try {
