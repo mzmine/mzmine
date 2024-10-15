@@ -56,11 +56,10 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -129,13 +128,13 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
     }).toList();
 
     // test: also apply to blanks - just to check
-    var resultBlanks = input.blanks.stream().parallel().map(flist -> {
-      if (isCanceled()) {
-        return null;
-      }
-      return subtractBlanks(flist, mzSortedBlanks);
-    }).toList();
-    resultBlanks.forEach(project::addFeatureList);
+//    var resultBlanks = input.blanks.stream().map(flist -> {
+//      if (isCanceled()) {
+//        return null;
+//      }
+//      return subtractBlanks(flist, mzSortedBlanks);
+//    }).toList();
+//    resultBlanks.forEach(project::addFeatureList);
 
     if (isCanceled()) {
       return;
@@ -169,7 +168,7 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
     int startIndex = 0;
 
     // flag rows to remove
-    IntList rowsToRemove = new IntArrayList();
+    Set<FeatureListRow> rowsToRemove = new HashSet<>();
 
     for (int rowIndex = 0; rowIndex < sortedRows.size(); rowIndex++) {
       final FeatureListRow row = sortedRows.get(rowIndex);
@@ -215,7 +214,7 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
         if (changed) {
           // all 0 then remove feature
           if (Arrays.stream(intensities).noneMatch(v -> v > 0)) {
-            rowsToRemove.add(rowIndex);
+            rowsToRemove.add(row);
           } else {
             replaceFeatureData(feature, data, intensities);
           }
@@ -224,10 +223,10 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
     }
 
     // remove rows that are completely empty
-    resultFlist.removeRows(rowsToRemove.toIntArray());
+    resultFlist.removeRows(rowsToRemove);
     logger.fine(
-        "Blank subtraction removed %d chromatograms that are now empty from feature list: %s".formatted(
-            rowsToRemove.size(), resultFlist.getName()));
+        "Blank subtraction removed %d chromatograms (%d remaining) that were now empty from feature list: %s".formatted(
+            rowsToRemove.size(), resultFlist.getNumberOfRows(), resultFlist.getName()));
 
     return resultFlist;
   }

@@ -114,7 +114,11 @@ public class OriginalFeatureListHandlingParameter extends
     public void reflectChangesToProject(final MZmineProject project, final String suffix,
         final FeatureList[] oldLists, final List<FeatureList> newLists) {
       if (StringUtils.hasValue(suffix)) {
-        newLists.forEach(flist -> flist.setName(flist.getName() + ' ' + suffix));
+        newLists.forEach(flist -> {
+          if (!flist.getName().endsWith(suffix)) {
+            flist.setName(flist.getName() + ' ' + suffix);
+          }
+        });
       }
       if (this == REMOVE) {
         project.removeFeatureList(oldLists);

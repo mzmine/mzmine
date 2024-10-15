@@ -47,7 +47,6 @@ import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -610,8 +609,8 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public void removeRows(final int[] indexes) {
-    CollectionUtils.removeIndicesInPlaceBitSet(featureListRows, indexes);
+  public void removeRows(final Set<FeatureListRow> rowsToRemove) {
+    featureListRows.removeIf(rowsToRemove::contains);
   }
 
   @Override

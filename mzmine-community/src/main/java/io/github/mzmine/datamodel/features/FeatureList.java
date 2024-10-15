@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
@@ -523,7 +524,7 @@ public interface FeatureList {
     master.addAll(maps);
   }
 
-  void removeRows(int[] indexes);
+  void removeRows(Set<FeatureListRow> rowsToRemove);
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge
