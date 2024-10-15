@@ -152,6 +152,24 @@ public class DiaMs2CorrTask extends AbstractTask {
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minMs2Intensity);
   }
 
+  private static @NotNull Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> mapIsoWindowToEics(
+      Map<IsolationWindow, FeatureList> ms2Flists) {
+    final Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> isoWindowEicsMap = new HashMap<>();
+
+    for (Entry<IsolationWindow, FeatureList> entry : ms2Flists.entrySet()) {
+      final RawDataFile file = entry.getValue().getRawDataFile(0);
+      // store feature data in TreeRangeMap, to query by m/z in ms2 spectra
+      var ms2Flist = entry.getValue();
+      final RangeMap<Double, IonTimeSeries<?>> ms2Eics = TreeRangeMap.create();
+      ms2Flist.getRows().stream().map(row -> row.getFeature(file)).filter(Objects::nonNull)
+          .sorted(Comparator.comparingDouble(Feature::getHeight).reversed()).forEach(
+              feature -> ms2Eics.put(SpectraMerging.createNewNonOverlappingRange(ms2Eics,
+                  feature.getRawDataPointsMZRange()), feature.getFeatureData()));
+      isoWindowEicsMap.put(entry.getKey(), ms2Eics);
+    }
+    return isoWindowEicsMap;
+  }
+
   @Override
   public String getTaskDescription() {
     return "DIA MS2 for feature list: " + flist.getName();
@@ -481,30 +499,15 @@ public class DiaMs2CorrTask extends AbstractTask {
       Range<Float> correlationRange) {
     final List<Scan> ms2sInRtRange = ms2Scans.stream()
         .filter(scan -> correlationRange.contains(scan.getRetentionTime())).toList();
+    if (ms2sInRtRange.isEmpty()) {
+      return false;
+    }
     Scan closestMs2 = getClosestMs2(featureRt, ms2sInRtRange);
-    if (closestMs2 == null || ms2sInRtRange.isEmpty() || ms2sInRtRange.size() < minCorrPoints) {
-      logger.fine(() -> "Could not find enough ms2s in rtRange %s".formatted(correlationRange));
+    if (closestMs2 == null || ms2sInRtRange.size() < minCorrPoints) {
+//      logger.fine(() -> "Could not find enough ms2s in rtRange %s".formatted(correlationRange));
       return false;
     }
     return true;
-  }
-
-  private static @NotNull Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> mapIsoWindowToEics(
-      Map<IsolationWindow, FeatureList> ms2Flists) {
-    final Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> isoWindowEicsMap = new HashMap<>();
-
-    for (Entry<IsolationWindow, FeatureList> entry : ms2Flists.entrySet()) {
-      final RawDataFile file = entry.getValue().getRawDataFile(0);
-      // store feature data in TreeRangeMap, to query by m/z in ms2 spectra
-      var ms2Flist = entry.getValue();
-      final RangeMap<Double, IonTimeSeries<?>> ms2Eics = TreeRangeMap.create();
-      ms2Flist.getRows().stream().map(row -> row.getFeature(file)).filter(Objects::nonNull)
-          .sorted(Comparator.comparingDouble(Feature::getHeight).reversed()).forEach(
-              feature -> ms2Eics.put(SpectraMerging.createNewNonOverlappingRange(ms2Eics,
-                  feature.getRawDataPointsMZRange()), feature.getFeatureData()));
-      isoWindowEicsMap.put(entry.getKey(), ms2Eics);
-    }
-    return isoWindowEicsMap;
   }
 
   /**
