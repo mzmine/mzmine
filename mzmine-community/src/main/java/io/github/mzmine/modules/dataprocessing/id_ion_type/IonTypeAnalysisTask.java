@@ -222,11 +222,22 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
         57.9586, // NaCl
         46.0055, // formic acid
         15.9739, // Na K
-        // TODO Add dataPoint specific diffs later (like 2M, etc.)
     };
+    double proton = 1.007276;
     double targetMZ = target.getMZ();
 
-    for (double massDiff : knownMassDifferences) {
+    // Calculate the M specific differences
+    double single_proton = targetMZ + proton;
+    double diff_dimer_single = 2 * targetMZ + proton - single_proton;
+    double diff_single_double = single_proton - (targetMZ + 2 * proton) / 2;
+    ArrayList<Double> updatedMassDifferences = new ArrayList<>();
+    for (double diff : knownMassDifferences) {
+      updatedMassDifferences.add(diff);
+    }
+    updatedMassDifferences.add(diff_dimer_single);
+    updatedMassDifferences.add(diff_single_double);
+
+    for (double massDiff : updatedMassDifferences) {
       boolean hasMatchingPoint = false; // Flag to track if a matching point is found
 
       for (DataPoint point : dataPoints) {
