@@ -139,7 +139,7 @@ public class MLFeatureResolver extends AbstractResolver {
     // corrects bounds of ranges in case they overlap
     // this assumes that there are at most two ranges overlapping at the same point
     // (which I hope is reasonable)
-    private List<Range<Double>> correctInter(List<Range<Double>> ranges, double[] time, double[] intensity) {
+    private List<Range<Double>> correctInter(List<Range<Double>> ranges, double[] times, double[] intensities) {
         int numRanges = ranges.size();
         // if there are less than two ranges there is nothing to do
         if (numRanges < 2) {
@@ -147,46 +147,46 @@ public class MLFeatureResolver extends AbstractResolver {
         }
         List<Range<Double>> correctedRanges = new ArrayList<>();
         Range<Double> currentRange = ranges.get(0);
-        for (int i = 0; i < numRanges - 1; i++) {
-            Range<Double> nextRange = ranges.get(i + 1);
+        for (int i = 1; i < numRanges; i++) {
+            Range<Double> nextRange = ranges.get(i);
             Double currentRight = currentRange.upperEndpoint();
             Double nextLeft = nextRange.lowerEndpoint();
+            // use currentRange.isConnected(nextRanges) or something
             if (currentRight <= nextLeft) {
+                correctedRanges.add(currentRange);
+                currentRange = nextRange;
                 continue;
             }
-            int currentRightIndex = Arrays.binarySearch(time, currentRight);
-            int nextLeftIndex = Arrays.binarySearch(time, nextLeft);
-            double[] intensityOverlap = new double[currentRightIndex - nextLeftIndex +
-                    1];
-            System.arraycopy(time, nextLeftIndex, intensityOverlap, 0, currentRightIndex
-                    - nextLeftIndex + 1);
-            double minIntensity = Arrays.stream(intensityOverlap).min().orElse(-1);
-            if (minIntensity == -1) {
-                this.logger.warning(
-                        "Encountered exception when tryin to correct intersections after ML resolver. Skipping this range and procceed with next range");
-                continue;
-            }
+            int currentRightIndex = Arrays.binarySearch(times, currentRight);
+            int nextLeftIndex = Arrays.binarySearch(times, nextLeft);
+
             int minIndex = 0;
-            for (int j = 0; j < intensityOverlap.length; j++) {
-                if (intensityOverlap[j] == minIntensity) {
+            double minIntensity = Double.POSITIVE_INFINITY;
+            for (int j = nextLeftIndex; j <= currentRightIndex; j++) {
+                if (intensities[j] < minIntensity) {
+                    minIntensity = intensities[j];
                     minIndex = j;
-                    break;
                 }
             }
-            int globalMinIntensityIndex = nextLeftIndex + minIndex;
-            double minIntensityTime = time[globalMinIntensityIndex];
+            double minIntensityTime = times[minIndex];
             if (currentRange.lowerEndpoint() >= minIntensityTime) {
-                System.out.println("lower end too big");
+                logger.finer("Incompatible range endpoints. Continue with processing.");
+            } else {
+                Range<Double> updatedCurrentRange = Range.closed(currentRange.lowerEndpoint(), minIntensityTime);
+                correctedRanges.add(updatedCurrentRange);
             }
-            Range<Double> updatedCurrentRange = Range.closed(currentRange.lowerEndpoint(), minIntensityTime);
-            correctedRanges.add(updatedCurrentRange);
             // updates for the next iteration. Next range (with corrected left bound) is
             // now
             // the new current range
             if (minIntensityTime >= nextRange.upperEndpoint()) {
-                System.out.println("upper end too small");
+                logger.finer("Incompatible range endpoints when setting next current range. Continue with processing.");
+                i++;
+                if (i < numRanges) {
+                    currentRange = ranges.get(i);
+                }
+            } else {
+                currentRange = Range.closed(minIntensityTime, nextRange.upperEndpoint());
             }
-            currentRange = Range.closed(minIntensityTime, nextRange.upperEndpoint());
         }
         // need to add last Range because it has no next range and the previous step
         // does not apply
