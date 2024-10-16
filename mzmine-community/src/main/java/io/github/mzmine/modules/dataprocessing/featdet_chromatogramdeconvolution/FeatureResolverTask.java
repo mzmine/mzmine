@@ -286,11 +286,6 @@ public class FeatureResolverTask extends AbstractTask {
         }
 
         if (resolver instanceof MLFeatureResolver mlFeatureResolver) {
-            int overlaps =((MLFeatureResolver) mlFeatureResolver).overlapFound;
-            System.out.println("Total overlaps found: "+ overlaps);
-            System.out.println("Total overlaps found: "+ overlaps);
-            System.out.println("Total overlaps found: "+ overlaps);
-            System.out.println("Total overlaps found: "+ overlaps);
             mlFeatureResolver.closeModel();
         }
 

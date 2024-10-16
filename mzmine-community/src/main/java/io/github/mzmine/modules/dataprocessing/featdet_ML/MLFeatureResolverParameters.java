@@ -27,9 +27,6 @@ public class MLFeatureResolverParameters extends GeneralResolverParameters {
             "Minimal number of datapoints per range",
             "The minimal number of datapoints that are required to lie in the Range", 3);
 
-    public static final BooleanParameter resizeRanges = new BooleanParameter("Resize Ranges",
-            "Resizes ranges such that there is no overlap");
-
     public static final BooleanParameter correctRanges = new BooleanParameter("Correct ranges (for debugging)", "extends ranges if slope to next data point is sufficiently high");
 
     public static final BooleanParameter correctIntersections = new BooleanParameter("correct intersections (for debugging)", "Resizes ranges in case of overlap");
@@ -49,7 +46,7 @@ public class MLFeatureResolverParameters extends GeneralResolverParameters {
         return switch (setup) {
             case FULL -> new Parameter[] { PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters,
                     dimension, threshold,
-                    resizeRanges,correctRanges, correctIntersections, MIN_NUMBER_OF_DATAPOINTS, withOffset  };
+                    correctRanges, correctIntersections, MIN_NUMBER_OF_DATAPOINTS, withOffset  };
             case INTEGRATED -> new Parameter[] { threshold,
                     MIN_NUMBER_OF_DATAPOINTS };
         };
