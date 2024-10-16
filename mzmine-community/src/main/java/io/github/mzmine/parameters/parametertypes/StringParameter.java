@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,20 +57,20 @@ public class StringParameter implements UserParameter<String, TextField> {
     this.sensitive = false;
   }
 
-  public StringParameter(String name, String description, @NotNull String defaultValue) {
+  public StringParameter(String name, String description, String defaultValue) {
     this(name, description, defaultValue, true, false);
   }
 
-  public StringParameter(String name, String description, @NotNull String defaultValue,
+  public StringParameter(String name, String description, String defaultValue,
       boolean valueRequired) {
     this(name, description, defaultValue, valueRequired, false);
   }
 
-  public StringParameter(String name, String description, @NotNull String defaultValue,
+  public StringParameter(String name, String description, String defaultValue,
       boolean valueRequired, boolean isSensitive) {
     this.name = name;
     this.description = description;
-    this.value = defaultValue;
+    this.value = requireNonNullElse(defaultValue, "");
     this.valueRequired = valueRequired;
     this.sensitive = isSensitive;
   }
