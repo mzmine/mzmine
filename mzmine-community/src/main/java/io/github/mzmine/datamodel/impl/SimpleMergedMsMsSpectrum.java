@@ -130,7 +130,7 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
           final String finalFileName = fileName != null ? fileName : file.getName();
 
           final RawDataFile specificFile = possibleFiles.stream()
-              .filter(f -> f.getName().equals(finalFileName) && file instanceof RawDataFile)
+              .filter(f -> f.getName().equals(finalFileName))
               .findFirst().orElse(null);
           if (specificFile == null) {
             throw new IllegalArgumentException(
