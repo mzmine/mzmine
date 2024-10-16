@@ -66,8 +66,6 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
           String.valueOf(scan.getDataFile().getScans().indexOf(scan)));
 
       writer.writeEndElement();
-    } else if (scan instanceof MergedMsMsSpectrum merged) {
-      merged.saveToXML(writer);
     } else if (scan instanceof MergedMassSpectrum merged) {
       merged.saveToXML(writer);
     } else {
