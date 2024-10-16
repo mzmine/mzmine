@@ -50,6 +50,7 @@ public class PCAModel {
       4);
   private final Property<Integer> domainPc = new SimpleIntegerProperty(1).asObject();
   private final Property<Integer> rangePc = new SimpleIntegerProperty(2).asObject();
+
   private final ObjectProperty<List<FeatureList>> flists = new SimpleObjectProperty<>();
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundance = new SimpleObjectProperty<>(

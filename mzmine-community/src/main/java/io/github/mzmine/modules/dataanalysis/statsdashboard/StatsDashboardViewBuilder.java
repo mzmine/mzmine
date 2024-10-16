@@ -64,6 +64,7 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
   public Region build() {
     final SplitPane main = new SplitPane();
     main.setOrientation(Orientation.VERTICAL);
+    main.setDividerPositions(0.75);
     final SplitPane stats = buildStatsPane();
     main.getItems().addAll(stats, table);
 
@@ -107,8 +108,7 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
         new Tab("Volcano Plot", volcanoPlotController.buildView()));
     stats.getItems().add(analysisTab);
     stats.getItems().add(boxplotController.buildView());
-    stats.setDividerPosition(0, 0.9d);
-    stats.setMinHeight(Region.USE_COMPUTED_SIZE);
+    stats.setDividerPositions(0.9);
     return stats;
   }
 }
