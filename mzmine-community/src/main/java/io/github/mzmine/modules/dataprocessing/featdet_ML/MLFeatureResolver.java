@@ -63,7 +63,6 @@ public class MLFeatureResolver extends AbstractResolver {
 
     // for debugging
     private final int numFeaturesOffset;
-    public int overlapFound;
 
     double[] xBuffer;
     double[] yBuffer;
@@ -82,25 +81,16 @@ public class MLFeatureResolver extends AbstractResolver {
         this.minWidth = parameterSet.getParameter(MLFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS).getValue();
         // this.resizeRanges =
         // parameterSet.getParameter(MLFeatureResolverParameters.resizeRanges).getValue();
-        this.correctRanges = parameterSet.getParameter(MLFeatureResolverParameters.correctRanges).getValue(); // minimal
-                                                                                                              // slope
-                                                                                                              // (relative
-                                                                                                              // to
-                                                                                                              // previous
-                                                                                                              // value)
-                                                                                                              // before
-                                                                                                              // ranges
-                                                                                                              // correction
-                                                                                                              // stops.
+        this.correctRanges = parameterSet.getParameter(MLFeatureResolverParameters.correctRanges).getValue();
         this.correctIntersections = parameterSet.getParameter(MLFeatureResolverParameters.correctIntersections)
                 .getValue();
+        //minimal slope (normalized with respect to intensity) that has to be present before range correction stops
         // I.e. the next intensity has to be at least 20% less than the previous
         this.minSlope = (float) 0.0;
         this.model = new PeakPickingModel(this.withOffset, this.numFeaturesOffset);
 
         this.logger = Logger.getLogger("MLFeatureResolverLogger");
 
-        this.overlapFound = 0;
     }
 
     @Override
@@ -191,7 +181,6 @@ public class MLFeatureResolver extends AbstractResolver {
         // need to add last Range because it has no next range and the previous step
         // does not apply
         correctedRanges.add(currentRange);
-        System.out.println(ranges.size() - correctedRanges.size());
         return correctedRanges;
     }
 
@@ -303,16 +292,17 @@ public class MLFeatureResolver extends AbstractResolver {
                     while (currentLeftIndex > 0) {
                         // left derivative at currentLeftIndex normalized by intensity at
                         // currentLeftIndex
-                        if (this.calculateDerivative(standardRegions.get(i), currentLeftIndex, -1) < this.minSlope
+                        if (this.calculateDerivative(standardRegions.get(i), currentLeftIndex, -1) > this.minSlope
                                 * standardRegions.get(i)[currentLeftIndex]) {
-                            System.out.println("Total overlaps found: " + this.overlapFound);
                             // positive derivative means intensity if increasing with increasing retention
                             // time.
                             // if the derivative is not small enough anymore (in relation to the current
                             // intensity) we stop the process.
-                            break;
+                            currentLeftIndex--;
+                        } else if (this.calculateDerivative(standardRegions.get(i), currentLeftIndex, 1)<= -this.minSlope * standardRegions.get(i)[currentLeftIndex]){
+                            currentLeftIndex++;
                         }
-                        currentLeftIndex--;
+                        break;
                     }
                     indexLeft = currentLeftIndex;
 
@@ -320,15 +310,17 @@ public class MLFeatureResolver extends AbstractResolver {
                     while (currentRightIndex < this.regionSize - 1) {
                         // right derivative at currentRightIndex normalized by intensity at
                         // currentRightIndex
-                        if (this.calculateDerivative(standardRegions.get(i), currentRightIndex, 1) > -this.minSlope
+                        if (this.calculateDerivative(standardRegions.get(i), currentRightIndex, 1) < -this.minSlope
                                 * standardRegions.get(i)[currentRightIndex]) {
                             // negative derivative means intensity is falling with increasing retention
                             // time.
                             // if the derivative is not small enough anymore (in relation to the current
                             // intensity) we stop the process.
-                            break;
+                            currentRightIndex++;
+                        } else if (this.calculateDerivative(standardRegions.get(i), currentRightIndex, -1)>= this.minSlope * standardRegions.get(i)[currentRightIndex]){
+                            currentRightIndex --;
                         }
-                        currentRightIndex++;
+                        break;
                     }
                     indexRight = currentRightIndex;
                 }
