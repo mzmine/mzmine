@@ -208,10 +208,9 @@ public abstract class AbstractResolver implements Resolver {
       if (yBuffer == null || yBuffer.length <= numValues) {
         yBuffer = new double[numValues];
       }
-      Arrays.fill(yBuffer, 0d);
+      Arrays.fill(yBuffer, series.getNumberOfValues(), yBuffer.length, 0d);
       yBuffer = series.getIntensityValues(yBuffer);
 
-      // TODO this might be an issue x y buffer may contain empty values at the end - this might distort the results?
       return resolve(xBuffer, yBuffer);
     }
   }
@@ -295,7 +294,7 @@ public abstract class AbstractResolver implements Resolver {
     if (rtBuffer == null || rtBuffer.length < numValues) {
       rtBuffer = new double[numValues];
     }
-    Arrays.fill(rtBuffer, 0d);
+    Arrays.fill(rtBuffer, numValues, rtBuffer.length, 0d);
     for (int i = 0; i < numValues; i++) {
       rtBuffer[i] = timeSeries.getRetentionTime(i);
     }
