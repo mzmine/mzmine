@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -289,7 +289,7 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeEndElement();
   }
 
-  private void writeDataType(XMLStreamWriter writer, DataType<?> dataType,
+  public static void writeDataType(XMLStreamWriter writer, DataType<?> dataType,
       @Nullable final Object value, @NotNull final ModularFeatureList flist,
       @NotNull final ModularFeatureListRow row, @Nullable final ModularFeature feature,
       @Nullable final RawDataFile file) throws XMLStreamException {

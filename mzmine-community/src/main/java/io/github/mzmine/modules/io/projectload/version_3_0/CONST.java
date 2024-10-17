@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -72,6 +72,7 @@ public class CONST {
   public static final String XML_DATA_TYPE_ELEMENT = "datatype";
   public static final String XML_DATA_TYPE_ID_ATTR = "type";
   public static final String XML_FEATURE_ELEMENT = "feature";
+  public static final String XML_OTHER_FEATURE_ELEMENT = "otherfeature";
   public static final String XML_ROW_ELEMENT = "row";
   public static final String XML_FEATURE_LIST_ELEMENT = "featurelist";
   public static final String XML_ROOT_ELEMENT = "root";

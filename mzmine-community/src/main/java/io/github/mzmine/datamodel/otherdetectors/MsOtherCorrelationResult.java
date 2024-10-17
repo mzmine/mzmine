@@ -27,6 +27,10 @@ package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
+import java.util.Map.Entry;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +48,11 @@ public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrela
 
     writer.writeAttribute(XML_CORRELATION_TYPE_ATTR, type.name());
 
-//    otherFeature.
+    writer.writeStartElement(CONST.XML_OTHER_FEATURE_ELEMENT);
+    for (Entry<DataType, Object> entry : otherFeature.getMap().entrySet()) {
+      FeatureListSaveTask.writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, null, null);
+    }
+    writer.writeEndElement();
 //
     // main element
     writer.writeEndElement();
