@@ -38,7 +38,6 @@ import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -557,9 +556,9 @@ public class DiaMs2CorrTask extends AbstractTask {
         }
 
         isolationWindowMergingProgress = (++finishedIsolationWindows) / numIsolationWindows;
-        logger.finest(
+        /*logger.finest(
             "File: %s - Finished merging isolation window %s (%.0f/%.0f)".formatted(file.getName(),
-                isolationWindow.toString(), finishedIsolationWindows, numIsolationWindows));
+                isolationWindow.toString(), finishedIsolationWindows, numIsolationWindows));*/
 
         result.put(isolationWindow, windowFile);
       }
@@ -577,11 +576,6 @@ public class DiaMs2CorrTask extends AbstractTask {
     }
 
     return result;
-  }
-
-  private void processFeatureList(List<FeatureListRow> rows, RawDataFile originalDataFile,
-      final RangeMap<Double, IonTimeSeries<?>> ms2Eics, final List<Scan> ms2Scans,
-      ScanDataAccess ms2ScanAccess) {
   }
 
   private Scan getClosestMs2(float rt, List<Scan> ms2sInRtRange) {
