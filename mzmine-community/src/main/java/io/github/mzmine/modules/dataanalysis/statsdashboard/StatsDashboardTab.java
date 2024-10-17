@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataanalysis.statsdashboard;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import java.util.Collection;
-import java.util.List;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,7 +54,9 @@ public class StatsDashboardTab extends SimpleTab {
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    controller.selectedFeatureListsProperty().setValue(List.copyOf(featureLists));
+    // only aligned feature lists allowed
+    controller.selectedFeatureListsProperty().setValue(
+        featureLists.stream().filter(FeatureList::isAligned).map(FeatureList.class::cast).toList());
   }
 
 }

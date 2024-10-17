@@ -129,6 +129,7 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters.MassOptions;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
@@ -228,8 +229,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     super(steps);
     // input
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.DATA_IMPORT);
-    dataFiles = getValue(params, AllSpectralDataImportParameters.fileNames);
-    metadataFile = getOptional(params, AllSpectralDataImportParameters.metadataFile);
+    dataFiles = getValue(params, DataImportWizardParameters.fileNames);
+    metadataFile = getOptional(params, DataImportWizardParameters.metadataFile);
 
     // annotation
     params = steps.get(WizardPart.ANNOTATION);

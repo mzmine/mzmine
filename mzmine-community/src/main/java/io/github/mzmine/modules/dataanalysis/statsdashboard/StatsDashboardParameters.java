@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,12 @@
 
 package io.github.mzmine.modules.dataanalysis.statsdashboard;
 
+import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import org.jetbrains.annotations.NotNull;
 
-public class StatsDashboardParameters extends SimpleParameterSet {
+public class StatsDashboardParameters extends CurrentProjectNoDialogParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter(1, 1, true);
 

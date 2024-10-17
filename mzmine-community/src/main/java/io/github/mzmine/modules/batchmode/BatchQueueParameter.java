@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -32,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
@@ -42,6 +45,7 @@ import org.w3c.dom.Element;
  */
 public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane> {
 
+  private static final Logger logger = Logger.getLogger(BatchQueueParameter.class.getName());
   private BatchQueue value;
 
   private BatchComponentController controller;
@@ -146,6 +150,24 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
           errorMessages.add("\n%s:".formatted(batchStep.getModule().getName()));
           errorMessages.addAll(newErrors);
           newErrors.clear();
+        }
+      }
+
+      // do meta checks through all parameters
+      // check min samples filter
+      String warning = BatchUtils.checkMinSamplesFilter(value);
+      if (warning != null) {
+        if (DesktopService.isGUI()) {
+          final boolean continueAnyway = DialogLoggerUtil.showDialogYesNo("Warning", """
+              %s
+              Continue anyway?""".formatted(warning));
+
+          allParamsOK = allParamsOK && continueAnyway;
+        } else {
+          // only add warning if not GUI as GUI otherwise shows two dialogs
+          // in CLI mode we will just log the warning but still continue with the batch
+          logger.warning(warning);
+          errorMessages.add(warning);
         }
       }
     }
