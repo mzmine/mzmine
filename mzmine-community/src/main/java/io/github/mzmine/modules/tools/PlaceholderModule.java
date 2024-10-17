@@ -23,57 +23,35 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_spectral_library;
+package io.github.mzmine.modules.tools;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.impl.AbstractRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class SpectralLibraryImportModule implements MZmineProcessingModule {
+public final class PlaceholderModule extends AbstractRunnableModule {
 
-  public static final String MODULE_NAME = "Import spectral library";
-  private static final String MODULE_DESCRIPTION = "This method imports spectral libraries to speed up spectral library matching";
-
-  @Override
-  public @NotNull String getName() {
-    return MODULE_NAME;
+  /**
+   * @param name              name of the module in the menu and quick access
+   * @param parameterSetClass the class of the parameters
+   * @param moduleCategory    module category for quick access and batch mode
+   * @param description       the description of the task
+   */
+  public PlaceholderModule() {
+    super("PLACEHOLDER - OLD MODULE", PlaceholderModuleParameters.class, MZmineModuleCategory.TOOLS,
+        "Placeholder for a module that does not exist anymore.");
   }
 
   @Override
-  public @NotNull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-
-    final File[] files = parameters.getParameter(SpectralLibraryImportParameters.dataBaseFiles)
-        .getValue();
-    for (File f : files) {
-      Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate);
-      tasks.add(newTask);
-    }
-
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
     return ExitCode.OK;
   }
-
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.SPECLIBIMPORT;
-  }
-
-  @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return SpectralLibraryImportParameters.class;
-  }
-
 }
