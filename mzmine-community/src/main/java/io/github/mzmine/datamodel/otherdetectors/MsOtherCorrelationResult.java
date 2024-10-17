@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,28 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+
 public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrelationType type) {
 
+  public static final String XML_ELEMENT_NAME = "msothercorrelationresult";
+  public static final String XML_CORRELATION_TYPE_ATTR = "msothercorrelationtype";
+
+  public void saveToXML(@NotNull XMLStreamWriter writer, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row) throws XMLStreamException {
+
+    // main element
+    writer.writeStartElement(XML_ELEMENT_NAME);
+
+    writer.writeAttribute(XML_CORRELATION_TYPE_ATTR, type.name());
+
+//    otherFeature.
+//
+    // main element
+    writer.writeEndElement();
+  }
 }

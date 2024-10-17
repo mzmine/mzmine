@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,19 @@
 
 package io.github.mzmine.datamodel.features.types.otherdectectors;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
+import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelationResult> {
 
@@ -41,4 +51,33 @@ public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelatio
     return "Correlated traces";
   }
 
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if (value == null) {
+      return;
+    }
+
+    if (!(value instanceof List<?> list)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
+    }
+
+    for (Object o : list) {
+      if (!(o instanceof MsOtherCorrelationResult correlationResult)) {
+        continue;
+      }
+
+      correlationResult.saveToXML(writer, flist, row);
+    }
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    return super.loadFromXML(reader, project, flist, row, feature, file);
+  }
 }
