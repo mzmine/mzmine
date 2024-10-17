@@ -31,32 +31,18 @@ import io.github.mzmine.javafx.components.factories.TableColumns.ColumnAlignment
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.util.Comparators;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.CheckBoxTableCell;
 
 public class EdgeTable extends TableView<SubFormulaEdge> {
 
   public EdgeTable() {
     setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_NEXT_COLUMN);
-    setRowFactory(table -> new TableRow<>() {
-      {
-        // unbind from old property, bind to new one to properly reflect the disable status
-        itemProperty().addListener((_, old, n) -> {
-          if (old != null) {
-            disableProperty().unbind();
-          }
-          if (n != null) {
-            disableProperty().bind(n.validProperty().not());
-          }
-        });
-      }
-    });
 
-    TableColumn<SubFormulaEdge, Boolean> visible = TableColumns.createColumn("", 15, 35,
-        SubFormulaEdge::visibleProperty);
-    visible.setCellFactory(CheckBoxTableCell.forTableColumn(visible));
+    TableColumn<SubFormulaEdge, SubFormulaEdge> visible = TableColumns.createColumn("", 15, 35,
+        SimpleObjectProperty::new);
+    visible.setCellFactory(_ -> new CheckTableCell<>(SubFormulaEdge::visibleProperty));
 
     NumberFormats formats = ConfigService.getGuiFormats();
     TableColumn<SubFormulaEdge, Number> signal1 = TableColumns.createColumn("Signal 1", 70,

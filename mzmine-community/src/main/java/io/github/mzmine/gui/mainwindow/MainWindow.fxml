@@ -82,9 +82,9 @@
       <SplitPane BorderPane.alignment="CENTER" dividerPositions="0.22">
         <items>
           <!--              Left side-->
-          <TabPane tabClosingPolicy="UNAVAILABLE">
+          <TabPane fx:id="projectTabPane" tabClosingPolicy="UNAVAILABLE">
             <tabs>
-              <Tab closable="false" text="MS data files">
+              <Tab fx:id="tabMsData" closable="false" text="MS data files">
                 <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0">
                     <children>
@@ -143,7 +143,7 @@
                   </AnchorPane>
                 </content>
               </Tab>
-              <Tab closable="false" text="Feature lists">
+              <Tab fx:id="tabFeatureLists" closable="false" text="Feature lists">
                 <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0">
                     <children>
@@ -175,7 +175,7 @@
                   </AnchorPane>
                 </content>
               </Tab>
-              <Tab closable="false" text="Libraries">
+              <Tab fx:id="tabLibraries" closable="false" text="Libraries">
                 <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0">
                     <children>

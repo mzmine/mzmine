@@ -24,11 +24,11 @@ import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableCell;
 
-public class CheckTreeCell<S, T> extends TableCell<S, T> {
+public class CheckTableCell<S, T> extends TableCell<S, T> {
 
   private final CheckBox box;
 
-  public CheckTreeCell(Function<T, BooleanProperty> propertyGetter) {
+  public CheckTableCell(Function<T, BooleanProperty> propertyGetter) {
     box = new CheckBox();
     setGraphic(box);
 
