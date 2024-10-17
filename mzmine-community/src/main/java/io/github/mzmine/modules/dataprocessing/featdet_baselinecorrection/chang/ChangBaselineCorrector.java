@@ -63,7 +63,7 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
 
   public ChangBaselineCorrector(MemoryMapStorage storage, String suffix, double alpha,
       int maxSegments, double baselineFraction, int windowSize, double threshold) {
-    super(storage, 0, suffix, null);
+    super(storage, 0, suffix);
     this.alpha = alpha;
     this.maxSegments = maxSegments;
     this.baselineFraction = baselineFraction;

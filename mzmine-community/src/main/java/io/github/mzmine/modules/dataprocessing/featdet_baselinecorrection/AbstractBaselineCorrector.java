@@ -25,17 +25,14 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.data_access.MobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.util.MemoryMapStorage;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +41,6 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractBaselineCorrector implements BaselineCorrector {
 
-  protected final MinimumSearchFeatureResolver resolver;
   protected final int numSamples;
   protected final MemoryMapStorage storage;
   protected final String suffix;
@@ -54,22 +50,46 @@ public abstract class AbstractBaselineCorrector implements BaselineCorrector {
 
 
   public AbstractBaselineCorrector(@Nullable MemoryMapStorage storage, int numSamples,
-      @NotNull String suffix, @Nullable MinimumSearchFeatureResolver resolver) {
+      @NotNull String suffix) {
 
     this.storage = storage;
     this.numSamples = numSamples;
     this.suffix = suffix;
-    this.resolver = resolver;
   }
 
-  protected static @NotNull MinimumSearchFeatureResolver initializeLocalMinResolver(
-      ModularFeatureList flist) {
+  protected XYDataArrays subSampleData(final IntList subsampleIndices, final double[] xDataFiltered,
+      final double[] yDataFiltered, final int numValuesFiltered) {
 
-    final MinimumSearchFeatureResolver resolver = new MinimumSearchFeatureResolver(flist,
-        ResolvingDimension.RETENTION_TIME, 0.5, 0.04, 0, 0, 2.5, Range.closed(0d, 5d), 5);
+    final double[] subsampleX = BaselineCorrector.subsample(xDataFiltered, numValuesFiltered,
+        subsampleIndices, true);
+    final double[] subsampleY = BaselineCorrector.subsample(yDataFiltered, numValuesFiltered,
+        subsampleIndices, false);
 
-    return resolver;
+    // somehow first and last data point are often 0 - maybe because MS switches to early/late?
+    // adjust subsampleY to nearest non 0 value max 2 indices away
+    if (Double.compare(subsampleY[0], 0d) == 0) {
+      int index = subsampleIndices.getInt(0);
+      for (int next = 1; next <= 2 && index + next < numValuesFiltered; next++) {
+        double intensity = yDataFiltered[index + next];
+        if (intensity > 0) {
+          subsampleY[0] = intensity;
+          break;
+        }
+      }
+    }
+    if (Double.compare(subsampleY[subsampleY.length - 1], 0d) == 0) {
+      int index = subsampleIndices.getLast();
+      for (int next = 1; next <= 2 && index - next >= 0; next++) {
+        double intensity = yDataFiltered[index - next];
+        if (intensity > 0) {
+          subsampleY[subsampleY.length - 1] = intensity;
+          break;
+        }
+      }
+    }
+    return new XYDataArrays(subsampleX, subsampleY);
   }
+
 
   /**
    * @param timeSeries     The original time series

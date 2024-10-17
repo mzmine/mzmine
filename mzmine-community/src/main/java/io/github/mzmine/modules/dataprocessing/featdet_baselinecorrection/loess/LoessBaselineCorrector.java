@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.loess
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
@@ -65,18 +64,19 @@ public class LoessBaselineCorrector extends UnivariateBaselineCorrector {
     if (actualBandwidth * actualNumberOfSamples < 2d) {
       actualBandwidth = 2d / actualNumberOfSamples;
     }
+    // maybe fix number?
+//    actualBandwidth = 5d / actualNumberOfSamples;
     return new LoessInterpolator(actualBandwidth, iterations);
   }
 
   @Override
-  public BaselineCorrector newInstance(ParameterSet parameters,
-      MemoryMapStorage storage, FeatureList flist) {
+  public BaselineCorrector newInstance(ParameterSet parameters, MemoryMapStorage storage,
+      FeatureList flist) {
     final ParameterSet embedded = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();
     final MinimumSearchFeatureResolver resolver =
         embedded.getValue(AbstractBaselineCorrectorParameters.applyPeakRemoval)
-            ? AbstractBaselineCorrector.initializeLocalMinResolver((ModularFeatureList) flist)
-            : null;
+            ? initializeLocalMinResolver((ModularFeatureList) flist) : null;
 
     return new LoessBaselineCorrector(storage,
         embedded.getValue(LoessBaselineCorrectorParameters.numSamples),

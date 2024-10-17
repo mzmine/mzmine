@@ -258,9 +258,19 @@ public class BaselineDataBuffer {
         lastIndex = (nextIndexOfInterest + lastIndex) / 2;
         subsampleIndices.add(lastIndex);
       }
-      subsampleIndices.add(nextIndexOfInterest);
-      lastIndex = nextIndexOfInterest;
+
+      // only add landmark index of interest if not to close to another index
+      if (nextIndexOfInterest - lastIndex > stepSize * 0.25) {
+        subsampleIndices.add(nextIndexOfInterest);
+        lastIndex = nextIndexOfInterest;
+      }
     }
+    // make sure last index is added
+    int finalIndex = indicesOfInterest.getLast();
+    if (lastIndex != finalIndex) {
+      subsampleIndices.add(finalIndex);
+    }
+
     logger.finer("Subsampling indices: " + StringUtils.join(subsampleIndices.toIntArray(), ", "));
     return subsampleIndices;
   }

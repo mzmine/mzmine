@@ -25,18 +25,18 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.polynomial;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractResolverBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.XYDataArrays;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,9 +45,8 @@ import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.math.plot.utils.Array;
 
-public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
+public class PolynomialBaselineCorrection extends AbstractResolverBaselineCorrector {
 
   private final int degree;
   private final int iterations;
@@ -65,77 +64,53 @@ public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
     this.iterations = iterations;
   }
 
+
+  /**
+   * @param xDataToCorrect    the data to correct
+   * @param yDataToCorrect    the data to correct
+   * @param numValues         corresponding number of values - input arrays may be longer
+   * @param xDataFiltered     might be the whole x data or peaks removed
+   * @param yDataFiltered     might be the whole y data or peaks removed
+   * @param numValuesFiltered number of filtered data points
+   * @param addPreview        add preview datasets
+   */
   @Override
-  public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
-    additionalData.clear();
-    final int numValues = timeSeries.getNumberOfValues();
-    buffer.extractDataIntoBuffer(timeSeries);
-
-    if (resolver != null) {
-      // resolver sets some data points to 0 if < chromatographic threshold
-      final List<Range<Double>> resolved = resolver.resolve(Array.copy(xBuffer()),
-          Array.copy(yBuffer()));
-      int numPointsInRemovedArray = buffer.removeRangesFromArrays(resolved);
-
-      final PolynomialFunction function = calculateFitFunction(xBufferRemovedPeaks(),
-          yBufferRemovedPeaks(), numPointsInRemovedArray);
-      if (isPreview()) {
-        additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer()[i],
-            i -> function.value(xBuffer()[i])));
-      }
-      for (int i = 0; i < numValues; i++) {
-        // must be above zero, but not bigger than the original value.
-        yBuffer()[i] = Math.min(Math.max(yBuffer()[i] - function.value(xBuffer()[i]), 0),
-            yBuffer()[i]);
-      }
-
-      return createNewTimeSeries(timeSeries, numValues, yBuffer());
-
-    } else {
-
-      final PolynomialFunction function = calculateFitFunction(xBuffer(), yBuffer(), numValues);
-      if (isPreview()) {
-        additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer()[i],
-            i -> function.value(xBuffer()[i])));
-      }
-      for (int i = 0; i < numValues; i++) {
-        // must be above zero, but not bigger than the original value.
-        yBuffer()[i] = Math.min(Math.max(yBuffer()[i] - function.value(xBuffer()[i]), 0),
-            yBuffer()[i]);
-      }
-
-      return createNewTimeSeries(timeSeries, numValues, yBuffer());
-    }
-  }
-
-  private @NotNull PolynomialFunction calculateFitFunction(double[] xValues, double[] yValues,
-      int numValuesInArray) {
+  protected void subSampleAndCorrect(final double[] xDataToCorrect, final double[] yDataToCorrect,
+      int numValues, double[] xDataFiltered, double[] yDataFiltered, int numValuesFiltered,
+      final boolean addPreview) {
+    // TODO change parameter to step size or window size or calculate from parameters
     int stepSize = numSamples;
-    var subsampleIndices = buffer.createSubSampleIndicesFromLandmarks(stepSize);
+    IntList subsampleIndices = buffer.createSubSampleIndicesFromLandmarks(stepSize);
 
-    final double[] subsampleX = BaselineCorrector.subsample(xValues, numValuesInArray,
-        subsampleIndices, true);
-    final double[] subsampleY = BaselineCorrector.subsample(yValues, numValuesInArray,
-        subsampleIndices, false);
+    XYDataArrays subData = subSampleData(subsampleIndices, xDataFiltered, yDataFiltered,
+        numValuesFiltered);
 
     var fitter = PolynomialCurveFitter.create(degree).withMaxIterations(iterations);
     List<WeightedObservedPoint> points = new ArrayList<>();
-    for (int i = 0; i < subsampleX.length; i++) {
-      final WeightedObservedPoint point = new WeightedObservedPoint(1, subsampleX[i],
-          subsampleY[i]);
+    for (int i = 0; i < subData.numValues(); i++) {
+      final WeightedObservedPoint point = new WeightedObservedPoint(1, subData.getX(i),
+          subData.getY(i));
       points.add(point);
-    }
-
-    if (isPreview()) {
-      additionalData.add(
-          new AnyXYProvider(Color.BLUE, "samples", subsampleY.length, j -> subsampleX[j],
-              j -> subsampleY[j]));
     }
 
     final double[] fit = fitter.fit(points);
     PolynomialFunction function = new PolynomialFunction(fit);
-    return function;
+
+    for (int i = 0; i < numValues; i++) {
+      // must be above zero, but not bigger than the original value.
+      yDataToCorrect[i] = Math.min(
+          Math.max(yDataToCorrect[i] - function.value(xDataToCorrect[i]), 0), yDataToCorrect[i]);
+    }
+
+    if (addPreview) {
+      additionalData.add(
+          new AnyXYProvider(Color.BLUE, "samples", subData.numValues(), subData::getX,
+              subData::getY));
+      additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer()[i],
+          i -> function.value(xBuffer()[i])));
+    }
   }
+
 
   @Override
   public BaselineCorrector newInstance(ParameterSet parameters, MemoryMapStorage storage,
@@ -146,8 +121,7 @@ public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
     final Integer numSamples = embedded.getValue(AbstractBaselineCorrectorParameters.numSamples);
     final MinimumSearchFeatureResolver resolver =
         embedded.getValue(AbstractBaselineCorrectorParameters.applyPeakRemoval)
-            ? AbstractBaselineCorrector.initializeLocalMinResolver((ModularFeatureList) flist)
-            : null;
+            ? initializeLocalMinResolver((ModularFeatureList) flist) : null;
     final Integer degree = embedded.getValue(PolynomialBaselineCorrectorParameters.degree);
 
     return new PolynomialBaselineCorrection(storage, numSamples, suffix, resolver, degree,
