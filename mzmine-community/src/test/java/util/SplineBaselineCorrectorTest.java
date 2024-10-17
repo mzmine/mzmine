@@ -25,54 +25,84 @@
 
 package util;
 
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrector;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
+import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineDataBuffer;
+import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.collections.SimpleIndexRange;
+import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class SplineBaselineCorrectorTest {
+
+  private static final Logger logger = Logger.getLogger(
+      SplineBaselineCorrectorTest.class.getName());
+  @Mock
+  OtherTimeSeriesData otherData;
+  private BaselineDataBuffer buffer;
+
+  @BeforeEach
+  void setUp() {
+    final double[] src = IntStream.range(0, 10).mapToDouble(v -> (double) v).toArray();
+    buffer = createBaselineDataBuffer(src);
+  }
+
+  private BaselineDataBuffer createBaselineDataBuffer(final double[] src) {
+    float[] floats = ArrayUtils.doubleToFloat(src);
+    var data = new SimpleOtherTimeSeries(null, floats, src, "test", otherData);
+    BaselineDataBuffer buffer = new BaselineDataBuffer();
+    buffer.extractDataIntoBuffer(data);
+    return buffer;
+  }
+
+  private void check(final BaselineDataBuffer buffer, final int expectedRemaining,
+      final double[] expectedX, final int[] expectedIndicesOfInterest) {
+    logger.info(Arrays.stream(buffer.xBufferRemovedPeaks()).mapToObj(String::valueOf)
+        .collect(Collectors.joining(", ")));
+    Assertions.assertEquals(expectedRemaining, buffer.remaining());
+    Assertions.assertArrayEquals(expectedX, buffer.xBufferRemovedPeaks());
+
+    // indices of interes
+    logger.info(
+        "Indices of interest: " + buffer.indicesOfInterest().intStream().mapToObj(String::valueOf)
+            .collect(Collectors.joining(", ")));
+    Assertions.assertArrayEquals(expectedIndicesOfInterest,
+        buffer.indicesOfInterest().toIntArray());
+  }
+
 
   @Test
   public void testRangeAtStart() {
     SimpleIndexRange r = new SimpleIndexRange(0, 3);
+    buffer.removeRangesFromArray(List.of(r));
 
-    final double[] src = new double[]{3, 1, 1, 2, 2, 2, 2, 2, 2, 2};
-    final double[] dst = new double[10];
-
-    final int remaining = AbstractBaselineCorrector.removeRangesFromArray(List.of(r), 10, src,
-        dst);
-
-    Assertions.assertEquals(7, remaining);
-    Assertions.assertArrayEquals(new double[]{3, 2, 2, 2, 2, 2, 2, 0, 0, 0}, dst);
+    check(buffer, 7, new double[]{0, 4, 5, 6, 7, 8, 9, 0, 0, 0}, new int[]{0, 1, 6});
   }
 
   @Test
   public void testRangeAtEnd() {
     SimpleIndexRange r = new SimpleIndexRange(7, 9);
+    buffer.removeRangesFromArray(List.of(r));
 
-    final double[] src = new double[]{2, 2, 2, 2, 2, 2, 2, 1, 1, 3};
-    final double[] dst = new double[10];
-
-    final int remaining = AbstractBaselineCorrector.removeRangesFromArray(List.of(r), 10, src,
-        dst);
-
-    Assertions.assertEquals(8, remaining);
-    Assertions.assertArrayEquals(new double[]{2, 2, 2, 2, 2, 2, 2, 3, 0, 0}, dst);
+    check(buffer, 8, new double[]{0, 1, 2, 3, 4, 5, 6, 9, 0, 0}, new int[]{0, 6, 7});
   }
 
   @Test
   public void testRangeInMiddle() {
     SimpleIndexRange r = new SimpleIndexRange(4, 6);
+    buffer.removeRangesFromArray(List.of(r));
 
-    final double[] src = new double[]{2, 2, 2, 2, 1, 1, 1, 2, 2, 2};
-    final double[] dst = new double[10];
-
-    final int remaining = AbstractBaselineCorrector.removeRangesFromArray(List.of(r), 10, src,
-        dst);
-
-    Assertions.assertEquals(7, remaining);
-    Assertions.assertArrayEquals(new double[]{2, 2, 2, 2, 2, 2, 2, 0, 0, 0}, dst);
+    check(buffer, 7, new double[]{0, 1, 2, 3, 7, 8, 9, 0, 0, 0}, new int[]{0, 3, 4, 6});
   }
 
   @Test
@@ -80,14 +110,9 @@ public class SplineBaselineCorrectorTest {
     SimpleIndexRange r1 = new SimpleIndexRange(0, 1);
     SimpleIndexRange r2 = new SimpleIndexRange(4, 6);
 
-    final double[] src = new double[]{3, 1, 2, 2, 1, 1, 1, 4, 4, 4};
-    final double[] dst = new double[10];
+    buffer.removeRangesFromArray(List.of(r1, r2));
 
-    final int remaining = AbstractBaselineCorrector.removeRangesFromArray(List.of(r1, r2), 10,
-        src, dst);
-
-    Assertions.assertEquals(6, remaining);
-    Assertions.assertArrayEquals(new double[]{3, 2, 2, 4, 4, 4, 0, 0, 0, 0}, dst);
+    check(buffer, 6, new double[]{0, 2, 3, 7, 8, 9, 0, 0, 0, 0}, new int[]{0, 1, 2, 3, 5});
   }
 
   @Test
@@ -95,13 +120,15 @@ public class SplineBaselineCorrectorTest {
     SimpleIndexRange r1 = new SimpleIndexRange(4, 6);
     SimpleIndexRange r2 = new SimpleIndexRange(8, 9);
 
-    final double[] src = new double[]{2, 2, 2, 2, 1, 1, 1, 2, 4, 3};
-    final double[] dst = new double[10];
+    buffer.removeRangesFromArray(List.of(r1, r2));
 
-    final int remaining = AbstractBaselineCorrector.removeRangesFromArray(List.of(r1, r2), 10,
-        src, dst);
+    check(buffer, 6, new double[]{0, 1, 2, 3, 7, 9, 0, 0, 0, 0}, new int[]{0, 3, 4, 5});
+  }
 
-    Assertions.assertEquals(6, remaining);
-    Assertions.assertArrayEquals(new double[]{2, 2, 2, 2, 2, 3, 0, 0, 0, 0}, dst);
+  @Test
+  public void testEmptyRanges() {
+    buffer.removeRangesFromArray(List.of());
+
+    check(buffer, 10, new double[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, new int[]{0, 9});
   }
 }

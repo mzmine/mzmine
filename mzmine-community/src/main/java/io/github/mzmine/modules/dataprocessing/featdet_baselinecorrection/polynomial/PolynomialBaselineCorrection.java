@@ -37,8 +37,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Baseli
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.BinarySearch;
-import io.github.mzmine.util.collections.IndexRange;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +45,7 @@ import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.math.plot.utils.Array;
 
 public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
 
@@ -73,15 +72,10 @@ public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
     buffer.extractDataIntoBuffer(timeSeries);
 
     if (resolver != null) {
-      // remove peaks
-      final List<Range<Double>> resolved = resolver.resolve(xBuffer(), yBuffer());
-      final List<IndexRange> indices = resolved.stream().map(
-          range -> BinarySearch.indexRange(range, timeSeries.getNumberOfValues(),
-              timeSeries::getRetentionTime)).toList();
-      final int numPointsInRemovedArray = AbstractBaselineCorrector.removeRangesFromArray(indices,
-          numValues, xBuffer(), xBufferRemovedPeaks());
-      AbstractBaselineCorrector.removeRangesFromArray(indices, numValues, yBuffer(),
-          yBufferRemovedPeaks());
+      // resolver sets some data points to 0 if < chromatographic threshold
+      final List<Range<Double>> resolved = resolver.resolve(Array.copy(xBuffer()),
+          Array.copy(yBuffer()));
+      int numPointsInRemovedArray = buffer.removeRangesFromArrays(resolved);
 
       final PolynomialFunction function = calculateFitFunction(xBufferRemovedPeaks(),
           yBufferRemovedPeaks(), numPointsInRemovedArray);
@@ -116,10 +110,13 @@ public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
 
   private @NotNull PolynomialFunction calculateFitFunction(double[] xValues, double[] yValues,
       int numValuesInArray) {
-    final double[] subsampleX = BaselineCorrector.subsample(xValues, numValuesInArray, numSamples,
-        true);
-    final double[] subsampleY = BaselineCorrector.subsample(yValues, numValuesInArray, numSamples,
-        false);
+    int stepSize = numSamples;
+    var subsampleIndices = buffer.createSubSampleIndicesFromLandmarks(stepSize);
+
+    final double[] subsampleX = BaselineCorrector.subsample(xValues, numValuesInArray,
+        subsampleIndices, true);
+    final double[] subsampleY = BaselineCorrector.subsample(yValues, numValuesInArray,
+        subsampleIndices, false);
 
     var fitter = PolynomialCurveFitter.create(degree).withMaxIterations(iterations);
     List<WeightedObservedPoint> points = new ArrayList<>();
@@ -127,6 +124,12 @@ public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
       final WeightedObservedPoint point = new WeightedObservedPoint(1, subsampleX[i],
           subsampleY[i]);
       points.add(point);
+    }
+
+    if (isPreview()) {
+      additionalData.add(
+          new AnyXYProvider(Color.BLUE, "samples", subsampleY.length, j -> subsampleX[j],
+              j -> subsampleY[j]));
     }
 
     final double[] fit = fitter.fit(points);

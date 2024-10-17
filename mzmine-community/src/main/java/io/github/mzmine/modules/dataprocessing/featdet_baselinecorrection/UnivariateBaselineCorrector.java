@@ -30,14 +30,13 @@ import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.BinarySearch;
-import io.github.mzmine.util.collections.IndexRange;
 import java.awt.Color;
 import java.util.List;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.math.plot.utils.Array;
 
 public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrector {
 
@@ -61,10 +60,13 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
    */
   protected <T extends IntensityTimeSeries> T subSampleAndCorrect(T timeSeries, int numValues,
       int numPointsInRemovedArray, double[] xBufferRemovedPeaks, double[] yBufferRemovedPeaks) {
+    int stepSize = numSamples;
+    var subsampleIndices = buffer.createSubSampleIndicesFromLandmarks(stepSize);
+
     final double[] subsampleX = BaselineCorrector.subsample(xBufferRemovedPeaks,
-        numPointsInRemovedArray, numSamples, true);
+        numPointsInRemovedArray, subsampleIndices, true);
     final double[] subsampleY = BaselineCorrector.subsample(yBufferRemovedPeaks,
-        numPointsInRemovedArray, numSamples, false);
+        numPointsInRemovedArray, subsampleIndices, false);
 
     UnivariateInterpolator interpolator = initializeInterpolator(subsampleX.length);
     UnivariateFunction splineFunction = interpolator.interpolate(subsampleX, subsampleY);
@@ -78,6 +80,10 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
     if (isPreview()) {
       additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, j -> xBuffer()[j],
           j -> splineFunction.value(xBuffer()[j])));
+
+      additionalData.add(
+          new AnyXYProvider(Color.BLUE, "samples", subsampleY.length, j -> subsampleX[j],
+              j -> subsampleY[j]));
     }
 
     return createNewTimeSeries(timeSeries, numValues, yBuffer());
@@ -90,15 +96,10 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
     buffer.extractDataIntoBuffer(timeSeries);
 
     if (resolver != null) {
-      final List<Range<Double>> resolved = resolver.resolve(xBuffer(), yBuffer());
-      final List<IndexRange> indices = resolved.stream().map(
-          range -> BinarySearch.indexRange(range, timeSeries.getNumberOfValues(),
-              timeSeries::getRetentionTime)).toList();
-
-      final int numPointsInRemovedArray = AbstractBaselineCorrector.removeRangesFromArray(indices,
-          numValues, xBuffer(), xBufferRemovedPeaks());
-      AbstractBaselineCorrector.removeRangesFromArray(indices, numValues, yBuffer(),
-          yBufferRemovedPeaks());
+      // resolver sets some data points to 0 if < chromatographic threshold
+      final List<Range<Double>> resolved = resolver.resolve(Array.copy(xBuffer()),
+          Array.copy(yBuffer()));
+      final int numPointsInRemovedArray = buffer.removeRangesFromArrays(resolved);
 
       // use the data with features removed
       return subSampleAndCorrect(timeSeries, numValues, numPointsInRemovedArray,

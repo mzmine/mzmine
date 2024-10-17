@@ -31,11 +31,13 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.List;
 
 public interface BaselineCorrector extends MZmineModule {
 
-  static double[] subsample(double[] array, int numValues, int numSamples, boolean check) {
+  static double[] subsample(double[] array, int numValues, int numSamples,
+      boolean checkDataAscending) {
     if (numSamples >= numValues) {
       var reduced = new double[numValues];
       System.arraycopy(array, 0, reduced, 0, numValues);
@@ -49,11 +51,32 @@ public interface BaselineCorrector extends MZmineModule {
     for (int i = 0; i < numSamples; i++) {
       // floor to lower number
       result[i] = array[(int) (i * increment)];
-      if (check && result[Math.max(i - 1, 0)] > result[i]) {
-        throw new IllegalStateException();
+      if (checkDataAscending && result[Math.max(i - 1, 0)] > result[i]) {
+        throw new IllegalStateException("Data is not sorted ascending");
       }
     }
 
+    return result;
+  }
+
+  /**
+   * Subsample by list of indices
+   */
+  static double[] subsample(double[] array, int numValues, IntList indices,
+      boolean checkDataAscending) {
+    double[] result = new double[indices.size()];
+    for (int i = 0; i < indices.size(); i++) {
+      int dataIndex = indices.getInt(i);
+      if (dataIndex >= numValues) {
+        throw new IllegalStateException(
+            "Index is out of data range for numValues %d and index %d".formatted(numValues,
+                dataIndex));
+      }
+      result[i] = array[dataIndex];
+      if (checkDataAscending && result[Math.max(i - 1, 0)] > result[i]) {
+        throw new IllegalStateException("Data is not sorted ascending");
+      }
+    }
     return result;
   }
 

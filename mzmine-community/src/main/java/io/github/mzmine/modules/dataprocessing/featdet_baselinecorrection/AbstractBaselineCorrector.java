@@ -36,7 +36,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.IndexRange;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,61 +60,6 @@ public abstract class AbstractBaselineCorrector implements BaselineCorrector {
     this.numSamples = numSamples;
     this.suffix = suffix;
     this.resolver = resolver;
-  }
-
-  /**
-   * Removes the given list of index ranges from the array, always keeping the first and last value
-   * even if they are contained in one of the ranges. This may be needed for
-   * {@link org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction}, because it will
-   * not extrapolate beyond the sides.
-   *
-   * @param indices   The list of index ranges. May be empty.
-   * @param numValues the number of values in the array. Can be used to limit the search if
-   *                  {@param src} is a buffer.
-   * @param src       The source to copy values frm
-   * @param dst       The destination to write the new array to.
-   * @return The number of values written to the array.
-   */
-  public static int removeRangesFromArray(List<IndexRange> indices, int numValues, double[] src,
-      double[] dst) {
-    int startInRemovedArray = 0;
-    int lastEndPointInOriginalArray = 0;
-
-    if (indices.isEmpty()) {
-      System.arraycopy(src, 0, dst, 0, numValues);
-      startInRemovedArray = numValues;
-      return startInRemovedArray;
-    } else {
-      if (indices.getFirst().min() == 0) {
-        dst[0] = src[0];
-        startInRemovedArray++;
-        lastEndPointInOriginalArray++;
-      }
-
-      for (int i = 0; i < indices.size(); i++) {
-        final IndexRange range = indices.get(i);
-        final int numPoints = range.min() - lastEndPointInOriginalArray;
-
-        // in case the first range starts at 0 and the first point was copied manually, this condition is not met.
-        if (numPoints > 0) {
-          System.arraycopy(src, lastEndPointInOriginalArray, dst, startInRemovedArray, numPoints);
-          startInRemovedArray += numPoints;
-        }
-        lastEndPointInOriginalArray = range.maxExclusive();
-      }
-    }
-
-    // add last value
-    if (indices.getLast().maxExclusive() >= numValues) {
-      dst[startInRemovedArray] = src[numValues - 1];
-      startInRemovedArray++;
-    } else {
-      // add values until the end
-      System.arraycopy(src, lastEndPointInOriginalArray, dst, startInRemovedArray,
-          numValues - lastEndPointInOriginalArray);
-      startInRemovedArray += numValues - lastEndPointInOriginalArray;
-    }
-    return startInRemovedArray;
   }
 
   protected static @NotNull MinimumSearchFeatureResolver initializeLocalMinResolver(
