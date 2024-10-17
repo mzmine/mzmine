@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
-import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
@@ -43,17 +42,17 @@ public interface BaselineCorrector extends MZmineModule {
       return reduced;
     }
 
-    final int increment = numValues / numSamples;
+    // use float to get more precise increments
+    final float increment = (float) numValues / numSamples;
 
-    final double[] result = new double[numSamples + 1];
+    final double[] result = new double[numSamples];
     for (int i = 0; i < numSamples; i++) {
-      result[i] = array[i * increment];
+      // floor to lower number
+      result[i] = array[(int) (i * increment)];
       if (check && result[Math.max(i - 1, 0)] > result[i]) {
         throw new IllegalStateException();
       }
     }
-
-    result[numSamples] = array[numValues - 1];
 
     return result;
   }
@@ -62,22 +61,6 @@ public interface BaselineCorrector extends MZmineModule {
 
   BaselineCorrector newInstance(ParameterSet parameters, MemoryMapStorage storage,
       FeatureList flist);
-
-  default <T extends IntensityTimeSeries> void extractDataIntoBuffer(T timeSeries, double[] xBuffer,
-      double[] yBuffer) {
-    for (int i = 0; i < timeSeries.getNumberOfValues(); i++) {
-      xBuffer[i] = timeSeries.getRetentionTime(i);
-      if (xBuffer[i] < xBuffer[Math.max(i - 1, 0)]) {
-        throw new IllegalStateException();
-      }
-    }
-
-    if (timeSeries instanceof FeatureDataAccess access) {
-      System.arraycopy(access.getIntensityValues(), 0, yBuffer, 0, access.getNumberOfValues());
-    } else {
-      yBuffer = timeSeries.getIntensityValues(yBuffer);
-    }
-  }
 
   default List<PlotXYDataProvider> getAdditionalPreviewData() {
     return List.of();

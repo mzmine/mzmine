@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -70,51 +70,47 @@ public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
   public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
     additionalData.clear();
     final int numValues = timeSeries.getNumberOfValues();
-    if (yBuffer.length < numValues) {
-      xBuffer = new double[numValues];
-      yBuffer = new double[numValues];
-      xBufferRemovedPeaks = new double[numValues];
-      yBufferRemovedPeaks = new double[numValues];
-    }
-    extractDataIntoBuffer(timeSeries, xBuffer, yBuffer);
+    buffer.extractDataIntoBuffer(timeSeries);
 
     if (resolver != null) {
       // remove peaks
-      final List<Range<Double>> resolved = resolver.resolve(xBuffer, yBuffer);
+      final List<Range<Double>> resolved = resolver.resolve(xBuffer(), yBuffer());
       final List<IndexRange> indices = resolved.stream().map(
           range -> BinarySearch.indexRange(range, timeSeries.getNumberOfValues(),
               timeSeries::getRetentionTime)).toList();
       final int numPointsInRemovedArray = AbstractBaselineCorrector.removeRangesFromArray(indices,
-          numValues, xBuffer, xBufferRemovedPeaks);
-      AbstractBaselineCorrector.removeRangesFromArray(indices, numValues, yBuffer,
-          yBufferRemovedPeaks);
+          numValues, xBuffer(), xBufferRemovedPeaks());
+      AbstractBaselineCorrector.removeRangesFromArray(indices, numValues, yBuffer(),
+          yBufferRemovedPeaks());
 
-      final PolynomialFunction function = calculateFitFunction(xBufferRemovedPeaks,
-          yBufferRemovedPeaks, numPointsInRemovedArray);
+      final PolynomialFunction function = calculateFitFunction(xBufferRemovedPeaks(),
+          yBufferRemovedPeaks(), numPointsInRemovedArray);
       if (isPreview()) {
-        additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer[i],
-            i -> function.value(xBuffer[i])));
+        additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer()[i],
+            i -> function.value(xBuffer()[i])));
       }
       for (int i = 0; i < numValues; i++) {
         // must be above zero, but not bigger than the original value.
-        yBuffer[i] = Math.min(Math.max(yBuffer[i] - function.value(xBuffer[i]), 0), yBuffer[i]);
+        yBuffer()[i] = Math.min(Math.max(yBuffer()[i] - function.value(xBuffer()[i]), 0),
+            yBuffer()[i]);
       }
 
-      return createNewTimeSeries(timeSeries, numValues, yBuffer);
+      return createNewTimeSeries(timeSeries, numValues, yBuffer());
 
     } else {
 
-      final PolynomialFunction function = calculateFitFunction(xBuffer, yBuffer, numValues);
+      final PolynomialFunction function = calculateFitFunction(xBuffer(), yBuffer(), numValues);
       if (isPreview()) {
-        additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer[i],
-            i -> function.value(xBuffer[i])));
+        additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer()[i],
+            i -> function.value(xBuffer()[i])));
       }
       for (int i = 0; i < numValues; i++) {
         // must be above zero, but not bigger than the original value.
-        yBuffer[i] = Math.min(Math.max(yBuffer[i] - function.value(xBuffer[i]), 0), yBuffer[i]);
+        yBuffer()[i] = Math.min(Math.max(yBuffer()[i] - function.value(xBuffer()[i]), 0),
+            yBuffer()[i]);
       }
 
-      return createNewTimeSeries(timeSeries, numValues, yBuffer);
+      return createNewTimeSeries(timeSeries, numValues, yBuffer());
     }
   }
 
@@ -139,8 +135,8 @@ public class PolynomialBaselineCorrection extends AbstractBaselineCorrector {
   }
 
   @Override
-  public BaselineCorrector newInstance(ParameterSet parameters,
-      MemoryMapStorage storage, FeatureList flist) {
+  public BaselineCorrector newInstance(ParameterSet parameters, MemoryMapStorage storage,
+      FeatureList flist) {
     final String suffix = parameters.getValue(BaselineCorrectionParameters.suffix);
     final ParameterSet embedded = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();

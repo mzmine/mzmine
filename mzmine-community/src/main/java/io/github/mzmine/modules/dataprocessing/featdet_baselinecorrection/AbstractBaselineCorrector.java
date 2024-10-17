@@ -50,11 +50,9 @@ public abstract class AbstractBaselineCorrector implements BaselineCorrector {
   protected final MemoryMapStorage storage;
   protected final String suffix;
   protected final List<PlotXYDataProvider> additionalData = new ArrayList<>();
-  protected double[] xBuffer = new double[0];
-  protected double[] yBuffer = new double[0];
-  protected double[] xBufferRemovedPeaks = new double[0];
-  protected double[] yBufferRemovedPeaks = new double[0];
+  protected final BaselineDataBuffer buffer = new BaselineDataBuffer();
   boolean preview = false;
+
 
   public AbstractBaselineCorrector(@Nullable MemoryMapStorage storage, int numSamples,
       @NotNull String suffix, @Nullable MinimumSearchFeatureResolver resolver) {
@@ -174,5 +172,21 @@ public abstract class AbstractBaselineCorrector implements BaselineCorrector {
   @Override
   public List<PlotXYDataProvider> getAdditionalPreviewData() {
     return additionalData;
+  }
+
+  public double[] xBuffer() {
+    return buffer.xBuffer();
+  }
+
+  public double[] yBuffer() {
+    return buffer.yBuffer();
+  }
+
+  public double[] xBufferRemovedPeaks() {
+    return buffer.xBufferRemovedPeaks();
+  }
+
+  public double[] yBufferRemovedPeaks() {
+    return buffer.yBufferRemovedPeaks();
   }
 }

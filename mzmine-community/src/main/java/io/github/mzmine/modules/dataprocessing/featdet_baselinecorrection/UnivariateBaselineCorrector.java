@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,6 +50,15 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
     super(storage, numSamples, suffix, resolver);
   }
 
+  /**
+   * @param timeSeries
+   * @param numValues
+   * @param numPointsInRemovedArray
+   * @param xBufferRemovedPeaks     might be the whole x data or peaks removed
+   * @param yBufferRemovedPeaks     might be the whole y data or peaks removed
+   * @param <T>
+   * @return
+   */
   protected <T extends IntensityTimeSeries> T subSampleAndCorrect(T timeSeries, int numValues,
       int numPointsInRemovedArray, double[] xBufferRemovedPeaks, double[] yBufferRemovedPeaks) {
     final double[] subsampleX = BaselineCorrector.subsample(xBufferRemovedPeaks,
@@ -62,44 +71,41 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
 
     for (int i = 0; i < numValues; i++) {
       // must be above zero, but not bigger than the original value.
-      yBuffer[i] = Math.min(Math.max(yBuffer[i] - splineFunction.value(xBuffer[i]), 0), yBuffer[i]);
+      yBuffer()[i] = Math.min(Math.max(yBuffer()[i] - splineFunction.value(xBuffer()[i]), 0),
+          yBuffer()[i]);
     }
 
     if (isPreview()) {
-      additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, j -> xBuffer[j],
-          j -> splineFunction.value(xBuffer[j])));
+      additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, j -> xBuffer()[j],
+          j -> splineFunction.value(xBuffer()[j])));
     }
 
-    return createNewTimeSeries(timeSeries, numValues, yBuffer);
+    return createNewTimeSeries(timeSeries, numValues, yBuffer());
   }
 
   @Override
   public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
     additionalData.clear();
     final int numValues = timeSeries.getNumberOfValues();
-    if (yBuffer.length < numValues) {
-      xBuffer = new double[numValues];
-      yBuffer = new double[numValues];
-      xBufferRemovedPeaks = new double[numValues];
-      yBufferRemovedPeaks = new double[numValues];
-    }
-    extractDataIntoBuffer(timeSeries, xBuffer, yBuffer);
+    buffer.extractDataIntoBuffer(timeSeries);
 
     if (resolver != null) {
-      final List<Range<Double>> resolved = resolver.resolve(xBuffer, yBuffer);
+      final List<Range<Double>> resolved = resolver.resolve(xBuffer(), yBuffer());
       final List<IndexRange> indices = resolved.stream().map(
           range -> BinarySearch.indexRange(range, timeSeries.getNumberOfValues(),
               timeSeries::getRetentionTime)).toList();
 
       final int numPointsInRemovedArray = AbstractBaselineCorrector.removeRangesFromArray(indices,
-          numValues, xBuffer, xBufferRemovedPeaks);
-      AbstractBaselineCorrector.removeRangesFromArray(indices, numValues, yBuffer,
-          yBufferRemovedPeaks);
+          numValues, xBuffer(), xBufferRemovedPeaks());
+      AbstractBaselineCorrector.removeRangesFromArray(indices, numValues, yBuffer(),
+          yBufferRemovedPeaks());
 
+      // use the data with features removed
       return subSampleAndCorrect(timeSeries, numValues, numPointsInRemovedArray,
-          xBufferRemovedPeaks, yBufferRemovedPeaks);
+          xBufferRemovedPeaks(), yBufferRemovedPeaks());
     } else {
-      return subSampleAndCorrect(timeSeries, numValues, numValues, xBuffer, yBuffer);
+      // use the original data
+      return subSampleAndCorrect(timeSeries, numValues, numValues, xBuffer(), yBuffer());
     }
   }
 

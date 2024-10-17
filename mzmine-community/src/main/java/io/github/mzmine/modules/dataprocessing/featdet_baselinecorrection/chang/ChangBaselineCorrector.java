@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,8 +56,6 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
   private final double baselineFraction;
   private final int windowSize;
   private final double threshold;
-  protected double[] xBuffer = new double[0];
-  protected double[] yBuffer = new double[0];
 
   public ChangBaselineCorrector() {
     this(null, "", 0.95, 100, 0.2, 10, 0.5);
@@ -103,17 +101,12 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
   public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
     additionalData.clear();
     final int numValues = timeSeries.getNumberOfValues();
-    if (yBuffer.length < numValues) {
-      xBuffer = new double[numValues];
-      yBuffer = new double[numValues];
-    }
-
-    extractDataIntoBuffer(timeSeries, xBuffer, yBuffer);
+    buffer.extractDataIntoBuffer(timeSeries);
 
     // minimum 5 points per segment
     final int numSegments = Math.min(maxSegments, (int) Math.ceil((double) numValues / 5));
 
-    final double[] filtered = highPassFilter(yBuffer, alpha);
+    final double[] filtered = highPassFilter(yBuffer(), alpha);
     final int numPerSegment = numValues / numSegments;
 
     final List<IndexRange> indices = new ArrayList<>();
@@ -151,27 +144,27 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
     isSignal[isSignal.length - 1] = false;
 
     final double[] backgroundSignal = linearInterpolation(
-        IntStream.range(0, numValues).filter(j -> !isSignal[j]).mapToDouble(j -> xBuffer[j])
+        IntStream.range(0, numValues).filter(j -> !isSignal[j]).mapToDouble(j -> xBuffer()[j])
             .toArray(),
-        IntStream.range(0, numValues).filter(j -> !isSignal[j]).mapToDouble(j -> yBuffer[j])
-            .toArray(), xBuffer);
+        IntStream.range(0, numValues).filter(j -> !isSignal[j]).mapToDouble(j -> yBuffer()[j])
+            .toArray(), xBuffer());
 
     for (int i = 0; i < numValues; i++) {
-      yBuffer[i] = Math.max(0,
-          yBuffer[i] - backgroundSignal[i] + 2 * (threshold * 0.5) * 2 * backgroundSDev);
+      yBuffer()[i] = Math.max(0,
+          yBuffer()[i] - backgroundSignal[i] + 2 * (threshold * 0.5) * 2 * backgroundSDev);
     }
 
     if (isPreview()) {
-      additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer[i],
+      additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer()[i],
           i -> backgroundSignal[i] + 2 * (threshold * 0.5) * 2 * backgroundSDev));
-      additionalData.add(new AnyXYProvider(Color.BLUE, "background", numValues, i -> xBuffer[i],
+      additionalData.add(new AnyXYProvider(Color.BLUE, "background", numValues, i -> xBuffer()[i],
           i -> backgroundSignal[i]));
       additionalData.add(
-          new AnyXYProvider(Color.GREEN, "isSignal " + backgroundSDev, numValues, i -> xBuffer[i],
+          new AnyXYProvider(Color.GREEN, "isSignal " + backgroundSDev, numValues, i -> xBuffer()[i],
               i -> isSignal[i] ? 1000d : -1000d));
     }
 
-    return createNewTimeSeries(timeSeries, numValues, yBuffer);
+    return createNewTimeSeries(timeSeries, numValues, yBuffer());
   }
 
   @Override
