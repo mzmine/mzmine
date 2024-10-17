@@ -309,3 +309,4 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
     return streamStepParameterSets(moduleClass).findFirst();
   }
 }
+
