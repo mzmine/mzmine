@@ -189,8 +189,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
   @Override
   public IonTimeSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
-      final @NotNull List<@NotNull Scan> scans) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
 
     return new SimpleIonTimeSeries(storage, newMzValues, newIntensityValues, scans);
   }

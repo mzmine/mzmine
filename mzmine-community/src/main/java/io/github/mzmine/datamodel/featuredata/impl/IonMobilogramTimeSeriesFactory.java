@@ -62,7 +62,7 @@ public class IonMobilogramTimeSeriesFactory {
    *
    * @param storage     May be null if values shall be stored in ram.
    * @param mobilograms
-   * @see IonSpectrumSeries#copyAndReplace(MemoryMapStorage, double[], double[], List)
+   * @see IonSpectrumSeries#copyAndReplace(MemoryMapStorage, double[], double[])
    */
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
       @NotNull final List<IonMobilitySeries> mobilograms,
