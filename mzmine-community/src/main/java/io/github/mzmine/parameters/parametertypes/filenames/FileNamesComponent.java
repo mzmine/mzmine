@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,9 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 import com.google.common.collect.ImmutableList;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.modules.io.download.DownloadAsset;
+import io.github.mzmine.modules.io.download.DownloadAssetButton;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.nio.file.Path;
@@ -50,6 +53,7 @@ import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FileNamesComponent extends BorderPane {
@@ -61,10 +65,17 @@ public class FileNamesComponent extends BorderPane {
 
   private final List<ExtensionFilter> filters;
   private final Path defaultDir;
+  private final List<DownloadAsset> assets;
 
   public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir) {
+    this(filters, defaultDir, List.of());
+  }
+
+  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir,
+      @NotNull List<DownloadAsset> assets) {
     this.filters = ImmutableList.copyOf(filters);
     this.defaultDir = defaultDir;
+    this.assets = assets;
 
     txtFilename = new TextArea();
     txtFilename.setPrefColumnCount(65);
@@ -119,15 +130,27 @@ public class FileNamesComponent extends BorderPane {
     buttonGrid.setVgap(3);
     buttonGrid.setPadding(new Insets(0, 0, 0, 5));
 
-    buttonGrid.add(btnFileBrowser, 0, 0);
-    buttonGrid.add(btnClear, 1, 0);
-    buttonGrid.add(useSubFolders, 0, 1, 2, 1);
+    int row = 0;
+    // add asset button if assets available
+    if (!assets.isEmpty()) {
+      var downloadButton = new DownloadAssetButton(assets);
+      downloadButton.setOnDownloadFinished(
+          files -> FxThread.runLater(() -> setValue(files.toArray(File[]::new))));
+      buttonGrid.add(downloadButton, 0, row, 2, 1);
+      row++;
+    }
+
+    buttonGrid.add(btnFileBrowser, 0, row);
+    buttonGrid.add(btnClear, 1, row);
+    row++;
+    buttonGrid.add(useSubFolders, 0, row, 2, 1);
+    row++;
 
     List<Button> directoryButtons = createFromDirectoryBtns(filters);
-    int startRow = 2;
-    buttonGrid.add(directoryButtons.remove(0), 0, startRow, 2, 1);
+    buttonGrid.add(directoryButtons.removeFirst(), 0, row, 2, 1);
+    row++;
     for (int i = 0; i < directoryButtons.size(); i++) {
-      buttonGrid.add(directoryButtons.get(i), i % 2, startRow + 1 + i / 2);
+      buttonGrid.add(directoryButtons.get(i), i % 2, row + 1 + i / 2);
       directoryButtons.get(i).getParent().layout();
     }
     buttonGrid.layout();
@@ -157,7 +180,7 @@ public class FileNamesComponent extends BorderPane {
     if (filter.getExtensions().isEmpty() || filter.getExtensions().get(0).equals("*.*")) {
       return;
     }
-    String name = isAllFilter ? "From folder" : "All " + filter.getExtensions().get(0);
+    String name = isAllFilter ? "All in folder" : "All " + filter.getExtensions().get(0);
 
     Button btnFromDirectory = new Button(name);
     btnFromDirectory.setMinWidth(USE_COMPUTED_SIZE);
@@ -215,8 +238,8 @@ public class FileNamesComponent extends BorderPane {
       txtFilename.setText("");
       return;
     }
-    txtFilename.setText(Arrays.stream(value).filter(Objects::nonNull).map(File::getPath).collect(
-        Collectors.joining("\n")));
+    txtFilename.setText(Arrays.stream(value).filter(Objects::nonNull).map(File::getPath)
+        .collect(Collectors.joining("\n")));
   }
 
   public void setToolTipText(String toolTip) {

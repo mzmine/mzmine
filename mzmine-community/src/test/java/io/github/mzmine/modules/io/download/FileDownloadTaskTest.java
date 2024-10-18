@@ -23,25 +23,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_spectral_library;
+package io.github.mzmine.modules.io.download;
 
-import io.github.mzmine.modules.io.download.AssetGroup;
-import io.github.mzmine.modules.io.download.DownloadAssets;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithDownloadParameter;
-import io.github.mzmine.util.files.ExtensionFilters;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class SpectralLibraryImportParameters extends SimpleParameterSet {
+import io.github.mzmine.modules.io.download.DownloadAsset.Builder;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.File;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
+@Disabled
+class FileDownloadTaskTest {
 
-  public static final FileNamesWithDownloadParameter dataBaseFiles = new FileNamesWithDownloadParameter(
-      "Spectral library files", """
-      Path of spectral library files in common formats
-      (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY,
-      DownloadAssets.forAssetGroup(AssetGroup.SPECTRAL_LIBRARIES));
+  //  @TempDir
+  File tmpDir = new File("D:\\tmp\\downloadTest\\");
 
-  public SpectralLibraryImportParameters() {
-    super(dataBaseFiles);
+  @Test
+  void testDownloadZenodoArchive() {
+    var asset = Builder.ofZenodo(ExternalAsset.MS2DEEPSCORE, "12628368").create();
+    var task = new FileDownloadTask(asset, tmpDir);
+    task.run();
+    assertEquals(TaskStatus.FINISHED, task.getStatus());
+  }
+
+  @Test
+  void testDownloadZenodoFileFilter() {
+    var asset = Builder.ofZenodo(ExternalAsset.MSnLib, "11163380") //
+//        .fileNamePattern(".*_neg_ms2.mgf").create();
+        .fileNamePattern(".*otavapep_neg_ms2.mgf").create();
+    var task = new FileDownloadTask(asset);
+    task.run();
+    assertEquals(TaskStatus.FINISHED, task.getStatus());
   }
 
 }

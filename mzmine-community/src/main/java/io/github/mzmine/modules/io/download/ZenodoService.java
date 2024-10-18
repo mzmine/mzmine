@@ -23,25 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_spectral_library;
+package io.github.mzmine.modules.io.download;
 
-import io.github.mzmine.modules.io.download.AssetGroup;
-import io.github.mzmine.modules.io.download.DownloadAssets;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithDownloadParameter;
-import io.github.mzmine.util.files.ExtensionFilters;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.github.mzmine.util.web.HttpResponseException;
+import io.github.mzmine.util.web.HttpUtils;
+import java.io.IOException;
 
-public class SpectralLibraryImportParameters extends SimpleParameterSet {
+public class ZenodoService {
 
-
-  public static final FileNamesWithDownloadParameter dataBaseFiles = new FileNamesWithDownloadParameter(
-      "Spectral library files", """
-      Path of spectral library files in common formats
-      (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY,
-      DownloadAssets.forAssetGroup(AssetGroup.SPECTRAL_LIBRARIES));
-
-  public SpectralLibraryImportParameters() {
-    super(dataBaseFiles);
+  public static ZenodoRecord getWebRecord(ZenodoDownloadAsset asset)
+      throws HttpResponseException, IOException, InterruptedException {
+    return getWebRecord(asset.url());
   }
 
+  public static ZenodoRecord getWebRecord(String url)
+      throws HttpResponseException, IOException, InterruptedException {
+    String recordInfoJson = HttpUtils.get(url);
+    return getJsonMapper().readValue(recordInfoJson, ZenodoRecord.class);
+  }
+
+  public static JsonMapper getJsonMapper() {
+    return JsonMapper.builder().addModule(new JavaTimeModule()).build();
+  }
 }

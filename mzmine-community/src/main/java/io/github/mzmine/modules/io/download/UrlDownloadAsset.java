@@ -23,25 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_spectral_library;
+package io.github.mzmine.modules.io.download;
 
-import io.github.mzmine.modules.io.download.AssetGroup;
-import io.github.mzmine.modules.io.download.DownloadAssets;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithDownloadParameter;
-import io.github.mzmine.util.files.ExtensionFilters;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class SpectralLibraryImportParameters extends SimpleParameterSet {
+/**
+ * Assets that can be downloaded by {@link FileDownloadTask}. Usually defined in
+ * {@link DownloadAssets}
+ *
+ * @param extAsset      the external asset that defines additional fixed properties of this asset
+ * @param version       the version
+ * @param requiresUnzip unzip after download
+ * @param mainFileName  the main file that is selected after unziping. Otherwise the first file
+ * @param url           the download URL
+ */
+public record UrlDownloadAsset(@NotNull ExternalAsset extAsset, String version,
+                               boolean requiresUnzip, @Nullable String mainFileName,
+                               String url) implements DownloadAsset {
 
-
-  public static final FileNamesWithDownloadParameter dataBaseFiles = new FileNamesWithDownloadParameter(
-      "Spectral library files", """
-      Path of spectral library files in common formats
-      (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY,
-      DownloadAssets.forAssetGroup(AssetGroup.SPECTRAL_LIBRARIES));
-
-  public SpectralLibraryImportParameters() {
-    super(dataBaseFiles);
+  public UrlDownloadAsset(final ExternalAsset extAsset, final String version,
+      final boolean requiresUnzip, final String url) {
+    this(extAsset, version, requiresUnzip, null, url);
   }
-
 }
