@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
-import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
@@ -73,14 +72,8 @@ public interface BaselineCorrector extends MZmineModule {
       }
     }
 
-    if (timeSeries instanceof FeatureFullDataAccess access) {
-      for (int i = 0; i < access.getNumberOfValues(); i++) {
-        System.arraycopy(access.getIntensityValues(), 0, yBuffer, 0, access.getNumberOfValues());
-      }
-    } else if (timeSeries instanceof FeatureDataAccess access) {
-      for (int i = 0; i < access.getNumberOfValues(); i++) {
-        yBuffer[i] = access.getIntensity(i);
-      }
+    if (timeSeries instanceof FeatureDataAccess access) {
+      System.arraycopy(access.getIntensityValues(), 0, yBuffer, 0, access.getNumberOfValues());
     } else {
       yBuffer = timeSeries.getIntensityValues(yBuffer);
     }

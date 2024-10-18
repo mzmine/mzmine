@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules;
 
+import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms.ChromatogramBlankSubtractionModule;
+
 public enum MZmineModuleCategory {
 
   PROJECTIO("Project I/O"), //
@@ -38,6 +40,11 @@ public enum MZmineModuleCategory {
   GAPFILLING("Gap filling"), //
   ISOTOPES("Isotopes"), //
   FEATURELIST("Feature list methods"), //
+  /**
+   * Only feature list resolving that splits separate features. Modules like
+   * {@link ChromatogramBlankSubtractionModule} use this to check if the module can be applied on
+   * the feature list
+   */
   FEATURE_RESOLVING("Resolving"), //
   FEATURE_GROUPING("Feature grouping"), //
   ION_IDENTITY_NETWORKS("Ion identity networking"), //
@@ -94,7 +101,8 @@ public enum MZmineModuleCategory {
     FEATURE_PROCESSING("Feature processing"), //
     SPECTRAL_LIBRARY("Spectral library"), //
     FEATURE_IO("Feature IO"), //
-    VISUALIZATION("Visualization"), OTHER("Other");
+    VISUALIZATION("Visualization"), //
+    OTHER("Other");
 
     private final String name;
 

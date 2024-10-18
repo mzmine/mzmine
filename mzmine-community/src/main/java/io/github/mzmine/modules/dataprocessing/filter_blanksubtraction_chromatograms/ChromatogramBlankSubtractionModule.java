@@ -23,62 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
+package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.impl.SingleTaskFeatureListsModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SmoothingModule implements MZmineProcessingModule {
+/**
+ * Subtract blank chromatograms from samples chromatograms. Only runs before feature resolver, which
+ * is checked in preconditions in the task. Uses the maximum intensity over all blanks for a
+ * specific mz and retention time to subtract.
+ */
+public class ChromatogramBlankSubtractionModule extends SingleTaskFeatureListsModule {
 
-  private static final String name = "Smoothing";
-
-  @NotNull
-  @Override
-  public String getName() {
-    return name;
+  public ChromatogramBlankSubtractionModule() {
+    super("Chromatogram blank subtraction", ChromatogramBlankSubtractionParameters.class,
+        MZmineModuleCategory.EIC_DETECTION, """
+            Subtracts blank chromatograms from samples. Uses the maximum intensity of m/z chromatogram across all blanks.
+            This results in blank subtracted extracted ion chromatograms as input to any feature resolver.
+            Feature resolving then describes the minimum height and other feature constraints.""");
   }
 
-  @Nullable
   @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return SmoothingParameters.class;
-  }
-
-  @NotNull
-  @Override
-  public String getDescription() {
-    return "Smooths intensity along the retention time and/or mobility dimension.";
-  }
-
-  @NotNull
-  @Override
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-
-    final ModularFeatureList[] flists = parameters.getParameter(SmoothingParameters.featureLists)
-        .getValue().getMatchingFeatureLists();
-
-    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
-    for (ModularFeatureList flist : flists) {
-      tasks.add(new SmoothingTask(project, flist, storage, parameters, moduleCallDate));
-    }
-
-    return ExitCode.OK;
-  }
-
-  @NotNull
-  @Override
-  public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.EIC_DETECTION;
+  public @NotNull Task createTask(final @NotNull MZmineProject project,
+      final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
+      final @Nullable MemoryMapStorage storage, final @NotNull FeatureList[] featureList) {
+    return new ChromatogramBlankSubtractionTask(storage, moduleCallDate, parameters, getClass(),
+        project, featureList);
   }
 }

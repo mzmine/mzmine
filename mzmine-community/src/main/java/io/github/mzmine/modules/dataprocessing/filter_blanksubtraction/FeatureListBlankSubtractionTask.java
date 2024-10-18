@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -132,7 +132,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
     if (!checkBlankSelection(originalFeatureList, blankRaws)) {
       setErrorMessage("Feature list " + originalFeatureList.getName()
-          + " does no contain all selected blank raw data files.");
+                      + " does no contain all selected blank raw data files.");
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -145,15 +145,14 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
       }
     }
     logger.finest(() -> originalFeatureList.getName() + " contains " + nonBlankRaws.size()
-        + " raw data files not classified as blank.");
+                        + " raw data files not classified as blank.");
 
     // create the feature list for the blank subtraction
     final ModularFeatureList notBackgroundAlignedFeaturesList = new ModularFeatureList(
         originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(),
         keepBackgroundFeatures == BlankSubtractionOptions.KEEP
             ? originalFeatureList.getRawDataFiles() : nonBlankRaws);
-    originalFeatureList.getRowTypes()
-        .forEach(notBackgroundAlignedFeaturesList::addRowType);
+    originalFeatureList.getRowTypes().forEach(notBackgroundAlignedFeaturesList::addRowType);
 
     // use all samples that are not defined as blanks
     // if keepBackgroundFeatures is true, also include blank samples (i.e., all samples)
@@ -359,7 +358,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
       if (!contained) {
         final int i1 = i;
         logger.info(() -> "Feature list " + aligned.getName() + " does not contain raw data files "
-            + blankRaws.get(i1).getName());
+                          + blankRaws.get(i1).getName());
         return false;
       }
     }
@@ -367,10 +366,6 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     logger.finest(
         () -> "Feature list " + aligned.getName() + " contains all selected blank raw data files.");
     return true;
-  }
-
-  enum RatioType {
-    AVERAGE, MAXIMUM
   }
 
   enum BlankSubtractionOptions {
