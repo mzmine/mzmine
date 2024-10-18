@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.impl.SimpleMergedMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
@@ -33,13 +34,12 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.Collection;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represent one spectrum of a raw data file.
@@ -66,7 +66,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
           String.valueOf(scan.getDataFile().getScans().indexOf(scan)));
 
       writer.writeEndElement();
-    } else if (scan instanceof MergedMsMsSpectrum merged) {
+    } else if (scan instanceof MergedMassSpectrum merged) {
       merged.saveToXML(writer);
     } else {
       throw new UnsupportedOperationException(
@@ -111,10 +111,13 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
         return scan instanceof CachedIMSFrame cached ? cached.getOriginalFrame() : scan;
       }
       case SimpleMergedMsMsSpectrum.XML_SCAN_TYPE -> {
-        return SimpleMergedMsMsSpectrum.loadFromXML(reader, (IMSRawDataFile) file, possibleFiles);
+        return SimpleMergedMsMsSpectrum.loadFromXML(reader, file, possibleFiles);
       }
       case SimplePseudoSpectrum.XML_SCAN_TYPE -> {
         return SimplePseudoSpectrum.loadFromXML(reader, file);
+      }
+      case SimpleMergedMassSpectrum.XML_SCAN_TYPE -> {
+        return SimpleMergedMassSpectrum.loadFromXML(reader, file, possibleFiles);
       }
       default -> throw new IllegalArgumentException(
           "Cannot load scan from xml. Scan type not recognized.");
@@ -124,8 +127,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   /**
    * @return RawDataFile containing this Scan
    */
-  @NotNull
-  RawDataFile getDataFile();
+  @NotNull RawDataFile getDataFile();
 
   /**
    * @return Scan number

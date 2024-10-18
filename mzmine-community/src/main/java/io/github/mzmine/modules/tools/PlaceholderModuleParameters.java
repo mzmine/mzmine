@@ -23,10 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.modules.tools;
 
-public interface MergedMsMsSpectrum extends MergedMassSpectrum {
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.util.XMLUtils;
+import org.w3c.dom.Element;
 
-  float getCollisionEnergy();
+public final class PlaceholderModuleParameters extends SimpleParameterSet {
 
+  public static final StringParameter oldModuleName = new StringParameter("Old module name",
+      "The name of the old module.");
+
+  public PlaceholderModuleParameters() {
+    super(oldModuleName);
+  }
+
+  public static ParameterSet forElement(String moduleName, Element parametersElement) {
+    final ParameterSet param = new PlaceholderModuleParameters().cloneParameterSet();
+
+    StringBuilder b = new StringBuilder();
+    b.append(moduleName).append("\n\n");
+    b.append(XMLUtils.nodeToString(parametersElement));
+    param.setParameter(oldModuleName, b.toString());
+
+    return param;
+  }
 }

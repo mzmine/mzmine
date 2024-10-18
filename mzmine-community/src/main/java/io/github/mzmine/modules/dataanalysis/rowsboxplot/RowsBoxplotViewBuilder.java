@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,7 +55,7 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
     ((NumberAxis) barChart.getCategoryPlot().getRangeAxis()).setNumberFormatOverride(
         formats.intensityFormat());
     final EChartViewer viewer = new EChartViewer(barChart);
-    viewer.setMinWidth(250);
+    viewer.setMinWidth(200);
     final BoxAndWhiskerRenderer boxAndWhiskerRenderer = new BoxAndWhiskerRenderer();
     boxAndWhiskerRenderer.setMeanVisible(false);
 

@@ -123,7 +123,7 @@ public class DialogLoggerUtil {
    */
   public static Optional<ButtonType> showDialog(AlertType type, String title, String message,
       boolean blockingModal) {
-    return showDialog(type, title, message, blockingModal, null);
+    return showDialog(type, title, message, blockingModal, new ButtonType[0]);
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,6 +48,8 @@ public enum MZmineModuleCategory {
   ANNOTATION("Annotation"), //
   FEATURELISTEXPORT("Feature list export"), //
   FEATURELISTIMPORT("Feature list import"), //
+  SPECLIBIMPORT("Spectral library import"), //
+  SPECLIB_PROCESSING("Spectral library processing"), //
   SPECLIBEXPORT("Spectral library export"), //
   VISUALIZATIONRAWDATA("Visualization"), //
   VISUALIZATIONFEATURELIST("Visualization feature list"), //
@@ -79,7 +81,7 @@ public enum MZmineModuleCategory {
       case FEATURELISTEXPORT, FEATURELISTIMPORT -> MainCategory.FEATURE_IO;
       case VISUALIZATIONRAWDATA, VISUALIZATIONFEATURELIST, VISUALIZATION_RAW_AND_FEATURE ->
           MainCategory.VISUALIZATION;
-      case SPECLIBEXPORT -> MainCategory.SPECTRAL_LIBRARY;
+      case SPECLIBEXPORT, SPECLIBIMPORT, SPECLIB_PROCESSING -> MainCategory.SPECTRAL_LIBRARY;
       // no main category
       case HELPSYSTEM, TOOLS -> MainCategory.OTHER;
       // no default so that the compiler marks missing cases
