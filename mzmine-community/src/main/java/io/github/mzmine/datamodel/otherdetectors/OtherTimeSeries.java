@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,22 +25,59 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.util.MemoryMapStorage;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 
 public interface OtherTimeSeries extends IntensityTimeSeries {
+
+  String XML_ELEMENT = "othertimeseries";
+  String XML_OTHER_TIME_SERIES_ATTR = "othertimeseriestype";
 
   String getName();
 
   ChromatogramType getChromatoogramType();
 
-  @NotNull
-  OtherDataFile getOtherDataFile();
+  @NotNull OtherDataFile getOtherDataFile();
 
-  @NotNull
-  OtherTimeSeriesData getTimeSeriesData();
+  @NotNull OtherTimeSeriesData getTimeSeriesData();
+
+  @Override
+  OtherTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+      int endIndexExclusive);
+
+  @Override
+  OtherTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
 
   OtherTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newIntensities, String newName);
+
+  /**
+   * Saves this time series to xml. The implementing class is responsible for creating the xml
+   * element and closing the xml element. The created element must be a
+   * {@link OtherTimeSeries#XML_ELEMENT} and set the
+   * {@link OtherTimeSeries#XML_OTHER_TIME_SERIES_ATTR} to a distinctive value. The loading method
+   *
+   * @param writer The writer.
+   */
+  void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
+
+  static OtherTimeSeries loadFromXML(XMLStreamReader reader, @NotNull RawDataFile file)
+      throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(OtherTimeSeries.XML_ELEMENT))) {
+      throw new IllegalStateException("Wrong element");
+    }
+
+    return switch (reader.getAttributeValue(null, XML_OTHER_TIME_SERIES_ATTR)) {
+      case SimpleOtherTimeSeries.XML_OTHER_TIME_SERIES_ATTR_VALUE ->
+          SimpleOtherTimeSeries.loadFromXML(reader, file);
+      default -> throw new IllegalStateException(
+          "Unknown OtherTImeSeries data type (%s).".formatted(
+              reader.getAttributeValue(null, XML_OTHER_TIME_SERIES_ATTR)));
+    };
+  }
 }

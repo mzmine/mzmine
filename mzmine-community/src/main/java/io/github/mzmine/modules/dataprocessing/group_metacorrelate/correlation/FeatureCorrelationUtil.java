@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,8 +37,9 @@ import io.github.mzmine.datamodel.features.correlation.CorrelationData;
 import io.github.mzmine.datamodel.features.correlation.FullCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
 import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
-import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.maths.similarity.Similarity;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.util.ArrayList;
@@ -524,9 +525,12 @@ public class FeatureCorrelationUtil {
       // find array index of max intensity for feature1 sn1
       final int maxIndexOfA = indexOfMax(intensities1);
 
-      // index offset between f1 and f2 data arrays (not all features are based on the same scans)
-      final int maxIndexInB = ArrayUtils.indexOf(f1[0][maxIndexOfA], f2[0]);
-      if (maxIndexInB == -1) {
+      // index offset between f1 and f2 data arrays (not all features are based on the same scans) ~2021 Steffen
+      // 2024 ~Steffen: this method is mostly called after DIA.getInterpolatedShape for bot series, so all indices are the same
+//      final int maxIndexInB = ArrayUtils.indexOf(f1[0][maxIndexOfA], f2[0]);
+      final int maxIndexInB = BinarySearch.binarySearch(f2[0], f1[0][maxIndexOfA],
+          DefaultTo.MINUS_INSERTION_POINT);
+      if (maxIndexInB <= -1) {
         throw new IllegalStateException("Could not find original x value in interpolated shape.");
       }
 
@@ -540,7 +544,8 @@ public class FeatureCorrelationUtil {
         double s1 = f1[0][i1];
         double s2 = f2[0][i2];
         // add point, if not break
-        if (Double.compare(s1, s2) == 0 && intensities1[i1] >= noiseLevelShapeCorr && intensities2[i2] >= noiseLevelShapeCorr) {
+        if (Double.compare(s1, s2) == 0 && intensities1[i1] >= noiseLevelShapeCorr
+            && intensities2[i2] >= noiseLevelShapeCorr) {
           corrData.add(new double[]{intensities1[i1], intensities2[i2]});
         } else {
           // end of feature found
@@ -682,19 +687,22 @@ public class FeatureCorrelationUtil {
      *                  variable to be passed to the next call.
      * @return the interpolated y value.
      */
-    private static double interpolateY(double x, final double[] otherX, final double[] otherY, int[] prevIndex) {
+    private static double interpolateY(double x, final double[] otherX, final double[] otherY,
+        int[] prevIndex) {
       // check arguments
       assert otherX.length == otherY.length;
       if (!(otherX[0] <= x) || !(x <= otherX[otherX.length - 1])) {
         throw new IllegalArgumentException(
-            String.format("Cannot interpolate y for x value %.3f within given bounds %.3f - %.3f", x, otherX[0], otherX[otherX.length - 1]));
+            String.format("Cannot interpolate y for x value %.3f within given bounds %.3f - %.3f",
+                x, otherX[0], otherX[otherX.length - 1]));
       }
 
       int start = -1;
       int end = -1;
 
       // find the two points that lie around the given x value
-      for (int i = prevIndex[0]; i < otherX.length; i++) { // could be optimized to start at the last found index
+      for (int i = prevIndex[0]; i < otherX.length;
+          i++) { // could be optimized to start at the last found index
         if (otherX[i] >= x) { // may also be equal
           // if equal, return that value
           if (Double.compare(otherX[i], x) == 0) {
