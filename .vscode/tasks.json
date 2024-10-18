@@ -1,0 +1,17 @@
+
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Java with Preview",
+      "type": "shell",
+      "command": "javac --enable-preview --release 22 -Xmaxerrs 200 ${file} && java --enable-preview ${fileBasenameNoExtension}",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "detail": "Compile and run Java with --enable-preview"
+    }
+  ]
+}
