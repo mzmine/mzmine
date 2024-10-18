@@ -115,6 +115,7 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
     if (input == null || isCanceled()) {
       return;
     }
+    totalItems = input.samples.size();
 
     // prepare blanks - merge chromatograms across all blank samples
     final List<CommonRtAxisChromatogram> mzSortedBlanks = prepareBlanks(input.blanks);
@@ -124,7 +125,9 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
       if (isCanceled()) {
         return null;
       }
-      return subtractBlanks(flist, mzSortedBlanks);
+      FeatureList result = subtractBlanks(flist, mzSortedBlanks);
+      finishedItems.incrementAndGet();
+      return result;
     }).toList();
 
     // test: also apply to blanks - just to check
