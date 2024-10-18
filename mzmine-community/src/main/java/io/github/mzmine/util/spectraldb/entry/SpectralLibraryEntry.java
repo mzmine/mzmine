@@ -146,9 +146,7 @@ public interface SpectralLibraryEntry extends MassList {
       // energies are quite complex
       // [MS2, MS3, MS4] and multiple energies in last level due to merging
       var msnEnergies = ScanUtils.extractMSnCollisionEnergies(scan);
-      if (msnEnergies.size() == 1) {
-        entry.putIfNotNull(DBEntryField.MSN_COLLISION_ENERGIES, msnEnergies.getFirst());
-      } else if (msnEnergies.size() > 1) {
+      if (msnEnergies.size() >= 1) {
         entry.putIfNotNull(DBEntryField.MSN_COLLISION_ENERGIES, msnEnergies);
       }
       //
