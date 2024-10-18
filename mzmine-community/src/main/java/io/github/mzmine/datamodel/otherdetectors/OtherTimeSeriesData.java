@@ -25,8 +25,14 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.List;
+import java.util.Objects;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -35,35 +41,33 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface OtherTimeSeriesData {
 
+  String XML_ELEMENT = "othertimeseriesdata";
+
   OtherDataFile getOtherDataFile();
 
-  @NotNull
-  String getTimeSeriesDomainLabel();
+  @NotNull String getTimeSeriesDomainLabel();
 
-  @NotNull
-  String getTimeSeriesDomainUnit();
+  @NotNull String getTimeSeriesDomainUnit();
 
-  @NotNull
-  String getTimeSeriesRangeLabel();
+  @NotNull String getTimeSeriesRangeLabel();
 
-  @NotNull
-  String getTimeSeriesRangeUnit();
+  @NotNull String getTimeSeriesRangeUnit();
 
   /**
    * @return The actual raw data, without any preprocessing applied
    */
-  @NotNull
-  List<@NotNull OtherFeature> getRawTraces();
+  @NotNull List<@NotNull OtherFeature> getRawTraces();
 
   /**
    * @return The raw traces with applied preprocessing, such as rt shifting or baseline correction.
-   * no feature detection has been applied. If no preprocessing was applied, the raw traces are returned.
+   * no feature detection has been applied. If no preprocessing was applied, the raw traces are
+   * returned.
    */
-  @NotNull
-  List<@NotNull OtherFeature> getPreprocessedTraces();
+  @NotNull List<@NotNull OtherFeature> getPreprocessedTraces();
 
   /**
    * Replaces all existing preprocessed traces.
+   *
    * @param preprocessedTraces The preprocessed traces.
    */
   void setPreprocessedTraces(@NotNull List<@NotNull OtherFeature> preprocessedTraces);
@@ -72,26 +76,41 @@ public interface OtherTimeSeriesData {
     return getRawTraces().size();
   }
 
-  @NotNull
-  OtherFeature getRawTrace(int index);
+  @NotNull OtherFeature getRawTrace(int index);
 
   /**
    * @return The chromatograms in this data file or null if this file does not contain
    * chromatograms.
    */
-  @NotNull
-  ChromatogramType getChromatogramType();
+  @NotNull ChromatogramType getChromatogramType();
 
   List<OtherFeature> getProcessedFeatures();
 
   /**
    * @return The processed features for the given series, may be empty. The list is modifiable.
    */
-  @NotNull
-  List<OtherFeature> getProcessedFeaturesForTrace(OtherFeature rawTrace);
+  @NotNull List<OtherFeature> getProcessedFeaturesForTrace(OtherFeature rawTrace);
 
   void replaceProcessedFeaturesForTrace(OtherFeature rawTrace,
       @NotNull List<OtherFeature> newFeatures);
 
   void addProcessedFeature(@NotNull OtherFeature newFeature);
+
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
+
+  static OtherTimeSeriesData loadFromXML(XMLStreamReader reader, RawDataFile file)
+      throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException("Wrong element");
+    }
+
+    final String rawFileName = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
+    final String otherDataFileDesc = reader.getElementText();
+    if (!Objects.equals(rawFileName, file.getFileName())) {
+      throw new IllegalStateException("Raw files don't match.");
+    }
+    return file.getOtherDataFiles().stream()
+        .filter(odf -> odf.getDescription().equals(otherDataFileDesc)).findFirst().map(OtherDataFile::getOtherTimeSeriesData)
+        .orElse(null);
+  }
 }

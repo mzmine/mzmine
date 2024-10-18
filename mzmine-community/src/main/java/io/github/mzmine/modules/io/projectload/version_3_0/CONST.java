@@ -41,6 +41,7 @@ public class CONST {
   public static final String XML_MZ_VALUES_ELEMENT = "mzs";
   public static final String XML_INTENSITY_VALUES_ELEMENT = "intensities";
   public static final String XML_MOBILITY_VALUES_ELEMENT = "mobilities";
+  public static final String XML_OTHER_TIME_VALUES_ELEMENT = "otherdata_times";
   public static final String XML_RAW_FILES_LIST_ELEMENT = "rawdatafiles";
   public static final String XML_RAW_FILE_ELEMENT = "rawdatafile";
   public static final String XML_RAW_FILE_NAME_ELEMENT = "name";

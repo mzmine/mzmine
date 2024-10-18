@@ -25,17 +25,28 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import java.util.Objects;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SimpleOtherTimeSeries implements OtherTimeSeries {
+
+  public static final String XML_OTHER_TIME_SERIES_ATTR_VALUE = "simpleothertimeseries";
+  public static final String XML_TRACE_NAME_ATTR = "othertimeseries_name";
 
   /**
    * doubles
@@ -116,6 +127,70 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
         getTimeSeriesData());
   }
 
+  public static OtherTimeSeries loadFromXML(XMLStreamReader reader, RawDataFile currentFile)
+      throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(OtherTimeSeries.XML_ELEMENT)
+        && Objects.equals(
+        reader.getAttributeValue(null, OtherTimeSeries.XML_OTHER_TIME_SERIES_ATTR),
+        XML_OTHER_TIME_SERIES_ATTR_VALUE))) {
+      throw new IllegalStateException("Wrong element");
+    }
+
+    double[] intensities = null;
+    float[] rts = null;
+    OtherTimeSeriesData timeSeriesData = null;
+
+    final String name = ParsingUtils.readNullableString(
+        reader.getAttributeValue(null, XML_TRACE_NAME_ATTR));
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(OtherTimeSeries.XML_ELEMENT))) {
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      switch (reader.getLocalName()) {
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_OTHER_TIME_VALUES_ELEMENT ->
+            rts = ParsingUtils.stringToFloatArray(reader.getElementText());
+        case OtherTimeSeriesData.XML_ELEMENT -> {
+          timeSeriesData = OtherTimeSeriesData.loadFromXML(reader, currentFile);
+        }
+        default -> {
+        }
+      }
+    }
+
+    if (rts == null || intensities == null || timeSeriesData == null) {
+      return null;
+    }
+
+    return new SimpleOtherTimeSeries(currentFile.getMemoryMapStorage(), rts, intensities, name,
+        timeSeriesData);
+  }
+
+  @Override
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(OtherTimeSeries.XML_ELEMENT);
+    writer.writeAttribute(OtherTimeSeries.XML_OTHER_TIME_SERIES_ATTR,
+        XML_OTHER_TIME_SERIES_ATTR_VALUE);
+    writer.writeAttribute(XML_TRACE_NAME_ATTR, ParsingUtils.parseNullableString(name));
+
+    IntensitySeries.saveIntensityValuesToXML(writer, this);
+    saveRtValuesToXML(writer);
+    timeSeriesData.saveToXML(writer);
+
+    writer.writeEndElement();
+  }
+
+  private void saveRtValuesToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(CONST.XML_OTHER_TIME_VALUES_ELEMENT);
+    writer.writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(getNumberOfValues()));
+    writer.writeCharacters(ParsingUtils.floatBufferToString(timeBuffer));
+    writer.writeEndElement();
+  }
+
   @Override
   public OtherTimeSeries subSeries(MemoryMapStorage storage, float start, float end) {
     // todo does this work with float to double?
@@ -139,4 +214,5 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
     return getTimeSeriesData().getOtherDataFile().getCorrespondingRawDataFile()
         .getMemoryMapStorage();
   }
+
 }

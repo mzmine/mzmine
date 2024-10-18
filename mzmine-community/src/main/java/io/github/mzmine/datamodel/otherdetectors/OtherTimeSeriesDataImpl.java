@@ -29,11 +29,14 @@ import static io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl.DEFAUL
 
 import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,7 +142,8 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
               + "same label (old: %s, new: %s)").formatted(getOtherDataFile().getDescription(),
           getChromatogramType(), this.timeSeriesRangeLabel, timeSeriesRangeLabel));
     }
-    this.timeSeriesRangeLabel = Objects.requireNonNullElse(timeSeriesRangeLabel, this.timeSeriesRangeLabel);
+    this.timeSeriesRangeLabel = Objects.requireNonNullElse(timeSeriesRangeLabel,
+        this.timeSeriesRangeLabel);
   }
 
   @Override
@@ -170,7 +174,7 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   public List<OtherFeature> getProcessedFeaturesForTrace(OtherFeature rawTrace) {
     final OtherFeature original = rawTrace.get(RawTraceType.class);
     // in case a baseline corrected raw trace was given, get the raw trace of the baseline corrected one.
-    if(original != null) {
+    if (original != null) {
       try (var _ = writeLock.lockRead()) {
         return processedFeatures.stream()
             .filter(f -> Objects.equals(f.get(RawTraceType.class), original)).toList();
@@ -215,6 +219,15 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
     try (var _ = writeLock.lockWrite()) {
       processedFeatures.add(newFeature);
     }
+  }
+
+  @Override
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT,
+        otherDataFile.getCorrespondingRawDataFile().getFileName());
+    writer.writeCharacters(otherDataFile.getDescription());
+    writer.writeEndElement();
   }
 
   @Override

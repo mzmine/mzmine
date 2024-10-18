@@ -97,6 +97,9 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
 
   /**
+   * Saves this time series to xml. The implementing class is responsible for creating the xml
+   * element and closing the xml element.
+   *
    * @param writer   The writer.
    * @param allScans All scans of the given raw data file (those are used during import). NOT the
    *                 preselected scans obtained from

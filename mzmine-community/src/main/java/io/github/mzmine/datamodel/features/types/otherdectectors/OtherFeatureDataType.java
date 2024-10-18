@@ -25,13 +25,22 @@
 
 package io.github.mzmine.datamodel.features.types.otherdectectors;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Contains the {@link OtherTimeSeries} in an
@@ -58,5 +67,26 @@ public class OtherFeatureDataType extends DataType<OtherTimeSeries> implements N
   @Override
   public Class<OtherTimeSeries> getValueClass() {
     return OtherTimeSeries.class;
+  }
+
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if (!(value instanceof OtherTimeSeries ots)) {
+      return;
+    }
+    ots.saveToXML(writer);
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+
+    if (file == null) {
+      throw new IllegalStateException("OtherTimeSeries should not be saved as row types.");
+    }
+    return OtherTimeSeries.loadFromXML(reader, file);
   }
 }

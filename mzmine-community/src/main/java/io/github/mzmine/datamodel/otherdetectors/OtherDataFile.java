@@ -36,8 +36,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface OtherDataFile {
 
-  @NotNull
-  RawDataFile getCorrespondingRawDataFile();
+  @NotNull RawDataFile getCorrespondingRawDataFile();
 
   default boolean hasTimeSeries() {
     return getNumberOfTimeSeries() != 0;
@@ -55,15 +54,20 @@ public interface OtherDataFile {
     return getOtherTimeSeriesData() != null ? getOtherTimeSeriesData().getNumberOfTimeSeries() : 0;
   }
 
-  @Nullable
-  OtherTimeSeriesData getOtherTimeSeriesData();
+  @Nullable OtherTimeSeriesData getOtherTimeSeriesData();
 
-  @Nullable
-  OtherSpectralData getOtherSpectralData();
+  @Nullable OtherSpectralData getOtherSpectralData();
 
-  @NotNull
-  String getDescription();
+  @NotNull String getDescription();
 
   DetectorType getDetectorType();
 
+  static OtherDataFile findInRawFile(@NotNull RawDataFile file,
+      @Nullable String otherFileDescription) {
+    if(otherFileDescription == null) {
+      return null;
+    }
+    return file.getOtherDataFiles().stream().filter(of -> of.getDescription().equals(otherFileDescription))
+        .findFirst().orElse(null);
+  }
 }
