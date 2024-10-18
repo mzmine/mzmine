@@ -155,7 +155,9 @@ public class GNPSLibraryBatchExportTask extends AbstractTask {
         errors.clear();
         // count up first to start with entry 1
         finishedEntries++;
-        var mgfEntry = MGFEntryGenerator.createMGFEntry(entry, finishedEntries);
+        entry.putIfNotNull(DBEntryField.SCAN_NUMBER, finishedEntries);
+        entry.putIfNotNull(DBEntryField.FEATURE_ID, finishedEntries);
+        var mgfEntry = MGFEntryGenerator.createMGFEntry(entry);
         mgfWriter.append(mgfEntry).append("\n");
 
         // write header
