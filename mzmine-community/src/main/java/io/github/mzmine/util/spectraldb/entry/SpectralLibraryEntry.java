@@ -146,7 +146,7 @@ public interface SpectralLibraryEntry extends MassList {
       // energies are quite complex
       // [MS2, MS3, MS4] and multiple energies in last level due to merging
       var msnEnergies = ScanUtils.extractMSnCollisionEnergies(scan);
-      if (msnEnergies.size() >= 1) {
+      if (!msnEnergies.isEmpty()) {
         entry.putIfNotNull(DBEntryField.MSN_COLLISION_ENERGIES, msnEnergies);
       }
       //
@@ -169,7 +169,7 @@ public interface SpectralLibraryEntry extends MassList {
       entry.putIfNotNull(DBEntryField.MS_LEVEL, msMsInfo.getMsLevel());
     }
     List<Float> energies = ScanUtils.extractCollisionEnergies(scan);
-    if (energies.size() >= 1) {
+    if (!energies.isEmpty()) {
       entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, energies);
     }
 
