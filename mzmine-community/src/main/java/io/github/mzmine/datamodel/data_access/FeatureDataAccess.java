@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -161,8 +160,8 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
 
   /**
    * Set the data to the next feature, if available. Returns the feature for additional data access.
-   * retention time and intensity values should be accessed from this data class via {@link
-   * #getRetentionTime(int)} and {@link #getIntensity(int)}
+   * retention time and intensity values should be accessed from this data class via
+   * {@link #getRetentionTime(int)} and {@link #getIntensity(int)}
    *
    * @return the feature or null
    */
@@ -185,8 +184,8 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
       } else {
         currentRowIndex++;
         // single data file
-        feature = getRow()
-            .getFeature(dataFile != null ? dataFile : getRow().getRawDataFiles().get(0));
+        feature = getRow().getFeature(
+            dataFile != null ? dataFile : getRow().getRawDataFiles().get(0));
       }
 
       featureData = (IonTimeSeries<Scan>) feature.getFeatureData();
@@ -224,9 +223,9 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   /**
-   * For feature lists of one RawDataFile, num of features equals to {@link
-   * #getNumOfFeatureListRows()}. For aligned feature lists two options are available: Either all
-   * features or all features of a selected RawDataFile
+   * For feature lists of one RawDataFile, num of features equals to
+   * {@link #getNumOfFeatureListRows()}. For aligned feature lists two options are available: Either
+   * all features or all features of a selected RawDataFile
    *
    * @return number of features
    */
@@ -251,11 +250,26 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
 
+  /**
+   * Keeps mzs and scans and replaces intensities
+   *
+   * @param storage
+   * @param newIntensityValues
+   * @return
+   */
+  public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @NotNull double[] newIntensityValues) {
+    return copyAndReplace(storage, getMzValuesCopy(), newIntensityValues, getSpectra());
+  }
+
   @Override
   public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
-    throw new UnsupportedOperationException(
-        "The intended use of this class is to loop over all features and data points in a feature list");
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
+      final @NotNull List<@NotNull Scan> scans) {
+    // Will generate new series with zeroes included if that was the source for this data access
+    // TODO maybe crop zeroes again from edges
+    return ((IonSpectrumSeries<Scan>) getFeature().getFeatureData()).copyAndReplace(storage,
+        newMzValues, newIntensityValues, scans);
   }
 
   @Override
@@ -329,5 +343,58 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
       throws XMLStreamException {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
+  /**
+   * Usage of this method is strongly discouraged because it returns the internal buffer of this
+   * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
+   * access might be necessary to avoid copying arrays. Since the chromatograms might originate from
+   * different raw data files, the number of data points in that raw file might be different from
+   * the length of this buffer, which is set to the longest XIC. The current number of data points
+   * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
+   * <p></p>
+   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getIntensity(int)} (int)} is
+   * more appropriate.
+   *
+   * @return The intensity buffer of this data access.
+   */
+  public abstract double[] getIntensityValues();
+
+  /**
+   * Usage of this method is strongly discouraged because it returns the internal buffer of this
+   * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
+   * access might be necessary to avoid copying arrays. Since the chromatograms might originate from
+   * different raw data files, the number of data points in that raw file might be different from
+   * the length of this buffer, which is set to the longest XIC. The current number of data points
+   * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
+   * <p></p>
+   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getMZ(int)} is more
+   * appropriate.
+   * <p>
+   * If a copy of the active data range is required see {@link #getMzValuesCopy()}
+   *
+   * @return The m/z buffer of this data access.
+   */
+  public abstract double[] getMzValues();
+
+
+  /**
+   * @return copy of mz values array limited to actual number of values
+   */
+  public double[] getMzValuesCopy() {
+    double[] mzs = getMzValues();
+    double[] copy = new double[getNumberOfValues()];
+    System.arraycopy(mzs, 0, copy, 0, copy.length);
+    return copy;
+  }
+
+  /**
+   * @return copy of intensity values array limited to actual number of values
+   */
+  public double[] getIntensityValuesCopy() {
+    double[] intensities = getIntensityValues();
+    double[] copy = new double[getNumberOfValues()];
+    System.arraycopy(intensities, 0, copy, 0, copy.length);
+    return copy;
   }
 }
