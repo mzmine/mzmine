@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.ionidentity.IonCheckComboBoxPa
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.io.CSVUtils;
 import io.github.mzmine.util.io.CsvWriter;
 import io.github.mzmine.util.io.WriterOptions;
@@ -42,7 +43,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.stage.FileChooser.ExtensionFilter;
 
 public class OnlineLcReactivityParameters extends SimpleParameterSet {
 
@@ -52,48 +52,48 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
   public static final MZToleranceParameter mzTol = new MZToleranceParameter(0.003, 5);
   private static final Logger logger = Logger.getLogger(
       OnlineLcReactivityParameters.class.getName());
-  private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("comma-separated values", "*.csv"), //
-      new ExtensionFilter("tab-separated values", "*.tsv"), //
-      new ExtensionFilter("All files", "*.*") //
-  );
+
   public static final FileNameWithExampleExportParameter reactionsFile = new FileNameWithExampleExportParameter(
       "Reactions file", """
       This file needs to contain those columns:
       filename_contains,reaction,educt_smarts,reaction_smarts,delta_mz,type
       The raw data files should always contain a unique identifier that is listed in filename_contains (not ending or starting with numbers)
-      type is either REACTION, EDUCT, PRODUCT""", extensions,
+      type is either REACTION, EDUCT, PRODUCT""", ExtensionFilters.CSV_TSV_IMPORT,
       OnlineLcReactivityParameters::exportExample);
 
   private static final List<IonModification> adducts = List.of(IonModification.H,
+      IonModification.NA, IonModification.H2plus, IonModification.H_H2O_1);
+  private static final List<IonModification> defaultSelectedAdducts = List.of(IonModification.H,
       IonModification.NA);
 
   public static final IonCheckComboBoxParameter eductAdducts = new IonCheckComboBoxParameter(
       "Educt adducts", """
       Educt and product adducts define more combinations to check reactivity matches.
       This can be helpful if the ionization changes after the reaction, e.g.,
-      Educt ionizes as [M+Na]+ and product as [M+H]+""", adducts, adducts);
+      Educt ionizes as [M+Na]+ and product as [M+H]+""", adducts, defaultSelectedAdducts);
 
   public static final IonCheckComboBoxParameter productAdducts = new IonCheckComboBoxParameter(
       "Product adducts", """
       Educt and product adducts define more combinations to check reactivity matches.
       This can be helpful if the ionization changes after the reaction, e.g.,
-      Educt ionizes as [M+Na]+ and product as [M+H]+""", adducts, adducts);
+      Educt ionizes as [M+Na]+ and product as [M+H]+""", adducts, defaultSelectedAdducts);
   public static final OptionalParameter<MetadataGroupingParameter> uniqueSampleId = new OptionalParameter<>(
-      new MetadataGroupingParameter("Unique sample ID metadata", """
+      new MetadataGroupingParameter("Unique sample ID", """
           Metadata column that defines a unique sample ID.
           Go to Project/Metadata to load a metadata sheet and reload this module to select this column.
-          The values should be a substring found in the filenames. 
+          The values should be a substring found in the filenames.
           Make sure to use a prefix or suffix before and after numbers otherwise id1 also matches id10.
           Just adding a id1_ will resolve this issue."""));
-  public static final OptionalParameter<MetadataGroupingParameter> unreactedControls = new OptionalParameter<>(
-      new MetadataGroupingParameter("Unreacted controls metadata", """
-          Metadata column that defines all unreacted controls as true or control.
+  public static final OptionalParameter<MetadataGroupingParameter> reactionSampleType = new OptionalParameter<>(
+      new MetadataGroupingParameter("Reaction sample type", """
+          Metadata column that defines all samples as either control or reacted.
+          Control is unreacted and reacted is after applying the reaction.
           Go to Project/Metadata to load a metadata sheet and reload this module to select this column."""));
 
   public OnlineLcReactivityParameters() {
-    super(flists, reactionsFile, uniqueSampleId, unreactedControls, onlyGroupedRows, mzTol,
-        eductAdducts, productAdducts);
+    super(flists, reactionsFile,
+         uniqueSampleId, reactionSampleType,
+        onlyGroupedRows, mzTol, eductAdducts, productAdducts);
   }
 
 
