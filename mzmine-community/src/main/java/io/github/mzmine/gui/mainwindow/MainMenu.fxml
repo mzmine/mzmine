@@ -582,6 +582,7 @@
           control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
+    <MenuItem text="Define ion libraries" onAction="#showDefineIonLibraries"/>
     <MenuItem text="Isotope pattern preview" onAction="#runModule"
       userData="io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule"/>
     <MenuItem onAction="#showSpectralMirrorDialog" text="Spectral mirror (USI enabled)"/>
