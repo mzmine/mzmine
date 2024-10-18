@@ -45,7 +45,7 @@ public class ChromatogramBlankSubtractionModule extends SingleTaskFeatureListsMo
 
   public ChromatogramBlankSubtractionModule() {
     super("Chromatogram blank subtraction", ChromatogramBlankSubtractionParameters.class,
-        MZmineModuleCategory.FEATURE_PROCESSING, """
+        MZmineModuleCategory.EIC_DETECTION, """
             Subtracts blank chromatograms from samples. Uses the maximum intensity of m/z chromatogram across all blanks.
             This results in blank subtracted extracted ion chromatograms as input to any feature resolver.
             Feature resolving then describes the minimum height and other feature constraints.""");
