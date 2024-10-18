@@ -23,40 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.msms;
+package io.github.mzmine.modules.dataprocessing.filter_diams2;
 
-import io.github.mzmine.datamodel.Frame;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.features.Feature;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Precursor information stored in IMS MS2 frames regarding their respective sub spectra.
- *
- * @author https://github.com/SteffenHeu
- */
-public interface PasefMsMsInfo extends DDAMsMsInfo, IonMobilityMsMsInfo {
+public record IsolationWindow(@Nullable Range<Double> mzIsolation,
+                              @Nullable Range<Float> mobilityIsolation) {
 
-  public final int UNKNOWN_CHARGE = 0;
-  public final double UNKNOWN_COLISSIONENERGY = -1d;
+  boolean contains(MobilityScan scan) {
+    return mobilityIsolation == null || mobilityIsolation.contains((float) scan.getMobility());
+  }
 
-  /**
-   * @return The most intense m/z of the detected precursor.
-   */
-  @Nullable double getIsolationMz();
+  boolean contains(Feature f) {
+    final Double mz = f.getMZ();
+    final Float mobility = f.getMobility();
 
-  /**
-   * @return Collision energy this precursor was fragmented at in the given range. May be null if
-   * not set or 0 if unknown.
-   */
-  Float getActivationEnergy();
+    if (mzIsolation != null && !mzIsolation.contains(mz)) {
+      return false;
+    }
 
-  /**
-   * @return The charge of the precursor. 0 = unknown.
-   */
-  Integer getPrecursorCharge();
-
-  Frame getParentFrame();
-
-  void writeToXML(XMLStreamWriter writer) throws XMLStreamException;
+    if (mobilityIsolation != null && (mobility != null && !mobilityIsolation.contains(mobility))) {
+      return false;
+    }
+    return true;
+  }
 }

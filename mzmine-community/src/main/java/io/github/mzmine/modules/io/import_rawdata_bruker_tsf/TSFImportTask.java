@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -201,14 +201,7 @@ public class TSFImportTask extends AbstractTask {
       final Scan scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
           frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
 
-      try {
-        newMZmineFile.addScan(scan);
-      } catch (IOException e) {
-        e.printStackTrace();
-        setErrorMessage("Could not add scan " + frameId + " to raw data file.");
-        setStatus(TaskStatus.ERROR);
-        return true;
-      }
+      newMZmineFile.addScan(scan);
 
       if (isCanceled()) {
         return false;

@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.StoredMobilityScan;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.List;
@@ -106,13 +107,13 @@ public interface Frame extends Scan {
    * @return Set of ImsMsMsInfos for this frame. Empty set if this is not an MS/MS frame or no
    * precursors were fragmented or assigned.
    */
-  @NotNull Set<PasefMsMsInfo> getImsMsMsInfos();
+  @NotNull Set<IonMobilityMsMsInfo> getImsMsMsInfos();
 
   /**
    * @param mobilityScanNumber The sub scan number of the given sub scan.
    * @return PasefMsMsInfo or null if no precursor was fragmented at that scan.
    */
-  @Nullable PasefMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber);
+  @Nullable IonMobilityMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber);
 
   /**
    * @return Always 0.0

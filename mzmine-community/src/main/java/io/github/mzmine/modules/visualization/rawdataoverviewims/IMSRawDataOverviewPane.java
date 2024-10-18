@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -238,8 +239,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
 
     massDetectionPane.getChildren().remove(massDetectionFrameIcon);
-    massDetectionFrameIcon = selectedFrame.get().getMassList() != null ? MZmineIconUtils.getCheckedIcon()
-        : MZmineIconUtils.getUncheckedIcon();
+    massDetectionFrameIcon =
+        selectedFrame.get().getMassList() != null ? MZmineIconUtils.getCheckedIcon()
+            : MZmineIconUtils.getUncheckedIcon();
     massDetectionPane.add(massDetectionFrameIcon, 1, 2);
 
     massDetectionPane.getChildren().remove(massDetectionScanIcon);
@@ -286,13 +288,18 @@ public class IMSRawDataOverviewPane extends BorderPane {
     final Color boxClr = MZmineCore.getConfiguration().getDefaultColorPalette()
         .getNegativeColorAWT();
     final Color transparent = new Color(0.5f, 0f, 0f, 0.5f);
-    for (PasefMsMsInfo info : selectedFrame.get().getImsMsMsInfos()) {
+    for (IonMobilityMsMsInfo info : selectedFrame.get().getImsMsMsInfos()) {
       final double mobLow = selectedFrame.get()
           .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().lowerEndpoint());
       final double mobHigh = selectedFrame.get()
           .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().upperEndpoint());
-      var rect = new Rectangle2D.Double(info.getIsolationWindow().lowerEndpoint(),
-          Math.min(mobLow, mobHigh), RangeUtils.rangeLength(info.getIsolationWindow()),
+      final var mzRange = info.getIsolationWindow();
+      if(mzRange == null) {
+        continue;
+      }
+
+      var rect = new Rectangle2D.Double(mzRange.lowerEndpoint(),
+          Math.min(mobLow, mobHigh), RangeUtils.rangeLength(mzRange),
           Math.abs(mobHigh - mobLow));
       final XYShapeAnnotation precursorIso = new XYShapeAnnotation(rect, new BasicStroke(1f),
           Color.red, null);

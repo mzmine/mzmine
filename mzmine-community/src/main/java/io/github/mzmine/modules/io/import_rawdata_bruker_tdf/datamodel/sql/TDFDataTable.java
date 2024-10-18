@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -173,7 +174,7 @@ public abstract class TDFDataTable<EntryKeyType> {
 //      logger.info("Recieved " + columns.size() + " * " + keyList.getEntries().size() + " entries.");
       return true;
     } catch (SQLException throwables) {
-      throwables.printStackTrace();
+      logger.log(Level.INFO, throwables.getMessage(), throwables);
       return false;
     }
   }

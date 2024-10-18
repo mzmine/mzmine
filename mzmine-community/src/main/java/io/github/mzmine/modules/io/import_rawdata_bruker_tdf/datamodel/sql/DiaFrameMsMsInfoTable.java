@@ -23,40 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.msms;
+package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
 
-import io.github.mzmine.datamodel.Frame;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * Precursor information stored in IMS MS2 frames regarding their respective sub spectra.
- *
- * @author https://github.com/SteffenHeu
- */
-public interface PasefMsMsInfo extends DDAMsMsInfo, IonMobilityMsMsInfo {
+public class DiaFrameMsMsInfoTable extends TDFDataTable<Long> {
 
-  public final int UNKNOWN_CHARGE = 0;
-  public final double UNKNOWN_COLISSIONENERGY = -1d;
+  private final TDFDataColumn<Long> windowGroupColumn;
+  private final TDFDataColumn<Long> frameColumn;
 
-  /**
-   * @return The most intense m/z of the detected precursor.
-   */
-  @Nullable double getIsolationMz();
+  public DiaFrameMsMsInfoTable() {
+    super("DiaFrameMsMsInfo", TDFPasefFrameMsMsInfoTable.FRAME_ID);
 
-  /**
-   * @return Collision energy this precursor was fragmented at in the given range. May be null if
-   * not set or 0 if unknown.
-   */
-  Float getActivationEnergy();
+    frameColumn = (TDFDataColumn<Long>) getColumn(TDFPasefFrameMsMsInfoTable.FRAME_ID);
+    windowGroupColumn = new TDFDataColumn<>(DiaFrameMsMsWindowTable.windowGroupColName);
+    columns.add(windowGroupColumn);
+  }
 
-  /**
-   * @return The charge of the precursor. 0 = unknown.
-   */
-  Integer getPrecursorCharge();
+  public Map<Long, Long> getFrameToWindowGroupMap() {
+    final HashMap<Long, Long> map = new HashMap<>();
 
-  Frame getParentFrame();
-
-  void writeToXML(XMLStreamWriter writer) throws XMLStreamException;
+    for(int i = 0; i < frameColumn.size(); i++) {
+      map.put(frameColumn.get(i), windowGroupColumn.get(i));
+    }
+    return map;
+  }
 }
