@@ -79,6 +79,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -182,6 +183,7 @@ public class MainWindowController {
   public FlowPane taskViewPane;
   @FXML
   public HBox bottomMenuBar;
+  public BorderPane mainPane;
   public Tab tabMsData;
   public Tab tabFeatureLists;
   public Tab tabLibraries;
@@ -1047,5 +1049,9 @@ public class MainWindowController {
       return ProjectTab.LIBRARIES;
     }
     return ProjectTab.DATA_FILES; // should not happen
+  }
+
+  public BorderPane getMainPane() {
+    return mainPane;
   }
 }
