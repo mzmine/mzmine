@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types.otherdectectors;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -32,10 +33,15 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.util.Objects;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,10 +76,45 @@ public class RawTraceType extends DataType<OtherFeature> implements NoTextColumn
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(value instanceof OtherFeature of)) {
+    if (!(value instanceof OtherFeature of) || file == null) {
       return;
     }
 
+    final OtherDataFile otherDataFile = of.getFeatureData().getOtherDataFile();
+    final String name = of.getFeatureData().getName();
 
+    writer.writeAttribute(CONST.XML_OTHER_FILE_DESC_ATTR, otherDataFile.getDescription());
+    writer.writeAttribute(CONST.XML_OTHER_TIME_SERIES_NAME_ATTR, name);
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(getUniqueID()))) {
+      throw new IllegalStateException("Wrong element");
+    }
+
+    if (file == null) {
+      return null;
+    }
+
+    final String otherFileDesc = reader.getAttributeValue(null, CONST.XML_OTHER_FILE_DESC_ATTR);
+    final String otherSeriesName = reader.getAttributeValue(null,
+        CONST.XML_OTHER_TIME_SERIES_NAME_ATTR);
+
+    final OtherDataFile otherFile = OtherDataFile.findInRawFile(file, otherFileDesc);
+    if (otherFile == null) {
+      return null;
+    }
+
+    final OtherTimeSeriesData data = otherFile.getOtherTimeSeriesData();
+    if (data == null) {
+      return null;
+    }
+
+    return data.getRawTraces().stream()
+        .filter(t -> Objects.equals(t.getFeatureData().getName(), otherSeriesName)).findFirst()
+        .orElse(null);
   }
 }

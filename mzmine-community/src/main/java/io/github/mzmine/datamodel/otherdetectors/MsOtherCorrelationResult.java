@@ -25,32 +25,88 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Map.Entry;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrelationType type) {
 
   public static final String XML_ELEMENT_NAME = "msothercorrelationresult";
   public static final String XML_CORRELATION_TYPE_ATTR = "msothercorrelationtype";
 
+  public static void loadFromXML(@NotNull XMLStreamReader reader,
+      @Nullable MemoryMapStorage storage, MZmineProject project, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @NotNull RawDataFile file) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT_NAME))) {
+      throw new IllegalStateException("Wrong element");
+    }
+
+    final String correlationTypeStr = reader.getAttributeValue(null, XML_CORRELATION_TYPE_ATTR);
+    final MsOtherCorrelationType correlationType = MsOtherCorrelationType.valueOf(
+        correlationTypeStr);
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT_NAME))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      switch (reader.getLocalName()) {
+        case CONST.XML_OTHER_FEATURE_ELEMENT -> {
+
+          OtherFeature otherFeature = new OtherFeatureImpl();
+          while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+              .equals(CONST.XML_OTHER_FEATURE_ELEMENT))) {
+
+            if (reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+              // the data types are responsible for loading their values
+              DataType type = DataTypes.getTypeForId(
+                  reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+              Object value = FeatureListLoadTask.parseDataType(reader, type, project, flist, row,
+                  null, file);
+              if (type != null && value != null) {
+                try {
+                  otherFeature.set(type, value);
+                } catch (RuntimeException e) {
+                  // TODO - maybe log?
+                  // cannot set bound values. can go silent.
+                }
+              }
+            }
+
+          }
+        }
+        default -> {
+        }
+      }
+    }
+  }
+
   public void saveToXML(@NotNull XMLStreamWriter writer, @NotNull ModularFeatureList flist,
       @NotNull ModularFeatureListRow row) throws XMLStreamException {
 
     // main element
     writer.writeStartElement(XML_ELEMENT_NAME);
-
     writer.writeAttribute(XML_CORRELATION_TYPE_ATTR, type.name());
 
     writer.writeStartElement(CONST.XML_OTHER_FEATURE_ELEMENT);
     for (Entry<DataType, Object> entry : otherFeature.getMap().entrySet()) {
-      FeatureListSaveTask.writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, null, null);
+      FeatureListSaveTask.writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, null,
+          null);
     }
     writer.writeEndElement();
 //
