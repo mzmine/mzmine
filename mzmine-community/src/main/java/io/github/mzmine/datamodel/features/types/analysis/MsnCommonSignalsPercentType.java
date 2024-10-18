@@ -25,23 +25,22 @@
 
 package io.github.mzmine.datamodel.features.types.analysis;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents count of signals found in MS2 scan(s) corresponding to all precursors found in MS1. It
- * extends the {@link IntegerType} class. This value is typically used in the context of ion type
- * analysis.
+ * Represents common signals between MS1 and MSn signals, over MSn total signals (%). It extends the
+ * {@link PercentType} class. This value is typically used in the context of ion type analysis.
  */
-public class Ms2SignalsAllPrecursorsType extends IntegerType {
+public class MsnCommonSignalsPercentType extends PercentType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms2_signals_all_precursors";
+    return "msn_common_signals_percent";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS2 signals of all precursors";
+    return "MSn common signals";
   }
 }

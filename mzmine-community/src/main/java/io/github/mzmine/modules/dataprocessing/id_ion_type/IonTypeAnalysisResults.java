@@ -45,19 +45,19 @@ import io.github.mzmine.datamodel.features.types.analysis.Ms1IsotopesType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1SignalsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1UnexplainedIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1UnexplainedType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms2CommonIntensityPercentType;
-import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsAllPrecursorsType;
+import io.github.mzmine.datamodel.features.types.analysis.MsnCommonIntensityPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.MsnSignalsAllPrecursorsType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.PrecursorIonsType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public record IonTypeAnalysisResults(int commonSignalsAllPrecursors, int ms1Signals,
-                                     int ms2SignalsAllPrecursors, int ms1AdductsAndCo,
+                                     int msnSignalsAllPrecursors, int ms1AdductsAndCo,
                                      int ms1Isotopes, int ms1Fragmented, int ms1Unexplained,
                                      double ms1FragmentedIntensityPercent,
                                      double ms1CommonIntensityPercent,
-                                     double ms2CommonIntensityPercent,
+                                     double msnCommonIntensityPercent,
                                      double ms1UnexplainedIntensityPercent, int adductsOnly,
                                      int isotopesOnly, int commonOnly, int aIC, int aII, int iIC,
                                      int explainedI) implements ModularDataRecord {
@@ -67,13 +67,13 @@ public record IonTypeAnalysisResults(int commonSignalsAllPrecursors, int ms1Sign
     return DataTypes.getAll( //
         CommonSignalsType.class, //
         Ms1SignalsType.class, //
-        Ms2SignalsAllPrecursorsType.class, //
+        MsnSignalsAllPrecursorsType.class, //
         Ms1AdductsAndCoType.class, //
         Ms1IsotopesType.class, //
         PrecursorIonsType.class, //
         Ms1UnexplainedType.class, //
         Ms1CommonIntensityPercentType.class, //
-        Ms2CommonIntensityPercentType.class, //
+        MsnCommonIntensityPercentType.class, //
         PrecursorIonsIntensityPercentType.class, //
         Ms1UnexplainedIntensityPercentType.class, //
         AdductsOnlyType.class, //
@@ -90,14 +90,14 @@ public record IonTypeAnalysisResults(int commonSignalsAllPrecursors, int ms1Sign
     return new IonTypeAnalysisResults( //
         requireNonNullElse(values.get(CommonSignalsType.class), -1),
         requireNonNullElse(values.get(Ms1SignalsType.class), -1),
-        requireNonNullElse(values.get(Ms2SignalsAllPrecursorsType.class), -1),
+        requireNonNullElse(values.get(MsnSignalsAllPrecursorsType.class), -1),
         requireNonNullElse(values.get(Ms1AdductsAndCoType.class), -1),
         requireNonNullElse(values.get(Ms1IsotopesType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsType.class), -1),
         requireNonNullElse(values.get(Ms1UnexplainedType.class), -1),
         requireNonNullElse(values.get(PrecursorIonsIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(Ms1CommonIntensityPercentType.class), -1f),
-        requireNonNullElse(values.get(Ms2CommonIntensityPercentType.class), -1f),
+        requireNonNullElse(values.get(MsnCommonIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(Ms1UnexplainedIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(AdductsOnlyType.class), -1),
         requireNonNullElse(values.get(IsotopesOnlyType.class), -1),
@@ -119,14 +119,14 @@ public record IonTypeAnalysisResults(int commonSignalsAllPrecursors, int ms1Sign
     return switch (sub) {
       case CommonSignalsType _ -> commonSignalsAllPrecursors;
       case Ms1SignalsType _ -> ms1Signals;
-      case Ms2SignalsAllPrecursorsType _ -> ms2SignalsAllPrecursors;
+      case MsnSignalsAllPrecursorsType _ -> msnSignalsAllPrecursors;
       case Ms1AdductsAndCoType _ -> ms1AdductsAndCo;
       case Ms1IsotopesType _ -> ms1Isotopes;
       case PrecursorIonsType _ -> ms1Fragmented;
       case Ms1UnexplainedType _ -> ms1Unexplained;
       case PrecursorIonsIntensityPercentType _ -> ms1FragmentedIntensityPercent;
       case Ms1CommonIntensityPercentType _ -> ms1CommonIntensityPercent;
-      case Ms2CommonIntensityPercentType _ -> ms2CommonIntensityPercent;
+      case MsnCommonIntensityPercentType _ -> msnCommonIntensityPercent;
       case Ms1UnexplainedIntensityPercentType _ -> ms1UnexplainedIntensityPercent;
       case AdductsOnlyType _ -> adductsOnly;
       case IsotopesOnlyType _ -> isotopesOnly;

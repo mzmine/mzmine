@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ion_type;
 
-import static io.github.mzmine.util.scans.ScanUtils.findAllMS2FragmentScans;
+import static io.github.mzmine.util.scans.ScanUtils.findAllMSnFragmentScans;
 
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
@@ -73,7 +73,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
   private final List<FeatureList> featureLists;
   private final boolean useMassList;
   private final MZTolerance toleranceMs1;
-  private final MZTolerance toleranceMs2;
+  private final MZTolerance toleranceMsn;
 
   /**
    * Constructor to initialize the task with necessary parameters.
@@ -94,7 +94,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     this.useMassList =
         parameters.getValue(IonTypeAnalysisParameters.scanDataType) == ScanDataType.MASS_LIST;
     this.toleranceMs1 = parameters.getValue(IonTypeAnalysisParameters.toleranceMs1);
-    this.toleranceMs2 = parameters.getValue(IonTypeAnalysisParameters.toleranceMs2);
+    this.toleranceMsn = parameters.getValue(IonTypeAnalysisParameters.toleranceMsn);
   }
 
   private static double calcSumIntensity(List<UniqueSignal> signals) {
@@ -144,7 +144,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
   private GroupedSignalScans createGroupedSignalScans(FeatureListRow row,
       DoubleArrayList[] isoMzDiffsForCharge, double[] maxIsoMzDiff) {
     List<Scan> ms1Scans = new ArrayList<>();
-    List<Scan> allPrecursorsMs2Scans = new ArrayList<>();
+    List<Scan> allPrecursorsMsnScans = new ArrayList<>();
     Set<DataPoint> isotopeSet = new HashSet<>();
     Set<DataPoint> adductsAndCoSet = new HashSet<>();
 
@@ -155,14 +155,15 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
           ms1Scans.add(representativeMs1);
 
           Range<Float> rawRtRange = feature.getRawDataPointsRTRange();
+          Range<Integer> msLevelRange = Range.closed(2, 5); // TODO change this default
           RawDataFile raw = feature.getRawDataFile();
           DataPoint[] dataPoints = ScanUtils.extractDataPoints(representativeMs1, useMassList);
 
           for (DataPoint dp : dataPoints) {
             double ms1SignalMz = dp.getMZ();
-            Scan[] broadFragmentScans = findAllMS2FragmentScans(raw, rawRtRange,
-                toleranceMs2.getToleranceRange(ms1SignalMz));
-            allPrecursorsMs2Scans.addAll(Arrays.asList(broadFragmentScans));
+            Scan[] broadFragmentScans = findAllMSnFragmentScans(raw, msLevelRange, rawRtRange,
+                toleranceMsn.getToleranceRange(ms1SignalMz));
+            allPrecursorsMsnScans.addAll(Arrays.asList(broadFragmentScans));
           }
           processIsotopesAndAdductsForFeature(feature, isotopeSet, adductsAndCoSet,
               isoMzDiffsForCharge, maxIsoMzDiff);
@@ -175,15 +176,15 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     try {
       IsotopeAndAdducts isotopeAndAdducts = new IsotopeAndAdducts(new ArrayList<>(isotopeSet),
           new ArrayList<>(adductsAndCoSet));
-      SignalsAnalysisResult analysisResult = analyzeSignals(ms1Scans, allPrecursorsMs2Scans,
-          toleranceMs1, toleranceMs2, isotopeAndAdducts.getAdducts(),
+      SignalsAnalysisResult analysisResult = analyzeSignals(ms1Scans, allPrecursorsMsnScans,
+          toleranceMs1, toleranceMsn, isotopeAndAdducts.getAdducts(),
           isotopeAndAdducts.getIsotopes());
       row.set(IonTypeAnalysisType.class, analysisResult.results);
 
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Error processing row: " + ex.getMessage(), ex);
     }
-    return new GroupedSignalScans(row, ms1Scans, allPrecursorsMs2Scans);
+    return new GroupedSignalScans(row, ms1Scans, allPrecursorsMsnScans);
   }
 
   private void processIsotopesAndAdductsForFeature(Feature feature, Set<DataPoint> isotopeSet,
@@ -337,15 +338,15 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
    * Analyzes unique signals between MS1 and MS2 scans.
    *
    * @param ms1Scans              The MS1 scans.
-   * @param allPrecursorsMs2Scans The MS2 scans from all precursors.
+   * @param allPrecursorsMsnScans The MSn scans from all precursors.
    * @param toleranceMs1          The tolerance in MS1.
-   * @param toleranceMs2          The tolerance in MS1.
+   * @param toleranceMsn          The tolerance in MS1.
    * @param adductsAndCoList      The adducts and co list
    * @param isotopeList           The isotopes list.
    * @return The analysis result.
    */
   private SignalsAnalysisResult analyzeSignals(List<Scan> ms1Scans,
-      List<Scan> allPrecursorsMs2Scans, MZTolerance toleranceMs1, MZTolerance toleranceMs2,
+      List<Scan> allPrecursorsMsnScans, MZTolerance toleranceMs1, MZTolerance toleranceMsn,
       List<DataPoint> adductsAndCoList, List<DataPoint> isotopeList) {
 
     // Step 1: Collect signals
@@ -354,12 +355,12 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     var ms1SignalRangeMap = filterMap(collectUniqueSignals(ms1Scans, toleranceMs1), minMs1Scans);
     List<UniqueSignal> ms1Signals = new ArrayList<>(ms1SignalRangeMap.asMapOfRanges().values());
     // MS2 (all precursors)
-    var ms2SignalRangeMap = collectUniqueSignals(allPrecursorsMs2Scans, toleranceMs2);
+    var ms2SignalRangeMap = collectUniqueSignals(allPrecursorsMsnScans, toleranceMsn);
     List<UniqueSignal> ms2SignalsAllPrecursors = mapToList(ms2SignalRangeMap);
 
     // Step 2: Find unique precursors
     List<UniqueSignal> uniquePrecursorsSignals = findUniquePrecursors(ms1SignalRangeMap,
-        allPrecursorsMs2Scans);
+        allPrecursorsMsnScans);
     List<UniqueSignal> ms2SignalMatchesMs1AllPrecursors = findMatches(ms2SignalsAllPrecursors,
         ms1SignalRangeMap);
 
@@ -533,15 +534,15 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
   }
 
   /**
-   * Finds unique precursor signals within a list of MS2 scans.
+   * Finds unique precursor signals within a list of MSn scans.
    *
    * @param ms1SignalRangeMap The MS1 signal map.
-   * @param ms2Scans          The MS2 scans.
-   * @return The list of unique MS1 signals with MS2 fragments.
+   * @param msnScans          The MSn scans.
+   * @return The list of unique MS1 signals fragmented.
    */
   private List<UniqueSignal> findUniquePrecursors(RangeMap<Double, UniqueSignal> ms1SignalRangeMap,
-      List<Scan> ms2Scans) {
-    return ms2Scans.stream().map(Scan::getPrecursorMz).filter(Objects::nonNull)
+      List<Scan> msnScans) {
+    return msnScans.stream().map(Scan::getPrecursorMz).filter(Objects::nonNull)
         .map(ms1SignalRangeMap::get).filter(Objects::nonNull).distinct().toList();
   }
 
