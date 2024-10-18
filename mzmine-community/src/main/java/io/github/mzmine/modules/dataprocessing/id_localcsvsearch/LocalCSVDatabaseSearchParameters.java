@@ -31,7 +31,14 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.MolecularClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -114,7 +121,14 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(true, "comment", new CommentType()),
       new ImportType(false, "adduct", new IonTypeType()),
       new ImportType(false, "PubChemCID", new PubChemIdType()),
-      new ImportType(false, "molecular_class", new MolecularClassType()));
+      new ImportType(false, "molecular_class", new MolecularClassType()),
+      new ImportType(false, "classyfire_superclass", new ClassyFireSuperclassType()),
+      new ImportType(false, "classyfire_class", new ClassyFireClassType()),
+      new ImportType(false, "classyfire_subclass", new ClassyFireSubclassType()),
+      new ImportType(false, "classyfire_direct_parent", new ClassyFireParentType()),
+      new ImportType(false, "npclassifier_superclass", new NPClassifierSuperclassType()),
+      new ImportType(false, "npclassifier_class", new NPClassifierClassType()),
+      new ImportType(false, "npclassifier_pathway", new NPClassifierPathwayType()));
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);
