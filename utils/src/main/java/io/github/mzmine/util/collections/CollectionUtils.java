@@ -302,4 +302,17 @@ public class CollectionUtils {
     }
     return list;
   }
+
+  public static <T> List<T> combine(List<? extends T>... lists) {
+    int size = 0;
+    for (final List<? extends T> list : lists) {
+      size += list.size();
+    }
+
+    final List<T> value = new ArrayList<>(size);
+    for (List<? extends T> list : lists) {
+      value.addAll(list);
+    }
+    return value;
+  }
 }
