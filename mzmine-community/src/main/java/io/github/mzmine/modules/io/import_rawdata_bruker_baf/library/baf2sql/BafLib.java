@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,12 +47,15 @@ import java.lang.foreign.SymbolLookup;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.slf4j.LoggerFactory;
 
 public class BafLib {
+
+  private static final Logger logger = Logger.getLogger(BafLib.class.getName());
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(BafLib.class);
 
   BafLib() {
     // Should not be called directly
@@ -94,26 +97,8 @@ public class BafLib {
     };
   }
 
-//  static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(
-//          BafLib.class.getClassLoader().getResource("vendorlib/bruker_baf/%s".formatted(LIB_NAME.get()))
-//              .toString(), LIBRARY_ARENA).or(SymbolLookup.loaderLookup())
-//      .or(Linker.nativeLinker().defaultLookup());
-//static final String path = System.mapLibraryName(
-//    "C:\\Users\\Steffen\\git\\mzmine3\\mzmine-community\\src\\main\\resources\\vendorlib\\bruker_baf\\baf2sql_c");
-
-  // not nice but the only thing that would work properly
-  static final Path path;
-  static {
-    try {
-      path = Path.of(BafLib.class.getClassLoader()
-          .getResource("vendorlib/bruker_baf/%s".formatted(System.mapLibraryName("baf2sql_c")))
-          .toURI());
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(path, LIBRARY_ARENA)
+  static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(
+          "external_tools/bruker_baf/%s".formatted(System.mapLibraryName("baf2sql_c")), LIBRARY_ARENA)
       .or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
 
   public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
