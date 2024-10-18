@@ -171,9 +171,7 @@ public interface SpectralLibraryEntry extends MassList {
       entry.putIfNotNull(DBEntryField.MS_LEVEL, msMsInfo.getMsLevel());
     }
     List<Float> energies = ScanUtils.extractCollisionEnergies(scan);
-    if (energies.size() == 1) {
-      entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, energies.getFirst());
-    } else if (energies.size() > 1) {
+    if (energies.size() >= 1) {
       entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, energies);
     }
 
