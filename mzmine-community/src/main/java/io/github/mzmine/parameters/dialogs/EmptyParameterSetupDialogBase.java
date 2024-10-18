@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -126,7 +126,6 @@ public class EmptyParameterSetupDialogBase extends Stage {
     parameterSet = paramPane.getParameterSet();
 
     mainPane = new BorderPane(paramPane);
-    mainPane.setMaxHeight(calcMaxHeight());
     Scene scene = new Scene(new StackPane(mainPane));
     scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
       if (event.getCode() == KeyCode.ESCAPE) {
@@ -139,7 +138,6 @@ public class EmptyParameterSetupDialogBase extends Stage {
         closeDialog(ExitCode.OK);
       }
     });
-
 
     // Use main CSS
     scene.getStylesheets()

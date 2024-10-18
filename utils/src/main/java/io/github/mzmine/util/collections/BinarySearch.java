@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,21 @@ public class BinarySearch {
    * including both bounds
    */
   public static @NotNull IndexRange indexRange(double[] data, Range<? extends Number> range) {
-    return indexRange(range, 0, data.length, index -> data[index]);
+    return indexRange(data, range, 0, data.length);
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
+   * @param data  data source
+   * @param range search for index of lower and upper bound both always included!
+   * @return an {@link IndexRange} that may be empty but contains all values within range - always
+   * including both bounds
+   */
+  public static @NotNull IndexRange indexRange(double[] data, Range<? extends Number> range,
+      int fromIndex, int toIndexExclusive) {
+    return indexRange(range, fromIndex, toIndexExclusive, index -> data[index]);
   }
 
   /**
@@ -120,10 +134,11 @@ public class BinarySearch {
    * @return an {@link IndexRange} that may be empty but contains all values within range - always
    * including both bounds
    */
-  public static @NotNull IndexRange indexRange(final Range<? extends Number> range, final int fromIndex,
-      final int toIndexExclusive, final IntToDoubleFunction valueAtIndexProvider) {
-    return indexRange(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue(), fromIndex, toIndexExclusive,
-        valueAtIndexProvider);
+  public static @NotNull IndexRange indexRange(final Range<? extends Number> range,
+      final int fromIndex, final int toIndexExclusive,
+      final IntToDoubleFunction valueAtIndexProvider) {
+    return indexRange(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue(),
+        fromIndex, toIndexExclusive, valueAtIndexProvider);
   }
 
   /**
