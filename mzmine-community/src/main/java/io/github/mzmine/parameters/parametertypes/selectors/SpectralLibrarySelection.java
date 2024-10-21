@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,8 @@ import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class SpectralLibrarySelection {
@@ -49,13 +51,15 @@ public class SpectralLibrarySelection {
   }
 
   public SpectralLibrarySelection(@NotNull final List<SpectralLibrary> libraries) {
-    this(SpectralLibrarySelectionType.SPECIFIC, libraries.stream().map(SpectralLibrary::getPath).toList());
+    this(SpectralLibrarySelectionType.SPECIFIC,
+        libraries.stream().map(SpectralLibrary::getPath).toList());
   }
 
   public List<SpectralLibrary> getMatchingLibraries() {
     return switch (selectionType) {
-      case ALL_IMPORTED -> ProjectService.getProjectManager().getCurrentProject()
-          .getCurrentSpectralLibraries().stream().toList();
+      case ALL_IMPORTED ->
+          ProjectService.getProjectManager().getCurrentProject().getCurrentSpectralLibraries()
+              .stream().toList();
       case SPECIFIC -> getMatchingSpecificFiles();
     };
   }
@@ -72,6 +76,26 @@ public class SpectralLibrarySelection {
 
     return currentProject.getCurrentSpectralLibraries().stream()
         .filter(lib -> specificLibraryNames.contains(lib.getPath())).toList();
+  }
+
+  /**
+   * User should also check if the selection type is {@link SpectralLibrarySelectionType#SPECIFIC}
+   *
+   * @return list of libraries that were defined but not yet loaded
+   */
+  @NotNull
+  public List<File> getMissingSpecificFiles() {
+    if (specificLibraryNames == null || specificLibraryNames.isEmpty()) {
+      return List.of();
+    }
+    MZmineProject currentProject = ProjectService.getProjectManager().getCurrentProject();
+    if (currentProject == null) {
+      return List.copyOf(specificLibraryNames);
+    }
+
+    Set<File> currentLibs = currentProject.getCurrentSpectralLibraries().stream()
+        .map(SpectralLibrary::getPath).collect(Collectors.toSet());
+    return specificLibraryNames.stream().filter(file -> !currentLibs.contains(file)).toList();
   }
 
   public List<File> getSpecificLibraryNames() {
