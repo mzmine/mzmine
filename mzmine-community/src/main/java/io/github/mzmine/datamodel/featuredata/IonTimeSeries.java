@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -83,12 +83,15 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
     if(indexRange.isEmpty()) {
       return EMPTY;
     }
-    return subSeries(storage, getSpectra().subList(indexRange.min(), indexRange.maxExclusive()));
+    return subSeries(storage, indexRange.min(), indexRange.maxExclusive());
   }
 
   @Override
   default IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
       int endIndexExclusive) {
+    if(endIndexExclusive-startIndexInclusive<=0) {
+      return EMPTY;
+    }
     return subSeries(storage, getSpectra().subList(startIndexInclusive, endIndexExclusive));
   }
 

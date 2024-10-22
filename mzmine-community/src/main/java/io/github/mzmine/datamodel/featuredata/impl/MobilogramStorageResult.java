@@ -23,10 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.datamodel.featuredata.impl;
 
-public interface MergedMsMsSpectrum extends MergedMassSpectrum {
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import java.lang.foreign.MemorySegment;
+import java.util.List;
 
-  float getCollisionEnergy();
+public record MobilogramStorageResult(List<IonMobilitySeries> storedMobilograms,
+                                      MemorySegment storedMzValues,
+                                      MemorySegment storedIntensityValues) {
 
 }

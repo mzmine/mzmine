@@ -81,7 +81,7 @@ public class IMSScanTypesTest {
 
   MZmineProject project;
 
-  private static void compareMergedMsMs(MergedMsMsSpectrum value, MergedMsMsSpectrum loaded) {
+  public static void compareMergedMsMs(MergedMsMsSpectrum value, MergedMsMsSpectrum loaded) {
     Assertions.assertEquals(value.getCollisionEnergy(), loaded.getCollisionEnergy());
     Assertions.assertEquals(value.getBasePeakIndex(), loaded.getBasePeakIndex());
     Assertions.assertEquals(value.getBasePeakMz(), loaded.getBasePeakMz());
