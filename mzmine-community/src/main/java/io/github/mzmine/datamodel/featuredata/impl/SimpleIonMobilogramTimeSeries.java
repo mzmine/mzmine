@@ -275,7 +275,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       @NotNull final double[] newIntensityValues) {
     MemorySegment intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
         newIntensityValues);
-    return new SimpleIonMobilogramTimeSeries(storage, mzValues, intensityValues, mobilograms,
+    return new SimpleIonMobilogramTimeSeries(mzValues, intensityValues, storage, mobilograms,
         frames, summedMobilogram.copy(storage));
   }
 
