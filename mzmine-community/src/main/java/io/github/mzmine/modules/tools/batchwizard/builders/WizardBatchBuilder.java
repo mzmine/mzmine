@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.modules.tools.batchwizard.builders;
+
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
@@ -153,6 +155,20 @@ public abstract class WizardBatchBuilder {
       }
     }
     return null;
+  }
+
+  /**
+   * Get parameter if available or else return default value. params usually comes from
+   * {@link WizardSequence#get(WizardPart)}
+   *
+   * @param params    an optional parameter class for a part
+   * @param parameter parameter as defined in params class. Usually a static parameter
+   * @return the value of the parameter or default value if !params.isPresent
+   */
+  @NotNull
+  public static <T> T getOrElse(@NotNull final Optional<? extends WizardStepParameters> params,
+      @NotNull final Parameter<T> parameter, @NotNull T defaultValue) {
+    return requireNonNullElse(getValue(params, parameter), defaultValue);
   }
 
   /**

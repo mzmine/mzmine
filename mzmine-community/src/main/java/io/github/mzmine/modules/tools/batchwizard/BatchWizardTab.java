@@ -25,6 +25,9 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
+import static io.github.mzmine.modules.tools.batchwizard.WizardPart.DATA_IMPORT;
+import static io.github.mzmine.modules.tools.batchwizard.WizardPart.FILTER;
+import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getOrElse;
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
 import io.github.mzmine.gui.mainwindow.SimpleTab;
@@ -463,28 +466,35 @@ public class BatchWizardTab extends SimpleTab {
     updateAllParametersFromUi();
     sequenceSteps.forEach(step -> step.checkParameterValues(errorMessages));
 
-    final int numFiles = Objects.requireNonNullElse(sequenceSteps.get(WizardPart.DATA_IMPORT).get()
-        .getParameter(DataImportWizardParameters.fileNames).getValue(), new File[0]).length;
-    final AbsoluteAndRelativeInt minSamples = sequenceSteps.get(WizardPart.FILTER)
-        .map(p -> p.getParameter(FilterWizardParameters.minNumberOfSamples).getValue())
-        .orElse(new AbsoluteAndRelativeInt(0, 0));
-
     if (!errorMessages.isEmpty()) {
       MZmineCore.getDesktop().displayErrorMessage("Please check the parameters.\n" + errorMessages);
       return null;
     }
 
-    if (minSamples.getMaximumValue(numFiles) > numFiles) {
-      final boolean continueAnyway = DialogLoggerUtil.showDialogYesNo("Warning", """
-          The number of %s (Filters tab) does not match the number of imported data files. This will avoid correlation grouping. 
-          Continue anyway?""".formatted(
-          inQuotes(FilterWizardParameters.minNumberOfSamples.getName())));
-
-      if(!continueAnyway) {
-        return null;
-      }
+    // check if samples > min samples filter
+    if (!checkSampleFilterValid()) {
+      return null;
     }
     return sequenceSteps;
+  }
+
+  /**
+   * @return true if imported samples > min num samples
+   */
+  private boolean checkSampleFilterValid() {
+    int numFiles = getOrElse(sequenceSteps.get(DATA_IMPORT), DataImportWizardParameters.fileNames,
+        new File[0]).length;
+
+    var minSamples = getOrElse(sequenceSteps.get(FILTER), FilterWizardParameters.minNumberOfSamples,
+        new AbsoluteAndRelativeInt(0, 0));
+    if (minSamples.getMaximumValue(numFiles) > numFiles) {
+      // continue? y/n
+      return DialogLoggerUtil.showDialogYesNo("Warning", """
+          The number of %s (Filters tab) does not match the number of imported data files. This will avoid correlation grouping.
+          Continue anyway?""".formatted(
+          inQuotes(FilterWizardParameters.minNumberOfSamples.getName())));
+    }
+    return true;
   }
 
   /**

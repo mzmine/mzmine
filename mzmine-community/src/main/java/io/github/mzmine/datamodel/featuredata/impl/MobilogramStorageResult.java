@@ -23,23 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.statsdashboard;
+package io.github.mzmine.datamodel.featuredata.impl;
 
-import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import java.lang.foreign.MemorySegment;
+import java.util.List;
 
-public class StatsDashboardParameters extends CurrentProjectNoDialogParameterSet {
+public record MobilogramStorageResult(List<IonMobilitySeries> storedMobilograms,
+                                      MemorySegment storedMzValues,
+                                      MemorySegment storedIntensityValues) {
 
-  public static final FeatureListsParameter flists = new FeatureListsParameter(1, 1, true);
-
-  public StatsDashboardParameters() {
-    super(flists);
-  }
-
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
-  }
 }
