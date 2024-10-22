@@ -23,23 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.statsdashboard;
+package io.github.mzmine.modules.tools;
 
-import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.util.XMLUtils;
+import org.w3c.dom.Element;
 
-public class StatsDashboardParameters extends CurrentProjectNoDialogParameterSet {
+public final class PlaceholderModuleParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter flists = new FeatureListsParameter(1, 1, true);
+  public static final StringParameter oldModuleName = new StringParameter("Old module name",
+      "The name of the old module.");
 
-  public StatsDashboardParameters() {
-    super(flists);
+  public PlaceholderModuleParameters() {
+    super(oldModuleName);
   }
 
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+  public static ParameterSet forElement(String moduleName, Element parametersElement) {
+    final ParameterSet param = new PlaceholderModuleParameters().cloneParameterSet();
+
+    StringBuilder b = new StringBuilder();
+    b.append(moduleName).append("\n\n");
+    b.append(XMLUtils.nodeToString(parametersElement));
+    param.setParameter(oldModuleName, b.toString());
+
+    return param;
   }
 }

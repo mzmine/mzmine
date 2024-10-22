@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.modules.tools.PlaceholderModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
@@ -53,8 +54,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -123,6 +127,8 @@ public class FeatureListSummaryController {
             return;
           }
 
+          tvParameterValues.appendText(newValue.toString());
+          tvParameterValues.appendText("\n");
           tvParameterValues.appendText(newValue.getDescription());
           tvParameterValues.appendText("\n");
           for (Parameter<?> parameter : newValue.getParameters().getParameters()) {
@@ -168,15 +174,9 @@ public class FeatureListSummaryController {
   @FXML
   void setAsBatchQueue() {
 
-    boolean result = DialogLoggerUtil.showDialogYesNo("Overwriting batch?",
-        "Warning: This will overwrite the current batch queue.\nDo you wish to continue?");
-
-    if (!result) {
-      return;
-    }
-
     BatchQueue queue = new BatchQueue();
 
+    List<String> warnings = new ArrayList<>();
     for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
       if (item == null) {
         logger.info("Skipping module ???, cannot find module class. Was it renamed?");
@@ -190,8 +190,36 @@ public class FeatureListSummaryController {
         queue.add(step);
       } else {
         logger.warning(() -> "Cannot add module " + item.getModule() + " as a batch step because "
-                             + "it is not an instance of MZmineProcessingModule.");
+            + "it is not an instance of MZmineProcessingModule.");
+        if (item.getModule() instanceof PlaceholderModule) {
+          warnings.add("""
+              Module at position %d (%s - %s) does not exist in this mzmine version.
+              It may have been replaced by a newer version. Reproducing the previous results with \
+              this batch requires manual addition of the replacement module.""".formatted(
+              lvAppliedMethods.getItems().indexOf(item), item.toString(), item.getDescription()));
+        } else {
+          warnings.add("""
+              Module at position %d (%s) cannot be executed in batch mode.
+              Executing this batch will not lead to exactly the same results.
+              """.formatted(lvAppliedMethods.getItems().indexOf(item)));
+        }
       }
+    }
+
+    if (!warnings.isEmpty()) {
+      final boolean isOk = DialogLoggerUtil.showDialogYesNo("Warning",
+          new StringBuilder(warnings.stream().collect(Collectors.joining("\n"))).append(
+              "\n\n Do you wish to continue anyway?").toString());
+      if (!isOk) {
+        return;
+      }
+    }
+
+    boolean result = DialogLoggerUtil.showDialogYesNo("Overwriting batch?",
+        "Warning: This will overwrite the current batch queue.\nDo you wish to continue?");
+
+    if (!result) {
+      return;
     }
 
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()

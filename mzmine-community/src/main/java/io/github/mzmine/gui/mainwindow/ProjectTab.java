@@ -23,23 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.statsdashboard;
+package io.github.mzmine.gui.mainwindow;
 
-import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
-
-public class StatsDashboardParameters extends CurrentProjectNoDialogParameterSet {
-
-  public static final FeatureListsParameter flists = new FeatureListsParameter(1, 1, true);
-
-  public StatsDashboardParameters() {
-    super(flists);
-  }
-
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
-  }
+public enum ProjectTab {
+  DATA_FILES, FEATURE_LISTS, LIBRARIES;
 }
