@@ -1,20 +1,42 @@
+/*
+ * Copyright (c) 2004-2024 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.datamodel.structures;
 
 
-import java.util.logging.Level;
+import io.github.mzmine.datamodel.structures.StructureUtils.SmilesFlavor;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
- * All values are computed on demand. So if accessed often use
- * {@link #precomputeValues(StructureParser)} to create a {@link ComplexMolecularStructure} with
- * direct value access.
+ * All values are computed on demand. So if accessed often use {@link #precomputeValues()} to create
+ * a {@link ComplexMolecularStructure} with direct value access.
  *
  * @param structure
  */
@@ -25,46 +47,56 @@ public record SimpleMolecularStructure(@NotNull IAtomContainer structure) implem
 
   @Nullable
   public IMolecularFormula formula() {
-    AtomContainerManipulator.getMass(structure(), AtomContainerManipulator.MonoIsotopic);
-    return MolecularFormulaManipulator.getMolecularFormula(structure());
+    return StructureUtils.getFormula(structure());
+  }
+
+  @Override
+  public String canonicalSmiles() {
+    return StructureUtils.getSmiles(SmilesFlavor.CANONICAL, structure);
+  }
+
+  @Override
+  public String isomericSmiles() {
+    return StructureUtils.getSmiles(SmilesFlavor.ISOMERIC, structure);
+  }
+
+  @Override
+  public String inchi() {
+    return StructureUtils.getInchi(structure);
   }
 
   public double monoIsotopicMass() {
-    return AtomContainerManipulator.getMass(structure(), AtomContainerManipulator.MonoIsotopic);
+    return StructureUtils.getMonoIsotopicMass(structure());
   }
 
   public double mostAbundantMass() {
-    return AtomContainerManipulator.getMass(structure(), AtomContainerManipulator.MostAbundant);
+    return StructureUtils.getMostAbundantMass(structure());
   }
 
   public int totalFormalCharge() {
-    return AtomContainerManipulator.getTotalFormalCharge(structure());
+    return StructureUtils.getTotalFormalCharge(structure());
   }
 
   @Nullable
-  public String inChIKey(@NotNull StructureParser parser) {
-    try {
-      // Generate the InChI Key
-      return parser.getInchiFactory().getInChIGenerator(structure()).getInchiKey();
-    } catch (CDKException e) {
-      String message = "Cannot parse 'structure' %s".formatted(structure());
-      if (parser.isVerbose()) {
-        logger.log(Level.WARNING, message, e);
-      } else {
-        logger.log(Level.WARNING, message);
-      }
+  public String inchiKey() {
+    InChIGenerator inchi = StructureUtils.getInchiGenerator(structure());
+    if (inchi == null) {
       return null;
     }
+    return inchi.getInchi();
   }
 
   /**
    * Precompute values in case they are access more often
    *
-   * @param parser structure parser, can be the same that was used to create this structure
    * @return a structure with precomputed values
    */
-  public ComplexMolecularStructure precomputeValues(StructureParser parser) {
-    return new ComplexMolecularStructure(structure, formula(), inChIKey(parser), monoIsotopicMass(),
-        mostAbundantMass(), totalFormalCharge());
+  public ComplexMolecularStructure precomputeValues() {
+    InchiStructure inchiStr = StructureUtils.getInchiStructure(structure);
+    String inchi = inchiStr != null ? inchiStr.inchi() : null;
+    String inchiKey = inchiStr != null ? inchiStr.inchiKey() : null;
+
+    return new ComplexMolecularStructure(structure, formula(), canonicalSmiles(), isomericSmiles(),
+        inchi, inchiKey, monoIsotopicMass(), mostAbundantMass(), totalFormalCharge());
   }
 }

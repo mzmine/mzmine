@@ -25,43 +25,20 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.features.types.abstr.StringType;
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
-import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
-import javafx.util.StringConverter;
-import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
-public class SmilesStructureType extends StringType implements EditableColumnType,
-    StringParser<String>, AnnotationType {
-
-  private StringConverter<String> converter = new DefaultStringConverter();
+public class SmilesIsomericStructureType extends SmilesStructureType {
 
   @NotNull
   @Override
-  public String getUniqueID() {
+  public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "smiles";
+    return "isomeric_smiles";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "SMILES";
+    return "SMILES (isomeric)";
   }
 
-  @Override
-  public String fromString(String s) {
-    return s;
-  }
-
-  @Override
-  public StringConverter<String> getStringConverter() {
-    return converter;
-  }
-
-  @Override
-  public int getPrefColumnWidth() {
-    return 100;
-  }
 }
