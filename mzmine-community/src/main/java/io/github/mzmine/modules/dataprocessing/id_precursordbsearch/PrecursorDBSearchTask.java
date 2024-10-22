@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,205 +25,130 @@
 
 package io.github.mzmine.modules.dataprocessing.id_precursordbsearch;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionException;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.PrecursorDBFeatureIdentity;
+import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
-import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
-import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
-import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Search for possible precursor m/z . All rows average m/z against local spectral libraries
- *
- * @author
  */
-class PrecursorDBSearchTask extends AbstractTask {
+class PrecursorDBSearchTask extends AbstractFeatureListTask {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(PrecursorDBSearchTask.class.getName());
 
-  private final FeatureList peakList;
-  private final File dataBaseFile;
-  private final ParameterSet parameters;
-
+  private final List<@NotNull FeatureList> featureLists;
   private final MZTolerance mzTol;
-  private final boolean useRT;
   private final RTTolerance rtTol;
+  private int libraryEntries;
 
-  private List<AbstractTask> tasks;
-  private int totalTasks;
-  private final AtomicInteger matches = new AtomicInteger(0);
-
-  public PrecursorDBSearchTask(FeatureList peakList, ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // no new data stored -> null
-    this.peakList = peakList;
-    this.parameters = parameters;
-    dataBaseFile = parameters.getParameter(PrecursorDBSearchParameters.dataBaseFile).getValue();
-    mzTol = parameters.getParameter(PrecursorDBSearchParameters.mzTolerancePrecursor).getValue();
-    useRT = parameters.getParameter(PrecursorDBSearchParameters.rtTolerance).getValue();
-    rtTol = !useRT ? null
-        : parameters.getParameter(PrecursorDBSearchParameters.rtTolerance).getEmbeddedParameter()
-            .getValue();
+  public PrecursorDBSearchTask(final ParameterSet parameters, final Instant moduleCallDate) {
+    super(null, moduleCallDate, parameters, PrecursorDBSearchModule.class);
+    this.featureLists = List.of(
+        parameters.getValue(PrecursorDBSearchParameters.featureLists).getMatchingFeatureLists());
+    mzTol = parameters.getValue(PrecursorDBSearchParameters.mzTolerancePrecursor);
+    rtTol = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        PrecursorDBSearchParameters.rtTolerance, null);
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
-  @Override
-  public double getFinishedPercentage() {
-    if (totalTasks == 0 || tasks == null) {
-      return 0;
-    }
-    return ((double) totalTasks - tasks.size()) / totalTasks;
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
-    return "Identifiy possible precursor  m/z in " + peakList + " using database "
-        + dataBaseFile.getAbsolutePath();
+    return "Identify possible precursor m/z in %d feature lists using %d spectral library entries".formatted(
+        featureLists.size(), libraryEntries);
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   @Override
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-    int count = 0;
-    try {
-      tasks = parseFile(dataBaseFile);
-      totalTasks = tasks.size();
-      if (!tasks.isEmpty()) {
-        // wait for the tasks to finish
-        while (!isCanceled() && !tasks.isEmpty()) {
-          for (int i = 0; i < tasks.size(); i++) {
-            if (tasks.get(i).isFinished() || tasks.get(i).isCanceled()) {
-              tasks.remove(i);
-              i--;
-            }
-          }
-          // wait for all sub tasks to finish
-          try {
-            Thread.sleep(100);
-          } catch (Exception e) {
-            cancel();
-          }
-        }
-        // cancelled
-        if (isCanceled()) {
-          tasks.forEach(AbstractTask::cancel);
-        }
-      } else {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
-      }
-    } catch (Exception e) {
-      logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(e.toString());
+  protected void process() {
+    List<CompoundDBAnnotation> entries = combineLibrariesSortedByMz();
+    if (isCanceled()) {
+      return;
     }
-    logger.info("Added " + matches.get() + " matches to possible precursors in library: "
-        + dataBaseFile.getAbsolutePath());
+    totalItems = featureLists.stream().mapToLong(FeatureList::getNumberOfRows).sum();
 
-    // Add task description to peakList
-    peakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        "Possible precursor identification using MS/MS spectral libraries " + dataBaseFile,
-        PrecursorDBSearchModule.class, parameters, getModuleCallDate()));
+    long matches = featureLists.parallelStream()
+        .mapToLong(flist -> annotateFeatureList(flist, entries)).sum();
 
-    setStatus(TaskStatus.FINISHED);
+    if (featureLists.size() > 1) {
+      logger.info("Added " + matches + " precursor m/z matches to all feature lists.");
+    }
   }
 
-  /**
-   * Load all library entries from data base file
-   *
-   * @param dataBaseFile
-   * @return
-   */
-  private List<AbstractTask> parseFile(File dataBaseFile)
-      throws UnsupportedFormatException, IOException {
-    //
-    List<AbstractTask> tasks = new ArrayList<>();
-    AutoLibraryParser parser = new AutoLibraryParser(100, new LibraryEntryProcessor() {
-      @Override
-      public void processNextEntries(List<SpectralLibraryEntry> list, int alreadyProcessed) {
+  private long annotateFeatureList(final FeatureList featureList,
+      final List<CompoundDBAnnotation> mzSortedEntries) {
+    AtomicLong matches = new AtomicLong(0);
 
-        AbstractTask task = new AbstractTask(null, Instant.now()) {
-          private final int total = peakList.getNumberOfRows();
-          private int done = 0;
-
-          @Override
-          public void run() {
-            for (FeatureListRow row : peakList.getRows()) {
-              if (this.isCanceled()) {
-                break;
-              }
-              for (SpectralLibraryEntry db : list) {
-                if (this.isCanceled()) {
-                  break;
-                }
-
-                if (checkRT(row, (Float) db.getField(DBEntryField.RT).orElse(null)) && checkMZ(row,
-                    db.getPrecursorMZ())) {
-                  // add identity
-                  row.addFeatureIdentity(
-                      new PrecursorDBFeatureIdentity(db, PrecursorDBSearchModule.MODULE_NAME),
-                      false);
-                  matches.getAndIncrement();
-                }
-              }
-              done++;
-            }
-
-            if (!this.isCanceled()) {
-              setStatus(TaskStatus.FINISHED);
-            }
-          }
-
-          @Override
-          public String getTaskDescription() {
-            return "Checking for precursors: " + alreadyProcessed + 1 + " - " + alreadyProcessed
-                + list.size();
-          }
-
-          @Override
-          public double getFinishedPercentage() {
-            if (total == 0) {
-              return 0;
-            }
-            return done / (double) total;
-          }
-        };
-
-        // start last task
-        MZmineCore.getTaskController().addTask(task);
-        tasks.add(task);
+    // sort by mz like the entries
+    List<FeatureListRow> rows = featureList.getRows().stream()
+        .sorted(Comparator.comparingDouble(FeatureListRow::getAverageMZ)).toList();
+    int entryIndexStart = 0;
+    for (final FeatureListRow row : rows) {
+      Range<Double> mzRange = mzTol.getToleranceRange(row.getAverageMZ());
+      // precursor mz is already checked
+      IndexRange indexRange = BinarySearch.indexRange(mzRange.lowerEndpoint(),
+          mzRange.upperEndpoint(), mzSortedEntries, entryIndexStart, mzSortedEntries.size(),
+          CompoundDBAnnotation::getPrecursorMZ);
+      if (indexRange.isEmpty()) {
+        continue;
       }
-    });
 
-    // return tasks
-    parser.parse(this, dataBaseFile, null);
-    return tasks;
+      entryIndexStart = indexRange.min(); // skip a few entries next time
+
+      indexRange.forEach(index -> {
+        CompoundDBAnnotation db = mzSortedEntries.get(index);
+        if (checkRT(row, db.getRT())) {
+          row.addCompoundAnnotation(db);
+          matches.incrementAndGet();
+        }
+      });
+
+      finishedItems.incrementAndGet();
+    }
+
+    logger.info("Added %d precursor m/z matches to feature list %s.".formatted(matches.get(),
+        featureList.getName()));
+    return matches.get();
+  }
+
+  @NotNull
+  private List<CompoundDBAnnotation> combineLibrariesSortedByMz() {
+    // combine libraries
+    try {
+      final List<SpectralLibraryEntry> entries = parameters.getValue(
+          PrecursorDBSearchParameters.libraries).getMatchingLibraryEntriesAndCheckAvailability();
+
+      List<CompoundDBAnnotation> dbEntries = entries.stream()
+          .map(CompoundAnnotationUtils::convertSpectralToCompoundDb)
+          .filter(db -> db.getPrecursorMZ() != null)
+          .sorted(Comparator.comparingDouble(CompoundDBAnnotation::getPrecursorMZ)).toList();
+      libraryEntries = dbEntries.size();
+      if (dbEntries.isEmpty()) {
+        error("No library entries with precursor mz found.");
+      }
+      return dbEntries;
+    } catch (SpectralLibrarySelectionException e) {
+      error("Error in spectral library search.", e);
+      return List.of();
+    }
+  }
+
+  @Override
+  protected @NotNull List<FeatureList> getProcessedFeatureLists() {
+    return featureLists;
   }
 
   protected boolean checkMZ(FeatureListRow row, Double mz) {
@@ -232,7 +157,7 @@ class PrecursorDBSearchTask extends AbstractTask {
 
   protected boolean checkRT(FeatureListRow row, Float rt) {
     // if no rt is in the library still use
-    return !useRT || rtTol == null || rtTol.checkWithinTolerance(row.getAverageRT(), rt);
+    return rtTol == null || rtTol.checkWithinTolerance(row.getAverageRT(), rt);
   }
 
 }
