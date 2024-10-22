@@ -225,8 +225,7 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
 
   @Override
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
-      final @NotNull List<@NotNull MobilityScan> scans) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
   }
 

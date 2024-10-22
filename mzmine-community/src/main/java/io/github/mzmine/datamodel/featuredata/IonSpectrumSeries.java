@@ -118,23 +118,7 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
    * @param newIntensityValues
    * @return
    */
-  default IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
-    return copyAndReplace(storage, newMzValues, newIntensityValues, getSpectra());
-  }
-
-  /**
-   * Creates a copy of this series using the same list of scans but possibly new mz/intensity
-   * values.
-   *
-   * @param storage            May be null if the new series shall be stored in ram.
-   * @param newMzValues
-   * @param newIntensityValues
-   * @param scans              new list of spectra
-   * @return
-   */
   IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
-      final @NotNull List<@NotNull T> scans);
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
 
 }

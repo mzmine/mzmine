@@ -219,13 +219,11 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
 
   @Override
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
-      final @NotNull List<@NotNull MobilityScan> scans) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     // depending on the type of data access, we can have more scans in currentSpectra than data points. (if 0s are included)
     // hence, this method is unsupported. A new SimpleIonMobilitySeries should be created with the respective spectra instead.
     // Will generate new series with zeroes included if that was the source for this data access
-    // TODO maybe crop zeroes again from edges
-    return getCurrentMobilogram().copyAndReplace(storage, newMzValues, newIntensityValues, scans);
+    return getCurrentMobilogram().copyAndReplace(storage, newMzValues, newIntensityValues);
   }
 
   /**
@@ -238,7 +236,7 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newIntensityValues) {
     double[] newMzs = Arrays.copyOf(currentMzs, getNumberOfValues());
-    return copyAndReplace(storage, newMzs, newIntensityValues, getSpectra());
+    return copyAndReplace(storage, newMzs, newIntensityValues);
   }
 
 }

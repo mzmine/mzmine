@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
 
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.Frame;
@@ -114,6 +115,48 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzs);
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
+  }
+
+  /**
+   * Creates a new {@link SimpleIonMobilogramTimeSeries}. For more convenient usage, see
+   * {@link IonMobilogramTimeSeriesFactory#of(MemoryMapStorage, List, BinningMobilogramDataAccess)}
+   * The indices of mzs, intensities, mobilograms and frames must match. All arrays/lists must have
+   * the same length.
+   *
+   * @param storage          The {@link MemoryMapStorage} to be used. May be null.
+   * @param mzs              The mz values of this series. Should be calculated from all detected
+   *                         signals in the {@link IonMobilitySeries} of the same index.
+   * @param intensities      The intensity values of this series. Should be calculated from all
+   *                         detected signals in the {@link IonMobilitySeries} of the same index.
+   * @param mobilograms      The mobilograms of this series.
+   * @param frames           The frames the mobilograms were detected in.
+   * @param summedMobilogram A summed mobilogram calculated from all {@link IonMobilitySeries}.
+   *                         Intensity should be summed within given mobility bins, specified in the
+   *                         last module call of {@link IonMobilityTraceBuilderModule} or
+   *                         {@link MobilogramBinningModule}. The last binning value can be obtained
+   *                         via
+   *                         {@link
+   *                         BinningMobilogramDataAccess#getPreviousBinningWith(ModularFeatureList,
+   *                         MobilityType)}
+   */
+  public SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @NotNull MemorySegment mzs,
+      @NotNull MemorySegment intensities, @NotNull List<IonMobilitySeries> mobilograms,
+      @NotNull List<Frame> frames, @NotNull final SummedIntensityMobilitySeries summedMobilogram) {
+
+    if (mzs.byteSize() != intensities.byteSize() || mobilograms.size() != numDoubles(intensities)) {
+      throw new IllegalArgumentException(
+          "Length of mz, intensity, frames and/or mobilograms does not match.");
+    }
+    if (!checkRawFileIntegrity(mobilograms)) {
+      throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
+    }
+
+    this.mobilograms = storeMobilograms(storage, mobilograms);
+    this.frames = frames;
+    this.summedMobilogram = summedMobilogram;
+
+    mzValues = mzs;
+    intensityValues = intensities;
   }
 
   @Override
@@ -234,16 +277,14 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   @Override
   public IonMobilogramTimeSeries copyAndReplace(@Nullable final MemoryMapStorage storage,
       @NotNull final double[] newIntensityValues) {
-    // TODO maybe reuse memory segment for mzs
-    var mzs = getMzValues(new double[newIntensityValues.length]);
-    return IonMobilogramTimeSeriesFactory.of(storage, mzs, newIntensityValues, mobilograms, frames,
+    MemorySegment intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, newIntensityValues);
+    return new SimpleIonMobilogramTimeSeries(storage, mzValues, intensityValues, mobilograms, frames,
         summedMobilogram.copy(storage));
   }
 
   @Override
   public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
-      final @NotNull List<@NotNull Frame> scans) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return IonMobilogramTimeSeriesFactory.of(storage, newMzValues, newIntensityValues, mobilograms,
         frames, summedMobilogram.copy(storage));
   }

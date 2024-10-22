@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -265,17 +266,40 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   @Override
   public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newIntensityValues) {
-    return copyAndReplace(storage, getMzValuesCopy(), newIntensityValues, getSpectra());
+    return copyAndReplace(storage, getMzValuesCopy(), newIntensityValues);
   }
 
   @Override
   public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
-      final @NotNull List<@NotNull Scan> scans) {
-    // Will generate new series with zeroes included if that was the source for this data access
-    // TODO maybe crop zeroes again from edges
-    return ((IonSpectrumSeries<Scan>) getFeature().getFeatureData()).copyAndReplace(storage,
-        newMzValues, newIntensityValues, scans);
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
+    IonSpectrumSeries<Scan> oldData = (IonSpectrumSeries<Scan>) getFeature().getFeatureData();
+    int numValues = oldData.getNumberOfValues();
+    if (numValues < newIntensityValues.length) {
+      // need to transfer data points to actual scans with detections.
+      // this is the case when a {@link io.github.mzmine.datamodel.data_access.FeatureFullDataAccess} is used
+      double[] actualMzs = new double[numValues];
+      double[] actualIntensities = new double[numValues];
+
+      int newDataIndex = -1;
+      Scan newScan = null;
+      for (int i = 0; i < numValues; i++) {
+        Scan scan = oldData.getSpectrum(i);
+        while (!Objects.equals(scan, newScan)) {
+          // find matching scan in full data access
+          newDataIndex++;
+          if (newDataIndex >= newIntensityValues.length) {
+            throw new IllegalStateException("Cannot find matching scan in " + this);
+          }
+          newScan = this.getSpectrum(newDataIndex);
+        }
+        actualMzs[i] = newMzValues[newDataIndex];
+        actualIntensities[i] = newIntensityValues[newDataIndex];
+      }
+
+      return oldData.copyAndReplace(storage, actualMzs, actualIntensities);
+    } else {
+      return oldData.copyAndReplace(storage, newMzValues, newIntensityValues);
+    }
   }
 
   @Override
