@@ -68,6 +68,10 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
 
   @Override
   public String getTaskDescription() {
+    if (libraryEntries == 0) {
+      return "Identify possible precursor m/z in %d feature lists";
+    }
+
     return "Identify possible precursor m/z in %d feature lists using %d spectral library entries".formatted(
         featureLists.size(), libraryEntries);
   }
@@ -79,6 +83,7 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
       return;
     }
     totalItems = featureLists.stream().mapToLong(FeatureList::getNumberOfRows).sum();
+    finishedItems.set(0); // reset
 
     long matches = featureLists.parallelStream()
         .mapToLong(flist -> annotateFeatureList(flist, entries)).sum();
@@ -131,14 +136,19 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
       final List<SpectralLibraryEntry> entries = parameters.getValue(
           PrecursorDBSearchParameters.libraries).getMatchingLibraryEntriesAndCheckAvailability();
 
-      List<CompoundDBAnnotation> dbEntries = entries.stream()
-          .map(CompoundAnnotationUtils::convertSpectralToCompoundDb)
-          .filter(db -> db.getPrecursorMZ() != null)
+      totalItems = entries.size();
+      finishedItems.set(0);
+
+      List<CompoundDBAnnotation> dbEntries = entries.stream().map(spec -> {
+            finishedItems.incrementAndGet();
+            return CompoundAnnotationUtils.convertSpectralToCompoundDb(spec);
+          }).filter(db -> db.getPrecursorMZ() != null)
           .sorted(Comparator.comparingDouble(CompoundDBAnnotation::getPrecursorMZ)).toList();
       libraryEntries = dbEntries.size();
       if (dbEntries.isEmpty()) {
         error("No library entries with precursor mz found.");
       }
+      logger.fine("Checking for precursors against %d entries.".formatted(libraryEntries));
       return dbEntries;
     } catch (SpectralLibrarySelectionException e) {
       error("Error in spectral library search.", e);
