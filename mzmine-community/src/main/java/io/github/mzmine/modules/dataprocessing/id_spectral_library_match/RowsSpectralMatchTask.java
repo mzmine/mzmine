@@ -36,28 +36,19 @@ import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
-import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters.ScanMatchingSelection;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
-import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
-import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionException;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskService;
-import io.github.mzmine.taskcontrol.threadpools.FixedThreadPoolTask;
-import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
@@ -68,9 +59,7 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -79,7 +68,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -290,15 +278,24 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   @Override
   public void run() {
-
     // combine libraries
-    var entries = getSpectralLibraries();
-    if (isCanceled()) {
+    final List<SpectralLibraryEntry> entries;
+    try {
+      entries = parameters.getValue(SpectralLibrarySearchParameters.libraries)
+          .getMatchingLibraryEntriesAndCheckAvailability();
+      if (isCanceled()) {
+        return;
+      }
+    } catch (SpectralLibrarySelectionException e) {
+      error("Error in spectral library search.", e);
       return;
     }
 
     // run on spectra
     if (scan != null) {
+      description = """
+          Spectral library matching of a selected scan against %d spectral library entries""".formatted(
+          entries.size());
       logger.info(
           () -> String.format("Comparing %d library spectra to scan: %s", entries.size(), scan));
 
@@ -311,6 +308,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
     // run in parallel
     if (rows != null) {
+      description = """
+          Spectral library matching of %d feature rows against %d spectral library entries""".formatted(
+          rows.size(), entries.size());
+
       logger.info(() -> String.format("Comparing %d library spectra to %d feature list rows",
           entries.size(), totalRows));
       // cannot use parallel.forEach with side effects - this thread will continue without waiting for
@@ -328,57 +329,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
       logger.info(() -> String.format("library matches=%d (Errors:%d); rows=%d; library entries=%d",
           getCount(), getErrorCount(), totalRows, entries.size()));
     }
-  }
-
-  private @NotNull List<SpectralLibraryEntry> getSpectralLibraries() {
-    SpectralLibrarySelection libSelection = parameters.getValue(
-        SpectralLibrarySearchParameters.libraries);
-    if (libSelection.getSelectionType() == SpectralLibrarySelectionType.SPECIFIC) {
-      List<File> missing = libSelection.getMissingSpecificFiles();
-      if (!missing.isEmpty()) {
-        if (DesktopService.isGUI() && DialogLoggerUtil.showDialogYesNo(
-            "Import missing spectral libraries?", """
-                Some library files were not imported before spectral library matching - should mzmine import them now?
-                However, it is recommended to import spectral libraries during the initial data import with the MS data import or spectral library import. And maybe set the library selection to use all imported libraries.
-                Missing library files specifically defined:
-                %s""".formatted(StringUtils.join(missing, "\n", File::getAbsolutePath)))) {
-          // user wants libraries to be imported
-          List<Task> tasks = missing.stream().map(
-              file -> (Task) new SpectralLibraryImportTask(ProjectService.getProject(), file,
-                  moduleCallDate)).toList();
-          FixedThreadPoolTask masterImportTask = new FixedThreadPoolTask(
-              "Import missing spectral libraries", tasks.size(), tasks);
-          // block until finished import
-          TaskService.getController().runTaskOnThisThreadBlocking(masterImportTask);
-          // call this method to redo checks
-          return getSpectralLibraries();
-        } else {
-          error(
-              "Some library files were not imported before spectral library matching. However, it is recommended to import spectral libraries during the initial data import with the MS data import or spectral library import. And maybe set the library selection to use all imported libraries.");
-          return List.of();
-        }
-      }
-    }
-    List<SpectralLibrary> libraries = libSelection.getMatchingLibraries();
-    librariesJoined = libraries.stream().map(SpectralLibrary::getName)
-        .collect(Collectors.joining(", "));
-    description = String.format("Spectral library matching for %d rows in %d libraries: %s",
-        rows.size(), libraries.size(), librariesJoined);
-
-    List<SpectralLibraryEntry> entries = new ArrayList<>();
-    for (var lib : libraries) {
-      entries.addAll(lib.getEntries());
-    }
-
-    if (entries.isEmpty()) {
-      error("""
-          Spectral library matching but libraries are empty. This might indicate that the imported library files \
-          are empty or incompatible with mzmine. If this is the case, please raise an issue on GitHub or reach out to our team.\
-          Provide an example library file and the whole log file of mzmine. Currently selected libraries:
-          %s""".formatted(librariesJoined));
-      return entries;
-    }
-    return entries;
   }
 
   /**

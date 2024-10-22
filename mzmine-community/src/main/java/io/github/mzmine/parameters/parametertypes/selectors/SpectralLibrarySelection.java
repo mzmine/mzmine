@@ -26,9 +26,19 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
 import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskService;
+import io.github.mzmine.taskcontrol.threadpools.FixedThreadPoolTask;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.File;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -97,6 +107,72 @@ public class SpectralLibrarySelection {
         .map(SpectralLibrary::getPath).collect(Collectors.toSet());
     return specificLibraryNames.stream().filter(file -> !currentLibs.contains(file)).toList();
   }
+
+  /**
+   * Checks if all spectral libraries are available, otherwise ask for import, finally return
+   * selected list of libraries.
+   *
+   * @return all selected spectral libraries
+   * @throws SpectralLibrarySelectionException when specific libraries are provided but are not
+   *                                           imported (GUI: ask to import, CLI: throw exception).
+   */
+  public List<SpectralLibrary> getMatchingLibrariesAndCheckAvailability()
+      throws SpectralLibrarySelectionException {
+    if (this.getSelectionType() == SpectralLibrarySelectionType.SPECIFIC) {
+      List<File> missing = this.getMissingSpecificFiles();
+      if (!missing.isEmpty()) {
+        if (DesktopService.isGUI() && DialogLoggerUtil.showDialogYesNo(
+            "Import missing spectral libraries?", """
+                Some library files were not imported before spectral library matching - should mzmine import them now?
+                However, it is recommended to import spectral libraries during the initial data import with the MS data import or spectral library import. And maybe set the library selection to use all imported libraries.
+                Missing library files specifically defined:
+                %s""".formatted(StringUtils.join(missing, "\n", File::getAbsolutePath)))) {
+          // user wants libraries to be imported
+          Instant now = Instant.now();
+          List<Task> tasks = missing.stream().map(
+                  file -> (Task) new SpectralLibraryImportTask(ProjectService.getProject(), file, now))
+              .toList();
+          FixedThreadPoolTask masterImportTask = new FixedThreadPoolTask(
+              "Import missing spectral libraries", tasks.size(), tasks);
+          // block until finished import
+          TaskService.getController().runTaskOnThisThreadBlocking(masterImportTask);
+          // call this method to redo checks
+          return getMatchingLibrariesAndCheckAvailability();
+        } else {
+          throw new SpectralLibrarySelectionException();
+        }
+      }
+    }
+    return getMatchingLibraries();
+  }
+
+
+  /**
+   * Checks if all spectral libraries are available, otherwise ask for import, finally return
+   * selected list of libraries. Combines all spectral libraries
+   *
+   * @return all selected spectral libraries
+   * @throws SpectralLibrarySelectionException when specific libraries are provided but are not
+   *                                           imported (GUI: ask to import, CLI: throw exception).
+   */
+  public @NotNull List<SpectralLibraryEntry> getMatchingLibraryEntriesAndCheckAvailability()
+      throws SpectralLibrarySelectionException {
+    List<SpectralLibrary> libraries = getMatchingLibrariesAndCheckAvailability();
+    if (libraries.isEmpty()) {
+      throw SpectralLibrarySelectionException.forNoLibraries();
+    }
+
+    List<SpectralLibraryEntry> entries = new ArrayList<>();
+    for (var lib : libraries) {
+      entries.addAll(lib.getEntries());
+    }
+
+    if (entries.isEmpty()) {
+      throw SpectralLibrarySelectionException.forEmptyLibraries(libraries);
+    }
+    return entries;
+  }
+
 
   public List<File> getSpecificLibraryNames() {
     return specificLibraryNames;
