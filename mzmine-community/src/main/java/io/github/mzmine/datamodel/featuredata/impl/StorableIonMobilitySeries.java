@@ -190,4 +190,8 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
   public int hashCode() {
     return Objects.hash(scans, numValues);
   }
+
+  SimpleIonMobilogramTimeSeries getIonTrace() {
+    return ionTrace;
+  }
 }
