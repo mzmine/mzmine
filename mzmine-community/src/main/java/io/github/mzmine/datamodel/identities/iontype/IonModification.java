@@ -365,7 +365,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
         multiplier = -1;
       }
     }
-    var formula = FormulaUtils.createMajorIsotopeMolFormula(part);
+    var formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(part);
     if (formula == null) {
       return null;
     }
