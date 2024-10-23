@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,11 +28,12 @@ package io.github.mzmine.datamodel.features;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.tools.PlaceholderModule;
+import io.github.mzmine.modules.tools.PlaceholderModuleParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -43,8 +44,8 @@ import org.w3c.dom.Element;
  */
 public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod {
 
-  private static final Logger logger = Logger
-      .getLogger(SimpleFeatureListAppliedMethod.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      SimpleFeatureListAppliedMethod.class.getName());
 
   private final String description;
   private final Instant moduleCallDate;
@@ -52,8 +53,8 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
   private final MZmineModule module;
 
   /**
-   * @param parameters The parameter set used to create this feature list. A clone of the parameter
-   *                   set is created in the constructor and saved in this class.
+   * @param parameters     The parameter set used to create this feature list. A clone of the
+   *                       parameter set is created in the constructor and saved in this class.
    * @param moduleCallDate
    */
   public SimpleFeatureListAppliedMethod(MZmineModule module, ParameterSet parameters,
@@ -91,7 +92,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
   }
 
   public String toString() {
-    return description;
+    return module.getName();
   }
 
   public @NotNull ParameterSet getParameters() {
@@ -99,6 +100,11 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     return parameters.cloneParameterSet(true);
   }
 
+  /**
+   * The module of this applied method. If the feature list was created with an old version of
+   * mzmine and the module does not exist anymore, this method will return
+   * {@link PlaceholderModule}.
+   */
   @Override
   public MZmineModule getModule() {
     return module;
@@ -137,8 +143,8 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     final Element descriptionElement = (Element) element.getElementsByTagName("description")
         .item(0);
 
-    Class<? extends MZmineModule> moduleClass;
-    ParameterSet moduleParameters;
+    Class<? extends MZmineModule> moduleClass = null;
+    ParameterSet moduleParameters = null;
 
     try {
       moduleClass = (Class<? extends MZmineModule>) Class.forName(moduleClassName);
@@ -146,8 +152,9 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
           .cloneParameterSet();
       moduleParameters.loadValuesFromXML(parametersElement);
     } catch (Exception | NoClassDefFoundError e) {
-      logger.log(Level.SEVERE, "Cannot parse module parameters", e);
-      return null;
+      logger.info("Cannot parse module parameters for class %s".formatted(moduleClassName));
+      moduleClass = PlaceholderModule.class;
+      moduleParameters = PlaceholderModuleParameters.forElement(moduleClassName, parametersElement);
     }
 
     final Instant date;

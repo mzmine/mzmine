@@ -199,4 +199,8 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   public Priority getComponentVgrowPriority() {
     return Priority.SOMETIMES;
   }
+
+  public int numFiles() {
+    return value != null ? value.length : 0;
+  }
 }
