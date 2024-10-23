@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,6 +44,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionException;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -58,7 +59,6 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -68,7 +68,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,8 +80,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   protected final List<FeatureListRow> rows;
   protected final AtomicInteger finishedRows = new AtomicInteger(0);
   protected final ParameterSet parameters;
-  protected final List<SpectralLibrary> libraries;
-  protected final String librariesJoined;
+  protected String librariesJoined = "";
   // remove +- 4 Da around the precursor - including the precursor signal
   // this signal does not matter for matching
   protected final MZTolerance mzToleranceRemovePrecursor = new MZTolerance(4d, 0d);
@@ -99,7 +97,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private final int totalRows;
   private final int minMatch;
   private final boolean removePrecursor;
-  private final String description;
+  private String description = "Spectral library search";
   private final SpectralSimilarityFunction simFunction;
   private final FragmentScanSelection fragmentScanSelection;
   protected RTTolerance rtTolerance;
@@ -121,12 +119,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this.parameters = parameters;
     this.scan = scan;
     this.rows = null;
-    this.libraries = parameters.getValue(SpectralLibrarySearchParameters.libraries)
-        .getMatchingLibraries();
-    this.librariesJoined = libraries.stream().map(SpectralLibrary::getName)
-        .collect(Collectors.joining(", "));
-    this.description = String.format("Spectral library matching for Scan %s in %d libraries: %s",
-        scan, libraries.size(), librariesJoined);
 
     mzToleranceSpectra = parameters.getValue(SpectralLibrarySearchParameters.mzTolerance);
 
@@ -183,12 +175,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this.parameters = parameters;
     this.rows = rows;
     this.scan = null;
-    this.libraries = parameters.getValue(SpectralLibrarySearchParameters.libraries)
-        .getMatchingLibraries();
-    this.librariesJoined = libraries.stream().map(SpectralLibrary::getName)
-        .collect(Collectors.joining(", "));
-    this.description = String.format("Spectral library matching for %d rows in %d libraries: %s",
-        rows.size(), libraries.size(), librariesJoined);
 
     mzToleranceSpectra = parameters.getValue(SpectralLibrarySearchParameters.mzTolerance);
     minMatch = parameters.getValue(SpectralLibrarySearchParameters.minMatch);
@@ -292,15 +278,24 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   @Override
   public void run() {
-
     // combine libraries
-    List<SpectralLibraryEntry> entries = new ArrayList<>();
-    for (var lib : libraries) {
-      entries.addAll(lib.getEntries());
+    final List<SpectralLibraryEntry> entries;
+    try {
+      entries = parameters.getValue(SpectralLibrarySearchParameters.libraries)
+          .getMatchingLibraryEntriesAndCheckAvailability();
+      if (isCanceled()) {
+        return;
+      }
+    } catch (SpectralLibrarySelectionException e) {
+      error("Error in spectral library search.", e);
+      return;
     }
 
     // run on spectra
     if (scan != null) {
+      description = """
+          Spectral library matching of a selected scan against %d spectral library entries""".formatted(
+          entries.size());
       logger.info(
           () -> String.format("Comparing %d library spectra to scan: %s", entries.size(), scan));
 
@@ -313,6 +308,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
     // run in parallel
     if (rows != null) {
+      description = """
+          Spectral library matching of %d feature rows against %d spectral library entries""".formatted(
+          rows.size(), entries.size());
+
       logger.info(() -> String.format("Comparing %d library spectra to %d feature list rows",
           entries.size(), totalRows));
       // cannot use parallel.forEach with side effects - this thread will continue without waiting for
