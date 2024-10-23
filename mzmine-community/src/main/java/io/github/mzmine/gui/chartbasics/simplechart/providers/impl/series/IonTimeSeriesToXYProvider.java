@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,9 +31,9 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.awt.Color;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -51,18 +51,30 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
   private final IonTimeSeries<? extends Scan> series;
   private final String seriesKey;
   private final ObjectProperty<javafx.scene.paint.Color> color;
+  private final double normalizationFactor;
 
   public IonTimeSeriesToXYProvider(@NotNull IonTimeSeries<? extends Scan> series,
       @NotNull String seriesKey, @NotNull ObjectProperty<javafx.scene.paint.Color> color) {
+    this(series, seriesKey, color, 1.0);
+  }
+
+  public IonTimeSeriesToXYProvider(@NotNull IonTimeSeries<? extends Scan> series,
+      @NotNull String seriesKey, @NotNull ObjectProperty<javafx.scene.paint.Color> color,
+      double normalizationFactor) {
     this.series = series;
     this.seriesKey = seriesKey;
     this.color = color;
+    this.normalizationFactor = normalizationFactor;
   }
 
   public IonTimeSeriesToXYProvider(Feature f) {
-    series = f.getFeatureData();
-    seriesKey = FeatureUtils.featureToString(f);
-    color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());
+    this(f.getFeatureData(), FeatureUtils.featureToString(f),
+        new SimpleObjectProperty<>(f.getRawDataFile().getColor()));
+  }
+
+  public IonTimeSeriesToXYProvider(Feature f, double normalizationFactor) {
+    this(f.getFeatureData(), FeatureUtils.featureToString(f),
+        new SimpleObjectProperty<>(f.getRawDataFile().getColor()), normalizationFactor);
   }
 
   public IonTimeSeriesToXYProvider(final IonTimeSeries<? extends Scan> series,
@@ -112,7 +124,7 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
 
   @Override
   public double getRangeValue(int index) {
-    return series.getIntensity(index);
+    return series.getIntensity(index) * normalizationFactor;
   }
 
   @Override

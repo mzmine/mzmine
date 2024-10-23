@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -452,7 +452,7 @@ public class FeatureListLoadTask extends AbstractTask {
           } catch (RuntimeException e) {
             // TODO - maybe log?
             logger.log(Level.WARNING, () -> String.format(
-                "DataType %s and value %s were not set to row. Maybe incompatible during loading?",
+                "DataType %s and value %s were not set to feature. Maybe incompatible during loading?",
                 type, value));
             // cannot set bound values. can go silent.
           }

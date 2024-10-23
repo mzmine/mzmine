@@ -30,49 +30,47 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
-import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
+import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ChromatogramTypeType extends DataType<ChromatogramType> {
+public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelationResult> {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "other_chromatogram_type";
+    return "ms_other_correlation_result";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Chromatogram type";
-  }
-
-  @Override
-  public Property<ChromatogramType> createProperty() {
-    return new SimpleObjectProperty<>();
-  }
-
-  @Override
-  public Class<ChromatogramType> getValueClass() {
-    return ChromatogramType.class;
+    return "Correlated traces";
   }
 
   @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
 
-    if(value instanceof ChromatogramType type) {
-      writer.writeCharacters(type.name());
+    if (!(value instanceof List<?> list)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
+    }
+
+    for (Object o : list) {
+      if (!(o instanceof MsOtherCorrelationResult correlationResult)) {
+        continue;
+      }
+
+      correlationResult.saveToXML(writer, flist, row);
     }
   }
 
@@ -80,15 +78,6 @@ public class ChromatogramTypeType extends DataType<ChromatogramType> {
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
-        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
-      throw new IllegalStateException("Wrong element");
-    }
-
-    final String text = reader.getElementText();
-    if(text == null) {
-      return null;
-    }
-    return ChromatogramType.valueOf(text);
+    return super.loadFromXML(reader, project, flist, row, feature, file);
   }
 }
