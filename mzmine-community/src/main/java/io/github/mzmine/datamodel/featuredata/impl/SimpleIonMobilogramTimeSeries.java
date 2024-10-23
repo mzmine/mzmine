@@ -249,7 +249,8 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
   @Override
   public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues,
+      final @NotNull List<@NotNull Frame> frames) {
     return IonMobilogramTimeSeriesFactory.of(storage, newMzValues, newIntensityValues, mobilograms,
         frames, summedMobilogram.copy(storage));
   }
@@ -345,7 +346,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
         that.frames) && contentEquals(intensityValues, that.intensityValues) && contentEquals(
         mzValues, that.mzValues) && Objects.equals(getSummedMobilogram(),
         that.getSummedMobilogram()) && contentEquals(mobilogramMzValues, that.mobilogramMzValues)
-        && contentEquals(mobilogramIntensityValues, that.mobilogramIntensityValues);
+           && contentEquals(mobilogramIntensityValues, that.mobilogramIntensityValues);
   }
 
   @Override
