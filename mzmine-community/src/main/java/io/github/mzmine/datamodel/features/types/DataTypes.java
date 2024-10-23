@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -97,6 +97,7 @@ public class DataTypes {
    * loader
    */
   private static final HashMap<String, DataType> TYPES = new HashMap<>();
+
   /**
    * map unique ID to instance
    */
@@ -114,7 +115,7 @@ public class DataTypes {
                 if (value != null) {
                   throw new IllegalStateException(
                       "FATAL: Multiple data types with unique ID " + dt.getUniqueID() + "\n"
-                          + value.getClass().getName() + "\n" + dt.getClass().getName());
+                      + value.getClass().getName() + "\n" + dt.getClass().getName());
                 }
                 TYPES.put(dt.getClass().getName(), dt);
               }
@@ -240,5 +241,22 @@ public class DataTypes {
       final Class<? extends DataType<T>> clazz) {
     DataType<T> type = DataTypes.get(clazz);
     return types.contains(type) ? type : null;
+  }
+
+  /**
+   * @return true for null or StringType and others are abstract and have no mapping
+   */
+  public static boolean isAbstractType(final Class<? extends DataType> dataType) {
+    // abstract types have no constructor and they should have no real type mapping
+    return dataType == null || get(dataType) == null;
+  }
+
+  /**
+   * @return false for null or StringType and other that are abstract. True for all other that are
+   * not abstract and have constructor
+   */
+  public static boolean isRealType(final Class<? extends DataType> dataType) {
+    // abstract types have no constructor and they should have no real type mapping
+    return dataType != null && !isAbstractType(dataType);
   }
 }

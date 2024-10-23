@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,34 +25,34 @@
 
 package io.github.mzmine.modules.dataprocessing.id_precursordbsearch;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class PrecursorDBSearchParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final FileNameParameter dataBaseFile = new FileNameParameter(
-      "Spectral libraries file (MS/MS)",
-      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification",
-      FileSelectionType.OPEN);
+  public static final SpectralLibrarySelectionParameter libraries = new SpectralLibrarySelectionParameter();
 
-  public static final MZToleranceParameter mzTolerancePrecursor =
-      new MZToleranceParameter("Precursor m/z tolerance",
-          "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
+  public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
+      "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries", 0.001,
+      5);
 
-  public static final OptionalParameter<RTToleranceParameter> rtTolerance =
-      new OptionalParameter<>(new RTToleranceParameter());
+  public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
+      new RTToleranceParameter());
 
   public PrecursorDBSearchParameters() {
-    super(new Parameter[] {peakLists, dataBaseFile, mzTolerancePrecursor, rtTolerance},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_spectra_lib/local-spectra-lib-search.html");
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_spectra_lib/local-spectra-lib-search.html",
+        featureLists, libraries, mzTolerancePrecursor, rtTolerance);
   }
 
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }

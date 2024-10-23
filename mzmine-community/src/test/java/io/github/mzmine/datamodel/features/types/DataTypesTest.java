@@ -23,22 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.structures;
+package io.github.mzmine.datamodel.features.types;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IMolecularFormula;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import org.junit.jupiter.api.Test;
 
-/**
- * Contains precomputed values in case they need to be accessed more frequently
- */
-public record ComplexMolecularStructure(@NotNull IAtomContainer structure,
-                                        IMolecularFormula formula, @Nullable String canonicalSmiles,
-                                        @Nullable String isomericSmiles, @Nullable String inchi,
-                                        @Nullable String inchiKey, double monoIsotopicMass,
-                                        double mostAbundantMass, int totalFormalCharge) implements
-    MolecularStructure {
+class DataTypesTest {
 
+  @Test
+  void isAbstractType() {
+    assertTrue(DataTypes.isAbstractType(StringType.class));
+    assertTrue(DataTypes.isAbstractType(DoubleType.class));
+    assertFalse(DataTypes.isAbstractType(MZType.class));
+    assertFalse(DataTypes.isAbstractType(SpectralLibraryMatchesType.class));
+    assertTrue(DataTypes.isRealType(MZType.class));
+    assertTrue(DataTypes.isRealType(SpectralLibraryMatchesType.class));
+  }
 }

@@ -25,6 +25,9 @@
 
 package io.github.mzmine.util;
 
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -255,5 +258,10 @@ public class StringUtils {
 //    }
     // first split at , AND space combination then split at each , space or tab
     return s.split(", |[\\t, ]");
+  }
+
+  public static <T> String join(final List<T> values, @NotNull String delimiter,
+      @NotNull final Function<T, String> mapper) {
+    return values.stream().map(mapper::apply).collect(Collectors.joining(delimiter));
   }
 }

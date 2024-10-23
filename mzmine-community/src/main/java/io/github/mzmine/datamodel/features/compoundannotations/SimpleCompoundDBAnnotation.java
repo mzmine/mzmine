@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,11 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure2dUrlType;
@@ -331,6 +335,20 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     SimpleCompoundDBAnnotation clone = new SimpleCompoundDBAnnotation();
     data.forEach((key, value) -> clone.put(key, value));
     return clone;
+  }
+
+  @Override
+  public void setStructure(final MolecularStructure structure) {
+    if (structure == null) {
+      return;
+    }
+    putIfNotNull(MolecularStructureType.class, structure);
+    putIfNotNull(SmilesStructureType.class, structure.canonicalSmiles());
+    putIfNotNull(SmilesIsomericStructureType.class, structure.isomericSmiles());
+    putIfNotNull(InChIKeyStructureType.class, structure.inchi());
+    putIfNotNull(InChIStructureType.class, structure.inchiKey());
+    putIfNotNull(FormulaType.class, structure.formulaString());
+    putIfNotNull(NeutralMassType.class, structure.monoIsotopicMass());
   }
 
   @Override
