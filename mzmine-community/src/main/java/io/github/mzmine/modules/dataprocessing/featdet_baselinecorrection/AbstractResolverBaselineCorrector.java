@@ -27,30 +27,32 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.util.MemoryMapStorage;
-import it.unimi.dsi.fastutil.ints.IntList;
-import java.awt.Color;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.commons.math3.analysis.UnivariateFunction;
-import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class UnivariateBaselineCorrector extends AbstractResolverBaselineCorrector {
+/**
+ * Baseline correction that uses feature resolver as intermediate step
+ */
+public abstract class AbstractResolverBaselineCorrector extends AbstractBaselineCorrector {
 
-  public UnivariateBaselineCorrector() {
-    super(null, 5, "", null);
-  }
+  protected final MinimumSearchFeatureResolver resolver;
 
-  public UnivariateBaselineCorrector(@Nullable MemoryMapStorage storage, int numSamples,
-      @NotNull String suffix, @Nullable MinimumSearchFeatureResolver resolver) {
-    super(storage, numSamples, suffix, resolver);
+  public AbstractResolverBaselineCorrector(@Nullable final MemoryMapStorage storage,
+      final int numSamples, @NotNull final String suffix,
+      @Nullable final MinimumSearchFeatureResolver resolver) {
+    super(storage, numSamples, suffix);
+    this.resolver = resolver;
   }
 
   /**
+   * Sub sample and correct input data.
+   *
    * @param xDataToCorrect    the data to correct
    * @param yDataToCorrect    the data to correct
    * @param numValues         corresponding number of values - input arrays may be longer
@@ -59,36 +61,19 @@ public abstract class UnivariateBaselineCorrector extends AbstractResolverBaseli
    * @param numValuesFiltered number of filtered data points
    * @param addPreview        add preview datasets
    */
-  @Override
-  protected void subSampleAndCorrect(final double[] xDataToCorrect, final double[] yDataToCorrect,
-      int numValues, double[] xDataFiltered, double[] yDataFiltered, int numValuesFiltered,
-      final boolean addPreview) {
-    // TODO change parameter to step size or window size or calculate from parameters
-    int stepSize = numSamples;
-    IntList subsampleIndices = buffer.createSubSampleIndicesFromLandmarks(stepSize);
+  protected abstract void subSampleAndCorrect(final double[] xDataToCorrect,
+      final double[] yDataToCorrect, int numValues, double[] xDataFiltered, double[] yDataFiltered,
+      int numValuesFiltered, final boolean addPreview);
 
-    XYDataArrays subData = subSampleData(subsampleIndices, xDataFiltered, yDataFiltered,
-        numValuesFiltered);
 
-    UnivariateInterpolator interpolator = initializeInterpolator(subData.numValues());
-    UnivariateFunction function = interpolator.interpolate(subData.x(), subData.y());
+  protected @NotNull MinimumSearchFeatureResolver initializeLocalMinResolver(
+      ModularFeatureList flist) {
 
-    for (int i = 0; i < numValues; i++) {
-      // must be above zero, but not bigger than the original value.
-      yDataToCorrect[i] = Math.min(
-          Math.max(yDataToCorrect[i] - function.value(xDataToCorrect[i]), 0), yDataToCorrect[i]);
-    }
+    final MinimumSearchFeatureResolver resolver = new MinimumSearchFeatureResolver(flist,
+        ResolvingDimension.RETENTION_TIME, 0.5, 0.04, 0.005, 1, 2.5, Range.closed(0d, 50d), 5);
 
-    if (addPreview) {
-      additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, j -> xDataToCorrect[j],
-          j -> function.value(xDataToCorrect[j])));
-
-      additionalData.add(
-          new AnyXYProvider(Color.BLUE, "samples", subData.numValues(), subData::getX,
-              subData::getY));
-    }
+    return resolver;
   }
-
 
   @Override
   public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
@@ -120,7 +105,4 @@ public abstract class UnivariateBaselineCorrector extends AbstractResolverBaseli
     }
     return createNewTimeSeries(timeSeries, numValues, yBuffer());
   }
-
-  protected abstract UnivariateInterpolator initializeInterpolator(int actualNumberOfSamples);
-
 }

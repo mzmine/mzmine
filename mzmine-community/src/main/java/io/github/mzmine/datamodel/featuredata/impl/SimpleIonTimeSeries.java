@@ -220,7 +220,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   public IonTimeSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
 
-    return new SimpleIonTimeSeries(storage, newMzValues, newIntensityValues, this.scans);
+    return new SimpleIonTimeSeries(storage, newMzValues, newIntensityValues, scans);
   }
 
   @Override
@@ -244,7 +244,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       return false;
     }
     return Objects.equals(scans, that.scans) && IntensitySeries.seriesSubsetEqual(this, that)
-        && MzSeries.seriesSubsetEqual(this, that);
+           && MzSeries.seriesSubsetEqual(this, that);
   }
 
   @Override
