@@ -142,17 +142,7 @@ public abstract class AbstractBaselineCorrector implements BaselineCorrector {
     final double[] newIntensityValues = Arrays.copyOfRange(newIntensities, 0, numValues);
     return switch (timeSeries) {
       case FeatureDataAccess da -> (T) da.copyAndReplace(storage, newIntensityValues);
-      case MobilogramDataAccess da -> {
-        // TODO correct approach?
-        var size = da.getNumberOfValues();
-        double[] mzs = new double[size];
-        for (int i = 0; i < size; i++) {
-          mzs[i] = da.getMZ(i);
-        }
-        // TODO requires real mobilogram instance to create copy not the data access - maybe just implement the method internally?
-        // maybe just make method use new intensity values and keep mz values
-        yield (T) da.getCurrentMobilogram().copyAndReplace(storage, mzs, newIntensityValues);
-      }
+      case MobilogramDataAccess da -> (T) da.copyAndReplace(storage, newIntensityValues);
       case IonSpectrumSeries<?> s ->
           (T) s.copyAndReplace(storage, s.getMzValues(new double[0]), newIntensityValues);
       case OtherTimeSeries o -> (T) o.copyAndReplace(
