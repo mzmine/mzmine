@@ -29,11 +29,18 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.MZmineIconUtils;
 import java.text.NumberFormat;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -255,11 +262,21 @@ public class RawDataFileInfoPaneController {
 
     if (scan instanceof Frame f && !f.getImsMsMsInfos().isEmpty()) {
       // IMS Frames may have multiple precursor m/zs in acquisition modes such as PASEF.
-      return String.join("; ",
-          f.getImsMsMsInfos().stream().map(info -> mzFormat.format(info.getIsolationMz()))
-              .toList());
+      return String.join("; ", exractInfosFromFrame(f.getImsMsMsInfos(), mzFormat));
     }
     final Double precursorMz = scan.getPrecursorMz();
     return precursorMz != null ? mzFormat.format(scan.getPrecursorMz()) : null;
+  }
+
+  private static List<String> exractInfosFromFrame(Collection<IonMobilityMsMsInfo> infos,
+      NumberFormat mzFormat) {
+    return infos.stream().map(info -> {
+      return switch (info) {
+        case PasefMsMsInfo i -> mzFormat.format(i.getIsolationMz());
+        case IonMobilityMsMsInfo i ->
+            mzFormat.format(Objects.requireNonNullElse(i.getIsolationWindow().lowerEndpoint(), -1))
+                + "-" + mzFormat.format(Objects.requireNonNullElse(i.getIsolationWindow().upperEndpoint(), -1));
+      };
+    }).toList();
   }
 }

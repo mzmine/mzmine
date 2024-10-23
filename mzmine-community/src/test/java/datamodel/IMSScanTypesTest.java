@@ -59,7 +59,6 @@ import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpec
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -137,11 +136,7 @@ public class IMSScanTypesTest {
 
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
       frame.setMobilityScans(scans, true);
-      try {
-        file.addScan(frame);
-      } catch (IOException e) {
-        Assertions.fail();
-      }
+      file.addScan(frame);
     }
 
     // generate ms2 frames
@@ -157,11 +152,7 @@ public class IMSScanTypesTest {
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
       frame.setMobilityScans(scans, true);
 
-      try {
-        file.addScan(frame);
-      } catch (IOException e) {
-        Assertions.fail();
-      }
+      file.addScan(frame);
     }
 
     flist.setSelectedScans(file, file.getFrames().subList(0, 4));

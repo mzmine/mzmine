@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
@@ -59,7 +60,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private final MobilityType mobilityType;
 
   @NotNull
-  private Set<PasefMsMsInfo> precursorInfos;
+  private Set<IonMobilityMsMsInfo> precursorInfos;
   private Range<Double> mobilityRange;
 
   private int mobilitySegment = -1;
@@ -69,7 +70,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
       float retentionTime, @Nullable double[] mzValues, @Nullable double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
-      @Nullable Set<PasefMsMsInfo> precursorInfos, Float accumulationTime) {
+      @Nullable Set<IonMobilityMsMsInfo> precursorInfos, Float accumulationTime) {
     super(dataFile, scanNumber, msLevel, retentionTime, null, /*
          * fragmentScans,
          */
@@ -170,17 +171,17 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @NotNull
   @Override
-  public Set<PasefMsMsInfo> getImsMsMsInfos() {
+  public Set<IonMobilityMsMsInfo> getImsMsMsInfos() {
     return precursorInfos;
   }
 
   @Nullable
   @Override
-  public PasefMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+  public IonMobilityMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
     if (precursorInfos == null) {
       return null;
     }
-    Optional<PasefMsMsInfo> pcInfo = precursorInfos.stream()
+    Optional<IonMobilityMsMsInfo> pcInfo = precursorInfos.stream()
         .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
   }
@@ -207,7 +208,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilitySegment;
   }
 
-  public void setPrecursorInfos(@Nullable Set<PasefMsMsInfo> precursorInfos) {
+  public void setPrecursorInfos(@Nullable Set<IonMobilityMsMsInfo> precursorInfos) {
     this.precursorInfos = precursorInfos != null ? precursorInfos : new HashSet<>();
   }
 

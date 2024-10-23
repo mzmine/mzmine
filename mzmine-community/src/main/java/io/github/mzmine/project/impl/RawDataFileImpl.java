@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,7 +38,6 @@ import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -175,7 +174,7 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public synchronized void addScan(Scan newScan) throws IOException {
+  public synchronized void addScan(Scan newScan) {
     scans.add(newScan);
     if (newScan.getNumberOfDataPoints() > maxRawDataPoints) {
       // TODO how to make sure changes to Frames are reflected
