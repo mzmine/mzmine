@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner.Simple
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
+import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
@@ -98,13 +99,10 @@ public class JoinAlignerTask extends AbstractFeatureListTask {
     logger.info(
         () -> "Running parallel join aligner on " + featureLists.size() + " feature lists.");
 
-    FeatureCloner featureCloner = new SimpleFeatureCloner();
-    // create the row aligner that handles the scoring
-    var rowAligner = new JoinRowAlignScorer(parameters);
-    listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
-        getMemoryMapStorage(), rowAligner, featureCloner, MZ_ASCENDING);
-
+    listAligner = createAligner(this, getMemoryMapStorage(), parameters, featureLists,
+        featureListName);
     alignedFeatureList = listAligner.alignFeatureLists();
+
     if (alignedFeatureList == null || isCanceled()) {
       return;
     }
@@ -112,6 +110,16 @@ public class JoinAlignerTask extends AbstractFeatureListTask {
     handleOriginal.reflectNewFeatureListToProject(project, alignedFeatureList, featureLists);
 
     logger.info("Finished join aligner");
+  }
+
+  public static BaseFeatureListAligner createAligner(final @Nullable Task parentTask,
+      final @Nullable MemoryMapStorage storage, final ParameterSet parameters,
+      final List<FeatureList> featureLists, final String featureListName) {
+    FeatureCloner featureCloner = new SimpleFeatureCloner();
+    // create the row aligner that handles the scoring
+    var rowAligner = new JoinRowAlignScorer(parameters);
+    return new BaseFeatureListAligner(parentTask, featureLists, featureListName, storage,
+        rowAligner, featureCloner, MZ_ASCENDING);
   }
 
   @Override

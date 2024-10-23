@@ -57,16 +57,16 @@ public class StringParameter implements UserParameter<String, TextField> {
     this.sensitive = false;
   }
 
-  public StringParameter(String name, String description, String defaultValue) {
+  public StringParameter(String name, String description, @Nullable String defaultValue) {
     this(name, description, defaultValue, true, false);
   }
 
-  public StringParameter(String name, String description, String defaultValue,
+  public StringParameter(String name, String description, @Nullable String defaultValue,
       boolean valueRequired) {
     this(name, description, defaultValue, valueRequired, false);
   }
 
-  public StringParameter(String name, String description, String defaultValue,
+  public StringParameter(String name, String description, @Nullable String defaultValue,
       boolean valueRequired, boolean isSensitive) {
     this.name = name;
     this.description = description;

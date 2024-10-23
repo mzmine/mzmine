@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionTask.BlankSubtractionOptions;
-import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionTask.RatioType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -47,7 +46,7 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
       "Aligned feature list", 1, 1);
 
   public static final RawDataFilesParameter blankRawDataFiles = new RawDataFilesParameter(
-      "Blank/Control raw data files", 1, Integer.MAX_VALUE  );
+      "Blank/Control raw data files", 1, Integer.MAX_VALUE);
 
   public static final IntegerParameter minBlanks = new IntegerParameter(
       "Minimum # of detection in blanks",
@@ -65,8 +64,8 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
   public static final OptionalParameter<PercentParameter> foldChange = new OptionalParameter<>(
       new PercentParameter("Fold change increase",
           "Specifies a percentage of increase of the intensity of a feature. If the intensity in the list to be"
-              + " filtered increases more than the given percentage to the blank, it will not be deleted from "
-              + "the feature list.", 3.0, 1.0, 1E5));
+          + " filtered increases more than the given percentage to the blank, it will not be deleted from "
+          + "the feature list.", 3.0, 1.0, 1E5));
 
   public static final ComboParameter<BlankSubtractionOptions> keepBackgroundFeatures = new ComboParameter<BlankSubtractionOptions>(
       "Keep or remove features (of rows) below fold change", """
