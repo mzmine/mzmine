@@ -250,7 +250,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       // option to read more fields and append to comment as json
       List<ImportType> commentFields = extractCommentFields();
       if (commentFields == null) {
-        setStatus(TaskStatus.ERROR);
+        error("Comment fields not found in CSV annotation");
         return;
       }
 
@@ -371,8 +371,13 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       @NotNull String[] values, @NotNull List<ImportType> linesWithIndices,
       @NotNull final List<ImportType> commentFields) {
 
-    final List<CompoundDBAnnotation> annotations = getCompoundDBAnnotations(values,
-        linesWithIndices, commentFields);
+    final List<CompoundDBAnnotation> annotations;
+    try {
+      annotations = getCompoundDBAnnotations(values, linesWithIndices, commentFields);
+    } catch (Throwable e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+      return;
+    }
 
     IntStream indexStream = IntStream.range(0, featureLists.length);
     if (featureLists.length > 1000) {

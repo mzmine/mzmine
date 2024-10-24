@@ -26,8 +26,16 @@
 package io.github.mzmine.modules.visualization.networking.visual.enums;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
 import io.github.mzmine.datamodel.features.types.networking.MolNetClusterIdType;
 import io.github.mzmine.datamodel.features.types.networking.MolNetClusterSizeType;
 import io.github.mzmine.datamodel.features.types.networking.MolNetCommunityIdType;
@@ -37,10 +45,12 @@ import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
@@ -57,8 +67,14 @@ public enum NodeAtt implements GraphElementAttr {
   ADDUCT, FORMULA, NEUTRAL_MASS, CHARGE, MS2_VERIFICATION, // networking
   IIN_ID, FEATURE_SHAPE_CORR_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, NEIGHBOR_DISTANCE, // annotations
   ANNOTATION, ANNOTATION_SCORE, LIB_MATCH, COMPOUND_NAME, MATCHED_SIGNALS, EXPLAINED_INTENSITY, // Structure
-  ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH, SMILES, INCHI, INCHIKEY;
+  CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH, SMILES, INCHI, INCHIKEY;
 
+
+  private static @Nullable <T> T extractFirstFeatureAnnotation(FeatureListRow row,
+      Function<FeatureAnnotation, T> function) {
+    return CompoundAnnotationUtils.streamFeatureAnnotations(row).map(function)
+        .filter(Objects::nonNull).findFirst().orElse(null);
+  }
 
   @Override
   public String toString() {
@@ -68,11 +84,13 @@ public enum NodeAtt implements GraphElementAttr {
   public boolean isNumber() {
     return switch (this) {
       case NONE, ROW, ANNOTATION, TYPE, FORMULA, ADDUCT, LABEL, MS2_VERIFICATION, COMPOUND_NAME, //
-          LIB_MATCH, SMILES, INCHI, INCHIKEY, ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH ->
-          false;
+           LIB_MATCH, SMILES, INCHI, INCHIKEY, ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH,
+           CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
+           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY -> false;
       case NEIGHBOR_DISTANCE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, //
-          NEUTRAL_MASS, CHARGE, IIN_ID, FEATURE_SHAPE_CORR_ID, CLUSTER_ID, COMMUNITY_ID, ANNOTATION_SCORE, //
-          EXPLAINED_INTENSITY, CLUSTER_SIZE, COMMUNITY_SIZE, MATCHED_SIGNALS -> true;
+           NEUTRAL_MASS, CHARGE, IIN_ID, FEATURE_SHAPE_CORR_ID, CLUSTER_ID, COMMUNITY_ID,
+           ANNOTATION_SCORE, //
+           EXPLAINED_INTENSITY, CLUSTER_SIZE, COMMUNITY_SIZE, MATCHED_SIGNALS -> true;
     };
   }
 
@@ -136,26 +154,28 @@ public enum NodeAtt implements GraphElementAttr {
       case CLUSTER_SIZE -> getNetworkStatsOrElse(MolNetClusterSizeType.class, row, -1);
       case ANNOTATION ->
           row.streamAllFeatureAnnotations().findFirst().map(Object::toString).orElse(null);
-      case COMPOUND_NAME -> row.getPreferredAnnotationName();
+      case COMPOUND_NAME -> extractFirstFeatureAnnotation(row, FeatureAnnotation::getCompoundName);
+      case CLASSYFIRE_SUPERCLASS ->
+          extractFirstFeatureAnnotation(row, ClassyFireSuperclassType.class);
+      case CLASSYFIRE_CLASS -> extractFirstFeatureAnnotation(row, ClassyFireClassType.class);
+      case CLASSYFIRE_SUBCLASS -> extractFirstFeatureAnnotation(row, ClassyFireSubclassType.class);
+      case CLASSYFIRE_PARENT -> extractFirstFeatureAnnotation(row, ClassyFireParentType.class);
+      case NPCLASSIFIER_SUPERCLASS ->
+          extractFirstFeatureAnnotation(row, NPClassifierSuperclassType.class);
+      case NPCLASSIFIER_CLASS -> extractFirstFeatureAnnotation(row, NPClassifierClassType.class);
+      case NPCLASSIFIER_PATHWAY ->
+          extractFirstFeatureAnnotation(row, NPClassifierPathwayType.class);
       case LIB_MATCH ->
           row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::toString).findFirst()
               .orElse(null);
-      case SMILES -> row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getSmiles)
-          .filter(Objects::nonNull).findFirst().orElse(null);
-      case INCHI -> row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getInChI)
-          .filter(Objects::nonNull).findFirst().orElse(null);
-      case INCHIKEY ->
-          row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getInChIKey)
-              .filter(Objects::nonNull).findFirst().orElse(null);
+      case SMILES -> extractFirstFeatureAnnotation(row, FeatureAnnotation::getSmiles);
+      case INCHI -> extractFirstFeatureAnnotation(row, FeatureAnnotation::getInChI);
+      case INCHIKEY -> extractFirstFeatureAnnotation(row, FeatureAnnotation::getInChIKey);
       case ADDUCT_SPECTRAL_MATCH ->
-          row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getAdductType)
-              .filter(Objects::nonNull).findFirst().orElse(null);
+          extractFirstFeatureAnnotation(row, FeatureAnnotation::getAdductType);
       case FORMULA_SPECTRAL_MATCH ->
-          row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getFormula)
-              .filter(Objects::nonNull).findFirst().orElse(null);
-      case ANNOTATION_SCORE ->
-          row.getSpectralLibraryMatches().stream().map(match -> match.getSimilarity().getScore())
-              .findFirst().orElse(null);
+          extractFirstFeatureAnnotation(row, FeatureAnnotation::getFormula);
+      case ANNOTATION_SCORE -> extractFirstFeatureAnnotation(row, FeatureAnnotation::getScore);
       case EXPLAINED_INTENSITY -> row.getSpectralLibraryMatches().stream()
           .map(match -> match.getSimilarity().getExplainedLibraryIntensity()).findFirst()
           .orElse(null);
@@ -163,6 +183,13 @@ public enum NodeAtt implements GraphElementAttr {
           .map(match -> match.getSimilarity().getAlignedDataPoints().length).findFirst()
           .orElse(null);
     };
+  }
+
+  private <T> T extractFirstFeatureAnnotation(FeatureListRow row,
+      Class<? extends DataType<T>> type) {
+    return CompoundAnnotationUtils.streamFeatureAnnotations(row)
+        .map(annotation -> CompoundAnnotationUtils.getTypeValue(annotation, type))
+        .filter(Objects::nonNull).findFirst().orElse(null);
   }
 
   /**
@@ -209,10 +236,13 @@ public enum NodeAtt implements GraphElementAttr {
   public NumberFormat getNumberFormat(boolean export) {
     return switch (this) {
       case NONE, ROW, ANNOTATION, TYPE, FORMULA, ADDUCT, LABEL, MS2_VERIFICATION, COMPOUND_NAME, //
-          LIB_MATCH, ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH, INCHI, INCHIKEY, SMILES,
-          // int
-          NEIGHBOR_DISTANCE, ID, CHARGE, IIN_ID, FEATURE_SHAPE_CORR_ID, CLUSTER_ID, COMMUNITY_ID, //
-          CLUSTER_SIZE, COMMUNITY_SIZE, MATCHED_SIGNALS -> null;
+           CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
+           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, LIB_MATCH,
+           ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH, INCHI, INCHIKEY, SMILES,
+           // int
+           NEIGHBOR_DISTANCE, ID, CHARGE, IIN_ID, FEATURE_SHAPE_CORR_ID, CLUSTER_ID, COMMUNITY_ID,
+           //
+           CLUSTER_SIZE, COMMUNITY_SIZE, MATCHED_SIGNALS -> null;
       case RT -> MZmineCore.getConfiguration().getFormats(export).rtFormat();
       case MZ, NEUTRAL_MASS -> MZmineCore.getConfiguration().getFormats(export).mzFormat();
       case MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, EXPLAINED_INTENSITY ->
