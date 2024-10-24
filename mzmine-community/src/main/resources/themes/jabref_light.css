@@ -566,6 +566,10 @@ TextFlow > .tooltip-text-monospaced {
     -fx-padding: 0.5em 0.41777em 0.5em 0.41777em;
 }
 
+.custom-menu-item {
+    -fx-padding: 1;
+}
+
 .tab-pane {
     -fx-open-tab-animation: NONE;
     -fx-close-tab-animation: NONE;

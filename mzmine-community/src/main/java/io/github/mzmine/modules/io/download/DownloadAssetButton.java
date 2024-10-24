@@ -27,7 +27,8 @@ package io.github.mzmine.modules.io.download;
 
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
-import io.github.mzmine.javafx.components.factories.MenuItems;
+import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder.EventHandling;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -43,19 +44,24 @@ import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,7 +74,7 @@ public class DownloadAssetButton extends HBox {
   private final ButtonBase downloadButton;
 
   private Consumer<List<File>> onDownloadFinished;
-  private FileDownloadTask task;
+  private final ObjectProperty<FileDownloadTask> task = new SimpleObjectProperty<>();
 
 
   public DownloadAssetButton(@NotNull final List<DownloadAsset> assets) {
@@ -82,7 +88,7 @@ public class DownloadAssetButton extends HBox {
     ProgressBar progressBar = new ProgressBar();
     progressBar.progressProperty().bind(progress);
     var progressPane = new HBox(4, progressBar,
-        FxIconUtil.newIconButton(FxIcons.X_CIRCLE, this::cancelCurrentTask));
+        FxIconUtil.newIconButton(FxIcons.X_CIRCLE, () -> cancelCurrentTask(this.task)));
     progressPane.setAlignment(Pos.CENTER);
 
     BorderPane firstPane = new BorderPane();
@@ -103,9 +109,11 @@ public class DownloadAssetButton extends HBox {
     }
   }
 
-  private void cancelCurrentTask() {
+  private void cancelCurrentTask(final ObjectProperty<FileDownloadTask> taskProperty) {
+    FileDownloadTask task = taskProperty.get();
     if (task != null) {
       task.cancel();
+      taskProperty.set(null);
     }
   }
 
@@ -121,13 +129,15 @@ public class DownloadAssetButton extends HBox {
     if (assets.size() == 1) {
       DownloadAsset asset = assets.getFirst();
       buttonBuilder = new FxIconButtonBuilder<>(new Button(), FxIcons.DOWNLOAD);
-      buttonBuilder.onAction(() -> download(assets.getFirst()));
+      buttonBuilder.onAction(
+          () -> download(assets.getFirst(), isDownloading, onDownloadFinished, progress, task));
       buttonBuilder.tooltip(asset.getDownloadDescription());
     } else {
       // opens drop down menu with selection of items
       MenuButton menuButton = new MenuButton();
-      var menuItems = assets.stream()
-          .map(asset -> MenuItems.create(asset.getLabel(false), () -> download(asset))).toList();
+
+      List<CustomMenuItem> menuItems = assets.stream().map(this::createMenuItem).toList();
+
       menuButton.getItems().setAll(FXCollections.observableList(menuItems));
       buttonBuilder = new FxIconButtonBuilder<>(menuButton, FxIcons.DOWNLOAD);
     }
@@ -136,10 +146,47 @@ public class DownloadAssetButton extends HBox {
     return downloadButton;
   }
 
+  private CustomMenuItem createMenuItem(final DownloadAsset asset) {
+    ObjectProperty<FileDownloadTask> taskProperty = new SimpleObjectProperty<>();
+    BooleanProperty isDownloading = new SimpleBooleanProperty(false);
+    var main = FxLayout.newBorderPane(new Insets(0, 3, 0, 3),
+        FxLabels.newBoldLabel(asset.getLabel(false)));
+    var progressBar = new ProgressBar();
+    progressBar.setMaxWidth(Double.MAX_VALUE);
+    progressBar.setOpaqueInsets(new Insets(5, 1, 1, 1));
+//    progressBar.prefWidthProperty().bind(main.widthProperty().subtract(15));
+    var progressPane = new HBox(4, progressBar,
+        FxIconUtil.newIconButton(FxIcons.X_CIRCLE, "Cancel download", EventHandling.CONSUME_EVENTS,
+            () -> cancelCurrentTask(taskProperty)));
+    HBox.setHgrow(progressBar, Priority.ALWAYS);
+    progressPane.setAlignment(Pos.CENTER);
+    progressPane.visibleProperty().bind(isDownloading);
+    progressPane.managedProperty().bind(isDownloading);
+    main.setTop(progressPane);
+    Runnable downloadAction = () -> {
+      if (!isDownloading.get()) {
+        download(asset, isDownloading, files -> onDownloadFinished.accept(files),
+            progressBar.progressProperty(), taskProperty);
+      }
+    };
+    main.setRight(new HBox(FxLayout.DEFAULT_ICON_SPACE,
+        FxIconUtil.newIconButton(FxIcons.DOWNLOAD, "Download", EventHandling.CONSUME_EVENTS,
+            downloadAction),
+        FxIconUtil.newIconButton(FxIcons.WEBSITE, "Open website", EventHandling.CONSUME_EVENTS,
+            () -> DesktopService.getDesktop()
+                .openWebPage(asset.extAsset().getDownloadInfoPage()))));
+
+    var menu = new CustomMenuItem(main);
+    menu.setOnAction(_ -> downloadAction.run());
+    return menu;
+  }
+
   /**
    * Starts a download task and blocks any further download attempts
    */
-  private void download(final DownloadAsset asset) {
+  private static void download(final DownloadAsset asset, final BooleanProperty isDownloading,
+      final Consumer<List<File>> onDownloadFinished, final DoubleProperty progress,
+      final ObjectProperty<FileDownloadTask> taskProperty) {
     if (isDownloading.get()) {
       logger.fine("Already downloading");
       return;
@@ -160,10 +207,14 @@ public class DownloadAssetButton extends HBox {
     }
 
     isDownloading.set(true);
-    task = new FileDownloadTask(asset);
+    final var task = new FileDownloadTask(asset);
+    taskProperty.set(task);
     task.addTaskStatusListener((_, _, _) -> {
       if (task.isFinished() || task.isCanceled()) {
-        FxThread.runLater(() -> isDownloading.set(false));
+        FxThread.runLater(() -> {
+          isDownloading.set(false);
+          taskProperty.set(null);
+        });
       }
       if (task.isFinished() && onDownloadFinished != null) {
         // search for main file and set it to parameter

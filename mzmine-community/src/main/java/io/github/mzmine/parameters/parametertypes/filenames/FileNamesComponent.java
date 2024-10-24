@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.io.download.DownloadAsset;
 import io.github.mzmine.modules.io.download.DownloadAssetButton;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.nio.file.Path;
@@ -37,7 +38,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -135,7 +139,7 @@ public class FileNamesComponent extends BorderPane {
     if (!assets.isEmpty()) {
       var downloadButton = new DownloadAssetButton(assets);
       downloadButton.setOnDownloadFinished(
-          files -> FxThread.runLater(() -> setValue(files.toArray(File[]::new))));
+          files -> FxThread.runLater(() -> addFilesSkipDuplicates(files)));
       buttonGrid.add(downloadButton, 0, row, 2, 1);
       row++;
     }
@@ -158,6 +162,23 @@ public class FileNamesComponent extends BorderPane {
     // main gridpane
     this.setCenter(txtFilename);
     this.setRight(buttonGrid);
+  }
+
+  /**
+   * @return duplicates or empty list
+   */
+  private synchronized Set<File> addFilesSkipDuplicates(final List<File> files) {
+    File[] old = getValue();
+    if (old == null || old.length == 0) {
+      Set<File> duplicates = CollectionUtils.streamDuplicates(files.stream())
+          .collect(Collectors.toSet());
+      setValue(files.stream().distinct().toArray(File[]::new));
+      return duplicates;
+    }
+    Supplier<Stream<File>> supplier = () -> Stream.concat(Arrays.stream(old), files.stream());
+    var duplicates = CollectionUtils.streamDuplicates(supplier.get()).collect(Collectors.toSet());
+    setValue(supplier.get().distinct().toArray(File[]::new));
+    return duplicates;
   }
 
   private List<Button> createFromDirectoryBtns(List<ExtensionFilter> filters) {
@@ -225,7 +246,7 @@ public class FileNamesComponent extends BorderPane {
     String[] fileNameStrings = txtFilename.getText().split("\n");
     List<File> files = new ArrayList<>();
     for (String fileName : fileNameStrings) {
-      if (fileName.trim().equals("")) {
+      if (fileName.isBlank()) {
         continue;
       }
       files.add(new File(fileName.trim()));
