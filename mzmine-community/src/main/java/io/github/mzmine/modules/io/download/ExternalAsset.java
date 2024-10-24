@@ -50,6 +50,21 @@ public enum ExternalAsset {
     return super.toString().toLowerCase();
   }
 
+  /**
+   * @return clear text label to be used in UI
+   */
+  public String getLabel() {
+    return switch (this) {
+      case ThermoRawFileParser -> "ThermoRawFileParser";
+      case MSCONVERT -> "MSconvert";
+      case MSnLib -> "MSnLib";
+      case GNPS_LIB -> "GNPS";
+      case MONA_LIB -> "MoNA";
+      case MASSBANK_EU -> "MassBank EU";
+      case MS2DEEPSCORE -> "MS2Deepscore";
+    };
+  }
+
   public File getDownloadToDir() {
     return FileAndPathUtil.resolveInDownloadResourcesDir(
         getGroup().toString() + "/" + this.toString());
