@@ -27,6 +27,7 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -196,6 +197,13 @@ public enum DBEntryField {
       }
     }
     return null;
+  }
+
+  /**
+   * @return enum field for a DataType or {@link #UNSPECIFIED} if no clear mapping exists
+   */
+  public static @NotNull DBEntryField fromDataTypeClass(@NotNull Class<? extends DataType> type) {
+    return fromDataType(DataTypes.get(type));
   }
 
   /**

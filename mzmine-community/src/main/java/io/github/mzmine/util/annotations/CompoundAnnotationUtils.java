@@ -37,6 +37,8 @@ import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.collections.SortOrder;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -46,6 +48,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CompoundAnnotationUtils {
 
@@ -166,5 +169,15 @@ public class CompoundAnnotationUtils {
 
   public static void calculateBoundTypes(CompoundDBAnnotation annotation, FeatureListRow row) {
     ConnectedTypeCalculation.LIST.forEach(calc -> calc.calculateIfAbsent(row, annotation));
+  }
+
+  public static <T> @Nullable T getTypeValue(@NotNull FeatureAnnotation annotation,
+      @NotNull Class<? extends DataType<T>> type) {
+    return switch (annotation) {
+      case CompoundDBAnnotation db -> db.get(type);
+      case SpectralDBAnnotation db ->
+          db.getEntry().getOrElse(DBEntryField.fromDataTypeClass(type), null);
+      default -> null;
+    };
   }
 }
