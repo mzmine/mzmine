@@ -294,6 +294,17 @@ application {
     ]
 }
 
+def EXTERNAL_TOOLS_DESTINATION =
+        !OperatingSystem.current().isMacOsX() ? getLayout().getBuildDirectory().dir("jpackage/mzmine/external_tools").get()
+                : getLayout().getBuildDirectory().dir("jpackage/mzmine.app/Contents/external_tools").get()
+def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools")
+tasks.jpackage.doFirst {
+    copy {
+        from EXTERNAL_TOOLS_SRC
+        into EXTERNAL_TOOLS_DESTINATION
+    }
+}
+
 /*
  * Build the JVM runtime using jlink
  */
@@ -601,4 +612,3 @@ tasks.compileJava.dependsOn(checkLicense, copyLicenseInformationToResources, cop
 // copying must be finished before packaging
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
-

@@ -23,45 +23,45 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore;
+package io.github.mzmine.util.web;
 
-import java.io.File;
+import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import org.apache.commons.io.FileUtils;
+import java.net.http.HttpResponse;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class DownloadMS2DeepscoreModel {
+/**
+ * Simple representation of a response from web api. Extracts the URL from the json or text
+ * response
+ *
+ * @param response   response text
+ * @param url        extracted URL or empty string
+ * @param statusCode the status code from the request
+ * @author <a href="https://github.com/robinschmid">Robin Schmid</a>
+ */
+public record RequestResponse(String response, String url, int statusCode) {
 
-  /**
-   * Downloads a file from a URL
-   *
-   * @param fileURL  HTTP URL of the file to be downloaded
-   * @param saveFile path of the directory to save the file
-   */
-  private static void downloadFile(String fileURL, File saveFile) {
-    if (!saveFile.exists()) {
+  private static final Logger logger = Logger.getLogger(RequestResponse.class.getName());
+  public static RequestResponse NONE = new RequestResponse("", "", -1);
+
+  public RequestResponse(final HttpResponse<String> response) {
+    this(response.body(), response.uri().toString(), response.statusCode());
+  }
+
+  public void openURL() {
+    if (url != null && Desktop.isDesktopSupported() && !url.isBlank()) {
       try {
-        URL url = new URI(fileURL).toURL();
-        FileUtils.copyURLToFile(url, saveFile);
-      } catch (URISyntaxException | IOException e) {
-        throw new RuntimeException(e);
+        Desktop.getDesktop().browse(new URI(url));
+      } catch (IOException | URISyntaxException e) {
+        logger.log(Level.WARNING, "Cannot open browser for URL: " + url, e);
       }
     }
   }
 
-  public static File downloadSettings(File saveDirectory) {
-    String fileURL = "https://zenodo.org/records/12628369/files/settings.json?download=1";
-    File settingsFile = new File(saveDirectory, "ms2deepscore_model_settings.json");
-    downloadFile(fileURL, settingsFile);
-    return settingsFile;
-  }
-
-  public static File downloadModel(File saveDirectory) {
-    String fileURL = "https://zenodo.org/records/12628369/files/ms2deepscore_model_java.pt?download=1";
-    File modelFile = new File(saveDirectory, "ms2deepscore_model.pt");
-    downloadFile(fileURL, modelFile);
-    return modelFile;
+  public boolean isSuccess() {
+    return statusCode / 200 == 1;
   }
 }

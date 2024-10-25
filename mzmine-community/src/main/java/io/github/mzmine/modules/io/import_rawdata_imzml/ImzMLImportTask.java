@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleS
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
@@ -65,6 +66,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class reads mzML 1.0 and 1.1.0 files (http://www.psidev.info/index.php?q=node/257) using the
@@ -99,8 +101,9 @@ public class ImzMLImportTask extends AbstractTask {
   public ImzMLImportTask(MZmineProject project, File fileToOpen,
       final @NotNull ScanImportProcessorConfig scanProcessorConfig,
       ImagingRawDataFile newMZmineFile, @NotNull final Class<? extends MZmineModule> module,
-      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // storage in raw data file
+      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate,
+      final @Nullable MemoryMapStorage storage) {
+    super(storage, moduleCallDate); // storage also set in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.scanProcessorConfig = scanProcessorConfig;
