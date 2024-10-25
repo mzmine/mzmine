@@ -329,7 +329,11 @@ public class MetadataTable {
   @NotNull
   public MetadataTable merge(final MetadataTable newMetadata) {
     newMetadata.getData().forEach((column, data) -> {
-      data.forEach((raw, value) -> setValue((MetadataColumn) column, raw, value));
+      data.forEach((raw, value) -> {
+        if (value != null) {
+          setValue((MetadataColumn) column, raw, value);
+        }
+      });
     });
     return this;
   }
