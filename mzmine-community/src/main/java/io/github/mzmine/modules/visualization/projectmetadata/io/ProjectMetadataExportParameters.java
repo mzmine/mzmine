@@ -25,49 +25,53 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
-import java.util.Map;
 
-public class ProjectMetadataImportParameters extends SimpleParameterSet {
+public class ProjectMetadataExportParameters extends SimpleParameterSet {
+
+  public enum MetadataFileFormat {
+    DEFAULT,
+    /**
+     * Adds additional headers for data types
+     */
+    MZMINE_INTERNAL,
+    /**
+     * GNPS requires Filename and then all other columns with ATTRIBUTE_ prefix
+     */
+    GNPS;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case DEFAULT -> "Default";
+        case MZMINE_INTERNAL -> "mzmine internal";
+        case GNPS -> "GNPS";
+      };
+    }
+  }
 
   public static final FileNameParameter fileName = new FileNameParameter("Metadata file", """
-      CSV or TSV file with metadata. See exact format by opening metadata table and
-      exporting metadata file (after importing a few data files).""",
-      ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN);
+      CSV or TSV file to save metadata to.""", ExtensionFilters.CSV_TSV_EXPORT,
+      FileSelectionType.SAVE);
 
-  public static final BooleanParameter skipErrorColumns = new BooleanParameter(
-      "Skip column on error",
-      "Error during data conversion or parsing will be logged but does not end the import", false);
+  public static final ComboParameter<MetadataFileFormat> format = new ComboParameter<>("Format",
+      "Format to export the metadata in", MetadataFileFormat.values(), MetadataFileFormat.DEFAULT);
 
-  public static final BooleanParameter removeAttributePrefix = new BooleanParameter(
-      "Remove attribute prefix", "Remove the ATTRIBUTE_ prefix commonly used by GNPS", false);
-
-
-  public ProjectMetadataImportParameters() {
-    super(fileName, skipErrorColumns, removeAttributePrefix);
+  public ProjectMetadataExportParameters() {
+    super(fileName, format);
   }
 
-  public static ParameterSet create(final File file, final boolean skipErrorCol,
-      final boolean removeGnpsAttributePrefix) {
-    ParameterSet params = new ProjectMetadataImportParameters().cloneParameterSet();
+  public static ParameterSet create(final File file, final MetadataFileFormat mFormat) {
+    ParameterSet params = new ProjectMetadataExportParameters().cloneParameterSet();
     params.setParameter(fileName, file);
-    params.setParameter(skipErrorColumns, skipErrorCol);
-    params.setParameter(removeAttributePrefix, removeGnpsAttributePrefix);
+    params.setParameter(format, mFormat);
     return params;
-  }
-
-  @Override
-  public Map<String, Parameter<?>> getNameParameterMap() {
-    var map = super.getNameParameterMap();
-    map.put("File names", fileName);
-    return map;
   }
 
 }

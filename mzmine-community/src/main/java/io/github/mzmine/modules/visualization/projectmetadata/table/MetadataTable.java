@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.DATE_HEADER;
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.FILENAME_HEADER;
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_TYPE_HEADER;
 
 import io.github.mzmine.datamodel.RawDataFile;
@@ -316,7 +317,6 @@ public class MetadataTable {
 
   /**
    * @param column The column
-   * @param value  The column value to match to.
    * @return A list of files associated to the column value or an empty list if the column value
    * does not exist.
    */
@@ -334,5 +334,9 @@ public class MetadataTable {
       throw new MetadataColumnDoesNotExistException(column.getTitle());
     }
     return fileValueMap.values().stream().distinct().map(o -> (T) o).toList();
+  }
+
+  public StringMetadataColumn createDataFileColumn() {
+    return new StringMetadataColumn(FILENAME_HEADER, "");
   }
 }

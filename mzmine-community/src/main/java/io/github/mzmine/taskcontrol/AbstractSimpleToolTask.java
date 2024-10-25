@@ -25,28 +25,34 @@
 
 package io.github.mzmine.taskcontrol;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A simple task that may produce feature lists or run on raw data files. Applied methods will be
- * added automatically to the processed files and feature lists.
+ * A simple task that may be a tool like a visualizer. Use {@link AbstractSimpleTask} for tasks
+ * producing feature lists or run on raw data files.
  * <p>
  * Logic should be implemented in {@link #process()}. Progress is calculated from
  * {@link #totalItems} and {@link #finishedItems} and incremented via
  * {@link #incrementFinishedItems()}.
  */
-public abstract class AbstractSimpleTask extends AbstractSimpleToolTask {
+public abstract class AbstractSimpleToolTask extends AbstractTask {
 
-  private final Class<? extends MZmineModule> moduleClass;
+  protected final ParameterSet parameters;
+  protected long totalItems;
+  protected AtomicLong finishedItems = new AtomicLong(0);
+
+  /**
+   * @param moduleCallDate the call date of module to order execution order
+   */
+  protected AbstractSimpleToolTask(@NotNull final Instant moduleCallDate,
+      @NotNull ParameterSet parameters) {
+    this(null, moduleCallDate, parameters);
+  }
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -54,50 +60,53 @@ public abstract class AbstractSimpleTask extends AbstractSimpleToolTask {
    *                       stored in ram. For now, one storage should be created per module call in
    * @param moduleCallDate the call date of module to order execution order
    */
-  protected AbstractSimpleTask(@Nullable final MemoryMapStorage storage,
-      @NotNull final Instant moduleCallDate, @NotNull ParameterSet parameters,
-      @NotNull Class<? extends MZmineModule> moduleClass) {
-    super(storage, moduleCallDate, parameters);
-    this.moduleClass = moduleClass;
+  public AbstractSimpleToolTask(@Nullable final MemoryMapStorage storage,
+      @NotNull final Instant moduleCallDate, @NotNull final ParameterSet parameters) {
+    super(storage, moduleCallDate);
+    this.parameters = parameters;
   }
 
+  @Override
+  public double getFinishedPercentage() {
+    return totalItems != 0 ? finishedItems.get() / (double) totalItems : 0;
+  }
 
   @Override
   public void run() {
-    super.run();
+    setStatus(TaskStatus.PROCESSING);
+
+    process();
+
     if (!isCanceled()) {
-      addAppliedMethod();
+      setStatus(TaskStatus.FINISHED);
     }
   }
 
   /**
-   * Automatically adds the applied method to all the feature lists
-   *
-   * @return the processed feature lists
+   * Do the actual processing. Is automatically called in the {@link #run()} method
    */
-  @NotNull
-  protected abstract List<FeatureList> getProcessedFeatureLists();
+  protected abstract void process();
 
   /**
-   * Automatically adds the applied method to all the raw data files
+   * Add 1 to finished items. Thread safe
    *
-   * @return the processed raw data files
+   * @return the new finished items number
    */
-  @NotNull
-  protected abstract List<RawDataFile> getProcessedDataFiles();
-
-  protected void addAppliedMethod() {
-    SimpleFeatureListAppliedMethod appliedMethod = new SimpleFeatureListAppliedMethod(moduleClass,
-        parameters, moduleCallDate);
-    for (final var flist : getProcessedFeatureLists()) {
-      flist.addDescriptionOfAppliedTask(appliedMethod);
-    }
-    for (final var raw : getProcessedDataFiles()) {
-      raw.getAppliedMethods().add(appliedMethod);
-    }
+  protected long incrementFinishedItems() {
+    return finishedItems.incrementAndGet();
   }
 
-  public Class<? extends MZmineModule> getModuleClass() {
-    return moduleClass;
+  /**
+   * Add n to finished items. Thread safe
+   *
+   * @return the new finished items number
+   */
+  private long incrementFinishedItems(final int add) {
+    return finishedItems.addAndGet(add);
   }
+
+  public ParameterSet getParameters() {
+    return parameters;
+  }
+
 }
