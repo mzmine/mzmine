@@ -57,7 +57,7 @@ public class ProjectMetadataExportModule implements MZmineProcessingModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return ProjectMetadataImportParameters.class;
+    return ProjectMetadataExportParameters.class;
   }
 
   @Override

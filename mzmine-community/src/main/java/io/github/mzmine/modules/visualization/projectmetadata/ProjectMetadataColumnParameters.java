@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.TextParameter;
 import io.github.mzmine.util.date.DateTimeUtils;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -84,7 +85,8 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
      */
     public static AvailableTypes castToMostAppropriateType(final String[] original,
         final Object[] converted) {
-      for (var type : values()) {
+      var priority = List.of(NUMBER, DATETIME, TEXT);
+      for (var type : priority) {
         Object[] tmp = type.tryCastType(original);
         // error: null; all empty values: all null elements
         // empty column only accepted for text (defaults to text)
