@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
@@ -137,13 +138,14 @@ public abstract class AbstractBaselineCorrector implements BaselineCorrector {
    */
   protected <T extends IntensityTimeSeries> T createNewTimeSeries(T timeSeries, int numValues,
       double[] newIntensities) {
+    final double[] newIntensityValues = Arrays.copyOfRange(newIntensities, 0, numValues);
     return switch (timeSeries) {
-      case IonSpectrumSeries<?> s -> (T) s.copyAndReplace(storage, s.getMzValues(new double[0]),
-          Arrays.copyOfRange(newIntensities, 0, numValues));
+      case FeatureDataAccess da -> (T) da.copyAndReplace(storage, newIntensityValues);
+      case IonTimeSeries<?> s ->
+          (T) s.copyAndReplace(storage, s.getMzValues(new double[0]), newIntensityValues);
       case OtherTimeSeries o -> (T) o.copyAndReplace(
           o.getTimeSeriesData().getOtherDataFile().getCorrespondingRawDataFile()
-              .getMemoryMapStorage(), Arrays.copyOfRange(newIntensities, 0, numValues),
-          o.getName() + " " + suffix);
+              .getMemoryMapStorage(), newIntensityValues, o.getName() + " " + suffix);
       default -> throw new IllegalStateException(
           "Unexpected time series: " + timeSeries.getClass().getName());
     };

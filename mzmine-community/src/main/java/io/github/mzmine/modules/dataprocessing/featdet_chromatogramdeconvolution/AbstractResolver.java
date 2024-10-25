@@ -117,7 +117,7 @@ public abstract class AbstractResolver implements Resolver {
         }
       }
     } else if (dimension == ResolvingDimension.MOBILITY
-        && originalSeries instanceof IonMobilogramTimeSeries originalTrace) {
+               && originalSeries instanceof IonMobilogramTimeSeries originalTrace) {
       setSeriesToMobilogramDataAccess(series);
       final List<Range<Double>> resolvedRanges = resolveMobility(mobilogramDataAccess);
 
@@ -145,7 +145,7 @@ public abstract class AbstractResolver implements Resolver {
     } else {
       throw new IllegalStateException(
           "Cannot resolve " + originalSeries.getClass().getName() + " in " + dimension
-              + " mobility dimension.");
+          + " mobility dimension.");
     }
     return resolved;
   }
@@ -168,7 +168,7 @@ public abstract class AbstractResolver implements Resolver {
     } else {
       throw new IllegalArgumentException(
           "Unexpected type of ion series (" + series.getClass().getName()
-              + "). Please contact the developers. ");
+          + "). Please contact the developers. ");
     }
   }
 
@@ -193,7 +193,7 @@ public abstract class AbstractResolver implements Resolver {
       // if the date comes from a different source, the results might be inconsistent.
       throw new IllegalArgumentException(
           "This resolver has been set to use data from a " + chromatogramDataSource.toString()
-              + ". The current data os passed from a " + series.getClass().toString());
+          + ". The current data os passed from a " + series.getClass().toString());
     }
 
     xBuffer = extractRtValues(series, xBuffer);
@@ -206,7 +206,7 @@ public abstract class AbstractResolver implements Resolver {
       if (yBuffer == null || yBuffer.length <= numValues) {
         yBuffer = new double[numValues];
       }
-      Arrays.fill(yBuffer, 0d);
+      Arrays.fill(yBuffer, series.getNumberOfValues(), yBuffer.length, 0d);
       yBuffer = series.getIntensityValues(yBuffer);
 
       return resolve(xBuffer, yBuffer);
@@ -221,7 +221,7 @@ public abstract class AbstractResolver implements Resolver {
       // if the date comes from a different source, the results might be inconsistent.
       throw new IllegalArgumentException(
           "This resolver has been set to use data from a " + mobilogramDataSource.toString()
-              + ". The current data os passed from a " + series.getClass().toString());
+          + ". The current data os passed from a " + series.getClass().toString());
     }
 
     if (series instanceof BinningMobilogramDataAccess dataAccess) {
@@ -292,7 +292,7 @@ public abstract class AbstractResolver implements Resolver {
     if (rtBuffer == null || rtBuffer.length < numValues) {
       rtBuffer = new double[numValues];
     }
-    Arrays.fill(rtBuffer, 0d);
+    Arrays.fill(rtBuffer, numValues, rtBuffer.length, 0d);
     for (int i = 0; i < numValues; i++) {
       rtBuffer[i] = timeSeries.getRetentionTime(i);
     }

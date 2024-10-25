@@ -244,7 +244,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       return false;
     }
     return Objects.equals(scans, that.scans) && IntensitySeries.seriesSubsetEqual(this, that)
-        && MzSeries.seriesSubsetEqual(this, that);
+           && MzSeries.seriesSubsetEqual(this, that);
   }
 
   @Override
