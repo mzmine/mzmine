@@ -23,24 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.frames;
+package io.github.mzmine.modules.io.download;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class FrameVisualizerParameters extends SimpleParameterSet {
+/**
+ * Assets that can be downloaded by {@link FileDownloadTask}. Usually defined in
+ * {@link DownloadAssets}
+ *
+ * @param extAsset      the external asset that defines additional fixed properties of this asset
+ * @param version       the version
+ * @param requiresUnzip unzip after download
+ * @param mainFileName  the main file that is selected after unziping. Otherwise the first file
+ * @param url           the download URL
+ */
+public record UrlDownloadAsset(@NotNull ExternalAsset extAsset, String version,
+                               boolean requiresUnzip, @Nullable String mainFileName,
+                               String url) implements DownloadAsset {
 
-  public static final RawDataFilesParameter files = new RawDataFilesParameter(1, 1);
-
-  public FrameVisualizerParameters() {
-    super(new Parameter[]{files});
-  }
-
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.ONLY;
+  public UrlDownloadAsset(final ExternalAsset extAsset, final String version,
+      final boolean requiresUnzip, final String url) {
+    this(extAsset, version, requiresUnzip, null, url);
   }
 }

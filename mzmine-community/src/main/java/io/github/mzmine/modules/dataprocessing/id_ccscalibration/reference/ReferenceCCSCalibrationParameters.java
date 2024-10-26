@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,15 +54,17 @@ public class ReferenceCCSCalibrationParameters extends SimpleParameterSet {
   public static final FeatureListsParameter flists = new FeatureListsParameter(
       "Feature list (with reference compounds)", 1, Integer.MAX_VALUE);
 
-  public static final FileNameParameter referenceList = new FileNameParameter("Reference list",
-      "The file containing the reference compounds for m/z and mobility.", FileSelectionType.OPEN,
-      false);
+  public static final FileNameParameter referenceList = new FileNameParameter("Reference list", """
+      The file containing the reference compounds for m/z and mobility.
+      Must contain the columns "mz", "mobility", "ccs", "charge". Columns must be separated by ";".""",
+      FileSelectionType.OPEN, false);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
       "Tolerance for the given reference compound list", 0.005, 5);
 
   public static final MobilityToleranceParameter mobTolerance = new MobilityToleranceParameter(
-      "Mobility tolerance", "Tolerance for the given reference compound list",
+      "Mobility tolerance",
+      "Tolerance for the given reference compound list in the unit of the respective mobility separation device.",
       new MobilityTolerance(0.1f));
 
   public static final RTRangeParameter rtRange = new RTRangeParameter(
@@ -75,7 +77,8 @@ public class ReferenceCCSCalibrationParameters extends SimpleParameterSet {
 
   public ReferenceCCSCalibrationParameters() {
     super(new Parameter[]{files, flists, referenceList, mzTolerance, mobTolerance, rtRange,
-        minHeight}, "https://mzmine.github.io/mzmine_documentation/module_docs/id_ccs_calibration/ccs_calibration.html#reference-css-calibration");
+            minHeight},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_ccs_calibration/ccs_calibration.html#reference-css-calibration");
   }
 
   @Override

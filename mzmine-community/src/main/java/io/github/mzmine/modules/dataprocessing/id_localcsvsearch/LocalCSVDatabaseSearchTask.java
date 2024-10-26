@@ -40,9 +40,16 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.MolecularClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -103,6 +110,19 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final IonTypeType ionTypeType = DataTypes.get(IonTypeType.class);
   private final PubChemIdType pubchemIdType = DataTypes.get(PubChemIdType.class);
   private final MolecularClassType molecularClassType = DataTypes.get(MolecularClassType.class);
+  private final ClassyFireSuperclassType classyFireSuperclassType = DataTypes.get(
+      ClassyFireSuperclassType.class);
+  private final ClassyFireClassType classyFireClassType = DataTypes.get(ClassyFireClassType.class);
+  private final ClassyFireSubclassType classyFireSubclassType = DataTypes.get(
+      ClassyFireSubclassType.class);
+  private final ClassyFireParentType classyFireParentType = DataTypes.get(
+      ClassyFireParentType.class);
+  private final NPClassifierSuperclassType npclassyfierSuperclassType = DataTypes.get(
+      NPClassifierSuperclassType.class);
+  private final NPClassifierClassType npclassyfierClassType = DataTypes.get(
+      NPClassifierClassType.class);
+  private final NPClassifierPathwayType npclassyfierPathwayType = DataTypes.get(
+      NPClassifierPathwayType.class);
   private final DatabaseNameType databaseType = DataTypes.get(DatabaseNameType.class);
 
   // vars
@@ -456,6 +476,13 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final String inchiKey = entry.get(inchiKeyType);
     final String pubchemId = entry.get(pubchemIdType);
     final String molecularClass = entry.get(molecularClassType);
+    final String classyFireSuperclass = entry.get(classyFireSuperclassType);
+    final String classyFireClass = entry.get(classyFireClassType);
+    final String classyFireSubclass = entry.get(classyFireSubclassType);
+    final String classyFireParent = entry.get(classyFireParentType);
+    final String npclassifierSuperclass = entry.get(npclassyfierSuperclassType);
+    final String npclassifierclass = entry.get(npclassyfierClassType);
+    final String npclassifierPathway = entry.get(npclassyfierPathwayType);
 
     final String lineComment;
     if (!commentFields.isEmpty()) {
@@ -482,7 +509,14 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     a.putIfNotNull(ionTypeType, IonTypeParser.parse(lineAdduct));
     doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
         new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
-    doIfNotNull(molecularClass, () -> a.put(molecularClassType, molecularClass));
+    a.putIfNotNull(molecularClassType, molecularClass);
+    a.putIfNotNull(classyFireSuperclassType, classyFireSuperclass);
+    a.putIfNotNull(classyFireClassType, classyFireClass);
+    a.putIfNotNull(classyFireSubclassType, classyFireSubclass);
+    a.putIfNotNull(classyFireParentType, classyFireParent);
+    a.putIfNotNull(npclassyfierSuperclassType, npclassifierSuperclass);
+    a.putIfNotNull(npclassyfierClassType, npclassifierclass);
+    a.putIfNotNull(npclassyfierPathwayType, npclassifierPathway);
     return a;
   }
 

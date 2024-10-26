@@ -910,6 +910,19 @@ public class MainWindowController {
       new Thread(() -> {
         logger.info("Freeing unused memory");
         System.gc();
+        // temporary logs
+//        var raws = ProjectService.getProject().getCurrentRawDataFiles();
+//        var total = raws.stream().map(RawDataFile::getScans).flatMap(Collection::stream)
+//            .mapToLong(MassSpectrum::getNumberOfDataPoints).sum();
+//        var masses = raws.stream().map(RawDataFile::getScans).flatMap(Collection::stream)
+//            .map(Scan::getMassList).filter(Objects::nonNull)
+//            .mapToLong(MassSpectrum::getNumberOfDataPoints).sum();
+//        long totalMb = (total * 2 * 8) / 1024 / 1024;
+//        long massesMb = (masses * 2 * 8) / 1024 / 1024;
+//        logger.info("""
+//            Total data points:   %d (%d MB)
+//            Total in mass lists: %d (%d MB)
+//            """.formatted(total, totalMb, masses, massesMb));
       }).start();
     });
   }

@@ -23,24 +23,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.frames;
+package io.github.mzmine.util.web;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import org.jetbrains.annotations.NotNull;
+import java.util.Objects;
 
-public class FrameVisualizerParameters extends SimpleParameterSet {
+public final class HttpResponseException extends Exception {
 
-  public static final RawDataFilesParameter files = new RawDataFilesParameter(1, 1);
+  private final RequestResponse response;
 
-  public FrameVisualizerParameters() {
-    super(new Parameter[]{files});
+  public HttpResponseException(RequestResponse response) {
+    this.response = response;
+  }
+
+  public RequestResponse response() {
+    return response;
   }
 
   @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.ONLY;
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != this.getClass()) {
+      return false;
+    }
+    var that = (HttpResponseException) obj;
+    return Objects.equals(this.response, that.response);
   }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(response);
+  }
+
+  @Override
+  public String toString() {
+    return "HttpResponseException[" + "response=" + response + ']';
+  }
+
+
 }

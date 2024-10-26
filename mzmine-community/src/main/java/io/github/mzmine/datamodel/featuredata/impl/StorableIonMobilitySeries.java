@@ -170,7 +170,7 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
   @Override
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
-    return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
+    return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, this.scans);
   }
 
   @Override

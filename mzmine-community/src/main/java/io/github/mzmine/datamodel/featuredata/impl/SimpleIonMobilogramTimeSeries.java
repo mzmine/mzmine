@@ -283,7 +283,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return IonMobilogramTimeSeriesFactory.of(storage, newMzValues, newIntensityValues, mobilograms,
-        frames, summedMobilogram.copy(storage));
+        this.frames, summedMobilogram.copy(storage));
   }
 
   /**
@@ -300,7 +300,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     return new SimpleIonMobilogramTimeSeries(storage,
         DataPointUtils.getDoubleBufferAsArray(mzValues),
-        DataPointUtils.getDoubleBufferAsArray(intensityValues), mobilograms, frames,
+        DataPointUtils.getDoubleBufferAsArray(intensityValues), mobilograms, this.frames,
         summedMobilogram);
   }
 
