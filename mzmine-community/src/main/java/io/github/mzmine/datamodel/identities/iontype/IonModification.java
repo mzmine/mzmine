@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.StringMapParser;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -222,7 +223,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     }
 
     String name = reader.getAttributeValue(null, "name");
-    String formula = reader.getAttributeValue(null, "formula");
+    String formula = ParsingUtils.readNullableString(reader.getAttributeValue(null, "formula"));
     String massDiff = reader.getAttributeValue(null, "massdifference");
     String type = reader.getAttributeValue(null, "type");
     String charge = reader.getAttributeValue(null, "charge");

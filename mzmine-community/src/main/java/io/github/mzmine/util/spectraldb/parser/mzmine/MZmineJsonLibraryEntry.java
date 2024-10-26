@@ -104,6 +104,15 @@ public class MZmineJsonLibraryEntry {
   public Double purity;
   public Integer numSignals;
 
+  public String classyFireSuperclass;
+  public String classyFireClass;
+  public String classyFireSubclass;
+  public String classyFireParent;
+  public String npClassifierSuperclass;
+  public String npClassifierPathway;
+  public String npClassifierClass;
+
+
   @JsonDeserialize(using = SpectrumDeserializer.class)
   public double[][] signals;
   @JsonIgnore
@@ -143,7 +152,15 @@ public class MZmineJsonLibraryEntry {
       case INCHIKEY -> inchikey;
       case SMILES -> smiles;
       case PEPTIDE_SEQ -> peptideSequence;
+      case CLASSYFIRE_SUPERCLASS -> classyFireSuperclass;
+      case CLASSYFIRE_CLASS -> classyFireClass;
+      case CLASSYFIRE_SUBCLASS -> classyFireSubclass;
+      case CLASSYFIRE_PARENT -> classyFireParent;
+      case NPCLASSIFIER_SUPERCLASS -> npClassifierSuperclass;
+      case NPCLASSIFIER_CLASS -> npClassifierClass;
+      case NPCLASSIFIER_PATHWAY -> npClassifierPathway;
       case CAS -> cas;
+
       case MS_LEVEL -> msLevel;
       case RT -> rt;
       case CCS -> ccs;
@@ -205,6 +222,13 @@ public class MZmineJsonLibraryEntry {
       return;
     }
     switch (field) {
+      case CLASSYFIRE_SUPERCLASS -> classyFireSuperclass = value.toString();
+      case CLASSYFIRE_CLASS -> classyFireClass = value.toString();
+      case CLASSYFIRE_SUBCLASS -> classyFireSubclass = value.toString();
+      case CLASSYFIRE_PARENT -> classyFireParent = value.toString();
+      case NPCLASSIFIER_SUPERCLASS -> npClassifierSuperclass = value.toString();
+      case NPCLASSIFIER_CLASS -> npClassifierClass = value.toString();
+      case NPCLASSIFIER_PATHWAY -> npClassifierPathway = value.toString();
       case ENTRY_ID -> entryId = value.toString();
       case NAME -> compoundName = value.toString();
       case SYNONYMS -> synonyms.addAll((Collection<? extends String>) value);

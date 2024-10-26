@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,8 @@
 
 package io.github.mzmine.datamodel;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
 public interface MergedMsMsSpectrum extends MergedMassSpectrum {
 
   float getCollisionEnergy();
 
-  void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 }

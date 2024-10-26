@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -88,6 +88,10 @@ public class MinimumFeatureFilter {
     setSampleGroups(project, raw, groupParam);
   }
 
+  public AbsoluteAndRelativeInt getMinFInSamples() {
+    return minFInSamples;
+  }
+
   public void setGroupFilterEnabled(boolean state) {
     filterGroups = state;
   }
@@ -155,12 +159,12 @@ public class MinimumFeatureFilter {
   }
 
   private boolean checkFeatureQuality(Feature f) {
-    return f != null && f.getHeight() >= minFeatureHeight && filterEstimated(f);
+    return filterEstimated(f) && f.getHeight() != null && f.getHeight() >= minFeatureHeight;
   }
 
   private boolean filterEstimated(Feature f) {
-    return f != null && (!excludeEstimatedFeatures || !f.getFeatureStatus()
-        .equals(FeatureStatus.ESTIMATED));
+    return f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN //
+           && (!excludeEstimatedFeatures || f.getFeatureStatus() != FeatureStatus.ESTIMATED);
   }
 
   /**
@@ -340,14 +344,14 @@ public class MinimumFeatureFilter {
   /**
    * Checks for any other algorithm.
    *
-   * @param all the total of all raw data files
-   * @param raw all positive raw data files (with feature)
+   * @param all      the total of all raw data files
+   * @param detected all positive raw data files (with feature)
    * @return true if all criteria are met, false otherwise
    */
-  public boolean filterMinFeatures(List<RawDataFile> all, List<RawDataFile> raw) {
+  public boolean filterMinFeatures(List<RawDataFile> all, List<RawDataFile> detected) {
     // filter min samples in all
     if (minFInSamples.isGreaterZero() && !minFInSamples.checkGreaterEqualMax(all.size(),
-        raw.size())) {
+        detected.size())) {
       return false;
     }
 
@@ -359,7 +363,7 @@ public class MinimumFeatureFilter {
     // is present in X % samples of a sample set?
     // count sample in groups (no feature in a sample group->no occurrence in map)
     HashMap<String, MutableInt> counter = new HashMap<>();
-    for (RawDataFile file : raw) {
+    for (RawDataFile file : detected) {
       String sgroup = sgroupOf(file);
 
       MutableInt count = counter.get(sgroup);
