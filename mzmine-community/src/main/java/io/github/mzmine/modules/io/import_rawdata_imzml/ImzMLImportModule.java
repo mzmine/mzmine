@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -118,11 +118,11 @@ public class ImzMLImportModule implements MZmineProcessingModule {
       logger.finest("File " + fileNames[i] + " type detected as " + fileType);
 
       try {
-        ImagingRawDataFile newMZmineFile = MZmineCore
-            .createNewImagingFile(newName, fileNames[i].getAbsolutePath(), storage);
+        ImagingRawDataFile newMZmineFile = MZmineCore.createNewImagingFile(newName,
+            fileNames[i].getAbsolutePath(), storage);
         Task newTask = new ImzMLImportTask(project, fileNames[i],
-            ScanImportProcessorConfig.createDefault(), newMZmineFile,
-            ImzMLImportModule.class, parameters, moduleCallDate);
+            ScanImportProcessorConfig.createDefault(), newMZmineFile, ImzMLImportModule.class,
+            parameters, moduleCallDate, storage);
         tasks.add(newTask);
 
       } catch (IOException e) {

@@ -23,24 +23,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.frames;
+package io.github.mzmine.modules.io.download;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import org.jetbrains.annotations.NotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FrameVisualizerParameters extends SimpleParameterSet {
+import io.github.mzmine.modules.io.download.DownloadAsset.Builder;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.File;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-  public static final RawDataFilesParameter files = new RawDataFilesParameter(1, 1);
+@Disabled
+class FileDownloadTaskTest {
 
-  public FrameVisualizerParameters() {
-    super(new Parameter[]{files});
+  //  @TempDir
+  File tmpDir = new File("D:\\tmp\\downloadTest\\");
+
+  @Test
+  void testDownloadZenodoArchive() {
+    var asset = Builder.ofZenodo(ExternalAsset.MS2DEEPSCORE, "12628368").create();
+    var task = new FileDownloadTask(asset, tmpDir);
+    task.run();
+    assertEquals(TaskStatus.FINISHED, task.getStatus());
   }
 
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.ONLY;
+  @Test
+  void testDownloadZenodoFileFilter() {
+    var asset = Builder.ofZenodo(ExternalAsset.MSnLib, "11163380") //
+//        .fileNamePattern(".*_neg_ms2.mgf").create();
+        .fileNamePattern(".*otavapep_neg_ms2.mgf").create();
+    var task = new FileDownloadTask(asset);
+    task.run();
+    assertEquals(TaskStatus.FINISHED, task.getStatus());
   }
+
 }

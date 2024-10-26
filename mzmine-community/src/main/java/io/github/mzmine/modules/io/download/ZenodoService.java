@@ -23,24 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.frames;
+package io.github.mzmine.modules.io.download;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.github.mzmine.util.web.HttpResponseException;
+import io.github.mzmine.util.web.HttpUtils;
+import java.io.IOException;
 
-public class FrameVisualizerParameters extends SimpleParameterSet {
+public class ZenodoService {
 
-  public static final RawDataFilesParameter files = new RawDataFilesParameter(1, 1);
-
-  public FrameVisualizerParameters() {
-    super(new Parameter[]{files});
+  public static ZenodoRecord getWebRecord(ZenodoDownloadAsset asset)
+      throws HttpResponseException, IOException, InterruptedException {
+    return getWebRecord(asset.url());
   }
 
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.ONLY;
+  public static ZenodoRecord getWebRecord(String url)
+      throws HttpResponseException, IOException, InterruptedException {
+    String recordInfoJson = HttpUtils.get(url);
+    return getJsonMapper().readValue(recordInfoJson, ZenodoRecord.class);
+  }
+
+  public static JsonMapper getJsonMapper() {
+    return JsonMapper.builder().addModule(new JavaTimeModule()).build();
   }
 }

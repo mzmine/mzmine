@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,21 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore;
+package io.github.mzmine.datamodel.features.types.annotations.compounddb;
 
-import java.io.File;
-import java.nio.file.Path;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import org.jetbrains.annotations.NotNull;
 
-@Disabled
-class DownloadMS2DeepscoreModelTest {
+/**
+ * Used for ClassyFire.
+ */
+public class ClassyFireSubclassType extends StringType {
 
-  @Test
-  void downloadSettings(@TempDir Path tempDir) {
-    File file = DownloadMS2DeepscoreModel.downloadSettings(tempDir.toFile());
-    Assertions.assertTrue(file.exists());
+  @Override
+  public @NotNull String getUniqueID() {
+    return "classyfire_subclass";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Subclass (ClassyFire)";
   }
 }
