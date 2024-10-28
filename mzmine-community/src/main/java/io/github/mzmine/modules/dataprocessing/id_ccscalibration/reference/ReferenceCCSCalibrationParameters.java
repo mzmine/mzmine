@@ -43,11 +43,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +63,8 @@ public class ReferenceCCSCalibrationParameters extends SimpleParameterSet {
       "Reference list", """
       The file containing the reference compounds for m/z and mobility.
       Must contain the columns "mz", "mobility", "ccs", "charge". Columns must be separated by ";".""",
-      List.of(ExtensionFilters.CSV), ReferenceCCSCalibrationParameters::exportExample);
+      List.of(ExtensionFilters.CSV, ExtensionFilters.TXT),
+      ReferenceCCSCalibrationParameters::exportExample);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
       "Tolerance for the given reference compound list", 0.005, 5);
@@ -143,8 +143,7 @@ public class ReferenceCCSCalibrationParameters extends SimpleParameterSet {
         2833.8731;-1;2.1498;432.62
         """;
 
-    try (final Writer w = Files.newBufferedWriter(file.toPath(), StandardOpenOption.CREATE_NEW,
-        StandardOpenOption.WRITE)) {
+    try (var w = Files.newBufferedWriter(file.toPath(), WriterOptions.REPLACE.toOpenOption())) {
       w.write(str);
     } catch (IOException e) {
       throw new RuntimeException(e);
