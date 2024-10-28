@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.Objects;
+import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
@@ -51,6 +52,8 @@ import org.jetbrains.annotations.Nullable;
  * {@link OtherFeature}).
  */
 public class RawTraceType extends DataType<OtherFeature> implements NoTextColumn, NullColumnType {
+
+  private static final Logger logger = Logger.getLogger(RawTraceType.class.getName());
 
   @Override
   public @NotNull String getUniqueID() {
@@ -91,7 +94,8 @@ public class RawTraceType extends DataType<OtherFeature> implements NoTextColumn
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(getUniqueID()))) {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
+        && getUniqueID().equals(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR)))) {
       throw new IllegalStateException("Wrong element");
     }
 
@@ -113,8 +117,13 @@ public class RawTraceType extends DataType<OtherFeature> implements NoTextColumn
       return null;
     }
 
-    return data.getRawTraces().stream()
+    final OtherFeature rawTrace = data.getRawTraces().stream()
         .filter(t -> Objects.equals(t.getFeatureData().getName(), otherSeriesName)).findFirst()
         .orElse(null);
+    if (rawTrace == null) {
+      logger.info("Unable to determine raw trace");
+    }
+
+    return rawTrace;
   }
 }

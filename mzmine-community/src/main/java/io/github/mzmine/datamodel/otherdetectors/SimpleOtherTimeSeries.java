@@ -145,6 +145,7 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(OtherTimeSeries.XML_ELEMENT))) {
+      reader.next();
       if (!reader.isStartElement()) {
         continue;
       }

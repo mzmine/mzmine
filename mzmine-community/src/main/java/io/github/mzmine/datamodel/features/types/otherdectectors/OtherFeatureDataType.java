@@ -27,6 +27,8 @@ package io.github.mzmine.datamodel.features.types.otherdectectors;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -34,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
@@ -87,6 +90,19 @@ public class OtherFeatureDataType extends DataType<OtherTimeSeries> implements N
     if (file == null) {
       throw new IllegalStateException("OtherTimeSeries should not be saved as row types.");
     }
+
+    while (reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        // nothing saved
+        return null;
+      }
+      if (reader.isStartElement() && reader.getLocalName().equals(OtherTimeSeries.XML_ELEMENT)) {
+        // found start element
+        break;
+      }
+      reader.next();
+    }
+
     return OtherTimeSeries.loadFromXML(reader, file);
   }
 }

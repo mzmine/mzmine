@@ -32,6 +32,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.util.ArrayList;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -55,7 +57,7 @@ public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelatio
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (value == null) {
+    if (value == null || file == null) {
       return;
     }
 
@@ -70,7 +72,7 @@ public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelatio
         continue;
       }
 
-      correlationResult.saveToXML(writer, flist, row);
+      correlationResult.saveToXML(writer, flist, row, file);
     }
   }
 
@@ -78,6 +80,32 @@ public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelatio
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    return super.loadFromXML(reader, project, flist, row, feature, file);
+    if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
+        && getUniqueID().equals(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR)))) {
+      throw new IllegalStateException("Wrong element");
+    }
+
+    if (file == null) {
+      return null;
+    }
+
+    List<MsOtherCorrelationResult> corrResults = new ArrayList<>();
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
+      reader.next();
+      if(!reader.isStartElement()) {
+        continue;
+      }
+
+      if (reader.getLocalName().equals(MsOtherCorrelationResult.XML_ELEMENT_NAME)) {
+        var loaded = MsOtherCorrelationResult.loadFromXML(reader, file.getMemoryMapStorage(),
+            project, flist, row, file);
+        if (loaded != null) {
+          corrResults.add(loaded);
+        }
+      }
+    }
+
+    return corrResults;
   }
 }
