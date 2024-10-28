@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,6 +58,7 @@ public class BioTransformerSingleRowTask extends AbstractTask {
   private final MZTolerance mzTolerance;
   private final boolean rowCorrelationFilter;
   private final RTTolerance rtTolerance;
+  private final Boolean reRankAnnotations;
   private String description;
 
   public BioTransformerSingleRowTask(ModularFeatureListRow row, String smiles, String prefix,
@@ -77,6 +78,9 @@ public class BioTransformerSingleRowTask extends AbstractTask {
         RtClusterFilterParameters.rowCorrelationFilter);
     rtTolerance = enableAdvancedFilters ? filterParams.getEmbeddedParameterValueIfSelectedOrElse(
         RtClusterFilterParameters.rtTolerance, null) : null;
+    reRankAnnotations =
+        enableAdvancedFilters ? filterParams.getValue(RtClusterFilterParameters.reRankAnnotions)
+            : true;
 
     description = "Biotransformer task - SMILES: " + smiles;
   }
@@ -114,7 +118,7 @@ public class BioTransformerSingleRowTask extends AbstractTask {
     } catch (IOException e) {
       logger.log(Level.WARNING, e.getMessage(), e);
       setErrorMessage("Error reading/writing temporary files during BioTransformer prediciton.\n"
-                      + e.getMessage());
+          + e.getMessage());
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -143,10 +147,12 @@ public class BioTransformerSingleRowTask extends AbstractTask {
           }
 
           r.addCompoundAnnotation(clone);
-          final List<CompoundDBAnnotation> annotations = new ArrayList<>(
-              row.getCompoundAnnotations());
-          annotations.sort(CompoundAnnotationUtils.getSorterMaxScoreFirst());
-          row.setCompoundAnnotations(annotations);
+          if(reRankAnnotations) {
+            final List<CompoundDBAnnotation> annotations = new ArrayList<>(
+                row.getCompoundAnnotations());
+            annotations.sort(CompoundAnnotationUtils.getSorterMaxScoreFirst());
+            row.setCompoundAnnotations(annotations);
+          }
         }
       });
     }
