@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -109,17 +108,16 @@ public abstract class AbstractResolver implements Resolver {
           continue;
         }
         if (originalSeries instanceof IonMobilogramTimeSeries trace) {
-          resolved.add(
-              (T) trace.subSeries(storage, (List<Frame>) subList, getMobilogramDataAccess()));
+          resolved.add((T) trace.subSeries(storage, range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue(), getMobilogramDataAccess()));
         } else if (originalSeries instanceof SimpleIonTimeSeries chrom) {
-          resolved.add((T) chrom.subSeries(storage, (List<Scan>) subList));
+          resolved.add((T) chrom.subSeries(storage, range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue()));
         } else {
           throw new IllegalStateException(
               "Resolving behaviour of " + originalSeries.getClass().getName() + " not specified.");
         }
       }
     } else if (dimension == ResolvingDimension.MOBILITY
-        && originalSeries instanceof IonMobilogramTimeSeries originalTrace) {
+               && originalSeries instanceof IonMobilogramTimeSeries originalTrace) {
       setSeriesToMobilogramDataAccess(series);
       final List<Range<Double>> resolvedRanges = resolveMobility(mobilogramDataAccess);
 
@@ -147,7 +145,7 @@ public abstract class AbstractResolver implements Resolver {
     } else {
       throw new IllegalStateException(
           "Cannot resolve " + originalSeries.getClass().getName() + " in " + dimension
-              + " mobility dimension.");
+          + " mobility dimension.");
     }
     return resolved;
   }
@@ -170,7 +168,7 @@ public abstract class AbstractResolver implements Resolver {
     } else {
       throw new IllegalArgumentException(
           "Unexpected type of ion series (" + series.getClass().getName()
-              + "). Please contact the developers. ");
+          + "). Please contact the developers. ");
     }
   }
 
@@ -195,7 +193,7 @@ public abstract class AbstractResolver implements Resolver {
       // if the date comes from a different source, the results might be inconsistent.
       throw new IllegalArgumentException(
           "This resolver has been set to use data from a " + chromatogramDataSource.toString()
-              + ". The current data os passed from a " + series.getClass().toString());
+          + ". The current data os passed from a " + series.getClass().toString());
     }
 
     xBuffer = extractRtValues(series, xBuffer);
@@ -208,7 +206,7 @@ public abstract class AbstractResolver implements Resolver {
       if (yBuffer == null || yBuffer.length <= numValues) {
         yBuffer = new double[numValues];
       }
-      Arrays.fill(yBuffer, 0d);
+      Arrays.fill(yBuffer, series.getNumberOfValues(), yBuffer.length, 0d);
       yBuffer = series.getIntensityValues(yBuffer);
 
       return resolve(xBuffer, yBuffer);
@@ -223,7 +221,7 @@ public abstract class AbstractResolver implements Resolver {
       // if the date comes from a different source, the results might be inconsistent.
       throw new IllegalArgumentException(
           "This resolver has been set to use data from a " + mobilogramDataSource.toString()
-              + ". The current data os passed from a " + series.getClass().toString());
+          + ". The current data os passed from a " + series.getClass().toString());
     }
 
     if (series instanceof BinningMobilogramDataAccess dataAccess) {
@@ -294,7 +292,7 @@ public abstract class AbstractResolver implements Resolver {
     if (rtBuffer == null || rtBuffer.length < numValues) {
       rtBuffer = new double[numValues];
     }
-    Arrays.fill(rtBuffer, 0d);
+    Arrays.fill(rtBuffer, numValues, rtBuffer.length, 0d);
     for (int i = 0; i < numValues; i++) {
       rtBuffer[i] = timeSeries.getRetentionTime(i);
     }

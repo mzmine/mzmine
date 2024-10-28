@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,8 +50,9 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
    * @param allScans All scans belonging to the current collection. <b>NOTE</b> As a general
    *                 contract: No preselected list shall be given here, by default, the original
    *                 selection shall be used. For example, when saving an EIC from a feature list,
-   *                 this should be passed all scans obtained from the {@link
-   *                 RawDataFile#getScans()} method, not the preselected scans obtained by {@link
+   *                 this should be passed all scans obtained from the
+   *                 {@link RawDataFile#getScans()} method, not the preselected scans obtained by
+   *                 {@link
    *                 io.github.mzmine.datamodel.features.ModularFeatureList#getSeletedScans(RawDataFile)}.
    */
   public static <T extends MassSpectrum> void saveSpectraIndicesToXML(XMLStreamWriter writer,

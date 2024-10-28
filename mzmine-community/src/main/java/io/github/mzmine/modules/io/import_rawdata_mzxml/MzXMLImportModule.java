@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -117,7 +117,7 @@ public class MzXMLImportModule implements MZmineProcessingModule {
             fileNames[i].getAbsolutePath(), storage);
         Task newTask = new MzXMLImportTask(project, fileNames[i], newMZmineFile,
             ScanImportProcessorConfig.createDefault(), MzXMLImportModule.class, parameters,
-            moduleCallDate);
+            moduleCallDate, storage);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();

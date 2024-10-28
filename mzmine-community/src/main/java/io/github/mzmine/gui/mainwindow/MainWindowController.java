@@ -79,6 +79,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -182,6 +183,7 @@ public class MainWindowController {
   public FlowPane taskViewPane;
   @FXML
   public HBox bottomMenuBar;
+  public BorderPane mainPane;
   public Tab tabMsData;
   public Tab tabFeatureLists;
   public Tab tabLibraries;
@@ -908,6 +910,19 @@ public class MainWindowController {
       new Thread(() -> {
         logger.info("Freeing unused memory");
         System.gc();
+        // temporary logs
+//        var raws = ProjectService.getProject().getCurrentRawDataFiles();
+//        var total = raws.stream().map(RawDataFile::getScans).flatMap(Collection::stream)
+//            .mapToLong(MassSpectrum::getNumberOfDataPoints).sum();
+//        var masses = raws.stream().map(RawDataFile::getScans).flatMap(Collection::stream)
+//            .map(Scan::getMassList).filter(Objects::nonNull)
+//            .mapToLong(MassSpectrum::getNumberOfDataPoints).sum();
+//        long totalMb = (total * 2 * 8) / 1024 / 1024;
+//        long massesMb = (masses * 2 * 8) / 1024 / 1024;
+//        logger.info("""
+//            Total data points:   %d (%d MB)
+//            Total in mass lists: %d (%d MB)
+//            """.formatted(total, totalMb, masses, massesMb));
       }).start();
     });
   }
@@ -1047,5 +1062,9 @@ public class MainWindowController {
       return ProjectTab.LIBRARIES;
     }
     return ProjectTab.DATA_FILES; // should not happen
+  }
+
+  public BorderPane getMainPane() {
+    return mainPane;
   }
 }

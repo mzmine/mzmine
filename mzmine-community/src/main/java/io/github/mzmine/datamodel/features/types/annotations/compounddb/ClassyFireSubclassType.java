@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,29 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.web;
+package io.github.mzmine.datamodel.features.types.annotations.compounddb;
 
-import java.util.logging.Logger;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Simple representation of a response from web api. Extracts the URL from the json or text
- * response
- *
- * @param response   response text
- * @param url        extracted URL or empty string
- * @param statusCode the status code from the request
- * @author <a href="https://github.com/robinschmid">Robin Schmid</a>
+ * Used for ClassyFire.
  */
-public record RequestResponse(String response, String url, int statusCode) {
+public class ClassyFireSubclassType extends StringType {
 
-  private static final Logger logger = Logger.getLogger(RequestResponse.class.getName());
-  public static RequestResponse NONE = new RequestResponse("", "", -1);
-
-  public void openURL() {
-    WebUtils.openURL(url);
+  @Override
+  public @NotNull String getUniqueID() {
+    return "classyfire_subclass";
   }
 
-  public boolean isSuccess() {
-    return statusCode / 200 == 1;
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Subclass (ClassyFire)";
   }
 }

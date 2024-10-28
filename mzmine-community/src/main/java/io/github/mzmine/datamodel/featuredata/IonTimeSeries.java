@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,7 +80,7 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   default IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end) {
     final IndexRange indexRange = BinarySearch.indexRange(Range.closed(start, end), getSpectra(),
         Scan::getRetentionTime);
-    return subSeries(storage, getSpectra().subList(indexRange.min(), indexRange.maxExclusive()));
+    return subSeries(storage, indexRange.min(), indexRange.maxExclusive());
   }
 
   @Override
@@ -91,10 +91,6 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
 
   @Override
   IonTimeSeries<T> subSeries(@Nullable MemoryMapStorage storage, @NotNull List<T> subset);
-
-  @Override
-  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
 
   /**
    * Saves this time series to xml. The implementing class is responsible for creating the xml
