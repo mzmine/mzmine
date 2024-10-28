@@ -72,6 +72,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,7 +95,7 @@ public class BatchTask extends AbstractTask {
   private List<RawDataFile> previousCreatedDataFiles;
   private List<FeatureList> createdFeatureLists;
   private List<FeatureList> previousCreatedFeatureLists;
-  private Boolean skipOnError;
+  private boolean skipOnError = false;
   private Boolean searchSubdirs;
   private Boolean createResultsDir;
   private File parentDir;
@@ -176,11 +177,38 @@ public class BatchTask extends AbstractTask {
 
   @Override
   public void run() {
-
     Instant batchStart = Instant.now();
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
+    try {
+      // run batch that may fail with error message
+      // BatchTask is often run directly without WrappedTask, so handling of error message is important
+      runBatchQueue();
+    } catch (Throwable e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+      if (getErrorMessage() != null) {
+        logger.log(Level.WARNING, getErrorMessage());
+      }
+      return;
+    }
+
+    if (getStatus() == TaskStatus.ERROR && getErrorMessage() != null) {
+      logger.log(Level.WARNING, getErrorMessage());
+    }
+
+    if (isCanceled()) {
+      return;
+    }
+
+    logger.info("Finished a batch of " + totalSteps + " steps");
+    setStatus(TaskStatus.FINISHED);
+    Duration duration = Duration.between(batchStart, Instant.now());
+    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration));
+    printBatchTimes();
+  }
+
+  private void runBatchQueue() {
     int errorDataset = 0;
     currentDataset = -1;
     String datasetName = "";
@@ -210,7 +238,7 @@ public class BatchTask extends AbstractTask {
 
         if (allFiles.length != 0) {
           // set files to import
-          if (!queue.setImportFiles(allFiles, null)) {
+          if (!queue.setImportFiles(allFiles, null, null)) {
             if (skipOnError) {
               processedSteps += stepsPerDataset;
               continue;
@@ -248,26 +276,19 @@ public class BatchTask extends AbstractTask {
       }
 
       // If we are canceled or ran into error, stop here
-      if (isCanceled()) {
-        return;
-      } else if (getStatus() == TaskStatus.ERROR) {
+      if (getStatus() == TaskStatus.ERROR) {
         errorDataset++;
         if (skipOnError && datasets - currentDataset > 0) {
           // skip to next dataset
           logger.info("Error in dataset: " + datasetName + " total error datasets:" + errorDataset);
           processedSteps = (processedSteps / stepsPerDataset + 1) * stepsPerDataset;
           continue;
-        } else {
-          return;
         }
       }
+      if (isCanceled()) {
+        return;
+      }
     }
-
-    logger.info("Finished a batch of " + totalSteps + " steps");
-    setStatus(TaskStatus.FINISHED);
-    Duration duration = Duration.between(batchStart, Instant.now());
-    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration));
-    printBatchTimes();
   }
 
   private void printBatchTimes() {

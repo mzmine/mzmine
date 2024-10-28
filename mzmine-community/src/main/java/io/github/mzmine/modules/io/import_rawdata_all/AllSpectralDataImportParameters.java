@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,6 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
@@ -44,6 +43,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
@@ -56,7 +56,8 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       "Caution: Advanced option that applies mass detection (centroiding+thresholding) directly to imported scans (see help).\nAdvantage: Lower memory consumption\nCaution: All processing steps will directly change the underlying data, with no way of retrieving raw data or initial results.",
       new AdvancedSpectraImportParameters(), false);
 
-  public static final OptionalParameter<FileNameParameter> metadataFile = new OptionalParameter<>(ProjectMetadataImportParameters.fileName);
+  public static final OptionalParameter<FileNameParameter> metadataFile = new OptionalParameter<>(
+      ProjectMetadataImportParameters.fileName);
 
 
   public AllSpectralDataImportParameters() {
@@ -65,6 +66,26 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
         metadataFile, // metadata import
         // allow import of spectral libraries
         SpectralLibraryImportParameters.dataBaseFiles);
+  }
+
+
+  public static ParameterSet create(@NotNull final File[] allDataFiles,
+      @Nullable final File metadata, @Nullable final File[] allLibraryFiles) {
+    return create(allDataFiles, metadata, allLibraryFiles, null);
+  }
+
+  public static ParameterSet create(@NotNull final File[] allDataFiles,
+      @Nullable final File metadata, @Nullable final File[] allLibraryFiles,
+      @Nullable final AdvancedSpectraImportParameters advanced) {
+    var params = new AllSpectralDataImportParameters().cloneParameterSet();
+    params.setParameter(fileNames, allDataFiles);
+    params.setParameter(metadataFile, metadata != null, metadata);
+    params.setParameter(SpectralLibraryImportParameters.dataBaseFiles, allLibraryFiles);
+    params.setParameter(advancedImport, advanced != null);
+    if (advanced != null) {
+      params.getParameter(advancedImport).setEmbeddedParameters(advanced);
+    }
+    return params;
   }
 
   /**
@@ -122,4 +143,5 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
     return Arrays.stream(parameters.getValue(fileNames))
         .map(AllSpectralDataImportModule::validateBrukerPath);
   }
+
 }
