@@ -124,7 +124,7 @@ public class StreamUtils {
    */
   public static <INPUT> long processPairs(List<INPUT> items, @Nullable BooleanSupplier isCanceled,
       boolean parallel, @NotNull Consumer<Pair<INPUT, INPUT>> processor) {
-    return processPairs(items, isCanceled, parallel, processor);
+    return processPairs(items, isCanceled, parallel, null, processor);
   }
 
   /**
