@@ -86,7 +86,7 @@ public class ChromatogramTypeType extends DataType<ChromatogramType> {
     }
 
     final String text = reader.getElementText();
-    if(text == null) {
+    if(text == null || text.isBlank()) {
       return null;
     }
     return ChromatogramType.valueOf(text);
