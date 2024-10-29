@@ -93,7 +93,7 @@ public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelatio
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
       reader.next();
-      if(!reader.isStartElement()) {
+      if (!reader.isStartElement()) {
         continue;
       }
 
@@ -106,6 +106,6 @@ public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelatio
       }
     }
 
-    return corrResults;
+    return corrResults.isEmpty() ? null : corrResults;
   }
 }

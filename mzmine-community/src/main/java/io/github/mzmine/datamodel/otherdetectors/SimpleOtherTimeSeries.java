@@ -216,4 +216,24 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
         .getMemoryMapStorage();
   }
 
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SimpleOtherTimeSeries that)) {
+      return false;
+    }
+
+    return StorageUtils.contentEquals(intensityBuffer, that.intensityBuffer)
+        && StorageUtils.contentEquals(timeBuffer, that.timeBuffer) && Objects.equals(getName(),
+        that.getName()) && getTimeSeriesData().equals(that.getTimeSeriesData());
+  }
+
+  @Override
+  public int hashCode() {
+    int result = 31 * Objects.hashCode(getName());
+    result = 31 * result + getTimeSeriesData().hashCode();
+    return result;
+  }
 }

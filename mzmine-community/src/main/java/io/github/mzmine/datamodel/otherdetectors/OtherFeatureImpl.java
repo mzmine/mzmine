@@ -69,4 +69,21 @@ public class OtherFeatureImpl implements OtherFeature {
 
     return sb.toString().trim();
   }
+
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof OtherFeatureImpl that)) {
+      return false;
+    }
+
+    return getMap().equals(that.getMap());
+  }
+
+  @Override
+  public int hashCode() {
+    return getMap().hashCode();
+  }
 }
