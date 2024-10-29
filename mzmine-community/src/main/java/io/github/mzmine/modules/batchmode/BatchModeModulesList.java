@@ -188,6 +188,7 @@ import java.util.List;
 
 public class BatchModeModulesList {
 
+  // must be modifiable so we can add more modules for mzminepro
   public static final List<Class<? extends MZmineProcessingModule>> MODULES = new ArrayList<>(
       List.of(
           /*
@@ -409,6 +410,7 @@ public class BatchModeModulesList {
       ));
 
 
+  // must be modifiable so we can add more modules for mzminepro
   /**
    * Those modules are not available from batch mode but from quick start. Change against automatic
    * way?
