@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarity;
 import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarityList;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
@@ -68,6 +69,7 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(ImageCorrelateGroupingTask.class.getName());
   private final ParameterSet parameters;
   private final ModularFeatureList featureList;
+  private final boolean singleRawFile;
   private long totalMaxPairs = 0;
   private final AtomicLong processedPairs = new AtomicLong(0);
 
@@ -85,6 +87,7 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
       final ModularFeatureList featureList, @NotNull Instant moduleCallDate) {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.featureList = featureList;
+    singleRawFile = featureList.getNumberOfRawDataFiles() == 1;
     this.parameters = parameterSet;
     noiseLevel = parameters.getParameter(ImageCorrelateGroupingParameters.NOISE_LEVEL).getValue();
     minimumNumberOfCorrelatedPixels = parameters.getParameter(
@@ -271,12 +274,10 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
    * This method is called for each pair so it was optimized to move precalculations to
    * {@link FilteredRowData#create(double[], double, double, double, Transform)}
    */
-  private void checkR2RAllFeaturesImageSimilarity(
-      Map<Feature, ImageCorrelateGroupingTask.FilteredRowData> mapFeatureData, FeatureListRow a,
-      FeatureListRow b, final R2RMap<RowsRelationship> mapSimilarity) {
+  private void checkR2RAllFeaturesImageSimilarity(Map<Feature, FilteredRowData> mapFeatureData,
+      FeatureListRow a, FeatureListRow b, final R2RMap<RowsRelationship> mapSimilarity) {
 
-    R2RSimpleSimilarityList imageSimilarities = new R2RSimpleSimilarityList(a, b,
-        Type.MS1_FEATURE_CORR);
+    RowsRelationship imageSimilarities = null;
     for (Feature fa : a.getFeatures()) {
       RawDataFile dataFile = fa.getRawDataFile();
       Feature fb = b.getFeature(dataFile);
@@ -285,18 +286,26 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
       }
 
       double similarity = 0;
-      ImageCorrelateGroupingTask.FilteredRowData intensitiesA = mapFeatureData.get(fa);
+      FilteredRowData intensitiesA = mapFeatureData.get(fa);
       if (intensitiesA != null) {
-        ImageCorrelateGroupingTask.FilteredRowData intensitiesB = mapFeatureData.get(fb);
+        FilteredRowData intensitiesB = mapFeatureData.get(fb);
 
         if (intensitiesB != null) {
           similarity = calculateSimilarity(intensitiesA, intensitiesB);
         }
       }
       // always add value also 0 if no correlation
-      imageSimilarities.addSimilarity(similarity);
+      if (singleRawFile) {
+        imageSimilarities = new R2RSimpleSimilarity(a, b, Type.MS1_FEATURE_CORR,
+            (float) similarity);
+      } else {
+        if (imageSimilarities == null) {
+          imageSimilarities = new R2RSimpleSimilarityList(a, b, Type.MS1_FEATURE_CORR);
+        }
+        ((R2RSimpleSimilarityList) imageSimilarities).addSimilarity(similarity);
+      }
     }
-    if (imageSimilarities.getAverageSimilarity() >= minR) {
+    if (imageSimilarities != null && imageSimilarities.getScore() >= minR) {
       mapSimilarity.add(a, b, imageSimilarities);
     }
   }
