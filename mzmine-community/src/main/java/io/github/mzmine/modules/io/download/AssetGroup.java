@@ -68,10 +68,10 @@ public enum AssetGroup {
 
   public File getDownloadToDir() {
     return FileAndPathUtil.resolveInDownloadResourcesDir(
-        getGroup().toString() + "/" + this.toString());
+        getCategory().toString() + "/" + this.toString());
   }
 
-  public AssetCategory getGroup() {
+  public AssetCategory getCategory() {
     return switch (this) {
       case ThermoRawFileParser, MSCONVERT -> AssetCategory.TOOLS;
       case MSnLib, GNPS_LIB, MONA_LIB, MASSBANK_EU -> AssetCategory.SPECTRAL_LIBRARIES;

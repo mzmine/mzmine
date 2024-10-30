@@ -76,6 +76,6 @@ public class DownloadAssets {
   ));
 
   public static List<DownloadAsset> forAssetGroup(final AssetCategory group) {
-    return ASSETS.stream().filter(a -> a.extAsset().getGroup() == group).toList();
+    return ASSETS.stream().filter(a -> a.extAsset().getCategory() == group).toList();
   }
 }
