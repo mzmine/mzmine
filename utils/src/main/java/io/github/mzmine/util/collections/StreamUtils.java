@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -115,6 +115,22 @@ public class StreamUtils {
    * Process all pairs in items. The processor could make use of a ConcurrentHashMap or similar to
    * keep track of the results - if parallel is true.
    *
+   * @param items      the list
+   * @param isCanceled if task is cancelled this should be switched
+   * @param parallel   process in a parallel stream
+   * @param processor  processor defines the function to map a pair to the result
+   * @param <INPUT>    type of list elements
+   * @return number of compared pairs that met the optional loop breaker condition
+   */
+  public static <INPUT> long processPairs(List<INPUT> items, @Nullable BooleanSupplier isCanceled,
+      boolean parallel, @NotNull Consumer<Pair<INPUT, INPUT>> processor) {
+    return processPairs(items, isCanceled, parallel, null, processor);
+  }
+
+  /**
+   * Process all pairs in items. The processor could make use of a ConcurrentHashMap or similar to
+   * keep track of the results - if parallel is true.
+   *
    * @param items       the list
    * @param isCanceled  if task is cancelled this should be switched
    * @param loopBreaker breaks the inner loop that generates pairs. the first element is early in
@@ -131,10 +147,7 @@ public class StreamUtils {
     var pairStream = loopBreaker == null ? streamPairs(items, isCanceled)
         : streamPairs(items, isCanceled, loopBreaker);
     if (parallel) {
-      return pairStream.parallel().mapToLong(pair -> {
-        processor.accept(pair);
-        return 1L;
-      }).sum();
+      pairStream = pairStream.parallel();
     }
     return pairStream.mapToLong(pair -> {
       processor.accept(pair);

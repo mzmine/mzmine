@@ -40,10 +40,10 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.collections.StreamUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.Combinatorics;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
-import it.unimi.dsi.fastutil.Pair;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -55,16 +55,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class ImageCorrelateGroupingTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(ImageCorrelateGroupingTask.class.getName());
   private final ParameterSet parameters;
   private final ModularFeatureList featureList;
-  private final List<FeatureListRow> rows;
   private long totalMaxPairs = 0;
   private final AtomicLong processedPairs = new AtomicLong(0);
 
@@ -87,7 +84,6 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.featureList = featureList;
     this.parameters = parameterSet;
-    rows = featureList.getRows();
     noiseLevel = parameters.getParameter(ImageCorrelateGroupingParameters.NOISE_LEVEL).getValue();
     minimumNumberOfCorrelatedPixels = parameters.getParameter(
         ImageCorrelateGroupingParameters.MIN_NUMBER_OF_PIXELS).getValue();
@@ -133,7 +129,7 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
       setStatus(TaskStatus.CANCELED);
     }
     final R2RMap<RowsRelationship> mapImageSim = new R2RMap<>();
-    checkAllFeatures(mapImageSim, rows);
+    checkAllFeatures(mapImageSim);
     logger.info("Image similarity check on rows done.");
 
     if (featureList != null) {
@@ -155,79 +151,43 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
    * Parallel check of all r2r similarities
    *
    * @param mapSimilarity map for all MS2 cosine similarity edges
-   * @param rows          match rows
    */
-  public void checkAllFeatures(R2RMap<RowsRelationship> mapSimilarity, List<FeatureListRow> rows)
+  public void checkAllFeatures(R2RMap<RowsRelationship> mapSimilarity)
       throws MissingMassListException {
     // prefilter rows: check feature height and sort data
     Map<Feature, FilteredRowData> mapFeatureData = new HashMap<>();
-    List<FeatureListRow> filteredRows = new ArrayList<>();
     FeatureDataAccess featureDataAccess = EfficientDataAccess.of(featureList,
         FeatureDataType.INCLUDE_ZEROS);
 
-    for (FeatureListRow row : rows) {
-      if (prepareRows(mapFeatureData, row, featureDataAccess)) {
-        filteredRows.add(row);
-      }
-
+    while (featureDataAccess.hasNextFeature()) {
+      Feature f = featureDataAccess.nextFeature();
+      double[] intensities = featureDataAccess.getIntensityValuesCopy();
+      var data = new FilteredRowData(intensities);
+      mapFeatureData.put(f, data);
     }
-    int numRows = filteredRows.size();
-    totalMaxPairs = Combinatorics.uniquePairs(filteredRows);
+    List<FeatureListRow> rows = featureList.getRows();
+
+    int numRows = rows.size();
+    totalMaxPairs = Combinatorics.uniquePairs(rows);
     logger.log(Level.INFO,
         () -> MessageFormat.format("Checking image similarity on {0} rows", numRows));
 
     // try map multi for all pairs
-    long comparedPairs = IntStream.range(0, numRows - 1).boxed()
-        .<Pair<FeatureListRow, FeatureListRow>>mapMulti((i, consumer) -> {
-          if (isCanceled()) {
-            return;
-          }
-          FeatureListRow a = filteredRows.get(i);
-          for (int j = i + 1; j < numRows; j++) {
-            FeatureListRow b = filteredRows.get(j);
-            consumer.accept(Pair.of(a, b));
-          }
-        }).parallel().mapToLong(pair -> {
+    long comparedPairs = StreamUtils.processPairs(rows, this::isCanceled, true, //
+        pair -> {
           // need to map to ensure thread is waiting for completion
           checkR2RAllFeaturesImageSimilarity(mapFeatureData, pair.left(), pair.right(),
               mapSimilarity);
-          // count comparisons
           processedPairs.incrementAndGet();
-          return 1;
-        }).sum();
+        });
 
     logger.info(
         "Image correlation: Performed %d pairwise comparisons of rows.".formatted(comparedPairs));
   }
 
-  private boolean prepareRows(
-      @NotNull Map<Feature, ImageCorrelateGroupingTask.FilteredRowData> mapFeatureData,
-      @NotNull FeatureListRow row, FeatureDataAccess featureDataAccess)
-      throws MissingMassListException {
-    boolean result = false;
-    ImageCorrelateGroupingTask.FilteredRowData data = getDataAndFilter(row, featureDataAccess);
-    mapFeatureData.put(featureDataAccess.getFeature(), data);
-    result = true;
-    return result;
-  }
-
-  @Nullable
-  private ImageCorrelateGroupingTask.FilteredRowData getDataAndFilter(@NotNull FeatureListRow row,
-      FeatureDataAccess featureDataAccess) {
-    while (featureDataAccess.hasNextFeature()) {
-      featureDataAccess.nextFeature();
-      if (featureDataAccess.getFeature().getRow().equals(row)) {
-        double[] intensities = featureDataAccess.getIntensityValuesCopy();
-        return intensities.length > 0 ? new ImageCorrelateGroupingTask.FilteredRowData(row,
-            intensities) : null;
-      }
-    }
-    return null;
-  }
-
 
   //Intensities have to be sorted by scan number
-  private record FilteredRowData(FeatureListRow row, double[] intensities) {
+  private record FilteredRowData(double[] intensities) {
 
   }
 
@@ -237,17 +197,17 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
     R2RSimpleSimilarityList imageSimilarities = new R2RSimpleSimilarityList(a, b,
         Type.MS1_FEATURE_CORR);
     for (Feature fa : a.getFeatures()) {
+      RawDataFile dataFile = fa.getRawDataFile();
+      Feature fb = b.getFeature(dataFile);
+      if (fb == null) {
+        continue;
+      }
+
       double similarity = 0;
       double[] intensitiesA = mapFeatureData.get(fa).intensities;
       if (intensitiesA != null) {
-
-        RawDataFile dataFile = fa.getRawDataFile();
-        Feature fb = b.getFeature(dataFile);
-        if (fb == null) {
-          continue;
-        }
-
         double[] intensitiesB = mapFeatureData.get(fb).intensities;
+
         if (intensitiesB != null) {
           similarity = calculateSimilarity(intensitiesA, intensitiesB);
         }
