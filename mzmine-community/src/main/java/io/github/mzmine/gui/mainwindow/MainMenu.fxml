@@ -567,6 +567,14 @@
         userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule"/>
       <MenuItem text="Massvoltammogram (feature list)" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule"/>
+
+      <SeparatorMenuItem/>
+
+      <MenuItem text="ECN (Equivalent Carbon Number) plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule"/>
+      <MenuItem text="Lipid annotation summary" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule"/>
+
     </Menu>
 
     <MenuItem onAction="#showMSnTreeTab" text="MS(n) spectra tree"
