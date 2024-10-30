@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2024 The mzmine Development Team
+  ~ Copyright (c) 2004-2024 The MZmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -567,6 +567,14 @@
         userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule"/>
       <MenuItem text="Massvoltammogram (feature list)" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule"/>
+
+      <SeparatorMenuItem/>
+
+      <MenuItem text="ECN (Equivalent Carbon Number) plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule"/>
+      <MenuItem text="Lipid annotation summary" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule"/>
+
     </Menu>
 
     <MenuItem onAction="#showMSnTreeTab" text="MS(n) spectra tree"
