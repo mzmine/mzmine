@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,14 +27,14 @@ package io.github.mzmine.util.maths;
 
 /**
  * Different math transformations
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 @FunctionalInterface
 public interface Transform {
 
   public static final Transform LOG = Math::log;
+  public static final Transform SQRT = Math::sqrt;
 
   public double transform(double v);
 }
