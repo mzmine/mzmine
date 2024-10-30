@@ -62,6 +62,7 @@ import java.time.Instant;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -74,19 +75,19 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ImzMLImportTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ImzMLImportTask.class.getName());
 
-  private File file;
-  private MZmineProject project;
+  private final File file;
+  private final MZmineProject project;
   private final ScanImportProcessorConfig scanProcessorConfig;
-  private ImagingRawDataFile newMZmineFile;
+  private final ImagingRawDataFile newMZmineFile;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
   private int totalScans = 0, parsedScans;
 
   private int lastScanNumber = 0;
 
-  private Map<String, Integer> scanIdTable = new Hashtable<>();
+  private final Map<String, Integer> scanIdTable = new Hashtable<>();
 
   /*
    * This stack stores at most 20 consecutive scans. This window serves to find possible fragments
@@ -96,7 +97,7 @@ public class ImzMLImportTask extends AbstractTask {
    * scans.
    */
   private static final int PARENT_STACK_SIZE = 20;
-  private LinkedList<SimpleScan> parentStack = new LinkedList<>();
+  private final LinkedList<SimpleScan> parentStack = new LinkedList<>();
 
   public ImzMLImportTask(MZmineProject project, File fileToOpen,
       final @NotNull ScanImportProcessorConfig scanProcessorConfig,
@@ -208,6 +209,7 @@ public class ImzMLImportTask extends AbstractTask {
         io.github.mzmine.datamodel.Scan scan = parentStack.removeLast();
         newMZmineFile.addScan(scan);
       }
+      newMZmineFile.getScans().sort(io.github.mzmine.datamodel.Scan::compareTo);
 
       // set settings of image
       newMZmineFile.setImagingParam(new ImagingParameters(imzml));
@@ -216,9 +218,8 @@ public class ImzMLImportTask extends AbstractTask {
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Error parsing mzML: " + ExceptionUtils.exceptionToString(e));
-      e.printStackTrace();
+      logger.log(Level.WARNING, "Error in imzML import: " + e.getMessage(), e);
+      error("Error parsing imzML: " + ExceptionUtils.exceptionToString(e));
       return;
     }
 
