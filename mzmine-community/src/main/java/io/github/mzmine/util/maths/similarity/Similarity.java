@@ -154,6 +154,10 @@ public abstract class Similarity {
       return getRegression(x, y).getSlope();
     }
 
+    /**
+     *
+     * @param data data[dp][indexOfX]
+     */
     public double getSignificance(double[][] data) {
       return getRegression(data).getSignificance();
     }
@@ -176,6 +180,10 @@ public abstract class Similarity {
 
   };
 
+  /**
+   * @param data data[dp][indexOfX]
+   * @return
+   */
   public static SimpleRegression getRegression(double[][] data) {
     SimpleRegression reg = new SimpleRegression();
     reg.addData(data);
@@ -193,8 +201,7 @@ public abstract class Similarity {
   /**
    * Maximum fold-change
    *
-   * @param data
-   * @return
+   * @param data data[dp][indexOfX]
    */
   public static double maxFoldChange(double[][] data, final int i) {
     double min = Arrays.stream(data).mapToDouble(d -> d[i]).min().getAsDouble();
@@ -202,7 +209,10 @@ public abstract class Similarity {
     return max / min;
   }
 
-
+  /**
+   * @param data data[dp][indexOfX]
+   * @param i    column index
+   */
   public double[] col(double[][] data, int i) {
     double[] v = new double[data.length];
     for (int d = 0; d < data.length; d++) {
@@ -215,7 +225,6 @@ public abstract class Similarity {
    * the divisor for calculating the cosine similarity
    *
    * @param data [data point][set 0,1]
-   * @return
    */
   public static double cosineDivisor(double[][] data) {
     return (Math.sqrt(norm(data, 0)) * Math.sqrt(norm(data, 1)));
@@ -252,7 +261,6 @@ public abstract class Similarity {
    * sum(x*y)
    *
    * @param data data[dp][x,y]
-   * @return
    */
   public static double dot(double[][] data) {
     double sum = 0;
@@ -317,7 +325,7 @@ public abstract class Similarity {
   /**
    * Sample variance n-1
    *
-   * @param data
+   * @param data data[dp][indexOfX]
    * @param i
    * @return
    */
@@ -330,10 +338,16 @@ public abstract class Similarity {
     return var / (data.length);
   }
 
+  /**
+   * @param data data[dp][indexOfX]
+   */
   public static double stdev(double[][] data, int i) {
     return Math.sqrt(var(data, i));
   }
 
+  /**
+   * @param data data[dp][indexOfX]
+   */
   public static double stdevN(double[][] data, int i) {
     return Math.sqrt(varN(data, i));
   }
@@ -346,7 +360,11 @@ public abstract class Similarity {
    * @return
    */
   public static double norm(double[][] data, int index) {
-    return norm(data[index]);
+    double sum = 0;
+    for (double[] val : data) {
+      sum += val[index] * val[index];
+    }
+    return sum;
   }
 
   /**
@@ -363,13 +381,15 @@ public abstract class Similarity {
   /**
    * ratio of a/b
    *
-   * @param data
-   * @param a
-   * @param b
+   * @param data data[dp][indexOfX]
    * @return
    */
   public double[] ratio(double[][] data, int a, int b) {
-    return ratio(data[a], data[b]);
+    double[] v = new double[data.length];
+    for (int d = 0; d < data.length; d++) {
+      v[d] = data[d][a] / data[d][b];
+    }
+    return v;
   }
 
   /**
