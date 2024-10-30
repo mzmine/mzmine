@@ -175,7 +175,7 @@ public class MathUtils {
    * @return the percentile value
    */
   public static double calcQuantileSorted(double[] sorted, double q) {
-    return calcQuantileSorted(sorted, 0, sorted.length - 1, q);
+    return calcQuantileSorted(sorted, 0, sorted.length, q);
   }
 
   /**
