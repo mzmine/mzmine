@@ -27,7 +27,7 @@ package io.github.mzmine.modules.io.download;
 
 import static java.util.Objects.requireNonNullElse;
 
-import io.github.mzmine.modules.io.download.DownloadUtils.Result;
+import io.github.mzmine.modules.io.download.DownloadUtils.HandleExistingFiles;
 import io.github.mzmine.modules.io.download.ZenodoRecord.ZenFile;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -191,7 +191,7 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
       boolean skipExisting = false;
       if (!existing.isEmpty()) {
         var result = DownloadUtils.showUseExistingFilesDialog(existing);
-        skipExisting = result == Result.USE_EXISTING;
+        skipExisting = result == HandleExistingFiles.USE_EXISTING;
         if (!skipExisting) {
           // download all again
           existing = List.of();
