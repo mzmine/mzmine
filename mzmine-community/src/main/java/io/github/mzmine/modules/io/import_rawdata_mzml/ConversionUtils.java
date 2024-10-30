@@ -47,21 +47,23 @@ import io.github.mzmine.datamodel.otherdetectors.OtherSpectrum;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.WavelengthSpectrum;
-import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMobilityScanStorage;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLBinaryDataInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV.DetectorCVs;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLChromatogram;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPeaksDecoder;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -294,9 +296,35 @@ public class ConversionUtils {
     return newScan;
   }
 
-  public static BuildingMobilityScan mzmlScanToMobilityScan(int scannum, BuildingMzMLMsScan scan) {
-    SimpleSpectralArrays data = scan.getMobilityScanSimpleSpectralData();
-    return new BuildingMobilityScan(scannum, data);
+  public static BuildingMobilityScanStorage mergedMzmlToMobilityScans(BuildingMzMLMsScan scan,
+      MemoryMapStorage storage) {
+    if (!scan.isMergedMobilitySpectrum()) {
+      throw new IllegalStateException("Scan is not a merged mobility scan");
+    }
+
+    final MzMLBinaryDataInfo mobilityInfo = scan.getMobilityBinaryDataInfo();
+    final MzMLBinaryDataInfo mzInfo = scan.getMzBinaryDataInfo();
+    final MzMLBinaryDataInfo intensityInfo = scan.getIntensityBinaryDataInfo();
+    if (mobilityInfo == null || mzInfo == null || intensityInfo == null) {
+      throw new IllegalStateException(
+          "mzml scan %s did not contain all expected data (mz %s, intensity %s, mobility %s)".formatted(
+              scan.getId(), mzInfo != null, intensityInfo != null, mobilityInfo != null));
+    }
+
+    if (mobilityInfo.getArrayLength() != mzInfo.getArrayLength()
+        || mobilityInfo.getArrayLength() != intensityInfo.getArrayLength()) {
+      throw new IllegalStateException(
+          "Array lengths don't match (mobility = %d, mz = %d, intensity = %d".formatted(
+              mobilityInfo.getArrayLength(), mzInfo.getArrayLength(),
+              intensityInfo.getArrayLength()));
+    }
+
+    scan.clearUnusedData();
+    final double[] mobilities = MzMLPeaksDecoder.decodeToDouble(mobilityInfo);
+    final double[] mzs = MzMLPeaksDecoder.decodeToDouble(mzInfo);
+    final double[] intensities = MzMLPeaksDecoder.decodeToDouble(intensityInfo);
+
+    return new BuildingMobilityScanStorage(storage, scan, mzs, intensities, mobilities);
   }
 
   /**
@@ -405,8 +433,7 @@ public class ConversionUtils {
         final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
         otherFile.setDetectorType(DetectorType.OTHER);
         timeSeriesData.setChromatogramType(groupedByChromType.getKey());
-        otherFile.setDescription(unit +  "_" +
-            groupedByChromType.getKey().getDescription());
+        otherFile.setDescription(unit + "_" + groupedByChromType.getKey().getDescription());
 
         for (MzMLChromatogram chrom : unitChromEntry.getValue()) {
           final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(

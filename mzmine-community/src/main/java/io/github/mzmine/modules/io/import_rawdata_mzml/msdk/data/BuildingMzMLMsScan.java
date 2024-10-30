@@ -88,6 +88,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   private MzMLBinaryDataInfo mzBinaryDataInfo;
   private MzMLBinaryDataInfo intensityBinaryDataInfo;
   private MzMLBinaryDataInfo wavelengthBinaryDataInfo;
+  private MzMLBinaryDataInfo mobilityBinaryDataInfo;
 
   //Final memory-mapped processed data
   //No intermediate results
@@ -668,6 +669,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     mzBinaryDataInfo = null;
     intensityBinaryDataInfo = null;
     wavelengthBinaryDataInfo = null;
+    mobilityBinaryDataInfo = null;
   }
 
   /**
@@ -694,6 +696,10 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     return (mzBinaryDataInfo == null && (intensityBinaryDataInfo != null
         && wavelengthBinaryDataInfo != null)) || (mzValues == null && (intensityValues != null
         && wavelengthValues != null));
+  }
+
+  public boolean isMergedMobilitySpectrum() {
+    return mobilityBinaryDataInfo != null;
   }
 
   /**
@@ -744,6 +750,14 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
     clearUnusedData();
     return new SimpleSpectralArrays(wavelength, intensities);
+  }
+
+  public MzMLBinaryDataInfo getMobilityBinaryDataInfo() {
+    return mobilityBinaryDataInfo;
+  }
+
+  public void setMobilityBinaryDataInfo(MzMLBinaryDataInfo mobilityBinaryDataInfo) {
+    this.mobilityBinaryDataInfo = mobilityBinaryDataInfo;
   }
 
   public boolean isMassSpectrum() {

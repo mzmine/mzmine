@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
+import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -226,6 +227,9 @@ public class MzMLParser {
           }
           if (MzMLArrayType.WAVELENGTH == vars.binaryDataInfo.getArrayType()) {
             vars.spectrum.setWavelengthBinaryDataInfo(vars.binaryDataInfo);
+          }
+          if(MzMLArrayType.ION_MOBILITY == vars.binaryDataInfo.getArrayType()) {
+            vars.spectrum.setMobilityBinaryDataInfo(vars.binaryDataInfo);
           }
         }
         if (vars.spectrum != null && !vars.skipBinaryDataArray) {
@@ -751,7 +755,7 @@ public class MzMLParser {
 
     public void addSpectrumToList(final MemoryMapStorage storage, BuildingMzMLMsScan scan) {
       MzMLMobility mobility = scan.getMobility();
-      if (mobility == null) {
+      if (mobility == null && !scan.isMergedMobilitySpectrum()) {
         // scan or frame spectrum
         spectrumList.add(scan);
         return;
@@ -762,12 +766,21 @@ public class MzMLParser {
         return;
       }
 
-      BuildingMzMLMsScan last = mobilityScans.getLast();
-      if (last != null && Double.compare(last.getRetentionTime(), scan.getRetentionTime()) != 0) {
-        // changed retention time --> finish frame and memory map all mobility scans together as one
-        memoryMapAndClearFrameMobilityScanData(storage);
+      // "regular" representation of ims scans. each scan stored individually
+      if(mobility != null && !scan.isMergedMobilitySpectrum()) {
+        BuildingMzMLMsScan last = mobilityScans.getLast();
+        if (last != null && Double.compare(last.getRetentionTime(), scan.getRetentionTime()) != 0) {
+          // changed retention time --> finish frame and memory map all mobility scans together as one
+          memoryMapAndClearFrameMobilityScanData(storage);
+        }
+        mobilityScans.add(scan);
+      } else if(scan.isMergedMobilitySpectrum()) {
+        final BuildingMobilityScanStorage mobScanStorage = ConversionUtils.mergedMzmlToMobilityScans(
+            scan, storage);
+        mobilityScanData.add(mobScanStorage);
+
+        mobilityScans.clear();
       }
-      mobilityScans.add(scan);
     }
 
     /**
@@ -782,7 +795,6 @@ public class MzMLParser {
       var memoryMapped = new BuildingMobilityScanStorage(storage, mobilityScans);
       mobilityScanData.add(memoryMapped);
 
-      nextFrameStartScanIndex = mobilityScans.size();
       // all scans were already converted
       mobilityScans.clear();
     }
