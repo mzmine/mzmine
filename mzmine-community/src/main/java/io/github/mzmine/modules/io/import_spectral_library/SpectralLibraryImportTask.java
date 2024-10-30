@@ -77,8 +77,10 @@ public class SpectralLibraryImportTask extends AbstractTask {
     try {
       // will block until all library spectra are added to entries list
       SpectralLibrary library = parseFile(dataBaseFile);
+      // remove empty or 0 intensity spectra
+      library.removeif(this::checkRemoveEntry);
       final List<SpectralLibraryEntry> entries = library.getEntries();
-      if (entries.size() > 0) {
+      if (!entries.isEmpty()) {
         project.addSpectralLibrary(library);
 
         logger.log(Level.INFO,
@@ -94,6 +96,14 @@ public class SpectralLibraryImportTask extends AbstractTask {
       return;
     }
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private boolean checkRemoveEntry(SpectralLibraryEntry entry) {
+    if (entry.getNumberOfDataPoints() == 0) {
+      return true;
+    }
+    Double basePeak = entry.getBasePeakIntensity();
+    return basePeak == null || basePeak <= 0;
   }
 
   /**
