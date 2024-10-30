@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,10 @@ public class IonTypeParser {
   /**
    * Pattern that groups +3H2O to  +  3  H2O
    */
-  private static final Pattern PART_PATTERN = Pattern.compile("([+-])(\\d*)(\\w+)");
+  private static final Pattern PART_PATTERN_OLD = Pattern.compile("([+-])(\\d*)(\\w+)");
+
+
+  public static final Pattern PART_PATTERN = Pattern.compile("([+-]?\\d*)(\\w+)");
 
   @Nullable
   public static IonType parse(final @Nullable String str) {
@@ -150,7 +153,7 @@ public class IonTypeParser {
   private static void parseAndAddIonModifications(final List<IonModification> mods, String mod) {
     // mod is +Na or -H so with sign
     // handle +2H by removing the number
-    var matcher = PART_PATTERN.matcher(mod);
+    var matcher = PART_PATTERN_OLD.matcher(mod);
     if (!matcher.find()) {
       return;
     }
