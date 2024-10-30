@@ -25,6 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms;
 
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -33,7 +40,12 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ChromatogramBlankSubtractionParameters extends SimpleParameterSet {
 
@@ -56,6 +68,60 @@ public class ChromatogramBlankSubtractionParameters extends SimpleParameterSet {
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.UNTESTED;
+    return IonMobilitySupport.UNSUPPORTED;
   }
+
+  @Override
+  public boolean checkParameterValues(final Collection<String> errorMessages,
+      final boolean skipRawDataAndFeatureListParameters) {
+    boolean preconditions = true;
+    if (!skipRawDataAndFeatureListParameters) {
+      ModularFeatureList[] flists = getValue(featureLists).getMatchingFeatureLists();
+      if (flists != null && flists.length > 0) {
+        String error = checkPreconditions(flists);
+        if (error != null) {
+          errorMessages.add(error);
+          preconditions = false;
+        }
+      }
+    }
+
+    boolean otherConditions = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
+    return otherConditions && preconditions;
+  }
+
+  /**
+   * @return error message or null
+   */
+  @Nullable
+  public static String checkPreconditions(final FeatureList[] featureLists) {
+    for (final FeatureList flist : featureLists) {
+      // only one sample
+      if (flist.getNumberOfRawDataFiles() != 1) {
+        return "Can only run blank removal before alignment. Needs 1 raw data file per feature list. Apply blank removal after chromatogram builder and optionally smoothing.";
+      }
+
+      // cannot apply after resolving
+      boolean isResolved = flist.getAppliedMethods().stream()
+          .map(FeatureListAppliedMethod::getModule).filter(MZmineRunnableModule.class::isInstance)
+          .map(MZmineRunnableModule.class::cast).map(MZmineRunnableModule::getModuleCategory)
+          .anyMatch(Predicate.isEqual(MZmineModuleCategory.FEATURE_RESOLVING));
+      if (isResolved) {
+        return "Apply blank removal before resolving, after chromatogram builder and optionally smoothing.";
+      }
+
+      // scans
+      List<? extends Scan> scans = flist.getSeletedScans(flist.getRawDataFile(0));
+      if (scans == null) {
+        String steps = flist.getAppliedMethods().stream().map(FeatureListAppliedMethod::getModule)
+            .map(MZmineModule::getName).collect(Collectors.joining("; "));
+        return
+            "Feature list has no scans, please report to the mzmine team with full log file. This is the list of applied steps for this feature list:\n"
+            + steps;
+      }
+    }
+    return null;
+  }
+
 }

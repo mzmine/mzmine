@@ -36,14 +36,11 @@ import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerTask;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
@@ -62,9 +59,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,8 +101,9 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
   @Override
   protected void process() {
     // precondition - no resolving
-    checkPreconditions();
-    if (isCanceled()) {
+    String error = ChromatogramBlankSubtractionParameters.checkPreconditions(featureLists);
+    if (error != null) {
+      error(error);
       return;
     }
 
@@ -209,7 +205,9 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
             intensities[i] = Math.max(data.getIntensity(i) - maxBlankIntensity, 0);
             changed = true;
           }
-          // TODO remove as this is only for testing and seeing results in feature list
+          // Only for testing:
+          // this is only for testing and seeing results in feature list
+          // open EIC chromatogram plot on feature: filled area will be the blank intensity and line is original feature intensity
 //          intensities[i] = maxBlankIntensity;
 //          changed = true;
         }
@@ -350,42 +348,6 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
     }
 
     return CommonRtAxisChromatogram.create(0, bins, minRetentionTime, maxRetentionTime);
-  }
-
-  private void checkPreconditions() {
-    for (final FeatureList flist : featureLists) {
-      // only one sample
-      if (flist.getNumberOfRawDataFiles() != 1) {
-        error(
-            "Can only run blank removal before alignment. Needs 1 raw data file per feature list. Apply blank removal after chromatogram builder and optionally smoothing.");
-        return;
-      }
-
-      // cannot apply after resolving
-      boolean isResolved = flist.getAppliedMethods().stream()
-          .map(FeatureListAppliedMethod::getModule).filter(MZmineRunnableModule.class::isInstance)
-          .map(MZmineRunnableModule.class::cast).map(MZmineRunnableModule::getModuleCategory)
-          .anyMatch(Predicate.isEqual(MZmineModuleCategory.FEATURE_RESOLVING));
-      if (isResolved) {
-        error(
-            "Apply blank removal before resolving, after chromatogram builder and optionally smoothing.");
-        return;
-      }
-
-      // scans
-      List<? extends Scan> scans = flist.getSeletedScans(flist.getRawDataFile(0));
-      if (scans == null) {
-        String steps = flist.getAppliedMethods().stream().map(FeatureListAppliedMethod::getModule)
-            .map(MZmineModule::getName).collect(Collectors.joining("; "));
-        logger.warning(
-            "Feature list has no scans. This is the list of applied steps for this feature list:\n"
-            + steps);
-        error(
-            "Feature list %s has no selected scans. Please report to the mzmine team with the full log.".formatted(
-                flist.getName()));
-        return;
-      }
-    }
   }
 
   @Override
