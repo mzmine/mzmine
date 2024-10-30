@@ -91,8 +91,8 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
   /**
    * may reuse memory segments
    */
-  SimpleIonMobilitySeries(@NotNull MemorySegment mzValues, @NotNull MemorySegment intensityValues,
-      @NotNull List<MobilityScan> scans) {
+  protected SimpleIonMobilitySeries(@NotNull MemorySegment mzValues,
+      @NotNull MemorySegment intensityValues, @NotNull List<MobilityScan> scans) {
     long values = numDoubles(mzValues);
     if (values != numDoubles(intensityValues) || values != scans.size()) {
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
