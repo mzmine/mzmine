@@ -25,24 +25,11 @@
 
 package io.github.mzmine.modules.io.download;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+public enum AssetCategory {
+  TOOLS, SPECTRAL_LIBRARIES, MODELS;
 
-/**
- * Assets that can be downloaded by {@link FileDownloadTask}. Usually defined in
- * {@link DownloadAssets}
- *
- * @param extAsset      the external asset that defines additional fixed properties of this asset
- * @param version       the version
- * @param requiresUnzip unzip after download
- * @param mainFileName  the main file that is selected after unziping. Otherwise the first file
- * @param url           the download URL
- */
-public record UrlDownloadAsset(@NotNull AssetGroup extAsset, String version, boolean requiresUnzip,
-                               @Nullable String mainFileName, String url) implements DownloadAsset {
-
-  public UrlDownloadAsset(final AssetGroup extAsset, final String version,
-      final boolean requiresUnzip, final String url) {
-    this(extAsset, version, requiresUnzip, null, url);
+  @Override
+  public String toString() {
+    return super.toString().toLowerCase();
   }
 }

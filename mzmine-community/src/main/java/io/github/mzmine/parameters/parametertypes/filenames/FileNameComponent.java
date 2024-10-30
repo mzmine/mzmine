@@ -27,9 +27,9 @@ package io.github.mzmine.parameters.parametertypes.filenames;
 
 
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.modules.io.download.DownloadAsset;
 import io.github.mzmine.modules.io.download.DownloadAssetButton;
-import io.github.mzmine.modules.io.download.ExternalAsset;
 import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
@@ -63,7 +63,7 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
   }
 
   public FileNameComponent(final List<File> lastFiles, final FileSelectionType type,
-      final List<ExtensionFilter> filters, final ExternalAsset extAsset,
+      final List<ExtensionFilter> filters, final AssetGroup extAsset,
       final List<DownloadAsset> downloadLinks) {
     this(lastFiles, type, filters, null, extAsset, downloadLinks);
   }
@@ -76,7 +76,7 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
 
   private FileNameComponent(final List<File> lastFiles, final FileSelectionType type,
       final List<ExtensionFilter> filters, @Nullable Consumer<File> exportExamples,
-      final ExternalAsset extAsset, final List<DownloadAsset> downloadLinks) {
+      final AssetGroup extAsset, final List<DownloadAsset> downloadLinks) {
     this.type = type;
     this.filters = filters;
 

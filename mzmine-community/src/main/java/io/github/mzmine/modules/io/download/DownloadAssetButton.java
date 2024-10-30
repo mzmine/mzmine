@@ -81,7 +81,7 @@ public class DownloadAssetButton extends HBox {
     this(null, assets);
   }
 
-  public DownloadAssetButton(@Nullable final ExternalAsset asset,
+  public DownloadAssetButton(@Nullable final AssetGroup asset,
       @NotNull final List<DownloadAsset> assets) {
     downloadButton = addDownloadLinksButton(assets);
 

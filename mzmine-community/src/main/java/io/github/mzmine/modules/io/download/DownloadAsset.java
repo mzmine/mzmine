@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Assets that can be downloaded by {@link FileDownloadTask}. Usually defined in
- * {@link DownloadAssets}
+ * {@link DownloadAssets} as versions of an {@link AssetGroup}
  */
 public sealed interface DownloadAsset permits UrlDownloadAsset, ZenodoDownloadAsset {
 
@@ -40,7 +40,7 @@ public sealed interface DownloadAsset permits UrlDownloadAsset, ZenodoDownloadAs
   @Nullable
   String url();
 
-  ExternalAsset extAsset();
+  AssetGroup extAsset();
 
   String version();
 
@@ -72,7 +72,7 @@ public sealed interface DownloadAsset permits UrlDownloadAsset, ZenodoDownloadAs
 
 
   /**
-   * Estimated file name as in download directory of {@link ExternalAsset#getDownloadToDir()} and
+   * Estimated file name as in download directory of {@link AssetGroup#getDownloadToDir()} and
    * mainFileName or url file name. If file is unzipped - then the final file name may be different.
    * In this case use the mainFileName to determine the final file.
    *
@@ -91,7 +91,7 @@ public sealed interface DownloadAsset permits UrlDownloadAsset, ZenodoDownloadAs
 
   final class Builder<T extends DownloadAsset> {
 
-    private final @NotNull ExternalAsset extAsset;
+    private final @NotNull AssetGroup extAsset;
     private @Nullable String version;
     private boolean requiresUnzip = false;
     private @Nullable String mainFileName = null;
@@ -100,18 +100,18 @@ public sealed interface DownloadAsset permits UrlDownloadAsset, ZenodoDownloadAs
     private @Nullable String zenodoRecordId;
     private @Nullable String url;
 
-    public Builder(@NotNull final ExternalAsset extAsset) {
+    public Builder(@NotNull final AssetGroup extAsset) {
       this.extAsset = extAsset;
     }
 
-    public static Builder<ZenodoDownloadAsset> ofZenodo(@NotNull ExternalAsset extAsset,
+    public static Builder<ZenodoDownloadAsset> ofZenodo(@NotNull AssetGroup extAsset,
         @NotNull String recordId) {
       Builder<ZenodoDownloadAsset> builder = new Builder<>(extAsset);
       builder.zenodoRecordId = recordId;
       return builder;
     }
 
-    public static Builder<UrlDownloadAsset> ofURL(@NotNull ExternalAsset extAsset,
+    public static Builder<UrlDownloadAsset> ofURL(@NotNull AssetGroup extAsset,
         @NotNull String url) {
       Builder<UrlDownloadAsset> builder = new Builder<>(extAsset);
       builder.url = url;

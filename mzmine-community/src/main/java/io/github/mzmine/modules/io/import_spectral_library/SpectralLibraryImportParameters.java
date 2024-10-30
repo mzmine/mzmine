@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.io.import_spectral_library;
 
-import io.github.mzmine.modules.io.download.AssetGroup;
+import io.github.mzmine.modules.io.download.AssetCategory;
 import io.github.mzmine.modules.io.download.DownloadAssets;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithDownloadParameter;
@@ -38,7 +38,7 @@ public class SpectralLibraryImportParameters extends SimpleParameterSet {
       "Spectral library files", """
       Path of spectral library files in common formats
       (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY,
-      DownloadAssets.forAssetGroup(AssetGroup.SPECTRAL_LIBRARIES));
+      DownloadAssets.forAssetGroup(AssetCategory.SPECTRAL_LIBRARIES));
 
   public SpectralLibraryImportParameters() {
     super(dataBaseFiles);

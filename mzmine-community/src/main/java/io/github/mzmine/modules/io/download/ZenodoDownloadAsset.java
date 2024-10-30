@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
  *                      the Cite all versions DOI on each record: for 10.5281/zenodo.12628368 the
  *                      record ID would be 12628368 which points to the latest version.
  */
-public record ZenodoDownloadAsset(@NotNull ExternalAsset extAsset, @Nullable String version,
+public record ZenodoDownloadAsset(@NotNull AssetGroup extAsset, @Nullable String version,
                                   boolean requiresUnzip, @Nullable String mainFileName,
                                   @NotNull String recordId,
                                   @NotNull String fileNameRegEx) implements DownloadAsset {
@@ -81,7 +81,7 @@ public record ZenodoDownloadAsset(@NotNull ExternalAsset extAsset, @Nullable Str
   }
 
   /**
-   * Estimated file name as in download directory of {@link ExternalAsset#getDownloadToDir()} and
+   * Estimated file name as in download directory of {@link AssetGroup#getDownloadToDir()} and
    * mainFileName or url file name. If file is unzipped - then the final file name may be different.
    * In this case use the mainFileName to determine the final file.
    *
