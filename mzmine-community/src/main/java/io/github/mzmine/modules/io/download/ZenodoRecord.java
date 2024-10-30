@@ -48,6 +48,19 @@ public record ZenodoRecord(OffsetDateTime created, OffsetDateTime modified, Offs
     return links.archive;
   }
 
+  /**
+   * Remove files that do not match name pattern
+   *
+   * @param nameRegex name pattern
+   * @return new record
+   */
+  public ZenodoRecord applyNameFilter(final String nameRegex) {
+    var filteredFiles = files.stream().filter(f -> f.name.matches(nameRegex)).toList();
+
+    return new ZenodoRecord(created, modified, updated, revision, recid, doi, latestRedirectId,
+        title, metadata, filteredFiles, links);
+  }
+
   @JsonIgnoreProperties(ignoreUnknown = true)
   public record ZenFile(String id, @JsonProperty("key") String name, long size, String checksum,
                         // unwrap link from links.self

@@ -25,8 +25,8 @@
 
 package io.github.mzmine.modules.io.download;
 
-import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +46,10 @@ public sealed interface DownloadAsset permits UrlDownloadAsset, ZenodoDownloadAs
 
   boolean requiresUnzip();
 
+  /**
+   * @return the main file name that should be picked or null
+   */
+  @Nullable
   String mainFileName();
 
   default String getDownloadDescription() {
@@ -79,14 +83,7 @@ public sealed interface DownloadAsset permits UrlDownloadAsset, ZenodoDownloadAs
    * @return estimated filename based on download directory and mainFileName or URL
    */
   @NotNull
-  default File getEstimatedFinalFile() {
-    File dir = extAsset().getDownloadToDir();
-    if (mainFileName() != null) {
-      return new File(dir, mainFileName());
-    }
-    var fileName = FileAndPathUtil.getFileNameFromUrl(url());
-    return new File(dir, fileName);
-  }
+  List<File> getEstimatedFinalFiles();
 
 
   final class Builder<T extends DownloadAsset> {

@@ -25,6 +25,9 @@
 
 package io.github.mzmine.modules.io.download;
 
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,10 +42,21 @@ import org.jetbrains.annotations.Nullable;
  * @param url           the download URL
  */
 public record UrlDownloadAsset(@NotNull AssetGroup extAsset, String version, boolean requiresUnzip,
-                               @Nullable String mainFileName, String url) implements DownloadAsset {
+                               @Nullable String mainFileName, @NotNull String url) implements
+    DownloadAsset {
 
   public UrlDownloadAsset(final AssetGroup extAsset, final String version,
       final boolean requiresUnzip, final String url) {
     this(extAsset, version, requiresUnzip, null, url);
+  }
+
+  @Override
+  public @NotNull List<File> getEstimatedFinalFiles() {
+    File dir = extAsset().getDownloadToDir();
+    if (mainFileName() != null) {
+      return List.of(new File(dir, mainFileName()));
+    }
+    var fileName = FileAndPathUtil.getFileNameFromUrl(url());
+    return List.of(new File(dir, fileName));
   }
 }

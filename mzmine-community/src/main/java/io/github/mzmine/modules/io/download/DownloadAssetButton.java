@@ -31,14 +31,13 @@ import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder.EventHan
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.modules.io.download.DownloadUtils.Result;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskService;
 import java.io.File;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
@@ -51,11 +50,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonBase;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.ProgressBar;
@@ -192,22 +188,30 @@ public class DownloadAssetButton extends HBox {
       return;
     }
     // check if file exists
-    File finalFile = asset.getEstimatedFinalFile();
-    if (finalFile.exists()) {
-      Optional<ButtonType> resultButton = DialogLoggerUtil.showDialog(AlertType.CONFIRMATION,
-          "File already exists", "Use existing file or download again",
-          new ButtonType("Use existing", ButtonData.CANCEL_CLOSE),
-          new ButtonType("Download", ButtonData.APPLY));
-      // cancel or use existing will just set the filename
-      if (resultButton.isEmpty() || resultButton.get().getButtonData() == ButtonData.CANCEL_CLOSE) {
-        onDownloadFinished.accept(List.of(finalFile));
+    List<File> finalFile = asset.getEstimatedFinalFiles();
+    List<File> existing = finalFile.stream().filter(File::exists).toList();
+    boolean skipExisting = false;
+    if (!existing.isEmpty()) {
+      var result = DownloadUtils.showUseExistingFilesDialog(existing);
+      skipExisting = result == Result.USE_EXISTING;
+      if (!skipExisting) {
+        // download all again
+        existing = List.of();
+      }
+    }
+    if (skipExisting) {
+      if (existing.size() == finalFile.size()) {
+        // all are existing
+        onDownloadFinished.accept(finalFile);
         return;
       }
-      // otherwise download
     }
 
     isDownloading.set(true);
     final var task = new FileDownloadTask(asset);
+    if (skipExisting) {
+      task.setSkipFiles(existing);
+    }
     taskProperty.set(task);
     task.addTaskStatusListener((_, _, _) -> {
       if (task.isFinished() || task.isCanceled()) {
@@ -218,9 +222,11 @@ public class DownloadAssetButton extends HBox {
       }
       if (task.isFinished() && onDownloadFinished != null) {
         // search for main file and set it to parameter
-        var files = task.getDownloadedFiles().stream().filter(
-            file -> asset.mainFileName() == null || file.getName()
-                .equalsIgnoreCase(asset.mainFileName())).toList();
+        List<File> files = task.getDownloadedFiles();
+        if (asset.mainFileName() != null) {
+          files = files.stream()
+              .filter(file -> file.getName().equalsIgnoreCase(asset.mainFileName())).toList();
+        }
         onDownloadFinished.accept(files);
       }
     });

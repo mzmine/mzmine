@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.io.download;
 
 import io.github.mzmine.util.StringUtils;
-import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,13 +87,11 @@ public record ZenodoDownloadAsset(@NotNull AssetGroup extAsset, @Nullable String
    *
    * @return estimated filename based on download directory and mainFileName or URL
    */
-  @NotNull
-  public File getEstimatedFinalFile() {
-    File dir = extAsset.getDownloadToDir();
-    if (mainFileName != null) {
-      return new File(dir, mainFileName);
-    }
-    var fileName = FileAndPathUtil.getFileNameFromUrl(recordId);
-    return new File(dir, fileName);
+  @Override
+  public @NotNull List<File> getEstimatedFinalFiles() {
+    // cannot estimate final files
+    // latest zenodo record needs request to know files
+    // this is done in {@link FileDownloadTask}
+    return List.of();
   }
 }
