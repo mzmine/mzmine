@@ -23,19 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
+package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-
-public class EquivalentCarbonNumberParameters extends SimpleParameterSet {
-
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
-
-  public EquivalentCarbonNumberParameters() {
-    super(new Parameter[]{featureLists},
-        "https://mzmine.github.io/mzmine_documentation/visualization_modules/ecn_plots/ecn_plots.html");
-  }
-
+public enum RatioType {
+  AVERAGE, MAXIMUM
 }

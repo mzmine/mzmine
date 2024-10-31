@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.ToDoubleFunction;
 import org.jetbrains.annotations.NotNull;
@@ -153,8 +154,24 @@ public class BinarySearch {
    */
   public static @NotNull <T> IndexRange indexRange(final Range<? extends Number> range,
       final List<T> values, final ToDoubleFunction<T> valueProvider) {
+    return indexRange(range, values, 0, valueProvider);
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
+   * @param range         search for index of lower and upper bound both always included!
+   * @param values        total number of values (collection size or array length)
+   * @param fromIndex     inclusive lower end
+   * @param valueProvider a function to compute or return the value at an index
+   * @return an {@link IndexRange} that may be empty but contains all values within range - always
+   * including both bounds
+   */
+  public static @NotNull <T> IndexRange indexRange(final Range<? extends Number> range,
+      final List<T> values, int fromIndex, final ToDoubleFunction<T> valueProvider) {
     return indexRange(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue(),
-        values, 0, values.size(), valueProvider);
+        values, fromIndex, values.size(), valueProvider);
   }
 
   /**
@@ -278,6 +295,46 @@ public class BinarySearch {
    * Searches for the value - or the closest available. Copied from
    * {@link Arrays#binarySearch(double[], double)}
    *
+   * @param value          search for this value
+   * @param noMatchDefault option to handle a missing value
+   * @param valueFunction  a function to compute or return the value
+   * @return this index of the given value or the closest available value if checked. index of the
+   * search key, if it is contained in the array; otherwise, (-(insertion point) - 1). The insertion
+   * point is defined as the point at which the key would be inserted into the array: the index of
+   * the first element greater than the key, or a.length if all elements in the array are less than
+   * the specified key. Note that this guarantees that the return value will be >= 0 if and only if
+   * the key is found.
+   */
+  public static <T> int binarySearch(List<T> data, double value, @NotNull DefaultTo noMatchDefault,
+      Function<T, Double> valueFunction) {
+    return binarySearch(value, noMatchDefault, data.size(),
+        index -> valueFunction.apply(data.get(index)));
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
+   * @param value          search for this value
+   * @param noMatchDefault option to handle a missing value
+   * @param valueFunction  a function to compute or return the value
+   * @return this index of the given value or the closest available value if checked. index of the
+   * search key, if it is contained in the array; otherwise, (-(insertion point) - 1). The insertion
+   * point is defined as the point at which the key would be inserted into the array: the index of
+   * the first element greater than the key, or a.length if all elements in the array are less than
+   * the specified key. Note that this guarantees that the return value will be >= 0 if and only if
+   * the key is found.
+   */
+  public static <T> int binarySearch(T[] data, double value, @NotNull DefaultTo noMatchDefault,
+      Function<T, Double> valueFunction) {
+    return binarySearch(value, noMatchDefault, data.length,
+        index -> valueFunction.apply(data[index]));
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
    * @param value                search for this value
    * @param noMatchDefault       option to handle a missing value
    * @param totalValues          total number of values (collection size or array length)
@@ -312,8 +369,11 @@ public class BinarySearch {
    */
   public static int binarySearch(double value, @NotNull DefaultTo noMatchDefault, int fromIndex,
       int toIndexExclusive, IntToDoubleFunction valueAtIndexProvider) {
-    if (toIndexExclusive == 0) {
+    if (toIndexExclusive <= 0) {
       return -1;
+    }
+    if (fromIndex < 0) {
+      throw new IllegalArgumentException("fromIndex < 0 in binary search");
     }
 
     int low = fromIndex;
@@ -411,6 +471,25 @@ public class BinarySearch {
    */
   public enum DefaultTo {
     CLOSEST_VALUE, MINUS_INSERTION_POINT, GREATER_EQUALS, LESS_EQUALS;
+
+    public int decideFor(final float value, final int minInclusive, final int maxExclusive) {
+      int rounded = switch (this) {
+        case CLOSEST_VALUE -> Math.round(value);
+        case MINUS_INSERTION_POINT -> -(((int) value) + 1);
+        case GREATER_EQUALS -> (int) Math.ceil(value);
+        case LESS_EQUALS -> (int) Math.floor(value);
+      };
+      return withinBounds(rounded, minInclusive, maxExclusive);
+    }
   }
 
+  /**
+   * Regular bounds check
+   *
+   * @return value in truncated to min and max values, if value less than min then return min, if
+   * value greater maxExclusive -1 return this
+   */
+  private static int withinBounds(int value, int minInclusive, int maxExclusive) {
+    return Math.min(Math.max(value, minInclusive), maxExclusive - 1);
+  }
 }

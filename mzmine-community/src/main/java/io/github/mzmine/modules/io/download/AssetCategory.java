@@ -23,19 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
+package io.github.mzmine.modules.io.download;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+public enum AssetCategory {
+  TOOLS, SPECTRAL_LIBRARIES, MODELS;
 
-public class EquivalentCarbonNumberParameters extends SimpleParameterSet {
-
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
-
-  public EquivalentCarbonNumberParameters() {
-    super(new Parameter[]{featureLists},
-        "https://mzmine.github.io/mzmine_documentation/visualization_modules/ecn_plots/ecn_plots.html");
+  @Override
+  public String toString() {
+    return super.toString().toLowerCase();
   }
-
 }

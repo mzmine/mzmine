@@ -501,11 +501,12 @@ public class ModularFeatureListRow implements FeatureListRow {
   public void addCompoundAnnotation(CompoundDBAnnotation id) {
     synchronized (getMap()) {
       List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
-      if (matches == null) {
-        matches = new ArrayList<>();
+      List<CompoundDBAnnotation> newList = new ArrayList<>();
+      if (matches != null) {
+        newList.addAll(matches);
       }
-      matches.add(id);
-      set(CompoundDatabaseMatchesType.class, matches);
+      newList.add(id);
+      set(CompoundDatabaseMatchesType.class, newList);
     }
   }
 

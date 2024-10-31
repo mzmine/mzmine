@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -202,12 +202,12 @@ public class MZmineProjectImpl implements MZmineProject {
       if (names.contains(name)) {
         if (!MZmineCore.isHeadLessMode()) {
           MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
-              + " because a file with the same name already exists in the project. Please copy "
-              + "the file and rename it, if you want to import it twice.");
+                                                      + " because a file with the same name already exists in the project. Please copy "
+                                                      + "the file and rename it, if you want to import it twice.");
         }
         logger.warning(
             "Cannot add file with an original name that already exists in project. (filename="
-                + newFile.getName() + ")");
+            + newFile.getName() + ")");
         return;
       }
 
@@ -269,7 +269,11 @@ public class MZmineProjectImpl implements MZmineProject {
         featureList.setName(getUniqueName(featureList.getName(), names));
       }
       featureLists.add(featureList);
+      logger.finer(
+          "Added feature list with %d rows named: %s".formatted(featureList.getNumberOfRows(),
+              featureList.getName()));
       fireFeatureListsChangeEvent(List.of(featureList), Type.ADDED);
+
     } finally {
       featureLock.writeLock().unlock();
     }

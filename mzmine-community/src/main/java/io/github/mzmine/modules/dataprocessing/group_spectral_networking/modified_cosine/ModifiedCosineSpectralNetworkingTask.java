@@ -449,6 +449,7 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
     logger.log(Level.INFO, MessageFormat.format("Checking MS2 similarity on {0} rows", numRows));
 
     long comparedPairs = StreamUtils.processPairs(filteredRows, this::isCanceled, true, //
+        // stop inner loop if mz distance is too far
         (first, later) -> maxMzDelta < later.row.getAverageMZ() - first.row.getAverageMZ(), //
         pair -> {
           // the actual processing
