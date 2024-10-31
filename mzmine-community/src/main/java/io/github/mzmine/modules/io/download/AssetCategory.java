@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,29 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.web;
+package io.github.mzmine.modules.io.download;
 
-import java.util.logging.Logger;
+public enum AssetCategory {
+  TOOLS, SPECTRAL_LIBRARIES, MODELS;
 
-/**
- * Simple representation of a response from web api. Extracts the URL from the json or text
- * response
- *
- * @param response   response text
- * @param url        extracted URL or empty string
- * @param statusCode the status code from the request
- * @author <a href="https://github.com/robinschmid">Robin Schmid</a>
- */
-public record RequestResponse(String response, String url, int statusCode) {
-
-  private static final Logger logger = Logger.getLogger(RequestResponse.class.getName());
-  public static RequestResponse NONE = new RequestResponse("", "", -1);
-
-  public void openURL() {
-    WebUtils.openURL(url);
-  }
-
-  public boolean isSuccess() {
-    return statusCode / 200 == 1;
+  @Override
+  public String toString() {
+    return super.toString().toLowerCase();
   }
 }

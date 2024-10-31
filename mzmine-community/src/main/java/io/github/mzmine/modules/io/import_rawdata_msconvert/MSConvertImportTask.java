@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
@@ -59,6 +60,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MSConvertImportTask extends AbstractTask {
 
@@ -73,10 +75,10 @@ public class MSConvertImportTask extends AbstractTask {
   private Boolean convertToFile = ConfigService.getConfiguration().getPreferences()
       .getValue(MZminePreferences.keepConvertedFile);
 
-  public MSConvertImportTask(@NotNull Instant moduleCallDate, File path,
-      ScanImportProcessorConfig config, MZmineProject project, Class<? extends MZmineModule> module,
-      ParameterSet parameters) {
-    super(moduleCallDate);
+  public MSConvertImportTask(final @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, File path, ScanImportProcessorConfig config,
+      MZmineProject project, Class<? extends MZmineModule> module, ParameterSet parameters) {
+    super(storage, moduleCallDate);
     this.rawFilePath = path;
     this.config = config;
     this.project = project;

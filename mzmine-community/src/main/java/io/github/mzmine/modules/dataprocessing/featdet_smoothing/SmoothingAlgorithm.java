@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -82,8 +83,8 @@ public interface SmoothingAlgorithm extends MZmineModule {
     } else {
       newIntensities = new double[originalSeries.getNumberOfValues()];
       int newIntensitiesIndex = 0;
-      for (int i = 0; i < dataAccess.getNumberOfValues() && newIntensitiesIndex < originalSeries
-          .getNumberOfValues(); i++) {
+      for (int i = 0; i < dataAccess.getNumberOfValues()
+          && newIntensitiesIndex < originalSeries.getNumberOfValues(); i++) {
         // check if we originally did have an intensity at the current index. I know that the data
         // access contains more zeros and the zeros of different indices will be matched, but the
         // newIntensitiesIndex will "catch" up, once real intensities are reached.
@@ -108,8 +109,8 @@ public interface SmoothingAlgorithm extends MZmineModule {
           ((ModifiableSpectra) originalSeries).getSpectraModifiable(), smoothedMobilogram);
     }
 
-    return (IonTimeSeries<? extends Scan>) originalSeries
-        .copyAndReplace(storage, originalMzs, newIntensities);
+    return (IonTimeSeries<? extends Scan>) originalSeries.copyAndReplace(storage, originalMzs,
+        newIntensities);
   }
 
   /**
@@ -138,6 +139,8 @@ public interface SmoothingAlgorithm extends MZmineModule {
   private double[] getOriginalIntensities(IntensitySeries series) {
     if (series instanceof FeatureFullDataAccess access) {
       return access.getIntensityValues();
+    } else if (series instanceof FeatureDataAccess access) {
+      return access.getIntensityValuesCopy();
     } else {
       double[] originalIntensities = new double[series.getNumberOfValues()];
       return series.getIntensityValues(originalIntensities);

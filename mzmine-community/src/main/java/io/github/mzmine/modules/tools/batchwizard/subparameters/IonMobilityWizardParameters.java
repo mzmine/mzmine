@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,14 +38,15 @@ import java.text.DecimalFormat;
 public final class IonMobilityWizardParameters extends WizardStepParameters {
 
   public static final DoubleParameter approximateImsFWHM = new DoubleParameter(
-      "Approximate feature FWHM",
-      "The approximate feature width (IMS peak width) in ion mobility (full-width-at-half-maximum, FWHM).",
+      "Approximate feature FWHM", """
+      The approximate feature width (IMS peak width) in ion mobility dimension (full-width-at-half-maximum, FWHM).
+      The value is interpreted in the unit of the mobility analyzer. E.g., ms for DTIMS and TWIMS and Vs/cm2 for TIMS.""",
       new DecimalFormat("0.0000"), 0.04d);
 
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
       "Minimum consecutive scans",
-      "Minimum number of consecutive scans with detected data points as used in ion mobility feature resolving.", 5, 1,
-      Integer.MAX_VALUE);
+      "Minimum number of consecutive scans with detected data points as used in ion mobility feature resolving.",
+      5, 1, Integer.MAX_VALUE);
 
   public static final HiddenParameter<Boolean> imsActive = new HiddenParameter<>(
       new BooleanParameter("IMS active", "Flag if IMS is active", false));
