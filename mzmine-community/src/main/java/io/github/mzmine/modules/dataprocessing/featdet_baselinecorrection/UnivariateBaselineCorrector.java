@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,21 +25,16 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.BinarySearch;
-import io.github.mzmine.util.collections.IndexRange;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.awt.Color;
-import java.util.List;
 import org.apache.commons.math3.analysis.UnivariateFunction;
-import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrector {
+public abstract class UnivariateBaselineCorrector extends AbstractResolverBaselineCorrector {
 
   public UnivariateBaselineCorrector() {
     super(null, 5, "", null);
@@ -50,64 +45,54 @@ public abstract class UnivariateBaselineCorrector extends AbstractBaselineCorrec
     super(storage, numSamples, suffix, resolver);
   }
 
-  protected <T extends IntensityTimeSeries> T subSampleAndCorrect(T timeSeries, int numValues,
-      int numPointsInRemovedArray, double[] xBufferRemovedPeaks, double[] yBufferRemovedPeaks) {
-    final double[] subsampleX = BaselineCorrector.subsample(xBufferRemovedPeaks,
-        numPointsInRemovedArray, numSamples, true);
-    final double[] subsampleY = BaselineCorrector.subsample(yBufferRemovedPeaks,
-        numPointsInRemovedArray, numSamples, false);
+  /**
+   * @param xDataToCorrect    in place operation, the data to correct is changed
+   * @param yDataToCorrect    in place operation, the data to correct is changed
+   * @param numValues         corresponding number of values - input arrays may be longer
+   * @param xDataFiltered     might be the whole x data or peaks removed
+   * @param yDataFiltered     might be the whole y data or peaks removed
+   * @param numValuesFiltered number of filtered data points
+   * @param addPreview        add preview datasets
+   */
+  @Override
+  protected void subSampleAndCorrect(final double[] xDataToCorrect, final double[] yDataToCorrect,
+      int numValues, double[] xDataFiltered, double[] yDataFiltered, int numValuesFiltered,
+      final boolean addPreview) {
+    // translate into setp size in number of data points
+    int stepSize = numValuesFiltered / numSamples;
+    if (stepSize < 4) {
+      stepSize = 4; // minimum required distance between samples
+    }
+    IntList subsampleIndices = buffer.createSubSampleIndicesFromLandmarks(stepSize);
 
-    UnivariateInterpolator interpolator = initializeInterpolator(subsampleX.length);
-    UnivariateFunction splineFunction = interpolator.interpolate(subsampleX, subsampleY);
+    XYDataArrays subData = subSampleData(subsampleIndices, xDataFiltered, yDataFiltered,
+        numValuesFiltered);
+
+    // initialize a function to map x -> y
+    UnivariateFunction function = initializeFunction(subData.x(), subData.y());
 
     for (int i = 0; i < numValues; i++) {
-      final double baseline = splineFunction.value(xBuffer[i]);
-      if(Double.isNaN(baseline)) {
-        continue;
+      double baseline = function.value(xDataToCorrect[i]);
+      if (Double.isNaN(baseline)) {
+        // TODO change and create function with different settings
+        // LOESS - wider bandwidth, maybe more iterations
+        baseline = 0;
       }
       // corrected value must be above zero. the baseline itself may be below zero, e.g. for signal
       // drifts due to solvent composition change
-      yBuffer[i] = Math.max(yBuffer[i] - baseline, 0);
+      yDataToCorrect[i] = Math.max(yDataToCorrect[i] - baseline, 0);
     }
 
-    if (isPreview()) {
-      additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, j -> xBuffer[j],
-          j -> splineFunction.value(xBuffer[j])));
-    }
+    if (addPreview) {
+      additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, j -> xDataToCorrect[j],
+          j -> function.value(xDataToCorrect[j])));
 
-    return createNewTimeSeries(timeSeries, numValues, yBuffer);
-  }
-
-  @Override
-  public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
-    additionalData.clear();
-    final int numValues = timeSeries.getNumberOfValues();
-    if (yBuffer.length < numValues) {
-      xBuffer = new double[numValues];
-      yBuffer = new double[numValues];
-      xBufferRemovedPeaks = new double[numValues];
-      yBufferRemovedPeaks = new double[numValues];
-    }
-    extractDataIntoBuffer(timeSeries, xBuffer, yBuffer);
-
-    if (resolver != null) {
-      final List<Range<Double>> resolved = resolver.resolve(xBuffer, yBuffer);
-      final List<IndexRange> indices = resolved.stream().map(
-          range -> BinarySearch.indexRange(range, timeSeries.getNumberOfValues(),
-              timeSeries::getRetentionTime)).toList();
-
-      final int numPointsInRemovedArray = AbstractBaselineCorrector.removeRangesFromArray(indices,
-          numValues, xBuffer, xBufferRemovedPeaks);
-      AbstractBaselineCorrector.removeRangesFromArray(indices, numValues, yBuffer,
-          yBufferRemovedPeaks);
-
-      return subSampleAndCorrect(timeSeries, numValues, numPointsInRemovedArray,
-          xBufferRemovedPeaks, yBufferRemovedPeaks);
-    } else {
-      return subSampleAndCorrect(timeSeries, numValues, numValues, xBuffer, yBuffer);
+      additionalData.add(
+          new AnyXYProvider(Color.BLUE, "samples", subData.numValues(), subData::getX,
+              subData::getY));
     }
   }
 
-  protected abstract UnivariateInterpolator initializeInterpolator(int actualNumberOfSamples);
+  protected abstract UnivariateFunction initializeFunction(double[] x, final double[] y);
 
 }

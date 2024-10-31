@@ -37,6 +37,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.parameters.ParameterSet;
@@ -87,8 +88,8 @@ class BaselineCorrectionPreview extends FeaturePreviewPane {
 
     final BaselineCorrectors enumValue = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getValue();
-    final BaselineCorrector baselineCorrector = enumValue.getModuleInstance().newInstance(
-        parameters, null, feature.getFeatureList());
+    final BaselineCorrector baselineCorrector = enumValue.getModuleInstance()
+        .newInstance(parameters, null, feature.getFeatureList());
     if (baselineCorrector instanceof AbstractBaselineCorrector uv) {
       uv.setPreview(true);
     }
@@ -110,8 +111,13 @@ class BaselineCorrectionPreview extends FeaturePreviewPane {
                 feature.getRawDataFile().getColor()), RunOption.THIS_THREAD),
             new ColoredXYLineRenderer())));
 
-    additionalPreviewData.forEach(a -> data.add(
-        new DatasetAndRenderer(new ColoredXYDataset(a), new ColoredXYLineRenderer())));
+    additionalPreviewData.forEach(a -> {
+      if ("samples".equals(a.getSeriesKey())) {
+        data.add(new DatasetAndRenderer(new ColoredXYDataset(a), new ColoredXYShapeRenderer()));
+      } else {
+        data.add(new DatasetAndRenderer(new ColoredXYDataset(a), new ColoredXYLineRenderer()));
+      }
+    });
 
     return data;
   }

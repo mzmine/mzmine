@@ -34,8 +34,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -43,7 +42,13 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.io.WriterOptions;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class ReferenceCCSCalibrationParameters extends SimpleParameterSet {
@@ -54,10 +59,12 @@ public class ReferenceCCSCalibrationParameters extends SimpleParameterSet {
   public static final FeatureListsParameter flists = new FeatureListsParameter(
       "Feature list (with reference compounds)", 1, Integer.MAX_VALUE);
 
-  public static final FileNameParameter referenceList = new FileNameParameter("Reference list", """
+  public static final FileNameWithExampleExportParameter referenceList = new FileNameWithExampleExportParameter(
+      "Reference list", """
       The file containing the reference compounds for m/z and mobility.
       Must contain the columns "mz", "mobility", "ccs", "charge". Columns must be separated by ";".""",
-      FileSelectionType.OPEN, false);
+      List.of(ExtensionFilters.CSV, ExtensionFilters.TXT),
+      ReferenceCCSCalibrationParameters::exportExample);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
       "Tolerance for the given reference compound list", 0.005, 5);
@@ -110,5 +117,36 @@ public class ReferenceCCSCalibrationParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;
+  }
+
+  public static void exportExample(File file) {
+    String str = """
+        mz;charge;mobility;ccs
+        118.0863;1;0.5446;121.30
+        322.0481;1;0.7363;153.73
+        622.0290;1;0.9915;202.96
+        922.0098;1;1.1986;243.64
+        1221.9906;1;1.3934;282.20
+        1521.9715;1;1.5685;316.96
+        1821.9523;1;1.7407;351.25
+        2121.9332;1;1.9003;383.03
+        2421.9140;1;2.0504;412.96
+        2721.8948;1;2.1921;441.21
+        301.9981;-1;0.6690;140.04
+        601.9790;-1;0.8824;180.77
+        1033.9881;-1;1.2582;255.34
+        1333.9689;-1;1.4073;284.76
+        1633.9498;-1;1.5797;319.03
+        1933.9306;-1;1.7479;352.55
+        2233.9115;-1;1.8895;380.74
+        2533.8923;-1;2.0511;412.99
+        2833.8731;-1;2.1498;432.62
+        """;
+
+    try (var w = Files.newBufferedWriter(file.toPath(), WriterOptions.REPLACE.toOpenOption())) {
+      w.write(str);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -72,6 +71,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -138,7 +138,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * @return the valid bruker file path for bruker .d files or the input file
    */
   public static File validateBrukerPath(File f) {
-    if (f.getParent().endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
+    var parent = f.getParent();
+    if (parent == null) {
+      return f;
+    } else if (parent.endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
                                          || f.getName().endsWith(".tsf") || f.getName()
                                              .endsWith(".baf"))) {
       return f.getParentFile();
@@ -154,7 +157,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       final @NotNull MZmineProject project, final File[] fileNames) {
     // check that files were not loaded before
     File[] currentAndLoadFiles = Stream.concat(
-        project.getCurrentRawDataFiles().stream().map(RawDataFile::getFileName).map(File::new),
+        project.getCurrentRawDataFiles().stream().map(RawDataFile::getAbsoluteFilePath),
         Arrays.stream(fileNames)).toArray(File[]::new);
     return containsDuplicateFiles(currentAndLoadFiles,
         "raw data file names in the import list that collide with already loaded data");
@@ -165,12 +168,24 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * @return true if file names are duplicates
    */
   private static boolean containsDuplicateFiles(final File[] fileNames, String context) {
+    List<String> missingFiles = Arrays.stream(fileNames).filter(Predicate.not(File::exists))
+        .map(File::getAbsolutePath).toList();
+    if (!missingFiles.isEmpty()) {
+      String msg = """
+          Stopped import as there were files that cannot be found for %s.
+          Make sure to use full file paths of existing files:
+          %s""".formatted(context, String.join("\n", missingFiles));
+      logger.warning(msg);
+      MZmineCore.getDesktop().displayErrorMessage(msg);
+      return true;
+    }
+
     List<String> duplicates = CollectionUtils.streamDuplicates(
         Arrays.stream(fileNames).map(File::getName)).toList();
     if (!duplicates.isEmpty()) {
       String msg = """
           Stopped import as there were duplicate %s.
-          Make sure to use unique names as MZmine and many downstream tools depend on this. Duplicates are:
+          Make sure to use unique names as mzmine and many downstream tools depend on this. Duplicates are:
           %s""".formatted(context, String.join("\n", duplicates));
       logger.warning(msg);
       MZmineCore.getDesktop().displayErrorMessage(msg);
@@ -261,6 +276,14 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate);
         tasks.add(newTask);
       }
+    }
+    // metadata
+    final File metadataFile = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        AllSpectralDataImportParameters.metadataFile, null);
+    if (metadataFile != null && !metadataFile.isFile()) {
+      String msg = "Metadata file in MS data import cannot be found. Make sure to use the full filepath";
+      MZmineCore.getDesktop().displayErrorMessage(msg);
+      return ExitCode.ERROR;
     }
 
     // one storage for all files imported in the same task as they are typically analyzed together

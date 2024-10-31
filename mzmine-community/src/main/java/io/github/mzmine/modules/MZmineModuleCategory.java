@@ -38,6 +38,12 @@ public enum MZmineModuleCategory {
   GAPFILLING("Gap filling"), //
   ISOTOPES("Isotopes"), //
   FEATURELIST("Feature list methods"), //
+  /**
+   * Only feature list resolving that splits separate features. Modules like
+   * {@link
+   * io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms.ChromatogramBlankSubtractionModule}
+   * use this to check if the module can be applied on the feature list
+   */
   FEATURE_RESOLVING("Resolving"), //
   FEATURE_GROUPING("Feature grouping"), //
   ION_IDENTITY_NETWORKS("Ion identity networking"), //
@@ -56,8 +62,7 @@ public enum MZmineModuleCategory {
   VISUALIZATION_RAW_AND_FEATURE("Visualization data"), //
   DATAANALYSIS("Data analysis"), //
   HELPSYSTEM("Help"), //
-  TOOLS("Tools"),
-  OTHER_DATA_PROCESSING("Processing other data"); //
+  TOOLS("Tools"), OTHER_DATA_PROCESSING("Processing other data"); //
 
   private final String name;
 

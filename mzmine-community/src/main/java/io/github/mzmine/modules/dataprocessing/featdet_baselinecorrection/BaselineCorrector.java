@@ -25,36 +25,58 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
-import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.List;
 
 public interface BaselineCorrector extends MZmineModule {
 
-  static double[] subsample(double[] array, int numValues, int numSamples, boolean check) {
+  static double[] subsample(double[] array, int numValues, int numSamples,
+      boolean checkDataAscending) {
     if (numSamples >= numValues) {
       var reduced = new double[numValues];
       System.arraycopy(array, 0, reduced, 0, numValues);
       return reduced;
     }
 
-    final int increment = numValues / numSamples;
+    // use float to get more precise increments
+    final float increment = (float) numValues / numSamples;
 
-    final double[] result = new double[numSamples + 1];
+    final double[] result = new double[numSamples];
     for (int i = 0; i < numSamples; i++) {
-      result[i] = array[i * increment];
-      if (check && result[Math.max(i - 1, 0)] > result[i]) {
-        throw new IllegalStateException();
+      // floor to lower number
+      result[i] = array[(int) (i * increment)];
+      if (checkDataAscending && result[Math.max(i - 1, 0)] > result[i]) {
+        throw new IllegalStateException("Data is not sorted ascending");
       }
     }
 
-    result[numSamples] = array[numValues - 1];
+    return result;
+  }
 
+  /**
+   * Subsample by list of indices
+   */
+  static double[] subsample(double[] array, int numValues, IntList indices,
+      boolean checkDataAscending) {
+    double[] result = new double[indices.size()];
+    for (int i = 0; i < indices.size(); i++) {
+      int dataIndex = indices.getInt(i);
+      if (dataIndex >= numValues) {
+        throw new IllegalStateException(
+            "Index is out of data range for numValues %d and index %d".formatted(numValues,
+                dataIndex));
+      }
+      result[i] = array[dataIndex];
+      if (checkDataAscending && result[Math.max(i - 1, 0)] > result[i]) {
+        throw new IllegalStateException("Data is not sorted ascending");
+      }
+    }
     return result;
   }
 
@@ -62,22 +84,6 @@ public interface BaselineCorrector extends MZmineModule {
 
   BaselineCorrector newInstance(ParameterSet parameters, MemoryMapStorage storage,
       FeatureList flist);
-
-  default <T extends IntensityTimeSeries> void extractDataIntoBuffer(T timeSeries, double[] xBuffer,
-      double[] yBuffer) {
-    for (int i = 0; i < timeSeries.getNumberOfValues(); i++) {
-      xBuffer[i] = timeSeries.getRetentionTime(i);
-      if (xBuffer[i] < xBuffer[Math.max(i - 1, 0)]) {
-        throw new IllegalStateException();
-      }
-    }
-
-    if (timeSeries instanceof FeatureDataAccess access) {
-      System.arraycopy(access.getIntensityValues(), 0, yBuffer, 0, access.getNumberOfValues());
-    } else {
-      yBuffer = timeSeries.getIntensityValues(yBuffer);
-    }
-  }
 
   default List<PlotXYDataProvider> getAdditionalPreviewData() {
     return List.of();

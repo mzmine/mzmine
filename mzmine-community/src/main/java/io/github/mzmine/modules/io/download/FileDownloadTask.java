@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.download;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.modules.io.download.DownloadUtils.HandleExistingFiles;
 import io.github.mzmine.modules.io.download.ZenodoRecord.ZenFile;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -59,11 +60,15 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
 
   public volatile DownloadStatus downloadStatus = DownloadStatus.WAITING;
   public String description = "Waiting for download";
+  private int totalFiles = 1;
+  private int finishedFiles = 0;
   private double progress;
   private FileDownloader fileDownloader;
 
   // resulting file after download and optional unzip
   private List<File> downloadedFiles;
+  // skip files
+  private List<File> skipFiles = List.of();
 
 
   public FileDownloadTask(final DownloadAsset asset) {
@@ -127,7 +132,8 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
 
   @Override
   public double getFinishedPercentage() {
-    return progress;
+    // progress might be -1
+    return (finishedFiles + Math.max(0, progress)) / (double) totalFiles;
   }
 
   @Override
@@ -157,7 +163,7 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
 
       // requires unzip?
       if (asset != null && asset.requiresUnzip()) {
-        unzipFile();
+        unzipFile(fileDownloader.getLocalFile());
       }
     } else if (fileDownloader.getStatus() == DownloadStatus.ERROR_REMOVE) {
       error("Error while downloading file " + localDirectory.getAbsolutePath() + " from "
@@ -169,31 +175,64 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
     try {
       List<File> resultingFiles = new ArrayList<>();
       var record = ZenodoService.getWebRecord(asset);
-      if (asset.isAllFiles()) {
+      if (!asset.isAllFiles()) {
+        record = record.applyNameFilter(asset.fileNameRegEx());
+        if (record.files().isEmpty()) {
+          logger.warning(
+              "No files in zenodo record %s matching pattern %s. Check out: %s".formatted(
+                  record.recid(), asset.fileNameRegEx(), record.links().selfHtml()));
+          return List.of();
+        }
+      }
+
+      // already downloaded files
+      List<File> existing = record.files().stream().map(f -> new File(localDirectory, f.name()))
+          .filter(File::exists).toList();
+      boolean skipExisting = false;
+      if (!existing.isEmpty()) {
+        var result = DownloadUtils.showUseExistingFilesDialog(existing);
+        skipExisting = result == HandleExistingFiles.USE_EXISTING;
+        if (!skipExisting) {
+          // download all again
+          existing = List.of();
+        }
+      }
+      if (skipExisting) {
+        if (existing.size() == record.files().size()) {
+          // all are existing
+          return existing;
+        }
+      }
+      setSkipFiles(existing);
+
+      // never download full archive if some files already exist
+      if (asset.isAllFiles() && existing.isEmpty()) {
         resultingFiles.addAll(downloadZenodoArchive(record));
       } else {
         // download files individually after file filter
+        totalFiles = record.files().size();
         int countMatchingFiles = 0;
-        String namePattern = asset.fileNameRegEx();
         for (final ZenFile file : record.files()) {
+          File destination = new File(localDirectory, file.name());
+          if (existing.contains(destination)) {
+            continue; // skip existing
+          }
           countMatchingFiles++;
           if (isCanceled()) {
             return List.of();
           }
-          if (file.name().matches(namePattern)) {
-            fileDownloader = new FileDownloader(file.link(), localDirectory, this, file.name());
-            fileDownloader.downloadFileBlocking();
-            if (asset.requiresUnzip()) {
-              resultingFiles.addAll(unzipFile());
-            } else {
-              resultingFiles.add(fileDownloader.getLocalFile());
-            }
+          fileDownloader = new FileDownloader(file.link(), localDirectory, this, file.name());
+          fileDownloader.downloadFileBlocking();
+          finishedFiles++;
+          progress = 0;
+          if (asset.requiresUnzip()) {
+            resultingFiles.addAll(unzipFile(fileDownloader.getLocalFile()));
+          } else {
+            resultingFiles.add(fileDownloader.getLocalFile());
           }
         }
         if (countMatchingFiles == 0) {
-          logger.warning(
-              "No files in zenodo record %s matching pattern %s. Check out: %s".formatted(
-                  record.recid(), namePattern, record.links().selfHtml()));
+          logger.warning("No files in zenodo record %s downloaded".formatted(record.recid()));
         }
       }
 
@@ -211,7 +250,7 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
     fileDownloader = new FileDownloader(record.getArchiveZipUrl(), localDirectory, this);
     fileDownloader.downloadFileBlocking();
     if (fileDownloader.getStatus() == DownloadStatus.SUCCESS) {
-      return unzipFile();
+      return unzipFile(fileDownloader.getLocalFile());
     } else if (fileDownloader.getStatus() == DownloadStatus.ERROR_REMOVE) {
       error("Error while downloading file " + localDirectory.getAbsolutePath() + " from "
             + downloadUrl);
@@ -219,8 +258,7 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
     return List.of();
   }
 
-  private List<File> unzipFile() {
-    File fileName = fileDownloader.getLocalFile();
+  private List<File> unzipFile(final File fileName) {
     if (fileName == null) {
       return List.of();
     }
@@ -269,6 +307,17 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
    */
   @NotNull
   public List<File> getDownloadedFiles() {
-    return downloadedFiles;
+    List<File> files = new ArrayList<>();
+    if (skipFiles != null) {
+      files.addAll(skipFiles);
+    }
+    if (downloadedFiles != null) {
+      files.addAll(downloadedFiles);
+    }
+    return files;
+  }
+
+  public void setSkipFiles(final List<File> existing) {
+    skipFiles = requireNonNullElse(existing, List.of());
   }
 }
