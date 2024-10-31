@@ -33,7 +33,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.download.ExternalAsset;
+import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -55,7 +55,6 @@ import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParamet
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.color.ColorUtils;
-import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.web.Proxy;
 import io.github.mzmine.util.web.ProxyType;
@@ -211,7 +210,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final FileNameParameter msConvertPath = new FileNameWithDownloadParameter(
       "MSConvert path",
       "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
-      List.of(MSCONVERT), ExternalAsset.MSCONVERT);
+      List.of(MSCONVERT), AssetGroup.MSCONVERT);
 
   public static final BooleanParameter keepConvertedFile = new BooleanParameter(
       "Keep files converted by MSConvert",
@@ -239,7 +238,7 @@ public class MZminePreferences extends SimpleParameterSet {
       new ExtensionFilter("Windows executable", "ThermoRawFileParser.exe"),
       new ExtensionFilter("Linux executable", "ThermoRawFileParserLinux"),
       new ExtensionFilter("Mac executable", "ThermoRawFileParserMac")),
-      ExternalAsset.ThermoRawFileParser);
+      AssetGroup.ThermoRawFileParser);
 
   public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
       new ParameterSetParameter<>("Apply lockmass on import (Waters)",

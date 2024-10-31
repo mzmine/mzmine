@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,10 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
 
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -45,9 +45,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.Mobilo
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
 import java.lang.foreign.ValueLayout.OfDouble;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -110,12 +108,60 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
     }
 
-    this.mobilograms = storeMobilograms(storage, mobilograms);
+    var stored = IonMobilogramTimeSeriesFactory.storeMobilograms(this, storage, mobilograms);
+    this.mobilograms = stored.storedMobilograms();
+    mobilogramIntensityValues = stored.storedIntensityValues();
+    mobilogramMzValues = stored.storedMzValues();
     this.frames = frames;
     this.summedMobilogram = summedMobilogram;
 
     mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzs);
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
+  }
+
+  /**
+   * Creates a new {@link SimpleIonMobilogramTimeSeries}. For more convenient usage, see
+   * {@link IonMobilogramTimeSeriesFactory#of(MemoryMapStorage, List, BinningMobilogramDataAccess)}
+   * The indices of mzs, intensities, mobilograms and frames must match. All arrays/lists must have
+   * the same length.
+   *
+   * @param storage          The {@link MemoryMapStorage} to be used. May be null.
+   * @param mzValues         The mz values of this series. Should be calculated from all detected
+   *                         signals in the {@link IonMobilitySeries} of the same index.
+   * @param intensityValues  The intensity values of this series. Should be calculated from all
+   *                         detected signals in the {@link IonMobilitySeries} of the same index.
+   * @param mobilograms      The mobilograms of this series.
+   * @param frames           The frames the mobilograms were detected in.
+   * @param summedMobilogram A summed mobilogram calculated from all {@link IonMobilitySeries}.
+   *                         Intensity should be summed within given mobility bins, specified in the
+   *                         last module call of {@link IonMobilityTraceBuilderModule} or
+   *                         {@link MobilogramBinningModule}. The last binning value can be obtained
+   *                         via
+   *                         {@link
+   *                         BinningMobilogramDataAccess#getPreviousBinningWith(ModularFeatureList,
+   *                         MobilityType)}
+   */
+  public SimpleIonMobilogramTimeSeries(@NotNull MemorySegment mzValues,
+      MemorySegment intensityValues, @Nullable MemoryMapStorage storage,
+      @NotNull List<IonMobilitySeries> mobilograms, @NotNull List<Frame> frames,
+      @NotNull final SummedIntensityMobilitySeries summedMobilogram) {
+    if (mzValues.byteSize() != intensityValues.byteSize() || mobilograms.size() != numDoubles(
+        intensityValues)) {
+      throw new IllegalArgumentException(
+          "Length of mz, intensity, frames and/or mobilograms does not match.");
+    }
+    if (!checkRawFileIntegrity(mobilograms)) {
+      throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
+    }
+
+    this.intensityValues = intensityValues;
+    this.mzValues = mzValues;
+    var stored = IonMobilogramTimeSeriesFactory.storeMobilograms(this, storage, mobilograms);
+    this.mobilograms = stored.storedMobilograms();
+    mobilogramIntensityValues = stored.storedIntensityValues();
+    mobilogramMzValues = stored.storedMzValues();
+    this.frames = frames;
+    this.summedMobilogram = summedMobilogram;
   }
 
   @Override
@@ -173,28 +219,19 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
         mobilogramBinning);
   }
 
-  private List<IonMobilitySeries> storeMobilograms(@Nullable MemoryMapStorage storage,
-      List<IonMobilitySeries> mobilograms) {
-    int[] offsets = new int[mobilograms.size()];
-    MemorySegment[] stored = StorageUtils.storeIonSeriesToSingleBuffer(storage, mobilograms,
-        offsets);
-    mobilogramMzValues = stored[0];
-    mobilogramIntensityValues = stored[1];
+  @Override
+  public IonMobilogramTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+      int endIndexExclusive, BinningMobilogramDataAccess mobilogramBinning) {
 
-    List<IonMobilitySeries> storedMobilograms = new ArrayList<>();
-    for (int i = 0; i < offsets.length; i++) {
-      IonMobilitySeries mobilogram = mobilograms.get(i);
-      List<MobilityScan> spectra;
-      if (mobilogram instanceof ModifiableSpectra) {
-        spectra = ((ModifiableSpectra) mobilogram).getSpectraModifiable();
-      } else {
-        spectra = mobilogram.getSpectra();
-      }
+    final List<IonMobilitySeries> mobilograms = this.mobilograms.subList(startIndexInclusive,
+        endIndexExclusive);
+    mobilogramBinning.setMobilogram(mobilograms);
 
-      storedMobilograms.add(
-          new StorableIonMobilitySeries(this, offsets[i], mobilogram.getNumberOfValues(), spectra));
-    }
-    return storedMobilograms;
+    return new SimpleIonMobilogramTimeSeries(
+        StorageUtils.sliceDoubles(mzValues, startIndexInclusive, endIndexExclusive),
+        StorageUtils.sliceDoubles(intensityValues, startIndexInclusive, endIndexExclusive), storage,
+        mobilograms, frames.subList(startIndexInclusive, endIndexExclusive),
+        mobilogramBinning.toSummedMobilogram(storage));
   }
 
   @Override
@@ -234,10 +271,19 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   }
 
   @Override
+  public IonMobilogramTimeSeries copyAndReplace(@Nullable final MemoryMapStorage storage,
+      @NotNull final double[] newIntensityValues) {
+    MemorySegment intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
+        newIntensityValues);
+    return new SimpleIonMobilogramTimeSeries(mzValues, intensityValues, storage, mobilograms,
+        frames, summedMobilogram);
+  }
+
+  @Override
   public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return IonMobilogramTimeSeriesFactory.of(storage, newMzValues, newIntensityValues, mobilograms,
-        frames, summedMobilogram.copy(storage));
+        this.frames, summedMobilogram.copy(storage));
   }
 
   /**
@@ -254,7 +300,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     return new SimpleIonMobilogramTimeSeries(storage,
         DataPointUtils.getDoubleBufferAsArray(mzValues),
-        DataPointUtils.getDoubleBufferAsArray(intensityValues), mobilograms, frames,
+        DataPointUtils.getDoubleBufferAsArray(intensityValues), mobilograms, this.frames,
         summedMobilogram);
   }
 

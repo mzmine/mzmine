@@ -165,6 +165,41 @@ public class MathUtils {
       return values[0];
     }
 
+    double[] vals = values.clone();
+    Arrays.sort(vals);
+    return calcQuantileSorted(vals, q);
+  }
+
+  /**
+   * @param sorted sorted ascending
+   * @param q      percentile
+   * @return the percentile value
+   */
+  public static double calcQuantileSorted(double[] sorted, double q) {
+    return calcQuantileSorted(sorted, 0, sorted.length, q);
+  }
+
+  /**
+   * @param sorted            sorted ascending
+   * @param startIndex        included start index of data range - can be used to exclude 0 values
+   *                          for example
+   * @param endIndexExclusive end value (exclusive)
+   * @param q                 percentile
+   * @return the percentile value
+   */
+  public static double calcQuantileSorted(double[] sorted, int startIndex, int endIndexExclusive,
+      double q) {
+    assert startIndex >= 0 && endIndexExclusive <= sorted.length;
+
+    var size = endIndexExclusive - startIndex;
+    if (size <= 0) {
+      return 0;
+    }
+
+    if (size == 1) {
+      return sorted[startIndex];
+    }
+
     if (q > 1) {
       q = 1;
     }
@@ -173,15 +208,10 @@ public class MathUtils {
       q = 0;
     }
 
-    double[] vals = values.clone();
+    int ind1 = startIndex + (int) Math.floor((size - 1) * q);
+    int ind2 = startIndex + (int) Math.ceil((size - 1) * q);
 
-    Arrays.sort(vals);
-
-    int ind1 = (int) Math.floor((vals.length - 1) * q);
-    int ind2 = (int) Math.ceil((vals.length - 1) * q);
-
-    return (vals[ind1] + vals[ind2]) / 2;
-
+    return (sorted[ind1] + sorted[ind2]) / 2;
   }
 
   public static double[] calcQuantile(double[] values, double[] qs) {
@@ -412,5 +442,15 @@ public class MathUtils {
     } catch (Exception ex) {
       return null;
     }
+  }
+
+  /**
+   * Regular bounds check
+   *
+   * @return value in truncated to min and max values, if value less than min then return min, if
+   * value greater maxExclusive -1 return this
+   */
+  public static int withinBounds(int value, int minInclusive, int maxExclusive) {
+    return Math.min(Math.max(value, minInclusive), maxExclusive - 1);
   }
 }

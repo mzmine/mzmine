@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,21 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore;
+package io.github.mzmine.datamodel.featuredata.impl;
 
-import java.io.File;
-import java.nio.file.Path;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import java.lang.foreign.MemorySegment;
+import java.util.List;
 
-@Disabled
-class DownloadMS2DeepscoreModelTest {
+public record MobilogramStorageResult(List<IonMobilitySeries> storedMobilograms,
+                                      MemorySegment storedMzValues,
+                                      MemorySegment storedIntensityValues) {
 
-  @Test
-  void downloadSettings(@TempDir Path tempDir) {
-    File file = DownloadMS2DeepscoreModel.downloadSettings(tempDir.toFile());
-    Assertions.assertTrue(file.exists());
-  }
 }

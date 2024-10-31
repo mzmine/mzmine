@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -124,7 +124,7 @@ public class ElementsParameter implements UserParameter<List<Element>, ElementsC
       throw new NullPointerException("Value is null.");
     }
 
-    String text = value.stream().map(Element::getSymbol).map(Object::toString)
+    String text = value.stream().map(Element::getSymbol).map(Object::toString).distinct()
         .collect(Collectors.joining(","));
 
     xmlElement.setTextContent(text);

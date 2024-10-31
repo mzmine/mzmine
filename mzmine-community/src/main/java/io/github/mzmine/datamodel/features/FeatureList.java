@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
@@ -221,8 +222,6 @@ public interface FeatureList {
   default Stream<FeatureListRow> stream(boolean parallel) {
     return parallel ? parallelStream() : stream();
   }
-
-  void removeRow(int rowNum, FeatureListRow row);
 
   /**
    * Creates a stream of FeatureListRows
@@ -519,6 +518,8 @@ public interface FeatureList {
     var master = getRowMaps();
     master.addAll(maps);
   }
+
+  void removeRows(Set<FeatureListRow> rowsToRemove);
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge

@@ -1,0 +1,619 @@
+{
+  "created": "2024-10-07T11:04:54.499286+00:00",
+  "modified": "2024-10-07T11:04:56.669195+00:00",
+  "id": 13898009,
+  "conceptrecid": "11163380",
+  "doi": "10.5281/zenodo.13898009",
+  "conceptdoi": "10.5281/zenodo.11163380",
+  "doi_url": "https://doi.org/10.5281/zenodo.13898009",
+  "metadata": {
+    "title": "MSnLib Mass spectral libraries (.mgf and .json)",
+    "doi": "10.5281/zenodo.13898009",
+    "publication_date": "2024-10-04",
+    "description": "<p>Flow injection method to acquire MSn data on an Orbitrap ID-X instrument for different compound libraries in positive and negative ionization mode. MS2 contains next to all MS2 spectra all pseudo MS2 spectra (a full MSn tree merged into one spectrum per compound ion). MSn contains all individual MSn stages additionally. .mgf and .json data formats are available with V3.&nbsp;</p>\n<p>7 Compound Libraries:</p>\n<ul>\n<li>Short Name: Full name, Provider (Catalog number), total compounds (not all detected during library building)</li>\n<li>MCEBIO: Bioactive Compound Library, MedChemExpress (HY-L001), 10,315 compounds</li>\n<li>MCESAF: 5k Scaffold Library, MedChemExpress, (HY-L902), 4998 compounds</li>\n<li>NIHNP: NIH NPAC ACONN collection of NP, NIH/NCATS, 3988 compounds</li>\n<li>OTAVAPEP: Alpha-helix Peptiomimetic Library, OTAVAchemicals (a-helix-Peptido), 1298 compounds</li>\n<li>ENAMDISC: Discovery Diversity Set -10, Enamine (DDS-10), 10,240 compounds</li>\n<li>ENAMMOL: Carboxylic Acid Fragment Library + Random, Enamine and Molport, 4378 compounds</li>\n<li>MCEDRUG: FDA-Approved Drug Library, MedChemExpress (HY-L022), 2610 compounds</li>\n</ul>\n<p>Information regarding the SPECTYPE</p>\n<ul>\n<li>no SPECTYPE or SINGLE_BEST_SCAN: Best spectrum for each precursor and energy (highest TIC)</li>\n<li>'SAME_ENERGY' = Additionally, if a spectrum was acquired multiple times for a precursor with the same energy, they are merged into one spectrum only with the same energy (max. signal height used for each fragment signal).</li>\n<li>'ALL_ENERGIES' = merged spectrum of all used energies (in our case 3 for each precursor, using the merged (same energy) if available).</li>\n<li>'ALL_MSN_TO_PSEUDO_MS2' = mzmine merges all MSn into one pseudo MS2.</li>\n</ul>",
+    "access_right": "open",
+    "creators": [
+      {
+        "name": "Brungs, Corinna",
+        "affiliation": "Czech Academy of Sciences, Institute of Organic Chemistry and Biochemistry",
+        "orcid": "0000-0002-2571-5235"
+      },
+      {
+        "name": "Schmid, Robin",
+        "affiliation": "Czech Academy of Sciences, Institute of Organic Chemistry and Biochemistry"
+      },
+      {
+        "name": "Pluskal, Tomas",
+        "affiliation": "Czech Academy of Sciences, Institute of Organic Chemistry and Biochemistry"
+      }
+    ],
+    "keywords": [
+      "MSnLib",
+      "spectral database"
+    ],
+    "related_identifiers": [
+      {
+        "identifier": "10.26434/chemrxiv-2024-l1tqh",
+        "relation": "isPublishedIn",
+        "scheme": "doi"
+      }
+    ],
+    "resource_type": {
+      "title": "Dataset",
+      "type": "dataset"
+    },
+    "license": {
+      "id": "cc-by-4.0"
+    },
+    "relations": {
+      "version": [
+        {
+          "index": 3,
+          "is_last": true,
+          "parent": {
+            "pid_type": "recid",
+            "pid_value": "11163380"
+          }
+        }
+      ]
+    }
+  },
+  "title": "MSnLib Mass spectral libraries (.mgf and .json)",
+  "links": {
+    "self": "https://zenodo.org/api/records/13898009",
+    "self_html": "https://zenodo.org/records/13898009",
+    "doi": "https://doi.org/10.5281/zenodo.13898009",
+    "self_doi": "https://doi.org/10.5281/zenodo.13898009",
+    "self_doi_html": "https://zenodo.org/doi/10.5281/zenodo.13898009",
+    "parent": "https://zenodo.org/api/records/11163380",
+    "parent_html": "https://zenodo.org/records/11163380",
+    "parent_doi": "https://doi.org/10.5281/zenodo.13898009",
+    "parent_doi_html": "https://zenodo.org/doi/10.5281/zenodo.11163380",
+    "self_iiif_manifest": "https://zenodo.org/api/iiif/record:13898009/manifest",
+    "self_iiif_sequence": "https://zenodo.org/api/iiif/record:13898009/sequence/default",
+    "files": "https://zenodo.org/api/records/13898009/files",
+    "media_files": "https://zenodo.org/api/records/13898009/media-files",
+    "archive": "https://zenodo.org/api/records/13898009/files-archive",
+    "archive_media": "https://zenodo.org/api/records/13898009/media-files-archive",
+    "latest": "https://zenodo.org/api/records/13898009/versions/latest",
+    "latest_html": "https://zenodo.org/records/13898009/latest",
+    "versions": "https://zenodo.org/api/records/13898009/versions",
+    "draft": "https://zenodo.org/api/records/13898009/draft",
+    "reserve_doi": "https://zenodo.org/api/records/13898009/draft/pids/doi",
+    "access_links": "https://zenodo.org/api/records/13898009/access/links",
+    "access_grants": "https://zenodo.org/api/records/13898009/access/grants",
+    "access_users": "https://zenodo.org/api/records/13898009/access/users",
+    "access_request": "https://zenodo.org/api/records/13898009/access/request",
+    "access": "https://zenodo.org/api/records/13898009/access",
+    "communities": "https://zenodo.org/api/records/13898009/communities",
+    "communities-suggestions": "https://zenodo.org/api/records/13898009/communities-suggestions",
+    "requests": "https://zenodo.org/api/records/13898009/requests"
+  },
+  "updated": "2024-10-07T11:04:56.669195+00:00",
+  "recid": "13898009",
+  "revision": 4,
+  "files": [
+    {
+      "id": "bc44f4e2-33f4-4f91-8ced-e3d4b925176a",
+      "key": "20241003_otavapep_neg_ms2.mgf",
+      "size": 12475802,
+      "checksum": "md5:e3fe83dafc1d532285204173fb22b224",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_otavapep_neg_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "3e3cf34b-18b7-4112-bf6b-2ae91b918cbf",
+      "key": "20241003_nihnp_pos_msn.mgf",
+      "size": 210566185,
+      "checksum": "md5:10fa1eae5e1f6e78520eb0f8b6175337",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_nihnp_pos_msn.mgf/content"
+      }
+    },
+    {
+      "id": "0fae4c54-2b4f-4d55-8943-2006562a97a1",
+      "key": "20241003_nihnp_neg_msn.mgf",
+      "size": 143017532,
+      "checksum": "md5:0b0ca79a53a38c4c7ce513a46060d47c",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_nihnp_neg_msn.mgf/content"
+      }
+    },
+    {
+      "id": "166552f2-0e9c-4293-97b6-cca00aa81b51",
+      "key": "20241003_mcedrug_pos_msn.json",
+      "size": 259996319,
+      "checksum": "md5:a3f503c1096c79f694b831c8e0d10b52",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcedrug_pos_msn.json/content"
+      }
+    },
+    {
+      "id": "4a1ed672-c4d6-4950-9dfd-295e6b5d3c54",
+      "key": "20241003_nihnp_pos_ms2.json",
+      "size": 56034071,
+      "checksum": "md5:8eda3fbb742b857bfd4081ec8a94c5bc",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_nihnp_pos_ms2.json/content"
+      }
+    },
+    {
+      "id": "467b7568-79f8-44f6-88ba-79a0259dd32a",
+      "key": "20241003_enammol_neg_ms2.mgf",
+      "size": 21513578,
+      "checksum": "md5:5006392c34a7215d5666ba1cf94bf7dc",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enammol_neg_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "1d093945-0958-4e1b-b6a8-14fcbfb85506",
+      "key": "20241003_enammol_pos_ms2.mgf",
+      "size": 59079004,
+      "checksum": "md5:20703c4b0765364434816f942f4c1c70",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enammol_pos_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "0eadf6f4-b52e-43d3-95f5-9a3a08b9dd26",
+      "key": "20241003_enammol_pos_msn.json",
+      "size": 399616923,
+      "checksum": "md5:e6a0c41c24287e3f59fabb2a4448cea9",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enammol_pos_msn.json/content"
+      }
+    },
+    {
+      "id": "a4268885-cf5b-44c3-8891-8e9103e63d0e",
+      "key": "20241003_enammol_pos_msn.mgf",
+      "size": 320656500,
+      "checksum": "md5:6e3fb6d9cba2a24987395f6577c33aca",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enammol_pos_msn.mgf/content"
+      }
+    },
+    {
+      "id": "fe550ea1-26b2-45be-a25a-7efc3706b403",
+      "key": "20241003_enammol_neg_msn.mgf",
+      "size": 79923935,
+      "checksum": "md5:2ec9820ad77ddd183fb852eeb4662eb3",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enammol_neg_msn.mgf/content"
+      }
+    },
+    {
+      "id": "3f91dfe6-8312-4962-9727-c62746aa0db1",
+      "key": "20241003_otavapep_pos_ms2.mgf",
+      "size": 18549226,
+      "checksum": "md5:ffb2387ef98c9a422d3528f3b2452daa",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_otavapep_pos_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "7363e347-2f3c-4fea-abec-605ddd15f175",
+      "key": "20241003_mcescaf_neg_ms2.json",
+      "size": 36452781,
+      "checksum": "md5:ba9c0013bb9cc75b8d94b515a66778c4",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcescaf_neg_ms2.json/content"
+      }
+    },
+    {
+      "id": "ddb37211-8c5a-47dd-975f-7f40acb2ca9c",
+      "key": "20241003_mcebio_neg_ms2.json",
+      "size": 74324949,
+      "checksum": "md5:1438a9877db5ab6fe9e68d038f0f07e3",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcebio_neg_ms2.json/content"
+      }
+    },
+    {
+      "id": "62323193-6ced-474e-9221-2013906b46cc",
+      "key": "20241003_mcedrug_pos_msn.mgf",
+      "size": 209013106,
+      "checksum": "md5:5adb8c8fddd5b78d852c4eea7d21861c",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcedrug_pos_msn.mgf/content"
+      }
+    },
+    {
+      "id": "fa8d6969-d1e9-4009-9e3b-80fe14fbc23b",
+      "key": "20241003_nihnp_neg_ms2.mgf",
+      "size": 35000411,
+      "checksum": "md5:12adf31b5d5c4eba9159040260d842b2",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_nihnp_neg_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "ad067c59-de4e-4605-ad05-c75933d103a2",
+      "key": "20241003_mcebio_neg_ms2.mgf",
+      "size": 62566862,
+      "checksum": "md5:f47733df95c48d61a8231a3f9bb9af93",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcebio_neg_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "4d0309d5-8eb9-4ead-a73b-7b430388d43b",
+      "key": "20241003_mcescaf_pos_msn.mgf",
+      "size": 432656735,
+      "checksum": "md5:6507a22ff286fa43a83f1606fa70c427",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcescaf_pos_msn.mgf/content"
+      }
+    },
+    {
+      "id": "08a66ebe-56b4-4525-9c8e-1d1eaa968c13",
+      "key": "20241003_mcedrug_pos_ms2.mgf",
+      "size": 39358441,
+      "checksum": "md5:532e6a707af3c10c6f16d705274ce066",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcedrug_pos_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "48de9944-7f8a-4f2e-addf-37b194ccc2d1",
+      "key": "20241003_mcescaf_neg_msn.mgf",
+      "size": 119285686,
+      "checksum": "md5:7b1351f2fef86fc6f460c3b1eb18f310",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcescaf_neg_msn.mgf/content"
+      }
+    },
+    {
+      "id": "f306cada-a0a9-4fdd-8563-5e9f9c5a9a71",
+      "key": "20241003_mcebio_pos_ms2.json",
+      "size": 147977176,
+      "checksum": "md5:5d5ce0fea4ba94a9e90e3d2e6e19f563",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcebio_pos_ms2.json/content"
+      }
+    },
+    {
+      "id": "7546eb9a-3ab5-4373-aef2-155f50e007bf",
+      "key": "20241003_mcescaf_neg_ms2.mgf",
+      "size": 30758492,
+      "checksum": "md5:c99ccff4655563c2f83baf70a608f26b",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcescaf_neg_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "c69aa49c-fc08-4f58-ba02-9bea6c1d2c9f",
+      "key": "20241003_mcebio_neg_msn.json",
+      "size": 227141937,
+      "checksum": "md5:ee9f610c99cb6ec5395aef9daa3da7db",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcebio_neg_msn.json/content"
+      }
+    },
+    {
+      "id": "289632de-2a08-4239-94b0-56f02ac46efe",
+      "key": "20241003_mcedrug_neg_ms2.mgf",
+      "size": 21104576,
+      "checksum": "md5:05320da7486f97691aab6b686cbc88fe",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcedrug_neg_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "552ae96d-6d71-445a-b2d0-ee7b4f9e9bae",
+      "key": "20241003_mcebio_pos_msn.mgf",
+      "size": 621307193,
+      "checksum": "md5:909b9006e6b73f950bae3a1eee96f42c",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcebio_pos_msn.mgf/content"
+      }
+    },
+    {
+      "id": "378b7a1a-458a-4cbe-89bc-e95cb029618a",
+      "key": "20241003_mcebio_pos_msn.json",
+      "size": 775067350,
+      "checksum": "md5:fe8bfae6e3940c8a3c9c194963abdbc7",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcebio_pos_msn.json/content"
+      }
+    },
+    {
+      "id": "da5cc4fe-549c-4e84-ac82-afd431499e63",
+      "key": "20241003_mcedrug_neg_msn.mgf",
+      "size": 72178093,
+      "checksum": "md5:a52e3bb8a615e29ac0bfa2b16a1cf220",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcedrug_neg_msn.mgf/content"
+      }
+    },
+    {
+      "id": "d1600ebd-bc9f-4de9-8388-d97d68636931",
+      "key": "20241003_mcescaf_pos_msn.json",
+      "size": 543248210,
+      "checksum": "md5:7cfbc484e573a0c8f972b306e216edf2",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcescaf_pos_msn.json/content"
+      }
+    },
+    {
+      "id": "03c48b8d-2e61-46aa-88a4-664bbbe9a799",
+      "key": "20241003_mcescaf_pos_ms2.mgf",
+      "size": 73325353,
+      "checksum": "md5:cab3eef2415f4f54a1e2070bab632a07",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcescaf_pos_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "69fa22c8-f262-4ed0-8f1e-69ddc4836e8e",
+      "key": "20241003_nihnp_neg_ms2.json",
+      "size": 42283466,
+      "checksum": "md5:42f0e6aefa01987d3bb0d19b2c8ae67b",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_nihnp_neg_ms2.json/content"
+      }
+    },
+    {
+      "id": "61b7015e-6f57-4dbb-b509-c0b9c311a355",
+      "key": "20241003_nihnp_pos_msn.json",
+      "size": 256315390,
+      "checksum": "md5:00d2a73bf17edd55e875cde2f9ba90de",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_nihnp_pos_msn.json/content"
+      }
+    },
+    {
+      "id": "c503b8a3-c61e-481d-bbee-a706a02e10e4",
+      "key": "20241003_enamdisc_neg_msn.json",
+      "size": 365304496,
+      "checksum": "md5:7ba177d613fc80df1c3fb724486cd16b",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enamdisc_neg_msn.json/content"
+      }
+    },
+    {
+      "id": "63393857-113d-4611-a562-880f66d18592",
+      "key": "20241003_mcedrug_pos_ms2.json",
+      "size": 50609114,
+      "checksum": "md5:7f657aa543aca006be910b69ddd7ca25",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcedrug_pos_ms2.json/content"
+      }
+    },
+    {
+      "id": "707e3b75-da95-4348-8945-fd67c8c9d17c",
+      "key": "20241003_mcebio_pos_ms2.mgf",
+      "size": 115240970,
+      "checksum": "md5:d1048afef72c49d9ea4d190ca73afc1b",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcebio_pos_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "369d12c4-e6bf-4dd0-b38a-c743de3f45db",
+      "key": "20241003_otavapep_neg_msn.mgf",
+      "size": 51696792,
+      "checksum": "md5:f879bf771a9352742fe69c3e4a7a80e2",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_otavapep_neg_msn.mgf/content"
+      }
+    },
+    {
+      "id": "67968bad-c858-4c95-a51e-795e928a9f39",
+      "key": "20241003_otavapep_pos_msn.json",
+      "size": 139565043,
+      "checksum": "md5:414b50ed7c1d35d3bf471c8b0e5a973b",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_otavapep_pos_msn.json/content"
+      }
+    },
+    {
+      "id": "27cf4aed-036b-482f-9a99-83556dbd2172",
+      "key": "20241003_enamdisc_neg_ms2.json",
+      "size": 101785049,
+      "checksum": "md5:099c2723e3ab835670f23139421f85c1",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enamdisc_neg_ms2.json/content"
+      }
+    },
+    {
+      "id": "dcb141c7-d1ce-43e3-a99f-23bef17c20dd",
+      "key": "20241003_enamdisc_pos_msn.json",
+      "size": 1227645327,
+      "checksum": "md5:ce329e68ef1c87fe7057b6c4bbe2c626",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enamdisc_pos_msn.json/content"
+      }
+    },
+    {
+      "id": "ab2adee7-22f4-40f9-9606-93dbd2c2fe2e",
+      "key": "20241003_nihnp_neg_msn.json",
+      "size": 171387073,
+      "checksum": "md5:b6f30ef588eb650ddbfa3b54b90ec16a",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_nihnp_neg_msn.json/content"
+      }
+    },
+    {
+      "id": "afdb4bc1-d3d1-47a1-9328-c82f1a8eb353",
+      "key": "20241003_otavapep_pos_msn.mgf",
+      "size": 112035008,
+      "checksum": "md5:5a10228d5db6f951e4ebc8a4e34402ee",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_otavapep_pos_msn.mgf/content"
+      }
+    },
+    {
+      "id": "b89a6439-c036-49a6-bd2e-6c712270cad1",
+      "key": "20241003_mcescaf_pos_ms2.json",
+      "size": 95091332,
+      "checksum": "md5:4b35801c5889308d1101be23ae8b5684",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcescaf_pos_ms2.json/content"
+      }
+    },
+    {
+      "id": "adcb4b07-65fb-43f0-bfc6-20d4f7d69a3a",
+      "key": "20241003_enamdisc_neg_msn.mgf",
+      "size": 309589308,
+      "checksum": "md5:94416a3f1f7e370d172e6d1dbbc3eefe",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enamdisc_neg_msn.mgf/content"
+      }
+    },
+    {
+      "id": "22c882f9-2a20-4001-89de-86d755bd4b2b",
+      "key": "20241003_enamdisc_pos_ms2.mgf",
+      "size": 172442954,
+      "checksum": "md5:945e66248fb0ab709a0fe575baec3f51",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enamdisc_pos_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "2ead2b11-4c0e-4b79-acf4-e0ecbdd99de4",
+      "key": "20241003_mcescaf_neg_msn.json",
+      "size": 140039331,
+      "checksum": "md5:edad6b712523a883050177d996957837",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcescaf_neg_msn.json/content"
+      }
+    },
+    {
+      "id": "8610c71b-64fc-4fef-8fc9-9f6437c7ffd6",
+      "key": "20241003_otavapep_neg_ms2.json",
+      "size": 15404266,
+      "checksum": "md5:15c14acee62c98a19167ebe005fedbc6",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_otavapep_neg_ms2.json/content"
+      }
+    },
+    {
+      "id": "06e73177-4834-4a7a-94ac-7dd04ad2a541",
+      "key": "20241003_otavapep_pos_ms2.json",
+      "size": 23654559,
+      "checksum": "md5:077ac5b9c5245742e23d87d59c56e908",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_otavapep_pos_ms2.json/content"
+      }
+    },
+    {
+      "id": "c6e74d70-f584-4956-9a28-0b1d5540a564",
+      "key": "20241003_otavapep_neg_msn.json",
+      "size": 63388409,
+      "checksum": "md5:8f02ca321250b05e86700a9bcf6ea7b5",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_otavapep_neg_msn.json/content"
+      }
+    },
+    {
+      "id": "cc5d4ee1-5b0b-4af9-899f-5e0afbf5583a",
+      "key": "20241003_enamdisc_pos_msn.mgf",
+      "size": 986248127,
+      "checksum": "md5:dfc69833cdd400e1d3546c2648ea32f0",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enamdisc_pos_msn.mgf/content"
+      }
+    },
+    {
+      "id": "f8310ea0-2f46-4e5f-a1a0-d5d5d74dd75a",
+      "key": "20241003_mcebio_neg_msn.mgf",
+      "size": 193290492,
+      "checksum": "md5:0420685b47ef19146d9661cf650b3803",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcebio_neg_msn.mgf/content"
+      }
+    },
+    {
+      "id": "ada8306b-ce78-4c9c-9556-07204bcd41b1",
+      "key": "20241003_enamdisc_neg_ms2.mgf",
+      "size": 85333768,
+      "checksum": "md5:cc95fdfde153716030f72b4a528b9b4d",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enamdisc_neg_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "6e6bf38a-e009-48b4-986a-3b2087c60a90",
+      "key": "20241003_mcedrug_neg_ms2.json",
+      "size": 25262412,
+      "checksum": "md5:c8f870a3c0a735b15e649b495cf2ac05",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcedrug_neg_ms2.json/content"
+      }
+    },
+    {
+      "id": "86d4b70e-7e6e-4e38-b494-87f63f6591b7",
+      "key": "20241003_enamdisc_pos_ms2.json",
+      "size": 223222817,
+      "checksum": "md5:450ab787d31b6f1274a24efd814ae672",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enamdisc_pos_ms2.json/content"
+      }
+    },
+    {
+      "id": "2e2cecc0-09a6-4e40-acc4-2f1e357542e3",
+      "key": "20241003_mcedrug_neg_msn.json",
+      "size": 85292123,
+      "checksum": "md5:99730dbb5605968dd63f71031d35997b",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_mcedrug_neg_msn.json/content"
+      }
+    },
+    {
+      "id": "1b0dad11-bf7e-4725-93fb-59c110b65178",
+      "key": "20241003_nihnp_pos_ms2.mgf",
+      "size": 44749064,
+      "checksum": "md5:adf3ddeb3e5250981c24fdf967e66340",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_nihnp_pos_ms2.mgf/content"
+      }
+    },
+    {
+      "id": "98b2b248-fea5-478e-af73-30940fd906d4",
+      "key": "20241003_enammol_pos_ms2.json",
+      "size": 76042497,
+      "checksum": "md5:a45add2021a451b88d3587402afbb4ac",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enammol_pos_ms2.json/content"
+      }
+    },
+    {
+      "id": "8385324a-4ecc-42aa-bf21-2de5115114b4",
+      "key": "20241003_enammol_neg_ms2.json",
+      "size": 25620593,
+      "checksum": "md5:c41313d7947e42441ffd0a50b6486f37",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enammol_neg_ms2.json/content"
+      }
+    },
+    {
+      "id": "dfc8e6b2-151b-4025-80d0-a6c461a24dde",
+      "key": "20241003_enammol_neg_msn.json",
+      "size": 94415922,
+      "checksum": "md5:9873e24402295885920c39cad91c6ce1",
+      "links": {
+        "self": "https://zenodo.org/api/records/13898009/files/20241003_enammol_neg_msn.json/content"
+      }
+    }
+  ],
+  "owners": [
+    {
+      "id": "448308"
+    }
+  ],
+  "status": "published",
+  "stats": {
+    "downloads": 1467,
+    "unique_downloads": 1144,
+    "views": 582,
+    "unique_views": 502,
+    "version_downloads": 0,
+    "version_unique_downloads": 0,
+    "version_unique_views": 2,
+    "version_views": 4
+  },
+  "state": "done",
+  "submitted": true
+}

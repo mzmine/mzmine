@@ -39,6 +39,7 @@ import io.github.mzmine.gui.mainwindow.AboutTab;
 import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
+import io.github.mzmine.gui.mainwindow.ProjectTab;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
@@ -104,6 +105,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -866,5 +868,13 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       logger.log(Level.WARNING, e.getMessage(), e);
     }
     return ButtonType.NO;
+  }
+
+  public ProjectTab getSelectedProjectTab() {
+    return mainWindowController.getSelectedProjectTab();
+  }
+
+  public void setMenubar(MenuBar menubar) {
+    mainWindowController.getMainPane().setTop(menubar);
   }
 }

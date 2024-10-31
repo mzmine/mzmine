@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,15 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.ModifiableSpectra;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,8 +51,18 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, Modifiabl
     return getSpectrum(index).getRetentionTime();
   }
 
-  IonMobilogramTimeSeries subSeries(@Nullable MemoryMapStorage storage,
-      @NotNull List<Frame> subset, @NotNull BinningMobilogramDataAccess mobilogramBinning);
+  IonMobilogramTimeSeries subSeries(@Nullable MemoryMapStorage storage, @NotNull List<Frame> subset,
+      @NotNull BinningMobilogramDataAccess mobilogramBinning);
+
+  IonMobilogramTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+      int endIndexExclusive, BinningMobilogramDataAccess mobilogramBinning);
+
+  default IonMobilogramTimeSeries subSeries(MemoryMapStorage storage, float start, float end,
+      BinningMobilogramDataAccess mobilogramBinning) {
+    final IndexRange indexRange = BinarySearch.indexRange(Range.closed(start, end), getSpectra(),
+        Scan::getRetentionTime);
+    return subSeries(storage, indexRange.min(), indexRange.maxExclusive(), mobilogramBinning);
+  }
 
   List<IonMobilitySeries> getMobilograms();
 
@@ -70,8 +84,8 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, Modifiabl
   SummedIntensityMobilitySeries getSummedMobilogram();
 
   /**
-   * Allows creation of a new {@link IonMobilogramTimeSeries} with processed {@link
-   * SummedIntensityMobilitySeries}.
+   * Allows creation of a new {@link IonMobilogramTimeSeries} with processed
+   * {@link SummedIntensityMobilitySeries}.
    *
    * @param storage
    * @param summedMobilogram

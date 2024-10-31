@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,11 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
+import static io.github.mzmine.modules.tools.batchwizard.WizardPart.DATA_IMPORT;
+import static io.github.mzmine.modules.tools.batchwizard.WizardPart.FILTER;
+import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getOrElse;
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -38,6 +43,8 @@ import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
@@ -46,6 +53,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
@@ -462,7 +470,31 @@ public class BatchWizardTab extends SimpleTab {
       MZmineCore.getDesktop().displayErrorMessage("Please check the parameters.\n" + errorMessages);
       return null;
     }
+
+    // check if samples > min samples filter
+    if (!checkSampleFilterValid()) {
+      return null;
+    }
     return sequenceSteps;
+  }
+
+  /**
+   * @return true if imported samples > min num samples
+   */
+  private boolean checkSampleFilterValid() {
+    int numFiles = getOrElse(sequenceSteps.get(DATA_IMPORT), DataImportWizardParameters.fileNames,
+        new File[0]).length;
+
+    var minSamples = getOrElse(sequenceSteps.get(FILTER), FilterWizardParameters.minNumberOfSamples,
+        new AbsoluteAndRelativeInt(0, 0));
+    if (minSamples.getMaximumValue(numFiles) > numFiles) {
+      // continue? y/n
+      return DialogLoggerUtil.showDialogYesNo("Warning", """
+          The number of %s (Filters tab) does not match the number of imported data files. This will avoid correlation grouping.
+          Continue anyway?""".formatted(
+          inQuotes(FilterWizardParameters.minNumberOfSamples.getName())));
+    }
+    return true;
   }
 
   /**
