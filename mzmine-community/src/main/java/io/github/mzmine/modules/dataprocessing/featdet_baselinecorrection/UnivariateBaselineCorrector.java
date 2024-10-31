@@ -58,8 +58,11 @@ public abstract class UnivariateBaselineCorrector extends AbstractResolverBaseli
   protected void subSampleAndCorrect(final double[] xDataToCorrect, final double[] yDataToCorrect,
       int numValues, double[] xDataFiltered, double[] yDataFiltered, int numValuesFiltered,
       final boolean addPreview) {
-    // TODO change parameter to step size or window size or calculate from parameters
-    int stepSize = numSamples;
+    // translate into setp size in number of data points
+    int stepSize = numValuesFiltered / numSamples;
+    if (stepSize < 4) {
+      stepSize = 4; // minimum required distance between samples
+    }
     IntList subsampleIndices = buffer.createSubSampleIndicesFromLandmarks(stepSize);
 
     XYDataArrays subData = subSampleData(subsampleIndices, xDataFiltered, yDataFiltered,

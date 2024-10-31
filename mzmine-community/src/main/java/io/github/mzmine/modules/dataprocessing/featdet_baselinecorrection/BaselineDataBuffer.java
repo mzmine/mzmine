@@ -254,7 +254,10 @@ public class BaselineDataBuffer {
    * @param stepSize
    * @return
    */
-  public @NotNull IntList createSubSampleIndicesFromLandmarks(final int stepSize) {
+  public @NotNull IntList createSubSampleIndicesFromLandmarks(int stepSize) {
+    if (stepSize < 4) {
+      stepSize = 4; // minimum required distance between samples
+    }
     int lastIndex = indicesOfInterest.getInt(0);
     IntList subsampleIndices = new IntArrayList();
     subsampleIndices.add(lastIndex);
