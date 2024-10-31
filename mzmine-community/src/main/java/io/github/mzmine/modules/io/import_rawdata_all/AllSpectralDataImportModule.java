@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -50,7 +51,6 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoImportTaskDelegator;
-import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
@@ -88,7 +88,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private static final Logger logger = Logger.getLogger(
       AllSpectralDataImportModule.class.getName());
 
-  private static final String MODULE_NAME = "Import MS data";
+  public static final String MODULE_NAME = "Import MS data";
   private static final String MODULE_DESCRIPTION = "This module combines the import of different MS data formats and provides advanced options";
 
   // needs a storage for mass lists if advanced import with mass detection was selected but not supported for a MS file type
@@ -142,7 +142,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    */
   public static File validateBrukerPath(File f) {
     if (f.getParent().endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
-        || f.getName().endsWith(".tsf") || f.getName().endsWith(".baf"))) {
+                                         || f.getName().endsWith(".tsf") || f.getName()
+                                             .endsWith(".baf"))) {
       return f.getParentFile();
     } else {
       return f;
@@ -440,7 +441,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
-        + " and file " + file.getAbsolutePath());
+                   + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(getMassListStorage(), newMZmineFile,
         createTask(fileType, project, file, newMZmineFile, scanProcessorConfig, module, parameters,
