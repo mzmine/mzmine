@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -158,7 +157,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       final @NotNull MZmineProject project, final File[] fileNames) {
     // check that files were not loaded before
     File[] currentAndLoadFiles = Stream.concat(
-        project.getCurrentRawDataFiles().stream().map(RawDataFile::getFileName).map(File::new),
+        project.getCurrentRawDataFiles().stream().map(RawDataFile::getAbsoluteFilePath),
         Arrays.stream(fileNames)).toArray(File[]::new);
     return containsDuplicateFiles(currentAndLoadFiles,
         "raw data file names in the import list that collide with already loaded data");
