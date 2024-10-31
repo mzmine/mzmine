@@ -31,6 +31,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -62,6 +63,8 @@ public class DownloadAssetButton extends HBox {
   private final BooleanProperty isSingleButton = new SimpleBooleanProperty(true);
   private final ObjectProperty<Consumer<List<File>>> onDownloadFinished = new SimpleObjectProperty<>();
   private final ObjectProperty<FileDownloadTask> task = new SimpleObjectProperty<>();
+  // may be empty if there is only one download asset
+  private final List<DownloadAssetMenuItem> menuItems = new ArrayList<>();
 
 
   public DownloadAssetButton(@NotNull final List<DownloadAsset> assets) {
@@ -74,8 +77,8 @@ public class DownloadAssetButton extends HBox {
 
     ProgressBar progressBar = new ProgressBar();
     progressBar.progressProperty().bind(progress);
-    var progressPane = new HBox(4, progressBar, FxIconUtil.newIconButton(FxIcons.X_CIRCLE,
-        () -> DownloadUtils.cancelCurrentTask(this.task)));
+    var progressPane = new HBox(4, progressBar,
+        FxIconUtil.newIconButton(FxIcons.X_CIRCLE, () -> cancelAllTasks()));
     progressPane.setAlignment(Pos.CENTER);
 
     progressPane.visibleProperty().bind(isDownloading);
@@ -83,8 +86,6 @@ public class DownloadAssetButton extends HBox {
 
     BorderPane firstPane = new BorderPane();
     firstPane.setCenter(new HBox(downloadButton, progressPane));
-//    firstPane.centerProperty()
-//        .bind(isDownloading.map(isDownloading -> isDownloading ? progressPane : downloadButton));
     // final layout
     setSpacing(FxLayout.DEFAULT_SPACE);
     if (!assets.isEmpty()) {
@@ -98,6 +99,11 @@ public class DownloadAssetButton extends HBox {
             () -> DesktopService.getDesktop().openWebPage(asset.getDownloadInfoPage())));
       }
     }
+  }
+
+  private void cancelAllTasks() {
+    DownloadUtils.cancelCurrentTask(this.task);
+    menuItems.forEach(m -> m.cancelTask());
   }
 
   /**
@@ -127,8 +133,9 @@ public class DownloadAssetButton extends HBox {
       // opens drop down menu with selection of items
       MenuButton menuButton = new MenuButton();
       isSingleButton.set(false);
-      List<DownloadAssetMenuItem> menuItems = assets.stream()
-          .map(asset -> new DownloadAssetMenuItem(asset, onDownloadFinished)).toList();
+      menuItems.addAll(
+          assets.stream().map(asset -> new DownloadAssetMenuItem(asset, onDownloadFinished))
+              .toList());
       var allProgress = menuItems.stream().map(DownloadAssetMenuItem::progressProperty)
           .toArray(DoubleProperty[]::new);
       var allIsDownloading = menuItems.stream().map(DownloadAssetMenuItem::isDownloadingProperty)

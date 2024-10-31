@@ -50,10 +50,11 @@ public class DownloadAssetMenuItem extends CustomMenuItem {
 
   private final ProgressBar progressBar;
   private final BooleanProperty isDownloading = new SimpleBooleanProperty(false);
+  private final ObjectProperty<FileDownloadTask> taskProperty;
 
   public DownloadAssetMenuItem(final DownloadAsset asset,
       final ObjectProperty<Consumer<List<File>>> onDownloadFinished) {
-    ObjectProperty<FileDownloadTask> taskProperty = new SimpleObjectProperty<>();
+    taskProperty = new SimpleObjectProperty<>();
     var main = FxLayout.newBorderPane(new Insets(0, 3, 0, 3),
         FxLabels.newBoldLabel(asset.getLabel(false)));
     progressBar = new ProgressBar();
@@ -62,7 +63,7 @@ public class DownloadAssetMenuItem extends CustomMenuItem {
 
     var progressPane = new HBox(4, progressBar,
         FxIconUtil.newIconButton(FxIcons.X_CIRCLE, "Cancel download", EventHandling.CONSUME_EVENTS,
-            () -> DownloadUtils.cancelCurrentTask(taskProperty)));
+            this::cancelTask));
     HBox.setHgrow(progressBar, Priority.ALWAYS);
     progressPane.setAlignment(Pos.CENTER);
     progressPane.visibleProperty().bind(isDownloading);
@@ -91,5 +92,9 @@ public class DownloadAssetMenuItem extends CustomMenuItem {
 
   public BooleanProperty isDownloadingProperty() {
     return isDownloading;
+  }
+
+  public void cancelTask() {
+    DownloadUtils.cancelCurrentTask(taskProperty);
   }
 }
