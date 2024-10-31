@@ -605,17 +605,12 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(int rowNum) {
-    removeRow(featureListRows.get(rowNum));
+    removeRow(featureListRows.remove(rowNum));
   }
 
-  /**
-   *
-   */
   @Override
-  public void removeRow(int rowNum, FeatureListRow row) {
-    removeRow(featureListRows.get(rowNum));
-    // remove buffered charts, otherwise the reference is kept alive. What references the row, though?
-    featureListRows.remove(rowNum);
+  public void removeRows(final Set<FeatureListRow> rowsToRemove) {
+    featureListRows.removeIf(rowsToRemove::contains);
   }
 
   @Override
@@ -773,6 +768,7 @@ public class ModularFeatureList implements FeatureList {
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners() {
     return rowTypeListeners;
   }
+
 
   /**
    * create copy of all feature list rows and features

@@ -185,6 +185,11 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
   }
 
   @Override
+  public int getMaxNumberOfValues() {
+    return mzs.length;
+  }
+
+  @Override
   public double[] getIntensityValues() {
     return intensities;
   }

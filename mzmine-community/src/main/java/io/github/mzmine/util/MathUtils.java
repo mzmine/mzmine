@@ -423,4 +423,14 @@ public class MathUtils {
     }
     return value;
   }
+
+  /**
+   * Regular bounds check
+   *
+   * @return value in truncated to min and max values, if value less than min then return min, if
+   * value greater maxExclusive -1 return this
+   */
+  public static int withinBounds(int value, int minInclusive, int maxExclusive) {
+    return Math.min(Math.max(value, minInclusive), maxExclusive - 1);
+  }
 }
