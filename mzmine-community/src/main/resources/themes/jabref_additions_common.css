@@ -101,3 +101,7 @@
 .align-center-column {
 	-fx-alignment: center-center;
 }
+
+.custom-menu-item {
+    -fx-padding: 1;
+}

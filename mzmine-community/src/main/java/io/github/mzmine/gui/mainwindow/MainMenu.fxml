@@ -392,6 +392,8 @@
       <SeparatorMenuItem/>
       <MenuItem text="Feature list blank subtraction" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule"/>
+      <MenuItem text="Chromatogram blank subtraction" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms.ChromatogramBlankSubtractionModule"/>
       <!--      <MenuItem text="Peak comparison rows filter" documentation lacking -->
       <!--        onAction="#runModule"-->
       <!--        userData="io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule"/>-->
