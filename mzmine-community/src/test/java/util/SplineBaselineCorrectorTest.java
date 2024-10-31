@@ -30,10 +30,8 @@ import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineDataBuffer;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.collections.SimpleIndexRange;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,17 +65,18 @@ public class SplineBaselineCorrectorTest {
 
   private void check(final BaselineDataBuffer buffer, final int expectedRemaining,
       final double[] expectedX, final int[] expectedIndicesOfInterest) {
-    logger.info(Arrays.stream(buffer.xBufferRemovedPeaks()).mapToObj(String::valueOf)
-        .collect(Collectors.joining(", ")));
     Assertions.assertEquals(expectedRemaining, buffer.remaining());
     Assertions.assertArrayEquals(expectedX, buffer.xBufferRemovedPeaks());
 
     // indices of interes
-    logger.info(
-        "Indices of interest: " + buffer.indicesOfInterest().intStream().mapToObj(String::valueOf)
-            .collect(Collectors.joining(", ")));
     Assertions.assertArrayEquals(expectedIndicesOfInterest,
         buffer.indicesOfInterest().toIntArray());
+    // for debugging purposes
+//    logger.info(
+//        "Indices of interest: " + buffer.indicesOfInterest().intStream().mapToObj(String::valueOf)
+//            .collect(Collectors.joining(", ")));
+//    logger.info(Arrays.stream(buffer.xBufferRemovedPeaks()).mapToObj(String::valueOf)
+//        .collect(Collectors.joining(", ")));
   }
 
 
