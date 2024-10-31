@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -63,7 +64,7 @@ public class IonMobilogramTimeSeriesFactory {
    *
    * @param storage     May be null if values shall be stored in ram.
    * @param mobilograms
-   * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[])
+   * @see IonSpectrumSeries#copyAndReplace(MemoryMapStorage, double[], double[])
    */
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
       @NotNull final List<IonMobilitySeries> mobilograms,

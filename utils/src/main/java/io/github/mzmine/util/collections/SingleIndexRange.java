@@ -44,4 +44,8 @@ public record SingleIndexRange(int index) implements IndexRange {
     return index;
   }
 
+  @Override
+  public String toString() {
+    return String.valueOf(index);
+  }
 }

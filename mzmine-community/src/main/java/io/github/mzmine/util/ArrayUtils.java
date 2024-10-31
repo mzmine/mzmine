@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -195,5 +195,21 @@ public class ArrayUtils {
       System.arraycopy(data, 0, result, offset, data.length);
     }
     return result;
+  }
+
+  public static float[] doubleToFloat(double[] values) {
+    float[] converted = new float[values.length];
+    for (int i = 0; i < values.length; i++) {
+      converted[i] = (float) values[i];
+    }
+    return converted;
+  }
+
+  public static double[] floatToDouble(float[] values) {
+    double[] converted = new double[values.length];
+    for (int i = 0; i < values.length; i++) {
+      converted[i] = (double) values[i];
+    }
+    return converted;
   }
 }

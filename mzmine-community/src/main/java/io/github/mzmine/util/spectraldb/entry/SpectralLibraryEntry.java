@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -55,6 +56,7 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,16 +106,30 @@ public interface SpectralLibraryEntry extends MassList {
 
   /**
    * Create a new spectral library entry from any {@link FeatureAnnotation} but new spectral data
-   * @param scan only used for scan metadata - data is provided through dataPoints
-   * @param match the annotation for additional metadata
-   * @param dataPoints the actual data
+   *
+   * @param scan        only used for scan metadata - data is provided through dataPoints
+   * @param match       the annotation for additional metadata
+   * @param dataPoints  the actual data
+   * @param metadataMap add additional fields to the spectral library entry
    * @return spectral library entry
    */
   static SpectralLibraryEntry create(final FeatureListRow row, @Nullable MemoryMapStorage storage,
-      final Scan scan, final FeatureAnnotation match, final DataPoint[] dataPoints) {
+      final Scan scan, final FeatureAnnotation match, final DataPoint[] dataPoints,
+      final @Nullable Map<DBEntryField, Object> metadataMap) {
 
     Double precursorMZ = Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz());
     SpectralLibraryEntry entry = create(storage, precursorMZ, dataPoints);
+
+    // add additional fields early
+    if (metadataMap != null) {
+      entry.putAll(metadataMap);
+    }
+
+    // write feature ID as feature list and row ID to identify MSn trees or MS2 spectra of the same row
+    var flist = row.getFeatureList();
+    if (flist != null) {
+      entry.putIfNotNull(DBEntryField.FEATURE_ID, flist.getName() + ":" + row.getID());
+    }
 
     // transfer match to fields
     entry.addFeatureAnnotationFields(match);
@@ -125,16 +141,16 @@ public interface SpectralLibraryEntry extends MassList {
     }
     entry.putIfNotNull(DBEntryField.POLARITY, scan.getPolarity());
 
-    if (scan instanceof MergedMassSpectrum merged) {
-      entry.putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
-      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getMergingType());
-    }
-
     MsMsInfo msMsInfo = scan.getMsMsInfo();
     if (msMsInfo instanceof MSnInfoImpl msnInfo) {
+      // energies are quite complex
+      // [MS2, MS3, MS4] and multiple energies in last level due to merging
+      var msnEnergies = ScanUtils.extractMSnCollisionEnergies(scan);
+      if (!msnEnergies.isEmpty()) {
+        entry.putIfNotNull(DBEntryField.MSN_COLLISION_ENERGIES, msnEnergies);
+      }
+      //
       List<DDAMsMsInfo> precursors = msnInfo.getPrecursors();
-      entry.putIfNotNull(DBEntryField.MSN_COLLISION_ENERGIES,
-          extractJsonList(precursors, DDAMsMsInfo::getActivationEnergy));
       entry.putIfNotNull(DBEntryField.MSN_PRECURSOR_MZS,
           extractJsonList(precursors, DDAMsMsInfo::getIsolationMz));
       entry.putIfNotNull(DBEntryField.MSN_FRAGMENTATION_METHODS,
@@ -145,7 +161,6 @@ public interface SpectralLibraryEntry extends MassList {
       }));
       entry.putIfNotNull(DBEntryField.MS_LEVEL, msnInfo.getMsLevel());
     } else if (msMsInfo != null) {
-      entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, msMsInfo.getActivationEnergy());
       entry.putIfNotNull(DBEntryField.FRAGMENTATION_METHOD, msMsInfo.getActivationMethod());
       Range<Double> window = msMsInfo.getIsolationWindow();
       if (window != null) {
@@ -153,12 +168,31 @@ public interface SpectralLibraryEntry extends MassList {
       }
       entry.putIfNotNull(DBEntryField.MS_LEVEL, msMsInfo.getMsLevel());
     }
+    List<Float> energies = ScanUtils.extractCollisionEnergies(scan);
+    if (!energies.isEmpty()) {
+      entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, energies);
+    }
+
+    // merged scans are derived from multiple source scans - add all information here and overwrite
+    String datasetID = entry.getOrElse(DBEntryField.DATASET_ID, null);
+    entry.putIfNotNull(DBEntryField.USI, ScanUtils.extractUSI(scan, datasetID).toList());
+
+    if (scan instanceof MergedMassSpectrum merged) {
+      entry.putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
+      entry.putIfNotNull(DBEntryField.SCAN_NUMBER,
+          ScanUtils.extractScanNumbers(merged).boxed().toList());
+      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getMergingType());
+    } else {
+      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, MergingType.SINGLE_BEST_SCAN);
+      entry.putIfNotNull(DBEntryField.SCAN_NUMBER, scan.getScanNumber());
+    }
 
     return entry;
   }
 
   /**
    * Add metadata to spectral library entry from feature annotation.
+   *
    * @param match
    */
   default void addFeatureAnnotationFields(FeatureAnnotation match) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,29 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.collections;
+package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
-import org.jetbrains.annotations.NotNull;
-
-public class IndexRangeFactory {
-
-  /**
-   * Creates an {@link IndexRange} from min to maxInclusive. Use {@link IndexRange#isEmpty()} to
-   * check for elements
-   *
-   * @param min          first index
-   * @param maxInclusive last included index
-   * @return an {@link IndexRange} that may be empty
-   */
-  @NotNull
-  public static IndexRange create(int min, int maxInclusive) {
-    if (maxInclusive < min || min == -1 || maxInclusive == -1) {
-      return EmptyIndexRange.INSTANCE;
-    }
-    if (maxInclusive == min) {
-      return new SingleIndexRange(min);
-    }
-    return new SimpleIndexRange(min, maxInclusive);
-  }
-
+public enum RatioType {
+  AVERAGE, MAXIMUM
 }
