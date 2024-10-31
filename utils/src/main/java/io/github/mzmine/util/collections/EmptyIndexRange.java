@@ -49,4 +49,8 @@ public final class EmptyIndexRange implements IndexRange {
     return -1;
   }
 
+  @Override
+  public String toString() {
+    return "";
+  }
 }

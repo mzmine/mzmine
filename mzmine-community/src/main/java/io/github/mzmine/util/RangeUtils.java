@@ -381,4 +381,5 @@ public class RangeUtils {
   public static boolean isBounded(final @Nullable Range<? extends Number> range) {
     return !isNullOrUnbounded(range);
   }
+
 }

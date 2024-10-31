@@ -150,7 +150,7 @@ public class ThermoRawImportTask extends AbstractTask {
       if (parsedScans != totalScans) {
         throw (new RuntimeException(
             "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
-            + " out of " + totalScans + ")"));
+                + " out of " + totalScans + ")"));
       }
       msdkTask.addAppliedMethodAndAddToProject(dataFile);
     } catch (Throwable e) {
@@ -348,7 +348,7 @@ public class ThermoRawImportTask extends AbstractTask {
    */
   private boolean isValidParserPathForOs(File path) {
     if (path != null && path.exists() && (path.toPath().endsWith(getParserNameForOs())
-                                          || path.toPath().endsWith("ThermoRawFileParser.zip"))) {
+        || path.toPath().endsWith("ThermoRawFileParser.zip"))) {
       return true;
     }
     return false;

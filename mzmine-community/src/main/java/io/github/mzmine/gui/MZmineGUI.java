@@ -362,13 +362,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
           logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-                              + rawDataFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
         if (!libraryFiles.isEmpty()) {
           logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
-                              + libraryFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
 
         // set raw and library files to parameter

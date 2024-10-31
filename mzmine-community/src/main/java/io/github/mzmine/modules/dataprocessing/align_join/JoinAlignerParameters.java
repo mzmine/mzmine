@@ -75,7 +75,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
   public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance = new OptionalParameter<>(
       new MobilityToleranceParameter("Mobility tolerance",
           "If checked, mobility of features will be compared for alignment. "
-          + "\nThis parameter then specifies the tolerance range for matching mobility values"),
+              + "\nThis parameter then specifies the tolerance range for matching mobility values"),
       false);
 
   public static final DoubleParameter mobilityWeight = new DoubleParameter("Mobility weight",
@@ -103,7 +103,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       "Original feature list",
       "Defines the processing.\nKEEP is to keep the original feature list and create a new"
-      + "processed list.\nREMOVE saves memory.", false);
+          + "processed list.\nREMOVE saves memory.", false);
 
   public JoinAlignerParameters() {
     super(new Parameter[]{peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,

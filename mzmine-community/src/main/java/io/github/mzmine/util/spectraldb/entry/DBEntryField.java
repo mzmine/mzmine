@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,6 +60,11 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.collections.IndexRange;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -77,7 +82,10 @@ public enum DBEntryField {
   CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY,
 
   // identifier
-  CAS, PUBMED, PUBCHEM, GNPS_ID, MONA_ID, CHEMSPIDER, FEATURE_ID,
+  CAS, PUBMED, PUBCHEM, GNPS_ID, MONA_ID, CHEMSPIDER,
+
+  // sometimes just ID sometimes feature list name:id
+  FEATURE_ID,
 
   // spectrum specific
   MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
@@ -100,7 +108,11 @@ public enum DBEntryField {
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
 
   // Dataset ID is for MassIVE or other repositories
-  DATASET_ID, FILENAME, USI, SCAN_NUMBER(Integer.class), SPLASH,
+  DATASET_ID, FILENAME, USI,
+  /**
+   * int or a {@code List<Integer>} `
+   */
+  SCAN_NUMBER, SPLASH,
 
   // Quality measures in wrapper object
   QUALITY, // individual properties
@@ -254,7 +266,8 @@ public enum DBEntryField {
            QUALITY, QUALITY_CHIMERIC, FILENAME, //
            SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N,
            OTHER_MATCHED_COMPOUNDS_NAMES, //
-           IMS_TYPE -> StringType.class;
+           MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
+           MSN_ISOLATION_WINDOWS, IMS_TYPE -> StringType.class;
       case CLASSYFIRE_SUPERCLASS -> ClassyFireSuperclassType.class;
       case CLASSYFIRE_CLASS -> ClassyFireClassType.class;
       case CLASSYFIRE_SUBCLASS -> ClassyFireSubclassType.class;
@@ -287,8 +300,6 @@ public enum DBEntryField {
       // are there other formats that define those properly?
       case FEATURE_MS1_HEIGHT -> HeightType.class;
       case FEATURE_MS1_REL_HEIGHT -> RelativeHeightType.class;
-      case MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
-           MSN_ISOLATION_WINDOWS -> StringType.class;
     };
   }
 
@@ -431,7 +442,7 @@ public enum DBEntryField {
    */
   public String getMgfID() {
     return switch (this) {
-      case ACQUISITION, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, GNPS_ID, MONA_ID, CHEMSPIDER, //
+      case ACQUISITION, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, GNPS_ID, MONA_ID, CHEMSPIDER,
            PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY,
            CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY -> name();
@@ -646,12 +657,22 @@ public enum DBEntryField {
            COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
            MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
            MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
-           DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC, //
+           DATASET_ID, USI, SPLASH, QUALITY_CHIMERIC, //
            OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY,
            PEPTIDE_SEQ, //
            IMS_TYPE, ONLINE_REACTIVITY, CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS,
            CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS,
            NPCLASSIFIER_PATHWAY -> value.toString();
+      case SCAN_NUMBER -> switch (value) {
+        // multiple scans can be written as 1,4,6-9
+        case List<?> list -> {
+          List<Integer> values = list.stream().map(MathUtils::parseInt).filter(Objects::nonNull)
+              .toList();
+          yield IndexRange.findRanges(values).stream().map(Objects::toString)
+              .collect(Collectors.joining(","));
+        }
+        default -> value.toString();
+      };
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present
         case Float f -> "%.2f".formatted(f * 60.f);

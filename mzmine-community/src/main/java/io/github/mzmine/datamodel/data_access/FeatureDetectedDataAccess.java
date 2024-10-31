@@ -140,6 +140,7 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
   public double[] getMzValues() {
     return mzs;
   }
+
   @Override
   public int getMaxNumberOfValues() {
     return mzs.length;

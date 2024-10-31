@@ -142,8 +142,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     if (parent == null) {
       return f;
     } else if (parent.endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
-                                         || f.getName().endsWith(".tsf") || f.getName()
-                                             .endsWith(".baf"))) {
+        || f.getName().endsWith(".tsf") || f.getName().endsWith(".baf"))) {
       return f.getParentFile();
     } else {
       return f;
@@ -465,7 +464,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @Nullable final MemoryMapStorage storageMassLists) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
-                   + " and file " + file.getAbsolutePath());
+        + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(storageMassLists, newMZmineFile,
         createTask(fileType, project, file, newMZmineFile, scanProcessorConfig, module, parameters,

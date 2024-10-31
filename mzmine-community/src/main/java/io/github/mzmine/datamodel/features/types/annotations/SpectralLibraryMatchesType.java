@@ -125,13 +125,20 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case MolecularStructureType __ -> entry.getStructure();
       case SmilesStructureType __ -> entry.getField(DBEntryField.SMILES).orElse("").toString();
       case InChIStructureType __ -> entry.getField(DBEntryField.INCHI).orElse("").toString();
-      case ClassyFireSuperclassType __ -> entry.getField(DBEntryField.CLASSYFIRE_SUPERCLASS).orElse("").toString();
-      case ClassyFireClassType __ -> entry.getField(DBEntryField.CLASSYFIRE_CLASS).orElse("").toString();
-      case ClassyFireSubclassType __ -> entry.getField(DBEntryField.CLASSYFIRE_SUBCLASS).orElse("").toString();
-      case ClassyFireParentType __ -> entry.getField(DBEntryField.CLASSYFIRE_PARENT).orElse("").toString();
-      case NPClassifierSuperclassType __ -> entry.getField(DBEntryField.NPCLASSIFIER_SUPERCLASS).orElse("").toString();
-      case NPClassifierClassType __ -> entry.getField(DBEntryField.NPCLASSIFIER_CLASS).orElse("").toString();
-      case NPClassifierPathwayType __ -> entry.getField(DBEntryField.NPCLASSIFIER_PATHWAY).orElse("").toString();
+      case ClassyFireSuperclassType __ ->
+          entry.getField(DBEntryField.CLASSYFIRE_SUPERCLASS).orElse("").toString();
+      case ClassyFireClassType __ ->
+          entry.getField(DBEntryField.CLASSYFIRE_CLASS).orElse("").toString();
+      case ClassyFireSubclassType __ ->
+          entry.getField(DBEntryField.CLASSYFIRE_SUBCLASS).orElse("").toString();
+      case ClassyFireParentType __ ->
+          entry.getField(DBEntryField.CLASSYFIRE_PARENT).orElse("").toString();
+      case NPClassifierSuperclassType __ ->
+          entry.getField(DBEntryField.NPCLASSIFIER_SUPERCLASS).orElse("").toString();
+      case NPClassifierClassType __ ->
+          entry.getField(DBEntryField.NPCLASSIFIER_CLASS).orElse("").toString();
+      case NPClassifierPathwayType __ ->
+          entry.getField(DBEntryField.NPCLASSIFIER_PATHWAY).orElse("").toString();
       case SimilarityType __ -> (float) match.getSimilarity().getScore();
       case ExplainedIntensityPercentType __ -> match.getSimilarity().getExplainedLibraryIntensity();
       case MatchingSignalsType __ -> match.getSimilarity().getOverlap();
