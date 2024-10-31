@@ -242,6 +242,11 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
     return currentNumberOfDataPoints;
   }
 
+  /**
+   * @return the maximum number of values
+   */
+  public abstract int getMaxNumberOfValues();
+
   //#######################################
   // Unsupported methods due to different intended use
   @Override
@@ -258,6 +263,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
    * @param newIntensityValues
    * @return
    */
+  @Override
   public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newIntensityValues) {
     return copyAndReplace(storage, getMzValuesCopy(), newIntensityValues);

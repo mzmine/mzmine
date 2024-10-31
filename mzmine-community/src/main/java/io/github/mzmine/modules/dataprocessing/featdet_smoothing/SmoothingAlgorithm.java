@@ -84,7 +84,7 @@ public interface SmoothingAlgorithm extends MZmineModule {
       newIntensities = new double[originalSeries.getNumberOfValues()];
       int newIntensitiesIndex = 0;
       for (int i = 0; i < dataAccess.getNumberOfValues()
-                      && newIntensitiesIndex < originalSeries.getNumberOfValues(); i++) {
+          && newIntensitiesIndex < originalSeries.getNumberOfValues(); i++) {
         // check if we originally did have an intensity at the current index. I know that the data
         // access contains more zeros and the zeros of different indices will be matched, but the
         // newIntensitiesIndex will "catch" up, once real intensities are reached.
@@ -129,7 +129,7 @@ public interface SmoothingAlgorithm extends MZmineModule {
       } else {
         throw new IllegalArgumentException(
             "Mobility series type " + originalSeries.getClass().getSimpleName()
-            + " has not been implemented for smoothing yet.");
+                + " has not been implemented for smoothing yet.");
       }
     }
 

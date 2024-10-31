@@ -159,6 +159,15 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
   }
 
   @Override
+  public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable final MemoryMapStorage storage,
+      @NotNull final double[] newIntensityValues) {
+    var intensities = StorageUtils.storeValuesToDoubleBuffer(storage, newIntensityValues);
+    // reuse mz memory segment
+    var mzs = getMZValueBuffer();
+    return new SimpleIonMobilitySeries(mzs, intensities, scans);
+  }
+
+  @Override
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, this.scans);
@@ -174,7 +183,7 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
     }
     StorableIonMobilitySeries that = (StorableIonMobilitySeries) o;
     return numValues == that.numValues && Objects.equals(scans, that.scans)
-           && IntensitySeries.seriesSubsetEqual(this, that);
+        && IntensitySeries.seriesSubsetEqual(this, that);
   }
 
   @Override

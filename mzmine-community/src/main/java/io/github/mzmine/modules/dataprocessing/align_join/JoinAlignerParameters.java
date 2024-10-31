@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,20 +25,29 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import java.text.DecimalFormat;
 import java.util.Collection;
@@ -103,6 +112,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/align_join_aligner/join_aligner.html");
   }
 
+
   @Override
   public boolean checkParameterValues(final Collection<String> errorMessages,
       final boolean skipRawDataAndFeatureListParameters) {
@@ -110,7 +120,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 
     var mzWeight = getValue(MZWeight);
     var rtWeight = getValue(RTWeight);
-    if(mzWeight==0 && rtWeight==0) {
+    if (mzWeight == 0 && rtWeight == 0) {
       errorMessages.add("Cannot align with both rt and mz weight 0");
     }
     return state;
@@ -129,5 +139,34 @@ public class JoinAlignerParameters extends SimpleParameterSet {
     // we use the same parameters here so no need to increment the version. Loading will work fine
     nameParameterMap.put("m/z tolerance", MZTolerance);
     return nameParameterMap;
+  }
+
+
+  /**
+   * Only align on mz tolerance
+   *
+   * @return
+   */
+  public static ParameterSet create(final MZTolerance mzTol) {
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(JoinAlignerModule.class).cloneParameterSet();
+    param.setParameter(JoinAlignerParameters.peakLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(JoinAlignerParameters.peakListName, "Aligned feature list");
+    param.setParameter(JoinAlignerParameters.MZTolerance, mzTol);
+    param.setParameter(JoinAlignerParameters.MZWeight, 100d);
+    // RT tolerance is not needed for some workflows
+    param.setParameter(JoinAlignerParameters.RTTolerance, new RTTolerance(9999999, Unit.MINUTES));
+    param.setParameter(JoinAlignerParameters.RTWeight, 0d);
+    // IMS
+    param.setParameter(JoinAlignerParameters.mobilityTolerance, false);
+    param.getParameter(JoinAlignerParameters.mobilityTolerance).getEmbeddedParameter()
+        .setValue(new MobilityTolerance(0.1f));
+    param.setParameter(JoinAlignerParameters.SameChargeRequired, false);
+    param.setParameter(JoinAlignerParameters.SameIDRequired, false);
+    param.setParameter(JoinAlignerParameters.compareIsotopePattern, false);
+    param.setParameter(JoinAlignerParameters.compareSpectraSimilarity, false);
+    param.setParameter(JoinAlignerParameters.handleOriginal, OriginalFeatureListOption.KEEP);
+    return param;
   }
 }

@@ -67,7 +67,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.core:jackson-annotations",
-            "moduleVersion": "2.18.0",
+          "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson"
             ],
@@ -80,7 +80,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.core:jackson-core",
-            "moduleVersion": "2.18.0",
+          "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-core"
             ],
@@ -93,7 +93,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.core:jackson-databind",
-            "moduleVersion": "2.18.0",
+          "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson"
             ],
@@ -106,7 +106,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-csv",
-            "moduleVersion": "2.18.0",
+          "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-dataformats-text"
             ],
@@ -119,7 +119,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-xml",
-            "moduleVersion": "2.18.0",
+          "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-dataformat-xml"
             ],
@@ -132,7 +132,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.datatype:jackson-datatype-joda",
-            "moduleVersion": "2.18.0",
+          "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-datatype-joda"
             ],
@@ -144,21 +144,21 @@
             ]
         },
         {
-            "moduleName": "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
-            "moduleVersion": "2.18.0",
-            "moduleUrls": [
-                "https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jsr310"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
+          "moduleName": "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+          "moduleVersion": "2.18.0",
+          "moduleUrls": [
+            "https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jsr310"
+          ],
+          "moduleLicenses": [
+            {
+              "moduleLicense": "Apache License, Version 2.0",
+              "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+            }
+          ]
         },
-        {
+      {
             "moduleName": "com.fasterxml.woodstox:woodstox-core",
-            "moduleVersion": "7.0.0",
+        "moduleVersion": "7.0.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/woodstox"
             ],
@@ -1183,7 +1183,7 @@
         },
         {
             "moduleName": "joda-time:joda-time",
-            "moduleVersion": "2.12.7",
+          "moduleVersion": "2.12.7",
             "moduleUrls": [
                 "https://www.joda.org/joda-time/"
             ],

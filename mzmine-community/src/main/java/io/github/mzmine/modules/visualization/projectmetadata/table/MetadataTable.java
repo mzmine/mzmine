@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -334,5 +334,17 @@ public class MetadataTable {
       throw new MetadataColumnDoesNotExistException(column.getTitle());
     }
     return fileValueMap.values().stream().distinct().map(o -> (T) o).toList();
+  }
+
+  /**
+   * @param sampleType a sample type to filter for
+   * @return list of raw data files that match type in type column
+   */
+  public List<RawDataFile> getFilesOfSampleType(final SampleType sampleType) {
+    var sampleTypeColumn = getSampleTypeColumn();
+    if (sampleTypeColumn == null) {
+      return List.of();
+    }
+    return getMatchingFiles(sampleTypeColumn, sampleType.toString());
   }
 }

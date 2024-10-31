@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,7 +51,11 @@ public class R2RSimpleSimilarityList extends AbstractRowsRelationship {
   }
 
   public synchronized void addSimilarity(double sim) {
-    similarities.add(sim);
+    if (Double.isNaN(sim)) {
+      similarities.add(0);
+    } else {
+      similarities.add(sim);
+    }
   }
 
   public int size() {
@@ -63,14 +67,29 @@ public class R2RSimpleSimilarityList extends AbstractRowsRelationship {
   }
 
   public double getMaxSimilarity() {
+    if (similarities.size() == 1) {
+      return similarities.getDouble(0);
+    } else if (similarities.isEmpty()) {
+      return 0d;
+    }
     return similarities.doubleStream().max().orElse(0.0);
   }
 
   public double getMinSimilarity() {
+    if (similarities.size() == 1) {
+      return similarities.getDouble(0);
+    } else if (similarities.isEmpty()) {
+      return 0d;
+    }
     return similarities.doubleStream().min().orElse(0.0);
   }
 
   public double getAverageSimilarity() {
+    if (similarities.size() == 1) {
+      return similarities.getDouble(0);
+    } else if (similarities.isEmpty()) {
+      return 0d;
+    }
     return similarities.doubleStream().average().orElse(0.0);
   }
 
