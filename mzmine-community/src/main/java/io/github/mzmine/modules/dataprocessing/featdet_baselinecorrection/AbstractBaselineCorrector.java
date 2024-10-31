@@ -126,19 +126,4 @@ public abstract class AbstractBaselineCorrector implements BaselineCorrector {
     return additionalData;
   }
 
-  public double[] xBuffer() {
-    return buffer.xBuffer();
-  }
-
-  public double[] yBuffer() {
-    return buffer.yBuffer();
-  }
-
-  public double[] xBufferRemovedPeaks() {
-    return buffer.xBufferRemovedPeaks();
-  }
-
-  public double[] yBufferRemovedPeaks() {
-    return buffer.yBufferRemovedPeaks();
-  }
 }

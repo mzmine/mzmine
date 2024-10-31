@@ -86,12 +86,12 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
     return newY;
   }
 
-  public static double[] highPassFilter(double[] x, double alpha) {
-    double[] y = new double[x.length];
-    y[0] = alpha * (0 + x[0]);
+  public static double[] highPassFilter(double[] ys, double alpha) {
+    double[] y = new double[ys.length];
+    y[0] = alpha * (0 + ys[0]);
 
-    for (int i = 1; i < x.length; i++) {
-      y[i] = alpha * (y[i - 1] + x[i] - x[i - 1]);
+    for (int i = 1; i < ys.length; i++) {
+      y[i] = alpha * (y[i - 1] + ys[i] - ys[i - 1]);
     }
 
     return y;
@@ -100,13 +100,15 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
   @Override
   public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
     additionalData.clear();
-    final int numValues = timeSeries.getNumberOfValues();
     buffer.extractDataIntoBuffer(timeSeries);
+    final int numValues = buffer.numValues();
+    double[] xBuffer = buffer.xBuffer();
+    double[] yBuffer = buffer.yBuffer();
 
     // minimum 5 points per segment
     final int numSegments = Math.min(maxSegments, (int) Math.ceil((double) numValues / 5));
 
-    final double[] filtered = highPassFilter(yBuffer(), alpha);
+    final double[] filtered = highPassFilter(yBuffer, alpha);
     final int numPerSegment = numValues / numSegments;
 
     final List<IndexRange> indices = new ArrayList<>();
@@ -144,27 +146,27 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
     isSignal[isSignal.length - 1] = false;
 
     final double[] backgroundSignal = linearInterpolation(
-        IntStream.range(0, numValues).filter(j -> !isSignal[j]).mapToDouble(j -> xBuffer()[j])
+        IntStream.range(0, numValues).filter(j -> !isSignal[j]).mapToDouble(j -> xBuffer[j])
             .toArray(),
-        IntStream.range(0, numValues).filter(j -> !isSignal[j]).mapToDouble(j -> yBuffer()[j])
-            .toArray(), xBuffer());
+        IntStream.range(0, numValues).filter(j -> !isSignal[j]).mapToDouble(j -> yBuffer[j])
+            .toArray(), xBuffer);
 
     for (int i = 0; i < numValues; i++) {
-      yBuffer()[i] = Math.max(0,
-          yBuffer()[i] - backgroundSignal[i] + 2 * (threshold * 0.5) * 2 * backgroundSDev);
+      yBuffer[i] = Math.max(0,
+          yBuffer[i] - backgroundSignal[i] + 2 * (threshold * 0.5) * 2 * backgroundSDev);
     }
 
     if (isPreview()) {
-      additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer()[i],
+      additionalData.add(new AnyXYProvider(Color.RED, "baseline", numValues, i -> xBuffer[i],
           i -> backgroundSignal[i] + 2 * (threshold * 0.5) * 2 * backgroundSDev));
-      additionalData.add(new AnyXYProvider(Color.BLUE, "background", numValues, i -> xBuffer()[i],
+      additionalData.add(new AnyXYProvider(Color.BLUE, "background", numValues, i -> xBuffer[i],
           i -> backgroundSignal[i]));
       additionalData.add(
-          new AnyXYProvider(Color.GREEN, "isSignal " + backgroundSDev, numValues, i -> xBuffer()[i],
+          new AnyXYProvider(Color.GREEN, "isSignal " + backgroundSDev, numValues, i -> xBuffer[i],
               i -> isSignal[i] ? 1000d : -1000d));
     }
 
-    return createNewTimeSeries(timeSeries, numValues, yBuffer());
+    return createNewTimeSeries(timeSeries, numValues, yBuffer);
   }
 
   @Override
