@@ -67,7 +67,11 @@ public class FileAndPathUtil {
 
   private static final Logger logger = Logger.getLogger(FileAndPathUtil.class.getName());
   private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
-  private static File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
+  
+  // changed on other thread so make volatile
+  // flag to delete temp files as soon as possible
+  private static volatile boolean earlyTempFileCleanup = true;
+  private static volatile File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
 
   /**
    * Count the number of lines in a text file (should be seconds even for large files)
@@ -765,16 +769,18 @@ public class FileAndPathUtil {
         try {
           // channel keeps file alive and we can still memory map and write, read to memory mapped file
           // this will cause the file to disappear directly - tmp folder is empty
+          // tested on linux
           // tested on Windows 11:
           // space is still taken from the disk of temp directory, but temp directory is empty
           // GC will remove MemoryMapStorage, Arena, MemorySegment and with this automatically call
           // munmap and unmap the file finally clearing the space on disk after GC
           // TODO test on different platforms
           // TODO macOS
-          // TODO linux (online read it should work)
           // TODO wsl
           // TODO docker
-          f.toFile().delete();
+          if (earlyTempFileCleanup) {
+            f.toFile().delete();
+          }
         } catch (Exception e) {
         }
         return channel;
@@ -803,4 +809,9 @@ public class FileAndPathUtil {
   public static String getFileNameFromUrl(final String downloadUrl) {
     return FilenameUtils.getName(downloadUrl).split("\\?")[0];
   }
+
+  public static void setEarlyTempFileCleanup(final boolean state) {
+    FileAndPathUtil.earlyTempFileCleanup = state;
+  }
+
 }
