@@ -144,6 +144,14 @@ public class BaselineDataBuffer {
   }
 
   /**
+   * @return true if ranges were removed and the xBufferRemovedPeaks and yBufferRemovedPeaks should
+   * be used
+   */
+  public boolean hasRemovedRanges() {
+    return numValues != remaining;
+  }
+
+  /**
    * remaining values after removing ranges
    *
    * @return

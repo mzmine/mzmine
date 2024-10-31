@@ -53,8 +53,8 @@ public abstract class AbstractResolverBaselineCorrector extends AbstractBaseline
   /**
    * Sub sample and correct input data.
    *
-   * @param xDataToCorrect    the data to correct
-   * @param yDataToCorrect    the data to correct
+   * @param xDataToCorrect    in place change operation, the data to correct
+   * @param yDataToCorrect    in place change operation, the data to correct
    * @param numValues         corresponding number of values - input arrays may be longer
    * @param xDataFiltered     might be the whole x data or peaks removed
    * @param yDataFiltered     might be the whole y data or peaks removed
@@ -64,6 +64,40 @@ public abstract class AbstractResolverBaselineCorrector extends AbstractBaseline
   protected abstract void subSampleAndCorrect(final double[] xDataToCorrect,
       final double[] yDataToCorrect, int numValues, double[] xDataFiltered, double[] yDataFiltered,
       int numValuesFiltered, final boolean addPreview);
+
+  /**
+   * Sub sample and correct input data. Input data was not filtered before otherwise use
+   * {@link #subSampleAndCorrect(double[], double[], int, double[], double[], int, boolean)} and
+   * define filtered data with missing ranges.
+   *
+   * @param xDataToCorrect in place change operation, the data to correct
+   * @param yDataToCorrect in place change operation, the data to correct
+   * @param numValues      corresponding number of values - input arrays may be longer
+   * @param addPreview     add preview datasets
+   */
+  protected void subSampleAndCorrect(final double[] xDataToCorrect, final double[] yDataToCorrect,
+      int numValues, final boolean addPreview) {
+    // use the same data as input and filtered data
+    subSampleAndCorrect(xDataToCorrect, yDataToCorrect, numValues, xDataToCorrect, yDataToCorrect,
+        numValues, addPreview);
+  }
+
+  /**
+   * Sub sample and correct input data. Input data may have been filtered before - then the filtered
+   * data with missing ranges will be used for sub sampling
+   *
+   * @param buffer     data source
+   * @param addPreview add preview datasets
+   */
+  protected void subSampleAndCorrect(final BaselineDataBuffer buffer, final boolean addPreview) {
+    if (buffer.hasRemovedRanges()) {
+      subSampleAndCorrect(buffer.xBuffer(), buffer.yBuffer(), buffer.numValues(),
+          buffer.xBufferRemovedPeaks(), buffer.yBufferRemovedPeaks(), buffer.remaining(),
+          addPreview);
+    } else {
+      subSampleAndCorrect(buffer.xBuffer(), buffer.yBuffer(), buffer.numValues(), addPreview);
+    }
+  }
 
 
   protected @NotNull MinimumSearchFeatureResolver initializeLocalMinResolver(
@@ -78,31 +112,30 @@ public abstract class AbstractResolverBaselineCorrector extends AbstractBaseline
   @Override
   public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
     additionalData.clear();
-    final int numValues = timeSeries.getNumberOfValues();
     buffer.extractDataIntoBuffer(timeSeries);
+    final int numValues = buffer.numValues();
 
     if (resolver != null) {
-      // 1. remove baseline on a copy
-      double[] copyX = Arrays.copyOf(xBuffer(), numValues);
-      double[] copyY = Arrays.copyOf(yBuffer(), numValues);
+      // 1. remove baseline on a copy of original data
+      double[] copyX = Arrays.copyOf(buffer.xBuffer(), numValues);
+      double[] copyY = Arrays.copyOf(buffer.yBuffer(), numValues);
 
       // inplace baseline correct on copyX and Y
-      subSampleAndCorrect(copyX, copyY, numValues, copyX, copyY, numValues, false);
+      subSampleAndCorrect(copyX, copyY, numValues, false);
 
       // 2. detect peaks and remove the ranges from the original data
       // resolver sets some data points to 0 if < chromatographic threshold
       final List<Range<Double>> resolved = resolver.resolve(copyX, copyY);
       // 3. remove baseline finally on original data
-      final int numPointsInRemovedArray = buffer.removeRangesFromArrays(resolved);
+      buffer.removeRangesFromArrays(resolved);
 
-      // use the data with features removed
-      subSampleAndCorrect(xBuffer(), yBuffer(), numValues, xBufferRemovedPeaks(),
-          yBufferRemovedPeaks(), numPointsInRemovedArray, isPreview());
+      // use the data with features removed - correct data is automatically chosen from buffer
+      subSampleAndCorrect(buffer, isPreview());
     } else {
-      // use the original data
-      subSampleAndCorrect(xBuffer(), yBuffer(), numValues, xBuffer(), yBuffer(), numValues,
-          isPreview());
+      // use the original data for baseline correction
+      subSampleAndCorrect(buffer, isPreview());
     }
-    return createNewTimeSeries(timeSeries, numValues, yBuffer());
+    // yBuffer was changed in place
+    return createNewTimeSeries(timeSeries, numValues, buffer.yBuffer());
   }
 }
