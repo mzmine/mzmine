@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import jakarta.json.Json;
@@ -70,7 +71,8 @@ public class MZmineJsonGenerator {
 
     JsonObjectBuilder json = Json.createObjectBuilder();
     // tag spectrum from mzmine
-    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine");
+    String version = String.valueOf(SemverVersionReader.getMZmineVersion());
+    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine " + version);
     // ion specific
     Double precursorMZ = param.getParameter(LibrarySubmitIonParameters.MZ).getValue();
     if (precursorMZ != null) {
@@ -179,7 +181,8 @@ public class MZmineJsonGenerator {
   public static String generateJSON(final SpectralLibraryEntry entry) {
     JsonObjectBuilder json = Json.createObjectBuilder();
     // tag spectrum from mzmine
-    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine");
+    String version = String.valueOf(SemverVersionReader.getMZmineVersion());
+    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine " + version);
 
     for (var metafield : entry.getFields().entrySet()) {
       String id = metafield.getKey().getMZmineJsonID();
