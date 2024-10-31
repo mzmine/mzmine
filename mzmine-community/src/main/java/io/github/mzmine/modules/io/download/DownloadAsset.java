@@ -37,8 +37,7 @@ import org.jetbrains.annotations.Nullable;
 public sealed interface DownloadAsset permits UrlDownloadAsset, ZenodoDownloadAsset {
 
 
-  @Nullable
-  String url();
+  @Nullable String url();
 
   AssetGroup extAsset();
 
@@ -49,8 +48,7 @@ public sealed interface DownloadAsset permits UrlDownloadAsset, ZenodoDownloadAs
   /**
    * @return the main file name that should be picked or null
    */
-  @Nullable
-  String mainFileName();
+  @Nullable String mainFileName();
 
   default String getDownloadDescription() {
     if (version() == null) {
@@ -82,8 +80,7 @@ public sealed interface DownloadAsset permits UrlDownloadAsset, ZenodoDownloadAs
    *
    * @return estimated filename based on download directory and mainFileName or URL
    */
-  @NotNull
-  List<File> getEstimatedFinalFiles();
+  @NotNull List<File> getEstimatedFinalFiles();
 
 
   final class Builder<T extends DownloadAsset> {

@@ -377,7 +377,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
         that.frames) && contentEquals(intensityValues, that.intensityValues) && contentEquals(
         mzValues, that.mzValues) && Objects.equals(getSummedMobilogram(),
         that.getSummedMobilogram()) && contentEquals(mobilogramMzValues, that.mobilogramMzValues)
-           && contentEquals(mobilogramIntensityValues, that.mobilogramIntensityValues);
+        && contentEquals(mobilogramIntensityValues, that.mobilogramIntensityValues);
   }
 
   @Override

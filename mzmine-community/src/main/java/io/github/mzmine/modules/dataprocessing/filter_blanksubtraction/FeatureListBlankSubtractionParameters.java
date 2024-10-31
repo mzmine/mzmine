@@ -64,8 +64,8 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
   public static final OptionalParameter<PercentParameter> foldChange = new OptionalParameter<>(
       new PercentParameter("Fold change increase",
           "Specifies a percentage of increase of the intensity of a feature. If the intensity in the list to be"
-          + " filtered increases more than the given percentage to the blank, it will not be deleted from "
-          + "the feature list.", 3.0, 1.0, 1E5));
+              + " filtered increases more than the given percentage to the blank, it will not be deleted from "
+              + "the feature list.", 3.0, 1.0, 1E5));
 
   public static final ComboParameter<BlankSubtractionOptions> keepBackgroundFeatures = new ComboParameter<BlankSubtractionOptions>(
       "Keep or remove features (of rows) below fold change", """

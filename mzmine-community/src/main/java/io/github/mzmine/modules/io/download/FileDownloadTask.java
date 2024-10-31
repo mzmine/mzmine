@@ -167,7 +167,7 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
       }
     } else if (fileDownloader.getStatus() == DownloadStatus.ERROR_REMOVE) {
       error("Error while downloading file " + localDirectory.getAbsolutePath() + " from "
-            + downloadUrl);
+          + downloadUrl);
     }
   }
 

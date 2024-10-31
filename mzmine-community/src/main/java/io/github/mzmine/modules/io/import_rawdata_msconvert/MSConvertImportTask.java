@@ -288,7 +288,7 @@ public class MSConvertImportTask extends AbstractTask {
     if (parsedScans != totalScans) {
       throw (new RuntimeException(
           "MSConvert process crashed before all scans were extracted (" + parsedScans + " out of "
-          + totalScans + ")"));
+              + totalScans + ")"));
     }
     msdkTask.addAppliedMethodAndAddToProject(dataFile);
   }
@@ -332,7 +332,7 @@ public class MSConvertImportTask extends AbstractTask {
       if (parsedScans != totalScans) {
         throw (new RuntimeException(
             "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
-            + " out of " + totalScans + ")"));
+                + " out of " + totalScans + ")"));
       }
 
       msdkTask.addAppliedMethodAndAddToProject(dataFile);
