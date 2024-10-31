@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -44,6 +43,7 @@ import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MobilitySpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.DataPointUtils;
@@ -639,6 +639,62 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       return false;
     }
     return true;
+  }
+
+  public BuildingMobilityScanStorage loadProccessMemMapMzDataForMergedMobilityScan(
+      MemoryMapStorage storage, @NotNull ScanImportProcessorConfig config) {
+    final List<MobilitySpectralArrays> processedMobilityScanData = splitMergedMobilityScans().stream()
+        .map(msa -> msa.process(this, config)).toList();
+    return new BuildingMobilityScanStorage(storage, this, processedMobilityScanData);
+  }
+
+  @NotNull
+  private List<MobilitySpectralArrays> splitMergedMobilityScans() {
+    if (!isMergedMobilitySpectrum()) {
+      throw new IllegalStateException("Scan is not a merged mobility scan");
+    }
+
+    final MzMLBinaryDataInfo mobilityInfo = getMobilityBinaryDataInfo();
+    final MzMLBinaryDataInfo mzInfo = getMzBinaryDataInfo();
+    final MzMLBinaryDataInfo intensityInfo = getIntensityBinaryDataInfo();
+    if (mobilityInfo == null || mzInfo == null || intensityInfo == null) {
+      throw new IllegalStateException(
+          "mzml scan %s did not contain all expected data (mz %s, intensity %s, mobility %s)".formatted(
+              getId(), mzInfo != null, intensityInfo != null, mobilityInfo != null));
+    }
+
+    if (mobilityInfo.getArrayLength() != mzInfo.getArrayLength()
+        || mobilityInfo.getArrayLength() != intensityInfo.getArrayLength()) {
+      throw new IllegalStateException(
+          "Array lengths don't match (mobility = %d, mz = %d, intensity = %d".formatted(
+              mobilityInfo.getArrayLength(), mzInfo.getArrayLength(),
+              intensityInfo.getArrayLength()));
+    }
+
+    clearUnusedData();
+
+    final double[] mobilities = MzMLPeaksDecoder.decodeToDouble(mobilityInfo);
+    final double[] mzs = MzMLPeaksDecoder.decodeToDouble(mzInfo);
+    final double[] intensities = MzMLPeaksDecoder.decodeToDouble(intensityInfo);
+
+    final List<MobilitySpectralArrays> mobilitySpectralArrays = new ArrayList<>();
+    int lastOffset = 0;
+    for (int i = 1; i < mobilities.length; i++) {
+      if (Double.compare(mobilities[i - 1], mobilities[i]) != 0) {
+        int numDp = i - lastOffset;
+
+        final double[] extractedMzs = Arrays.copyOfRange(mzs, lastOffset, lastOffset + numDp);
+        final double[] extractedIntensities = Arrays.copyOfRange(intensities, lastOffset,
+            lastOffset + numDp);
+        final MobilitySpectralArrays mobArrays = new MobilitySpectralArrays(mobilities[i - 1],
+            new SimpleSpectralArrays(extractedMzs, extractedIntensities));
+
+        mobilitySpectralArrays.add(mobArrays);
+        lastOffset += numDp;
+      }
+    }
+
+    return mobilitySpectralArrays;
   }
 
   /**

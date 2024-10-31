@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,7 +26,6 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -228,7 +226,7 @@ public class MzMLParser {
           if (MzMLArrayType.WAVELENGTH == vars.binaryDataInfo.getArrayType()) {
             vars.spectrum.setWavelengthBinaryDataInfo(vars.binaryDataInfo);
           }
-          if(MzMLArrayType.ION_MOBILITY == vars.binaryDataInfo.getArrayType()) {
+          if (MzMLArrayType.ION_MOBILITY == vars.binaryDataInfo.getArrayType()) {
             vars.spectrum.setMobilityBinaryDataInfo(vars.binaryDataInfo);
           }
         }
@@ -536,7 +534,10 @@ public class MzMLParser {
     }
 
     if (scanProcessorConfig.scanFilter().matches(spectrum)) {
-      if (spectrum.loadProcessMemMapMzData(storage, scanProcessorConfig)) {
+      if (spectrum.isMergedMobilitySpectrum()) {
+        vars.mobilityScanData.add(
+            spectrum.loadProccessMemMapMzDataForMergedMobilityScan(storage, scanProcessorConfig));
+      } else if (spectrum.loadProcessMemMapMzData(storage, scanProcessorConfig)) {
         vars.addSpectrumToList(storage, spectrum);
       }
     }
@@ -755,8 +756,8 @@ public class MzMLParser {
 
     public void addSpectrumToList(final MemoryMapStorage storage, BuildingMzMLMsScan scan) {
       MzMLMobility mobility = scan.getMobility();
-      if (mobility == null && !scan.isMergedMobilitySpectrum()) {
-        // scan or frame spectrum
+      if (mobility == null) {
+        // scan or frame or uv spectrum
         spectrumList.add(scan);
         return;
       }
@@ -767,20 +768,12 @@ public class MzMLParser {
       }
 
       // "regular" representation of ims scans. each scan stored individually
-      if(mobility != null && !scan.isMergedMobilitySpectrum()) {
-        BuildingMzMLMsScan last = mobilityScans.getLast();
-        if (last != null && Double.compare(last.getRetentionTime(), scan.getRetentionTime()) != 0) {
-          // changed retention time --> finish frame and memory map all mobility scans together as one
-          memoryMapAndClearFrameMobilityScanData(storage);
-        }
-        mobilityScans.add(scan);
-      } else if(scan.isMergedMobilitySpectrum()) {
-        final BuildingMobilityScanStorage mobScanStorage = ConversionUtils.mergedMzmlToMobilityScans(
-            scan, storage);
-        mobilityScanData.add(mobScanStorage);
-
-        mobilityScans.clear();
+      BuildingMzMLMsScan last = mobilityScans.getLast();
+      if (last != null && Double.compare(last.getRetentionTime(), scan.getRetentionTime()) != 0) {
+        // changed retention time --> finish frame and memory map all mobility scans together as one
+        memoryMapAndClearFrameMobilityScanData(storage);
       }
+      mobilityScans.add(scan);
     }
 
     /**

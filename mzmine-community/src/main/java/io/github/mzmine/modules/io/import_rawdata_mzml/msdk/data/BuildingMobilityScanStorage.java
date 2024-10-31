@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,9 +25,6 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import com.google.common.collect.Range;
-import gnu.trove.list.array.TDoubleArrayList;
-import gnu.trove.list.array.TIntArrayList;
-import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
@@ -38,11 +34,10 @@ import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.StoredMobilityScan;
 import io.github.mzmine.datamodel.impl.masslist.StoredMobilityScanMassList;
-import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MobilitySpectralArrays;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -90,12 +85,16 @@ public class BuildingMobilityScanStorage {
       @NotNull List<BuildingMzMLMsScan> mobilityScans) {
     this.mobilityScans = mobilityScans.stream().map(BuildingMzMLMobilityScan::create).toList();
     storageOffsets = new int[mobilityScans.size()];
-    int numDp = fillDataOffsetsGetTotalDataPoints(mobilityScans);
+    int numDp = fillDataOffsetsGetTotalDataPoints(mobilityScans,
+        scan -> scan.getMobilityScanSimpleSpectralData().getNumberOfDataPoints());
 
-    mzValues = memoryMap(storage, numDp, mobilityScans, SimpleSpectralArrays::mzs);
-    intensityValues = memoryMap(storage, numDp, mobilityScans, SimpleSpectralArrays::intensities);
+    mzValues = memoryMap(storage, numDp, mobilityScans,
+        s -> s.getMobilityScanSimpleSpectralData().mzs());
+    intensityValues = memoryMap(storage, numDp, mobilityScans,
+        s -> s.getMobilityScanSimpleSpectralData().intensities());
 
-    this.basePeakIndices = findBasePeakIndices(mobilityScans, storageOffsets);
+    this.basePeakIndices = findBasePeakIndices(mobilityScans,
+        ms -> ms.getMobilityScanSimpleSpectralData().intensities(), storageOffsets);
 
     // extract some values for the frame from the first mob scan
     var firstScan = mobilityScans.getFirst();
@@ -115,15 +114,16 @@ public class BuildingMobilityScanStorage {
    * @param storage from these instances
    */
   public BuildingMobilityScanStorage(@Nullable MemoryMapStorage storage,
-      @NotNull BuildingMzMLMsScan mergedScan, double[] mzs, double[] intensities,
-      double[] mobilities) {
+      @NotNull BuildingMzMLMsScan mergedScan, List<MobilitySpectralArrays> mobilityScanData) {
+    storageOffsets = new int[mobilityScanData.size()];
+    final int numDp = fillDataOffsetsGetTotalDataPoints(mobilityScanData,
+        msd -> msd.spectrum().getNumberOfDataPoints());
 
-    final double[] distinctMobilities = fillDataOffsetsGetTotalDataPoints(mobilities);
+    mzValues = memoryMap(storage, numDp, mobilityScanData, s -> s.spectrum().mzs());
+    intensityValues = memoryMap(storage, numDp, mobilityScanData, s -> s.spectrum().intensities());
 
-    mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzs);
-    intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
-
-    this.basePeakIndices = findBasePeakIndices(intensities, storageOffsets);
+    this.basePeakIndices = findBasePeakIndices(mobilityScanData, ms -> ms.spectrum().intensities(),
+        storageOffsets);
 
     // extract some values for the frame from the scan
     msLevel = mergedScan.getMSLevel();
@@ -135,52 +135,17 @@ public class BuildingMobilityScanStorage {
     scanningMZRange = mergedScan.getScanningMZRange();
 
     mobilityScans = new ArrayList<>();
+    final MobilityType mobilityType =
+        mergedScan.getMobility() != null ? mergedScan.getMobility().mobilityType()
+            : MobilityType.DRIFT_TUBE;
+
     for (int i = 0; i < storageOffsets.length; i++) {
-      mobilityScans.add(new BuildingMzMLMobilityScan("", distinctMobilities[i], mergedScan.getMobility()
-          .mobilityType(), mergedScan.getPrecursorList()));
+      mobilityScans.add(
+          new BuildingMzMLMobilityScan("", mobilityScanData.get(i).mobility(), mobilityType,
+              mergedScan.getPrecursorList()));
     }
 
     mergedScan.clearUnusedData();
-  }
-
-  /**
-   * generates the {@link #storageOffsets} based on the mobility values of a merged scan from an
-   * mzml file.
-   */
-  private double[] fillDataOffsetsGetTotalDataPoints(final double[] mobilities) {
-
-    // check if the mobility values are sorted
-    Boolean ascending = null;
-    for (int i = 1; i < mobilities.length; i++) {
-      if (Double.compare(mobilities[i - 1], mobilities[i]) != 0) {
-        if (ascending == null) {
-          ascending = mobilities[i - 1] < mobilities[i];
-        } else {
-          if (ascending && mobilities[i - 1] > mobilities[i]) {
-            throw new IllegalStateException("Mobility values for merged scan are not sorted");
-          } else if (!ascending && mobilities[i - 1] < mobilities[i]) {
-            throw new IllegalStateException("Mobility values for merged scan are not sorted");
-          }
-        }
-      }
-    }
-
-    TDoubleArrayList distinctMobilities = new TDoubleArrayList();
-    TIntArrayList scanEndIndicesExclusive = new TIntArrayList();
-    int lastOffset = 0;
-    for (int i = 1; i < mobilities.length; i++) {
-      if (Double.compare(mobilities[i - 1], mobilities[i]) != 0) {
-        distinctMobilities.add(mobilities[i - 1]);
-        scanEndIndicesExclusive.add(i);
-
-        int numDp = i - lastOffset;
-        maxNumPoints = Math.max(maxNumPoints, numDp);
-        lastOffset += numDp;
-      }
-    }
-
-    storageOffsets = scanEndIndicesExclusive.toArray();
-    return distinctMobilities.toArray();
   }
 
   public List<BuildingMzMLMobilityScan> getMobilityScans() {
@@ -190,13 +155,14 @@ public class BuildingMobilityScanStorage {
   /**
    * generates the base peak indices based on the mobility scans from an mzml file.
    */
-  private int[] findBasePeakIndices(final List<BuildingMzMLMsScan> scans, final int[] offsets) {
+  private <T> int[] findBasePeakIndices(final List<T> scans,
+      Function<T, double[]> intensitiesSupplier, final int[] offsets) {
     int[] basePeakIndices = new int[scans.size()];
 
     for (int scanI = 0; scanI < scans.size(); scanI++) {
       var scan = scans.get(scanI);
       int offset = offsets[scanI];
-      double[] intensities = scan.getMobilityScanSimpleSpectralData().intensities();
+      double[] intensities = intensitiesSupplier.apply(scan);
 
       if (intensities.length == 0) {
         basePeakIndices[scanI] = -1;
@@ -215,58 +181,23 @@ public class BuildingMobilityScanStorage {
     return basePeakIndices;
   }
 
-  /**
-   * generates the base peak indices based on a merged frame from an mzml file.
-   */
-  private int[] findBasePeakIndices(double[] allIntensities, final int[] offsets) {
-    int[] basePeakIndices = new int[offsets.length];
-
-    for (int scanI = 0; scanI < offsets.length; scanI++) {
-      int offset = offsets[scanI];
-
-      final int numDp =
-          (scanI + 1 < offsets.length ? offsets[scanI + 1] : allIntensities.length) - offset;
-
-      if (numDp == 0) {
-        basePeakIndices[scanI] = -1;
-        continue;
-      }
-
-      double maxIntensity = Double.NEGATIVE_INFINITY;
-      for (int dp = offset; dp < offset + numDp; dp++) {
-
-        final double intensity = allIntensities[dp];
-        if (intensity > maxIntensity) {
-          basePeakIndices[scanI] = offset + dp;
-          maxIntensity = intensity;
-        }
-      }
-
-    }
-    return basePeakIndices;
-  }
-
-
-  private MemorySegment memoryMap(final @Nullable MemoryMapStorage storage, final int numDp,
-      final List<BuildingMzMLMsScan> mobilityScans,
-      final Function<SimpleSpectralArrays, double[]> dataSupplier) {
+  private <T> MemorySegment memoryMap(final @Nullable MemoryMapStorage storage, final int numDp,
+      final List<T> mobilityScans, final Function<T, double[]> dataSupplier) {
     final double[] result = new double[numDp];
     int offset = 0;
-    for (final BuildingMzMLMsScan scan : mobilityScans) {
-      double[] data = dataSupplier.apply(scan.getMobilityScanSimpleSpectralData());
+    for (final T scan : mobilityScans) {
+      final double[] data = dataSupplier.apply(scan);
       System.arraycopy(data, 0, result, offset, data.length);
       offset += data.length;
     }
     return StorageUtils.storeValuesToDoubleBuffer(storage, result);
   }
 
-  private int fillDataOffsetsGetTotalDataPoints(
-      final @NotNull List<BuildingMzMLMsScan> mobilityScans) {
+  private <T> int fillDataOffsetsGetTotalDataPoints(final @NotNull List<T> mobilityScans,
+      Function<T, Integer> numDataPointsAccessor) {
     int lastOffset = 0;
     for (int i = 0; i < mobilityScans.size(); i++) {
-      final BuildingMzMLMsScan scan = mobilityScans.get(i);
-      SimpleSpectralArrays data = scan.getMobilityScanSimpleSpectralData();
-      int numDP = data.getNumberOfDataPoints();
+      int numDP = numDataPointsAccessor.apply(mobilityScans.get(i));
       storageOffsets[i] = lastOffset;
       lastOffset += numDP;
       maxNumPoints = Math.max(maxNumPoints, numDP);
