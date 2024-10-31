@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,8 +37,9 @@ public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
 
   public static final IntegerParameter numSamples = new IntegerParameter(
       "Number of baseline samples", """
-      The number of samples taken from the chromatogram to fit the baseline.
-      Too low values may fail to approximate the baseline correctly, too high values may put 
+      The approximate number of samples taken from the chromatogram to fit the baseline.
+      The actual number might be slightly different for each chromatogram, depending on other parameters.
+      Too low values may fail to approximate the baseline correctly, too high values may put
       too much weight on chromatographic signals and distort the baseline. Default: 50.
       """, 50, 2, Integer.MAX_VALUE);
 

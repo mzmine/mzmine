@@ -316,6 +316,18 @@ public class MetadataTable {
     return fileValueMap.values().stream().distinct().map(o -> (T) o).toList();
   }
 
+  /**
+   * @param sampleType a sample type to filter for
+   * @return list of raw data files that match type in type column
+   */
+  public List<RawDataFile> getFilesOfSampleType(final SampleType sampleType) {
+    var sampleTypeColumn = getSampleTypeColumn();
+    if (sampleTypeColumn == null) {
+      return List.of();
+    }
+    return getMatchingFiles(sampleTypeColumn, sampleType.toString());
+  }
+
   public StringMetadataColumn createDataFileColumn() {
     return new StringMetadataColumn(FILENAME_HEADER, "");
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,25 +25,25 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.modules.io.download.DownloadAsset;
-import io.github.mzmine.modules.io.download.ExternalAsset;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class FileNameWithDownloadParameter extends FileNameParameter {
 
-  private final ExternalAsset asset;
+  private final AssetGroup asset;
   // those may be updated externally in the future
   private final List<DownloadAsset> downloadLinks;
 
   public FileNameWithDownloadParameter(final String name, final String description,
-      final ExternalAsset asset) {
+      final AssetGroup asset) {
     this(name, description, List.of(), asset);
   }
 
   public FileNameWithDownloadParameter(final String name, final String description,
-      final List<ExtensionFilter> filters, final ExternalAsset asset) {
+      final List<ExtensionFilter> filters, final AssetGroup asset) {
     super(name, description, filters, FileSelectionType.OPEN);
     this.asset = asset;
     this.downloadLinks = asset.getDownloadAssets();

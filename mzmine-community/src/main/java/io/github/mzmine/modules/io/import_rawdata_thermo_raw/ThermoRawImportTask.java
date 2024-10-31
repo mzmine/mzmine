@@ -34,7 +34,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.io.download.ExternalAsset;
+import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -150,7 +150,7 @@ public class ThermoRawImportTask extends AbstractTask {
       if (parsedScans != totalScans) {
         throw (new RuntimeException(
             "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
-            + " out of " + totalScans + ")"));
+                + " out of " + totalScans + ")"));
       }
       msdkTask.addAppliedMethodAndAddToProject(dataFile);
     } catch (Throwable e) {
@@ -251,7 +251,7 @@ public class ThermoRawImportTask extends AbstractTask {
         if (DesktopService.isHeadLess()) {
           logger.severe(
               "Cannot find thermo raw file parser. Download the parser from %s and unzip the content into %s or edit the mzmine config file (parameter %s).".formatted(
-                  StringUtils.inQuotes(ExternalAsset.ThermoRawFileParser.getDownloadInfoPage()),
+                  StringUtils.inQuotes(AssetGroup.ThermoRawFileParser.getDownloadInfoPage()),
                   StringUtils.inQuotes(DEFAULT_PARSER_DIR.toString()),
                   StringUtils.inQuotes(MZminePreferences.thermoRawFileParserPath.getName())));
           return false;
@@ -348,7 +348,7 @@ public class ThermoRawImportTask extends AbstractTask {
    */
   private boolean isValidParserPathForOs(File path) {
     if (path != null && path.exists() && (path.toPath().endsWith(getParserNameForOs())
-                                          || path.toPath().endsWith("ThermoRawFileParser.zip"))) {
+        || path.toPath().endsWith("ThermoRawFileParser.zip"))) {
       return true;
     }
     return false;

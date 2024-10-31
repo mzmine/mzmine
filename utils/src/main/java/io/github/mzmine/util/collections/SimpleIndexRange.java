@@ -34,4 +34,14 @@ public record SimpleIndexRange(int min, int maxInclusive) implements IndexRange 
     return maxExclusive() - min;
   }
 
+  @Override
+  public String toString() {
+    if (size() > 1) {
+      return min + "-" + maxInclusive;
+    } else if (size() == 0) {
+      return "";
+    } else {
+      return String.valueOf(min);
+    }
+  }
 }

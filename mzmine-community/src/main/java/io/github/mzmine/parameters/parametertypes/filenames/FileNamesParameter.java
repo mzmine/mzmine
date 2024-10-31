@@ -76,6 +76,14 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
     setValue(defaultFiles);
   }
 
+  public Path getDefaultDir() {
+    return defaultDir;
+  }
+
+  public List<ExtensionFilter> getFilters() {
+    return filters;
+  }
+
   /**
    *
    */
