@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.download;
 
+import static io.github.mzmine.modules.io.download.DownloadAsset.Builder.ofURL;
 import static io.github.mzmine.modules.io.download.DownloadAsset.Builder.ofZenodo;
 
 import java.util.ArrayList;
@@ -42,39 +43,39 @@ public class DownloadAssets {
   public static final List<DownloadAsset> ASSETS = new ArrayList<>(List.of(
       // tools
       // libraries
-      ofZenodo(ExternalAsset.MSnLib, "11163380").version("msnlib-ms2-latest")
-          .fileNamePattern(".*_ms2.json").create(),
-      ofZenodo(ExternalAsset.MSnLib, "11163380").version("msnlib-msn-latest")
-          .fileNamePattern(".*_msn.json").create(),
-      ofZenodo(ExternalAsset.MSnLib, "11163380").version("msnlib-ms2-pos-latest")
+      ofZenodo(AssetGroup.MSnLib, "11163380").version("ms2-latest").fileNamePattern(".*_ms2.json")
+          .create(),
+      ofZenodo(AssetGroup.MSnLib, "11163380").version("msn-latest").fileNamePattern(".*_msn.json")
+          .create(), ofZenodo(AssetGroup.MSnLib, "11163380").version("ms2-pos-latest")
           .fileNamePattern(".*pos_ms2.json").create(),
-      ofZenodo(ExternalAsset.MSnLib, "11163380").version("msnlib-msn-pos-latest")
+      ofZenodo(AssetGroup.MSnLib, "11163380").version("msn-pos-latest")
           .fileNamePattern(".*pos_msn.json").create(),
-      ofZenodo(ExternalAsset.MSnLib, "11163380").version("msnlib-ms2-neg-latest")
+      ofZenodo(AssetGroup.MSnLib, "11163380").version("ms2-neg-latest")
           .fileNamePattern(".*neg_ms2.json").create(),
-      ofZenodo(ExternalAsset.MSnLib, "11163380").version("msnlib-msn-neg-latest")
-          .fileNamePattern(".*neg_msn.json").create(),
-      ofZenodo(ExternalAsset.MSnLib, "11163380").version("msnlib-msn-neg-latest")
+      ofZenodo(AssetGroup.MSnLib, "11163380").version("msn-neg-latest")
           .fileNamePattern(".*neg_msn.json").create(),
 
       // other libraries
-//      ofURL(ExternalAsset.MASSBANK_EU,
+//      ofURL(AssetGroup.MASSBANK_EU,
 //          "https://github.com/MassBank/MassBank-data/releases/download/2024.06/MassBank.json").version(
-//          "MassBank EU 2024.06").create(), //
-//      ofURL(ExternalAsset.GNPS_LIB,
-//          "https://external.gnps2.org/gnpslibrary/ALL_GNPS_NO_PROPOGATED.json").version(
-//          "All GNPS-no propagated").create(), //
+//          "2024.06").create(), //
+      ofURL(AssetGroup.GNPS_LIB,
+          "https://external.gnps2.org/gnpslibrary/ALL_GNPS_NO_PROPOGATED.json").version(
+          "All-no propagated").create(), //
 //      ofURL(ExternalAsset.MONA_LIB,
 //          "https://mona.fiehnlab.ucdavis.edu/rest/downloads/retrieve/7609a87b-5df1-4343-afe9-2016a3e79516").version(
-//          "MoNA LC-MS/MS positive").create(), //
+//          "LC-MS2 positive").create(), //
 //      ofURL(ExternalAsset.MONA_LIB,
 //          "https://mona.fiehnlab.ucdavis.edu/rest/downloads/retrieve/cd081cf8-6707-4dd3-bccc-48b1b14af859").version(
-//          "MoNA LC-MS/MS negative").create(), //
+//          "LC-MS2 negative").create(), //
 
       // models
-      ofZenodo(ExternalAsset.MS2DEEPSCORE, "12628368").version("ms2deepscore-latest")
+      ofZenodo(AssetGroup.MS2DEEPSCORE, "12628368").version("ms2deepscore-latest")
           .mainFileName("ms2deepscore_model_java.pt").create()
       //
   ));
 
+  public static List<DownloadAsset> forAssetGroup(final AssetCategory group) {
+    return ASSETS.stream().filter(a -> a.extAsset().getCategory() == group).toList();
+  }
 }

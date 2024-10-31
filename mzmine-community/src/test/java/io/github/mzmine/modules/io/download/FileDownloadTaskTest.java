@@ -41,7 +41,7 @@ class FileDownloadTaskTest {
 
   @Test
   void testDownloadZenodoArchive() {
-    var asset = Builder.ofZenodo(ExternalAsset.MS2DEEPSCORE, "12628368").create();
+    var asset = Builder.ofZenodo(AssetGroup.MS2DEEPSCORE, "12628368").create();
     var task = new FileDownloadTask(asset, tmpDir);
     task.run();
     assertEquals(TaskStatus.FINISHED, task.getStatus());
@@ -49,7 +49,7 @@ class FileDownloadTaskTest {
 
   @Test
   void testDownloadZenodoFileFilter() {
-    var asset = Builder.ofZenodo(ExternalAsset.MSnLib, "11163380") //
+    var asset = Builder.ofZenodo(AssetGroup.MSnLib, "11163380") //
 //        .fileNamePattern(".*_neg_ms2.mgf").create();
         .fileNamePattern(".*otavapep_neg_ms2.mgf").create();
     var task = new FileDownloadTask(asset);

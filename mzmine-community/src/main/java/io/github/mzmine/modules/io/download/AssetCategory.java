@@ -23,25 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_spectral_library;
+package io.github.mzmine.modules.io.download;
 
-import io.github.mzmine.modules.io.download.AssetCategory;
-import io.github.mzmine.modules.io.download.DownloadAssets;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithDownloadParameter;
-import io.github.mzmine.util.files.ExtensionFilters;
+public enum AssetCategory {
+  TOOLS, SPECTRAL_LIBRARIES, MODELS;
 
-public class SpectralLibraryImportParameters extends SimpleParameterSet {
-
-
-  public static final FileNamesWithDownloadParameter dataBaseFiles = new FileNamesWithDownloadParameter(
-      "Spectral library files", """
-      Path of spectral library files in common formats
-      (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY,
-      DownloadAssets.forAssetGroup(AssetCategory.SPECTRAL_LIBRARIES));
-
-  public SpectralLibraryImportParameters() {
-    super(dataBaseFiles);
+  @Override
+  public String toString() {
+    return super.toString().toLowerCase();
   }
-
 }

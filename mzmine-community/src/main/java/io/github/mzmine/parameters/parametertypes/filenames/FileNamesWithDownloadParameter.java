@@ -25,41 +25,38 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
-import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.modules.io.download.DownloadAsset;
-import java.util.ArrayList;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-public class FileNameWithDownloadParameter extends FileNameParameter {
+public class FileNamesWithDownloadParameter extends FileNamesParameter {
 
-  private final AssetGroup asset;
   // those may be updated externally in the future
   private final List<DownloadAsset> downloadLinks;
 
-  public FileNameWithDownloadParameter(final String name, final String description,
-      final AssetGroup asset) {
-    this(name, description, List.of(), asset);
+  public FileNamesWithDownloadParameter(final String name, final String description,
+      final List<ExtensionFilter> filters, List<DownloadAsset> assets) {
+    super(name, description, filters);
+    downloadLinks = assets;
   }
 
-  public FileNameWithDownloadParameter(final String name, final String description,
-      final List<ExtensionFilter> filters, final AssetGroup asset) {
-    super(name, description, filters, FileSelectionType.OPEN);
-    this.asset = asset;
-    this.downloadLinks = asset.getDownloadAssets();
-  }
-
-  @Override
-  public FileNameComponent createEditingComponent() {
-    return new FileNameComponent(lastFiles, type, filters, asset, downloadLinks);
+  public FileNamesWithDownloadParameter(final String name, final String description,
+      final List<ExtensionFilter> filters, final Path defaultDir, final File[] defaultFiles,
+      final List<DownloadAsset> downloadLinks) {
+    super(name, description, filters, defaultDir, defaultFiles);
+    this.downloadLinks = downloadLinks;
   }
 
   @Override
-  public FileNameParameter cloneParameter() {
-    FileNameParameter copy = new FileNameWithDownloadParameter(getName(), getDescription(), filters,
-        asset);
-    copy.setValue(this.getValue());
-    copy.setLastFiles(new ArrayList<>(lastFiles));
-    return copy;
+  public FileNamesComponent createEditingComponent() {
+    return new FileNamesComponent(getFilters(), getDefaultDir(), downloadLinks);
+  }
+
+  @Override
+  public FileNamesWithDownloadParameter cloneParameter() {
+    return new FileNamesWithDownloadParameter(getName(), getDescription(), getFilters(),
+        getDefaultDir(), getValue(), this.downloadLinks);
   }
 }
