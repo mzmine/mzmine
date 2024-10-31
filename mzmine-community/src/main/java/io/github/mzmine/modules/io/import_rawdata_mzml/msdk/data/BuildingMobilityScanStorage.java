@@ -135,14 +135,14 @@ public class BuildingMobilityScanStorage {
     scanningMZRange = mergedScan.getScanningMZRange();
 
     mobilityScans = new ArrayList<>();
-    final MobilityType mobilityType =
-        mergedScan.getMobility() != null ? mergedScan.getMobility().mobilityType()
-            : MobilityType.DRIFT_TUBE;
-
+    final MzMLMobility mobility = mergedScan.getMobility();
+    if (mobility == null || mobility.mobilityType() == null) {
+      throw new IllegalArgumentException(
+          "Mobility type is not defined in the merged scan. Cannot import file.");
+    }
     for (int i = 0; i < storageOffsets.length; i++) {
-      mobilityScans.add(
-          new BuildingMzMLMobilityScan("", mobilityScanData.get(i).mobility(), mobilityType,
-              mergedScan.getPrecursorList()));
+      mobilityScans.add(new BuildingMzMLMobilityScan("", mobilityScanData.get(i).mobility(),
+          mobility.mobilityType(), mergedScan.getPrecursorList()));
     }
 
     mergedScan.clearUnusedData();

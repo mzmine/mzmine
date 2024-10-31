@@ -336,7 +336,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
 
   @NotNull
-  public io.github.mzmine.datamodel.PolarityType getPolarity() {
+  public PolarityType getPolarity() {
     if (getCVValue(MzMLCV.cvPolarityPositive).isPresent()) {
       return PolarityType.POSITIVE;
     }
@@ -431,6 +431,16 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
   @Nullable
   public MzMLMobility getMobility() {
+
+    if(isMergedMobilitySpectrum() && mobilityBinaryDataInfo != null) {
+      return switch (mobilityBinaryDataInfo.getUnitAccession()) {
+        case null -> null;
+        case MzMLCV.cvMobilityDriftTimeUnit -> new MzMLMobility(0d, MobilityType.DRIFT_TUBE);
+        case MzMLCV.cvMobilityInverseReducedUnit -> new MzMLMobility(0d, MobilityType.TIMS);
+        default -> null;
+      };
+    }
+
     if (!getScanList().getScans().isEmpty()) {
       for (MzMLCVParam param : getScanList().getScans().get(0).getCVParamsList()) {
         String accession = param.getAccession();
@@ -453,6 +463,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
         }
       }
     }
+
     return null;
   }
 
@@ -645,7 +656,10 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       MemoryMapStorage storage, @NotNull ScanImportProcessorConfig config) {
     final List<MobilitySpectralArrays> processedMobilityScanData = splitMergedMobilityScans().stream()
         .map(msa -> msa.process(this, config)).toList();
-    return new BuildingMobilityScanStorage(storage, this, processedMobilityScanData);
+    final BuildingMobilityScanStorage buildingMobilityScanStorage = new BuildingMobilityScanStorage(
+        storage, this, processedMobilityScanData);
+    clearUnusedData();
+    return buildingMobilityScanStorage;
   }
 
   @NotNull
@@ -670,8 +684,6 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
               mobilityInfo.getArrayLength(), mzInfo.getArrayLength(),
               intensityInfo.getArrayLength()));
     }
-
-    clearUnusedData();
 
     final double[] mobilities = MzMLPeaksDecoder.decodeToDouble(mobilityInfo);
     final double[] mzs = MzMLPeaksDecoder.decodeToDouble(mzInfo);

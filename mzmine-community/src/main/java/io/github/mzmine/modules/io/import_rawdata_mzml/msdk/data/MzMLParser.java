@@ -209,6 +209,11 @@ public class MzMLParser {
             manageCompression(vars.binaryDataInfo, accession);
           } else if (arrayTypeMap.get(accession) != null) {
             vars.binaryDataInfo.setArrayType(arrayTypeMap.get(accession));
+            final String unitAccession = xmlStreamReader.getAttributeValue(null, "unitAccession");
+            vars.binaryDataInfo.setUnitAccession(unitAccession);
+          } else if (accession.equals("MS:1003006")) {
+            throw new IllegalStateException(
+                "Importing timsTOF files from mzML with the --combineIonMobilitySpectra option is not supported");
           } else {
             vars.skipBinaryDataArray = true;
           }
