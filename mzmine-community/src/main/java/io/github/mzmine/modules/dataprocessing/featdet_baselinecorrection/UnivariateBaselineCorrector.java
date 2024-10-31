@@ -70,8 +70,14 @@ public abstract class UnivariateBaselineCorrector extends AbstractResolverBaseli
 
     for (int i = 0; i < numValues; i++) {
       // must be above zero, but not bigger than the original value.
-      yDataToCorrect[i] = Math.min(
-          Math.max(yDataToCorrect[i] - function.value(xDataToCorrect[i]), 0), yDataToCorrect[i]);
+      double baseline = function.value(xDataToCorrect[i]);
+      if (Double.isNaN(baseline)) {
+        // TODO change and create function with different settings
+        // LOESS - wider bandwidth, maybe more iterations
+        baseline = 0;
+      }
+
+      yDataToCorrect[i] = Math.min(Math.max(yDataToCorrect[i] - baseline, 0), yDataToCorrect[i]);
     }
 
     if (addPreview) {

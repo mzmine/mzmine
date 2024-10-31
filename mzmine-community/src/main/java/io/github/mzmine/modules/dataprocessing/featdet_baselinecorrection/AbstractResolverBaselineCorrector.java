@@ -127,6 +127,7 @@ public abstract class AbstractResolverBaselineCorrector extends AbstractBaseline
       // resolver sets some data points to 0 if < chromatographic threshold
       final List<Range<Double>> resolved = resolver.resolve(copyX, copyY);
       // 3. remove baseline finally on original data
+      // results stored in buffer
       buffer.removeRangesFromArrays(resolved);
 
       // use the data with features removed - correct data is automatically chosen from buffer

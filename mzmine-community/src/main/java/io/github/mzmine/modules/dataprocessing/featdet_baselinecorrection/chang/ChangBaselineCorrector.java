@@ -73,6 +73,7 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
   }
 
   // Method for linear interpolation
+  // TODO check linear interpolation and performance again
   private static double[] linearInterpolation(double[] x, double[] y, double[] newX) {
     double[] newY = new double[newX.length];
     int index = 0;
