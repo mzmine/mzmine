@@ -25,17 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.awt.Color;
-import java.util.Arrays;
-import java.util.List;
 import org.apache.commons.math3.analysis.UnivariateFunction;
-import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,8 +46,8 @@ public abstract class UnivariateBaselineCorrector extends AbstractResolverBaseli
   }
 
   /**
-   * @param xDataToCorrect    the data to correct
-   * @param yDataToCorrect    the data to correct
+   * @param xDataToCorrect    in place operation, the data to correct is changed
+   * @param yDataToCorrect    in place operation, the data to correct is changed
    * @param numValues         corresponding number of values - input arrays may be longer
    * @param xDataFiltered     might be the whole x data or peaks removed
    * @param yDataFiltered     might be the whole y data or peaks removed
@@ -70,8 +65,8 @@ public abstract class UnivariateBaselineCorrector extends AbstractResolverBaseli
     XYDataArrays subData = subSampleData(subsampleIndices, xDataFiltered, yDataFiltered,
         numValuesFiltered);
 
-    UnivariateInterpolator interpolator = initializeInterpolator(subData.numValues());
-    UnivariateFunction function = interpolator.interpolate(subData.x(), subData.y());
+    // initialize a function to map x -> y
+    UnivariateFunction function = initializeFunction(subData.x(), subData.y());
 
     for (int i = 0; i < numValues; i++) {
       // must be above zero, but not bigger than the original value.
@@ -89,38 +84,6 @@ public abstract class UnivariateBaselineCorrector extends AbstractResolverBaseli
     }
   }
 
-
-  @Override
-  public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
-    additionalData.clear();
-    final int numValues = timeSeries.getNumberOfValues();
-    buffer.extractDataIntoBuffer(timeSeries);
-
-    if (resolver != null) {
-      // 1. remove baseline on a copy
-      double[] copyX = Arrays.copyOf(xBuffer(), numValues);
-      double[] copyY = Arrays.copyOf(yBuffer(), numValues);
-
-      // inplace baseline correct on copyX and Y
-      subSampleAndCorrect(copyX, copyY, numValues, copyX, copyY, numValues, false);
-
-      // 2. detect peaks and remove the ranges from the original data
-      // resolver sets some data points to 0 if < chromatographic threshold
-      final List<Range<Double>> resolved = resolver.resolve(copyX, copyY);
-      // 3. remove baseline finally on original data
-      final int numPointsInRemovedArray = buffer.removeRangesFromArrays(resolved);
-
-      // use the data with features removed
-      subSampleAndCorrect(xBuffer(), yBuffer(), numValues, xBufferRemovedPeaks(),
-          yBufferRemovedPeaks(), numPointsInRemovedArray, isPreview());
-    } else {
-      // use the original data
-      subSampleAndCorrect(xBuffer(), yBuffer(), numValues, xBuffer(), yBuffer(), numValues,
-          isPreview());
-    }
-    return createNewTimeSeries(timeSeries, numValues, yBuffer());
-  }
-
-  protected abstract UnivariateInterpolator initializeInterpolator(int actualNumberOfSamples);
+  protected abstract UnivariateFunction initializeFunction(double[] x, final double[] y);
 
 }

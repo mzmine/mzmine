@@ -34,8 +34,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Univar
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
+import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
-import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,7 +76,7 @@ public class SplineBaselineCorrector extends UnivariateBaselineCorrector {
   }
 
   @Override
-  public UnivariateInterpolator initializeInterpolator(int actualNumberOfSamples) {
-    return new SplineInterpolator();
+  public UnivariateFunction initializeFunction(double[] x, final double[] y) {
+    return new SplineInterpolator().interpolate(x, y);
   }
 }

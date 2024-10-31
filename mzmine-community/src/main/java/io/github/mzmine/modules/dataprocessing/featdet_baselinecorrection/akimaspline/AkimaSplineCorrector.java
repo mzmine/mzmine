@@ -34,8 +34,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Univar
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
+import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.AkimaSplineInterpolator;
-import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,8 +51,8 @@ public class AkimaSplineCorrector extends UnivariateBaselineCorrector {
   }
 
   @Override
-  protected UnivariateInterpolator initializeInterpolator(int actualNumberOfSamples) {
-    return new AkimaSplineInterpolator();
+  protected UnivariateFunction initializeFunction(double[] x, final double[] y) {
+    return new AkimaSplineInterpolator().interpolate(x, y);
   }
 
   @Override

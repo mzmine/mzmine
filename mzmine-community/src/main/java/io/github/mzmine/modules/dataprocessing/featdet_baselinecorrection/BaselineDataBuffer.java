@@ -71,13 +71,15 @@ public class BaselineDataBuffer {
 
     boolean yAlreadySet = false;
     if (timeSeries instanceof FeatureDataAccess access) {
-      // can use the whole
+      // use the existing backing data array for y
+      // this needs to happen before ensureCapacity
+      // therefore mark if data is already set to avoid copying data later
       yBuffer = access.getIntensityValues();
       yAlreadySet = true;
     }
 
     ensureCapacity(numValues);
-    extractRtValues(timeSeries);
+    extractRtValues(timeSeries); // needs to happen after ensureCapacity
     clearRemovedPeaksBuffers();
 
     indicesOfInterest.clear();
@@ -85,6 +87,9 @@ public class BaselineDataBuffer {
     indicesOfInterest.add(numValues - 1);
 
     if (!yAlreadySet) {
+      // data was not set from a feature data access - is regular IntensityTimeSeries
+      // fill data in regular way copying over data array
+      // needs to happen after ensureCapacity
       Arrays.fill(yBuffer, numValues, yBuffer.length, 0d);
       yBuffer = timeSeries.getIntensityValues(yBuffer);
     }
