@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.collections.SortOrder;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -132,7 +133,7 @@ public class CompoundAnnotationUtils {
       final List<T> matches) {
     // might have different adducts for the same compound - list them by compound name
     Map<String, List<T>> compoundsMap = matches.stream()
-        .collect(Collectors.groupingBy(FeatureAnnotation::getCompoundName));
+        .collect(Collectors.groupingBy(CompoundAnnotationUtils::getAnnotationIdentifier));
     // sort by number of adducts + modifications
     List<T> oneMatchPerCompound = compoundsMap.values().stream()
         .map(compound -> compound.stream().min(getSorterLeastModifiedCompoundFirst()).orElse(null))
@@ -140,6 +141,29 @@ public class CompoundAnnotationUtils {
 
     return oneMatchPerCompound;
   }
+
+  /**
+   * An identifier to group matches by compound name or if this is unavailable by InChI key or
+   * other
+   */
+  @NotNull
+  public static <T extends FeatureAnnotation> String getAnnotationIdentifier(T match) {
+    String inChIKey = match.getInChIKey();
+    if (StringUtils.hasValue(inChIKey)) {
+      return inChIKey;
+    }
+    String compoundName = match.getCompoundName();
+    if (StringUtils.hasValue(compoundName)) {
+      return compoundName;
+    }
+    var inChI = match.getInChI();
+    if (StringUtils.hasValue(inChI)) {
+      return inChI;
+    }
+    var mz = match.getPrecursorMZ();
+    return mz == null ? "UNKNOWN" : String.valueOf(mz);
+  }
+
 
   /**
    * First sort by adduct type: simple IonType first, which means M+H better than 2M+H2+2 and

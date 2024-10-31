@@ -34,6 +34,13 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
@@ -80,6 +87,10 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new MolecularStructureType(),//
       new SmilesStructureType(),//
       new InChIStructureType(),//
+      // classifiers
+      new ClassyFireSuperclassType(), new ClassyFireClassType(), new ClassyFireSubclassType(),
+      new ClassyFireParentType(), new NPClassifierSuperclassType(), new NPClassifierClassType(),
+      new NPClassifierPathwayType(),
       new NeutralMassType(),//
       new PrecursorMZType(),//
       new MzAbsoluteDifferenceType(),//
@@ -114,6 +125,20 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case MolecularStructureType __ -> entry.getStructure();
       case SmilesStructureType __ -> entry.getField(DBEntryField.SMILES).orElse("").toString();
       case InChIStructureType __ -> entry.getField(DBEntryField.INCHI).orElse("").toString();
+      case ClassyFireSuperclassType __ ->
+          entry.getField(DBEntryField.CLASSYFIRE_SUPERCLASS).orElse("").toString();
+      case ClassyFireClassType __ ->
+          entry.getField(DBEntryField.CLASSYFIRE_CLASS).orElse("").toString();
+      case ClassyFireSubclassType __ ->
+          entry.getField(DBEntryField.CLASSYFIRE_SUBCLASS).orElse("").toString();
+      case ClassyFireParentType __ ->
+          entry.getField(DBEntryField.CLASSYFIRE_PARENT).orElse("").toString();
+      case NPClassifierSuperclassType __ ->
+          entry.getField(DBEntryField.NPCLASSIFIER_SUPERCLASS).orElse("").toString();
+      case NPClassifierClassType __ ->
+          entry.getField(DBEntryField.NPCLASSIFIER_CLASS).orElse("").toString();
+      case NPClassifierPathwayType __ ->
+          entry.getField(DBEntryField.NPCLASSIFIER_PATHWAY).orElse("").toString();
       case SimilarityType __ -> (float) match.getSimilarity().getScore();
       case ExplainedIntensityPercentType __ -> match.getSimilarity().getExplainedLibraryIntensity();
       case MatchingSignalsType __ -> match.getSimilarity().getOverlap();

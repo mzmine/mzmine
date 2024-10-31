@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -115,8 +115,8 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
 
   /**
    * Set the data to the next feature, if available. Returns the feature for additional data access.
-   * retention time and intensity values should be accessed from this data class via {@link
-   * #getRetentionTime(int)} and {@link #getIntensity(int)}
+   * retention time and intensity values should be accessed from this data class via
+   * {@link #getRetentionTime(int)} and {@link #getIntensity(int)}
    *
    * @return the feature or null
    */
@@ -124,11 +124,26 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
   public Feature nextFeature() {
     super.nextFeature();
     if (feature != null) {
-        featureData.getMzValues(mzs);
-        featureData.getIntensityValues(intensities);
-        currentNumberOfDataPoints = featureData.getNumberOfValues();
+      featureData.getMzValues(mzs);
+      featureData.getIntensityValues(intensities);
+      currentNumberOfDataPoints = featureData.getNumberOfValues();
     }
     return feature;
+  }
+
+  @Override
+  public double[] getIntensityValues() {
+    return intensities;
+  }
+
+  @Override
+  public double[] getMzValues() {
+    return mzs;
+  }
+
+  @Override
+  public int getMaxNumberOfValues() {
+    return mzs.length;
   }
 
 }

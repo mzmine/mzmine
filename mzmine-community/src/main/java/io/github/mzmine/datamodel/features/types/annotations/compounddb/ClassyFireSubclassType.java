@@ -23,29 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.collections;
+package io.github.mzmine.datamodel.features.types.annotations.compounddb;
 
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
-public class IndexRangeFactory {
+/**
+ * Used for ClassyFire.
+ */
+public class ClassyFireSubclassType extends StringType {
 
-  /**
-   * Creates an {@link IndexRange} from min to maxInclusive. Use {@link IndexRange#isEmpty()} to
-   * check for elements
-   *
-   * @param min          first index
-   * @param maxInclusive last included index
-   * @return an {@link IndexRange} that may be empty
-   */
-  @NotNull
-  public static IndexRange create(int min, int maxInclusive) {
-    if (maxInclusive < min || min == -1 || maxInclusive == -1) {
-      return EmptyIndexRange.INSTANCE;
-    }
-    if (maxInclusive == min) {
-      return new SingleIndexRange(min);
-    }
-    return new SimpleIndexRange(min, maxInclusive);
+  @Override
+  public @NotNull String getUniqueID() {
+    return "classyfire_subclass";
   }
 
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Subclass (ClassyFire)";
+  }
 }

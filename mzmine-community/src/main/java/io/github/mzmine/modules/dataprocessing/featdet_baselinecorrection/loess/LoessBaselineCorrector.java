@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.loess
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
@@ -35,8 +34,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Univar
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
+import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
-import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,23 +59,25 @@ public class LoessBaselineCorrector extends UnivariateBaselineCorrector {
   }
 
   @Override
-  protected UnivariateInterpolator initializeInterpolator(int actualNumberOfSamples) {
+  protected UnivariateFunction initializeFunction(double[] x, final double[] y) {
+    var nValues = x.length;
     double actualBandwidth = bandwidth;
-    if (actualBandwidth * actualNumberOfSamples < 2d) {
-      actualBandwidth = 2d / actualNumberOfSamples;
+    if (actualBandwidth * nValues < 2d) {
+      actualBandwidth = 2d / nValues;
     }
-    return new LoessInterpolator(actualBandwidth, iterations);
+    // maybe fix number?
+//    actualBandwidth = 5d / actualNumberOfSamples;
+    return new LoessInterpolator(actualBandwidth, iterations).interpolate(x, y);
   }
 
   @Override
-  public BaselineCorrector newInstance(ParameterSet parameters,
-      MemoryMapStorage storage, FeatureList flist) {
+  public BaselineCorrector newInstance(ParameterSet parameters, MemoryMapStorage storage,
+      FeatureList flist) {
     final ParameterSet embedded = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();
     final MinimumSearchFeatureResolver resolver =
         embedded.getValue(AbstractBaselineCorrectorParameters.applyPeakRemoval)
-            ? AbstractBaselineCorrector.initializeLocalMinResolver((ModularFeatureList) flist)
-            : null;
+            ? initializeLocalMinResolver((ModularFeatureList) flist) : null;
 
     return new LoessBaselineCorrector(storage,
         embedded.getValue(LoessBaselineCorrectorParameters.numSamples),

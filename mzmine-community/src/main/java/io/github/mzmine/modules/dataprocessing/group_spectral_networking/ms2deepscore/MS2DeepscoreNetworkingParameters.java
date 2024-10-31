@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.modules.io.download.ExternalAsset;
+import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -63,7 +63,7 @@ public class MS2DeepscoreNetworkingParameters extends SimpleParameterSet {
   public static final FileNameWithDownloadParameter ms2deepscoreModelFile = new FileNameWithDownloadParameter(
       "MS2Deepscore model",
       "The file location of the MS2Deepscore model, click download to download the model.",
-      List.of(ExtensionFilters.PT), ExternalAsset.MS2DEEPSCORE);
+      List.of(ExtensionFilters.PT), AssetGroup.MS2DEEPSCORE);
 
 
   public MS2DeepscoreNetworkingParameters() {
