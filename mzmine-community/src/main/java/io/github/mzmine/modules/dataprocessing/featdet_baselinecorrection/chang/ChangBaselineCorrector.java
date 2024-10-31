@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,8 +56,6 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
   private final double baselineFraction;
   private final int windowSize;
   private final double threshold;
-  protected double[] xBuffer = new double[0];
-  protected double[] yBuffer = new double[0];
 
   public ChangBaselineCorrector() {
     this(null, "", 0.95, 100, 0.2, 10, 0.5);
@@ -65,7 +63,7 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
 
   public ChangBaselineCorrector(MemoryMapStorage storage, String suffix, double alpha,
       int maxSegments, double baselineFraction, int windowSize, double threshold) {
-    super(storage, 0, suffix, null);
+    super(storage, 0, suffix);
     this.alpha = alpha;
     this.maxSegments = maxSegments;
     this.baselineFraction = baselineFraction;
@@ -75,6 +73,7 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
   }
 
   // Method for linear interpolation
+  // TODO check linear interpolation and performance again
   private static double[] linearInterpolation(double[] x, double[] y, double[] newX) {
     double[] newY = new double[newX.length];
     int index = 0;
@@ -88,12 +87,12 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
     return newY;
   }
 
-  public static double[] highPassFilter(double[] x, double alpha) {
-    double[] y = new double[x.length];
-    y[0] = alpha * (0 + x[0]);
+  public static double[] highPassFilter(double[] ys, double alpha) {
+    double[] y = new double[ys.length];
+    y[0] = alpha * (0 + ys[0]);
 
-    for (int i = 1; i < x.length; i++) {
-      y[i] = alpha * (y[i - 1] + x[i] - x[i - 1]);
+    for (int i = 1; i < ys.length; i++) {
+      y[i] = alpha * (y[i - 1] + ys[i] - ys[i - 1]);
     }
 
     return y;
@@ -102,13 +101,10 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
   @Override
   public <T extends IntensityTimeSeries> T correctBaseline(T timeSeries) {
     additionalData.clear();
-    final int numValues = timeSeries.getNumberOfValues();
-    if (yBuffer.length < numValues) {
-      xBuffer = new double[numValues];
-      yBuffer = new double[numValues];
-    }
-
-    extractDataIntoBuffer(timeSeries, xBuffer, yBuffer);
+    buffer.extractDataIntoBuffer(timeSeries);
+    final int numValues = buffer.numValues();
+    double[] xBuffer = buffer.xBuffer();
+    double[] yBuffer = buffer.yBuffer();
 
     // minimum 5 points per segment
     final int numSegments = Math.min(maxSegments, (int) Math.ceil((double) numValues / 5));

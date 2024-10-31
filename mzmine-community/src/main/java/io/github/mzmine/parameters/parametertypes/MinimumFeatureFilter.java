@@ -159,12 +159,12 @@ public class MinimumFeatureFilter {
   }
 
   private boolean checkFeatureQuality(Feature f) {
-    return f != null && f.getHeight() >= minFeatureHeight && filterEstimated(f);
+    return filterEstimated(f) && f.getHeight() != null && f.getHeight() >= minFeatureHeight;
   }
 
   private boolean filterEstimated(Feature f) {
-    return f != null && (!excludeEstimatedFeatures || !f.getFeatureStatus()
-        .equals(FeatureStatus.ESTIMATED));
+    return f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN //
+           && (!excludeEstimatedFeatures || f.getFeatureStatus() != FeatureStatus.ESTIMATED);
   }
 
   /**

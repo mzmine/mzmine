@@ -392,6 +392,8 @@
       <SeparatorMenuItem/>
       <MenuItem text="Feature list blank subtraction" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule"/>
+      <MenuItem text="Chromatogram blank subtraction" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms.ChromatogramBlankSubtractionModule"/>
       <!--      <MenuItem text="Peak comparison rows filter" documentation lacking -->
       <!--        onAction="#runModule"-->
       <!--        userData="io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule"/>-->
@@ -567,6 +569,14 @@
         userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule"/>
       <MenuItem text="Massvoltammogram (feature list)" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule"/>
+
+      <SeparatorMenuItem/>
+
+      <MenuItem text="ECN (Equivalent Carbon Number) plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule"/>
+      <MenuItem text="Lipid annotation summary" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule"/>
+
     </Menu>
 
     <MenuItem onAction="#showMSnTreeTab" text="MS(n) spectra tree"

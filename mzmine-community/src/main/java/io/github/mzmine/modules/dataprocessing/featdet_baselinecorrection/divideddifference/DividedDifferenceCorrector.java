@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.divid
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
@@ -35,8 +34,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Univar
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
+import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.DividedDifferenceInterpolator;
-import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,13 +51,13 @@ public class DividedDifferenceCorrector extends UnivariateBaselineCorrector {
   }
 
   @Override
-  protected UnivariateInterpolator initializeInterpolator(int actualNumberOfSamples) {
-    return new DividedDifferenceInterpolator();
+  protected UnivariateFunction initializeFunction(double[] x, final double[] y) {
+    return new DividedDifferenceInterpolator().interpolate(x, y);
   }
 
   @Override
-  public BaselineCorrector newInstance(ParameterSet parameters,
-      MemoryMapStorage storage, FeatureList flist) {
+  public BaselineCorrector newInstance(ParameterSet parameters, MemoryMapStorage storage,
+      FeatureList flist) {
 
     final String suffix = parameters.getValue(BaselineCorrectionParameters.suffix);
     final ParameterSet embedded = parameters.getParameter(
@@ -66,8 +65,7 @@ public class DividedDifferenceCorrector extends UnivariateBaselineCorrector {
     final Integer numSamples = embedded.getValue(AbstractBaselineCorrectorParameters.numSamples);
     final MinimumSearchFeatureResolver resolver =
         embedded.getValue(AbstractBaselineCorrectorParameters.applyPeakRemoval)
-            ? AbstractBaselineCorrector.initializeLocalMinResolver((ModularFeatureList) flist)
-            : null;
+            ? initializeLocalMinResolver((ModularFeatureList) flist) : null;
 
     return new DividedDifferenceCorrector(storage, numSamples, suffix, resolver);
   }

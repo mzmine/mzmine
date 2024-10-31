@@ -98,10 +98,6 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   @Override
   IonTimeSeries<T> subSeries(@Nullable MemoryMapStorage storage, @NotNull List<T> subset);
 
-  @Override
-  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
-
   /**
    * @param writer   The writer.
    * @param allScans All scans of the given raw data file (those are used during import). NOT the

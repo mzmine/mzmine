@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,21 @@
 
 package io.github.mzmine.modules.io.download;
 
+import static java.util.Objects.requireNonNullElse;
+
+import io.github.mzmine.modules.io.download.DownloadUtils.HandleExistingFiles;
+import io.github.mzmine.modules.io.download.ZenodoRecord.ZenFile;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ZipUtils;
+import io.github.mzmine.util.web.HttpResponseException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,22 +50,33 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FileDownloadTask extends AbstractTask implements DownloadProgressCallback {
 
-  private final String downloadUrl;
+  private static final Logger logger = Logger.getLogger(FileDownloadTask.class.getName());
   private final File localDirectory;
+  // sometimes URL may be specified during runtime like for zenodo we need to grab the latest url
+  @Nullable
+  private final String downloadUrl;
   @Nullable
   private DownloadAsset asset;
 
   public volatile DownloadStatus downloadStatus = DownloadStatus.WAITING;
   public String description = "Waiting for download";
+  private int totalFiles = 1;
+  private int finishedFiles = 0;
   private double progress;
   private FileDownloader fileDownloader;
 
   // resulting file after download and optional unzip
   private List<File> downloadedFiles;
+  // skip files
+  private List<File> skipFiles = List.of();
 
 
   public FileDownloadTask(final DownloadAsset asset) {
-    this(asset.url(), asset.extAsset().getDownloadToDir());
+    this(asset, asset.extAsset().getDownloadToDir());
+  }
+
+  public FileDownloadTask(final DownloadAsset asset, final File downloadToDir) {
+    this(asset.url(), downloadToDir);
     this.asset = asset;
   }
 
@@ -66,7 +84,7 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
    * @param downloadUrl    URL defines file to download
    * @param localDirectory this is the local path, a directory.
    */
-  public FileDownloadTask(String downloadUrl, String localDirectory) {
+  public FileDownloadTask(@Nullable String downloadUrl, String localDirectory) {
     this(downloadUrl, new File(localDirectory));
   }
 
@@ -74,7 +92,7 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
    * @param downloadUrl    URL defines file to download
    * @param localDirectory this is the local path, a directory.
    */
-  public FileDownloadTask(String downloadUrl, File localDirectory) {
+  public FileDownloadTask(@Nullable String downloadUrl, File localDirectory) {
     super(Instant.now());
     this.downloadUrl = downloadUrl;
     this.localDirectory = localDirectory;
@@ -94,7 +112,17 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
     if (!isCanceled()) {
       cancel();
     }
-    fileDownloader.cancel();
+    if (fileDownloader != null) {
+      fileDownloader.cancel();
+    }
+    if (downloadedFiles != null && !downloadedFiles.isEmpty()) {
+      for (final File file : downloadedFiles) {
+        try {
+          file.delete();
+        } catch (Exception ex) {
+        }
+      }
+    }
   }
 
   @Override
@@ -104,13 +132,28 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
 
   @Override
   public double getFinishedPercentage() {
-    return progress;
+    // progress might be -1
+    return (finishedFiles + Math.max(0, progress)) / (double) totalFiles;
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
+    if (asset instanceof ZenodoDownloadAsset zenodoAsset) {
+      downloadedFiles = downloadFromZenodoBlocking(zenodoAsset);
+    } else {
+      downloadFromUrl();
+    }
+    if (!isCanceled()) {
+      setStatus(TaskStatus.FINISHED);
+    }
+  }
+
+  /**
+   * Download from URL and unzip if defined in asset
+   */
+  private void downloadFromUrl() {
     // download file and block thread. Still reacts to task status changes
     fileDownloader = new FileDownloader(downloadUrl, localDirectory, this);
     fileDownloader.downloadFileBlocking();
@@ -120,38 +163,128 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
 
       // requires unzip?
       if (asset != null && asset.requiresUnzip()) {
-        unzipFile();
+        unzipFile(fileDownloader.getLocalFile());
       }
-
-      setStatus(TaskStatus.FINISHED);
     } else if (fileDownloader.getStatus() == DownloadStatus.ERROR_REMOVE) {
       error("Error while downloading file " + localDirectory.getAbsolutePath() + " from "
             + downloadUrl);
     }
   }
 
-  private void unzipFile() {
-    File fileName = fileDownloader.getLocalFile();
+  private List<File> downloadFromZenodoBlocking(final ZenodoDownloadAsset asset) {
+    try {
+      List<File> resultingFiles = new ArrayList<>();
+      var record = ZenodoService.getWebRecord(asset);
+      if (!asset.isAllFiles()) {
+        record = record.applyNameFilter(asset.fileNameRegEx());
+        if (record.files().isEmpty()) {
+          logger.warning(
+              "No files in zenodo record %s matching pattern %s. Check out: %s".formatted(
+                  record.recid(), asset.fileNameRegEx(), record.links().selfHtml()));
+          return List.of();
+        }
+      }
+
+      // already downloaded files
+      List<File> existing = record.files().stream().map(f -> new File(localDirectory, f.name()))
+          .filter(File::exists).toList();
+      boolean skipExisting = false;
+      if (!existing.isEmpty()) {
+        var result = DownloadUtils.showUseExistingFilesDialog(existing);
+        skipExisting = result == HandleExistingFiles.USE_EXISTING;
+        if (!skipExisting) {
+          // download all again
+          existing = List.of();
+        }
+      }
+      if (skipExisting) {
+        if (existing.size() == record.files().size()) {
+          // all are existing
+          return existing;
+        }
+      }
+      setSkipFiles(existing);
+
+      // never download full archive if some files already exist
+      if (asset.isAllFiles() && existing.isEmpty()) {
+        resultingFiles.addAll(downloadZenodoArchive(record));
+      } else {
+        // download files individually after file filter
+        totalFiles = record.files().size();
+        int countMatchingFiles = 0;
+        for (final ZenFile file : record.files()) {
+          File destination = new File(localDirectory, file.name());
+          if (existing.contains(destination)) {
+            continue; // skip existing
+          }
+          countMatchingFiles++;
+          if (isCanceled()) {
+            return List.of();
+          }
+          fileDownloader = new FileDownloader(file.link(), localDirectory, this, file.name());
+          fileDownloader.downloadFileBlocking();
+          finishedFiles++;
+          progress = 0;
+          if (asset.requiresUnzip()) {
+            resultingFiles.addAll(unzipFile(fileDownloader.getLocalFile()));
+          } else {
+            resultingFiles.add(fileDownloader.getLocalFile());
+          }
+        }
+        if (countMatchingFiles == 0) {
+          logger.warning("No files in zenodo record %s downloaded".formatted(record.recid()));
+        }
+      }
+
+      return resultingFiles;
+    } catch (IOException | InterruptedException | HttpResponseException e) {
+      error("Error retrieving zendodo record: " + asset.recordId());
+      return List.of();
+    }
+  }
+
+  /**
+   * Download whole archive and unzip
+   */
+  private List<File> downloadZenodoArchive(final ZenodoRecord record) {
+    fileDownloader = new FileDownloader(record.getArchiveZipUrl(), localDirectory, this);
+    fileDownloader.downloadFileBlocking();
+    if (fileDownloader.getStatus() == DownloadStatus.SUCCESS) {
+      return unzipFile(fileDownloader.getLocalFile());
+    } else if (fileDownloader.getStatus() == DownloadStatus.ERROR_REMOVE) {
+      error("Error while downloading file " + localDirectory.getAbsolutePath() + " from "
+            + downloadUrl);
+    }
+    return List.of();
+  }
+
+  private List<File> unzipFile(final File fileName) {
     if (fileName == null) {
-      return;
+      return List.of();
     }
 
     description = "Unzipping file " + fileName;
 
     File directory = fileName.getParentFile();
 
+    List<File> files;
     try {
-      downloadedFiles = ZipUtils.unzipFile(fileName, directory);
+      files = ZipUtils.unzipFile(fileName, directory);
+      downloadedFiles = files;
     } catch (FileNotFoundException e) {
       error("File not found Error while unzipping file " + fileName + " from " + downloadUrl, e);
-      return;
+      return List.of();
     } catch (IOException e) {
       error("IOError while unzipping file " + fileName + " from " + downloadUrl, e);
-      return;
+      return List.of();
     }
 
     // remove original file
-    fileName.delete();
+    try {
+      fileName.delete();
+    } catch (Exception e) {
+    }
+    return requireNonNullElse(files, List.of());
   }
 
   @Override
@@ -174,6 +307,17 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
    */
   @NotNull
   public List<File> getDownloadedFiles() {
-    return downloadedFiles;
+    List<File> files = new ArrayList<>();
+    if (skipFiles != null) {
+      files.addAll(skipFiles);
+    }
+    if (downloadedFiles != null) {
+      files.addAll(downloadedFiles);
+    }
+    return files;
+  }
+
+  public void setSkipFiles(final List<File> existing) {
+    skipFiles = requireNonNullElse(existing, List.of());
   }
 }

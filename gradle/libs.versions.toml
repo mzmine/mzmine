@@ -20,7 +20,7 @@ jmzTabm = "1.0.6"
 jna = '5.12.1'
 junit = '5.10.0'
 mockito = '5.8.0'
-jackson = '2.16.1'
+jackson = '2.18.0'
 ikonli = "12.3.1"
 graphstream = "2.0"
 djl = "0.26.0"
@@ -66,6 +66,7 @@ poi = { module = "org.apache.poi:poi", version.ref = "poi" }
 poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "poi" }
 jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-datetime = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jackson-dataformat-csv = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-csv", version = "jackson" }
 woodstox-core = "com.fasterxml.woodstox:woodstox-core:6.6.0"
@@ -130,7 +131,7 @@ slf4j = ["slf4j-api", "slf4j-jdk14"]
 poi = ["poi", "poi-ooxml"]
 okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
-jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv"]
+jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime"]
 batik = ["batik-anim", "batik-svggen", "batik-swing"]
 
 
