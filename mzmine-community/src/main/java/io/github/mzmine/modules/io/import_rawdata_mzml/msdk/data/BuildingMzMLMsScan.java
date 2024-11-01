@@ -434,7 +434,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
     if(isMergedMobilitySpectrum() && mobilityBinaryDataInfo != null) {
       return switch (mobilityBinaryDataInfo.getUnitAccession()) {
-        case null -> null;
+        case null ->  new MzMLMobility(0d, MobilityType.DRIFT_TUBE);
         case MzMLCV.cvMobilityDriftTimeUnit -> new MzMLMobility(0d, MobilityType.DRIFT_TUBE);
         case MzMLCV.cvMobilityInverseReducedUnit -> new MzMLMobility(0d, MobilityType.TIMS);
         default -> null;
