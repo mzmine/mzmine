@@ -37,13 +37,13 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ProjectMetadataImportModule implements MZmineProcessingModule {
+public class ProjectMetadataExportModule implements MZmineProcessingModule {
 
   private static final Logger logger = Logger.getLogger(
-      ProjectMetadataImportModule.class.getName());
+      ProjectMetadataExportModule.class.getName());
 
-  private static final String MODULE_NAME = "Project metadata import";
-  private static final String MODULE_DESCRIPTION = "This module imports metadata into the project from .tsv or .csv-format.";
+  private static final String MODULE_NAME = "Project metadata export";
+  private static final String MODULE_DESCRIPTION = "This module exports metadata to .tsv or .csv-format.";
 
   @Override
   public @NotNull String getName() {
@@ -57,7 +57,7 @@ public class ProjectMetadataImportModule implements MZmineProcessingModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return ProjectMetadataImportParameters.class;
+    return ProjectMetadataExportParameters.class;
   }
 
   @Override
@@ -69,7 +69,7 @@ public class ProjectMetadataImportModule implements MZmineProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(new ProjectMetadataImportTask(parameters, moduleCallDate));
+    tasks.add(new ProjectMetadataExportTask(moduleCallDate, parameters));
 
     return ExitCode.OK;
   }
