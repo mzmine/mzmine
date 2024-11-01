@@ -30,20 +30,14 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.CSVParsingUtils;
-import io.github.mzmine.util.io.WriterOptions;
 import io.github.mzmine.util.scans.PeakPickingModel.PeakPickingModel;
 import io.github.mzmine.util.scans.PeakPickingModel.PeakPickingOutput;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.logging.Logger;
-
-import org.jdom2.internal.ArrayCopy;
 
 public class MLFeatureResolver extends AbstractResolver {
 

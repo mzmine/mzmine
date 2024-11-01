@@ -192,7 +192,7 @@ public class FeatureResolverTask extends AbstractTask {
                     }
                     // resolving finished
 
-                    // sort and reset IDs here to ahve the same sorting for every feature list
+                    // sort and reset IDs here to have the same sorting for every feature list
                     FeatureListUtils.sortByDefaultRT(newPeakList, true);
 
                     // group MS2 with features
