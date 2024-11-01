@@ -3,6 +3,7 @@
 .classpath
 .gradle
 .settings
+.vscode
 .idea
 .temp*
 /*.iml
@@ -25,4 +26,3 @@ not-bio
 /src/test/resources/rawdatafiles/local
 /src/test/java/import_data/speed/local/tims32subs/
 mzmine-community/src/main/resources/MLModels/*
-.gitignore
