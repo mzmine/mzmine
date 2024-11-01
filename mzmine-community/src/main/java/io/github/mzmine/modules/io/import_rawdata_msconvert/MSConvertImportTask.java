@@ -101,6 +101,7 @@ public class MSConvertImportTask extends AbstractTask {
       cmdLine.add("--numpressLinear");
     }
 
+    cmdLine.addAll(List.of("--combineIonMobilitySpectra"));
     if (ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)) {
       cmdLine.addAll(List.of("--filter", "\"peakPicking vendor msLevel=1-\""));
     }
