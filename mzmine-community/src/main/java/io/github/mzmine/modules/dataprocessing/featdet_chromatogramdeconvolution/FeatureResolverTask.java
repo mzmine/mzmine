@@ -255,30 +255,26 @@ public class FeatureResolverTask extends AbstractTask {
       final ModularFeature originalFeature = (ModularFeature) access.nextFeature();
       final List<IonTimeSeries<? extends Scan>> resolvedSeries = resolver.resolve(access,
           getMemoryMapStorage());
-      if (resolvedSeries.size() > 0) {
+      for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
+        final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
+            peakId++);
+        final ModularFeature f = new ModularFeature(resolvedFeatureList,
+            originalFeature.getRawDataFile(), resolved, originalFeature.getFeatureStatus());
 
-        for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
-          int i = 0;
-          final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
-              peakId++);
-          final ModularFeature f = new ModularFeature(resolvedFeatureList,
-              originalFeature.getRawDataFile(), resolved, originalFeature.getFeatureStatus());
+        if (originalFeature.get(MaldiSpotType.class) != null) {
+          f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
+        }
+        if (originalFeature.get(ImageType.class) != null) {
+          f.set(ImageType.class, true);
+        }
+        if (originalFeature.get(MaldiSpotType.class) != null) {
+          f.set(MaldiSpotType.class, originalFeature.get(MaldiSpotType.class));
+        }
 
-          if (originalFeature.get(MaldiSpotType.class) != null) {
-            f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
-          }
-          if (originalFeature.get(ImageType.class) != null) {
-            f.set(ImageType.class, true);
-          }
-          if (originalFeature.get(MaldiSpotType.class) != null) {
-            f.set(MaldiSpotType.class, originalFeature.get(MaldiSpotType.class));
-          }
-
-          newRow.addFeature(originalFeature.getRawDataFile(), f);
-          resolvedFeatureList.addRow(newRow);
-          if (resolved.getSpectra().size() <= 3) {
-            c++;
-          }
+        newRow.addFeature(originalFeature.getRawDataFile(), f);
+        resolvedFeatureList.addRow(newRow);
+        if (resolved.getSpectra().size() <= 3) {
+          c++;
         }
       }
       processedRows++;
@@ -310,8 +306,7 @@ public class FeatureResolverTask extends AbstractTask {
     }
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
 
-    // create a new feature list and don't copy. Previous annotations of features
-    // are invalidated
+    // create a new feature list and don't copy. Previous annotations of features are invalidated
     // during resolution
     final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
         originalFeatureList.getName() + " " + parameters.getParameter(
@@ -323,11 +318,9 @@ public class FeatureResolverTask extends AbstractTask {
     // since we dont create a copy, we have to copy manually
     originalFeatureList.getAppliedMethods()
         .forEach(m -> resolvedFeatureList.getAppliedMethods().add(m));
-    // the new method is added later, since we don't know here which resolver module
-    // is used.
+    // the new method is added later, since we don't know here which resolver module is used.
 
-    // check the actual feature data. IMSRawDataFiles can also be built as classic
-    // lc-ms features
+    // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
     final Feature exampleFeature =
         originalFeatureList.getNumberOfRows() > 0 ? originalFeatureList.getRow(0).getBestFeature()
             : null;
