@@ -228,6 +228,7 @@ public class MSConvertImportTask extends AbstractTask {
           }
           TimeUnit.MILLISECONDS.sleep(100);
         }
+        TimeUnit.MILLISECONDS.sleep(400);
       } catch (IOException | InterruptedException e) {
         logger.log(Level.WARNING, "Error while converting %s to mzML file.".formatted(rawFilePath),
             e);
@@ -246,8 +247,7 @@ public class MSConvertImportTask extends AbstractTask {
 
   public static @NotNull File getMzMLFileName(File filePath) {
     final String fileName = filePath.getName();
-    final String extension = FileAndPathUtil.getExtension(fileName);
-    final String mzMLName = fileName.replace(extension, "mzML");
+    final String mzMLName =  FileAndPathUtil.getRealFileName(fileName, "mzML");
     final File mzMLFile = new File(filePath.getParent(), mzMLName);
     return mzMLFile;
   }
