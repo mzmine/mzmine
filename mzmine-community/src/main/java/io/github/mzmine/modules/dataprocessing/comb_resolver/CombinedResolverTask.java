@@ -73,7 +73,7 @@ public class CombinedResolverTask extends AbstractFeatureListTask {
             for (int i = 0; i < resolvers.size(); i++) {
                 Resolver resolver = resolvers.get(i);
                 final List<IonTimeSeries<? extends Scan>> resolvedSeries = resolver.resolve(access,
-                    getMemoryMapStorage());
+                        getMemoryMapStorage());
             }
             processedRows++;
         }
