@@ -1,24 +1,30 @@
 package io.github.mzmine.modules.dataprocessing.comb_resolver;
 
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CombinedResolverTask extends AbstractFeatureListTask {
@@ -51,7 +57,9 @@ public class CombinedResolverTask extends AbstractFeatureListTask {
     }
 
     public void startResolvers(ModularFeatureList originalFeatureList) {
-        // TODO implement method
+        //!!
+        // TODO implement method getResolvers
+        //!!
         final List<Resolver> resolvers = ((CombinedResolverParameters) parameters).getResolvers(parameters,
                 originalFeatureList);
         if (resolvers.isEmpty()) {
@@ -70,10 +78,11 @@ public class CombinedResolverTask extends AbstractFeatureListTask {
         totalRows = originalFeatureList.getNumberOfRows();
         while (access.hasNextFeature()) {
             final ModularFeature originalFeature = (ModularFeature) access.nextFeature();
+            final List<IonTimeSeries<? extends Scan>> resolvedSeries = new ArrayList<>();
             for (int i = 0; i < resolvers.size(); i++) {
                 Resolver resolver = resolvers.get(i);
-                final List<IonTimeSeries<? extends Scan>> resolvedSeries = resolver.resolve(access,
-                        getMemoryMapStorage());
+                resolvedSeries.addAll(resolver.resolve(access,
+                        getMemoryMapStorage()));
             }
             processedRows++;
         }
@@ -87,5 +96,54 @@ public class CombinedResolverTask extends AbstractFeatureListTask {
     @java.lang.Override
     public String getTaskDescription() {
         return null;
+    }
+
+    @Override
+    public void cancel() {
+        super.cancel();
+    }
+
+    private ModularFeatureList createNewFeatureList(ModularFeatureList originalFeatureList) {
+        if (originalFeatureList.getRawDataFiles().size() > 1) {
+            throw new IllegalArgumentException("Resolving cannot be applied to aligned feature lists.");
+        }
+        final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
+
+        // create a new feature list and don't copy. Previous annotations of features
+        // are invalidated
+        // during resolution
+        final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
+                originalFeatureList.getName() + " " + parameters.getParameter(
+                        GeneralResolverParameters.SUFFIX).getValue(),
+                storage, dataFile);
+
+        // DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+        resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
+
+        // since we dont create a copy, we have to copy manually
+        originalFeatureList.getAppliedMethods()
+                .forEach(m -> resolvedFeatureList.getAppliedMethods().add(m));
+        // the new method is added later, since we don't know here which resolver module
+        // is used.
+
+        // check the actual feature data. IMSRawDataFiles can also be built as classic
+        // lc-ms features
+        final Feature exampleFeature = originalFeatureList.getNumberOfRows() > 0
+                ? originalFeatureList.getRow(0).getBestFeature()
+                : null;
+
+        boolean isImagingFile = (originalFeatureList.getRawDataFile(0) instanceof ImagingRawDataFile);
+        if (exampleFeature != null
+                && exampleFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {
+            DataTypeUtils.addDefaultIonMobilityTypeColumns(resolvedFeatureList);
+        }
+        if (originalFeatureList.hasRowType(RTType.class) && !isImagingFile) {
+            DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+        }
+        if (isImagingFile) {
+            DataTypeUtils.addDefaultImagingTypeColumns(resolvedFeatureList);
+        }
+
+        return resolvedFeatureList;
     }
 }
