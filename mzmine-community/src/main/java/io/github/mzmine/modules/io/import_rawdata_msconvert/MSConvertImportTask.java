@@ -325,7 +325,7 @@ public class MSConvertImportTask extends AbstractTask {
       // Finish
       process.destroy();
 
-      if (parsedScans == 0) {
+      if (parsedScans == 0 && dataFile.getOtherDataFiles().isEmpty()) {
         throw (new RuntimeException("No scans found"));
       }
 
