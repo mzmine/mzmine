@@ -28,6 +28,7 @@ package io.github.mzmine.util.javafx;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.util.OtherFeatureSorter;
 import io.github.mzmine.util.OtherFeatureSorter.SortingProperty;
 import io.github.mzmine.util.SortingDirection;
@@ -69,7 +70,21 @@ public class SortableOtherFeatureComboBox extends FlowPane {
 
     otherFeatureBox = new ComboBox<>(filtered);
     otherFeatureBox.setMinWidth(100);
-    // remove intensity to avoid confusion
+    otherFeatureBox.setConverter(new StringConverter<>() {
+      @Override
+      public String toString(OtherFeature f) {
+        if (f != null && f.getFeatureData() instanceof OtherTimeSeries series) {
+          return series.getName();
+        }
+        return f != null ? f.toString() : "";
+      }
+
+      @Override
+      public OtherFeature fromString(String string) {
+        return null;
+      }
+    });
+
     final List<SortingProperty> sortingProperties = new ArrayList<>(
         List.of(SortingProperty.values()));
     sortBox = new ComboBox<>(FXCollections.observableArrayList(sortingProperties));
@@ -144,7 +159,7 @@ public class SortableOtherFeatureComboBox extends FlowPane {
   }
 
   public void setSelectedFeature(OtherFeature f) {
-    if(f == null) {
+    if (f == null) {
       otherFeatureBox.getSelectionModel().clearSelection();
       return;
     }
