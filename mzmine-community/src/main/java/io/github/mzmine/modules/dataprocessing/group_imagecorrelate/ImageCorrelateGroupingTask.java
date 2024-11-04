@@ -67,6 +67,7 @@ import org.math.plot.utils.Array;
 public class ImageCorrelateGroupingTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(ImageCorrelateGroupingTask.class.getName());
+  public static final double NON_ZERO_INTENSITY = 0.01;
   private final ParameterSet parameters;
   private final ModularFeatureList featureList;
   private final boolean singleRawFile;
@@ -199,20 +200,29 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
 
   /**
    * @param intensities                 sorted by original scan sorting
-   * @param noiseLevelOrLowerPercentile lower percentile intensity or noise level, depending which
-   *                                    is larger
+   * @param noiseLevelOrLowerPercentile lower percentile intensity or noise level, depending on
+   *                                    which is larger
    * @param upperPercentile             upper percentile intensity. may be 0 if unused
    */
   private record FilteredRowData(double[] intensities, double noiseLevelOrLowerPercentile,
                                  double upperPercentile) {
 
 
+    /**
+     * @param intensities   the data
+     * @param lowerQuantile a lower quantile to remove from the non-zero intensities
+     * @param upperQuantile an upper quantile to remove from the non-zero intensities
+     * @param noiseLevel    absolute noise level
+     * @param transform     transformation to scale the contribution of lower to higher intensities
+     * @return a prepared dataset
+     */
     private static FilteredRowData create(final double[] intensities, final double lowerQuantile,
         final double upperQuantile, double noiseLevel, final Transform transform) {
       if (transform != null) {
-        for (int i = 0; i < intensities.length; i++) {
-          intensities[i] = transform.transform(intensities[i]);
-        }
+        // transform noise level and intensities
+        noiseLevel = transform.transformKeep0(noiseLevel);
+
+        transform.transformKeep0(intensities);
       }
       // percentiles are optional
       // use 1 as minimum to cut out 0 intensity

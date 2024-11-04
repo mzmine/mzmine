@@ -50,7 +50,9 @@ public class ImageCorrelateGroupingParameters extends SimpleParameterSet {
   public static final DoubleParameter NOISE_LEVEL = new DoubleParameter(
       "Intensity threshold for co-localization",
       "This intensity threshold is used to filter data points before image co-localization",
-      MZmineCore.getConfiguration().getIntensityFormat(), 0d);
+      MZmineCore.getConfiguration().getIntensityFormat(),
+      ImageCorrelateGroupingTask.NON_ZERO_INTENSITY, ImageCorrelateGroupingTask.NON_ZERO_INTENSITY,
+      null);
 
   public static final IntegerParameter MIN_NUMBER_OF_PIXELS = new IntegerParameter(
       "Minimum number of co-located pixels",
@@ -96,7 +98,6 @@ public class ImageCorrelateGroupingParameters extends SimpleParameterSet {
   public Map<String, Parameter<?>> getNameParameterMap() {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
-    // we use the same parameters here so no need to increment the version. Loading will work fine
     nameParameterMap.put("Ignore very high intensity outliers", HOTSPOT_REMOVAL);
     return nameParameterMap;
   }
