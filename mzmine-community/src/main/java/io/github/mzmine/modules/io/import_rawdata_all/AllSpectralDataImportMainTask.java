@@ -25,9 +25,13 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataTask;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -42,6 +46,8 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
 
   private final ThreadPoolTask mainImportTask;
   private final File metadataFile;
+  private final ParameterSet parameters;
+  private final boolean sortAndRecolor;
 
   public AllSpectralDataImportMainTask(final List<? extends Task> tasks,
       final @NotNull ParameterSet parameters) {
@@ -49,6 +55,8 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
     mainImportTask = ThreadPoolTask.createDefaultTaskManagerPool("Importing data", tasks);
     metadataFile = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         AllSpectralDataImportParameters.metadataFile, null);
+    sortAndRecolor = parameters.getValue(AllSpectralDataImportParameters.sortAndRecolor);
+    this.parameters = parameters;
   }
 
 
@@ -72,7 +80,9 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
     if (mainImportTask.isCanceled()) {
       setStatus(mainImportTask.getStatus());
       setErrorMessage(mainImportTask.getErrorMessage());
+      return;
     }
+
     if (metadataFile != null) {
       // load metadata after data files
       Task metaTask = loadMetadata();
@@ -83,7 +93,27 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
       }
     }
 
+    // recolor by default without any metadata
+    if (sortAndRecolor) {
+      ColorByMetadataTask colorTask = recolorBlanksAndQcs();
+      if (colorTask.isCanceled()) {
+        setStatus(colorTask.getStatus());
+        setErrorMessage(colorTask.getErrorMessage());
+        return;
+      }
+    }
+
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private ColorByMetadataTask recolorBlanksAndQcs() {
+    List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(
+        ProjectService.getProject(), parameters);
+
+    ColorByMetadataTask task = new ColorByMetadataTask(moduleCallDate,
+        ColorByMetadataParameters.createDefault(loaded), AllSpectralDataImportModule.class);
+    task.run();
+    return task;
   }
 
   private Task loadMetadata() {

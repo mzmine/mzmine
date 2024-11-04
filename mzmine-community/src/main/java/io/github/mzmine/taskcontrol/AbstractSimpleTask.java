@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class AbstractSimpleTask extends AbstractSimpleToolTask {
 
-  private final Class<? extends MZmineModule> moduleClass;
+  private final @NotNull Class<? extends MZmineModule> moduleClass;
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.

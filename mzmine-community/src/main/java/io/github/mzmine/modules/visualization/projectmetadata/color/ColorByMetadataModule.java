@@ -23,31 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.project;
+package io.github.mzmine.modules.visualization.projectmetadata.color;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.project.impl.ProjectManagerImpl;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.impl.SingleTaskRawDataFilesModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Contains the project manager and current project. There is always just one project loaded
- */
-public final class ProjectService {
+public class ColorByMetadataModule extends SingleTaskRawDataFilesModule {
 
-  @NotNull
-  public static ProjectManager getProjectManager() {
-    return ProjectManagerImpl.getInstance();
+  public static final String MODULE_NAME = "Color by metadata";
+
+  public ColorByMetadataModule() {
+    super(MODULE_NAME, ColorByMetadataParameters.class, MZmineModuleCategory.PROJECTMETADATA, """
+        Color imported data files by metadata like sample type or other columns""");
   }
 
-  /**
-   * @return the current project
-   */
-  public static @NotNull MZmineProject getProject() {
-    return getProjectManager().getCurrentProject();
-  }
-
-  public static @NotNull MetadataTable getMetadata() {
-    return getProject().getProjectMetadata();
+  @Override
+  public @NotNull Task createTask(final @NotNull MZmineProject project,
+      final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
+      final @Nullable MemoryMapStorage storage, final RawDataFile[] raws) {
+    return new ColorByMetadataTask(moduleCallDate, parameters, ColorByMetadataModule.class, raws);
   }
 }
