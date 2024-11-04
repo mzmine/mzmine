@@ -679,4 +679,17 @@ public final class MZmineCore {
   public boolean isTsfProfile() {
     return tsfProfile;
   }
+
+
+  /**
+   * Currently unused because files are automatically deleted by GC
+   */
+  public static void tryClearTempFiles() {
+    logger.finer("Trigger cleanup");
+    var cleanup = new TmpFileCleanup();
+    var thread = new Thread(cleanup);
+    thread.setDaemon(true);
+    thread.setName("Temp cleanup");
+    thread.start();
+  }
 }
