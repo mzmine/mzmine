@@ -228,7 +228,6 @@ public class MSConvertImportTask extends AbstractTask {
           }
           TimeUnit.MILLISECONDS.sleep(100);
         }
-        TimeUnit.MILLISECONDS.sleep(400);
       } catch (IOException | InterruptedException e) {
         logger.log(Level.WARNING, "Error while converting %s to mzML file.".formatted(rawFilePath),
             e);
