@@ -47,6 +47,7 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   private final ThreadPoolTask mainImportTask;
   private final File metadataFile;
   private final ParameterSet parameters;
+  private final boolean sortAndRecolor;
 
   public AllSpectralDataImportMainTask(final List<? extends Task> tasks,
       final @NotNull ParameterSet parameters) {
@@ -54,6 +55,7 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
     mainImportTask = ThreadPoolTask.createDefaultTaskManagerPool("Importing data", tasks);
     metadataFile = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         AllSpectralDataImportParameters.metadataFile, null);
+    sortAndRecolor = parameters.getValue(AllSpectralDataImportParameters.sortAndRecolor);
     this.parameters = parameters;
   }
 
@@ -92,11 +94,13 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
     }
 
     // recolor by default without any metadata
-    ColorByMetadataTask colorTask = recolorBlanksAndQcs();
-    if (colorTask.isCanceled()) {
-      setStatus(colorTask.getStatus());
-      setErrorMessage(colorTask.getErrorMessage());
-      return;
+    if (sortAndRecolor) {
+      ColorByMetadataTask colorTask = recolorBlanksAndQcs();
+      if (colorTask.isCanceled()) {
+        setStatus(colorTask.getStatus());
+        setErrorMessage(colorTask.getErrorMessage());
+        return;
+      }
     }
 
     setStatus(TaskStatus.FINISHED);

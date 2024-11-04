@@ -865,6 +865,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected void makeAndAddImportTask(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
+    param.setParameter(AllSpectralDataImportParameters.sortAndRecolor, true);
     param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(dataFiles);
     param.setParameter(AllSpectralDataImportParameters.metadataFile, metadataFile.active(),
         metadataFile.value());

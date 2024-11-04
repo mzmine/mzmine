@@ -38,10 +38,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class ColorByMetadataModule extends SingleTaskRawDataFilesModule {
 
+  public static final String MODULE_NAME = "Color by metadata";
+
   public ColorByMetadataModule() {
-    super("Color dataset by metadata", ColorByMetadataParameters.class,
-        MZmineModuleCategory.PROJECTMETADATA, """
-            Color imported data files by metadata like sample type or other columns""");
+    super(MODULE_NAME, ColorByMetadataParameters.class, MZmineModuleCategory.PROJECTMETADATA, """
+        Color imported data files by metadata like sample type or other columns""");
   }
 
   @Override
