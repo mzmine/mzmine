@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.color;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -34,6 +35,8 @@ import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParam
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class ColorByMetadataParameters extends SimpleParameterSet {
 
@@ -45,7 +48,7 @@ public class ColorByMetadataParameters extends SimpleParameterSet {
 
   // use a medium range so that colors are not to light or dark
   public static final PercentParameter brightnessPercentRange = new PercentParameter(
-      "Brightness range", "Scale brightness +-range/2 around the colors original brightness", 0.4,
+      "Brightness range", "Scale brightness +-range/2 around the colors original brightness", 0.5,
       0d, 1d);
 
   public static final BooleanParameter separateBlankQcs = new BooleanParameter(
@@ -59,9 +62,9 @@ public class ColorByMetadataParameters extends SimpleParameterSet {
     super(rawFiles, colorByColumn, brightnessPercentRange, separateBlankQcs, applySorting);
   }
 
-  public static ParameterSet createDefault() {
+  public static ParameterSet createDefault(final @NotNull List<RawDataFile> selected) {
     ParameterSet params = new ColorByMetadataParameters().cloneParameterSet();
-    params.setParameter(rawFiles, new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
+    params.setParameter(rawFiles, new RawDataFilesSelection(selected.toArray(RawDataFile[]::new)));
     params.setParameter(colorByColumn, false);
     params.setParameter(brightnessPercentRange, 0.4);
     params.setParameter(separateBlankQcs, true);

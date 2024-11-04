@@ -44,8 +44,11 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,6 +65,10 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
   private final double brightnessPercentRange;
   private final boolean separateBlankQcs;
   private final boolean applySorting;
+
+  private final SimpleColorPalette colors;
+  // mark colors as used when they colored a group
+  private final Set<Color> usedColors = new HashSet<>();
 
   public ColorByMetadataTask(final @NotNull Instant moduleCallDate,
       @NotNull final ParameterSet parameters,
@@ -83,11 +90,17 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
     // as a percentage of the maximum
     brightnessPercentRange = maxBrightnessWidth() * parameters.getValue(
         ColorByMetadataParameters.brightnessPercentRange);
+
+    colors = ConfigService.getDefaultColorPalette().clone();
   }
 
 
   public static double maxBrightnessWidth() {
     return maxBrightness - minBrightness;
+  }
+
+  public static double centerBrightness() {
+    return (maxBrightness + minBrightness) / 2d;
   }
 
   @Override
@@ -109,12 +122,15 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
       return;
     }
 
+    // there might be remaining samples that are not colored
+    colorRemainingSamples();
+
     // finally set colors to raw files
     FxThread.runLater(() -> {
       map.forEach(RawDataFile::setColor);
 
       if (applySorting) {
-        MZmineGUI.sortRawDataFilesAlphabetically();
+        MZmineGUI.sortRawDataFilesAlphabetically(raws);
       }
     });
   }
@@ -137,7 +153,6 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
     }
     List<RawDataFile> filteredRaws = raws;
 
-    SimpleColorPalette colors = ConfigService.getDefaultColorPalette().clone();
     if (separateBlankQcs) {
       filteredRaws = SampleTypeFilter.sample().filterFiles(raws);
       // need to skip the black/white color - already used for blanks
@@ -150,22 +165,48 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
   }
 
   /**
+   *
+   */
+  private void colorRemainingSamples() {
+    var remainingRaw = raws.stream().filter(raw -> !map.containsKey(raw)).toList();
+    Color[] remainingColors = colors.stream().filter(Predicate.not(usedColors::contains))
+        .toArray(Color[]::new);
+    if (remainingColors.length == 0) {
+      remainingColors = new Color[]{colors.getMainColor()};
+    }
+    SimpleColorPalette colors = new SimpleColorPalette(remainingColors);
+    for (final RawDataFile raw : remainingRaw) {
+      colorFadeLighter(List.of(raw), colors.getNextColor(), brightnessPercentRange);
+    }
+  }
+
+  /**
    * Color around the base color. Brightness and saturation are scaled
    *
    * @param bRange brightness width
    */
   private void colorFadeLighter(final List<RawDataFile> raws, final Color base,
       final double bRange) {
+    if (raws.isEmpty()) {
+      return;
+    }
+    if (raws.size() == 1) {
+      map.put(raws.getFirst(), base);
+      usedColors.add(base); // mark as used
+      return;
+    }
     if (base.getSaturation() == 0) {
       colorFadeGray(raws);
       return;
     }
 
+    usedColors.add(base); // mark as used
+
     double h = base.getHue();
 
     // start saturation --> 1  - tend to higher saturations rather than lower
     double sRange = bRange * 1.5;
-    double maxS = within(base.getSaturation() + sRange, minSaturation, 1);
+    double maxS = within(base.getSaturation() + 0.1 + sRange, minSaturation, 1);
     double minS = maxS - sRange;
     if (minS < minSaturation) {
       minS = minSaturation;
@@ -173,11 +214,20 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
     }
 
     // start in center brightness to allow both light and dark mode
-    double minB = within(0.5 - bRange / 2d, minBrightness, maxBrightness);
-    double maxB = within(minB + bRange, minBrightness, maxBrightness);
+    // prefer lighter colors
+    double maxB = within(base.getBrightness() + bRange * 0.6, minBrightness, maxBrightness);
+    double minB = maxB - bRange;
+    if (minB < minBrightness) {
+      minB = minBrightness;
+      maxB = within(minB + bRange, minBrightness, maxBrightness);
+    }
+
+    // option to start always in the center - but this makes colors quite dull and they only depend on hue
+//    double minB = within(centerBrightness() - bRange / 2d, minBrightness, maxBrightness);
+//    double maxB = within(minB + bRange, minBrightness, maxBrightness);
 
     // first half only increases brightness with max saturation
-    double halfN = Math.floor(raws.size() / 2d);
+    double halfN = Math.max(Math.floor(raws.size() / 2d), 1);
     double stepB = (maxB - minB) / (halfN);
     double b = minB;
     int step = 0;
@@ -187,7 +237,7 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
     }
 
     // reduce saturation
-    double stepS = (maxS - minS) / (raws.size() - halfN - 1);
+    double stepS = (maxS - minS) / Math.max(raws.size() - halfN - 1, 1);
     double s = maxS;
     for (; step < raws.size(); step++) {
       map.put(raws.get(step), Color.hsb(h, s, maxB));
@@ -205,13 +255,20 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
    * @param bRange brightness width
    */
   private void colorFadeGray(final List<RawDataFile> raws, double bRange) {
-    int n = raws.size() - 1;
+    if (raws.isEmpty()) {
+      return;
+    }
+    if (raws.size() == 1) {
+      map.put(raws.getFirst(), Color.hsb(0, 0, centerBrightness()));
+      return;
+    }
+    int n = Math.max(raws.size() - 1, 1);
     bRange = Math.min(bRange, maxBrightnessWidth());
-    double startB = within(0.5 - bRange / 2d, minBrightness, maxBrightness);
+    double maxB = within(centerBrightness() + bRange / 2d, minBrightness, maxBrightness);
 
     int step = 0;
     for (RawDataFile raw : raws) {
-      map.put(raw, Color.hsb(0, 0, startB + bRange * (step / (double) n)));
+      map.put(raw, Color.hsb(0, 0, maxB - bRange * (step / (double) n)));
       step++;
     }
   }
