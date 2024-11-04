@@ -99,7 +99,8 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
 
     // #882255
 //    Color qcColor = Color.web("#770940");
-    Color qcColor = Color.web("#8e1be1");
+//    Color qcColor = Color.web("#8e1be1");
+    Color qcColor = colors.getLast(); // positive, negative, or last color?
     List<RawDataFile> qcs = SampleTypeFilter.qc().filterFiles(raws);
     colorFadeLighter(qcs, qcColor, brightnessPercentRange);
 
