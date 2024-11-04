@@ -50,7 +50,7 @@ public class WavelengthType extends DoubleType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "otherdetectors_wavelength";
+    return "wavelength";
   }
 
   @Override
