@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -88,7 +89,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private static final Logger logger = Logger.getLogger(
       AllSpectralDataImportModule.class.getName());
 
-  private static final String MODULE_NAME = "Import MS data";
+  public static final String MODULE_NAME = "Import MS data";
   private static final String MODULE_DESCRIPTION = "This module combines the import of different MS data formats and provides advanced options";
 
   /**
@@ -464,7 +465,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @Nullable final MemoryMapStorage storageMassLists) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
-        + " and file " + file.getAbsolutePath());
+                   + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(storageMassLists, newMZmineFile,
         createTask(fileType, project, file, newMZmineFile, scanProcessorConfig, module, parameters,
