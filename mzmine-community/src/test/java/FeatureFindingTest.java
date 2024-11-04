@@ -236,7 +236,7 @@ public class FeatureFindingTest {
     int filesTested = 0;
     for (FeatureList flist : project.getCurrentFeatureLists()) {
       assertEquals(1, flist.getNumberOfRawDataFiles());
-      assertEquals(3, flist.getAppliedMethods().size());
+      assertEquals(2, flist.getAppliedMethods().size());
 
       // check default sorting of rows
       assertTrue(MZmineTestUtil.isSorted(flist));

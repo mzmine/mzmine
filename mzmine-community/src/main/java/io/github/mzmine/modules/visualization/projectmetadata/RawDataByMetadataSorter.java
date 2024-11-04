@@ -34,7 +34,7 @@ import java.util.Comparator;
 public class RawDataByMetadataSorter {
 
   public static Comparator<RawDataFile> byColumn(String column) {
-    MetadataColumn col = MetadataUtils.getColumnByName(column);
+    MetadataColumn col = ProjectService.getMetadata().getColumnByName(column);
     return byColumn(col);
   }
 
@@ -53,12 +53,13 @@ public class RawDataByMetadataSorter {
    * Sort by run date and then by name - or just by name if run date is empty
    */
   public static Comparator<RawDataFile> byDateAndName() {
-    DateMetadataColumn dateCol = MetadataUtils.getRunDateColumn();
+    DateMetadataColumn dateCol = ProjectService.getMetadata().getRunDateColumn();
     if (dateCol == null) {
       return Comparator.comparing(RawDataFile::getName);
     }
 
-    return Comparator.comparing((RawDataFile raw) -> MetadataUtils.getValue(dateCol, raw),
+    return Comparator.comparing(
+        (RawDataFile raw) -> ProjectService.getMetadata().getValue(dateCol, raw),
         Comparator.nullsLast(Comparator.naturalOrder())).thenComparing(RawDataFile::getName);
   }
 

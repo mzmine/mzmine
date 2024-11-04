@@ -77,6 +77,7 @@ public class MetadataTable {
     this.data = data;
   }
 
+
   public Map<MetadataColumn<?>, Map<RawDataFile, Object>> getData() {
     return data;
   }
@@ -155,6 +156,13 @@ public class MetadataTable {
       return sampleType;
     }
     return (MetadataColumn<String>) col;
+  }
+
+  /**
+   * Maybe push into MetadataTable?
+   */
+  public DateMetadataColumn getRunDateColumn() {
+    return (DateMetadataColumn) getColumnByName(DATE_HEADER);
   }
 
   /**

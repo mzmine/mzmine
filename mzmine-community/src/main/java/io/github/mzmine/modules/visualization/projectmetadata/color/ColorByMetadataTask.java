@@ -28,17 +28,17 @@ package io.github.mzmine.modules.visualization.projectmetadata.color;
 import static io.github.mzmine.util.MathUtils.within;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.visualization.projectmetadata.MetadataUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.RawDataByMetadataSorter;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractRawDataFileTask;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.time.Instant;
@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import javafx.scene.paint.Color;
@@ -91,7 +92,7 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
     brightnessPercentRange = maxBrightnessWidth() * parameters.getValue(
         ColorByMetadataParameters.brightnessPercentRange);
 
-    colors = ConfigService.getDefaultColorPalette().clone();
+    colors = ConfigService.getDefaultColorPalette().clone(true);
   }
 
 
@@ -107,12 +108,14 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
   protected void process() {
     // color blanks and QCs - they may be recolored right after if they also belong to groups
     // make blanks gray monochrome
-    colorFadeGray(SampleTypeFilter.blank().filterFiles(raws));
+    List<RawDataFile> blanks = SampleTypeFilter.blank().filterFiles(raws);
+    colorFadeLighter(blanks, colors.getNeutralColor(), brightnessPercentRange);
 
     // #882255
-    Color berry = Color.web("#770940");
+//    Color qcColor = Color.web("#770940");
+    Color qcColor = Color.web("#8e1be1");
     List<RawDataFile> qcs = SampleTypeFilter.qc().filterFiles(raws);
-    colorFadeLighter(qcs, berry, brightnessPercentRange);
+    colorFadeLighter(qcs, qcColor, brightnessPercentRange);
 
     // color samples by metadata - this may recolor blanks and QC if they are listed
     if (colorColumn != null) {
@@ -141,12 +144,12 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
    * @param colorColumn column to group by
    */
   private void colorByColumn(final String colorColumn) {
-    MetadataTable metadata = MetadataUtils.getMetadata();
+    MetadataTable metadata = ProjectService.getMetadata();
     MetadataColumn<?> column = metadata.getColumnByName(colorColumn);
     if (column == null) {
       // Do not handle this as an exception / error - this would crash batches
       // but this issue can be resolved later - just show a dialog
-      DesktopService.getDesktop().displayErrorMessage(
+      DialogLoggerUtil.showErrorDialog("Missing metdata column",
           "Recoloring: No such metadata column named %s, make sure to import metadata after samples are imported. Open the metadata from the project menu.".formatted(
               colorColumn));
       return;
@@ -270,6 +273,14 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
     for (RawDataFile raw : raws) {
       map.put(raw, Color.hsb(0, 0, maxB - bRange * (step / (double) n)));
       step++;
+    }
+  }
+
+  @Override
+  protected void addAppliedMethod() {
+    if (Objects.equals(ColorByMetadataModule.class, getModuleClass())) {
+      // module was run by itself
+      super.addAppliedMethod();
     }
   }
 

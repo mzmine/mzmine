@@ -87,6 +87,9 @@ public abstract class AbstractSimpleTask extends AbstractSimpleToolTask {
   protected abstract List<RawDataFile> getProcessedDataFiles();
 
   protected void addAppliedMethod() {
+    if (moduleClass == null || moduleCallDate == null) {
+      return;
+    }
     SimpleFeatureListAppliedMethod appliedMethod = new SimpleFeatureListAppliedMethod(moduleClass,
         parameters, moduleCallDate);
     for (final var flist : getProcessedFeatureLists()) {

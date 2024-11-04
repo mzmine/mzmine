@@ -349,6 +349,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   @Override
   public SimpleColorPalette clone() {
+    return clone(false);
+  }
+
+  public SimpleColorPalette clone(boolean resetIndex) {
     SimpleColorPalette clone = new SimpleColorPalette();
     for (Color clr : this) {
       clone.add(clr);
@@ -356,6 +360,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     clone.setName(getName());
     clone.setNegativeColor(getNegativeColor());
     clone.setPositiveColor(getPositiveColor());
+    clone.setColorCounter(resetIndex ? 0 : next);
     return clone;
   }
 
@@ -496,7 +501,14 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return delegate.remove(index);
   }
 
+  /**
+   * @param nextIndex this will be the next color index
+   */
+  public void setColorCounter(int nextIndex) {
+    next = nextIndex;
+  }
+
   public void resetColorCounter() {
-    next = 0;
+    setColorCounter(0);
   }
 }
