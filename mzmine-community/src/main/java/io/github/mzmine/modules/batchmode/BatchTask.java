@@ -186,9 +186,16 @@ public class BatchTask extends AbstractTask {
       // BatchTask is often run directly without WrappedTask, so handling of error message is important
       runBatchQueue();
     } catch (Throwable e) {
-      logger.log(Level.WARNING, e.getMessage(), e);
+      // in case of an exception
+      // regular errors are already handled in the runBatchQueue methods
       if (getErrorMessage() != null) {
-        logger.log(Level.WARNING, getErrorMessage());
+        if (DesktopService.isGUI()) {
+          FxThread.runLater(
+              () -> DialogLoggerUtil.showErrorDialog("EXCEPTION Batch had errors and stopped",
+                  getErrorMessage()));
+        }
+      } else {
+        logger.log(Level.WARNING, e.getMessage(), e);
       }
       return;
     }
