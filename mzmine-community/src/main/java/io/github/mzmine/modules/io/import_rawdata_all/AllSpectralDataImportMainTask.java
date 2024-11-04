@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataTask;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -72,7 +74,9 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
     if (mainImportTask.isCanceled()) {
       setStatus(mainImportTask.getStatus());
       setErrorMessage(mainImportTask.getErrorMessage());
+      return;
     }
+
     if (metadataFile != null) {
       // load metadata after data files
       Task metaTask = loadMetadata();
@@ -83,7 +87,22 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
       }
     }
 
+    // recolor by default without any metadata
+    ColorByMetadataTask colorTask = recolorBlanksAndQcs();
+    if (colorTask.isCanceled()) {
+      setStatus(colorTask.getStatus());
+      setErrorMessage(colorTask.getErrorMessage());
+      return;
+    }
+
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private ColorByMetadataTask recolorBlanksAndQcs() {
+    ColorByMetadataTask task = new ColorByMetadataTask(moduleCallDate,
+        ColorByMetadataParameters.createDefault(), AllSpectralDataImportModule.class);
+    task.run();
+    return task;
   }
 
   private Task loadMetadata() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -79,7 +79,8 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
               items.stream().filter(Objects::nonNull).filter(item -> item instanceof GroupEntity)
                   .map(item -> (GroupEntity) item).toList());
           // if group is selected, select all internal data files
-          selectedValues.setAll(items.stream().filter(Objects::nonNull).<T>mapMulti((item, consumer) -> {
+          selectedValues.setAll(
+              items.stream().filter(Objects::nonNull).<T>mapMulti((item, consumer) -> {
                 if (item instanceof GroupEntity ge) {
                   listGroups.get(ge).stream().map(ValueEntity::getValue).filter(Objects::nonNull)
                       .forEach(consumer::accept);
@@ -387,8 +388,9 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
    * @param indices indices of items to sort
    */
   public void sortItems(List<Integer> indices) {
-    if (indices == null || indices.isEmpty()) {
-      return;
+    // sort also if nothing is selected - then sort everything
+    if (indices == null || indices.size() == 1) {
+      indices = IntStream.range(0, listItems.size()).boxed().toList();
     }
 
     // Get items corresponding to indices

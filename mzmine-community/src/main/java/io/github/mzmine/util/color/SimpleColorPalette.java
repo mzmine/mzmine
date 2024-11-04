@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -127,7 +127,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     neutralColor = ColorsFX.getNeutralColor();
   }
 
-  public SimpleColorPalette(@NotNull Color[] clrs) {
+  public SimpleColorPalette(@NotNull Color... clrs) {
     this();
     for (Color clr : clrs) {
       add(clr);
@@ -344,7 +344,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   @Override
   public int hashCode() {
     return super.hashCode() + name.hashCode() + getPositiveColor().hashCode()
-        + getNeutralColor().hashCode() + getNegativeColor().hashCode();
+           + getNeutralColor().hashCode() + getNegativeColor().hashCode();
   }
 
   @Override
@@ -362,7 +362,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   @Override
   public String toString() {
     return getName() + " " + super.toString() + " pos " + getPositiveColor().toString() + " neg "
-        + getNegativeColor();
+           + getNegativeColor();
   }
 
   public void loadFromXML(Element xmlElement) {

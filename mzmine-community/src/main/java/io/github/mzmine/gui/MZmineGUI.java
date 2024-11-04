@@ -248,6 +248,16 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   }
 
+  /**
+   * Currently the {@link GroupableListView} only allows sorting by name.
+   */
+  public static void sortRawDataFilesAlphabetically() {
+    if (mainWindowController == null) {
+      return;
+    }
+    FxThread.runLater(() -> mainWindowController.getRawDataList().sortItems(null));
+  }
+
   @NotNull
   public static List<RawDataFile> getSelectedRawDataFiles() {
     final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
@@ -362,11 +372,13 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
           logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
+                              + rawDataFiles.stream().map(File::getAbsolutePath)
+                                  .collect(Collectors.joining(", ")));
         }
         if (!libraryFiles.isEmpty()) {
           logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
-              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
+                              + libraryFiles.stream().map(File::getAbsolutePath)
+                                  .collect(Collectors.joining(", ")));
         }
 
         // set raw and library files to parameter

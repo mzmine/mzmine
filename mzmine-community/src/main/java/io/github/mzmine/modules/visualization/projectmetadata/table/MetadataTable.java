@@ -37,10 +37,10 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Date
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -274,9 +274,30 @@ public class MetadataTable {
     if (fileValueMap == null) {
       throw new MetadataColumnDoesNotExistException(column.getTitle());
     }
+    return groupFilesByColumn(fileValueMap.keySet(), column);
+  }
 
-    return fileValueMap.entrySet().stream().collect(Collectors.groupingBy(e -> (T) e.getValue(),
-        Collectors.mapping(Entry::getKey, Collectors.toList())));
+  /**
+   * Groups the files by the value in the metadata column.
+   *
+   * @param <T>
+   * @return If the column is null, an empty map is returned. If the column is not in the table, an
+   * error is thrown.
+   * @throws MetadataColumnDoesNotExistException If the column does not exist. Does not throw if the
+   *                                             column is null.
+   */
+  @NotNull
+  public <T> Map<T, List<RawDataFile>> groupFilesByColumn(@NotNull Collection<RawDataFile> raws,
+      @Nullable MetadataColumn<T> column) throws MetadataColumnDoesNotExistException {
+    if (column == null) {
+      return Map.of();
+    }
+    final Map<RawDataFile, Object> fileValueMap = data.get(column);
+    if (fileValueMap == null) {
+      throw new MetadataColumnDoesNotExistException(column.getTitle());
+    }
+    return raws.stream().filter(raw -> fileValueMap.get(raw) != null)
+        .collect(Collectors.groupingBy(raw -> (T) fileValueMap.get(raw)));
   }
 
   /**
