@@ -656,6 +656,9 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       MemoryMapStorage storage, @NotNull ScanImportProcessorConfig config) {
     final List<MobilitySpectralArrays> processedMobilityScanData = splitMergedMobilityScans().stream()
         .map(msa -> msa.process(this, config)).toList();
+    if (config.isMassDetectActive(getMSLevel())) {
+      spectrumType = MassSpectrumType.CENTROIDED;
+    }
     final BuildingMobilityScanStorage buildingMobilityScanStorage = new BuildingMobilityScanStorage(
         storage, this, processedMobilityScanData);
     clearUnusedData();
