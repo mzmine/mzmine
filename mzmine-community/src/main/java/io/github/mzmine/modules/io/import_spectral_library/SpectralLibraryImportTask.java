@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -79,6 +79,7 @@ public class SpectralLibraryImportTask extends AbstractTask {
       SpectralLibrary library = parseFile(dataBaseFile);
       // remove empty or 0 intensity spectra
       library.removeif(this::checkRemoveEntry);
+      library.trim(); // trim to save memory
       final List<SpectralLibraryEntry> entries = library.getEntries();
       if (!entries.isEmpty()) {
         project.addSpectralLibrary(library);
@@ -90,7 +91,8 @@ public class SpectralLibraryImportTask extends AbstractTask {
         logger.log(Level.WARNING, "Library was empty or there was an error while reading");
       }
     } catch (Exception e) {
-      logger.log(Level.SEVERE, STR."Could not read file \{dataBaseFile}. The file/path may not exist.", e);
+      logger.log(Level.SEVERE,
+          STR."Could not read file \{dataBaseFile}. The file/path may not exist.", e);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(e.toString());
       return;
