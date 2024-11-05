@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,6 +60,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.S
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
+import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms.ChromatogramBlankSubtractionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
@@ -174,6 +175,8 @@ import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramF
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule;
@@ -218,6 +221,8 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#PROJECTMETADATA}
        */
       ProjectMetadataImportModule.class, //
+      ProjectMetadataExportModule.class, //
+      ColorByMetadataModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
@@ -307,6 +312,7 @@ public class BatchModeModulesList {
       IsotopeGrouperModule.class, //
       IsotopeFinderModule.class, //
       FeatureListBlankSubtractionModule.class, //
+      ChromatogramBlankSubtractionModule.class, //
       DuplicateFilterModule.class, //
       MobilityMzRegionExtractionModule.class, //
       NeutralLossFilterModule.class, //

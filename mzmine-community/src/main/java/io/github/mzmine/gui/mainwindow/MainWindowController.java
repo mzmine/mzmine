@@ -43,6 +43,7 @@ import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -52,6 +53,7 @@ import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
@@ -182,6 +184,7 @@ public class MainWindowController {
   public FlowPane taskViewPane;
   @FXML
   public HBox bottomMenuBar;
+  public BorderPane mainPane;
   public Tab tabMsData;
   public Tab tabFeatureLists;
   public Tab tabLibraries;
@@ -908,6 +911,19 @@ public class MainWindowController {
       new Thread(() -> {
         logger.info("Freeing unused memory");
         System.gc();
+        // temporary logs
+//        var raws = ProjectService.getProject().getCurrentRawDataFiles();
+//        var total = raws.stream().map(RawDataFile::getScans).flatMap(Collection::stream)
+//            .mapToLong(MassSpectrum::getNumberOfDataPoints).sum();
+//        var masses = raws.stream().map(RawDataFile::getScans).flatMap(Collection::stream)
+//            .map(Scan::getMassList).filter(Objects::nonNull)
+//            .mapToLong(MassSpectrum::getNumberOfDataPoints).sum();
+//        long totalMb = (total * 2 * 8) / 1024 / 1024;
+//        long massesMb = (masses * 2 * 8) / 1024 / 1024;
+//        logger.info("""
+//            Total data points:   %d (%d MB)
+//            Total in mass lists: %d (%d MB)
+//            """.formatted(total, totalMb, masses, massesMb));
       }).start();
     });
   }
@@ -1047,5 +1063,17 @@ public class MainWindowController {
       return ProjectTab.LIBRARIES;
     }
     return ProjectTab.DATA_FILES; // should not happen
+  }
+
+  public BorderPane getMainPane() {
+    return mainPane;
+  }
+
+  public void handleColorByMetadata(final ActionEvent e) {
+    MZmineCore.setupAndRunModule(ColorByMetadataModule.class);
+  }
+
+  public void handleShowStatisticsDashboard(final ActionEvent e) {
+    MZmineCore.setupAndRunModule(StatsDasboardModule.class);
   }
 }

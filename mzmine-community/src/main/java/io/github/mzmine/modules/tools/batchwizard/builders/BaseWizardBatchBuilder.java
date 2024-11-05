@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -129,6 +129,7 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters.MassOptions;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
@@ -228,8 +229,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     super(steps);
     // input
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.DATA_IMPORT);
-    dataFiles = getValue(params, AllSpectralDataImportParameters.fileNames);
-    metadataFile = getOptional(params, AllSpectralDataImportParameters.metadataFile);
+    dataFiles = getValue(params, DataImportWizardParameters.fileNames);
+    metadataFile = getOptional(params, DataImportWizardParameters.metadataFile);
 
     // annotation
     params = steps.get(WizardPart.ANNOTATION);
@@ -864,6 +865,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected void makeAndAddImportTask(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
+    param.setParameter(AllSpectralDataImportParameters.sortAndRecolor, true);
     param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(dataFiles);
     param.setParameter(AllSpectralDataImportParameters.metadataFile, metadataFile.active(),
         metadataFile.value());

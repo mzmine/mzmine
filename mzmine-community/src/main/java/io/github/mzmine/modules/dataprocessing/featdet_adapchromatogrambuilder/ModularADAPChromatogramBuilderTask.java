@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -148,7 +148,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Detecting chromatograms in " + dataFile;
+    return "Detecting %s in %s".formatted(isImaging ? "images" : "chromatograms", dataFile);
   }
 
   @Override
@@ -350,7 +350,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (dps >= minimumTotalScans && chromatogram.matchesMinContinuousDataPoints(scans,
           minGroupIntensity, minimumConsecutiveScans, minHighestPoint)) {
         // add zeros to edges
-        chromatogram.addNZeros(scans, 1, 1);
+        if (!isImaging) {
+          chromatogram.addNZeros(scans, 1, 1);
+        }
 
         // add to list
         ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(newFeatureList,

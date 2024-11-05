@@ -105,6 +105,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -245,6 +246,16 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       }
     });
 
+  }
+
+  /**
+   * Currently the {@link GroupableListView} only allows sorting by name.
+   */
+  public static void sortRawDataFilesAlphabetically(final List<RawDataFile> raws) {
+    if (mainWindowController == null) {
+      return;
+    }
+    FxThread.runLater(() -> mainWindowController.getRawDataList().sortItemObjects(raws));
   }
 
   @NotNull
@@ -873,5 +884,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   public ProjectTab getSelectedProjectTab() {
     return mainWindowController.getSelectedProjectTab();
+  }
+
+  public void setMenubar(MenuBar menubar) {
+    mainWindowController.getMainPane().setTop(menubar);
   }
 }

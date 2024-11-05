@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.batchmode;
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
@@ -44,9 +45,14 @@ import io.github.mzmine.util.javafx.ArrayObservableList;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -251,25 +257,73 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
    * @param allDataFiles replaces import files
    * @return true if success, false if not. e.g., if there was no data import step in the batch file
    */
-  public boolean setImportFiles(final File[] allDataFiles, final File[] allLibraryFiles)
-      throws IllegalStateException {
-    MZmineProcessingStep<?> currentStep = get(0);
-    ParameterSet importParameters = currentStep.getParameterSet();
-    try {
-      if (allDataFiles != null) {
-        importParameters.getParameter(AllSpectralDataImportParameters.fileNames)
-            .setValue(allDataFiles);
-      }
-      if (allLibraryFiles != null) {
-        importParameters.getParameter(SpectralLibraryImportParameters.dataBaseFiles)
-            .setValue(allLibraryFiles);
-      }
-      return true;
-    } catch (Exception ex) {
-      logger.log(Level.WARNING,
-          "Could not change input data files in batch. When running batch and changing the data input, the first step in the batch needs to be the all spectral data import module.",
-          ex);
+  public boolean setImportFiles(final File[] allDataFiles, final @Nullable File metadataFile,
+      final File[] allLibraryFiles) throws IllegalStateException {
+    if (isEmpty()) {
+      logger.severe(
+          "Batch queue is empty. Maybe there was an error while parsing the batch file. Better to recreate the batch in this mzmine version.");
       return false;
+    }
+
+    var module = MZmineCore.getModuleInstance(AllSpectralDataImportModule.class);
+    var potentialErrorMessage = """
+        Could not change input data files in batch. When running batch and changing the data input, the first step in the batch needs to be the %s module.""".formatted(
+        module.getName());
+
+    // preconditions
+    // cannot have data import steps after first step
+    var extraImportSteps = stream().skip(1).map(MZmineProcessingStep::getModule)
+        .filter(m -> m.getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT).toList();
+    if (!extraImportSteps.isEmpty()) {
+      logger.severe(potentialErrorMessage);
+      var message = "There were too many raw data import modules in the batch list:"
+                    + extraImportSteps.stream().map(MZmineModule::getName)
+                        .collect(Collectors.joining("\n"));
+      logger.severe(message);
+      return false;
+    }
+
+    // data import needs to be first step
+    MZmineProcessingStep<MZmineProcessingModule> currentStep = this.getFirst();
+    if (currentStep.getModule() instanceof AllSpectralDataImportModule) {
+      // use existing first import step
+      ParameterSet importParameters = currentStep.getParameterSet();
+      try {
+        if (allDataFiles != null) {
+          importParameters.setParameter(AllSpectralDataImportParameters.fileNames, allDataFiles);
+        }
+        importParameters.setParameter(AllSpectralDataImportParameters.metadataFile,
+            metadataFile != null, metadataFile);
+        if (allLibraryFiles != null) {
+          importParameters.setParameter(SpectralLibraryImportParameters.dataBaseFiles,
+              allLibraryFiles);
+        }
+        return true;
+      } catch (Exception ex) {
+        logger.log(Level.WARNING,
+            "Could not change input data files in batch. When running batch and changing the data input, the first step in the batch needs to be the all spectral data import module.",
+            ex);
+        return false;
+      }
+    } else {
+      // first step was not all MS data import step
+      // cannot be other data import step - unsupported for now
+      if (currentStep.getModule().getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT) {
+        logger.severe(potentialErrorMessage);
+        return false;
+      }
+      // if a new step is added - allDataFiles are required non null
+      if (allDataFiles == null || allDataFiles.length == 0) {
+        var msg = "Trying to set an empty list of files in data import. Please specify files to import.";
+        logger.severe(msg);
+        return false;
+      }
+
+      ParameterSet parameters = AllSpectralDataImportParameters.create(allDataFiles, metadataFile,
+          allLibraryFiles);
+      addFirst(new MZmineProcessingStepImpl<>(module, parameters));
+
+      return true;
     }
   }
 
@@ -283,4 +337,27 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
     ChangeOutputFilesUtils.applyTo(this, baseFile);
     logger.info("Done changing output file paths.");
   }
+
+  /**
+   * @param moduleClass filter steps for this module class
+   * @return stream of ParameterSets of specific steps
+   */
+  @NotNull
+  public Stream<ParameterSet> streamStepParameterSets(
+      @NotNull final Class<? extends MZmineModule> moduleClass) {
+    return stream().filter(
+            step -> step.getModule().getClass().getName().equals(moduleClass.getName()))
+        .map(MZmineProcessingStep::getParameterSet).filter(Objects::nonNull);
+  }
+
+  /**
+   * @param moduleClass filter steps for this module class
+   * @return stream of ParameterSets of specific steps
+   */
+  @NotNull
+  public Optional<ParameterSet> findFirst(
+      @NotNull final Class<? extends MZmineModule> moduleClass) {
+    return streamStepParameterSets(moduleClass).findFirst();
+  }
 }
+

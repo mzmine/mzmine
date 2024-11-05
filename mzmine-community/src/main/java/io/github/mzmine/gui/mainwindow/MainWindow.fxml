@@ -56,7 +56,8 @@
     minWidth="600"
     prefHeight="${screen.visualBounds.height*0.9}"
     prefWidth="${screen.visualBounds.width*0.9}"
-    xmlns="http://javafx.com/javafx/14.0.1">
+    xmlns="http://javafx.com/javafx/14.0.1"
+    fx:id="mainPane">
     <bottom>
       <VBox fx:id="bottomBox" maxHeight="130">
         <StatusBar maxHeight="30" minHeight="30" fx:id="statusBar">
@@ -134,6 +135,7 @@
 
                               <SeparatorMenuItem/>
                               <Menu text="Set color" fx:id="rawDataSetColorMenu"/>
+                              <MenuItem onAction="#handleColorByMetadata" text="Color by metadata"/>
                             </items>
                           </ContextMenu>
                         </contextMenu>
@@ -157,6 +159,7 @@
                               <MenuItem onAction="#handleShowFeatureListSummary"
                                 text="Show feature list summary"
                                 fx:id="showFeatureListSummaryMenuItem"/>
+                              <MenuItem onAction="#handleShowStatisticsDashboard" text="Show statistics dashboard"/>
                               <MenuItem onAction="#handleShowScatterPlot"
                                 text="Show scatter plot"/>
                               <SeparatorMenuItem/>

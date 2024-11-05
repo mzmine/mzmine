@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,8 @@ package io.github.mzmine.datamodel;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 public interface MergedMassSpectrum extends Scan {
 
@@ -58,10 +60,16 @@ public interface MergedMassSpectrum extends Scan {
     return -1;
   }
 
+  void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
+
   /**
    * The merging type describes the selection of input spectra and on which level it was merged.
    */
   enum MergingType {
+    /**
+     * Single scan so not merged yet
+     */
+    SINGLE_BEST_SCAN,
     /**
      * SAME_ENERGY merged all spectra from the same energy
      */
