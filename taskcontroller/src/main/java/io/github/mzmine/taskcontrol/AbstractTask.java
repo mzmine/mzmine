@@ -103,9 +103,7 @@ public abstract class AbstractTask implements Task {
 
   @Override
   public void cancel() {
-    if (!isFinished()) {
-      setStatus(TaskStatus.CANCELED);
-    }
+    setStatus(TaskStatus.CANCELED);
   }
 
   @Override
@@ -142,10 +140,14 @@ public abstract class AbstractTask implements Task {
   }
 
   /**
-   *
+   * error and finished cannot be overwritten
    */
   public final void setStatus(TaskStatus newStatus) {
     TaskStatus old = status;
+    if (old == TaskStatus.ERROR || old == TaskStatus.FINISHED) {
+      return;
+    }
+
     this.status = newStatus;
     if (listener != null && !status.equals(old)) {
       for (int i = 0; i < listener.size(); i++) {

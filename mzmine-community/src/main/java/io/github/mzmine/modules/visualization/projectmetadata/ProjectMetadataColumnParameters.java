@@ -133,7 +133,7 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
         return values;
       }
 
-      String v = null;
+      String v;
       try {
         Object[] result = new Object[values.length];
         for (int i = 0; i < values.length; i++) {
@@ -142,8 +142,6 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
         }
         return result;
       } catch (Exception ex) {
-        logger.warning(
-            "Cannot convert value " + Objects.requireNonNullElse(v, "null") + " to " + this);
         return null;
       }
     }

@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
@@ -72,6 +73,26 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
         sortAndRecolor, // sort and recolor
         // allow import of spectral libraries
         SpectralLibraryImportParameters.dataBaseFiles);
+  }
+
+
+  public static ParameterSet create(@NotNull final File[] allDataFiles,
+      @Nullable final File metadata, @Nullable final File[] allLibraryFiles) {
+    return create(allDataFiles, metadata, allLibraryFiles, null);
+  }
+
+  public static ParameterSet create(@NotNull final File[] allDataFiles,
+      @Nullable final File metadata, @Nullable final File[] allLibraryFiles,
+      @Nullable final AdvancedSpectraImportParameters advanced) {
+    var params = new AllSpectralDataImportParameters().cloneParameterSet();
+    params.setParameter(fileNames, allDataFiles);
+    params.setParameter(metadataFile, metadata != null, metadata);
+    params.setParameter(SpectralLibraryImportParameters.dataBaseFiles, allLibraryFiles);
+    params.setParameter(advancedImport, advanced != null);
+    if (advanced != null) {
+      params.getParameter(advancedImport).setEmbeddedParameters(advanced);
+    }
+    return params;
   }
 
   /**
@@ -129,4 +150,5 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
     return Arrays.stream(parameters.getValue(fileNames))
         .map(AllSpectralDataImportModule::validateBrukerPath);
   }
+
 }
