@@ -185,7 +185,7 @@ public enum NodeAtt implements GraphElementAttr {
     };
   }
 
-  private <T> T extractFirstFeatureAnnotation(FeatureListRow row,
+  private static <T> T extractFirstFeatureAnnotation(FeatureListRow row,
       Class<? extends DataType<T>> type) {
     return CompoundAnnotationUtils.streamFeatureAnnotations(row)
         .map(annotation -> CompoundAnnotationUtils.getTypeValue(annotation, type))
