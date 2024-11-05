@@ -72,7 +72,7 @@ public class MZmineJsonGenerator {
     JsonObjectBuilder json = Json.createObjectBuilder();
     // tag spectrum from mzmine
     String version = String.valueOf(SemverVersionReader.getMZmineVersion());
-    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine " + version);
+    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine-" + version);
     // ion specific
     Double precursorMZ = param.getParameter(LibrarySubmitIonParameters.MZ).getValue();
     if (precursorMZ != null) {
@@ -190,7 +190,7 @@ public class MZmineJsonGenerator {
     JsonObjectBuilder json = Json.createObjectBuilder();
     // tag spectrum from mzmine
     String version = String.valueOf(SemverVersionReader.getMZmineVersion());
-    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine " + version);
+    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine-" + version);
 
     for (var metafield : entry.getFields().entrySet()) {
       String id = metafield.getKey().getMZmineJsonID();
