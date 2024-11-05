@@ -25,6 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
@@ -38,6 +40,7 @@ import java.util.Collection;
 import java.util.List;
 import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -65,12 +68,12 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   }
 
   public FileNamesParameter(String name, String description, List<ExtensionFilter> filters,
-      Path defaultDir, File[] defaultFiles) {
+      Path defaultDir, @Nullable File[] defaultFiles) {
     this.name = name;
     this.description = description;
     this.filters = ImmutableList.copyOf(filters);
     this.defaultDir = defaultDir;
-    value = defaultFiles;
+    setValue(defaultFiles);
   }
 
   public Path getDefaultDir() {
@@ -103,13 +106,14 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   }
 
   @Override
+  @NotNull
   public File[] getValue() {
     return value;
   }
 
   @Override
-  public void setValue(File[] value) {
-    this.value = value;
+  public void setValue(@Nullable File[] value) {
+    this.value = requireNonNullElse(value, new File[0]);
   }
 
   @Override

@@ -43,6 +43,7 @@ import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -52,6 +53,7 @@ import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
@@ -79,7 +81,6 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -1066,5 +1067,13 @@ public class MainWindowController {
 
   public BorderPane getMainPane() {
     return mainPane;
+  }
+
+  public void handleColorByMetadata(final ActionEvent e) {
+    MZmineCore.setupAndRunModule(ColorByMetadataModule.class);
+  }
+
+  public void handleShowStatisticsDashboard(final ActionEvent e) {
+    MZmineCore.setupAndRunModule(StatsDasboardModule.class);
   }
 }

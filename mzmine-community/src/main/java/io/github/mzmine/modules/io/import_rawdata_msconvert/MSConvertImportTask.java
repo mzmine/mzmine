@@ -246,8 +246,7 @@ public class MSConvertImportTask extends AbstractTask {
 
   public static @NotNull File getMzMLFileName(File filePath) {
     final String fileName = filePath.getName();
-    final String extension = FileAndPathUtil.getExtension(fileName);
-    final String mzMLName = fileName.replace(extension, "mzML");
+    final String mzMLName =  FileAndPathUtil.getRealFileName(fileName, "mzML");
     final File mzMLFile = new File(filePath.getParent(), mzMLName);
     return mzMLFile;
   }

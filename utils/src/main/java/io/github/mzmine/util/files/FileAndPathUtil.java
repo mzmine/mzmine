@@ -67,7 +67,11 @@ public class FileAndPathUtil {
 
   private static final Logger logger = Logger.getLogger(FileAndPathUtil.class.getName());
   private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
-  private static File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
+  
+  // changed on other thread so make volatile
+  // flag to delete temp files as soon as possible
+  private static volatile boolean earlyTempFileCleanup = true;
+  private static volatile File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
 
   /**
    * Count the number of lines in a text file (should be seconds even for large files)
@@ -732,6 +736,24 @@ public class FileAndPathUtil {
    * @param prefix of the filename
    * @param suffix of the filename, usually .tmp
    * @param dir    temp directory to create file in
+   * @param arena  an arena to manage the {@link MemorySegment}
+   * @param size   The size (in bytes) of the mapped memory backing the memory segment
+   * @return a new {@link MemorySegment} that maps the sparse file
+   * @throws IOException
+   */
+  public static MemorySegment memoryMapSparseTempFile(String prefix, String suffix, Path dir,
+      Arena arena, long size) throws IOException {
+    try (var fc = openTempFileChannel(prefix, suffix, dir)) {
+      // Create a mapped memory segment managed by the arena
+      MemorySegment segment = fc.map(MapMode.READ_WRITE, 0L, size, arena);
+      return segment;
+    }
+  }
+
+  /**
+   * @param prefix of the filename
+   * @param suffix of the filename, usually .tmp
+   * @param dir    temp directory to create file in
    * @return a new {@link MemorySegment} that maps the sparse file
    * @throws IOException
    */
@@ -744,29 +766,29 @@ public class FileAndPathUtil {
       try {
         var channel = FileChannel.open(f, SPARSE_OPEN_OPTIONS);
         f.toFile().deleteOnExit();
+        try {
+          // channel keeps file alive and we can still memory map and write, read to memory mapped file
+          // this will cause the file to disappear directly - tmp folder is empty
+          // tested on linux
+          // tested on Windows 11:
+          // space is still taken from the disk of temp directory, but temp directory is empty
+          // GC will remove MemoryMapStorage, Arena, MemorySegment and with this automatically call
+          // munmap and unmap the file finally clearing the space on disk after GC
+          // TODO test on different platforms
+          // TODO macOS
+          // TODO wsl
+          // TODO docker
+          if (earlyTempFileCleanup) {
+            f.toFile().delete();
+          }
+        } catch (Exception e) {
+        }
         return channel;
       } catch (FileAlreadyExistsException e) {
         // ignore and try next file name
       }
       // try adding random numbers
       f = generateRandomPath(prefix, suffix, dir);
-    }
-  }
-
-  /**
-   * @param prefix of the filename
-   * @param suffix of the filename, usually .tmp
-   * @param dir    temp directory to create file in
-   * @param arena  an arena to manage the {@link MemorySegment}
-   * @param size   The size (in bytes) of the mapped memory backing the memory segment
-   * @return a new {@link MemorySegment} that maps the sparse file
-   * @throws IOException
-   */
-  public static MemorySegment memoryMapSparseTempFile(String prefix, String suffix, Path dir,
-      Arena arena, long size) throws IOException {
-    try (var fc = openTempFileChannel(prefix, suffix, dir)) {
-      // Create a mapped memory segment managed by the arena
-      return fc.map(MapMode.READ_WRITE, 0L, size, arena);
     }
   }
 
@@ -787,4 +809,9 @@ public class FileAndPathUtil {
   public static String getFileNameFromUrl(final String downloadUrl) {
     return FilenameUtils.getName(downloadUrl).split("\\?")[0];
   }
+
+  public static void setEarlyTempFileCleanup(final boolean state) {
+    FileAndPathUtil.earlyTempFileCleanup = state;
+  }
+
 }
