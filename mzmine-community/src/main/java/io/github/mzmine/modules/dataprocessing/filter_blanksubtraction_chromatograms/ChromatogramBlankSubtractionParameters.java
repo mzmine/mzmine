@@ -118,7 +118,7 @@ public class ChromatogramBlankSubtractionParameters extends SimpleParameterSet {
             .map(MZmineModule::getName).collect(Collectors.joining("; "));
         return
             "Feature list has no scans, please report to the mzmine team with full log file. This is the list of applied steps for this feature list:\n"
-            + steps;
+                + steps;
       }
     }
     return null;

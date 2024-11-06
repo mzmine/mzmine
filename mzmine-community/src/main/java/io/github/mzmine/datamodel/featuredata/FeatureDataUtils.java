@@ -378,6 +378,20 @@ public class FeatureDataUtils {
     return smallestDelta;
   }
 
+  public static double getSmallestRtDelta(@NotNull final TimeSeries series) {
+    if (series.getNumberOfValues() <= 1) {
+      return 0d;
+    }
+    double smallestDelta = Double.POSITIVE_INFINITY;
+
+    for (int i = 1; i < series.getNumberOfValues(); i++) {
+      final float delta = Math.abs(series.getRetentionTime(i) - series.getRetentionTime(i - 1));
+      smallestDelta = Math.min(delta, smallestDelta);
+    }
+
+    return smallestDelta;
+  }
+
   private static void calculateQualityParameters(@NotNull ModularFeature feature) {
     float fwhm = QualityParameters.calculateFWHM(feature);
     if (!Float.isNaN(fwhm)) {

@@ -272,7 +272,7 @@ public class BioTransformerTask extends AbstractTask {
               }
 
               r.addCompoundAnnotation(clone);
-              if(reRankAnnotations) {
+              if (reRankAnnotations) {
                 final List<CompoundDBAnnotation> annotations = new ArrayList<>(
                     row.getCompoundAnnotations());
                 annotations.sort(CompoundAnnotationUtils.getSorterMaxScoreFirst());

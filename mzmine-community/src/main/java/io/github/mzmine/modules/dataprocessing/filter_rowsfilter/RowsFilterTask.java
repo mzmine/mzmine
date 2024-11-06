@@ -328,7 +328,7 @@ public class RowsFilterTask extends AbstractTask {
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
       boolean keepRow = (keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
-                        || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
+          || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
       if (processInCurrentList) {
         if (keepRow) {
           rowsCount++;
@@ -518,15 +518,15 @@ public class RowsFilterTask extends AbstractTask {
       if (!useRemainderOfKendrickMass) {
         // calc Kendrick mass defect
         defectOrRemainder = Math.ceil(kendrickCharge * (valueMZ * kendrickMassFactor)) //
-                            - kendrickCharge * (valueMZ * kendrickMassFactor);
+            - kendrickCharge * (valueMZ * kendrickMassFactor);
       } else {
         // calc Kendrick mass remainder
         defectOrRemainder = (kendrickCharge * (divisor - Math.round(
             FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
-                            / FormulaUtils.calculateExactMass(kendrickMassBase) - Math.floor(
+            / FormulaUtils.calculateExactMass(kendrickMassBase) - Math.floor(
             (kendrickCharge * (divisor - Math.round(
                 FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
-            / FormulaUtils.calculateExactMass(kendrickMassBase));
+                / FormulaUtils.calculateExactMass(kendrickMassBase));
       }
 
       // shift Kendrick mass defect or remainder of Kendrick mass

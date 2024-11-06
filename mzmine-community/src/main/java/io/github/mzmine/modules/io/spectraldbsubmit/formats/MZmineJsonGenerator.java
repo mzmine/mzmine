@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import jakarta.json.Json;
@@ -69,8 +70,9 @@ public class MZmineJsonGenerator {
     boolean exportRT = meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getValue();
 
     JsonObjectBuilder json = Json.createObjectBuilder();
-    // tag spectrum from mzmine2
-    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine2");
+    // tag spectrum from mzmine
+    String version = String.valueOf(SemverVersionReader.getMZmineVersion());
+    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine-" + version);
     // ion specific
     Double precursorMZ = param.getParameter(LibrarySubmitIonParameters.MZ).getValue();
     if (precursorMZ != null) {
@@ -113,48 +115,56 @@ public class MZmineJsonGenerator {
   }
 
   private static void addToJson(final JsonObjectBuilder json, final String key, Object value) {
-    if (value instanceof Double) {
-      if (Double.compare(0d, (Double) value) == 0) {
-        json.add(key, 0);
-      } else {
-        json.add(key, (Double) value);
+    switch (value) {
+      case Double v -> {
+        if (Double.compare(0d, v) == 0) {
+          json.add(key, 0);
+        } else {
+          json.add(key, v);
+        }
       }
-    } else if (value instanceof Float) {
-      if (Float.compare(0f, (Float) value) == 0) {
-        json.add(key, 0);
-      } else {
-        json.add(key, (Float) value);
+      case Float v -> {
+        if (Float.compare(0f, v) == 0) {
+          json.add(key, 0);
+        } else {
+          json.add(key, v);
+        }
       }
-    } else if (value instanceof Integer) {
-      json.add(key, (Integer) value);
-    } else {
-      if (value == null || (value instanceof String && ((String) value).isEmpty())) {
-        value = "N/A";
+      case Integer i -> json.add(key, i);
+      case List<?> list -> json.add(key, listToJsonArray(list));
+      case null, default -> {
+        if (value == null || (value instanceof String s && s.isBlank())) {
+          value = "N/A";
+        }
+        json.add(key, value.toString());
       }
-      json.add(key, value.toString());
     }
   }
 
   private static void addToJson(final JsonArrayBuilder json, Object value) {
-    if (value instanceof Double) {
-      if (Double.compare(0d, (Double) value) == 0) {
-        json.add(0);
-      } else {
-        json.add((Double) value);
+    switch (value) {
+      case Double v -> {
+        if (Double.compare(0d, v) == 0) {
+          json.add(0);
+        } else {
+          json.add(v);
+        }
       }
-    } else if (value instanceof Float) {
-      if (Float.compare(0f, (Float) value) == 0) {
-        json.add(0);
-      } else {
-        json.add((Float) value);
+      case Float v -> {
+        if (Float.compare(0f, v) == 0) {
+          json.add(0);
+        } else {
+          json.add(v);
+        }
       }
-    } else if (value instanceof Integer) {
-      json.add((Integer) value);
-    } else {
-      if (value == null || (value instanceof String && ((String) value).isEmpty())) {
-        value = "N/A";
+      case Integer i -> json.add(i);
+      case List<?> list -> json.add(listToJsonArray(list));
+      case null, default -> {
+        if (value == null || (value instanceof String s && s.isBlank())) {
+          value = "N/A";
+        }
+        json.add(value.toString());
       }
-      json.add(value.toString());
     }
   }
 
@@ -178,8 +188,9 @@ public class MZmineJsonGenerator {
 
   public static String generateJSON(final SpectralLibraryEntry entry) {
     JsonObjectBuilder json = Json.createObjectBuilder();
-    // tag spectrum from mzmine3
-    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine3");
+    // tag spectrum from mzmine
+    String version = String.valueOf(SemverVersionReader.getMZmineVersion());
+    json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine-" + version);
 
     for (var metafield : entry.getFields().entrySet()) {
       String id = metafield.getKey().getMZmineJsonID();
@@ -198,7 +209,7 @@ public class MZmineJsonGenerator {
       }
     }
     var polarity = entry.getPolarity();
-    if(polarity.isDefined()) {
+    if (polarity.isDefined()) {
       json.add(DBEntryField.POLARITY.getMZmineJsonID(), polarity.toString());
     }
 
@@ -211,7 +222,7 @@ public class MZmineJsonGenerator {
     return json.build().toString();
   }
 
-  private static JsonArray listToJsonArray(final List list) {
+  private static JsonArray listToJsonArray(final List<?> list) {
     JsonArrayBuilder array = Json.createArrayBuilder();
     for (var o : list) {
       addToJson(array, o);
