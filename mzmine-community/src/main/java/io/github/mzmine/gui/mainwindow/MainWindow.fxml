@@ -135,6 +135,7 @@
 
                               <SeparatorMenuItem/>
                               <Menu text="Set color" fx:id="rawDataSetColorMenu"/>
+                              <MenuItem onAction="#handleColorByMetadata" text="Color by metadata"/>
                             </items>
                           </ContextMenu>
                         </contextMenu>
@@ -158,6 +159,7 @@
                               <MenuItem onAction="#handleShowFeatureListSummary"
                                 text="Show feature list summary"
                                 fx:id="showFeatureListSummaryMenuItem"/>
+                              <MenuItem onAction="#handleShowStatisticsDashboard" text="Show statistics dashboard"/>
                               <MenuItem onAction="#handleShowScatterPlot"
                                 text="Show scatter plot"/>
                               <SeparatorMenuItem/>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -127,7 +127,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     neutralColor = ColorsFX.getNeutralColor();
   }
 
-  public SimpleColorPalette(@NotNull Color[] clrs) {
+  public SimpleColorPalette(@NotNull Color... clrs) {
     this();
     for (Color clr : clrs) {
       add(clr);
@@ -344,11 +344,15 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   @Override
   public int hashCode() {
     return super.hashCode() + name.hashCode() + getPositiveColor().hashCode()
-        + getNeutralColor().hashCode() + getNegativeColor().hashCode();
+           + getNeutralColor().hashCode() + getNegativeColor().hashCode();
   }
 
   @Override
   public SimpleColorPalette clone() {
+    return clone(false);
+  }
+
+  public SimpleColorPalette clone(boolean resetIndex) {
     SimpleColorPalette clone = new SimpleColorPalette();
     for (Color clr : this) {
       clone.add(clr);
@@ -356,13 +360,14 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     clone.setName(getName());
     clone.setNegativeColor(getNegativeColor());
     clone.setPositiveColor(getPositiveColor());
+    clone.setColorCounter(resetIndex ? 0 : next);
     return clone;
   }
 
   @Override
   public String toString() {
     return getName() + " " + super.toString() + " pos " + getPositiveColor().toString() + " neg "
-        + getNegativeColor();
+           + getNegativeColor();
   }
 
   public void loadFromXML(Element xmlElement) {
@@ -496,7 +501,14 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return delegate.remove(index);
   }
 
+  /**
+   * @param nextIndex this will be the next color index
+   */
+  public void setColorCounter(int nextIndex) {
+    next = nextIndex;
+  }
+
   public void resetColorCounter() {
-    next = 0;
+    setColorCounter(0);
   }
 }

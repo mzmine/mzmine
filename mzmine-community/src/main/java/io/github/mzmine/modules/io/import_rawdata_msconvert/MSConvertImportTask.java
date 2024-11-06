@@ -246,8 +246,7 @@ public class MSConvertImportTask extends AbstractTask {
 
   public static @NotNull File getMzMLFileName(File filePath) {
     final String fileName = filePath.getName();
-    final String extension = FileAndPathUtil.getExtension(fileName);
-    final String mzMLName = fileName.replace(extension, "mzML");
+    final String mzMLName =  FileAndPathUtil.getRealFileName(fileName, "mzML");
     final File mzMLFile = new File(filePath.getParent(), mzMLName);
     return mzMLFile;
   }
@@ -288,7 +287,7 @@ public class MSConvertImportTask extends AbstractTask {
     if (parsedScans != totalScans) {
       throw (new RuntimeException(
           "MSConvert process crashed before all scans were extracted (" + parsedScans + " out of "
-          + totalScans + ")"));
+              + totalScans + ")"));
     }
     msdkTask.addAppliedMethodAndAddToProject(dataFile);
   }
@@ -332,7 +331,7 @@ public class MSConvertImportTask extends AbstractTask {
       if (parsedScans != totalScans) {
         throw (new RuntimeException(
             "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
-            + " out of " + totalScans + ")"));
+                + " out of " + totalScans + ")"));
       }
 
       msdkTask.addAppliedMethodAndAddToProject(dataFile);

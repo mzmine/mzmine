@@ -27,6 +27,7 @@ package io.github.mzmine.gui.preferences;
 
 import static io.github.mzmine.util.files.ExtensionFilters.MSCONVERT;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -119,6 +120,12 @@ public class MZminePreferences extends SimpleParameterSet {
       This reclaims free memory, but may also reduce processing throughput slightly, although the impact should be small.
       Typically the Java Virtual Machine will hold on to RAM and manage it to achieve the highest throughput.
       The recommendation is to keep this setting turned off.""", false);
+
+  public static final BooleanParameter deleteTempFiles = new BooleanParameter(
+      "Fast temp files cleanup", """
+      Cleanup temp files as soon as possible. This is the new default behavior. \
+      This options is only added temporarily to allow using the old temp file cleanup, which should not be necessary.
+      Default is true (checked).""", true);
 
   public static final OptionalModuleParameter<ProxyParameters> proxySettings = new OptionalModuleParameter<>(
       "Use proxy", "Use proxy for internet connection?", new ProxyParameters(), false);
@@ -246,7 +253,8 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(// start with performance
-        numOfThreads, memoryOption, tempDirectory, runGCafterBatchStep, proxySettings,
+        numOfThreads, memoryOption, tempDirectory, runGCafterBatchStep, deleteTempFiles,
+        proxySettings,
         /*applyTimsPressureCompensation,*/
         // visuals
         // number formats
@@ -287,7 +295,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
     // add groups
     dialog.addParameterGroup("General", numOfThreads, memoryOption, tempDirectory,
-        runGCafterBatchStep, proxySettings
+        runGCafterBatchStep, deleteTempFiles, proxySettings
         /*, applyTimsPressureCompensation*/);
     dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
         intensityFormat, ppmFormat, scoreFormat, unitFormat);
@@ -321,29 +329,27 @@ public class MZminePreferences extends SimpleParameterSet {
     updateSystemProxySettings();
 
     // enforce memory option (only applies to new data)
-    var config = MZmineCore.getConfiguration();
-    if (config == null) {
-      return;
-    }
-    final KeepInMemory keepInMemory = config.getPreferences()
-        .getParameter(MZminePreferences.memoryOption).getValue();
+    final KeepInMemory keepInMemory = getValue(MZminePreferences.memoryOption);
     keepInMemory.enforceToMemoryMapping();
 
     final Themes theme = getValue(MZminePreferences.theme);
     if (previousTheme != null) {
       showDialogToAdjustColorsToTheme(previousTheme, theme);
     }
-    theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    darkModeProperty.set(theme.isDark());
+    // need to check as MZmineCore.getDesktop() throws exception if not initialized
+    // if apply is called before window is opened the new settings will by taken up during window creation
+    if (DesktopService.isGUI()) {
+      theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      darkModeProperty.set(theme.isDark());
 
-    Boolean presentation = config.getPreferences().getParameter(MZminePreferences.presentationMode)
-        .getValue();
-    if (presentation) {
-      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .add("themes/MZmine_default_presentation.css");
-    } else {
-      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("MZmine_default_presentation"));
+      Boolean presentation = getValue(MZminePreferences.presentationMode);
+      if (presentation) {
+        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+            .add("themes/MZmine_default_presentation.css");
+      } else {
+        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+            .removeIf(e -> e.contains("MZmine_default_presentation"));
+      }
     }
 
     updateGuiFormat();
@@ -355,6 +361,8 @@ public class MZminePreferences extends SimpleParameterSet {
       }
       FileAndPathUtil.setTempDir(tempDir);
     }
+    // delete temp files as soon as possible
+    FileAndPathUtil.setEarlyTempFileCleanup(getValue(MZminePreferences.deleteTempFiles));
   }
 
   private void showDialogToAdjustColorsToTheme(Themes previousTheme, Themes theme) {

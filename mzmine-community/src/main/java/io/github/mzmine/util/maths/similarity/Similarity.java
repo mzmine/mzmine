@@ -155,7 +155,6 @@ public abstract class Similarity {
     }
 
     /**
-     *
      * @param data data[dp][indexOfX]
      */
     public double getSignificance(double[][] data) {

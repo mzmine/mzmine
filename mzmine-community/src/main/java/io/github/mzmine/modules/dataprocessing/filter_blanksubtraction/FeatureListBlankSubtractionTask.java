@@ -132,7 +132,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
     if (!checkBlankSelection(originalFeatureList, blankRaws)) {
       setErrorMessage("Feature list " + originalFeatureList.getName()
-                      + " does no contain all selected blank raw data files.");
+          + " does no contain all selected blank raw data files.");
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -145,7 +145,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
       }
     }
     logger.finest(() -> originalFeatureList.getName() + " contains " + nonBlankRaws.size()
-                        + " raw data files not classified as blank.");
+        + " raw data files not classified as blank.");
 
     // create the feature list for the blank subtraction
     final ModularFeatureList notBackgroundAlignedFeaturesList = new ModularFeatureList(
@@ -358,7 +358,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
       if (!contained) {
         final int i1 = i;
         logger.info(() -> "Feature list " + aligned.getName() + " does not contain raw data files "
-                          + blankRaws.get(i1).getName());
+            + blankRaws.get(i1).getName());
         return false;
       }
     }

@@ -164,7 +164,7 @@ public class MinimumFeatureFilter {
 
   private boolean filterEstimated(Feature f) {
     return f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN //
-           && (!excludeEstimatedFeatures || f.getFeatureStatus() != FeatureStatus.ESTIMATED);
+        && (!excludeEstimatedFeatures || f.getFeatureStatus() != FeatureStatus.ESTIMATED);
   }
 
   /**

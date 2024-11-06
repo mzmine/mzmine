@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -88,7 +89,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private static final Logger logger = Logger.getLogger(
       AllSpectralDataImportModule.class.getName());
 
-  private static final String MODULE_NAME = "Import MS data";
+  public static final String MODULE_NAME = "Import MS data";
   private static final String MODULE_DESCRIPTION = "This module combines the import of different MS data formats and provides advanced options";
 
   /**
@@ -142,8 +143,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     if (parent == null) {
       return f;
     } else if (parent.endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
-                                         || f.getName().endsWith(".tsf") || f.getName()
-                                             .endsWith(".baf"))) {
+        || f.getName().endsWith(".tsf") || f.getName().endsWith(".baf"))) {
       return f.getParentFile();
     } else {
       return f;
