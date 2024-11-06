@@ -57,10 +57,7 @@ public class CombinedResolverTask extends AbstractFeatureListTask {
     }
 
     public void startResolvers(ModularFeatureList originalFeatureList) {
-        //!!
-        // TODO implement method getResolvers
-        //!!
-        final List<Resolver> resolvers = ((CombinedResolverParameters) parameters).getResolvers(parameters,
+        final List<Resolver> resolvers = ((CombinedResolverParameters) parameters).getEmbeddedResolvers(parameters,
                 originalFeatureList);
         if (resolvers.isEmpty()) {
             setErrorMessage("No Resolver could be found.");

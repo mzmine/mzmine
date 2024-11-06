@@ -76,8 +76,8 @@ public class MLFeatureResolver extends AbstractResolver {
         // this.resizeRanges =
         // parameterSet.getParameter(MLFeatureResolverParameters.resizeRanges).getValue();
         this.correctRanges = parameterSet.getParameter(MLFeatureResolverParameters.correctRanges).getValue();
-        this.correctIntersections = parameterSet.getParameter(MLFeatureResolverParameters.correctIntersections)
-                .getValue();
+        this.correctIntersections =true; // parameterSet.getParameter(MLFeatureResolverParameters.correctIntersections)
+                //.getValue();
         //minimal slope (normalized with respect to intensity) that has to be present before range correction stops
         // I.e. the next intensity has to be at least 20% less than the previous
         this.minSlope = (float) 0.0;

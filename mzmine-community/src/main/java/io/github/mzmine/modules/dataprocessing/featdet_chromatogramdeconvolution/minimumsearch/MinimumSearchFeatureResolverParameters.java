@@ -114,7 +114,7 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
     return IonMobilitySupport.SUPPORTED;
   }
 
-  private enum Setup {
+  public enum Setup {
     FULL, INTEGRATED;
   }
 }
