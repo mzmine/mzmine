@@ -13,6 +13,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_ML.MLFeatureResolverParam
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -20,7 +21,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 
-public class CombinedResolverParameters extends SimpleParameterSet {
+public class CombinedResolverParameters extends GeneralResolverParameters {
     public static final ModuleOptionsEnumComboParameter<CombinedResolverEnum> firstResolverParameters = new ModuleOptionsEnumComboParameter<>(
             "First Resolver", "SElect the first resolver you want to combine.", new CombinedResolverEnum[] {
                     CombinedResolverEnum.ML_RESOLVER, CombinedResolverEnum.LOCAL_MIN },
@@ -30,16 +31,8 @@ public class CombinedResolverParameters extends SimpleParameterSet {
         "Second Resolver", "Select the second resolver you want to combine.", new CombinedResolverEnum[] { CombinedResolverEnum.LOCAL_MIN, CombinedResolverEnum.ML_RESOLVER },
         CombinedResolverEnum.ML_RESOLVER);
 
-    public static final FeatureListsParameter flists = new FeatureListsParameter();
-
-    public static final StringParameter suffix = new StringParameter("Suffix",
-            "Suffix for the new feature list.", "comb");
-
-    public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
-            false);
-
     public CombinedResolverParameters() {
-        super(flists, suffix, firstResolverParameters, secondResolverParameters, handleOriginal);
+        super(new Parameter[] {GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.SUFFIX, firstResolverParameters, secondResolverParameters, handleOriginal});
     }
 
     public List<Resolver> getEmbeddedResolvers(ParameterSet comboParameters, ModularFeatureList originalFeatureList) {
