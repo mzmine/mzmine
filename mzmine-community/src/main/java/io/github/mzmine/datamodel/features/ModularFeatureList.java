@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -131,7 +132,7 @@ public class ModularFeatureList implements FeatureList {
    * final String key = "%d-%s-%s".formatted(row.getID(), type.getUniqueID(), (file != null ?
    * file.getName() : ""));
    */
-  private final Map<String, Node> bufferedCharts = new HashMap<>();
+  private final Map<String, Node> bufferedCharts = new ConcurrentHashMap<>();
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull RawDataFile... dataFiles) {
@@ -860,8 +861,13 @@ public class ModularFeatureList implements FeatureList {
         (file != null ? file.getName() : ""));
     final Node node = bufferedCharts.get(key);
 
-    if (node != null && node.getParent() == null) {
-      return node;
+    if (node != null) {
+      var parent = node.getParent();
+      // only block if parent is visible... then recreate the node
+      // otherwise node will be removed from parent automatically when adding the node to a new parent
+      if (parent == null || !parent.isVisible()) {
+        return node;
+      }
     }
 
     final StackPane parentPane = new StackPane(new Label("Preparing content..."));
