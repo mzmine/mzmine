@@ -104,7 +104,10 @@ public class MSConvertImportTask extends AbstractTask {
       cmdLine.add("--numpressLinear");
     }
 
-    cmdLine.addAll(List.of("--combineIonMobilitySpectra"));
+    if (fileType == RawDataFileType.AGILENT_D_IMS || fileType == RawDataFileType.WATERS_RAW_IMS) {
+      cmdLine.addAll(List.of("--combineIonMobilitySpectra"));
+    }
+
     if (ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)
         && isPeakPickingSupported(fileType)) {
       cmdLine.addAll(List.of("--filter", "\"peakPicking vendor msLevel=1-\""));
