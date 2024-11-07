@@ -25,10 +25,11 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
+import io.github.mzmine.main.ConfigService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
@@ -40,13 +41,49 @@ public class OtherFeatureImpl implements OtherFeature {
   }
 
   public OtherFeatureImpl(OtherTimeSeries series) {
-    set(OtherFileType.class, series.getOtherDataFile());
     set(OtherFeatureDataType.class, series);
-    set(ChromatogramTypeType.class, series.getChromatoogramType());
+    FeatureDataUtils.recalculateIntensityTimeSeriesDependingTypes(this);
   }
 
   @Override
   public ObservableMap<DataType, Object> getMap() {
     return map;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+
+//    if (getFeatureData() != null) {
+//      sb.append(getFeatureData().getName()).append(" ");
+//    }
+    if (getWavelength() != null) {
+      sb.append(getWavelength()).append(" nm ");
+    }
+    if (getChromatogramType() != null) {
+      sb.append(getChromatogramType().getDescription()).append(" ");
+    }
+    if (getRT() != null && get(RawTraceType.class) != null) {
+      sb.append(ConfigService.getGuiFormats().rt(getRT())).append(" min ");
+    }
+
+    return sb.toString().trim();
+  }
+
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof OtherFeatureImpl that)) {
+      return false;
+    }
+
+    return getMap().equals(that.getMap());
+  }
+
+  @Override
+  public int hashCode() {
+    return getMap().hashCode();
   }
 }

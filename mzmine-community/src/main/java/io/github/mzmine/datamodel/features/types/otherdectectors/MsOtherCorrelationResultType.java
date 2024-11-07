@@ -30,64 +30,50 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
-import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
-import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
-import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import java.util.Objects;
-import java.util.logging.Logger;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Type to link processed {@link OtherFeature} to their original raw data (also an unprocessed
- * {@link OtherFeature}).
- */
-public class RawTraceType extends DataType<OtherFeature> implements NoTextColumn, NullColumnType {
-
-  private static final Logger logger = Logger.getLogger(RawTraceType.class.getName());
+public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelationResult> {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "raw_trace";
+    return "ms_other_correlation_result";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Raw trace";
-  }
-
-  @Override
-  public Property<OtherFeature> createProperty() {
-    return new SimpleObjectProperty<>();
-  }
-
-  @Override
-  public Class<OtherFeature> getValueClass() {
-    return OtherFeature.class;
+    return "Correlated traces";
   }
 
   @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(value instanceof OtherFeature of) || file == null) {
+    if (value == null || file == null) {
       return;
     }
 
-    final OtherDataFile otherDataFile = of.getFeatureData().getOtherDataFile();
-    final String name = of.getFeatureData().getName();
+    if (!(value instanceof List<?> list)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
+    }
 
-    writer.writeAttribute(CONST.XML_OTHER_FILE_DESC_ATTR, otherDataFile.getDescription());
-    writer.writeAttribute(CONST.XML_OTHER_TIME_SERIES_NAME_ATTR, name);
+    for (Object o : list) {
+      if (!(o instanceof MsOtherCorrelationResult correlationResult)) {
+        continue;
+      }
+
+      correlationResult.saveToXML(writer, flist, row, file);
+    }
   }
 
   @Override
@@ -103,27 +89,23 @@ public class RawTraceType extends DataType<OtherFeature> implements NoTextColumn
       return null;
     }
 
-    final String otherFileDesc = reader.getAttributeValue(null, CONST.XML_OTHER_FILE_DESC_ATTR);
-    final String otherSeriesName = reader.getAttributeValue(null,
-        CONST.XML_OTHER_TIME_SERIES_NAME_ATTR);
+    List<MsOtherCorrelationResult> corrResults = new ArrayList<>();
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
 
-    final OtherDataFile otherFile = OtherDataFile.findInRawFile(file, otherFileDesc);
-    if (otherFile == null) {
-      return null;
+      if (reader.getLocalName().equals(MsOtherCorrelationResult.XML_ELEMENT_NAME)) {
+        var loaded = MsOtherCorrelationResult.loadFromXML(reader, file.getMemoryMapStorage(),
+            project, flist, row, file);
+        if (loaded != null) {
+          corrResults.add(loaded);
+        }
+      }
     }
 
-    final OtherTimeSeriesData data = otherFile.getOtherTimeSeriesData();
-    if (data == null) {
-      return null;
-    }
-
-    final OtherFeature rawTrace = data.getRawTraces().stream()
-        .filter(t -> Objects.equals(t.getFeatureData().getName(), otherSeriesName)).findFirst()
-        .orElse(null);
-    if (rawTrace == null) {
-      logger.info("Unable to determine raw trace");
-    }
-
-    return rawTrace;
+    return corrResults.isEmpty() ? null : corrResults;
   }
 }

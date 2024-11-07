@@ -418,7 +418,7 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public @NotNull List<@NotNull OtherDataFile> getOtherDataFiles() {
+  public @NotNull List<OtherDataFile> getOtherDataFiles() {
     return ImmutableList.copyOf(otherDataFiles);
   }
 

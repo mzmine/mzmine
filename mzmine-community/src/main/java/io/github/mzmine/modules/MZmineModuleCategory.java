@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules;
 
-import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms.ChromatogramBlankSubtractionModule;
-
 public enum MZmineModuleCategory {
 
   PROJECTIO("Project I/O"), //
@@ -42,8 +40,9 @@ public enum MZmineModuleCategory {
   FEATURELIST("Feature list methods"), //
   /**
    * Only feature list resolving that splits separate features. Modules like
-   * {@link ChromatogramBlankSubtractionModule} use this to check if the module can be applied on
-   * the feature list
+   * {@link
+   * io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms.ChromatogramBlankSubtractionModule}
+   * use this to check if the module can be applied on the feature list
    */
   FEATURE_RESOLVING("Resolving"), //
   FEATURE_GROUPING("Feature grouping"), //
@@ -63,7 +62,7 @@ public enum MZmineModuleCategory {
   VISUALIZATION_RAW_AND_FEATURE("Visualization data"), //
   DATAANALYSIS("Data analysis"), //
   HELPSYSTEM("Help"), //
-  TOOLS("Tools"); //
+  TOOLS("Tools"), OTHER_DATA_PROCESSING("Processing other data"); //
 
   private final String name;
 
@@ -91,6 +90,7 @@ public enum MZmineModuleCategory {
       // no main category
       case HELPSYSTEM, TOOLS -> MainCategory.OTHER;
       // no default so that the compiler marks missing cases
+      case OTHER_DATA_PROCESSING -> MainCategory.OTHER_DATA;
     };
   }
 
@@ -102,7 +102,8 @@ public enum MZmineModuleCategory {
     SPECTRAL_LIBRARY("Spectral library"), //
     FEATURE_IO("Feature IO"), //
     VISUALIZATION("Visualization"), //
-    OTHER("Other");
+    OTHER("Other"), //
+    OTHER_DATA("UV/Other data");
 
     private final String name;
 

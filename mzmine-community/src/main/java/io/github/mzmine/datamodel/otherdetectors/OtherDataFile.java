@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -35,8 +36,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface OtherDataFile {
 
-  @NotNull
-  RawDataFile getCorrespondingRawDataFile();
+  @NotNull RawDataFile getCorrespondingRawDataFile();
 
   default boolean hasTimeSeries() {
     return getNumberOfTimeSeries() != 0;
@@ -51,17 +51,23 @@ public interface OtherDataFile {
   }
 
   default int getNumberOfTimeSeries() {
-    return getOtherTimeSeries() != null ? getOtherTimeSeries().getNumberOfTimeSeries() : 0;
+    return getOtherTimeSeriesData() != null ? getOtherTimeSeriesData().getNumberOfTimeSeries() : 0;
   }
 
-  @Nullable
-  OtherTimeSeriesData getOtherTimeSeries();
+  @Nullable OtherTimeSeriesData getOtherTimeSeriesData();
 
-  @Nullable
-  OtherSpectralData getOtherSpectralData();
+  @Nullable OtherSpectralData getOtherSpectralData();
 
-  @NotNull
-  String getDescription();
+  @NotNull String getDescription();
 
   DetectorType getDetectorType();
+
+  static OtherDataFile findInRawFile(@NotNull RawDataFile file,
+      @Nullable String otherFileDescription) {
+    if(otherFileDescription == null) {
+      return null;
+    }
+    return file.getOtherDataFiles().stream().filter(of -> of.getDescription().equals(otherFileDescription))
+        .findFirst().orElse(null);
+  }
 }
