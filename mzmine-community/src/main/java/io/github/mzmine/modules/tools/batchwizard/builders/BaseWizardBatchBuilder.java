@@ -961,6 +961,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
     param.setParameter(MobilityScanMergerParameters.mergingType, IntensityMergingType.SUMMED);
     param.setParameter(MobilityScanMergerParameters.weightingType, Weighting.LINEAR);
+    param.setParameter(MobilityScanMergerParameters.minNumberOfDetections, 2);
 
     final RawDataFilesSelection rawDataFilesSelection = new RawDataFilesSelection(
         RawDataFilesSelectionType.BATCH_LAST_FILES);

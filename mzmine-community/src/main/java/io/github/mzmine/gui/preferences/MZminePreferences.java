@@ -225,9 +225,10 @@ public class MZminePreferences extends SimpleParameterSet {
       + "This will reduce the import time when re-processing, but require more disc space.", false);
 
   public static final BooleanParameter applyPeakPicking = new BooleanParameter(
-      "Apply peak picking (recommended)",
-      "Apply vendor peak picking during import of native vendor files with MSConvert.\n"
-      + "Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.",
+      "Apply peak picking (recommended)", """
+      Apply vendor peak picking during import of native vendor files with MSConvert.
+      Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
+      Peak picking is only """,
       true);
 
   public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(

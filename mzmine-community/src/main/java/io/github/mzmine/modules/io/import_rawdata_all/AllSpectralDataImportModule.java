@@ -400,7 +400,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
 //      case AIRD -> throw new IllegalStateException("Unexpected value: " + fileType);
-      case WATERS_RAW, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D ->
+      case WATERS_RAW, WATERS_RAW_IMS, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, AGILENT_D_IMS ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
     };
@@ -447,7 +447,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_BAF ->
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
-      case AGILENT_D, SCIEX_WIFF, SCIEX_WIFF2, WATERS_RAW ->
+      case AGILENT_D, AGILENT_D_IMS, SCIEX_WIFF, SCIEX_WIFF2, WATERS_RAW, WATERS_RAW_IMS ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
       // all unsupported tasks are wrapped to apply import and mass detection separately
@@ -464,7 +464,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @Nullable final MemoryMapStorage storageMassLists) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
-                   + " and file " + file.getAbsolutePath());
+        + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(storageMassLists, newMZmineFile,
         createTask(fileType, project, file, newMZmineFile, scanProcessorConfig, module, parameters,
@@ -475,13 +475,14 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private RawDataFile createDataFile(RawDataFileType fileType, String absPath, String newName,
       MemoryMapStorage storage) throws IOException {
     return switch (fileType) {
-      case MZXML, MZDATA, /*WATERS_RAW,*/ NETCDF, ICPMSMS_CSV ->
+      case MZXML, MZDATA, NETCDF, ICPMSMS_CSV ->
           MZmineCore.createNewFile(newName, absPath, storage);
       case MZML, MZML_IMS, MZML_ZIP, MZML_GZIP -> null; // created in Mzml import task
       case IMZML -> MZmineCore.createNewImagingFile(newName, absPath, storage);
       case BRUKER_TSF, BRUKER_BAF, BRUKER_TDF ->
           null; // TSF can be anything: Single shot maldi, imaging, or LC-MS (non ims)
-      case WATERS_RAW, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, THERMO_RAW -> null;
+      case WATERS_RAW, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, THERMO_RAW, AGILENT_D_IMS,
+           WATERS_RAW_IMS -> null;
     };
   }
 
