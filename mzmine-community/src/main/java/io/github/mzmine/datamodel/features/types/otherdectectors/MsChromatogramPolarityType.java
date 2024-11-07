@@ -46,10 +46,6 @@ public class MsChromatogramPolarityType extends DataType<PolarityType> implement
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(file == null) {
-      return;
-    }
-
     if(value == null) {
       writer.writeCharacters(CONST.XML_NULL_VALUE);
       return;
@@ -64,10 +60,6 @@ public class MsChromatogramPolarityType extends DataType<PolarityType> implement
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(file == null) {
-      return null;
-    }
-
     final String text = ParsingUtils.readNullableString(reader.getElementText());
     if(text == null) {
       return null;

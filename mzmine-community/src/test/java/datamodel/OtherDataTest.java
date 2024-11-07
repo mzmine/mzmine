@@ -2,11 +2,13 @@ package datamodel;
 
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MsChromatogramPolarityType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
@@ -128,7 +130,17 @@ public class OtherDataTest {
         DataTypeTestUtils.saveAndLoad(new MsOtherCorrelationResultType(), List.of(), proj, flist,
             row, null, null));
     Assertions.assertNull(
-        DataTypeTestUtils.saveAndLoad(new MsOtherCorrelationResultType(), null, proj, flist,
-            row, null, null));
+        DataTypeTestUtils.saveAndLoad(new MsOtherCorrelationResultType(), null, proj, flist, row,
+            null, null));
+  }
+
+  @Test
+  void testMsChromatogramPolarity() {
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new MsChromatogramPolarityType(),
+        PolarityType.NEGATIVE);
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new MsChromatogramPolarityType(),
+        PolarityType.POSITIVE);
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new MsChromatogramPolarityType(),
+        PolarityType.UNKNOWN);
   }
 }
