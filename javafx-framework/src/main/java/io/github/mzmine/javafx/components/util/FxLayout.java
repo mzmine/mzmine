@@ -34,8 +34,12 @@ import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TitledPane;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -51,6 +55,15 @@ public class FxLayout {
   public static final int DEFAULT_SPACE = 5;
   public static final int DEFAULT_ICON_SPACE = 0;
   public static final Insets DEFAULT_PADDING_INSETS = new Insets(5);
+
+  /**
+   * useful for debugging purposes
+   */
+  public static Border newRedBorder() {
+    return new Border(
+        new BorderStroke(javafx.scene.paint.Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+            BorderStroke.THIN));
+  }
 
   public static FlowPane newIconPane(Orientation orientation, Node... children) {
     var alignment = orientation == Orientation.HORIZONTAL ? Pos.CENTER_LEFT : Pos.TOP_CENTER;
@@ -193,23 +206,41 @@ public class FxLayout {
     return newAccordion(panes);
   }
 
+  /**
+   * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
+   * constraints, leaving the GridPane to compute the column's layout based solely on its content's
+   * size preferences and constraints.
+   */
   public static GridPane newGrid2Col(final Node... children) {
     return newGrid2Col(DEFAULT_PADDING_INSETS, children);
   }
 
+  /**
+   * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
+   * constraints, leaving the GridPane to compute the column's layout based solely on its content's
+   * size preferences and constraints.
+   */
   public static GridPane newGrid2Col(Insets padding, final Node... children) {
-    var grid = new GridPane(DEFAULT_SPACE, DEFAULT_SPACE);
+    return newGrid2Col(GridColumnGrow.RIGHT, padding, children);
+  }
+
+  public static GridPane newGrid2Col(@NotNull GridColumnGrow grow, Insets padding,
+      final Node... children) {
+    return newGrid2Col(grow, padding, DEFAULT_SPACE, children);
+  }
+
+  public static GridPane newGrid2Col(@NotNull GridColumnGrow grow, Insets padding, int space,
+      final Node... children) {
+    var grid = new GridPane(space, space);
     grid.setPadding(padding);
 
-    /*
-     * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
-     * constraints, leaving the GridPane to compute the column's layout based solely on its
-     * content's size preferences and constraints.
-     */
     ColumnConstraints column1 = new ColumnConstraints();
     ColumnConstraints column2 = new ColumnConstraints();
-    column2.setFillWidth(true);
-    column2.setHgrow(Priority.ALWAYS);
+    switch (grow) {
+      case BOTH -> setGrowColumn(column1, column2);
+      case LEFT -> setGrowColumn(column1);
+      case RIGHT -> setGrowColumn(column2);
+    }
     grid.getColumnConstraints().addAll(column1, column2);
     var row = new RowConstraints();
     row.setValignment(VPos.CENTER);
@@ -222,5 +253,16 @@ public class FxLayout {
       }
     }
     return grid;
+  }
+
+  public static void setGrowColumn(final ColumnConstraints... columns) {
+    for (final ColumnConstraints column : columns) {
+      column.setFillWidth(true);
+      column.setHgrow(Priority.ALWAYS);
+    }
+  }
+
+  public enum GridColumnGrow {
+    LEFT, RIGHT, BOTH, NONE
   }
 }

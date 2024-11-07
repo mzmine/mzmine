@@ -247,8 +247,7 @@ public class MSConvertImportTask extends AbstractTask {
 
   public static @NotNull File getMzMLFileName(File filePath) {
     final String fileName = filePath.getName();
-    final String extension = FileAndPathUtil.getExtension(fileName);
-    final String mzMLName = fileName.replace(extension, "mzML");
+    final String mzMLName =  FileAndPathUtil.getRealFileName(fileName, "mzML");
     final File mzMLFile = new File(filePath.getParent(), mzMLName);
     return mzMLFile;
   }
@@ -282,8 +281,9 @@ public class MSConvertImportTask extends AbstractTask {
     var parsedScans = msdkTask.getParsedMzMLScans();
     var convertedScans = msdkTask.getConvertedScansAfterFilter();
 
-    if (parsedScans == 0) {
-      throw (new RuntimeException("No scans found"));
+    if (parsedScans == 0 && dataFile.getOtherDataFiles().isEmpty()) {
+      throw new IllegalStateException(
+          "No scans or chromatograms found in file %s".formatted(dataFile.getName()));
     }
 
     if (parsedScans != totalScans) {
@@ -326,13 +326,13 @@ public class MSConvertImportTask extends AbstractTask {
       // Finish
       process.destroy();
 
-      if (parsedScans == 0) {
+      if (parsedScans == 0 && dataFile.getOtherDataFiles().isEmpty()) {
         throw (new RuntimeException("No scans found"));
       }
 
       if (parsedScans != totalScans) {
         throw (new RuntimeException(
-            "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
+            "ThermoRawFileParser/MSConvert process crashed before all scans were extracted (" + parsedScans
                 + " out of " + totalScans + ")"));
       }
 

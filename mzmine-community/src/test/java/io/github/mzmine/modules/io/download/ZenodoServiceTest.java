@@ -74,7 +74,7 @@ class ZenodoServiceTest {
   @Test
   void testZenodoApiAsset() throws HttpResponseException, IOException, InterruptedException {
     var record = ZenodoService.getWebRecord(
-        DownloadAsset.Builder.ofZenodo(ExternalAsset.MS2DEEPSCORE, "12628368").create());
+        DownloadAsset.Builder.ofZenodo(AssetGroup.MS2DEEPSCORE, "12628368").create());
     Assertions.assertNotNull(record);
 
   }

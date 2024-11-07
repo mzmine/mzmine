@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,15 +46,20 @@ public class ProjectMetadataImportParameters extends SimpleParameterSet {
       "Skip column on error",
       "Error during data conversion or parsing will be logged but does not end the import", false);
 
+  public static final BooleanParameter removeAttributePrefix = new BooleanParameter(
+      "Remove attribute prefix", "Remove the ATTRIBUTE_ prefix commonly used by GNPS", false);
+
 
   public ProjectMetadataImportParameters() {
-    super(fileName, skipErrorColumns);
+    super(fileName, skipErrorColumns, removeAttributePrefix);
   }
 
-  public static ParameterSet create(final File file, final boolean skipErrorCol) {
+  public static ParameterSet create(final File file, final boolean skipErrorCol,
+      final boolean removeGnpsAttributePrefix) {
     ParameterSet params = new ProjectMetadataImportParameters().cloneParameterSet();
     params.setParameter(fileName, file);
     params.setParameter(skipErrorColumns, skipErrorCol);
+    params.setParameter(removeAttributePrefix, removeGnpsAttributePrefix);
     return params;
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,9 +28,9 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers.impl;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
@@ -43,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider<Scan> {
 
   private final List<Scan> scans;
+  private final boolean normalizeToOne;
   private final javafx.scene.paint.Color color;
   private final String seriesKey;
 
@@ -50,9 +51,15 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
   private final NumberFormat mzFormat;
   private final NumberFormat mobilityFormat;
   private final NumberFormat intensityFormat;
+  private double normalizationFactor = 1;
 
   public ScanBPCProvider(final List<Scan> scans) {
+    this(scans, false);
+  }
+
+  public ScanBPCProvider(final List<Scan> scans, final boolean normalizeToOne) {
     this.scans = scans;
+    this.normalizeToOne = normalizeToOne;
     if (!scans.isEmpty()) {
       this.color = scans.get(0).getDataFile().getColor();
     } else {
@@ -98,7 +105,9 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
 
   @Override
   public void computeValues(Property<TaskStatus> status) {
-    // nothing to compute, everything is in ram already.
+    normalizationFactor = 1 / scans.stream()
+        .mapToDouble(scan -> Objects.requireNonNullElse(scan.getBasePeakIntensity(), 0d)).max()
+        .orElse(1d);
   }
 
   @Override
@@ -108,7 +117,8 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
 
   @Override
   public double getRangeValue(int index) {
-    return Objects.requireNonNullElse(scans.get(index).getBasePeakIntensity(), 0d);
+    return Objects.requireNonNullElse(scans.get(index).getBasePeakIntensity(), 0d)
+        * normalizationFactor;
   }
 
   @Override

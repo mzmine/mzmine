@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -85,6 +86,28 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
     this.scans = scans;
     this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValues);
     this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
+  }
+
+  /**
+   * may reuse memory segments
+   */
+  protected SimpleIonMobilitySeries(@NotNull MemorySegment mzValues,
+      @NotNull MemorySegment intensityValues, @NotNull List<MobilityScan> scans) {
+    long values = numDoubles(mzValues);
+    if (values != numDoubles(intensityValues) || values != scans.size()) {
+      throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
+    }
+
+    final Frame frame = scans.get(0).getFrame();
+    for (MobilityScan scan : scans) {
+      if (frame != scan.getFrame()) {
+        throw new IllegalArgumentException("All mobility scans must belong to the same frame.");
+      }
+    }
+
+    this.scans = scans;
+    this.mzValues = mzValues;
+    this.intensityValues = intensityValues;
   }
 
   public static SimpleIonMobilitySeries loadFromXML(@NotNull XMLStreamReader reader,
@@ -192,6 +215,15 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
   }
 
   @Override
+  public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable final MemoryMapStorage storage,
+      @NotNull final double[] newIntensityValues) {
+    var intensities = StorageUtils.storeValuesToDoubleBuffer(storage, newIntensityValues);
+    // reuse mz memory segment
+    var mzs = getMZValueBuffer();
+    return new SimpleIonMobilitySeries(mzs, intensities, scans);
+  }
+
+  @Override
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, this.scans);
@@ -207,8 +239,7 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
     }
     SimpleIonMobilitySeries that = (SimpleIonMobilitySeries) o;
     return Objects.equals(scans, that.scans) && contentEquals(intensityValues, that.intensityValues)
-           && contentEquals(mzValues, that.mzValues) && IntensitySeries.seriesSubsetEqual(this,
-        that);
+        && contentEquals(mzValues, that.mzValues) && IntensitySeries.seriesSubsetEqual(this, that);
   }
 
   @Override

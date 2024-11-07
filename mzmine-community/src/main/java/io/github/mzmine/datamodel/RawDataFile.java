@@ -351,5 +351,6 @@ public interface RawDataFile {
   default void setStartTimeStamp(@Nullable LocalDateTime localDateTime) {
   }
 
+  @NotNull
   List<OtherDataFile> getOtherDataFiles();
 }

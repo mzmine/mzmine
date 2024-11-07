@@ -298,7 +298,7 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeEndElement();
   }
 
-  private void writeDataType(XMLStreamWriter writer, DataType<?> dataType,
+  public static void writeDataType(XMLStreamWriter writer, DataType<?> dataType,
       @Nullable final Object value, @NotNull final ModularFeatureList flist,
       @NotNull final ModularFeatureListRow row, @Nullable final ModularFeature feature,
       @Nullable final RawDataFile file) throws XMLStreamException {

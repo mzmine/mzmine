@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,84 @@
 
 package io.github.mzmine.modules.io.download;
 
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Fixed details on external assets. See also {@link DownloadAsset} to define new downloads of
+ * specific versions.
+ */
 public enum AssetGroup {
-  TOOLS, SPECTRAL_LIBRARIES, MODELS;
+  // cannot download those assets directly but only provide link
+  ThermoRawFileParser, MSCONVERT,
+
+  // spectral libraries
+  MSnLib, GNPS_LIB, MONA_LIB, MASSBANK_EU,
+
+  // models
+  MS2DEEPSCORE;
 
   @Override
   public String toString() {
+    // always lower case for folders
     return super.toString().toLowerCase();
   }
+
+  /**
+   * @return clear text label to be used in UI
+   */
+  public String getLabel() {
+    return switch (this) {
+      case ThermoRawFileParser -> "ThermoRawFileParser";
+      case MSCONVERT -> "MSconvert";
+      case MSnLib -> "MSnLib";
+      case GNPS_LIB -> "GNPS";
+      case MONA_LIB -> "MoNA";
+      case MASSBANK_EU -> "MassBank EU";
+      case MS2DEEPSCORE -> "MS2Deepscore";
+    };
+  }
+
+  public File getDownloadToDir() {
+    return FileAndPathUtil.resolveInDownloadResourcesDir(
+        getCategory().toString() + "/" + this.toString());
+  }
+
+  public AssetCategory getCategory() {
+    return switch (this) {
+      case ThermoRawFileParser, MSCONVERT -> AssetCategory.TOOLS;
+      case MSnLib, GNPS_LIB, MONA_LIB, MASSBANK_EU -> AssetCategory.SPECTRAL_LIBRARIES;
+      case MS2DEEPSCORE -> AssetCategory.MODELS;
+    };
+  }
+
+  /**
+   * The website with download instructions
+   */
+  @Nullable
+  public String getDownloadInfoPage() {
+    return switch (this) {
+      case ThermoRawFileParser ->
+          "https://github.com/pluskal-lab/ThermoRawFileParserMacLinux/releases";
+      case MSCONVERT -> "https://proteowizard.sourceforge.io/download.html";
+      // libraries
+      case MSnLib -> "https://zenodo.org/records/11163380";
+      case GNPS_LIB -> "https://external.gnps2.org/gnpslibrary";
+      case MONA_LIB -> "https://mona.fiehnlab.ucdavis.edu/downloads";
+      case MASSBANK_EU -> "https://github.com/MassBank/MassBank-data/releases/latest";
+      case MS2DEEPSCORE -> "https://zenodo.org/records/12628368";
+    };
+  }
+
+  /**
+   * @return list of download options. Empty list if no direct download is possible
+   */
+  @NotNull
+  public List<DownloadAsset> getDownloadAssets() {
+    return DownloadAssets.ASSETS.stream().filter(a -> a.extAsset() == this).toList();
+  }
+
 }

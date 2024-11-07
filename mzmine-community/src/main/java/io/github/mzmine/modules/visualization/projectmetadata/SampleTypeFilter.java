@@ -112,6 +112,13 @@ public class SampleTypeFilter {
     return rows.stream().filter(row -> row.streamFeatures().anyMatch(this::matches)).toList();
   }
 
+  /**
+   * Filters a list of raw data files to those described by this filter.
+   */
+  public List<RawDataFile> filterFiles(final List<RawDataFile> raws) {
+    return raws.stream().filter(this::matches).toList();
+  }
+
   public boolean matches(final Feature feature) {
     return matches(feature.getRawDataFile());
   }

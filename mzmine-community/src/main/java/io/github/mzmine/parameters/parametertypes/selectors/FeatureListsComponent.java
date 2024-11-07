@@ -66,7 +66,7 @@ public class FeatureListsComponent extends HBox {
         .addListener((options, oldValue, newValue) -> {
           currentValue.setSelectionType(newValue);
           detailsButton.setDisable((newValue != FeatureListsSelectionType.NAME_PATTERN) && (newValue
-                                                                                            != FeatureListsSelectionType.SPECIFIC_FEATURELISTS));
+              != FeatureListsSelectionType.SPECIFIC_FEATURELISTS));
           updateNumPeakLists();
         });
 

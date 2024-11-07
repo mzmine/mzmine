@@ -172,12 +172,21 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
           break;
         }
       }
+      if (detectedIndex != detectedScans.size()) {
+        throw new IllegalStateException(
+            "Less scans added than actually detected in Full Feature data access. This may point to wrong sorting of scans between detected and all scans of a feature list.");
+      }
       currentNumberOfDataPoints = allScans.size();
     } else {
       // clear
       allScans = null;
     }
     return feature;
+  }
+
+  @Override
+  public int getMaxNumberOfValues() {
+    return mzs.length;
   }
 
   @Override
