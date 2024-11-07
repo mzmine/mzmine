@@ -94,7 +94,7 @@ public class BuildingMobilityScanStorage {
         s -> s.getMobilityScanSimpleSpectralData().intensities());
 
     this.basePeakIndices = findBasePeakIndices(mobilityScans,
-        ms -> ms.getMobilityScanSimpleSpectralData().intensities(), storageOffsets);
+        ms -> ms.getMobilityScanSimpleSpectralData().intensities());
 
     // extract some values for the frame from the first mob scan
     var firstScan = mobilityScans.getFirst();
@@ -122,8 +122,7 @@ public class BuildingMobilityScanStorage {
     mzValues = memoryMap(storage, numDp, mobilityScanData, s -> s.spectrum().mzs());
     intensityValues = memoryMap(storage, numDp, mobilityScanData, s -> s.spectrum().intensities());
 
-    this.basePeakIndices = findBasePeakIndices(mobilityScanData, ms -> ms.spectrum().intensities(),
-        storageOffsets);
+    this.basePeakIndices = findBasePeakIndices(mobilityScanData, ms -> ms.spectrum().intensities());
 
     // extract some values for the frame from the scan
     msLevel = mergedScan.getMSLevel();
@@ -156,12 +155,11 @@ public class BuildingMobilityScanStorage {
    * generates the base peak indices based on the mobility scans from an mzml file.
    */
   private <T> int[] findBasePeakIndices(final List<T> scans,
-      Function<T, double[]> intensitiesSupplier, final int[] offsets) {
+      Function<T, double[]> intensitiesSupplier) {
     int[] basePeakIndices = new int[scans.size()];
 
     for (int scanI = 0; scanI < scans.size(); scanI++) {
       var scan = scans.get(scanI);
-      int offset = offsets[scanI];
       double[] intensities = intensitiesSupplier.apply(scan);
 
       if (intensities.length == 0) {
@@ -173,7 +171,7 @@ public class BuildingMobilityScanStorage {
       for (int dp = 0; dp < intensities.length; dp++) {
         double intensity = intensities[dp];
         if (intensity > maxIntensity) {
-          basePeakIndices[scanI] = offset + dp;
+          basePeakIndices[scanI] = dp;
           maxIntensity = intensity;
         }
       }
