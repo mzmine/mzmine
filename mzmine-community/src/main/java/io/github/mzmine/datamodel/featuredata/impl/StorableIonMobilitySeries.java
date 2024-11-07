@@ -183,7 +183,7 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
     }
     StorableIonMobilitySeries that = (StorableIonMobilitySeries) o;
     return numValues == that.numValues && Objects.equals(scans, that.scans)
-           && IntensitySeries.seriesSubsetEqual(this, that);
+        && IntensitySeries.seriesSubsetEqual(this, that);
   }
 
   @Override

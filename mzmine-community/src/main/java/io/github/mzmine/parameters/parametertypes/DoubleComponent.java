@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,18 +24,24 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.parameters.ValuePropertyComponent;
 import java.text.NumberFormat;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
+import javafx.util.converter.DoubleStringConverter;
 import javafx.util.converter.NumberStringConverter;
 
-public class DoubleComponent extends FlowPane {
+public class DoubleComponent extends FlowPane implements ValuePropertyComponent<Double> {
 
   private final Double minimum;
   private final Double maximum;
   private final TextField textField;
+  private final ObjectProperty<Double> value = new SimpleObjectProperty<>();
 
   public DoubleComponent(int inputsize, Double minimum, Double maximum, NumberFormat format, Double defvalue) {
     this.minimum = minimum;
@@ -45,6 +51,7 @@ public class DoubleComponent extends FlowPane {
     textField.setTextFormatter(new TextFormatter<>(new NumberStringConverter(format)));
     textField.setPrefWidth(inputsize);
     textField.setText(String.valueOf(defvalue)); // why not format.format(defValue)?
+    textField.textProperty().bindBidirectional(value, new DoubleStringConverter());
 
     // Add an input verifier if any bounds are specified.
     if (minimum != null || maximum != null) {
@@ -54,12 +61,12 @@ public class DoubleComponent extends FlowPane {
     getChildren().add(textField);
   }
 
-  public void setText(String text) {
-    textField.setText(text);
-  }
-
   public String getText() {
     return textField.getText().trim();
+  }
+
+  public void setText(String text) {
+    textField.setText(text);
   }
 
   public void setToolTipText(String toolTip) {
@@ -97,6 +104,11 @@ public class DoubleComponent extends FlowPane {
 
   public TextField getTextField() {
     return textField;
+  }
+
+  @Override
+  public Property<Double> valueProperty() {
+    return value;
   }
 
   /*

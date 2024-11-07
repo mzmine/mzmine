@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util.scans;
 
+import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsLast;
 import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
@@ -60,13 +62,16 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceRangeMap;
 import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -83,10 +88,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,8 +108,28 @@ public class ScanUtils {
    * tolerance to compute and combine precursor m/z
    */
   public static final int DEFAULT_PRECURSOR_MZ_TOLERANCE = 100;
-
+  /**
+   * Sort MassSpectra first by source file and then by scan number, nulls last
+   */
+  public static final Comparator<MassSpectrum> SCAN_SORTER_RAW_FILE_SCAN_NUMBER = Comparator.comparing(
+          ScanUtils::getSourceFile, nullsLast(naturalOrder()))
+      .thenComparingInt(ScanUtils::extractScanNumber);
   private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
+
+  /**
+   * Source file of scan is defined of other MassSpectra may be undefined and return null
+   */
+  @Nullable
+  public static String getSourceFile(@NotNull MassSpectrum scan) {
+    return switch (scan) {
+      case Scan s -> s.getDataFile().getFileName();
+      case SpectralLibraryEntry e -> {
+        var lib = e.getLibrary();
+        yield lib == null ? e.getLibraryName() : lib.getPath().getName();
+      }
+      default -> null;
+    };
+  }
 
   /**
    * Common utility method to be used as Scan.toString() method in various Scan implementations
@@ -202,20 +230,41 @@ public class ScanUtils {
           mob.getMsMsInfo() != null ? mob.getMsMsInfo().getActivationEnergy() : null;
       case Scan scan ->
           scan.getMsMsInfo() != null ? scan.getMsMsInfo().getActivationEnergy() : null;
+      case SpectralLibraryEntry entry -> entry.getOrElse(DBEntryField.COLLISION_ENERGY, null);
       default -> null;
     };
   }
 
+  /**
+   * @param spectrum any mass spectrum like {@link MergedMassSpectrum}
+   * @return a list of distinct collision energies of all scans. Flattens the tree of a
+   * {@link MergedMassSpectrum} and returns stream of all
+   * {@link ScanUtils#extractCollisionEnergy(MassSpectrum)}.
+   */
   public static List<Float> extractCollisionEnergies(MassSpectrum spectrum) {
-    return switch (spectrum) {
-      case MergedMassSpectrum merged ->
-          merged.getSourceSpectra().stream().map(ScanUtils::extractCollisionEnergy).distinct()
-              .filter(Objects::nonNull).toList();
-      case Scan scan ->
-          scan.getMsMsInfo() != null && scan.getMsMsInfo().getActivationEnergy() != null ? List.of(
-              scan.getMsMsInfo().getActivationEnergy()) : List.of();
-      default -> List.of();
-    };
+    return streamSourceScans(spectrum).map(ScanUtils::extractCollisionEnergy)
+        .filter(Objects::nonNull).distinct().toList();
+  }
+
+  /**
+   * MSn energies for merged spectra are quite complex
+   * <p>
+   * [MS2, MS3, MS4] and multiple energies in last level due to merging
+   *
+   * @return energies for each merged scan as [[MS2, MS3, MS4], [MS2, MS3, MS4]]. List<List<Float>>
+   */
+  public static @NotNull List<List<Float>> extractMSnCollisionEnergies(final MassSpectrum scan) {
+    return ScanUtils.streamSourceScans(scan, Scan.class).map(s -> {
+      if (s.getMsMsInfo() instanceof MSnInfoImpl msn) {
+        List<DDAMsMsInfo> precursors = msn.getPrecursors();
+        if (precursors == null) {
+          return null;
+        }
+        return precursors.stream().map(DDAMsMsInfo::getActivationEnergy).filter(Objects::nonNull)
+            .toList();
+      }
+      return null;
+    }).filter(Objects::nonNull).distinct().toList();
   }
 
   /**
@@ -1649,7 +1698,7 @@ public class ScanUtils {
 
     DataPoint[] result = new DataPoint[integerDataPoints.size()];
     int count = 0;
-    for (Map.Entry<Double, Double> e : integerDataPoints.entrySet()) {
+    for (Entry<Double, Double> e : integerDataPoints.entrySet()) {
       result[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
     }
 
@@ -2114,6 +2163,110 @@ public class ScanUtils {
       case SpectralLibraryEntry sc -> sc.getPolarity();
       case null, default -> null;
     };
+  }
+
+
+  /**
+   * @return the scan number or -1 if none
+   */
+  public static int extractScanNumber(MassSpectrum scan) {
+    return switch (scan) {
+      case Scan s -> s.getScanNumber();
+      case SpectralLibraryEntry e -> {
+        // could be a list of integers
+        Object scanNumber = e.getField(DBEntryField.SCAN_NUMBER).orElse(null);
+        // either integer
+        // or list of integer
+        // or string
+        yield switch (scanNumber) {
+          case List<?> list -> {
+            // merged has multiple numbers - return -1 instead
+            // if single number in list then return single number
+            List<Integer> scanNumbers = list.stream().map(MathUtils::parseInt)
+                .filter(Objects::nonNull).toList();
+            yield scanNumbers.size() == 1 ? scanNumbers.getFirst() : -1;
+          }
+          case null -> -1;
+          default -> requireNonNullElse(MathUtils.parseInt(scanNumber), -1);
+        };
+      }
+      default -> -1;
+    };
+  }
+
+  /**
+   * @param spectrum any mass spectrum like {@link MergedMassSpectrum}
+   * @return an IntStream of all scan numbers. Flattens the tree of a {@link MergedMassSpectrum} and
+   * returns stream of all {@link Scan#getScanNumber()}. Empty stream if parent or source spectra
+   * are not of type Scan
+   */
+  public static IntStream extractScanNumbers(MassSpectrum spectrum) {
+    return streamSourceScans(spectrum, Scan.class).mapToInt(Scan::getScanNumber).distinct();
+  }
+
+  /**
+   * Extracts all universal spectrum identifier USI from source scans. If spectrum is merged this
+   * will return multiple source USI otherwise just a Stream of one elemen.
+   */
+  public static Stream<String> extractUSI(MassSpectrum spectrum, @Nullable String datasetID) {
+    String baseUSI = "mzspec:" + (datasetID == null ? "DATASET_ID_PLACEHOLDER" : datasetID) + ":";
+    return streamSourceScans(spectrum, Scan.class).map(scan -> scanToUSI(scan, baseUSI)).distinct();
+  }
+
+  /**
+   * Create USI for scan. This involves finding the scan number and source file name
+   */
+  @NotNull
+  public static String scanToUSI(MassSpectrum scan, @Nullable String baseUSI) {
+    return __scanToUSI(scan, baseUSI);
+  }
+
+  /**
+   * Create USI for scan. This involves finding the scan number and source file name
+   *
+   * @param baseUSI usually mzspec:datasetID:
+   */
+  @NotNull
+  private static String __scanToUSI(MassSpectrum scan, String baseUSI) {
+    String fileName = getSourceFile(scan);
+    fileName = fileName == null ? "" : FileAndPathUtil.eraseFormat(fileName);
+    int scanNumber = extractScanNumber(scan);
+    // map to USI
+    return baseUSI + fileName + ":" + scanNumber;
+  }
+
+  public static <T extends MassSpectrum> Stream<T> streamSourceScans(final MassSpectrum scan,
+      Class<T> specClass) {
+    return streamSourceScans(scan).filter(specClass::isInstance).map(specClass::cast);
+  }
+
+  /**
+   * This maps a single scan into a stream or more important a {@link MergedMassSpectrum} tree of
+   * source scans into a flat stream. The stream always contains the input scan as well.
+   *
+   * @param scan first parent scan
+   * @return flat stream of all mass spectra, including the original scan and all source scans
+   */
+  public static Stream<MassSpectrum> streamSourceScans(final MassSpectrum scan) {
+    if (!(scan instanceof MergedMassSpectrum merged)) {
+      return Stream.of(scan);
+    }
+
+    return Stream.of(merged).mapMulti(ScanUtils::addAllChildren)
+        .sorted(SCAN_SORTER_RAW_FILE_SCAN_NUMBER);
+  }
+
+  private static void addAllChildren(final MassSpectrum parent,
+      final Consumer<MassSpectrum> consumer) {
+
+    if (parent instanceof MergedMassSpectrum merged) {
+      for (final MassSpectrum child : merged.getSourceSpectra()) {
+        addAllChildren(child, consumer);
+      }
+    } else {
+      // add single spectrum
+      consumer.accept(parent);
+    }
   }
 
   /**

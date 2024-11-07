@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,8 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
+package io.github.mzmine.parameters.parametertypes.other_detectors;
 
-public class MultidetectorVisualizerModel {
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
+import java.util.stream.Stream;
 
+public enum OtherRawOrProcessed {
+  RAW, PREPROCESSED, FEATURES;
+
+  public Stream<OtherFeature> streamMatching(OtherTimeSeriesData data) {
+    return switch (this) {
+      case RAW -> data.getRawTraces().stream();
+      case PREPROCESSED -> data.getPreprocessedTraces().stream();
+      case FEATURES -> data.getProcessedFeatures().stream();
+    };
+  }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case RAW -> "raw";
+      case PREPROCESSED -> "pre-processed";
+      case FEATURES -> "features";
+    };
+  }
 }

@@ -248,6 +248,16 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   }
 
+  /**
+   * Currently the {@link GroupableListView} only allows sorting by name.
+   */
+  public static void sortRawDataFilesAlphabetically(final List<RawDataFile> raws) {
+    if (mainWindowController == null) {
+      return;
+    }
+    FxThread.runLater(() -> mainWindowController.getRawDataList().sortItemObjects(raws));
+  }
+
   @NotNull
   public static List<RawDataFile> getSelectedRawDataFiles() {
     final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();

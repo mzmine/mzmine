@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.preferences;
 
+import com.google.common.collect.Range;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +36,11 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
                             UnitFormat unitFormat) {
 
   private static final String empty = "";
+
+  private static String range(Range<? extends Number> range, NumberFormat format) {
+    return format.format(range.lowerEndpoint()) + " - " + format.format(range.upperEndpoint());
+  }
+
   public String mz(double mz) {
     return mzFormat.format(mz);
   }
@@ -46,6 +52,10 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
     return mzFormat.format(mz);
   }
 
+  public String mz(Range<? extends Number> range) {
+    return range(range, mzFormat());
+  }
+
   public String rt(float rt) {
     return rtFormat.format(rt);
   }
@@ -55,6 +65,10 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
       return empty;
     }
     return rtFormat.format(rt);
+  }
+
+  public String rt(Range<? extends Number> range) {
+    return range(range, rtFormat());
   }
 
   public String mobility(float mobility) {
@@ -72,6 +86,10 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
     return mobilityFormat.format(mobility);
   }
 
+  public String mobility(Range<? extends Number> range) {
+    return range(range, mobilityFormat());
+  }
+
   public String ccs(float ccs) {
     return ccsFormat.format(ccs);
   }
@@ -81,6 +99,10 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
       return empty;
     }
     return ccsFormat.format(ccs);
+  }
+
+  public String ccs(Range<? extends Number> range) {
+    return range(range, ccsFormat());
   }
 
   public String intensity(double intensity) {
