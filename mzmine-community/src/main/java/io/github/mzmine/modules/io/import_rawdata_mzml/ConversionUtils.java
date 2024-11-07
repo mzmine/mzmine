@@ -26,11 +26,15 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
 import io.github.msdk.datamodel.Chromatogram;
+import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.types.MsMsInfoType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MsChromatogramPolarityType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
@@ -61,7 +65,6 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorLi
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -404,9 +407,9 @@ public class ConversionUtils {
         final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
         final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
         otherFile.setDetectorType(DetectorType.OTHER);
-        timeSeriesData.setChromatogramType(groupedByChromType.getKey());
-        otherFile.setDescription(unit +  "_" +
-            groupedByChromType.getKey().getDescription());
+        final ChromatogramType chromType = groupedByChromType.getKey();
+        timeSeriesData.setChromatogramType(chromType);
+        otherFile.setDescription(unit + "_" + chromType.getDescription());
 
         for (MzMLChromatogram chrom : unitChromEntry.getValue()) {
           final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
@@ -418,13 +421,42 @@ public class ConversionUtils {
 
           timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
           timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
+
+          extractAndSetMsMsInfoToChromatogram(chrom, chromType, otherFeature);
+          if(chromType.isMsType()) {
+            final PolarityType polarity = chrom.getPolarity();
+            if(polarity.isDefined()) {
+              otherFeature.set(MsChromatogramPolarityType.class, polarity);
+            }
+          }
         }
+
         otherFile.setOtherTimeSeriesData(timeSeriesData);
         otherFiles.add(otherFile);
       }
     }
 
     return otherFiles;
+  }
+
+  /**
+   * Sets the MS2 info for the otherFeature if it is set in the chromatogram
+   */
+  private static void extractAndSetMsMsInfoToChromatogram(MzMLChromatogram chrom, ChromatogramType chromType,
+      OtherFeatureImpl otherFeature) {
+    if(chromType == ChromatogramType.MRM_SRM) {
+      final List<IsolationInfo> isolations = chrom.getIsolations();
+      if(isolations.size() != 2) {
+        return;
+      }
+      final Double q3Mass = isolations.getLast().getPrecursorMz();
+      otherFeature.set(MZType.class, q3Mass);
+
+      final DDAMsMsInfo ddaMsMsInfo = DDAMsMsInfoImpl.fromMzML(chrom.getPrecursor(), 2);
+      if(ddaMsMsInfo != null) {
+        otherFeature.set(MsMsInfoType.class, List.of(ddaMsMsInfo));
+      }
+    }
   }
 
   public static <T, K> Map<K, List<T>> groupByUnit(List<T> values, Function<T, K> getUnit) {

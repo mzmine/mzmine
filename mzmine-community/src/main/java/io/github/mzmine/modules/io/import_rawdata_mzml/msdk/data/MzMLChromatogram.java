@@ -37,6 +37,7 @@ import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SeparationType;
 import io.github.msdk.datamodel.SimpleActivationInfo;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.InputStream;
@@ -528,4 +529,14 @@ public class MzMLChromatogram implements Chromatogram {
     return Optional.ofNullable(null);
   }
 
+  public @NotNull PolarityType getPolarity() {
+    if (getCVValue(MzMLCV.cvPolarityPositive).isPresent()) {
+      return PolarityType.POSITIVE;
+    }
+
+    if (getCVValue(MzMLCV.cvPolarityNegative).isPresent()) {
+      return PolarityType.NEGATIVE;
+    }
+    return PolarityType.UNKNOWN;
+  }
 }
