@@ -34,12 +34,12 @@ public class MLFeatureResolverParameters extends GeneralResolverParameters {
 
     public MLFeatureResolverParameters() {
         super(createParams(MLSetup.FULL),
-                "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
+                null);
     }
 
     public MLFeatureResolverParameters(MLSetup setup) {
         super(createParams(setup),
-                "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
+                null);
     }
 
     private static Parameter[] createParams(MLSetup setup) {
