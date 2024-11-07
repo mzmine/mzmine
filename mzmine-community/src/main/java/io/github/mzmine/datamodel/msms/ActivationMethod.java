@@ -25,12 +25,16 @@
 
 package io.github.mzmine.datamodel.msms;
 
+import io.github.msdk.datamodel.ActivationType;
+
 public enum ActivationMethod {
 
   CID("CID", "collision induced dissociation", "eV"), //
   HCD("HCD", "higher-energy C-trap dissociation", "a.u."), //
   ECD("ECD", "electron capture dissociation", ""), //
   ETD("ETD", "electron transfer dissociation", ""),
+  ETHCD("ETHCD", "Electron-transfer and higher-energy collision dissociation", ""),
+  UVPD("UVPD", "Ultraviolet photodissociation", ""),
   UNKNOWN("N.A.", "Unknown", "");
 
   private final String abbreviation;
@@ -53,5 +57,18 @@ public enum ActivationMethod {
 
   public String getUnit() {
     return unit;
+  }
+
+  public static ActivationMethod fromActivationType(ActivationType type) {
+    return switch (type) {
+      case null -> ActivationMethod.UNKNOWN;
+      case CID -> CID;
+      case HCD -> HCD;
+      case ECD -> ECD;
+      case ETD -> ETD;
+      case ETHCD -> ETHCD;
+      case UVPD -> UVPD;
+      case UNKNOWN -> UNKNOWN;
+    };
   }
 }

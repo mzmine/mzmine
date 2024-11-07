@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
+import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsSpectrumType;
@@ -39,6 +40,7 @@ import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.DetectorType;
@@ -423,9 +425,9 @@ public class ConversionUtils {
           timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
 
           extractAndSetMsMsInfoToChromatogram(chrom, chromType, otherFeature);
-          if(chromType.isMsType()) {
+          if (chromType.isMsType()) {
             final PolarityType polarity = chrom.getPolarity();
-            if(polarity.isDefined()) {
+            if (polarity.isDefined()) {
               otherFeature.set(MsChromatogramPolarityType.class, polarity);
             }
           }
@@ -442,19 +444,28 @@ public class ConversionUtils {
   /**
    * Sets the MS2 info for the otherFeature if it is set in the chromatogram
    */
-  private static void extractAndSetMsMsInfoToChromatogram(MzMLChromatogram chrom, ChromatogramType chromType,
-      OtherFeatureImpl otherFeature) {
-    if(chromType == ChromatogramType.MRM_SRM) {
+  private static void extractAndSetMsMsInfoToChromatogram(MzMLChromatogram chrom,
+      ChromatogramType chromType, OtherFeatureImpl otherFeature) {
+    if (chromType == ChromatogramType.MRM_SRM) {
       final List<IsolationInfo> isolations = chrom.getIsolations();
-      if(isolations.size() != 2) {
+      if (isolations.size() != 2) {
         return;
       }
       final Double q3Mass = isolations.getLast().getPrecursorMz();
       otherFeature.set(MZType.class, q3Mass);
 
-      final DDAMsMsInfo ddaMsMsInfo = DDAMsMsInfoImpl.fromMzML(chrom.getPrecursor(), 2);
-      if(ddaMsMsInfo != null) {
-        otherFeature.set(MsMsInfoType.class, List.of(ddaMsMsInfo));
+      final IsolationInfo q1Isolation = isolations.getFirst();
+      final Double q1Mass = q1Isolation.getPrecursorMz();
+      final ActivationInfo activationInfo = q1Isolation.getActivationInfo();
+      final Float energy =
+          activationInfo != null ? Objects.requireNonNullElse(activationInfo.getActivationEnergy(),
+              0d).floatValue() : null;
+      final ActivationMethod method = activationInfo != null ? ActivationMethod.fromActivationType(
+          activationInfo.getActivationType()) : null;
+
+      if (q1Mass != null) {
+        otherFeature.set(MsMsInfoType.class,
+            List.of(new DDAMsMsInfoImpl(q1Mass, null, energy, null, null, 2, method, null)));
       }
     }
   }
