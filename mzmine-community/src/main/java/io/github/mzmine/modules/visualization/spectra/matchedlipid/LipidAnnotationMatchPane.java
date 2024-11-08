@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,18 +25,22 @@
 
 package io.github.mzmine.modules.visualization.spectra.matchedlipid;
 
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.framework.fx.features.AbstractFeatureListRowsPane;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.javafx.util.color.ColorScaleUtil;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.text.DecimalFormat;
 import java.util.List;
 import javafx.geometry.HPos;
@@ -282,8 +286,20 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
           Label rawFile = new Label("Raw data file: " + lipidFragment.getMsMsScan().getDataFile().getName());
           rawFile.setWrapText(true);
           panelOther.getChildren().addAll(rawFile);
-
-          Label matchedScan = new Label("Matched Scan number: " + lipidFragment.getMsMsScan().getScanNumber());
+          StringBuilder sb = new StringBuilder();
+          Scan msMsScan = lipidFragment.getMsMsScan();
+          if (msMsScan instanceof MergedMassSpectrum merged) {
+            sb.append("Merged spectrum of frame IDs: ");
+            List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
+            for (MassSpectrum massSpectrum : sourceSpectra) {
+              if (massSpectrum instanceof MobilityScan mobilityScan) {
+                sb.append(mobilityScan.getScanNumber()).append(" ");
+              }
+            }
+          } else {
+            sb.append("Matched Scan number: ").append(lipidFragment.getMsMsScan().getScanNumber());
+          }
+          Label matchedScan = new Label(sb.toString());
           matchedScan.setWrapText(true);
           panelOther.getChildren().addAll(matchedScan);
         }
