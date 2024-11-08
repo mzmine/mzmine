@@ -183,7 +183,6 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     if (newValue == null || newValue.isEmpty()) {
       return;
     }
-//    newValue.forEach(d -> plot.addDataset(d.dataset(), d.renderer()));
 
     LegendItemCollection collection = new LegendItemCollection();
     newValue.forEach(d -> {

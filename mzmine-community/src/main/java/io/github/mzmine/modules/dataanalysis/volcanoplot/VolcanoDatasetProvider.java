@@ -104,6 +104,9 @@ public class VolcanoDatasetProvider extends SimpleXYProvider implements
     return null;
   }
 
+  /**
+   * @return The row id, mainly used for the export of the chart data.
+   */
   @Override
   public double getZValue(int index) {
     return results.get(index).row().getID();
