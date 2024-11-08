@@ -42,6 +42,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
 import java.awt.BasicStroke;
@@ -422,10 +423,12 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
               y[i + 2] = xyz.getY(s, i);
               z[i + 2] = xyz.getZ(s, i);
               if (toolTipGen != null) {
-                tooltip[i + 2] = Objects.requireNonNullElse(toolTipGen.generateToolTip(xyz, s, i),
-                    "");
+                tooltip[i + 2] = StringUtils.inQuotes(
+                    Objects.requireNonNullElse(toolTipGen.generateToolTip(xyz, s, i), "")
+                        .replace('\n', ' '));
               } else if (xyz instanceof ColoredXYZDataset cxyz) {
-                tooltip[i + 2] = Objects.requireNonNullElse(cxyz.getToolTipText(i), "");
+                tooltip[i + 2] = StringUtils.inQuotes(
+                    Objects.requireNonNullElse(cxyz.getToolTipText(i), "").replace('\n', ' '));
               } else {
                 tooltip[i + 2] = "";
               }
@@ -461,10 +464,12 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
               x[i + 2] = data.getX(s, i);
               y[i + 2] = data.getY(s, i);
               if (toolTipGenerator != null) {
-                tooltip[i + 2] = Objects.requireNonNullElse(
-                    toolTipGenerator.generateToolTip(data, s, i), "");
+                tooltip[i + 2] = StringUtils.inQuotes(
+                    Objects.requireNonNullElse(toolTipGenerator.generateToolTip(data, s, i), "")
+                        .replace('\n', ' '));
               } else if (data instanceof ColoredXYDataset cxy) {
-                tooltip[i + 2] = Objects.requireNonNullElse(cxy.getToolTipText(i), "");
+                tooltip[i + 2] = StringUtils.inQuotes(
+                    Objects.requireNonNullElse(cxy.getToolTipText(i), "").replace('\n', ' '));
               } else {
                 tooltip[i + 2] = "";
               }
