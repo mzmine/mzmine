@@ -528,8 +528,8 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
         double minMzThreshold = precursorMz - toleranceMz;
         double maxMzThreshold = precursorMz + toleranceMz;
 
-        if (charge != null && charge > 1) {
-          // For charge > 1, remove only data points within the precursor range
+        if (charge == null || charge > 1) {
+          // For charge > 1 (or null), remove only data points within the precursor range
           filteredDataPoints = Arrays.stream(dataPoints).parallel()
               .filter(dp -> dp.getMZ() < minMzThreshold || dp.getMZ() > maxMzThreshold)
               .collect(Collectors.toList());
