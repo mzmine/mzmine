@@ -593,7 +593,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-                                                                       - leftNeighbourBinIndex);
+              - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -829,12 +829,48 @@ public class ScanUtils {
   }
 
   /**
-   * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
-   * within given m/z range
+   * Finds all MS/MS scans within a given range of MS levels (default is 2), within a given
+   * retention time range, and with precursor m/z within the given m/z range. Applies sorting if
+   * sorter is not null.
+   *
+   * @param msLevelRange          range of MS levels to filter scans by. If null, defaults to level
+   *                              2.
+   * @param relaxMzFilterAboveMs2 if true, relaxes the precursor m/z filtering for MS levels > 2.
+   * @return sorted stream
    */
-  public static Scan[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
-      Range<Double> mzRange) {
-    return streamAllMS2FragmentScans(dataFile, rtRange, mzRange).toArray(Scan[]::new);
+  public static Stream<Scan> streamAllMSnFragmentScans(@NotNull RawDataFile dataFile,
+      @NotNull Range<Integer> msLevelRange, @Nullable Range<Float> rtRange,
+      @NotNull Range<Double> mzRange, boolean relaxMzFilterAboveMs2) {
+    Comparator<Scan> sorter = FragmentScanSorter.DEFAULT_TIC;
+
+    final Stream<Scan> stream = dataFile.getScans().stream().filter(
+        s -> matchesMSnScan(s, msLevelRange, rtRange, mzRange, relaxMzFilterAboveMs2));
+    return sorter == null ? stream : stream.sorted(sorter);
+  }
+
+  /**
+   * Finds all MS/MS scans within a given range of MS levels (default is 2), within a given
+   * retention time range, and with precursor m/z within the given m/z range. Defaults to strict
+   * precursor m/z filtering for all MS levels.
+   */
+  public static Scan[] findAllMSnFragmentScans(RawDataFile dataFile,
+      @Nullable Range<Integer> msLevelRange, @Nullable Range<Float> rtRange,
+      @NotNull Range<Double> mzRange) {
+    // Default relaxMzFilterAboveMs2 to false
+    return findAllMSnFragmentScans(dataFile, msLevelRange, rtRange, mzRange, false);
+  }
+
+  /**
+   * Finds all MS/MS scans within a given range of MS levels (default is 2), within a given
+   * retention time range, and with precursor m/z within the given m/z range.
+   *
+   * @param relaxMzFilterAboveMs2 if true, relaxes the precursor m/z filtering for MS levels > 2.
+   */
+  public static Scan[] findAllMSnFragmentScans(RawDataFile dataFile,
+      @Nullable Range<Integer> msLevelRange, @Nullable Range<Float> rtRange,
+      @NotNull Range<Double> mzRange, boolean relaxMzFilterAboveMs2) {
+    return streamAllMSnFragmentScans(dataFile, msLevelRange, rtRange, mzRange,
+        relaxMzFilterAboveMs2).toArray(Scan[]::new);
   }
 
   /**
@@ -849,6 +885,31 @@ public class ScanUtils {
     }
     final Double precursorMz = s.getPrecursorMz();
     return precursorMz != null && mzRange.contains(precursorMz);
+  }
+
+  /**
+   * Checks if scan MS level, precursor mz, and rt are in ranges.
+   *
+   * @param s                     the scan to check
+   * @param msLevelRange          range of MS levels
+   * @param rtRange               range of retention times
+   * @param mzRange               range of precursor m/z values
+   * @param relaxMzFilterAboveMs2 if true, relaxes the precursor m/z filtering for MS levels > 2
+   * @return true if scan matches all conditions, false otherwise
+   */
+  public static boolean matchesMSnScan(Scan s, Range<Integer> msLevelRange, Range<Float> rtRange,
+      Range<Double> mzRange, boolean relaxMzFilterAboveMs2) {
+    if (!msLevelRange.contains(s.getMSLevel())) {
+      return false;
+    }
+    if (rtRange != null && !rtRange.contains(s.getRetentionTime())) {
+      return false;
+    }
+    if (s.getMSLevel() == 2 || !relaxMzFilterAboveMs2) {
+      final Double precursorMz = s.getPrecursorMz();
+      return precursorMz != null && mzRange.contains(precursorMz);
+    }
+    return true;
   }
 
   /**

@@ -520,7 +520,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
       // Arrays.sort(dataPoints, DataPointSorter.DEFAULT_INTENSITY);
       List<DataPoint> filteredDataPoints;
-      int charge = scan.getPrecursorCharge();
+      Integer charge = scan.getPrecursorCharge();
       Double precursorMz = scan.getPrecursorMz();
       double toleranceMz = tolerance.getMzTolerance();
 
@@ -528,7 +528,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
         double minMzThreshold = precursorMz - toleranceMz;
         double maxMzThreshold = precursorMz + toleranceMz;
 
-        if (charge > 1) {
+        if (charge != null && charge > 1) {
           // For charge > 1, remove only data points within the precursor range
           filteredDataPoints = Arrays.stream(dataPoints).parallel()
               .filter(dp -> dp.getMZ() < minMzThreshold || dp.getMZ() > maxMzThreshold)
