@@ -67,7 +67,7 @@ public final class CCSCalibrant {
   public double getN2Gamma() {
     final double libraryMass = libraryMz * Math.abs(libraryCharge);
     final double v =
-        (1 / (double) libraryCharge()) * Math.sqrt(libraryMass / (libraryMass + N2_MASS));
+        (1 / (double) Math.abs(libraryCharge())) * Math.sqrt(libraryMass / (libraryMass + N2_MASS));
     return v;
   }
 
