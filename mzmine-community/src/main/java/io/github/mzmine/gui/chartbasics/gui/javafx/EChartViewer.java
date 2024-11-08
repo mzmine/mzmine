@@ -38,8 +38,11 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxesRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
 import java.awt.BasicStroke;
@@ -48,6 +51,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.embed.swing.SwingFXUtils;
@@ -66,6 +70,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.fx.interaction.MouseHandlerFX;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.CombinedRangeXYPlot;
 import org.jfree.chart.plot.IntervalMarker;
@@ -73,6 +78,7 @@ import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.ui.Layer;
 import org.jfree.data.Range;
 import org.jfree.data.RangeType;
@@ -391,54 +397,86 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
           continue;
         } else if (data instanceof XYZDataset xyz) {
           int series = data.getSeriesCount();
-          Object[][] model = new Object[series * 3][];
+          final XYItemRenderer r = this.getChart().getXYPlot().getRendererForDataset(xyz);
+          Object[][] model = new Object[series * 4][];
           for (int s = 0; s < series; s++) {
+            final XYToolTipGenerator toolTipGen = r.getSeriesToolTipGenerator(s);
             int size = 2 + xyz.getItemCount(s);
             Object[] x = new Object[size];
             Object[] y = new Object[size];
             Object[] z = new Object[size];
+            Object[] tooltip = new Object[size];
             // create new Array model[row][col]
             // Write header
             Comparable title = data.getSeriesKey(series);
             x[0] = title;
             y[0] = "";
             z[0] = "";
+            tooltip[0] = "";
             x[1] = plot.getDomainAxis().getLabel();
             y[1] = plot.getRangeAxis().getLabel();
             z[1] = "z-axis";
+            tooltip[1] = "tooltip";
             // write data
             for (int i = 0; i < xyz.getItemCount(s); i++) {
               x[i + 2] = xyz.getX(s, i);
               y[i + 2] = xyz.getY(s, i);
               z[i + 2] = xyz.getZ(s, i);
+              if (toolTipGen != null) {
+                tooltip[i + 2] = StringUtils.inQuotes(
+                    Objects.requireNonNullElse(toolTipGen.generateToolTip(xyz, s, i), "")
+                        .replace('\n', ' '));
+              } else if (xyz instanceof ColoredXYZDataset cxyz) {
+                tooltip[i + 2] = StringUtils.inQuotes(
+                    Objects.requireNonNullElse(cxyz.getToolTipText(i), "").replace('\n', ' '));
+              } else {
+                tooltip[i + 2] = "";
+              }
             }
             model[s * 3] = x;
             model[s * 3 + 1] = y;
             model[s * 3 + 2] = z;
+            model[s * 3 + 3] = tooltip;
           }
 
           Collections.addAll(modelList, model);
         } else if (data != null) {
           int series = data.getSeriesCount();
-          Object[][] model = new Object[series * 2][];
+          Object[][] model = new Object[series * 3][];
           for (int s = 0; s < series; s++) {
+            final XYItemRenderer r = getChart().getXYPlot().getRendererForDataset(data);
+            final XYToolTipGenerator toolTipGenerator = r.getSeriesToolTipGenerator(s);
             int size = 2 + data.getItemCount(s);
             Object[] x = new Object[size];
             Object[] y = new Object[size];
+            Object[] tooltip = new Object[size];
             // create new Array model[row][col]
             // Write header
             Comparable title = data.getSeriesKey(s);
             x[0] = title;
             y[0] = "";
+            tooltip[0] = "";
             x[1] = plot.getDomainAxis().getLabel();
             y[1] = plot.getRangeAxis().getLabel();
+            tooltip[1] = "tooltip";
             // write data
             for (int i = 0; i < data.getItemCount(s); i++) {
               x[i + 2] = data.getX(s, i);
               y[i + 2] = data.getY(s, i);
+              if (toolTipGenerator != null) {
+                tooltip[i + 2] = StringUtils.inQuotes(
+                    Objects.requireNonNullElse(toolTipGenerator.generateToolTip(data, s, i), "")
+                        .replace('\n', ' '));
+              } else if (data instanceof ColoredXYDataset cxy) {
+                tooltip[i + 2] = StringUtils.inQuotes(
+                    Objects.requireNonNullElse(cxy.getToolTipText(i), "").replace('\n', ' '));
+              } else {
+                tooltip[i + 2] = "";
+              }
             }
             model[s * 2] = x;
             model[s * 2 + 1] = y;
+            model[s * 2 + 2] = tooltip;
           }
 
           Collections.addAll(modelList, model);
