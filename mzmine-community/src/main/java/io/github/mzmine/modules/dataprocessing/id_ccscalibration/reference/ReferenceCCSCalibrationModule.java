@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -93,8 +93,8 @@ public class ReferenceCCSCalibrationModule implements MZmineProcessingModule, CC
     final List<CCSCalibrant> calibrants;
     try {
       calibrants = CCSUtils.getCalibrantsFromCSV(calibrantFile);
-      logger.warning(() -> "No calibrants found in " + calibrantFile.getAbsolutePath());
       if(calibrants == null) {
+        logger.warning(() -> "No calibrants found in " + calibrantFile.getAbsolutePath());
         return null;
       }
     } catch (IOException | CsvException e) {
