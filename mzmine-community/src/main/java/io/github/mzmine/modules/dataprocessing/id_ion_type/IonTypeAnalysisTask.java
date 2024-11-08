@@ -214,8 +214,8 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
       IsotopeAndAdducts isotopeAndAdducts = new IsotopeAndAdducts(new ArrayList<>(isotopeSet),
           new ArrayList<>(adductsAndCoSet));
       SignalsAnalysisResult analysisResult = analyzeSignals(row.getMZRange(), ms1Scans,
-          allPrecursorsMsnScans, toleranceMs1, toleranceMsn, isotopeAndAdducts.adducts(),
-          isotopeAndAdducts.isotopes());
+          allPrecursorsMsnScans, toleranceMs1, toleranceMsn, isotopeAndAdducts.getAdducts(),
+          isotopeAndAdducts.getIsotopes());
       row.set(IonTypeAnalysisType.class, analysisResult.results);
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Error processing row: " + ex.getMessage(), ex);
@@ -624,7 +624,22 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
 
   }
 
-  public record IsotopeAndAdducts(List<DataPoint> isotopes, List<DataPoint> adducts) {
+  public class IsotopeAndAdducts {
 
+    private final List<DataPoint> isotopes;
+    private final List<DataPoint> adducts;
+
+    public IsotopeAndAdducts(List<DataPoint> isotopes, List<DataPoint> adducts) {
+      this.isotopes = isotopes;
+      this.adducts = adducts;
+    }
+
+    public List<DataPoint> getIsotopes() {
+      return isotopes;
+    }
+
+    public List<DataPoint> getAdducts() {
+      return adducts;
+    }
   }
 }
