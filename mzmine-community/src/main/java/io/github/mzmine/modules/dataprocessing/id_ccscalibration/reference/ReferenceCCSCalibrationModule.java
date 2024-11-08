@@ -67,7 +67,7 @@ public class ReferenceCCSCalibrationModule implements MZmineProcessingModule, CC
 
   @Override
   public @NotNull String getName() {
-    return "Internal standard CCS calculation";
+    return "Internal standard CCS calibration";
   }
 
   @Override
