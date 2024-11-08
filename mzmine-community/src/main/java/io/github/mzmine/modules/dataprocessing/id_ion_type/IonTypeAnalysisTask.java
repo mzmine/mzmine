@@ -230,7 +230,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     if (representativeScan != null && representativeScan.getMSLevel() == 1) {
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(representativeScan, useMassList);
       if (dataPoints.length > 0) {
-        // Arrays.sort(dataPoints, DataPointSorter.DEFAULT_INTENSITY);
+        Arrays.sort(dataPoints, DataPointSorter.DEFAULT_INTENSITY);
         for (int i = 0; i < isoMzDiffsForCharge.length; i++) {
           DoubleArrayList currentChargeDiffs = isoMzDiffsForCharge[i];
           double currentMaxDiff = maxIsoMzDiff[i];
