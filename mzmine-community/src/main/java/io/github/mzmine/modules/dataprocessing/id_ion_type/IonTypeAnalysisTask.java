@@ -287,7 +287,6 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     if (foundAdducts.size() > 1) {
       double mz = target.getMZ();
       addToIonTypeList(mz,
-          // foundAdducts.subList(1, foundAdducts.size()),
           foundAdducts, adductsLists);
     }
   }
@@ -412,7 +411,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
           // System.out.println("Tolerance: " + toleranceMs1.getMzToleranceForMass(pointMz));
           // System.out.println("Adduct found: " + point);
           adducts.add(point);
-          adducts.add(target);
+          // adducts.add(target);
         }
       }
     }
