@@ -42,10 +42,10 @@ public class IonTypeAnalysisParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final MZToleranceParameter toleranceMs1 = new MZToleranceParameter("ms1 tolerance",
-      "Tolerance for MS1", 0.01, 20);
+      "Tolerance for MS1", 0.005, 10);
 
   public static final MZToleranceParameter toleranceMsn = new MZToleranceParameter("msn tolerance",
-      "Tolerance for MSn>1", 0.025, 50);
+      "Tolerance for MSn>1", 0.015, 30);
 
   public static final ComboParameter<ScanDataType> scanDataType = new ComboParameter<>(
       "MS data selection",
