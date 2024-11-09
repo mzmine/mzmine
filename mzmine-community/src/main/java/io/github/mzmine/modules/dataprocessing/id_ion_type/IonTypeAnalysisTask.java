@@ -149,6 +149,14 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
         isotopeMaxCharge);
 
     // Precompute max isotope MZ differences
+    double[] maxIsoMzDiff = computeMaxIsoMzDiff(isoMzDiffsForCharge, isotopeMaxCharge);
+
+    List<GroupedSignalScans> groupedScans = gatherSpectra(isoMzDiffsForCharge, maxIsoMzDiff);
+    logger.info("Collected spectra - now starting to analyze the grouped scans.");
+  }
+
+  private double[] computeMaxIsoMzDiff(DoubleArrayList[] isoMzDiffsForCharge,
+      int isotopeMaxCharge) {
     double[] maxIsoMzDiff = new double[isotopeMaxCharge];
     for (int i = 0; i < isotopeMaxCharge; i++) {
       for (double diff : isoMzDiffsForCharge[i]) {
@@ -156,9 +164,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
       }
       maxIsoMzDiff[i] += 10 * toleranceMs1.getMzToleranceForMass(maxIsoMzDiff[i]);
     }
-
-    List<GroupedSignalScans> groupedScans = gatherSpectra(isoMzDiffsForCharge, maxIsoMzDiff);
-    logger.info("Collected spectra - now starting to analyze the grouped scans.");
+    return maxIsoMzDiff;
   }
 
   /**
