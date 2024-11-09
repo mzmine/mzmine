@@ -303,7 +303,7 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   }
 
   @Override
-  public List<OtherDataFile> getOtherDataFiles() {
+  public @NotNull List<OtherDataFile> getOtherDataFiles() {
     return List.of();
   }
 

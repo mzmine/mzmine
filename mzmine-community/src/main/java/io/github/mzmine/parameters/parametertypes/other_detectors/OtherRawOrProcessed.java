@@ -23,15 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
+package io.github.mzmine.parameters.parametertypes.other_detectors;
 
-enum State {
-  SETTING_LEFT, SETTING_RIGHT, NOT_INTEGRATING;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
+import java.util.stream.Stream;
 
-  boolean isIntegrating() {
+public enum OtherRawOrProcessed {
+  RAW, PREPROCESSED, FEATURES;
+
+  public Stream<OtherFeature> streamMatching(OtherTimeSeriesData data) {
     return switch (this) {
-      case SETTING_LEFT, SETTING_RIGHT -> true;
-      case NOT_INTEGRATING -> false;
+      case RAW -> data.getRawTraces().stream();
+      case PREPROCESSED -> data.getPreprocessedTraces().stream();
+      case FEATURES -> data.getProcessedFeatures().stream();
+    };
+  }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case RAW -> "raw";
+      case PREPROCESSED -> "pre-processed";
+      case FEATURES -> "features";
     };
   }
 }

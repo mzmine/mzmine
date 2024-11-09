@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,9 +28,13 @@ import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChart;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.gui.preferences.Themes;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
+import io.github.mzmine.util.color.ColorUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -75,7 +79,6 @@ public class EStandardChartTheme extends StandardChartTheme {
   @Serial
   private static final long serialVersionUID = 1L;
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
-  private static final Color DEFAULT_CROSS_HAIR_COLOR = Color.BLACK;
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
       BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
@@ -262,8 +265,9 @@ public class EStandardChartTheme extends StandardChartTheme {
   public void applyToCrosshair(@NotNull JFreeChart chart) {
     Plot p = chart.getPlot();
     if (p instanceof XYPlot xyp) {
-      xyp.setDomainCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
-      xyp.setRangeCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
+      final Color crosshairColor = getCrosshairColor();
+      xyp.setDomainCrosshairPaint(crosshairColor);
+      xyp.setRangeCrosshairPaint(crosshairColor);
       xyp.setDomainCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
       xyp.setRangeCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
       xyp.setDomainCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
@@ -629,5 +633,17 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void applyToLegendItem(LegendItem item) {
     item.setLabelFont(getRegularFont());
+  }
+
+  private Color getCrosshairColor() {
+    final Paint chartBackgroundPaint = getChartBackgroundPaint();
+    final Themes theme = ConfigService.getConfiguration().getTheme();
+    if(chartBackgroundPaint instanceof Color clr) {
+      if(ColorUtils.isDark(FxColorUtil.awtColorToFX(clr)) ||
+          (ColorUtils.isTransparent(FxColorUtil.awtColorToFX(clr)) && theme.isDark())) {
+        return Color.WHITE;
+      }
+    }
+    return Color.BLACK;
   }
 }

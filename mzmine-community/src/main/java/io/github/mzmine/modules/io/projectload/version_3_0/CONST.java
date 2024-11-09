@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,14 +27,10 @@ package io.github.mzmine.modules.io.projectload.version_3_0;
 
 public class CONST {
 
-  private CONST() {
-  }
-
   /**
    * Convenience constant to save null values that shall stay null.
    */
   public static final String XML_NULL_VALUE = "NULL_VALUE";
-
   /**
    * Scan stuff
    */
@@ -56,15 +52,13 @@ public class CONST {
   public static final String XML_INTENSITY_MERGE_TYPE_ATTR = "mergingtype";
   public static final String XML_SCAN_LIST_ELEMENT = "scans";
   public static final String XML_POLARITY_ATTR = "polarity";
-
   public static final String XML_MERGE_TYPE_ATTR = "merge_spec_type";
   /**
    * General
    */
   public static final String XML_NUM_VALUES_ATTR = "numvalues";
-
   /**
-   * Feature list stoff
+   * Feature list stuff
    */
   public static final String XML_NUM_ROWS_ATTR = "numberofrows";
   public static final String XML_FLIST_NAME_ATTR = "featurelistname";
@@ -72,15 +66,23 @@ public class CONST {
   public static final String XML_DATA_TYPE_ELEMENT = "datatype";
   public static final String XML_DATA_TYPE_ID_ATTR = "type";
   public static final String XML_FEATURE_ELEMENT = "feature";
+  public static final String XML_OTHER_FEATURE_ELEMENT = "otherfeature";
   public static final String XML_ROW_ELEMENT = "row";
   public static final String XML_FEATURE_LIST_ELEMENT = "featurelist";
   public static final String XML_ROOT_ELEMENT = "root";
-
   public static final String XML_FLIST_METADATA_ELEMENT = "metadata";
   public static final String XML_FLIST_DATE_CREATED_ELEMENT = "date";
   public static final String XML_FLIST_NAME_ELEMENT = "name";
   public static final String XML_FLIST_SELECTED_SCANS_ELEMENT = "selectedscans";
   public static final String XML_FLIST_APPLIED_METHOD_ELEMENT = "appliedmethod";
   public static final String XML_FLIST_APPLIED_METHODS_LIST_ELEMENT = "appliedmethodslist";
+  /**
+   * Other data file stuff
+   */
+  public static final String XML_OTHER_TIME_VALUES_ELEMENT = "otherdata_times";
+  public static final String XML_OTHER_FILE_DESC_ATTR = "otherdata_filedesc";
+  public static final String XML_OTHER_TIME_SERIES_NAME_ATTR = "otherdata_timeseriesname";
 
+  private CONST() {
+  }
 }

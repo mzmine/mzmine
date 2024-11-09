@@ -28,6 +28,8 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
@@ -124,9 +126,12 @@ public class SpectralLibrarySelection {
         if (DesktopService.isGUI() && DialogLoggerUtil.showDialogYesNo(
             "Import missing spectral libraries?", """
                 Some library files were not imported before spectral library matching - should mzmine import them now?
-                However, it is recommended to import spectral libraries during the initial data import with the MS data import or spectral library import. And maybe set the library selection to use all imported libraries.
+                It is recommended to import spectral libraries during the initial data import with \
+                the %s or %s modules. Then set this library selection to use all imported libraries.
                 Missing library files specifically defined:
-                %s""".formatted(StringUtils.join(missing, "\n", File::getAbsolutePath)))) {
+                %s""".formatted(AllSpectralDataImportModule.MODULE_NAME,
+                SpectralLibraryImportModule.MODULE_NAME,
+                StringUtils.join(missing, "\n", File::getAbsolutePath)))) {
           // user wants libraries to be imported
           Instant now = Instant.now();
           List<Task> tasks = missing.stream().map(
