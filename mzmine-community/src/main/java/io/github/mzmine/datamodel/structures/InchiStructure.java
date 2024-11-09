@@ -27,7 +27,7 @@ package io.github.mzmine.datamodel.structures;
 
 /**
  * simple representation to keep track of inchi and inchi key. Also see {@link MolecularStructure}
- * and {@link ComplexMolecularStructure} for precomputed values
+ * and {@link PrecomputedMolecularStructure} for precomputed values
  *
  * @param inchi
  * @param inchiKey

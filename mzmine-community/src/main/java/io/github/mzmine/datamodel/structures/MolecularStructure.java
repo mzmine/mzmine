@@ -33,7 +33,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public sealed interface MolecularStructure permits ComplexMolecularStructure,
+public sealed interface MolecularStructure permits PrecomputedMolecularStructure,
     SimpleMolecularStructure {
 
   enum ValueType {

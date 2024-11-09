@@ -36,7 +36,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * All values are computed on demand. So if accessed often use {@link #precomputeValues()} to create
- * a {@link ComplexMolecularStructure} with direct value access.
+ * a {@link PrecomputedMolecularStructure} with direct value access.
  *
  * @param structure
  */
@@ -91,12 +91,13 @@ public record SimpleMolecularStructure(@NotNull IAtomContainer structure) implem
    *
    * @return a structure with precomputed values
    */
-  public ComplexMolecularStructure precomputeValues() {
+  public PrecomputedMolecularStructure precomputeValues() {
     InchiStructure inchiStr = StructureUtils.getInchiStructure(structure);
     String inchi = inchiStr != null ? inchiStr.inchi() : null;
     String inchiKey = inchiStr != null ? inchiStr.inchiKey() : null;
 
-    return new ComplexMolecularStructure(structure, formula(), canonicalSmiles(), isomericSmiles(),
-        inchi, inchiKey, monoIsotopicMass(), mostAbundantMass(), totalFormalCharge());
+    return new PrecomputedMolecularStructure(structure, formula(), canonicalSmiles(),
+        isomericSmiles(), inchi, inchiKey, monoIsotopicMass(), mostAbundantMass(),
+        totalFormalCharge());
   }
 }
