@@ -60,6 +60,7 @@ public enum MZmineModuleCategory {
   VISUALIZATIONRAWDATA("Visualization"), //
   VISUALIZATIONFEATURELIST("Visualization feature list"), //
   VISUALIZATION_RAW_AND_FEATURE("Visualization data"), //
+  VISUALIZATION_OTHER_DATA("Visualization of data from other detectors"), //
   DATAANALYSIS("Data analysis"), //
   HELPSYSTEM("Help"), //
   TOOLS("Tools"), OTHER_DATA_PROCESSING("Processing other data"); //
@@ -90,7 +91,7 @@ public enum MZmineModuleCategory {
       // no main category
       case HELPSYSTEM, TOOLS -> MainCategory.OTHER;
       // no default so that the compiler marks missing cases
-      case OTHER_DATA_PROCESSING -> MainCategory.OTHER_DATA;
+      case OTHER_DATA_PROCESSING, VISUALIZATION_OTHER_DATA -> MainCategory.OTHER_DATA;
     };
   }
 
