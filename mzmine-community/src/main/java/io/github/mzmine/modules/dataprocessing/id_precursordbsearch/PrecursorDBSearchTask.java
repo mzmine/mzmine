@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionException;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.BinarySearch;
@@ -55,6 +56,8 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
   private final List<@NotNull FeatureList> featureLists;
   private final MZTolerance mzTol;
   private final RTTolerance rtTol;
+  private final MobilityTolerance mobTol;
+  private final Double ccsTol;
   private int libraryEntries;
 
   public PrecursorDBSearchTask(final ParameterSet parameters, final Instant moduleCallDate) {
@@ -64,6 +67,11 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
     mzTol = parameters.getValue(PrecursorDBSearchParameters.mzTolerancePrecursor);
     rtTol = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         PrecursorDBSearchParameters.rtTolerance, null);
+    mobTol = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        PrecursorDBSearchParameters.mobTolerance, null);
+    ccsTol = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        PrecursorDBSearchParameters.ccsTolerance, null);
+
   }
 
   @Override
@@ -104,9 +112,9 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
     for (final FeatureListRow row : rows) {
       Range<Double> mzRange = mzTol.getToleranceRange(row.getAverageMZ());
       // precursor mz is already checked
-      IndexRange indexRange = BinarySearch.indexRange(mzRange.lowerEndpoint(),
-          mzRange.upperEndpoint(), mzSortedEntries, entryIndexStart, mzSortedEntries.size(),
-          CompoundDBAnnotation::getPrecursorMZ);
+      @SuppressWarnings("DataFlowIssue") IndexRange indexRange = BinarySearch.indexRange(
+          mzRange.lowerEndpoint(), mzRange.upperEndpoint(), mzSortedEntries, entryIndexStart,
+          mzSortedEntries.size(), CompoundDBAnnotation::getPrecursorMZ);
       if (indexRange.isEmpty()) {
         continue;
       }
@@ -115,8 +123,9 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
 
       indexRange.forEach(index -> {
         CompoundDBAnnotation db = mzSortedEntries.get(index);
-        if (checkRT(row, db.getRT())) {
-          row.addCompoundAnnotation(db);
+        var match = db.checkMatchAndCalculateDeviation(row, mzTol, rtTol, mobTol, ccsTol);
+        if (match != null) {
+          row.addCompoundAnnotation(match);
           matches.incrementAndGet();
         }
       });
@@ -139,7 +148,8 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
       totalItems = entries.size();
       finishedItems.set(0);
 
-      List<CompoundDBAnnotation> dbEntries = entries.stream().map(spec -> {
+      @SuppressWarnings("DataFlowIssue") List<CompoundDBAnnotation> dbEntries = entries.stream()
+          .map(spec -> {
             finishedItems.incrementAndGet();
             return CompoundAnnotationUtils.convertSpectralToCompoundDb(spec);
           }).filter(db -> db.getPrecursorMZ() != null)
@@ -159,11 +169,6 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
   @Override
   protected @NotNull List<FeatureList> getProcessedFeatureLists() {
     return featureLists;
-  }
-
-  protected boolean checkRT(FeatureListRow row, Float rt) {
-    // if no rt is in the library still use
-    return rtTol == null || rtTol.checkWithinTolerance(row.getAverageRT(), rt);
   }
 
 }

@@ -27,10 +27,13 @@ package io.github.mzmine.modules.dataprocessing.id_precursordbsearch;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 
 public class PrecursorDBSearchParameters extends SimpleParameterSet {
 
@@ -45,10 +48,16 @@ public class PrecursorDBSearchParameters extends SimpleParameterSet {
   public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
       new RTToleranceParameter());
 
+  public static final OptionalParameter<MobilityToleranceParameter> mobTolerance = new OptionalParameter<>(
+      new MobilityToleranceParameter(new MobilityTolerance(0.01f)));
+  public static final OptionalParameter<PercentParameter> ccsTolerance = new OptionalParameter<>(
+      new PercentParameter("CCS tolerance (%)",
+          "Maximum allowed difference (in per cent) for two ccs values.", 0.05));
+
   public PrecursorDBSearchParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_spectra_lib/local-spectra-lib-search.html",
-        featureLists, libraries, mzTolerancePrecursor, rtTolerance);
+        featureLists, libraries, mzTolerancePrecursor, rtTolerance, mobTolerance, ccsTolerance);
   }
 
   @Override
