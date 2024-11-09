@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBA
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
@@ -223,8 +224,11 @@ public class CompoundAnnotationUtils {
       }
     });
 
-    // currently spec library entry uses MZType and not PrecursorMZType for mz so enter it in both
+    // currently spec library entry uses MZType and not PrecursorMZType
+    // for now just make sure to delete MZType for compatibility that MZType is not used in CompoundDB
+    db.put(MZType.class, null);
     db.putIfNotNull(PrecursorMZType.class, spec.getPrecursorMZ());
+
     MolecularStructure structure = spec.getStructure();
     if (structure != null) {
       db.setStructure(structure);

@@ -45,7 +45,7 @@ public record SimpleMolecularStructure(@NotNull IAtomContainer structure) implem
 
   private static final Logger logger = Logger.getLogger(SimpleMolecularStructure.class.getName());
 
-  @Nullable
+  @NotNull
   public IMolecularFormula formula() {
     return StructureUtils.getFormula(structure());
   }

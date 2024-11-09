@@ -35,7 +35,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * Contains precomputed values in case they need to be accessed more frequently
  */
 public record PrecomputedMolecularStructure(@NotNull IAtomContainer structure,
-                                            IMolecularFormula formula,
+                                            @NotNull IMolecularFormula formula,
                                             @Nullable String canonicalSmiles,
                                             @Nullable String isomericSmiles, @Nullable String inchi,
                                             @Nullable String inchiKey, double monoIsotopicMass,

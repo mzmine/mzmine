@@ -202,6 +202,14 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   <T> T get(Class<? extends DataType<T>> key);
 
+  /**
+   * Stores the given value to this annotation. If new value is null, removes the mapping.
+   *
+   * @param key   The key.
+   * @param value The value.
+   * @return The previously mapped value. Also returns the currently mapped value if the parameter
+   * was null.
+   */
   <T> T put(@NotNull DataType<T> key, T value);
 
   /**
@@ -219,6 +227,14 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(key);
   }
 
+  /**
+   * Stores the given value to this annotation. If new value is null, removes the mapping.
+   *
+   * @param key   The key.
+   * @param value The value.
+   * @return The previously mapped value. Also returns the currently mapped value if the parameter
+   * was null.
+   */
   <T> T put(@NotNull Class<? extends DataType<T>> key, T value);
 
   /**

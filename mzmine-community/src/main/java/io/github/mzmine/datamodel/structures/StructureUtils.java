@@ -29,6 +29,7 @@ import io.github.dan2097.jnainchi.InchiKeyOutput;
 import io.github.dan2097.jnainchi.InchiKeyStatus;
 import io.github.dan2097.jnainchi.InchiStatus;
 import io.github.dan2097.jnainchi.JnaInchi;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.inchi.InChIGenerator;
@@ -169,8 +170,8 @@ public class StructureUtils {
     return null;
   }
 
-  @Nullable
-  public static IMolecularFormula getFormula(IAtomContainer structure) {
+  @NotNull
+  public static IMolecularFormula getFormula(@NotNull IAtomContainer structure) {
     return MolecularFormulaManipulator.getMolecularFormula(structure);
   }
 

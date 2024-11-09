@@ -58,7 +58,7 @@ public sealed interface MolecularStructure permits PrecomputedMolecularStructure
   @NotNull
   IAtomContainer structure();
 
-  @Nullable
+  @NotNull
   IMolecularFormula formula();
 
   @Nullable

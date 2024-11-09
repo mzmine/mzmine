@@ -161,10 +161,6 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
     return featureLists;
   }
 
-  protected boolean checkMZ(FeatureListRow row, Double mz) {
-    return mz != null && mzTol.checkWithinTolerance(row.getAverageMZ(), mz);
-  }
-
   protected boolean checkRT(FeatureListRow row, Float rt) {
     // if no rt is in the library still use
     return rtTol == null || rtTol.checkWithinTolerance(row.getAverageRT(), rt);

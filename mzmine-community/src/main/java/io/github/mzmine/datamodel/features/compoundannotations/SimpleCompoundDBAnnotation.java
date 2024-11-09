@@ -232,7 +232,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
   @Override
   public <T> T put(@NotNull DataType<T> key, T value) {
-    if (value != null && !key.getValueClass().isInstance(value)) {
+    if (value == null) {
+      return (T) data.remove(key);
+    }
+
+    if (!key.getValueClass().isInstance(value)) {
       throw new IllegalArgumentException(
           String.format("Cannot put value class (%s) for data type (%s). Value type mismatch.",
               value.getClass(), key.getClass()));
@@ -241,9 +245,14 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     return (T) data.put(actualKey, value);
   }
 
+  @Override
   public <T> T put(@NotNull Class<? extends DataType<T>> key, T value) {
     var actualKey = DataTypes.get(key);
-    if (value != null && !actualKey.getValueClass().isInstance(value)) {
+    if (value == null) {
+      return (T) data.remove(actualKey);
+    }
+
+    if (!actualKey.getValueClass().isInstance(value)) {
       throw new IllegalArgumentException(
           String.format("Cannot put value class (%s) for data type (%s). Value type mismatch.",
               value.getClass(), actualKey.getClass()));
