@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
@@ -51,6 +52,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javafx.scene.paint.Color;
+import javax.annotation.Nullable;
 
 class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
 
@@ -59,16 +62,21 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
   private final Scan pseudoScan;
   private final ModularFeature feature;
   private final MZTolerance mzTolerance;
+  @Nullable
+  private final Color featureColor;
   private ExtractMzRangesIonSeriesFunction extractFunction;
 
+
   PseudoSpectrumFeatureDataSetCalculationTask(RawDataFile dataFile, TICPlot chromPlot,
-      Scan pseudoScan, ModularFeature feature, MZTolerance mzTolerance) {
+      Scan pseudoScan, ModularFeature feature, MZTolerance mzTolerance,
+      @org.jetbrains.annotations.Nullable Color featureColor) {
     super(null, Instant.now());
     this.dataFile = dataFile;
     this.chromPlot = chromPlot;
     this.pseudoScan = pseudoScan;
     this.feature = feature;
     this.mzTolerance = mzTolerance;
+    this.featureColor = featureColor;
   }
 
   @Override
@@ -124,14 +132,16 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
 
     List<ColoredXYDataset> datasets = new ArrayList<>();
 
+    var nextColor = featureColor != null ? featureColor
+        : MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
+
     for (int i = 0; i < ionSeries.length; i++) {
       var builder = ionSeries[i];
       double mz = RangeUtils.rangeCenter(mzRangesSorted.get(i));
-      var nextColorAWT = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
 
       IonTimeSeries<? extends Scan> series = builder.toFullIonTimeSeries(null, scans);
       datasets.add(
-          new ColoredXYDataset(new IonTimeSeriesToXYProvider(series, format.mz(mz), nextColorAWT),
+          new ColoredXYDataset(new IonTimeSeriesToXYProvider(series, format.mz(mz), nextColor),
               RunOption.THIS_THREAD));
     }
 
@@ -140,10 +150,17 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
         return;
       }
       chromPlot.removeAllFeatureDataSets(false);
-      chromPlot.addFeatureDataSetRandomColor(new FeatureDataSet(feature));
-
-      for (var dataset : datasets) {
-        chromPlot.addDataSet(dataset);
+      if (featureColor != null) {
+        chromPlot.addFeatureDataSetSpecificColor(new FeatureDataSet(feature),
+            FxColorUtil.fxColorToAWT(featureColor));
+        for (var dataset : datasets) {
+          chromPlot.addMzRangeEicDataSet(dataset, FxColorUtil.fxColorToAWT(featureColor));
+        }
+      } else {
+        chromPlot.addFeatureDataSetRandomColor(new FeatureDataSet(feature));
+        for (var dataset : datasets) {
+          chromPlot.addDataSet(dataset);
+        }
       }
     });
 
