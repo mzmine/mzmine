@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -342,6 +342,32 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     return -1;
   }
 
+  public synchronized int addMzRangeEicDataSet(final XYDataset dataSet, Color color) {
+    if ((dataSet instanceof TICDataSet) && (((TICDataSet) dataSet).getPlotType()
+        != getPlotType())) {
+      throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
+          + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
+          + "'");
+    }
+
+    try {
+      final XYItemRenderer renderer;
+      if (dataSet instanceof MzRangeEicDataSet) {
+        renderer = new FeatureTICRenderer();
+      } else {
+        renderer = (TICPlotRenderer) defaultRenderer.clone();
+      }
+      renderer.setSeriesShape(0, DATA_POINT_SHAPE);
+      renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
+      renderer.setSeriesPaint(0, color);
+      renderer.setSeriesFillPaint(0, color);
+      return addDataSetAndRenderer(dataSet, renderer);
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.WARNING, "Unable to clone renderer", e);
+    }
+    return -1;
+  }
+
   public synchronized int addDataSet(XYDataset dataSet, Color color) {
     XYItemRenderer newRenderer = new DefaultXYItemRenderer();
     newRenderer.setDefaultFillPaint(color);
@@ -441,6 +467,15 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     Color nextColorAWT = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT();
     renderer.setSeriesPaint(0, nextColorAWT);
     renderer.setSeriesFillPaint(0, nextColorAWT);
+    renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
+    return addDataSetAndRenderer(dataSet, renderer);
+  }
+
+  public synchronized int addFeatureDataSetSpecificColor(final FeatureDataSet dataSet,
+      Color color) {
+    final FeatureTICRenderer renderer = new FeatureTICRenderer();
+    renderer.setSeriesPaint(0, color);
+    renderer.setSeriesFillPaint(0, color);
     renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
     return addDataSetAndRenderer(dataSet, renderer);
   }
