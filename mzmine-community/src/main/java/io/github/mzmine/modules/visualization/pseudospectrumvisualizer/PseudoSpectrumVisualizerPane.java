@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
@@ -49,6 +50,8 @@ import java.util.logging.Logger;
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
+import javax.annotation.Nullable;
 
 public class PseudoSpectrumVisualizerPane extends SplitPane {
 
@@ -59,14 +62,18 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
   private RawDataFile rawDataFile;
   private SpectraPlot spectraPlot;
   private TICPlot ticPlot;
+  @Nullable
+  private Color color;
 
 
-  public PseudoSpectrumVisualizerPane(ModularFeature selectedFeature) {
+  public PseudoSpectrumVisualizerPane(ModularFeature selectedFeature,
+      @org.jetbrains.annotations.Nullable Color color) {
     super();
     setOrientation(Orientation.VERTICAL);
     this.selectedFeature = selectedFeature;
     this.pseudoScan = selectedFeature.getMostIntenseFragmentScan();
     this.rawDataFile = selectedFeature.getRawDataFile();
+    this.color = color;
     ticPlot = new TICPlot();
     spectraPlot = new SpectraPlot();
     init();
@@ -78,6 +85,9 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
         false);
     spectraVisualizerTab.loadRawData(pseudoScan);
     spectraPlot = spectraVisualizerTab.getSpectrumPlot();
+    if (color != null) {
+      spectraPlot.getXYPlot().getRenderer().setDefaultPaint(FxColorUtil.fxColorToAWT(color));
+    }
 
     TICVisualizerTab ticVisualizerTab = new TICVisualizerTab(new RawDataFile[]{rawDataFile},
         TICPlotType.BASEPEAK, new ScanSelection(pseudoScan.getMSLevel()),
@@ -87,8 +97,7 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
     ticPlot.removeAllDataSets();
     ticPlot.setLegendVisible(false);
     PseudoSpectrumFeatureDataSetCalculationTask task = new PseudoSpectrumFeatureDataSetCalculationTask(
-        rawDataFile, ticPlot,
-        pseudoScan, selectedFeature, mzTolerance);
+        rawDataFile, ticPlot, pseudoScan, selectedFeature, mzTolerance, color);
     MZmineCore.getTaskController().addTask(task);
     BorderPane pnWrapSpectrum = new BorderPane();
     BorderPane pnWrapChrom = new BorderPane();
