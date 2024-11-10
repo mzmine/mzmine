@@ -251,7 +251,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       spectrumType = MassSpectrumType.PROFILE;
     }
     // sometimes not set for UV data
-    if(isUVSpectrum()) {
+    if (isUVSpectrum()) {
       return MassSpectrumType.PROFILE;
     }
 
@@ -437,9 +437,9 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   @Nullable
   public MzMLMobility getMobility() {
 
-    if(isMergedMobilitySpectrum() && mobilityBinaryDataInfo != null) {
+    if (isMergedMobilitySpectrum() && mobilityBinaryDataInfo != null) {
       return switch (mobilityBinaryDataInfo.getUnitAccession()) {
-        case null ->  new MzMLMobility(0d, MobilityType.DRIFT_TUBE);
+        case null -> new MzMLMobility(0d, MobilityType.DRIFT_TUBE);
         case MzMLCV.cvMobilityDriftTimeUnit -> new MzMLMobility(0d, MobilityType.DRIFT_TUBE);
         case MzMLCV.cvMobilityInverseReducedUnit -> new MzMLMobility(0d, MobilityType.TIMS);
         default -> null;
@@ -657,6 +657,10 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     return true;
   }
 
+  /**
+   * loads data for mzml scan entries that were created using the --combineMobilityScans option.
+   * Splits the combined data into individual scans and memory maps the data.
+   */
   public BuildingMobilityScanStorage loadProccessMemMapMzDataForMergedMobilityScan(
       MemoryMapStorage storage, @NotNull ScanImportProcessorConfig config) {
     final List<MobilitySpectralArrays> processedMobilityScanData = splitMergedMobilityScans().stream()

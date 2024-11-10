@@ -297,6 +297,9 @@ public class RawDataFileTypeDetector {
         return new WatersAcquisitionInfo(WatersAcquisitionType.MS_ONLY, mobilityCounter.matches > 0,
             polarity);
       }
+
+      logger.info(
+          "Unable to detect file type of Waters raw data. Defaulting to MSe and no mobility separation.");
       return new WatersAcquisitionInfo(WatersAcquisitionType.MSE, mobilityCounter.matches > 0,
           polarity);
     } catch (IOException e) {

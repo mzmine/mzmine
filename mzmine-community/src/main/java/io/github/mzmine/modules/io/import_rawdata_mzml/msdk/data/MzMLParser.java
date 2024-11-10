@@ -213,7 +213,7 @@ public class MzMLParser {
             vars.binaryDataInfo.setUnitAccession(unitAccession);
           } else if (accession.equals("MS:1003006")) {
             throw new IllegalStateException(
-                "Importing timsTOF files from mzML with the --combineIonMobilitySpectra option is not supported");
+                "Importing timsTOF files from mzML with the --combineIonMobilitySpectra option is not supported. Please use the native .d data instead.");
           } else {
             vars.skipBinaryDataArray = true;
           }
