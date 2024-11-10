@@ -26,6 +26,14 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import com.google.common.collect.Range;
+import com.google.common.util.concurrent.AtomicDouble;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
+import io.github.mzmine.datamodel.features.types.ImageType;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeChart;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeMobilogramChart;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.ImageChart;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
@@ -34,6 +42,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.AllowsRegionSelection;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import java.awt.BasicStroke;
@@ -48,6 +57,7 @@ import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.geometry.Point2D;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.annotations.XYImageAnnotation;
@@ -71,6 +81,7 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
   private RegionSelectionListener currentRegionListener = null;
   private XYShapeAnnotation currentRegionAnnotation;
   private XYImageAnnotation currentImageAnnotation;
+  private java.awt.geom.Rectangle2D imageBounds;
 
 
   public KendrickMassPlotChart(String title, String xAxisLabel, String yAxisLabel,
@@ -96,10 +107,7 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
     }
     ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
     renderer.setPaintScale(paintScale);
-    renderer.setDefaultToolTipGenerator(
-        new KendrickToolTipGenerator(xAxisLabel, yAxisLabel, colorScaleLabel,
-            dataset.getBubbleKendrickDataType().getName()));
-    
+
     PaintScaleLegend legend = generateLegend(paintScale);
     getChart().addSubtitle(legend);
     this.getChart().getXYPlot().setRenderer(renderer);
@@ -107,49 +115,91 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
     addChartMouseListener(new ChartMouseListenerFX() {
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
-        // Optional mouse click handler
       }
 
       @Override
       public void chartMouseMoved(ChartMouseEventFX event) {
+        handleMouseMovement(event);
+      }
+
+      private void handleMouseMovement(ChartMouseEventFX event) {
+        int displayTolerance = 30;
+        int removeTolerance = 50;
+
         if (event.getEntity() instanceof XYItemEntity) {
           XYItemEntity itemEntity = (XYItemEntity) event.getEntity();
           int seriesIndex = itemEntity.getSeriesIndex();
           int itemIndex = itemEntity.getItem();
           XYPlot plot = getChart().getXYPlot();
 
-          // Remove any existing image annotation
-          if (currentImageAnnotation != null) {
-            plot.removeAnnotation(currentImageAnnotation);
-          }
+          double xValue = itemEntity.getDataset().getXValue(seriesIndex, itemIndex);
+          double yValue = itemEntity.getDataset().getYValue(seriesIndex, itemIndex);
 
-          // Generate the tooltip text for the annotation
+          Rectangle2D dataArea = getCanvas().getRenderingInfo().getPlotInfo().getDataArea();
+
+          double screenX = plot.getDomainAxis()
+              .valueToJava2D(xValue, dataArea, plot.getDomainAxisEdge());
+          double screenY = plot.getRangeAxis()
+              .valueToJava2D(yValue, dataArea, plot.getRangeAxisEdge());
+
+          Point2D canvasScreenPosition = getCanvas().localToScreen(0, 0);
+
+          double localMouseX = event.getTrigger().getScreenX() - canvasScreenPosition.getX();
+          double localMouseY = event.getTrigger().getScreenY() - canvasScreenPosition.getY();
+
+          double distance = Math.sqrt(
+              Math.pow(screenX - localMouseX, 2) + Math.pow(screenY - localMouseY, 2));
+
+          // If mouse is within the display tolerance, show or update the annotation
+          if (distance <= displayTolerance || (imageBounds != null && imageBounds.contains(
+              localMouseX, localMouseY))) {
+            if (currentImageAnnotation == null) {
+              createAndAddAnnotation(itemEntity, itemIndex, seriesIndex, xValue, yValue, plot,
+                  screenX, screenY);
+            }
+          }
+          // If mouse is outside the remove tolerance and not within image bounds, remove the annotation
+          else if (distance > removeTolerance && currentImageAnnotation != null && (
+              imageBounds == null || !imageBounds.contains(localMouseX, localMouseY))) {
+            plot.removeAnnotation(currentImageAnnotation);
+            currentImageAnnotation = null;
+            imageBounds = null;
+          }
+        } else {
+          // Clear annotation if not hovering over a data point
+          if (currentImageAnnotation != null) {
+            getChart().getXYPlot().removeAnnotation(currentImageAnnotation);
+            currentImageAnnotation = null;
+            imageBounds = null;
+          }
+        }
+      }
+
+      private void createAndAddAnnotation(XYItemEntity itemEntity, int itemIndex, int seriesIndex,
+          double xValue, double yValue, XYPlot plot, double screenX, double screenY) {
+        // Create and add the annotation if it's not already displayed
+        KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) itemEntity.getDataset();
+        FeatureListRow row = dataset.getItemObject(itemIndex);
+
+        if (row != null) {
           KendrickToolTipGenerator generator = new KendrickToolTipGenerator("m/z", "Retention Time",
               "Intensity", "Bubble Size");
           String tooltipText = generator.generateToolTip(itemEntity.getDataset(), seriesIndex,
               itemIndex);
 
-          // Create the image with multi-line text and background
-          BufferedImage image = createTextImage(tooltipText);
+          BufferedImage image = createTooltipImageWithChart(tooltipText,
+              (ModularFeatureListRow) row);
 
-          // Position the image at the data point
-          double x = itemEntity.getDataset().getXValue(seriesIndex, itemIndex);
-          double y = itemEntity.getDataset().getYValue(seriesIndex, itemIndex);
-
-          // Add image annotation to the plot
-          currentImageAnnotation = new XYImageAnnotation(x, y, image);
+          currentImageAnnotation = new XYImageAnnotation(xValue, yValue, image);
           plot.addAnnotation(currentImageAnnotation);
-        } else {
-          // Clear image annotation if not hovering over a data point
-          if (currentImageAnnotation != null) {
-            getChart().getXYPlot().removeAnnotation(currentImageAnnotation);
-            currentImageAnnotation = null;
-          }
+
+          imageBounds = new Rectangle2D.Double(screenX - image.getWidth() / 2,
+              screenY - image.getHeight(), image.getWidth(), image.getHeight());
         }
       }
+
     });
   }
-
   private PaintScaleLegend generateLegend(@NotNull PaintScale scale) {
     Paint axisPaint = this.getChart().getXYPlot().getDomainAxis().getAxisLinePaint();
     Font axisLabelFont = this.getChart().getXYPlot().getDomainAxis().getLabelFont();
@@ -226,55 +276,6 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
   }
 
   /**
-   * Creates a BufferedImage containing multi-line text with a background.
-   */
-  private BufferedImage createTextImage(String text) {
-
-    // Set font and padding
-    Font font = new Font("SansSerif", Font.PLAIN, 12);
-    int padding = 10;
-
-    // Create temporary image to get font metrics
-    BufferedImage tempImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D tempG2d = tempImage.createGraphics();
-    tempG2d.setFont(font);
-    FontMetrics metrics = tempG2d.getFontMetrics();
-    int lineHeight = metrics.getHeight();
-    tempG2d.dispose();
-
-    // Split text into lines
-    String[] lines = text.split("\n");
-    int width = metrics.stringWidth(getLongestLine(lines)) + 2 * padding;
-    int height = lineHeight * lines.length + 2 * padding;
-
-    // Create final image with calculated dimensions
-    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g2d = image.createGraphics();
-
-    // Set rendering hints for better text quality
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-    // Set font and draw background
-    g2d.setFont(font);
-    g2d.setColor(new Color(0.9f, 0.9f, 0.9f, 0.8f)); // Light grey with transparency
-    g2d.fill(new Rectangle2D.Double(0, 0, width, height));
-
-    // Draw text
-    g2d.setColor(Color.BLACK);
-    int y = padding + metrics.getAscent();
-    for (String line : lines) {
-      g2d.drawString(line, padding, y);
-      y += lineHeight;
-    }
-
-    g2d.dispose();
-    return image;
-  }
-
-
-  /**
    * Helper method to get the longest line for calculating image width.
    */
   private String getLongestLine(String[] lines) {
@@ -286,5 +287,102 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
     }
     return longest;
   }
+
+  /**
+   * Creates a BufferedImage containing multi-line text, the best annotation, a FeatureShapeChart,
+   * and conditionally a Mobilogram or Imaging chart with a background.
+   */
+  private BufferedImage createTooltipImageWithChart(String text, ModularFeatureListRow row) {
+    AtomicDouble progress = new AtomicDouble(0.0);
+
+    // Retrieve the best annotation, if available
+    String bestAnnotation = row.getPreferredAnnotationName();
+    String annotationText = bestAnnotation != null ? bestAnnotation : "";
+
+    BufferedImage chartImage;
+    if (row.hasFeatureType(ImageType.class) && row.getBestFeature() != null) {
+      ImageChart imageChart = new ImageChart(row.getBestFeature(), progress);
+      imageChart.getChart().getChart().setBackgroundPaint(new Color(0, 0, 0, 0));
+      chartImage = imageChart.getChart().getChart().createBufferedImage(300, 200);
+    } else {
+      // Create the FeatureShapeChart with the row
+      FeatureShapeChart featureShapeChart = new FeatureShapeChart(row, progress);
+      chartImage = featureShapeChart.getChart().getChart().createBufferedImage(300, 100);
+    }
+
+    // Check for Mobilogram or Imaging data
+    BufferedImage extraChartImage = null;
+    if (row.hasRowType(FeatureShapeMobilogramType.class)) {
+      FeatureShapeMobilogramChart mobilogramChart = new FeatureShapeMobilogramChart(row, progress);
+      extraChartImage = mobilogramChart.getChart().getChart().createBufferedImage(300, 100);
+    }
+
+    // Set font and padding
+    Font font = ConfigService.getConfiguration().getDefaultChartTheme().getMasterFont();
+    int padding = 10;
+
+    // Create temporary image to get font metrics
+    BufferedImage tempImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D tempG2d = tempImage.createGraphics();
+    tempG2d.setFont(font);
+    FontMetrics metrics = tempG2d.getFontMetrics();
+    int lineHeight = metrics.getHeight();
+    tempG2d.dispose();
+
+    // Split main tooltip text into lines and calculate dimensions
+    String[] lines = text.split("\n");
+    int mainTextWidth = metrics.stringWidth(getLongestLine(lines)) + 2 * padding;
+    int mainTextHeight = lineHeight * lines.length + 2 * padding;
+
+    // Calculate dimensions for annotation text
+    int annotationTextWidth = metrics.stringWidth(annotationText) + 2 * padding;
+    int textHeight = Math.max(mainTextHeight, lineHeight + 2 * padding);
+
+    // Final image width accommodates both main and annotation texts side by side
+    int width = Math.max(mainTextWidth + annotationTextWidth, chartImage.getWidth()) + 2 * padding;
+    int height =
+        textHeight + chartImage.getHeight() + (extraChartImage != null ? extraChartImage.getHeight()
+            : 0) + 4 * padding;
+
+    // Create final image with calculated dimensions
+    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2d = image.createGraphics();
+
+    // Set rendering hints for better text quality
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+    // Draw background
+    g2d.setColor(
+        (Color) ConfigService.getConfiguration().getDefaultChartTheme().getChartBackgroundPaint());
+    g2d.fill(new Rectangle2D.Double(0, 0, width, height));
+
+    // Draw main text on the left
+    g2d.setFont(font);
+    g2d.setColor((Color) ConfigService.getConfiguration().getDefaultChartTheme().getTitlePaint());
+    int y = padding + metrics.getAscent();
+    for (String line : lines) {
+      g2d.drawString(line, padding, y);
+      y += lineHeight;
+    }
+
+    // Draw annotation text on the right, aligned with the main text
+    g2d.drawString(annotationText, mainTextWidth + padding, padding + metrics.getAscent());
+
+    // Draw the FeatureShapeChart below the text
+    g2d.drawImage(chartImage, padding, textHeight + padding, null);
+
+    // Draw the Mobilogram if present
+    if (extraChartImage != null) {
+      g2d.drawImage(extraChartImage, padding, textHeight + chartImage.getHeight() + 2 * padding,
+          null);
+    }
+
+    g2d.dispose();
+    return image;
+  }
+
+
 }
 
