@@ -25,16 +25,22 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
+import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.Chromatogram;
+import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.types.MsMsInfoType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.DetectorType;
@@ -61,7 +67,6 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorLi
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -404,9 +409,9 @@ public class ConversionUtils {
         final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
         final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
         otherFile.setDetectorType(DetectorType.OTHER);
-        timeSeriesData.setChromatogramType(groupedByChromType.getKey());
-        otherFile.setDescription(unit +  "_" +
-            groupedByChromType.getKey().getDescription());
+        final ChromatogramType chromType = groupedByChromType.getKey();
+        timeSeriesData.setChromatogramType(chromType);
+        otherFile.setDescription(unit + "_" + chromType.getDescription());
 
         for (MzMLChromatogram chrom : unitChromEntry.getValue()) {
           final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
@@ -418,13 +423,51 @@ public class ConversionUtils {
 
           timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
           timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
+
+          extractAndSetMsMsInfoToChromatogram(chrom, chromType, otherFeature);
+          if (chromType.isMsType()) {
+            final PolarityType polarity = chrom.getPolarity();
+            if (polarity.isDefined()) {
+              otherFeature.set(PolarityTypeType.class, polarity);
+            }
+          }
         }
+
         otherFile.setOtherTimeSeriesData(timeSeriesData);
         otherFiles.add(otherFile);
       }
     }
 
     return otherFiles;
+  }
+
+  /**
+   * Sets the MS2 info for the otherFeature if it is set in the chromatogram
+   */
+  private static void extractAndSetMsMsInfoToChromatogram(MzMLChromatogram chrom,
+      ChromatogramType chromType, OtherFeatureImpl otherFeature) {
+    if (chromType == ChromatogramType.MRM_SRM) {
+      final List<IsolationInfo> isolations = chrom.getIsolations();
+      if (isolations.size() != 2) {
+        return;
+      }
+      final Double q3Mass = isolations.getLast().getPrecursorMz();
+      otherFeature.set(MZType.class, q3Mass);
+
+      final IsolationInfo q1Isolation = isolations.getFirst();
+      final Double q1Mass = q1Isolation.getPrecursorMz();
+      final ActivationInfo activationInfo = q1Isolation.getActivationInfo();
+      final Float energy =
+          activationInfo != null ? Objects.requireNonNullElse(activationInfo.getActivationEnergy(),
+              0d).floatValue() : null;
+      final ActivationMethod method = ActivationMethod.fromActivationType(
+          activationInfo != null ? activationInfo.getActivationType() : null);
+
+      if (q1Mass != null) {
+        otherFeature.set(MsMsInfoType.class,
+            List.of(new DDAMsMsInfoImpl(q1Mass, null, energy, null, null, 2, method, null)));
+      }
+    }
   }
 
   public static <T, K> Map<K, List<T>> groupByUnit(List<T> values, Function<T, K> getUnit) {
