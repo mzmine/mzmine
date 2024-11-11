@@ -40,7 +40,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRe
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -129,14 +129,14 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
       return;
     }
 
-    var format = MZmineCore.getConfiguration().getGuiFormats();
+    var format = ConfigService.getConfiguration().getGuiFormats();
 
     List<ColoredXYDataset> datasets = new ArrayList<>();
 
     var nextColor = featureColor != null ? featureColor
         : (feature.getRawDataFile() != null && feature.getRawDataFile().getColor() != null)
             ? feature.getRawDataFile().getColor()
-            : MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
+            : ConfigService.getConfiguration().getDefaultColorPalette().getNextColor();
 
     for (int i = 0; i < ionSeries.length; i++) {
       var builder = ionSeries[i];
