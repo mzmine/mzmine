@@ -329,7 +329,7 @@ public class MzMLChromatogram implements Chromatogram {
         precursorActivation = ActivationType.CID;
       }
 
-      if (precursorActivationEnergy != null) {
+      if (precursorActivationEnergy.isPresent()) {
         activationInfo = new SimpleActivationInfo(Double.valueOf(precursorActivationEnergy.get()),
             precursorActivation);
       }
