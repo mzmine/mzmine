@@ -26,62 +26,20 @@
 package io.github.mzmine.datamodel.structures;
 
 
-import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public sealed interface MolecularStructure permits PrecomputedMolecularStructure,
-    SimpleMolecularStructure {
-
-  enum ValueType {
-    PRECOMPUTED_VALUES, COMPUTE_ON_DEMAND
-  }
-
-  Logger logger = Logger.getLogger(MolecularStructure.class.getName());
-
-  /**
-   * Either precompute all values like smiles, inchi, inchikey, monoisotopic mass, formula. Or save
-   * memory and use structure that computes these values on demand
-   */
-  @NotNull
-  static MolecularStructure create(ValueType type, IAtomContainer structure) {
-    SimpleMolecularStructure simple = new SimpleMolecularStructure(structure);
-    return switch (type) {
-      case PRECOMPUTED_VALUES -> simple.precomputeValues();
-      case COMPUTE_ON_DEMAND -> simple;
-    };
-  }
-
-  @NotNull
-  IAtomContainer structure();
-
-  @NotNull
-  IMolecularFormula formula();
-
-  @Nullable
-  default String formulaString() {
-    var f = formula();
-    if (f == null) {
-      return null;
-    }
-    return MolecularFormulaManipulator.getString(f);
-  }
-
-  String canonicalSmiles();
-
-  String isomericSmiles();
-
-  String inchi();
-
-  String inchiKey();
-
-  double monoIsotopicMass();
-
-  double mostAbundantMass();
-
-  int totalFormalCharge();
+/**
+ * Contains precomputed values in case they need to be accessed more frequently
+ */
+public record PrecomputedMolecularStructure(@NotNull IAtomContainer structure,
+                                            @NotNull IMolecularFormula formula,
+                                            @Nullable String canonicalSmiles,
+                                            @Nullable String isomericSmiles, @Nullable String inchi,
+                                            @Nullable String inchiKey, double monoIsotopicMass,
+                                            double mostAbundantMass,
+                                            int totalFormalCharge) implements MolecularStructure {
 
 }
