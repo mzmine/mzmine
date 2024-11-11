@@ -29,26 +29,34 @@ import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.collections.SortOrder;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class CompoundAnnotationUtils {
+
+  private static final Logger logger = Logger.getLogger(CompoundAnnotationUtils.class.getName());
 
   /**
    * @param rows             The rows to group
@@ -190,5 +198,41 @@ public class CompoundAnnotationUtils {
 
   public static void calculateBoundTypes(CompoundDBAnnotation annotation, FeatureListRow row) {
     ConnectedTypeCalculation.LIST.forEach(calc -> calc.calculateIfAbsent(row, annotation));
+  }
+
+  /**
+   * Convert spectral library entry to compound DB entry. Tries to copy over all fields
+   */
+  @NotNull
+  public static CompoundDBAnnotation convertSpectralToCompoundDb(final SpectralLibraryEntry spec) {
+    SimpleCompoundDBAnnotation db = new SimpleCompoundDBAnnotation();
+    spec.getFields().forEach((field, value) -> {
+      Class<? extends DataType> dataType = field.getDataType();
+      if (DataTypes.isAbstractType(dataType)) {
+        return;
+      }
+
+      try {
+        db.putIfNotNull((Class) dataType, value);
+      } catch (Exception e) {
+        try {
+          logger.finer(
+              "Cannot convert value from spectral library to compound DB entry: %s = %s".formatted(
+                  dataType.getName(), value));
+        } catch (Exception ex) {
+        }
+      }
+    });
+
+    // currently spec library entry uses MZType and not PrecursorMZType
+    // for now just make sure to delete MZType for compatibility that MZType is not used in CompoundDB
+    db.put(MZType.class, null);
+    db.putIfNotNull(PrecursorMZType.class, spec.getPrecursorMZ());
+
+    MolecularStructure structure = spec.getStructure();
+    if (structure != null) {
+      db.setStructure(structure);
+    }
+    return db;
   }
 }
