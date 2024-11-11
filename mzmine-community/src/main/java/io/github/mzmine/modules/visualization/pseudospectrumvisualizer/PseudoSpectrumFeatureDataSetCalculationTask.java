@@ -54,7 +54,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javafx.scene.paint.Color;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
 
@@ -70,7 +70,7 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
 
   PseudoSpectrumFeatureDataSetCalculationTask(RawDataFile dataFile, TICPlot chromPlot,
       Scan pseudoScan, ModularFeature feature, MZTolerance mzTolerance,
-      @org.jetbrains.annotations.Nullable Color featureColor) {
+      @Nullable Color featureColor) {
     super(null, Instant.now());
     this.dataFile = dataFile;
     this.chromPlot = chromPlot;
