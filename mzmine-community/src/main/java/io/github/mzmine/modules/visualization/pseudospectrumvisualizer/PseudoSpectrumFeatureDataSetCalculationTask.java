@@ -36,11 +36,12 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
-import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -133,7 +134,9 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
     List<ColoredXYDataset> datasets = new ArrayList<>();
 
     var nextColor = featureColor != null ? featureColor
-        : MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
+        : (feature.getRawDataFile() != null && feature.getRawDataFile().getColor() != null)
+            ? feature.getRawDataFile().getColor()
+            : MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
 
     for (int i = 0; i < ionSeries.length; i++) {
       var builder = ionSeries[i];
@@ -149,21 +152,27 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
       if (getStatus() == TaskStatus.CANCELED) {
         return;
       }
-      chromPlot.removeAllFeatureDataSets(false);
-      if (featureColor != null) {
-        chromPlot.addFeatureDataSetSpecificColor(new FeatureDataSet(feature),
-            FxColorUtil.fxColorToAWT(featureColor));
-        for (var dataset : datasets) {
-          chromPlot.addMzRangeEicDataSet(dataset, FxColorUtil.fxColorToAWT(featureColor));
-        }
-      } else {
-        chromPlot.addFeatureDataSetRandomColor(new FeatureDataSet(feature));
-        for (var dataset : datasets) {
-          chromPlot.addDataSet(dataset);
-        }
-      }
-    });
+      chromPlot.applyWithNotifyChanges(false, () -> {
 
+        chromPlot.removeAllFeatureDataSets(false);
+
+        ColoredAreaShapeRenderer coloredAreaShapeRenderer = new ColoredAreaShapeRenderer();
+        coloredAreaShapeRenderer.setDefaultFillPaint(FxColorUtil.fxColorToAWT(nextColor));
+
+        //Build feature dataset
+        IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
+        ColoredXYDataset featureDataSet = new ColoredXYDataset(
+            new IonTimeSeriesToXYProvider(featureData, format.mz(feature.getMZ()), nextColor),
+            RunOption.THIS_THREAD);
+        chromPlot.addDataSetAndRenderer(featureDataSet, coloredAreaShapeRenderer);
+
+        // add other EICs
+        for (var dataset : datasets) {
+          chromPlot.addDataSetAndRenderer(dataset, new ColoredXYLineRenderer());
+        }
+
+      });
+    });
     setStatus(TaskStatus.FINISHED);
   }
 }
