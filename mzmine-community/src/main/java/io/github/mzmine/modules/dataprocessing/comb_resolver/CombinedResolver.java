@@ -35,52 +35,36 @@ public class CombinedResolver extends AbstractResolver {
             logger.warning("Wrong resolver parameters");
             return;
         }
+        loadEmbeddedResolvers((CombinedResolverParameters) parameters, flist);
         this.parameters = (CombinedResolverParameters) parameters;
     }
 
     public void loadEmbeddedResolvers(CombinedResolverParameters params, ModularFeatureList originalFeatureList) {
         ModuleOptionsEnumComboParameter<CombinedResolverEnum> firstResolverParameters = CombinedResolverParameters.firstResolverParameters;
         ModuleOptionsEnumComboParameter<CombinedResolverEnum> secondResolverParameters = CombinedResolverParameters.secondResolverParameters;
-        ParameterSet firstEmbeddedParameters = firstResolverParameters.getEmbeddedParameters();
-        ParameterSet secondEmbeddedParameters = secondResolverParameters.getEmbeddedParameters();
+        ParameterSet firstEmbeddedParameters = firstResolverParameters.getEmbeddedParameters().cloneParameterSet();
+        ParameterSet secondEmbeddedParameters = secondResolverParameters.getEmbeddedParameters().cloneParameterSet();
         switch (firstResolverParameters.getValue()) {
-            case CombinedResolverEnum.LOCAL_MIN ->
+            case CombinedResolverEnum.LOCAL_MIN -> {
                 firstResolver = ((MinimumSearchFeatureResolverParameters) firstEmbeddedParameters)
                         .getResolver(firstEmbeddedParameters, originalFeatureList);
-            case CombinedResolverEnum.ML_RESOLVER ->
+            }
+            case CombinedResolverEnum.ML_RESOLVER -> {
                 firstResolver = ((MLFeatureResolverParameters) firstEmbeddedParameters)
                         .getResolver(firstEmbeddedParameters, originalFeatureList);
+            }
         }
         switch (secondResolverParameters.getValue()) {
-            case CombinedResolverEnum.LOCAL_MIN ->
+            case CombinedResolverEnum.LOCAL_MIN -> {
                 secondResolver = ((MinimumSearchFeatureResolverParameters) secondEmbeddedParameters)
                         .getResolver(secondEmbeddedParameters, originalFeatureList);
-            case CombinedResolverEnum.ML_RESOLVER ->
+            }
+            case CombinedResolverEnum.ML_RESOLVER -> {
                 secondResolver = ((MLFeatureResolverParameters) secondEmbeddedParameters)
                         .getResolver(secondEmbeddedParameters, originalFeatureList);
+            }
         }
     }
-
-    // @Override
-    // public @NotNull Map<Resolver, List<Range<Double>>> resolve(double[] x,
-    // double[] y) {
-    // List<Resolver> resolvers = ((CombinedResolverParameters)
-    // this.parameters).getResolvers(this.parameters,
-    // this.flist);
-    // if (resolvers.size() == 0) {
-    // logger.warning("No resolvers selected");
-    // return null;
-    // }
-    // Map<Resolver, List<Range<Double>>> resolvedRanges = new HashMap<>();
-    // // List<Range<Double>> resolvedRanges = new ArrayList<>();
-    // for (Resolver resolver : resolvers) {
-    // resolvedRanges.put(resolver, resolver.resolve(x, y));
-    // // resolvedRanges.addAll(resolver.resolve(x, y));
-    // }
-    // List<Range<Double>> totalResolvedRanges = new ArrayList<>();
-
-    // return resolvedRanges;
-    // }
 
     @Override
     public @NotNull Class<? extends MZmineModule> getModuleClass() {
@@ -106,9 +90,9 @@ public class CombinedResolver extends AbstractResolver {
         List<Range<Double>> onlyFirstResolverRanges = new ArrayList<Range<Double>>();
         List<Range<Double>> onlySecondResolverRanges = new ArrayList<Range<Double>>();
         List<Range<Double>> bothResolverRanges = new ArrayList<Range<Double>>();
-        // index for x list
+        // index for first list
         int i = 0;
-        // index for y list
+        // index for second list
         int j = 0;
 
         Range<Double> currentFirst = firstResolverRanges.get(0);
@@ -121,70 +105,53 @@ public class CombinedResolver extends AbstractResolver {
         Double secondRight = currentSecond.upperEndpoint();
 
         while (i < firstResolverRanges.size() && j < secondResolverRanges.size()) {
+            currentFirst = firstResolverRanges.get(i);
+            firstLeft = currentFirst.lowerEndpoint();
+            firstRight = currentFirst.upperEndpoint();
+            currentSecond = secondResolverRanges.get(j);
+            secondLeft = currentSecond.lowerEndpoint();
+            secondRight = currentSecond.upperEndpoint();
             // ranges do not intersect and first is lower
             if (firstRight <= secondLeft) {
                 onlyFirstResolverRanges.add(currentFirst);
                 i++;
-                currentFirst = firstResolverRanges.get(i);
-                firstLeft = currentFirst.lowerEndpoint();
-                firstRight = currentFirst.upperEndpoint();
                 // ranges do not intersect and second is lower
             } else if (secondRight <= firstLeft) {
                 onlySecondResolverRanges.add(currentSecond);
                 j++;
-                currentSecond = secondResolverRanges.get(j);
-                secondLeft = currentSecond.lowerEndpoint();
-                secondRight = currentSecond.upperEndpoint();
                 // currentFirst is contained in currentSecond
             } else if (currentFirst.intersection(currentSecond).equals(currentFirst)) {
                 // temp code to accept loc min results
                 bothResolverRanges.add(currentFirst);
                 i++;
-                currentFirst = firstResolverRanges.get(i);
-                firstLeft = currentFirst.lowerEndpoint();
-                firstRight = currentFirst.upperEndpoint();
                 j++;
-                currentSecond = secondResolverRanges.get(j);
-                secondLeft = currentSecond.lowerEndpoint();
-                secondRight = currentSecond.upperEndpoint();
 
                 // currentSecond is contained in currentFirst
             } else if (currentSecond.intersection(currentFirst).equals(currentSecond)) {
                 // temp code to accept loc min results
                 while (firstRight > secondLeft) {
                     j++;
+                    if(j<secondResolverRanges.size()){
                     currentSecond = secondResolverRanges.get(j);
                     secondLeft = currentSecond.lowerEndpoint();
                     secondRight = currentSecond.upperEndpoint();
+                    } else {
+                        break;
+                    }
                 }
                 bothResolverRanges.add(currentFirst);
                 i++;
-                currentFirst = firstResolverRanges.get(i);
-                firstLeft = currentFirst.lowerEndpoint();
-                firstRight = currentFirst.upperEndpoint();
                 // intersection but not contained
             } else if (firstLeft < secondLeft) {
                 // currently always accepts results from first resolver
                 bothResolverRanges.add(currentFirst);
                 i++;
-                currentFirst = firstResolverRanges.get(i);
-                firstLeft = currentFirst.lowerEndpoint();
-                firstRight = currentFirst.upperEndpoint();
                 j++;
-                currentSecond = secondResolverRanges.get(j);
-                secondLeft = currentSecond.lowerEndpoint();
-                secondRight = currentSecond.upperEndpoint();
             } else {
                 // currently always accepts results from first resolver
                 bothResolverRanges.add(currentFirst);
                 i++;
-                currentFirst = firstResolverRanges.get(i);
-                firstLeft = currentFirst.lowerEndpoint();
-                firstRight = currentFirst.upperEndpoint();
                 j++;
-                currentSecond = secondResolverRanges.get(j);
-                secondLeft = currentSecond.lowerEndpoint();
-                secondRight = currentSecond.upperEndpoint();
             }
         }
         // adds remaining ranges. These shoulb be unproblematic
@@ -237,6 +204,36 @@ public class CombinedResolver extends AbstractResolver {
         return false;
     }
 
+    public double calculateZigZagIndex(double[] featureIntensity){
+        double zigZagSum = 0;
+        for (int i = 1; i < featureIntensity.length-1; i++) {
+           zigZagSum +=Math.pow((2*featureIntensity[i] - featureIntensity[i-1] - featureIntensity[i+1]) ,2);
+        }
+        // TODO implement baseline calculation
+        double baseline = 0;
+        double EPI = Arrays.stream(featureIntensity).max().orElse(0)-baseline;
+        double zigZagIndex = zigZagSum/(featureIntensity.length * EPI);
+        return zigZagIndex;
+    }
+
+
+    public double calculateSharpness(double[] featureIntensities){
+        if(featureIntensities.length<2){
+            return 0;
+        }
+        double peakIntensity = Arrays.stream(featureIntensities).max().orElse(0);
+        int peakIndex = findIndex(featureIntensities, peakIntensity);
+        double  leftSharpness = 0;
+        double  rightSharpness = 0;
+        for (int i = 1; i <= peakIndex; i++) {
+            leftSharpness += (featureIntensities[i] - featureIntensities[i-1])/featureIntensities[i-1];
+        }
+        for (int i = peakIndex; i < featureIntensities.length-1; i++) {
+           rightSharpness += (featureIntensities[i] - featureIntensities[i+1])/featureIntensities[i+1];
+        }
+        return leftSharpness + rightSharpness;
+    }
+
     @Override
     public @NotNull List<Range<Double>> resolve(double[] time, double[] intensity) {
         List<Range<Double>> firstResolverRanges = firstResolver.resolve(time, intensity);
@@ -248,12 +245,16 @@ public class CombinedResolver extends AbstractResolver {
         totalRanges.addAll(filteredRanges.bothResolverRanges());
         for (Range<Double> range : filteredRanges.onlyFirstResolverRanges()) {
             totalRanges.add(range);
-            // if (checkVariance(time, intensity, range.lowerEndpoint(), range.upperEndpoint())) {
-            //     totalRanges.add(range);
+            // if (checkVariance(time, intensity, range.lowerEndpoint(),
+            // range.upperEndpoint())) {
+            // totalRanges.add(range);
             // }
         }
         for (Range<Double> range : filteredRanges.onlySecondResolverRanges()) {
-            if (checkVariance(time, intensity, range.lowerEndpoint(), range.upperEndpoint())) {
+            int leftIndex = findIndex(time, range.lowerEndpoint());
+            int rightIndex = findIndex(time, range.upperEndpoint());
+            double[] featureIntensities = Arrays.copyOfRange(intensity, leftIndex, rightIndex+1);
+            if (calculateZigZagIndex(featureIntensities)<2) {
                 totalRanges.add(range);
             }
         }
