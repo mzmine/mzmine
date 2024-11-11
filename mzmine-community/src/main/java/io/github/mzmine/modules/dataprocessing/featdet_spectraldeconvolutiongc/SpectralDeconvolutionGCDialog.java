@@ -125,14 +125,12 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
     clusteringSelectedFeatureSplit.getItems().add(scatterPlotBorderPane);
     clusteringSelectedFeatureSplit.setOrientation(Orientation.VERTICAL);
     previewWrapperPane.setCenter(clusteringSelectedFeatureSplit);
-    // previewWrapperPane.setVisible(false); // Initially invisible
 
     deconvolutedFeaturesComboBox = new ComboComponent<>(FXCollections.observableArrayList());
     buttonBox = FxLayout.newHBox(deconvolutedFeaturesComboBox);
     deconvolutedFeaturesComboBox.setOnAction(_ -> updateSelectedFeature());
     previewWrapperPane.setBottom(buttonBox);
 
-    //paramPreviewSplit.getItems().add(previewWrapperPane);
     numberOfCompoundsLabel = new Label("Number of compounds: ");
     selectedFeatureGroupLabel = new Label("Selected rt group: ");
     VBox labelVBox = FxLayout.newVBox(numberOfCompoundsLabel, selectedFeatureGroupLabel);
@@ -146,7 +144,6 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
 
     addMouseClickListenerToScatterPlot();
 
-    // Add the update button to the button bar of the parameter pane
     updateButton = new Button("Update preview");
     updateButton.setOnAction(_ -> updatePreview());
     buttonBox.getChildren().add(updateButton);
