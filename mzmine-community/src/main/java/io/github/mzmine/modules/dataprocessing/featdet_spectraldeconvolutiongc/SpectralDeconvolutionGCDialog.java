@@ -107,7 +107,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
     super(valueCheckRequired, parameters);
     this.parameters = parameters;
     paramPreviewSplit.setDividerPositions(1.0);
-
+    setMinHeight(700);
     pseudoSpectrumPaneWrapper = new BorderPane();
     scatterPlot = new SpectralDeconvolutionPreviewPlot("Spectral Deconvolution",
         GUI_FORMATS.unit("Retention time", "min"), "m/z");

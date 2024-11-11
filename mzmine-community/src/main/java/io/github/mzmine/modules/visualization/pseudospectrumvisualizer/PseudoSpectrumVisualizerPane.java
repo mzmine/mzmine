@@ -74,7 +74,9 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
     this.rawDataFile = selectedFeature.getRawDataFile();
     this.color = color;
     ticPlot = new TICPlot();
+    ticPlot.minHeight(200);
     spectraPlot = new SpectraPlot();
+    spectraPlot.minHeight(150);
     init();
   }
 

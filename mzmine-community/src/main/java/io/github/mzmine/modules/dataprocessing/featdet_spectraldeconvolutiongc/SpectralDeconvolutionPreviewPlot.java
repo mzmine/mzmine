@@ -61,7 +61,7 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
     plot = chart.getXYPlot();
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-    setMinHeight(300);
+    setMinHeight(250);
 
     NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
     xAxis.setAutoRangeIncludesZero(false);
