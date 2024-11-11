@@ -354,8 +354,13 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
         RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
     // Draw background
+    if (ConfigService.getConfiguration().isDarkMode()) {
+      // in dark mode chart background is transparent
+      g2d.setColor(new Color(46, 46, 46));
+    } else {
     g2d.setColor(
         (Color) ConfigService.getConfiguration().getDefaultChartTheme().getChartBackgroundPaint());
+    }
     g2d.fill(new Rectangle2D.Double(0, 0, width, height));
 
     // Draw main text on the left
@@ -366,6 +371,15 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
       g2d.drawString(line, padding, y);
       y += lineHeight;
     }
+
+    g2d.setColor((Color) ConfigService.getConfiguration().getDefaultChartTheme().getTitlePaint());
+    int borderThickness = 2;
+    int arcWidth = 20;
+    int arcHeight = 20;
+
+    g2d.setStroke(new BasicStroke(borderThickness));
+    g2d.drawRoundRect(borderThickness / 2, borderThickness / 2, width - borderThickness,
+        height - borderThickness, arcWidth, arcHeight);
 
     // Draw annotation text on the right, aligned with the main text
     g2d.drawString(annotationText, mainTextWidth + padding, padding + metrics.getAscent());
