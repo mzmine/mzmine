@@ -298,11 +298,6 @@ public class ConversionUtils {
     return newScan;
   }
 
-  public static BuildingMobilityScan mzmlScanToMobilityScan(int scannum, BuildingMzMLMsScan scan) {
-    SimpleSpectralArrays data = scan.getMobilityScanSimpleSpectralData();
-    return new BuildingMobilityScan(scannum, data);
-  }
-
   /**
    * Builds precursor info based on the current scan. If a new Precursors was detected, a new
    * element is added to the list parameter.
