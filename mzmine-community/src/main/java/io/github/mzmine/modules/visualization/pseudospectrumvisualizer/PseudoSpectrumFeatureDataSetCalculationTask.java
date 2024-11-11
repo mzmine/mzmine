@@ -39,7 +39,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTim
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
@@ -156,15 +155,12 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
 
         chromPlot.removeAllFeatureDataSets(false);
 
-        ColoredAreaShapeRenderer coloredAreaShapeRenderer = new ColoredAreaShapeRenderer();
-        coloredAreaShapeRenderer.setDefaultFillPaint(FxColorUtil.fxColorToAWT(nextColor));
-
         //Build feature dataset
         IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
         ColoredXYDataset featureDataSet = new ColoredXYDataset(
             new IonTimeSeriesToXYProvider(featureData, format.mz(feature.getMZ()), nextColor),
             RunOption.THIS_THREAD);
-        chromPlot.addDataSetAndRenderer(featureDataSet, coloredAreaShapeRenderer);
+        chromPlot.addDataSetAndRenderer(featureDataSet, new ColoredAreaShapeRenderer());
 
         // add other EICs
         for (var dataset : datasets) {
