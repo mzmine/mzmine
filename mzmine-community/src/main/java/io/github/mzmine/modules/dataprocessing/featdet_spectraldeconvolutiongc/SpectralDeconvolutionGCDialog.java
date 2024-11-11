@@ -38,7 +38,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerPane;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.taskcontrol.SimpleRunnableTask;
 import io.github.mzmine.taskcontrol.Task;
@@ -72,19 +72,18 @@ import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
 
-public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
+public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPreview {
 
   private static final Color DOMAIN_MARKER_COLOR = new Color(200, 200, 255, 100);
   private static final Color TOLERANCE_MARKER_COLOR = new Color(255, 128, 0, 100);
   public static final NumberFormats GUI_FORMATS = ConfigService.getGuiFormats();
 
   private final ParameterSet parameters;
-  private final SplitPane paramPreviewSplit;
   private final SplitPane clusteringSelectedFeatureSplit;
-  private final BorderPane previewWrapperPane;
   private final BorderPane pseudoSpectrumPaneWrapper;
   private final BorderPane scatterPlotBorderPane;
   private final HBox scatterPlotLegend;
+  private final HBox buttonBox;
   private final ComboComponent<Feature> deconvolutedFeaturesComboBox;
   private final Label numberOfCompoundsLabel;
   private final Label selectedFeatureGroupLabel;
@@ -107,16 +106,8 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
   public SpectralDeconvolutionGCDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
     this.parameters = parameters;
-    setMinWidth(1000);
-    setMinHeight(800);
-
-    paramPreviewSplit = new SplitPane();
-    paramPreviewSplit.getItems().add(getParamPane());
-    paramPreviewSplit.setOrientation(Orientation.HORIZONTAL);
     paramPreviewSplit.setDividerPositions(1.0);
-    mainPane.setCenter(paramPreviewSplit);
 
-    previewWrapperPane = new BorderPane();
     pseudoSpectrumPaneWrapper = new BorderPane();
     scatterPlot = new SpectralDeconvolutionPreviewPlot("Spectral Deconvolution",
         GUI_FORMATS.unit("Retention time", "min"), "m/z");
@@ -134,14 +125,14 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     clusteringSelectedFeatureSplit.getItems().add(scatterPlotBorderPane);
     clusteringSelectedFeatureSplit.setOrientation(Orientation.VERTICAL);
     previewWrapperPane.setCenter(clusteringSelectedFeatureSplit);
-    previewWrapperPane.setVisible(false); // Initially invisible
+    // previewWrapperPane.setVisible(false); // Initially invisible
 
     deconvolutedFeaturesComboBox = new ComboComponent<>(FXCollections.observableArrayList());
-    HBox buttonBox = FxLayout.newHBox(deconvolutedFeaturesComboBox);
+    buttonBox = FxLayout.newHBox(deconvolutedFeaturesComboBox);
     deconvolutedFeaturesComboBox.setOnAction(_ -> updateSelectedFeature());
     previewWrapperPane.setBottom(buttonBox);
 
-    paramPreviewSplit.getItems().add(previewWrapperPane);
+    //paramPreviewSplit.getItems().add(previewWrapperPane);
     numberOfCompoundsLabel = new Label("Number of compounds: ");
     selectedFeatureGroupLabel = new Label("Selected rt group: ");
     VBox labelVBox = FxLayout.newVBox(numberOfCompoundsLabel, selectedFeatureGroupLabel);
@@ -158,7 +149,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     // Add the update button to the button bar of the parameter pane
     updateButton = new Button("Update preview");
     updateButton.setOnAction(_ -> updatePreview());
-    getParamPane().getButtonBar().getButtons().add(updateButton);
+    buttonBox.getChildren().add(updateButton);
   }
 
   private HBox buildScatterPlotLegend() {
