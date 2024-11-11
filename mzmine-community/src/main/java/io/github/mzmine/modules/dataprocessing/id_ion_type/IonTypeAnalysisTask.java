@@ -53,8 +53,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -190,24 +192,20 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
       DoubleArrayList[] isoMzDiffsForCharge, double[] maxIsoMzDiff) {
     List<Scan> ms1Scans = new ArrayList<>();
     List<Scan> allPrecursorsMsnScans = new ArrayList<>();
-    List<List<DataPoint>> isotopeLists = new ArrayList<>();
-    List<List<DataPoint>> adductsLists = new ArrayList<>();
+    IsotopeAndAdducts matches = new IsotopeAndAdducts();
 
     for (ModularFeature feature : row.getFeatures()) {
       try {
-        processFeature(feature, ms1Scans, allPrecursorsMsnScans, isotopeLists, adductsLists,
-            isoMzDiffsForCharge, maxIsoMzDiff);
+        processFeature(feature, ms1Scans, allPrecursorsMsnScans, matches, isoMzDiffsForCharge,
+            maxIsoMzDiff);
       } catch (Exception ex) {
         logger.log(Level.WARNING, "Error gathering scans for feature: " + ex.getMessage(), ex);
       }
     }
 
-    // Perform analysis
     try {
-      IsotopeAndAdducts isotopeAndAdducts = new IsotopeAndAdducts(isotopeLists, adductsLists);
       SignalsAnalysisResult analysisResult = analyzeSignals(row.getMZRange(), ms1Scans,
-          allPrecursorsMsnScans, toleranceMs1, toleranceMsn, isotopeAndAdducts.getAdducts(),
-          isotopeAndAdducts.getIsotopes());
+          allPrecursorsMsnScans, toleranceMs1, toleranceMsn, matches);
       row.set(IonTypeAnalysisType.class, analysisResult.results);
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Error processing row: " + ex.getMessage(), ex);
@@ -217,31 +215,31 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
   }
 
   private void processFeature(ModularFeature feature, List<Scan> ms1Scans,
-      List<Scan> allPrecursorsMsnScans, List<List<DataPoint>> isotopeLists,
-      List<List<DataPoint>> adductsLists, DoubleArrayList[] isoMzDiffsForCharge,
-      double[] maxIsoMzDiff) {
+      List<Scan> allPrecursorsMsnScans, IsotopeAndAdducts matches,
+      DoubleArrayList[] isoMzDiffsForCharge, double[] maxIsoMzDiff) {
 
     Scan representativeMs1 = feature.getRepresentativeScan();
     if (representativeMs1 != null) {
       ms1Scans.add(representativeMs1);
       Range<Float> rawRtRange = feature.getRawDataPointsRTRange();
-      Range<Integer> msLevelRange = Range.closed(2, 5);  // TODO change this default
+      // TODO change this default
+      Range<Integer> msLevelRange = Range.closed(2, 5);
       RawDataFile raw = feature.getRawDataFile();
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(representativeMs1, useMassList);
 
+      // Find all MSn fragment scans related to the data points in the representative scan
       for (DataPoint dp : dataPoints) {
         double ms1SignalMz = dp.getMZ();
         Scan[] broadFragmentScans = findAllMSnFragmentScans(raw, msLevelRange, rawRtRange,
             toleranceMsn.getToleranceRange(ms1SignalMz));
         allPrecursorsMsnScans.addAll(Arrays.asList(broadFragmentScans));
       }
-      processIsotopesAndAdductsForFeature(feature, isotopeLists, adductsLists, isoMzDiffsForCharge,
-          maxIsoMzDiff);
+
+      processIsotopesAndAdductsForFeature(feature, matches, isoMzDiffsForCharge, maxIsoMzDiff);
     }
   }
 
-  private void processIsotopesAndAdductsForFeature(Feature feature,
-      List<List<DataPoint>> isotopeLists, List<List<DataPoint>> adductsLists,
+  private void processIsotopesAndAdductsForFeature(Feature feature, IsotopeAndAdducts result,
       DoubleArrayList[] isoMzDiffsForCharge, double[] maxIsoMzDiff) {
 
     Scan representativeScan = feature.getRepresentativeScan();
@@ -252,58 +250,128 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
 
         // Process isotopes
         for (int i = 0; i < isoMzDiffsForCharge.length; i++) {
-          processIsotopes(dataPoints, isoMzDiffsForCharge[i], maxIsoMzDiff[i], isotopeLists,
+          processIsotopes(dataPoints, isoMzDiffsForCharge[i], maxIsoMzDiff[i], result,
               representativeScan);
         }
 
         // Process adducts
         for (DataPoint dataPoint : dataPoints) {
-          processAdducts(dataPoints, dataPoint, adductsLists);
+          processAdducts(dataPoints, dataPoint, result);
         }
+
+//        result.getMatches().forEach((dataPoint, matchList) -> {
+//          matchList.forEach(match -> {
+//            if (match instanceof IsotopeMatch isotopeMatch) {
+//              System.out.printf("MZ: %.4f, Isotopes: [", isotopeMatch.getDataPoint().getMZ());
+//              isotopeMatch.getIsotopes().forEach(iso -> System.out.printf(" %.4f", iso.getMZ()));
+//              System.out.println(" ]");
+//            }
+//          });
+//          result.getAdductMatches().getOrDefault(dataPoint, new ArrayList<>())
+//              .forEach(adductMatch -> {
+//                System.out.printf("MZ: %.4f, Adducts: [", dataPoint.getMZ());
+//                adductMatch.getAdducts()
+//                    .forEach(adduct -> System.out.printf(" %.4f", adduct.getMZ()));
+//                adductMatch.getAdductNames().forEach(name -> System.out.printf(" %s", name));
+//                System.out.println(" ]");
+//              });
+//        });
       }
     }
   }
 
   private void processIsotopes(DataPoint[] dataPoints, DoubleArrayList chargeDiffs, double maxDiff,
-      List<List<DataPoint>> isotopeLists, Scan representativeScan) {
+      IsotopeAndAdducts result, Scan representativeScan) {
+    Map<Set<DataPoint>, DataPoint> isotopePatterns = new HashMap<>();
 
     for (DataPoint dataPoint : dataPoints) {
       List<DataPoint> foundIsotopes = IsotopesUtils.findIsotopesInScan(chargeDiffs, maxDiff,
           toleranceMs1, representativeScan, dataPoint);
-      if (isValidIsotopicPattern(foundIsotopes) && foundIsotopes.size() > 1) {
-        double mz = dataPoint.getMZ();
-        addToIonTypeList(mz,
-            // We exclude the first isotope
-            foundIsotopes.subList(1, foundIsotopes.size()),
-            // foundIsotopes,
-            isotopeLists);
+
+      if (isValidIsotopicPattern(foundIsotopes)) {
+        Set<DataPoint> fullPattern = new HashSet<>(foundIsotopes);
+
+        // Check if we already have a pattern with the same isotopes
+        if (isotopePatterns.containsKey(fullPattern)) {
+          DataPoint existingIsotope = isotopePatterns.get(fullPattern);
+          // If the current isotope has a higher intensity than the stored one, replace it
+          if (dataPoint.getIntensity() > existingIsotope.getIntensity()) {
+            isotopePatterns.put(fullPattern, dataPoint);
+          }
+        } else {
+          isotopePatterns.put(fullPattern, dataPoint);
+        }
+      }
+    }
+
+    for (Map.Entry<Set<DataPoint>, DataPoint> entry : isotopePatterns.entrySet()) {
+      DataPoint intenseIsotope = entry.getValue(); // The most intense isotope
+      Set<DataPoint> fullPattern = entry.getKey(); // The set of isotopes
+
+      // Exclude the current isotope from the list of isotopic peaks
+      List<DataPoint> sortedIsotopes = fullPattern.stream()
+          .filter(iso -> !iso.equals(intenseIsotope))
+          .sorted(Comparator.comparingDouble(DataPoint::getMZ)).collect(Collectors.toList());
+      IsotopeMatch match = new IsotopeMatch(intenseIsotope, sortedIsotopes);
+
+      result.addMatch(intenseIsotope, match);
+    }
+  }
+
+  private void processAdducts(DataPoint[] dataPoints, DataPoint target, IsotopeAndAdducts result) {
+    // Most occurring mass diffs taken from 10.1021/acs.analchem.4c00966
+    Object[][] knownMassDifferences = { //
+        // {1.0034, "12C and 13C"}, // Not specific enough
+        // {67.9874, "sodium formate"}, // This one could also be a loss combined to an adduct
+        // {1.9971, "37Cl and 35Cl"}, // Not specific enough
+        {0.5017, "12C 13C double charge"}, //
+        {21.9819, "H Na"}, //
+        // {18.0106, "H2O"}, // Loss
+        // {44.0262, "C2H4O"}, // Loss
+        // {135.9748, "2 sodium formate"},  // This one could also be a loss combined to an adduct
+        // {14.0157, "CH2"}, // Loss
+        // { 2.0157, "2H"}, // Not specific enough
+        {0.3345, "12C 13C triple charge"}, //
+        // {26.0157, "C2H2"}, // Loss
+        // {1.0009, "7Li and 6Li"}, // Not specific enough
+        {57.9586, "NaCl"}, //
+        // {46.0055, "formic acid"}, // This one could also be a loss
+        {15.9739, "Na K"} //
+        // {28.0313, "C2H4"} // Loss
+        // {2.0067, "3C + 13C − 12C + 12C "} // Not specific enough
+    };
+
+    double proton = 1.007276;
+    double targetMZ = target.getMZ();
+
+    // Calculate M-specific differences
+    double singleProton = targetMZ + proton;
+    double diffDimerSingle = 2 * targetMZ + proton - singleProton;
+    double diffSingleDouble = singleProton - (targetMZ + 2 * proton) / 2;
+
+    ArrayList<Object[]> updatedMassDifferences = new ArrayList<>(
+        Arrays.asList(knownMassDifferences));
+    updatedMassDifferences.add(new Object[]{diffDimerSingle, "dimer - single"});
+    updatedMassDifferences.add(new Object[]{diffSingleDouble, "single - double"});
+
+    for (Object[] massDiffPair : updatedMassDifferences) {
+      double massDiff = (double) massDiffPair[0];
+      String adductName = (String) massDiffPair[1];
+      double expectedMZ = targetMZ + massDiff;
+
+      for (DataPoint point : dataPoints) {
+        double pointMz = point.getMZ();
+        if (Math.abs(pointMz - expectedMZ) <= toleranceMs1.getMzToleranceForMass(pointMz)) {
+          List<DataPoint> adducts = new ArrayList<>();
+          List<String> adductNames = new ArrayList<>();
+          adducts.add(point);
+          adductNames.add(adductName);
+          AdductMatch match = new AdductMatch(target, adducts, adductNames);
+          result.addAdductMatch(target, match);
+        }
       }
     }
   }
-
-  private void processAdducts(DataPoint[] dataPoints, DataPoint target,
-      List<List<DataPoint>> adductsLists) {
-    List<DataPoint> foundAdducts = findAdductsForMass(dataPoints, target);
-    if (foundAdducts.size() > 1) {
-      double mz = target.getMZ();
-      addToIonTypeList(mz,
-          foundAdducts, adductsLists);
-    }
-  }
-
-  private void addToIonTypeList(double mz, List<DataPoint> ionType,
-      List<List<DataPoint>> ionLists) {
-    List<DataPoint> ionGroup = ionLists.stream().filter(list -> !list.isEmpty()
-            && Math.abs(list.get(0).getMZ() - mz) < toleranceMs1.getMzToleranceForMass(mz)).findFirst()
-        .orElseGet(() -> {
-          List<DataPoint> newGroup = new ArrayList<>();
-          ionLists.add(newGroup);
-          return newGroup;
-        });
-
-    ionGroup.addAll(ionType);
-  }
-
 
   /**
    * Checks if the isotopic pattern is valid by ensuring that the intensity of each isotope is
@@ -358,69 +426,6 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     return true;
   }
 
-  private List<DataPoint> findAdductsForMass(DataPoint[] dataPoints, DataPoint target) {
-    List<DataPoint> adducts = new ArrayList<>();
-
-    // COMMENT: For now the names are not used, but in case for the future
-    // Most occurring mass diffs taken from 10.1021/acs.analchem.4c00966
-    Object[][] knownMassDifferences = { //
-        {67.9874, "sodium formate"}, //
-        {0.5017, "12C 13C double charge"}, //
-        {21.9819, "H Na"}, //
-        {135.9748, "2 sodium formate"}, //
-        {0.3345, "12C 13C triple charge"}, //
-        {57.9586, "NaCl"}, //
-        {46.0055, "formic acid"}, //
-        {15.9739, "Na K"} //
-    };
-
-    double proton = 1.007276;
-    double targetMZ = target.getMZ();
-
-    // Calculate M-specific differences
-    double singleProton = targetMZ + proton;
-    double diffDimerSingle = 2 * targetMZ + proton - singleProton;
-    double diffSingleDouble = singleProton - (targetMZ + 2 * proton) / 2;
-
-    ArrayList<Object[]> updatedMassDifferences = new ArrayList<>(
-        Arrays.asList(knownMassDifferences));
-    updatedMassDifferences.add(new Object[]{diffDimerSingle, "dimer - single"});
-    updatedMassDifferences.add(new Object[]{diffSingleDouble, "single - double"});
-
-    for (Object[] massDiffPair : knownMassDifferences) {
-      double massDiff = (double) massDiffPair[0];  // Known mass difference
-      String diffName = (String) massDiffPair[1];  // Adduct name for reference
-
-      // Calculate the expected m/z for this adduct
-      double expectedMZ = targetMZ + massDiff;
-
-      // Now, check if any data point's m/z is close to the expected value (within tolerance)
-      for (DataPoint point : dataPoints) {
-        double pointMz = point.getMZ();  // m/z of the current data point
-        double diffToPoint = Math.abs(pointMz - expectedMZ);  // Check the difference
-
-        // If the difference is within the tolerance, this point is considered an adduct
-        if (diffToPoint <= toleranceMs1.getMzToleranceForMass(pointMz)) {
-          // Print the details of the check
-          // System.out.println("Checking adduct for: " + diffName);
-          // System.out.println("Checking adduct for: " + massDiff);
-          // System.out.println("Target is: " + targetMZ);
-          // System.out.println("Expected m/z: " + expectedMZ);
-          // System.out.println("Data point m/z: " + pointMz);
-          // System.out.println("Difference: " + diffToPoint);
-          // System.out.println("Tolerance: " + toleranceMs1.getMzToleranceForMass(pointMz));
-          // System.out.println("Adduct found: " + point);
-          adducts.add(point);
-          // adducts.add(target);
-        }
-      }
-    }
-
-    // Sort adducts by m/z and return the list
-    adducts.sort(Comparator.comparingDouble(DataPoint::getMZ));
-    return adducts;
-  }
-
   @Override
   public String getTaskDescription() {
     return "Signals analysis task running on " + featureLists;
@@ -438,108 +443,52 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
    * @param ms1Scans              The MS1 scans.
    * @param allPrecursorsMsnScans The MSn scans from all precursors.
    * @param toleranceMs1          The tolerance in MS1.
-   * @param toleranceMsn          The tolerance in MS1.
-   * @param adductsAndCoList      The adducts and co list
-   * @param isotopeList           The isotopes list.
+   * @param toleranceMsn          The tolerance in MSn.
+   * @param matches               The matches for adducts and isotopes.
    * @return The analysis result.
    */
   private SignalsAnalysisResult analyzeSignals(Range<Double> mzRange, List<Scan> ms1Scans,
       List<Scan> allPrecursorsMsnScans, MZTolerance toleranceMs1, MZTolerance toleranceMsn,
-      List<List<DataPoint>> adductsAndCoList, List<List<DataPoint>> isotopeList) {
+      IsotopeAndAdducts matches) {
 
-    // Step 1: Collect signals
-    // MS1
-    int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);  // Require signal in 90% of scans
-    RangeMap<Double, UniqueSignal> ms1SignalRangeMap = filterMap(
-        collectUniqueSignals(ms1Scans, toleranceMs1), minMs1Scans);
-    List<UniqueSignal> ms1Signals = mapToListNonOverlapping(ms1SignalRangeMap);
+    // Step 1: Collect unique signals for MS1 and MSn scans
+    int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);
+    var ms1SignalMap = filterMap(collectUniqueSignals(ms1Scans, toleranceMs1), minMs1Scans);
+    List<UniqueSignal> ms1Signals = mapToListNonOverlapping(ms1SignalMap);
 
-    // MSn (all precursors)
-    RangeMap<Double, UniqueSignal> ms2SignalRangeMap = collectUniqueSignals(allPrecursorsMsnScans,
-        toleranceMsn);
-    List<UniqueSignal> ms2SignalsAllPrecursors = mapToListNonOverlapping(ms2SignalRangeMap);
+    var ms2SignalMapAllPrecursors = collectUniqueSignals(allPrecursorsMsnScans, toleranceMsn);
+    List<UniqueSignal> ms2SignalsAllPrecursors = mapToListNonOverlapping(ms2SignalMapAllPrecursors);
 
-    // MSn (row precursor)
     var rowMsnScans = filterScansByMzRange(allPrecursorsMsnScans, mzRange);
-    var rowMs2SignalRangeMap = collectUniqueSignals(rowMsnScans, toleranceMsn);
-    List<UniqueSignal> ms2SignalsRow = mapToListNonOverlapping(rowMs2SignalRangeMap);
+    var ms2SignalMapRow = collectUniqueSignals(rowMsnScans, toleranceMsn);
+    List<UniqueSignal> ms2SignalsRow = mapToListNonOverlapping(ms2SignalMapRow);
 
-    // Step 2: Find unique precursors
-    RangeMap<Double, UniqueSignal> uniquePrecursorsSignals = findUniquePrecursors(ms1SignalRangeMap,
-        allPrecursorsMsnScans);
-    RangeMap<Double, UniqueSignal> ms2SignalMatchesMs1AllPrecursors = findUniqueMatches(
-        ms2SignalsAllPrecursors, ms1SignalRangeMap);
-    RangeMap<Double, UniqueSignal> ms2SignalMatchesMs1Row = findUniqueMatches(ms2SignalsRow,
-        ms1SignalRangeMap);
+    // Step 2: Identify unique precursor signals and matching signals between MS1 and MSn scans
+    var uniquePrecursorSignals = findUniquePrecursors(ms1SignalMap, allPrecursorsMsnScans);
+    var ms2MatchesAllPrecursors = findUniqueMatches(ms2SignalsAllPrecursors, ms1SignalMap);
+    var ms2MatchesRow = findUniqueMatches(ms2SignalsRow, ms1SignalMap);
 
-    // Step 3: Analyze isotopes, adducts, and co
-    // Flatten adductsAndCoList (List<List<DataPoint>>) into a single List<DataPoint>
-    // System.out.println("Individual Adducts and Co lists:");
-    // adductsAndCoList.forEach(list -> {
-    //  System.out.println("List: " + list);  // Print each individual list
-    // });
-    List<DataPoint> flattenedAdductsAndCoList = adductsAndCoList.stream().flatMap(List::stream)
-        .collect(Collectors.toList());
-    // System.out.println("Flattened Adducts and Co List:");
-    // System.out.println(flattenedAdductsAndCoList);  // Print the flattened list
-    // Print the length of the flattened list
-    // System.out.println(
-    //     "Length of Flattened Adducts and Co List: " + flattenedAdductsAndCoList.size());
+    // Step 3: Analyze isotopes and adducts using the unified matches structure
+    var adductsSignalMap = collectUniqueSignalsFromDataPoints(matches.getAdducts(), toleranceMs1);
+    var isotopesSignalMap = collectUniqueSignalsFromDataPoints(matches.getIsotopes(), toleranceMs1);
 
-    RangeMap<Double, UniqueSignal> adductsAndCoSignalMap = collectUniqueSignalsFromDataPoints(
-        flattenedAdductsAndCoList, toleranceMs1);
-    // Print the size of the RangeMap
-    // System.out.println(
-    //     "Size of adductsAndCoSignalMap: " + adductsAndCoSignalMap.asMapOfRanges().size());
+    // Step 4: Find common signals between MS1 and MSn scans
+    var commonSignals = findUniqueMatches(ms1Signals, ms2SignalMapAllPrecursors);
+    var commonSignalsRow = findUniqueMatches(ms1Signals, ms2SignalMapRow);
 
-    // Flatten isotopeList (List<List<DataPoint>>) into a single List<DataPoint>
-    // System.out.println("Individual Isotope lists:");
-    // isotopeList.forEach(list -> {
-    //   System.out.println("List: " + list);  // Print each individual list
-    // });
-    List<DataPoint> flattenedIsotopeList = isotopeList.stream().flatMap(List::stream)
-        .collect(Collectors.toList());
-    // System.out.println("Flattened Isotope List:");
-    // System.out.println(flattenedIsotopeList);  // Print the flattened list
-    // System.out.println("Length of Flattened Isotope List: " + flattenedIsotopeList.size());
-
-    RangeMap<Double, UniqueSignal> isotopesSignalsMap = collectUniqueSignalsFromDataPoints(
-        flattenedIsotopeList, toleranceMs1);
-    // System.out.println("Size of isotopesSignalsMap: " + isotopesSignalsMap.asMapOfRanges().size());
-
-    // Step 4: Analyze MS2 signals for all precursors
-    RangeMap<Double, UniqueSignal> commonSignals = findUniqueMatches(ms1Signals, ms2SignalRangeMap);
-    RangeMap<Double, UniqueSignal> commonSignalsRow = findUniqueMatches(ms1Signals,
-        rowMs2SignalRangeMap);
-
-    // Step 5: Keep a trace of the common datapoints
-    String ms1Mzs = formatValuesToString(ms1SignalRangeMap, 3, false);
-    String ms1Intensities = formatValuesToString(ms1SignalRangeMap, 0, true);
-    String msnMzsRow = formatValuesToString(ms2SignalsRow, 3, false);
-    String msnMzsScan = formatValuesToString(ms2SignalsAllPrecursors, 3, false);
-    String msnIntensities = formatValuesToString(ms2SignalsAllPrecursors, 0, true);
-    String commonMzsRow = formatValuesToString(commonSignalsRow, 3, false);
-    String commonMzsScan = formatValuesToString(commonSignals, 3, false);
-    String commonMzsRowMsn = formatValuesToString(ms2SignalMatchesMs1Row, 3, false);
-    String commonMzsScanMsn = formatValuesToString(ms2SignalMatchesMs1AllPrecursors, 3, false);
-    String fragmentedMzs = formatValuesToString(uniquePrecursorsSignals, 3, false);
-    String adductsMzs = formatValuesToString(adductsAndCoSignalMap, 3, false);
-    String isotopesMzs = formatValuesToString(isotopesSignalsMap, 3, false);
-
-    // Step 6: Create results object
-    IonTypeAnalysisResults results = new IonTypeAnalysisResults( //
-        ms1Mzs, //
-        ms1Intensities, //
-        msnMzsRow, //
-        msnMzsScan, //
-        msnIntensities, //
-        commonMzsRow, //
-        commonMzsScan, //
-        commonMzsRowMsn, //
-        commonMzsScanMsn, //
-        fragmentedMzs, //
-        adductsMzs, //
-        isotopesMzs);
+    // Step 5: Extract and format signal data for analysis results
+    IonTypeAnalysisResults results = new IonTypeAnalysisResults(
+        formatValuesToString(ms1SignalMap, 3, false), formatValuesToString(ms1SignalMap, 0, true),
+        formatValuesToString(ms2SignalsRow, 3, false),
+        formatValuesToString(ms2SignalsAllPrecursors, 3, false),
+        formatValuesToString(ms2SignalsAllPrecursors, 0, true),
+        formatValuesToString(commonSignalsRow, 3, false),
+        formatValuesToString(commonSignals, 3, false),
+        formatValuesToString(ms2MatchesRow, 3, false),
+        formatValuesToString(ms2MatchesAllPrecursors, 3, false),
+        formatValuesToString(uniquePrecursorSignals, 3, false),
+        formatValuesToString(adductsSignalMap, 3, false),
+        formatValuesToString(isotopesSignalMap, 3, false));
 
     return new SignalsAnalysisResult(results);
   }
@@ -731,26 +680,111 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
     return uniquePrecursors;
   }
 
+  public interface MatchType {
+
+    String getTypeName();
+
+    DataPoint getDataPoint();
+  }
+
   private record SignalsAnalysisResult(IonTypeAnalysisResults results) {
 
   }
 
   public class IsotopeAndAdducts {
 
-    private final List<List<DataPoint>> isotopes;
-    private final List<List<DataPoint>> adducts;
+    private final Map<DataPoint, List<MatchType>> matches;  // To store both isotopes and adducts
+    private final Map<DataPoint, List<AdductMatch>> adductMatches;  // For adducts specifically
 
-    public IsotopeAndAdducts(List<List<DataPoint>> isotopes, List<List<DataPoint>> adducts) {
-      this.isotopes = isotopes;
+    public IsotopeAndAdducts() {
+      this.matches = new HashMap<>();
+      this.adductMatches = new HashMap<>();
+    }
+
+    public void addMatch(DataPoint key, MatchType match) {
+      matches.computeIfAbsent(key, _ -> new ArrayList<>()).add(match);
+    }
+
+    public void addAdductMatch(DataPoint key, AdductMatch match) {
+      adductMatches.computeIfAbsent(key, _ -> new ArrayList<>()).add(match);
+    }
+
+    public Map<DataPoint, List<MatchType>> getMatches() {
+      return matches;
+    }
+
+    public Map<DataPoint, List<AdductMatch>> getAdductMatches() {
+      return adductMatches;
+    }
+
+    public List<DataPoint> getAdducts() {
+      return adductMatches.entrySet().stream().flatMap(entry -> entry.getValue().stream())
+          .map(AdductMatch::getDataPoint).collect(Collectors.toList());
+    }
+
+    public List<DataPoint> getIsotopes() {
+      return matches.entrySet().stream().flatMap(entry -> entry.getValue().stream())
+          .filter(match -> match instanceof IsotopeMatch)
+          .flatMap(match -> ((IsotopeMatch) match).getIsotopes().stream())
+          .collect(Collectors.toList());
+    }
+  }
+
+
+  public class AdductMatch implements MatchType {
+
+    private final DataPoint dataPoint; // The current MZ
+    private final List<DataPoint> adducts; // List of associated adducts
+    private final List<String> adductNames; // List of associated names
+
+    public AdductMatch(DataPoint dataPoint, List<DataPoint> adducts, List<String> adductNames) {
+      this.dataPoint = dataPoint;
       this.adducts = adducts;
+      this.adductNames = adductNames;
     }
 
-    public List<List<DataPoint>> getIsotopes() {
-      return isotopes;
+    @Override
+    public String getTypeName() {
+      return "Adduct";
     }
 
-    public List<List<DataPoint>> getAdducts() {
+    @Override
+    public DataPoint getDataPoint() {
+      return dataPoint;
+    }
+
+    public List<DataPoint> getAdducts() {
       return adducts;
+    }
+
+    public List<String> getAdductNames() {
+      return adductNames;
+    }
+  }
+
+
+  public class IsotopeMatch implements MatchType {
+
+    private final DataPoint currentIsotope; // The current MZ
+    private final List<DataPoint> isotopes; // List of associated isotopes
+
+    public IsotopeMatch(DataPoint currentIsotope, List<DataPoint> isotopes) {
+      this.currentIsotope = currentIsotope;
+      this.isotopes = isotopes;
+    }
+
+    @Override
+    public String getTypeName() {
+      return "Isotope";
+    }
+
+    @Override
+    public DataPoint getDataPoint() {
+      return currentIsotope;
+    }
+
+    public List<DataPoint> getIsotopes() {
+      return isotopes;
     }
   }
 
