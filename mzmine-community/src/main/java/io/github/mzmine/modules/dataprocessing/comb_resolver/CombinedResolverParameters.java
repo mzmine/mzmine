@@ -32,23 +32,24 @@ public class CombinedResolverParameters extends GeneralResolverParameters {
         CombinedResolverEnum.ML_RESOLVER);
 
     public CombinedResolverParameters() {
-        super(new Parameter[] {GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.SUFFIX, firstResolverParameters, secondResolverParameters, handleOriginal});
+        super(new Parameter[] {GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.SUFFIX, dimension, groupMS2Parameters, firstResolverParameters, secondResolverParameters, handleOriginal});
     }
 
-    public List<Resolver> getEmbeddedResolvers(ParameterSet comboParameters, ModularFeatureList originalFeatureList) {
-        List<Resolver> resolvers = new ArrayList<>();
-        ParameterSet firstEmbeddedParameters = firstResolverParameters.getEmbeddedParameters();
-        ParameterSet secondEmbeddedParameters = secondResolverParameters.getEmbeddedParameters();
-        switch(firstResolverParameters.getValue()){
-            case CombinedResolverEnum.LOCAL_MIN -> resolvers.add(((MinimumSearchFeatureResolverParameters) firstEmbeddedParameters).getResolver(firstEmbeddedParameters,originalFeatureList));
-            case CombinedResolverEnum.ML_RESOLVER -> resolvers.add(((MLFeatureResolverParameters) firstEmbeddedParameters).getResolver(firstEmbeddedParameters, originalFeatureList));
-        }
-        switch(secondResolverParameters.getValue()){
-            case CombinedResolverEnum.LOCAL_MIN -> resolvers.add(((MinimumSearchFeatureResolverParameters) secondEmbeddedParameters).getResolver(secondEmbeddedParameters,originalFeatureList));
-            case CombinedResolverEnum.ML_RESOLVER -> resolvers.add(((MLFeatureResolverParameters) secondEmbeddedParameters).getResolver(secondEmbeddedParameters, originalFeatureList));
-        }
-        return resolvers;
-    }
+    //This can probably be removed
+    // public List<Resolver> getEmbeddedResolvers(ParameterSet comboParameters, ModularFeatureList originalFeatureList) {
+    //     List<Resolver> resolvers = new ArrayList<>();
+    //     ParameterSet firstEmbeddedParameters = firstResolverParameters.getEmbeddedParameters();
+    //     ParameterSet secondEmbeddedParameters = secondResolverParameters.getEmbeddedParameters();
+    //     switch(firstResolverParameters.getValue()){
+    //         case CombinedResolverEnum.LOCAL_MIN -> resolvers.add(((MinimumSearchFeatureResolverParameters) firstEmbeddedParameters).getResolver(firstEmbeddedParameters,originalFeatureList));
+    //         case CombinedResolverEnum.ML_RESOLVER -> resolvers.add(((MLFeatureResolverParameters) firstEmbeddedParameters).getResolver(firstEmbeddedParameters, originalFeatureList));
+    //     }
+    //     switch(secondResolverParameters.getValue()){
+    //         case CombinedResolverEnum.LOCAL_MIN -> resolvers.add(((MinimumSearchFeatureResolverParameters) secondEmbeddedParameters).getResolver(secondEmbeddedParameters,originalFeatureList));
+    //         case CombinedResolverEnum.ML_RESOLVER -> resolvers.add(((MLFeatureResolverParameters) secondEmbeddedParameters).getResolver(secondEmbeddedParameters, originalFeatureList));
+    //     }
+    //     return resolvers;
+    // }
 
     public Resolver getResolver(ParameterSet comboParameters, ModularFeatureList originalFeatureList) {
         return new CombinedResolver(comboParameters, originalFeatureList);

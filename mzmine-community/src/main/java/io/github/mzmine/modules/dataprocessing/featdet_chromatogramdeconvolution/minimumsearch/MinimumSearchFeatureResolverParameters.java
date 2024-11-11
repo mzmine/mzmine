@@ -88,7 +88,7 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
       case FULL -> new Parameter[] { PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters,
           dimension, CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT,
           MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS, CLASSIFY_FEATURES };
-      case INTEGRATED -> new Parameter[] { CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
+      case INTEGRATED -> new Parameter[] {dimension, CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
           MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION,
           MIN_NUMBER_OF_DATAPOINTS };
     };

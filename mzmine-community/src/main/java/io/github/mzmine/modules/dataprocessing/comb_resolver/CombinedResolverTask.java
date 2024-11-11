@@ -56,34 +56,34 @@ public class CombinedResolverTask extends AbstractFeatureListTask {
 
     }
 
-    public void startResolvers(ModularFeatureList originalFeatureList) {
-        final List<Resolver> resolvers = ((CombinedResolverParameters) parameters).getEmbeddedResolvers(parameters,
-                originalFeatureList);
-        if (resolvers.isEmpty()) {
-            setErrorMessage("No Resolver could be found.");
-            setStatus(TaskStatus.ERROR);
-            return;
-        }
+    // public void startResolvers(ModularFeatureList originalFeatureList) {
+    //     // final List<Resolver> resolvers = ((CombinedResolverParameters) parameters).getEmbeddedResolvers(parameters,
+    //     //         originalFeatureList);
+    //     if (resolvers.isEmpty()) {
+    //         setErrorMessage("No Resolver could be found.");
+    //         setStatus(TaskStatus.ERROR);
+    //         return;
+    //     }
 
-        final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
-        final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
+    //     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
+    //     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
 
-        final FeatureDataAccess access = EfficientDataAccess.of(originalFeatureList,
-                EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile);
+    //     final FeatureDataAccess access = EfficientDataAccess.of(originalFeatureList,
+    //             EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile);
 
-        processedRows = 0;
-        totalRows = originalFeatureList.getNumberOfRows();
-        while (access.hasNextFeature()) {
-            final ModularFeature originalFeature = (ModularFeature) access.nextFeature();
-            final List<IonTimeSeries<? extends Scan>> resolvedSeries = new ArrayList<>();
-            for (int i = 0; i < resolvers.size(); i++) {
-                Resolver resolver = resolvers.get(i);
-                resolvedSeries.addAll(resolver.resolve(access,
-                        getMemoryMapStorage()));
-            }
-            processedRows++;
-        }
-    }
+    //     processedRows = 0;
+    //     totalRows = originalFeatureList.getNumberOfRows();
+    //     while (access.hasNextFeature()) {
+    //         final ModularFeature originalFeature = (ModularFeature) access.nextFeature();
+    //         final List<IonTimeSeries<? extends Scan>> resolvedSeries = new ArrayList<>();
+    //         for (int i = 0; i < resolvers.size(); i++) {
+    //             Resolver resolver = resolvers.get(i);
+    //             resolvedSeries.addAll(resolver.resolve(access,
+    //                     getMemoryMapStorage()));
+    //         }
+    //         processedRows++;
+    //     }
+    // }
 
     @java.lang.Override
     protected @NotNull List<FeatureList> getProcessedFeatureLists() {
