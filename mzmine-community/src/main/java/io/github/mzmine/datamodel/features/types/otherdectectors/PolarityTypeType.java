@@ -19,17 +19,17 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MsChromatogramPolarityType extends DataType<PolarityType> implements NullColumnType,
+public class PolarityTypeType extends DataType<PolarityType> implements NullColumnType,
     NoTextColumn {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ms_chromatogram_polarity";
+    return "polarity";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Chromatogram polarity";
+    return "Polarity";
   }
 
   @Override

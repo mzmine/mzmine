@@ -26,6 +26,8 @@
 package io.github.mzmine.datamodel.msms;
 
 import io.github.msdk.datamodel.ActivationType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public enum ActivationMethod {
 
@@ -59,7 +61,8 @@ public enum ActivationMethod {
     return unit;
   }
 
-  public static ActivationMethod fromActivationType(ActivationType type) {
+  @NotNull
+  public static ActivationMethod fromActivationType(@Nullable ActivationType type) {
     return switch (type) {
       case null -> ActivationMethod.UNKNOWN;
       case CID -> CID;

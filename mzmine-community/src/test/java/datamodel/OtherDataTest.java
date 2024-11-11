@@ -3,24 +3,19 @@ package datamodel;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.MsChromatogramPolarityType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationType;
-import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
-import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
-import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
-import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
@@ -136,11 +131,11 @@ public class OtherDataTest {
 
   @Test
   void testMsChromatogramPolarity() {
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new MsChromatogramPolarityType(),
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new PolarityTypeType(),
         PolarityType.NEGATIVE);
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new MsChromatogramPolarityType(),
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new PolarityTypeType(),
         PolarityType.POSITIVE);
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new MsChromatogramPolarityType(),
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new PolarityTypeType(),
         PolarityType.UNKNOWN);
   }
 }

@@ -35,7 +35,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.MsChromatogramPolarityType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
@@ -428,7 +428,7 @@ public class ConversionUtils {
           if (chromType.isMsType()) {
             final PolarityType polarity = chrom.getPolarity();
             if (polarity.isDefined()) {
-              otherFeature.set(MsChromatogramPolarityType.class, polarity);
+              otherFeature.set(PolarityTypeType.class, polarity);
             }
           }
         }
@@ -460,8 +460,8 @@ public class ConversionUtils {
       final Float energy =
           activationInfo != null ? Objects.requireNonNullElse(activationInfo.getActivationEnergy(),
               0d).floatValue() : null;
-      final ActivationMethod method = activationInfo != null ? ActivationMethod.fromActivationType(
-          activationInfo.getActivationType()) : null;
+      final ActivationMethod method = ActivationMethod.fromActivationType(
+          activationInfo != null ? activationInfo.getActivationType() : null);
 
       if (q1Mass != null) {
         otherFeature.set(MsMsInfoType.class,
