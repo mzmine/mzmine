@@ -51,7 +51,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class PseudoSpectrumVisualizerPane extends SplitPane {
 
@@ -66,8 +66,7 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
   private Color color;
 
 
-  public PseudoSpectrumVisualizerPane(ModularFeature selectedFeature,
-      @org.jetbrains.annotations.Nullable Color color) {
+  public PseudoSpectrumVisualizerPane(ModularFeature selectedFeature, @Nullable Color color) {
     super();
     setOrientation(Orientation.VERTICAL);
     this.selectedFeature = selectedFeature;
