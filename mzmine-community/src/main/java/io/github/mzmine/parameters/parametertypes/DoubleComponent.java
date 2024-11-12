@@ -50,7 +50,6 @@ public class DoubleComponent extends FlowPane implements ValuePropertyComponent<
     textField = new TextField();
     textField.setTextFormatter(new TextFormatter<>(new NumberStringConverter(format)));
     textField.setPrefWidth(inputsize);
-    textField.setText(String.valueOf(defvalue)); // why not format.format(defValue)?
     textField.textProperty().bindBidirectional(value, new DoubleStringConverter());
 
     // Add an input verifier if any bounds are specified.
@@ -59,6 +58,7 @@ public class DoubleComponent extends FlowPane implements ValuePropertyComponent<
     }
 
     getChildren().add(textField);
+    textField.setText(format.format(defvalue)); // why not format.format(defValue)?
   }
 
   public String getText() {
