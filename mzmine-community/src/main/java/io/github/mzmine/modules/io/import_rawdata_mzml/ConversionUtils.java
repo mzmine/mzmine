@@ -53,7 +53,6 @@ import io.github.mzmine.datamodel.otherdetectors.OtherSpectrum;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.WavelengthSpectrum;
-import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
@@ -297,11 +296,6 @@ public class ConversionUtils {
         scan.getScanDefinition(), scan.getScanningMZRange(), injTime);
 
     return newScan;
-  }
-
-  public static BuildingMobilityScan mzmlScanToMobilityScan(int scannum, BuildingMzMLMsScan scan) {
-    SimpleSpectralArrays data = scan.getMobilityScanSimpleSpectralData();
-    return new BuildingMobilityScan(scannum, data);
   }
 
   /**
