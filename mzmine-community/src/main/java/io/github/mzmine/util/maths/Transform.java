@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,14 +27,40 @@ package io.github.mzmine.util.maths;
 
 /**
  * Different math transformations
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 @FunctionalInterface
 public interface Transform {
 
   public static final Transform LOG = Math::log;
+  public static final Transform SQRT = Math::sqrt;
 
   public double transform(double v);
+
+  /**
+   * transforms the input data and keeps 0 values as 0 (some transforms like log are undefined at
+   * 0). Another external option would be to replace the 0 values by noise or the minimum value.
+   *
+   * @param v to transform
+   */
+  default double transformKeep0(double v) {
+    return Double.compare(v, 0d) == 0 ? v : transform(v);
+  }
+
+  /**
+   * transforms the input data and keeps 0 values as 0 (some transforms like log are undefined at
+   * 0). Another external option would be to replace the 0 values by noise or the minimum value.
+   *
+   * @param values to transform
+   */
+  default void transformKeep0(double[] values) {
+    for (int i = 0; i < values.length; i++) {
+      double v = values[i];
+      values[i] = transformKeep0(v);
+    }
+  }
 }
+
+
+

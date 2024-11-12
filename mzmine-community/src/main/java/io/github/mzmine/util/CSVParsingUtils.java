@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,8 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingColumnException;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.CSVUtils;
 import io.github.mzmine.util.io.WriterOptions;
 import java.io.BufferedReader;
 import java.io.File;
@@ -362,10 +364,27 @@ public class CSVParsingUtils {
     }
   }
 
+  /**
+   * @param file          used to detect format and separator: tsv tab and csv comma
+   * @param defaultFormat if format is not tsv or csv - then enforce default format
+   */
+  public static ICSVWriter createDefaultWriterAutoDetect(File file, String defaultFormat,
+      WriterOptions option) throws IOException {
+    file = CSVUtils.ensureTsvOrCsvFormat(file, defaultFormat);
+    char sep = CSVUtils.detectSeparatorFromName(file);
+    return createDefaultWriter(file, sep, option);
+  }
+
   public static ICSVWriter createDefaultWriter(File file, String separator, WriterOptions option)
       throws IOException {
-    var writer = Files.newBufferedWriter(file.toPath(), option.toOpenOption());
     char sep = separator.equals("\t") ? '\t' : separator.charAt(0);
+    return createDefaultWriter(file, sep, option);
+  }
+
+  public static ICSVWriter createDefaultWriter(File file, char sep, WriterOptions option)
+      throws IOException {
+    FileAndPathUtil.createDirectory(file.getParentFile());
+    var writer = Files.newBufferedWriter(file.toPath(), option.toOpenOption());
     return new CSVWriterBuilder(writer).withSeparator(sep).build();
   }
 

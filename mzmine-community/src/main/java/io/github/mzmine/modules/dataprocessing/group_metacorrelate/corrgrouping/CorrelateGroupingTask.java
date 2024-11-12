@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -216,6 +216,19 @@ public class CorrelateGroupingTask extends AbstractTask {
     try {
       if (isCanceled()) {
         return;
+      }
+
+      int totalNumSamples = featureList.getRawDataFiles().size();
+      var minFInSamples = minFFilter.getMinFInSamples();
+      if (minFInSamples != null) {
+        int minSamplesFilter = minFInSamples.getMaximumValue(totalNumSamples);
+        if (minSamplesFilter > totalNumSamples) {
+          error("""
+              Correlation row grouping (metaCorr) has set a minimum number of samples requirement of %d but the feature list only contains %d samples. \
+              Please define a matching filter. Relative filters in percentage help to scale this parameter for small and larger datasets.""".formatted(
+              minSamplesFilter, totalNumSamples));
+          return;
+        }
       }
 
       // create new feature list for grouping

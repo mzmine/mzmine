@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,7 +41,8 @@ public class SampleTypeFilter {
   private final EnumSet<SampleType> types;
 
   public SampleTypeFilter(@NotNull final Collection<SampleType> types) {
-    this.types = EnumSet.copyOf(types); // copy, list might change content
+    this.types = types.isEmpty() ? EnumSet.noneOf(SampleType.class)
+        : EnumSet.copyOf(types); // copy, list might change content
   }
 
   public static SampleTypeFilter all() {
@@ -109,6 +110,13 @@ public class SampleTypeFilter {
    */
   public List<FeatureListRow> filter(final List<FeatureListRow> rows) {
     return rows.stream().filter(row -> row.streamFeatures().anyMatch(this::matches)).toList();
+  }
+
+  /**
+   * Filters a list of raw data files to those described by this filter.
+   */
+  public List<RawDataFile> filterFiles(final List<RawDataFile> raws) {
+    return raws.stream().filter(this::matches).toList();
   }
 
   public boolean matches(final Feature feature) {

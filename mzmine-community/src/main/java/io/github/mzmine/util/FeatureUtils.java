@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -52,6 +53,7 @@ import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
@@ -68,6 +70,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -662,4 +665,23 @@ public class FeatureUtils {
     return absCharge * pol.getSign();
   }
 
+  public static List<IonType> extractAllIonTypes(FeatureListRow row) {
+
+    final List<IonType> allIonTypes = Arrays.stream(FeatureAnnotationPriority.values())
+        .flatMap(type -> {
+          final Object o = row.get(type.getAnnotationType());
+          if (!(o instanceof List<?> annotations)) {
+            return Stream.empty();
+          }
+          return switch (type) {
+            case MANUAL, FORMULA, LIPID -> Stream.empty();
+            case SPECTRAL_LIBRARY, EXACT_COMPOUND -> {
+              List<FeatureAnnotation> featureAnnotations = (List<FeatureAnnotation>) annotations;
+              yield featureAnnotations.stream().map(FeatureAnnotation::getAdductType);
+            }
+          };
+        }).toList();
+
+    return allIonTypes;
+  }
 }

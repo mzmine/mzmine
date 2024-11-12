@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,9 +31,14 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -71,6 +76,7 @@ public class ParsingUtils {
     for (int i = 0; i < strValues.length; i++) {
       values[i] = Double.parseDouble(strValues[i]);
     }
+
     return values;
   }
 
@@ -102,6 +108,40 @@ public class ParsingUtils {
       }
     }
     return b.toString();
+  }
+
+  public static String doubleBufferToString(MemorySegment buffer) {
+    StringBuilder b = new StringBuilder();
+    for (long i = 0, arrayLength = StorageUtils.numDoubles(buffer); i < arrayLength; i++) {
+      double v = buffer.getAtIndex(ValueLayout.JAVA_DOUBLE, i);
+      b.append(v);
+      if (i < arrayLength - 1) {
+        b.append(SEPARATOR);
+      }
+    }
+    return b.toString();
+  }
+
+  public static String floatBufferToString(MemorySegment buffer) {
+    StringBuilder b = new StringBuilder();
+    for (long i = 0, arrayLength = StorageUtils.numFloats(buffer); i < arrayLength; i++) {
+      double v = buffer.getAtIndex(ValueLayout.JAVA_FLOAT, i);
+      b.append(v);
+      if (i < arrayLength - 1) {
+        b.append(SEPARATOR);
+      }
+    }
+    return b.toString();
+  }
+
+  public static float[] stringToFloatArray(String string) {
+    final String[] strValues = string.split(ParsingUtils.SEPARATOR);
+    final float[] values = new float[strValues.length];
+    for (int i = 0; i < strValues.length; i++) {
+      values[i] = Float.parseFloat(strValues[i]);
+    }
+
+    return values;
   }
 
   public static String intArrayToString(int[] array, int length) {
@@ -199,69 +239,114 @@ public class ParsingUtils {
   }
 
   /**
-   * Maps a list of mobility scans to their respective {@link RawDataFile} and represents them as a
-   * parseable string. Repeating element: {frameindex}[mobilityscanindices]. Indices are seperated
-   * by ';' and repeating elements are split by ';;'
+   * Maps a list of scans to their respective {@link RawDataFile} and represents them as a parseable
+   * string. Repeating element: {frameindex}[mobilityscanindices]. Indices are seperated by ';' and
+   * repeating elements are split by ';;'. If regular scans are passed, the mobility scan string
+   * will be empty.
    *
-   * @param scans A list of mobility scans.
+   * @param scans A list of scans.
    * @return A hash map key = data file; value = string as described above
    */
-  public static Map<RawDataFile, String> mobilityScanListToStrings(List<MobilityScan> scans) {
+  public static Map<RawDataFile, String> scanListToStrings(List<Scan> scans) {
 
     final Map<RawDataFile, String> result = new HashMap<>();
 
     // first group scans by file
-    final Map<RawDataFile, List<MobilityScan>> fileScanMapping = scans.stream()
-        .collect(Collectors.groupingBy(MobilityScan::getDataFile));
+    final Map<RawDataFile, List<Scan>> fileScanMapping = scans.stream()
+        .collect(Collectors.groupingBy(Scan::getDataFile));
 
-    for (Entry<RawDataFile, List<MobilityScan>> fileScansEntry : fileScanMapping.entrySet()) {
+    for (Entry<RawDataFile, List<Scan>> fileScansEntry : fileScanMapping.entrySet()) {
       // {frameindex}[mobilityscanindices]\\
       StringBuilder b = new StringBuilder();
+      switch (fileScansEntry.getValue().getFirst()) {
+        case MobilityScan _ -> {
+          // group mobility scans of a single file by frame
+          final Map<Frame, List<MobilityScan>> mapping = fileScansEntry.getValue().stream()
+              .filter(s -> s instanceof MobilityScan).map(s -> (MobilityScan) s)
+              .collect(Collectors.groupingBy(MobilityScan::getFrame));
+          for (Iterator<Entry<Frame, List<MobilityScan>>> it = mapping.entrySet().iterator();
+              it.hasNext(); ) {
+            Entry<Frame, List<MobilityScan>> entry = it.next();
+            Frame frame = entry.getKey();
+            List<MobilityScan> mobilityScans = entry.getValue();
+            mobilityScans.sort(Comparator.comparingInt(MobilityScan::getMobilityScanNumber));
+            b.append("{").append(frame.getDataFile().getScans().indexOf(frame)).append("}");
 
-      // group mobility scans of a single file by frame
-      final Map<Frame, List<MobilityScan>> mapping = fileScansEntry.getValue().stream()
-          .collect(Collectors.groupingBy(MobilityScan::getFrame));
-      for (Iterator<Entry<Frame, List<MobilityScan>>> it = mapping.entrySet().iterator();
-          it.hasNext(); ) {
-        Entry<Frame, List<MobilityScan>> entry = it.next();
-        Frame frame = entry.getKey();
-        List<MobilityScan> mobilityScans = entry.getValue();
-        mobilityScans.sort(Comparator.comparingInt(MobilityScan::getMobilityScanNumber));
-        b.append("{").append(frame.getDataFile().getScans().indexOf(frame)).append("}");
+            int[] indices = ParsingUtils.getIndicesOfSubListElements(mobilityScans,
+                frame.getMobilityScans());
+            b.append("[").append(ParsingUtils.intArrayToString(indices, indices.length))
+                .append("]");
 
-        int[] indices = ParsingUtils.getIndicesOfSubListElements(mobilityScans,
-            frame.getMobilityScans());
-        b.append("[").append(ParsingUtils.intArrayToString(indices, indices.length)).append("]");
-
-        if (it.hasNext()) {
-          b.append(SEPARATOR).append(SEPARATOR);
+            if (it.hasNext()) {
+              b.append(SEPARATOR).append(SEPARATOR);
+            }
+          }
+          result.put(fileScansEntry.getKey(), b.toString());
+        }
+        case PseudoSpectrum _ -> {
+          // do anything here?
+        }
+        case Scan _ -> {
+          final RawDataFile file = fileScansEntry.getKey();
+          // must be sorted for ParsingUtils.getIndicesOfSubListElements
+          final List<Scan> scansFromFile = fileScansEntry.getValue().stream()
+              .sorted(Comparator.comparing(Scan::getScanNumber)).toList();
+          final int[] indices = ParsingUtils.getIndicesOfSubListElements(scansFromFile,
+              file.getScans());
+          StringBuilder b2 = new StringBuilder();
+          for (int i = 0; i < indices.length; i++) {
+            int index = indices[i];
+            b2.append("{").append(index).append("}").append("[]");
+            if (i < indices.length - 1) {
+              b2.append(SEPARATOR).append(SEPARATOR);
+            }
+          }
+          result.put(file, b2.toString());
         }
       }
-      result.put(fileScansEntry.getKey(), b.toString());
     }
     return result;
   }
 
+  /**
+   * Parses a string of a specific pattern to a list of scans or mobility scans. If the file is an
+   * IMS file and the string includes mobility scans, then the mobility scans are parsed.
+   *
+   * @param str  a string of pattern
+   *             {@code {scan number}[<optional (or empty)> mobility scan number]} e.g.
+   *             {@code {5}[7,8,9]} for mobility scans of frame 5, or {@code {6}[]} for scan 6. Note
+   *             that indices are used over scan numbers.
+   * @param file The file to parse the string for.
+   * @return A list of scans.
+   */
   @Nullable
-  public static List<MobilityScan> stringToMobilityScanList(String str, IMSRawDataFile file) {
-    final List<MobilityScan> mobilityScans = new ArrayList<>();
+  public static List<Scan> stringToScanList(String str, RawDataFile file) {
+    final List<Scan> scans = new ArrayList<>();
     final String[] split = str.split(SEPARATOR + SEPARATOR);
-    final Pattern pattern = Pattern.compile("\\{([0-9]+)\\}\\[([^\\n]+)\\]");
+    final Pattern pattern = Pattern.compile("\\{([0-9]+)\\}\\[([^\\n]+)?\\]");
 
     for (final String s : split) {
       Matcher matcher = pattern.matcher(s);
       if (matcher.matches()) {
-        int frameIndex = Integer.parseInt(matcher.group(1));
-        Frame frame = file.getFrame(frameIndex);
+        int scanIndex = Integer.parseInt(matcher.group(1));
+        final String mobilityScansString = matcher.group(2);
 
-        int[] indices = stringToIntArray(matcher.group(2));
-        mobilityScans.addAll(ParsingUtils.getSublistFromIndices(frame.getMobilityScans(), indices));
+        if (mobilityScansString == null || mobilityScansString.isBlank()
+            || !(file instanceof IMSRawDataFile)) {
+          scans.add(file.getScan(scanIndex));
+        } else if ((mobilityScansString != null // i know this is currently always true, but keep
+            // it for safety in case we change something in the future
+            && !mobilityScansString.isBlank()) && file instanceof IMSRawDataFile ims) {
+          Frame frame = ims.getFrame(scanIndex);
+          int[] indices = stringToIntArray(mobilityScansString);
+          scans.addAll(ParsingUtils.getSublistFromIndices(frame.getMobilityScans(), indices));
+        }
       } else {
         throw new IllegalStateException("Pattern does not match");
       }
     }
 
-    return mobilityScans.isEmpty() ? null : mobilityScans;
+    return scans.isEmpty() ? null : scans;
   }
 
   public static String stringArrayToString(String[] array) {

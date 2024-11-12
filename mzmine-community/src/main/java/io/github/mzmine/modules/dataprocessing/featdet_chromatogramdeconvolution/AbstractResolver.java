@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -109,10 +108,11 @@ public abstract class AbstractResolver implements Resolver {
           continue;
         }
         if (originalSeries instanceof IonMobilogramTimeSeries trace) {
-          resolved.add(
-              (T) trace.subSeries(storage, (List<Frame>) subList, getMobilogramDataAccess()));
+          resolved.add((T) trace.subSeries(storage, range.lowerEndpoint().floatValue(),
+              range.upperEndpoint().floatValue(), getMobilogramDataAccess()));
         } else if (originalSeries instanceof SimpleIonTimeSeries chrom) {
-          resolved.add((T) chrom.subSeries(storage, (List<Scan>) subList));
+          resolved.add((T) chrom.subSeries(storage, range.lowerEndpoint().floatValue(),
+              range.upperEndpoint().floatValue()));
         } else {
           throw new IllegalStateException(
               "Resolving behaviour of " + originalSeries.getClass().getName() + " not specified.");
@@ -208,7 +208,7 @@ public abstract class AbstractResolver implements Resolver {
       if (yBuffer == null || yBuffer.length <= numValues) {
         yBuffer = new double[numValues];
       }
-      Arrays.fill(yBuffer, 0d);
+      Arrays.fill(yBuffer, series.getNumberOfValues(), yBuffer.length, 0d);
       yBuffer = series.getIntensityValues(yBuffer);
 
       return resolve(xBuffer, yBuffer);
@@ -294,7 +294,7 @@ public abstract class AbstractResolver implements Resolver {
     if (rtBuffer == null || rtBuffer.length < numValues) {
       rtBuffer = new double[numValues];
     }
-    Arrays.fill(rtBuffer, 0d);
+    Arrays.fill(rtBuffer, numValues, rtBuffer.length, 0d);
     for (int i = 0; i < numValues; i++) {
       rtBuffer[i] = timeSeries.getRetentionTime(i);
     }

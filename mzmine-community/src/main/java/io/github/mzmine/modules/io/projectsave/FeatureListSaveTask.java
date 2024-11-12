@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,6 +57,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javafx.collections.ObservableList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -176,10 +177,18 @@ public class FeatureListSaveTask extends AbstractTask {
 
     // write applied methods
     appliedMethodsList.setAttribute(CONST.XML_FLIST_NAME_ATTR, flist.getName());
-    for (FeatureListAppliedMethod appliedMethod : flist.getAppliedMethods()) {
-      Element methodElement = document.createElement(CONST.XML_FLIST_APPLIED_METHOD_ELEMENT);
-      appliedMethod.saveValueToXML(methodElement);
-      appliedMethodsList.appendChild(methodElement);
+    ObservableList<FeatureListAppliedMethod> appliedMethods = flist.getAppliedMethods();
+    for (int i = 0; i < appliedMethods.size(); i++) {
+      FeatureListAppliedMethod appliedMethod = appliedMethods.get(i);
+      if (appliedMethod != null) {
+        Element methodElement = document.createElement(CONST.XML_FLIST_APPLIED_METHOD_ELEMENT);
+        appliedMethod.saveValueToXML(methodElement);
+        appliedMethodsList.appendChild(methodElement);
+      } else {
+        logger.severe(
+            "Cannot save applied %d method of feature list %s because it is null.".formatted(i,
+                flist.getName()));
+      }
     }
 
     // write selected files
@@ -289,7 +298,7 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeEndElement();
   }
 
-  private void writeDataType(XMLStreamWriter writer, DataType<?> dataType,
+  public static void writeDataType(XMLStreamWriter writer, DataType<?> dataType,
       @Nullable final Object value, @NotNull final ModularFeatureList flist,
       @NotNull final ModularFeatureListRow row, @Nullable final ModularFeature feature,
       @Nullable final RawDataFile file) throws XMLStreamException {

@@ -25,16 +25,22 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
+import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.Chromatogram;
+import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.types.MsMsInfoType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.DetectorType;
@@ -47,7 +53,6 @@ import io.github.mzmine.datamodel.otherdetectors.OtherSpectrum;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.WavelengthSpectrum;
-import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
@@ -60,7 +65,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorEl
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -69,6 +74,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -242,8 +248,8 @@ public class ConversionUtils {
 
     final MassSpectrumType spectrumType = scan.getSpectrumType();
 
-    final DoubleBuffer wavelengthValues = scan.getWavelengthValues();
-    final DoubleBuffer intensityValues = scan.getDoubleBufferIntensityValues();
+    final MemorySegment wavelengthValues = scan.getWavelengthValues();
+    final MemorySegment intensityValues = scan.getDoubleBufferIntensityValues();
 
     final WavelengthSpectrum spectrum = new WavelengthSpectrum(spectralData, wavelengthValues,
         intensityValues, spectrumType, scan.getRetentionTime());
@@ -272,7 +278,7 @@ public class ConversionUtils {
    * @return a {@link SimpleScan}
    */
   public static Scan mzmlScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
-      DoubleBuffer mzs, DoubleBuffer intensities, MassSpectrumType spectrumType) {
+      MemorySegment mzs, MemorySegment intensities, MassSpectrumType spectrumType) {
     DDAMsMsInfo info = null;
     if (scan.getPrecursorList() != null) {
       final var precursorElements = scan.getPrecursorList().getPrecursorElements();
@@ -290,11 +296,6 @@ public class ConversionUtils {
         scan.getScanDefinition(), scan.getScanningMZRange(), injTime);
 
     return newScan;
-  }
-
-  public static BuildingMobilityScan mzmlScanToMobilityScan(int scannum, BuildingMzMLMsScan scan) {
-    SimpleSpectralArrays data = scan.getMobilityScanSimpleSpectralData();
-    return new BuildingMobilityScan(scannum, data);
   }
 
   /**
@@ -386,42 +387,85 @@ public class ConversionUtils {
         .filter(c -> c instanceof MzMLChromatogram).map(c -> (MzMLChromatogram) c)
         .collect(Collectors.groupingBy(ConversionUtils::getChromatogramType));
 
-    List<OtherDataFile> otherFiles = new ArrayList<>();
+    final List<OtherDataFile> otherFiles = new ArrayList<>();
 
-    for (Entry<ChromatogramType, List<MzMLChromatogram>> grouped : groupedChromatograms.entrySet()
+    for (Entry<ChromatogramType, List<MzMLChromatogram>> groupedByChromType : groupedChromatograms.entrySet()
         .stream().sorted(Comparator.comparing(e -> e.getKey().getDescription())).toList()) {
-      final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
-      final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
-      otherFile.setDetectorType(DetectorType.OTHER);
 
-      timeSeriesData.setChromatogramType(grouped.getKey());
-      otherFile.setDescription(grouped.getKey().getDescription());
+      // group by range unit so we definitely have only one chromatogram type per file.
+      final Map<MzMLUnits, List<MzMLChromatogram>> groupedByUnit = groupByUnit(
+          groupedByChromType.getValue(),
+          c -> MzMLUnits.ofAccession(c.getIntensityBinaryDataInfo().getUnitAccession()));
 
-      for (MzMLChromatogram chrom : grouped.getValue()) {
-        final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
-            file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
-            chrom.getId(), timeSeriesData);
+      for (Entry<MzMLUnits, List<MzMLChromatogram>> unitChromEntry : groupedByUnit.entrySet()) {
+        final MzMLUnits unit = unitChromEntry.getKey();
 
-        final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
-        timeSeriesData.addRawTrace(otherFeature);
+        final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
+        final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
+        otherFile.setDetectorType(DetectorType.OTHER);
+        final ChromatogramType chromType = groupedByChromType.getKey();
+        timeSeriesData.setChromatogramType(chromType);
+        otherFile.setDescription(unit + "_" + chromType.getDescription());
 
-        final String unitAccession = chrom.getIntensityBinaryDataInfo().getUnitAccession();
-        final MzMLUnits unit = MzMLUnits.ofAccession(unitAccession);
-        final String currentUnit = timeSeriesData.getTimeSeriesRangeUnit();
-        if (!currentUnit.equals(OtherDataFileImpl.DEFAULT_UNIT) && !currentUnit.equals(
-            unit.getSign())) {
-          logger.severe(
-              () -> "Chromatogram units in file %s do not match.".formatted(file.getName()));
-        } else {
+        for (MzMLChromatogram chrom : unitChromEntry.getValue()) {
+          final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
+              file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
+              chrom.getId(), timeSeriesData);
+
+          final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
+          timeSeriesData.addRawTrace(otherFeature);
+
           timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
           timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
+
+          extractAndSetMsMsInfoToChromatogram(chrom, chromType, otherFeature);
+          if (chromType.isMsType()) {
+            final PolarityType polarity = chrom.getPolarity();
+            if (polarity.isDefined()) {
+              otherFeature.set(PolarityTypeType.class, polarity);
+            }
+          }
         }
+
+        otherFile.setOtherTimeSeriesData(timeSeriesData);
+        otherFiles.add(otherFile);
       }
-      otherFile.setOtherTimeSeriesData(timeSeriesData);
-      otherFiles.add(otherFile);
     }
 
     return otherFiles;
+  }
+
+  /**
+   * Sets the MS2 info for the otherFeature if it is set in the chromatogram
+   */
+  private static void extractAndSetMsMsInfoToChromatogram(MzMLChromatogram chrom,
+      ChromatogramType chromType, OtherFeatureImpl otherFeature) {
+    if (chromType == ChromatogramType.MRM_SRM) {
+      final List<IsolationInfo> isolations = chrom.getIsolations();
+      if (isolations.size() != 2) {
+        return;
+      }
+      final Double q3Mass = isolations.getLast().getPrecursorMz();
+      otherFeature.set(MZType.class, q3Mass);
+
+      final IsolationInfo q1Isolation = isolations.getFirst();
+      final Double q1Mass = q1Isolation.getPrecursorMz();
+      final ActivationInfo activationInfo = q1Isolation.getActivationInfo();
+      final Float energy =
+          activationInfo != null ? Objects.requireNonNullElse(activationInfo.getActivationEnergy(),
+              0d).floatValue() : null;
+      final ActivationMethod method = ActivationMethod.fromActivationType(
+          activationInfo != null ? activationInfo.getActivationType() : null);
+
+      if (q1Mass != null) {
+        otherFeature.set(MsMsInfoType.class,
+            List.of(new DDAMsMsInfoImpl(q1Mass, null, energy, null, null, 2, method, null)));
+      }
+    }
+  }
+
+  public static <T, K> Map<K, List<T>> groupByUnit(List<T> values, Function<T, K> getUnit) {
+    return values.stream().collect(Collectors.groupingBy(getUnit));
   }
 
   private static @NotNull ChromatogramType getChromatogramType(MzMLChromatogram c) {

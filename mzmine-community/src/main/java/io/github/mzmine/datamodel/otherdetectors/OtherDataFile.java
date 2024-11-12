@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,10 +29,14 @@ import io.github.mzmine.datamodel.RawDataFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Groups data of one detector type. Must be associated with an MS {@link RawDataFile}. One
+ * {@link RawDataFile} can contain multiple {@link OtherDataFile}s if multiple other detectors were
+ * used.
+ */
 public interface OtherDataFile {
 
-  @NotNull
-  RawDataFile getCorrespondingRawDataFile();
+  @NotNull RawDataFile getCorrespondingRawDataFile();
 
   default boolean hasTimeSeries() {
     return getNumberOfTimeSeries() != 0;
@@ -43,22 +47,27 @@ public interface OtherDataFile {
   }
 
   default int getNumberOfSpectra() {
-    return getOtherSpectralData() != null ? getOtherSpectralData().getOtherDataFile()
-        .getNumberOfSpectra() : 0;
+    return getOtherSpectralData() != null ? getOtherSpectralData().getSpectra().size() : 0;
   }
 
   default int getNumberOfTimeSeries() {
-    return getOtherTimeSeries() != null ? getOtherTimeSeries().getNumberOfTimeSeries() : 0;
+    return getOtherTimeSeriesData() != null ? getOtherTimeSeriesData().getNumberOfTimeSeries() : 0;
   }
 
-  @Nullable
-  OtherTimeSeriesData getOtherTimeSeries();
+  @Nullable OtherTimeSeriesData getOtherTimeSeriesData();
 
-  @Nullable
-  OtherSpectralData getOtherSpectralData();
+  @Nullable OtherSpectralData getOtherSpectralData();
 
-  @NotNull
-  String getDescription();
+  @NotNull String getDescription();
 
   DetectorType getDetectorType();
+
+  static OtherDataFile findInRawFile(@NotNull RawDataFile file,
+      @Nullable String otherFileDescription) {
+    if(otherFileDescription == null) {
+      return null;
+    }
+    return file.getOtherDataFiles().stream().filter(of -> of.getDescription().equals(otherFileDescription))
+        .findFirst().orElse(null);
+  }
 }

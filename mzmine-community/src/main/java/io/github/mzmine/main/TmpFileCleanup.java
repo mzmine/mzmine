@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,8 +31,6 @@ import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.MemoryMapStorages;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
@@ -103,7 +101,7 @@ public class TmpFileCleanup implements Runnable {
             lock = rac.getChannel().tryLock();
           } catch (OverlappingFileLockException e) {
             logger.finest("The lock for a temporary file " + remainingTmpFile.getAbsolutePath()
-                + " can not be acquired");
+                          + " can not be acquired");
           }
           rac.close();
 
@@ -145,13 +143,14 @@ public class TmpFileCleanup implements Runnable {
       }
     }
 
+    /*
     for (final MemoryMapStorage storage : MemoryMapStorages.getStorageList()) {
       try {
         storage.discard(theUnsafe);
       } catch (IOException e) {
         e.printStackTrace();
       }
-    }
+    }*/
 
   }
 

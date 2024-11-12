@@ -29,26 +29,33 @@ import static io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl.DEFAUL
 
 import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
+  private static final Logger logger = Logger.getLogger(OtherTimeSeriesDataImpl.class.getName());
+
   private final CloseableReentrantReadWriteLock writeLock = new CloseableReentrantReadWriteLock();
 
   private final OtherDataFile otherDataFile;
   private final List<OtherFeature> rawTraces = new ArrayList<>();
+  private final List<OtherFeature> preprocessedTraces = new ArrayList<>();
   private final List<OtherFeature> processedFeatures = new ArrayList<>();
 
-  public @Nullable ChromatogramType chromatogramType = ChromatogramType.UNKNOWN;
-  private @Nullable String timeSeriesDomainLabel = "Retention time";
-  private @Nullable String timeSeriesDomainUnit = "min";
-  private @Nullable String timeSeriesRangeLabel = DEFAULT_UNIT;
-  private @Nullable String timeSeriesRangeUnit = DEFAULT_UNIT;
+  public @NotNull ChromatogramType chromatogramType = ChromatogramType.UNKNOWN;
+  private @NotNull String timeSeriesDomainLabel = "Retention time";
+  private @NotNull String timeSeriesDomainUnit = "min";
+  private @NotNull String timeSeriesRangeLabel = DEFAULT_UNIT;
+  private @NotNull String timeSeriesRangeUnit = DEFAULT_UNIT;
 
   public OtherTimeSeriesDataImpl(OtherDataFile otherDataFile) {
     this.otherDataFile = otherDataFile;
@@ -56,7 +63,7 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
   @Override
   public @NotNull OtherFeature getRawTrace(int index) {
-    try(var _ = writeLock.lockWrite()) {
+    try (var _ = writeLock.lockWrite()) {
       return rawTraces.get(index);
     }
   }
@@ -66,9 +73,36 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
     return List.copyOf(rawTraces);
   }
 
+  @Override
+  public @NotNull List<@NotNull OtherFeature> getPreprocessedTraces() {
+    if (preprocessedTraces.isEmpty()) {
+      return getRawTraces();
+    }
+    return preprocessedTraces;
+  }
+
+  @Override
+  public void setPreprocessedTraces(@NotNull List<@NotNull OtherFeature> preprocessedTraces) {
+    this.preprocessedTraces.clear();
+    this.preprocessedTraces.addAll(preprocessedTraces);
+  }
+
   public void addRawTrace(@NotNull OtherFeature series) {
     try (var _ = writeLock.lockWrite()) {
       this.rawTraces.add(series);
+    }
+  }
+
+  public void setRawTraces(@NotNull List<@NotNull OtherFeature> rawTraces) {
+    try (var _ = writeLock.lockWrite()) {
+      this.rawTraces.clear();
+      // if this is a processed feature, but set as raw trace, it replaces it's own raw trace.
+      // so set RawTraceType.class to null, so we don't produce memory leaks and don't point to a
+      // trace that cannot be found anymore.
+      // this may be needed after certain processing, e.g. after baseline correction.
+      rawTraces.forEach(t -> t.set(RawTraceType.class, null));
+      this.rawTraces.addAll(rawTraces);
+      processedFeatures.clear();
     }
   }
 
@@ -78,49 +112,52 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   }
 
   @Override
-  public @Nullable String getTimeSeriesDomainLabel() {
+  public @NotNull String getTimeSeriesDomainLabel() {
     return timeSeriesDomainLabel;
   }
 
   public void setTimeSeriesDomainLabel(@Nullable String timeSeriesDomainLabel) {
-    this.timeSeriesDomainLabel = timeSeriesDomainLabel;
+    this.timeSeriesDomainLabel = Objects.requireNonNullElse(timeSeriesDomainLabel, DEFAULT_UNIT);
   }
 
   @Override
-  public @Nullable String getTimeSeriesDomainUnit() {
-    return timeSeriesDomainUnit;
+  public @NotNull String getTimeSeriesDomainUnit() {
+    return timeSeriesRangeLabel;
   }
 
   public void setTimeSeriesDomainUnit(@Nullable String timeSeriesDomainUnit) {
-    this.timeSeriesDomainUnit = timeSeriesDomainUnit;
+    this.timeSeriesDomainUnit = Objects.requireNonNullElse(timeSeriesDomainUnit, DEFAULT_UNIT);
   }
 
   @Override
-  public @Nullable String getTimeSeriesRangeLabel() {
+  public @NotNull String getTimeSeriesRangeLabel() {
     return timeSeriesRangeLabel;
   }
 
   public void setTimeSeriesRangeLabel(@Nullable String timeSeriesRangeLabel) {
-    this.timeSeriesRangeLabel = timeSeriesRangeLabel;
+    if (!DEFAULT_UNIT.equals(this.timeSeriesRangeLabel) && timeSeriesRangeLabel != null
+        && !this.timeSeriesRangeLabel.equals(timeSeriesRangeLabel)) {
+      logger.severe(() -> (
+          "Range axis labels of time series in file %s for chromatogram type %s do not have the "
+              + "same label (old: %s, new: %s)").formatted(getOtherDataFile().getDescription(),
+          getChromatogramType(), this.timeSeriesRangeLabel, timeSeriesRangeLabel));
+    }
+    this.timeSeriesRangeLabel = Objects.requireNonNullElse(timeSeriesRangeLabel,
+        this.timeSeriesRangeLabel);
   }
 
   @Override
-  public @Nullable String getTimeSeriesRangeUnit() {
+  public @NotNull String getTimeSeriesRangeUnit() {
     return timeSeriesRangeUnit;
   }
 
   public void setTimeSeriesRangeUnit(@Nullable String timeSeriesRangeUnit) {
-    this.timeSeriesRangeUnit = timeSeriesRangeUnit;
+    this.timeSeriesRangeUnit = Objects.requireNonNullElse(timeSeriesRangeUnit, DEFAULT_UNIT);
   }
 
   @Override
-  public @Nullable ChromatogramType getChromatogramType() {
+  public @NotNull ChromatogramType getChromatogramType() {
     return chromatogramType;
-  }
-
-  @Override
-  public List<OtherFeature> getProcessedFeatures() {
-    return processedFeatures;
   }
 
   public void setChromatogramType(@Nullable ChromatogramType chromatogramType) {
@@ -128,8 +165,22 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   }
 
   @Override
+  public List<OtherFeature> getProcessedFeatures() {
+    return processedFeatures;
+  }
+
+  @Override
   @NotNull
   public List<OtherFeature> getProcessedFeaturesForTrace(OtherFeature rawTrace) {
+    final OtherFeature original = rawTrace.get(RawTraceType.class);
+    // in case a baseline corrected raw trace was given, get the raw trace of the baseline corrected one.
+    if (original != null) {
+      try (var _ = writeLock.lockRead()) {
+        return processedFeatures.stream()
+            .filter(f -> Objects.equals(f.get(RawTraceType.class), original)).toList();
+      }
+    }
+
     try (var _ = writeLock.lockRead()) {
       return processedFeatures.stream()
           .filter(f -> Objects.equals(f.get(RawTraceType.class), rawTrace)).toList();
@@ -168,5 +219,19 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
     try (var _ = writeLock.lockWrite()) {
       processedFeatures.add(newFeature);
     }
+  }
+
+  @Override
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT,
+        otherDataFile.getCorrespondingRawDataFile().getFileName());
+    writer.writeCharacters(otherDataFile.getDescription());
+    writer.writeEndElement();
+  }
+
+  @Override
+  public String toString() {
+    return chromatogramType + " " + timeSeriesRangeLabel + "/" + timeSeriesRangeUnit;
   }
 }

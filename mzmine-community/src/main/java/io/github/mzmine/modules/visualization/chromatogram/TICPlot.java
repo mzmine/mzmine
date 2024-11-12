@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -436,16 +436,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     return addDataSetAndRenderer(dataSet, renderer);
   }
 
-  public synchronized int addFeatureDataSetRandomColor(final FeatureDataSet dataSet) {
-    final FeatureTICRenderer renderer = new FeatureTICRenderer();
-    Color nextColorAWT = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT();
-    renderer.setSeriesPaint(0, nextColorAWT);
-    renderer.setSeriesFillPaint(0, nextColorAWT);
-    renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
-    return addDataSetAndRenderer(dataSet, renderer);
-  }
-
-
   public synchronized void addFeatureDataSets(Collection<FeatureDataSet> dataSets) {
     final boolean oldNotify = plot.isNotify();
     plot.setNotify(false);
@@ -610,7 +600,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     getXYPlot().getRangeAxis().setLabel(yAxisLabel);
   }
 
-  private synchronized int addDataSetAndRenderer(final XYDataset dataSet,
+  public synchronized int addDataSetAndRenderer(final XYDataset dataSet,
       final XYItemRenderer renderer) {
     int nextDatasetId = JFreeChartUtils.getNextDatasetIndex(plot);
 

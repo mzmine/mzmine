@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -70,6 +70,7 @@ import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitMod
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
+import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
@@ -345,8 +346,15 @@ public class FeatureTableContextMenu extends ContextMenu {
     formulaPredictionItem.setOnAction(
         e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
 
+    final MenuItem fragmentDashboardItem = new ConditionalMenuItem(
+        "Open in fragmentation dashboard",
+        () -> selectedRow != null && selectedRow.getMostIntenseFragmentScan() != null);
+    fragmentDashboardItem.setOnAction(e -> {
+      FragDashboardTab.addNewTab(null, selectedRow, null);
+    });
+
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
-        formulaPredictionItem, new SeparatorMenuItem(), masstSearch);
+        formulaPredictionItem, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch);
   }
 
   private void initShowMenu() {
@@ -733,7 +741,7 @@ public class FeatureTableContextMenu extends ContextMenu {
   private void showPseudoSpectrum() {
     if (selectedFeature != null) {
       PseudoSpectrumVisualizerPane pseudoSpectrumVisualizerPane = new PseudoSpectrumVisualizerPane(
-          selectedFeature);
+          selectedFeature, null);
       SimpleTab simpleTab = new SimpleTab("Pseudo Spectrum of " + selectedFeature.toString(),
           pseudoSpectrumVisualizerPane);
       MZmineCore.getDesktop().addTab(simpleTab);

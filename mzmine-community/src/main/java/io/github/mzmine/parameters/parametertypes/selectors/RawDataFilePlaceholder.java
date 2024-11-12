@@ -302,7 +302,10 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   @Override
-  public List<OtherDataFile> getOtherDataFiles() {
+  public @NotNull List<OtherDataFile> getOtherDataFiles() {
+    if (getMatchingFile() != null) {
+      return getMatchingFile().getOtherDataFiles();
+    }
     return List.of();
   }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~ Copyright (c) 2004-2024 The mzmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -56,21 +56,22 @@
     minWidth="600"
     prefHeight="${screen.visualBounds.height*0.9}"
     prefWidth="${screen.visualBounds.width*0.9}"
-    xmlns="http://javafx.com/javafx/14.0.1">
+    xmlns="http://javafx.com/javafx/14.0.1"
+    fx:id="mainPane">
     <bottom>
       <VBox fx:id="bottomBox" maxHeight="130">
         <StatusBar maxHeight="30" minHeight="30" fx:id="statusBar">
           <rightItems>
             <HBox spacing="5" fx:id="bottomMenuBar">
                 <StackPane scaleShape="true">
+                  <ProgressBar minWidth="150" opacity="0.3"
+                    prefWidth="150" fx:id="memoryBar"/>
                   <Label alignment="CENTER"
                     minWidth="150" prefWidth="150" fx:id="memoryBarLabel">
                     <tooltip>
                       <Tooltip text="Free/total Java heap size"/>
                     </tooltip>
                   </Label>
-                  <ProgressBar minWidth="150" opacity="0.3"
-                    prefWidth="150" fx:id="memoryBar"/>
                 </StackPane>
               </HBox>
           </rightItems>
@@ -81,9 +82,9 @@
       <SplitPane BorderPane.alignment="CENTER" dividerPositions="0.22">
         <items>
           <!--              Left side-->
-          <TabPane tabClosingPolicy="UNAVAILABLE">
+          <TabPane fx:id="projectTabPane" tabClosingPolicy="UNAVAILABLE">
             <tabs>
-              <Tab closable="false" text="MS data files">
+              <Tab fx:id="tabMsData" closable="false" text="MS data files">
                 <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0">
                     <children>
@@ -134,6 +135,7 @@
 
                               <SeparatorMenuItem/>
                               <Menu text="Set color" fx:id="rawDataSetColorMenu"/>
+                              <MenuItem onAction="#handleColorByMetadata" text="Color by metadata"/>
                             </items>
                           </ContextMenu>
                         </contextMenu>
@@ -142,7 +144,7 @@
                   </AnchorPane>
                 </content>
               </Tab>
-              <Tab closable="false" text="Feature lists">
+              <Tab fx:id="tabFeatureLists" closable="false" text="Feature lists">
                 <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0">
                     <children>
@@ -157,6 +159,7 @@
                               <MenuItem onAction="#handleShowFeatureListSummary"
                                 text="Show feature list summary"
                                 fx:id="showFeatureListSummaryMenuItem"/>
+                              <MenuItem onAction="#handleShowStatisticsDashboard" text="Show statistics dashboard"/>
                               <MenuItem onAction="#handleShowScatterPlot"
                                 text="Show scatter plot"/>
                               <SeparatorMenuItem/>
@@ -174,7 +177,7 @@
                   </AnchorPane>
                 </content>
               </Tab>
-              <Tab closable="false" text="Libraries">
+              <Tab fx:id="tabLibraries" closable="false" text="Libraries">
                 <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0">
                     <children>

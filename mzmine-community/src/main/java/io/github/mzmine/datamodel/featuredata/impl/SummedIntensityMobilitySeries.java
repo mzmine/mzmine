@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -37,6 +39,8 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +63,8 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
 
   public static final String XML_ELEMENT = "summedmobilogram";
 
-  final DoubleBuffer intensityValues;
-  final DoubleBuffer mobilityValues;
+  final MemorySegment intensityValues;
+  final MemorySegment mobilityValues;
 
   /**
    * Creates a summed intensity and mobility series
@@ -121,12 +125,38 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
   }
 
+  public static SummedIntensityMobilitySeries loadFromXML(@NotNull XMLStreamReader reader,
+      @Nullable MemoryMapStorage storage) throws XMLStreamException {
+
+    double[] mobilities = null;
+    double[] intensities = null;
+
+    while (reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName()
+          .equals(SummedIntensityMobilitySeries.XML_ELEMENT)) {
+        break;
+      }
+
+      final int next = reader.next();
+      if (next != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_MOBILITY_VALUES_ELEMENT ->
+            mobilities = ParsingUtils.stringToDoubleArray(reader.getElementText());
+      }
+    }
+    return new SummedIntensityMobilitySeries(storage, mobilities, intensities);
+  }
+
   public int getNumberOfDataPoints() {
-    return getMobilityValues().capacity();
+    return (int) StorageUtils.numDoubles(getMobilityValues());
   }
 
   public double getIntensity(int index) {
-    return getIntensityValueBuffer().get(index);
+    return getIntensityValueBuffer().getAtIndex(ValueLayout.JAVA_DOUBLE, index);
   }
 
   /**
@@ -139,14 +169,14 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
    * @return
    */
   public double getMobility(int index) {
-    return getMobilityValues().get(index);
+    return getMobilityValues().getAtIndex(ValueLayout.JAVA_DOUBLE, index);
   }
 
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     return intensityValues;
   }
 
-  public DoubleBuffer getMobilityValues() {
+  public MemorySegment getMobilityValues() {
     return mobilityValues;
   }
 
@@ -154,7 +184,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     if (dst.length < getNumberOfValues()) {
       dst = new double[getNumberOfValues()];
     }
-    getMobilityValues().get(0, dst, 0, getNumberOfValues());
+    MemorySegment.copy(getMobilityValues(), ValueLayout.JAVA_DOUBLE, 0, dst, 0, getNumberOfDataPoints());
     return dst;
   }
 
@@ -195,32 +225,6 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     writer.writeEndElement();
   }
 
-  public static SummedIntensityMobilitySeries loadFromXML(@NotNull XMLStreamReader reader,
-      @Nullable MemoryMapStorage storage) throws XMLStreamException {
-
-    double[] mobilities = null;
-    double[] intensities = null;
-
-    while (reader.hasNext()) {
-      if (reader.isEndElement() && reader.getLocalName()
-          .equals(SummedIntensityMobilitySeries.XML_ELEMENT)) {
-        break;
-      }
-
-      final int next = reader.next();
-      if (next != XMLEvent.START_ELEMENT) {
-        continue;
-      }
-      switch (reader.getLocalName()) {
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-        case CONST.XML_MOBILITY_VALUES_ELEMENT -> mobilities = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-      }
-    }
-    return new SummedIntensityMobilitySeries(storage, mobilities, intensities);
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -230,13 +234,13 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
       return false;
     }
     SummedIntensityMobilitySeries that = (SummedIntensityMobilitySeries) o;
-    return Objects.equals(intensityValues, that.intensityValues) && Objects.equals(
+    return contentEquals(intensityValues, that.intensityValues) && contentEquals(
         getMobilityValues(), that.getMobilityValues())
         && IntensitySeries.seriesSubsetEqual(this, that);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(intensityValues, mobilityValues);
+    return Objects.hash(intensityValues.byteSize(), mobilityValues.byteSize());
   }
 }

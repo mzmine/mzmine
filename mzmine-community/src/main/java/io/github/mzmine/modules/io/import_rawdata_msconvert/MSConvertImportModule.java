@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImp
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
@@ -40,7 +41,8 @@ import org.jetbrains.annotations.NotNull;
 public class MSConvertImportModule extends AbstractProcessingModule {
 
   public MSConvertImportModule() {
-    super("Raw data import (MSConvert)", MSConvertImportParameters.class, MZmineModuleCategory.RAWDATAIMPORT,
+    super("Raw data import (MSConvert)", MSConvertImportParameters.class,
+        MZmineModuleCategory.RAWDATAIMPORT,
         "Import native raw data using MSConvert as an intermediate step.");
   }
 
@@ -55,9 +57,10 @@ public class MSConvertImportModule extends AbstractProcessingModule {
       return ExitCode.ERROR;
     }
 
+    var storage = MemoryMapStorage.forRawDataFile();
     for (File file : files) {
-      tasks.add(new MSConvertImportTask(moduleCallDate, file, ScanImportProcessorConfig.createDefault(), project, this.getClass(),
-          parameters));
+      tasks.add(new MSConvertImportTask(storage, moduleCallDate, file,
+          ScanImportProcessorConfig.createDefault(), project, this.getClass(), parameters));
     }
 
     return ExitCode.OK;

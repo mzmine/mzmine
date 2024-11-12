@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,16 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import static io.github.mzmine.gui.preferences.MZminePreferences.runGCafterBatchStep;
+import static io.github.mzmine.main.ConfigService.getPreference;
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -54,6 +61,7 @@ import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.CsvWriter;
 import java.io.File;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -62,10 +70,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -87,12 +95,12 @@ public class BatchTask extends AbstractTask {
   private List<RawDataFile> previousCreatedDataFiles;
   private List<FeatureList> createdFeatureLists;
   private List<FeatureList> previousCreatedFeatureLists;
-  private Boolean skipOnError;
+  private boolean skipOnError = false;
   private Boolean searchSubdirs;
   private Boolean createResultsDir;
   private File parentDir;
   private int currentDataset;
-  private List<StepTimeMeasurement> stepTimes = new ArrayList<>();
+  private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
 
   BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     this(project, parameters, moduleCallDate,
@@ -140,7 +148,7 @@ public class BatchTask extends AbstractTask {
    * @return the {@link TaskStatus} of the carrier task reflecting the worst case of the sub tasks
    * meaning that if any had an error > cancel > finished
    */
-  private static TaskStatus runInTaskPool(final MZmineProcessingModule method,
+  private TaskStatus runInTaskPool(final MZmineProcessingModule method,
       final List<Task> tasksToRun) {
     TaskController taskController = MZmineCore.getTaskController();
     var description = STR."\{method.getName()} on \{tasksToRun.size()} items";
@@ -154,16 +162,60 @@ public class BatchTask extends AbstractTask {
       return TaskStatus.ERROR;
     }
 
+    String errorMessage = finishedTask.getErrorMessage();
+    if (finishedTask.getStatus() == TaskStatus.ERROR) {
+      if (DesktopService.isGUI()) {
+        FxThread.runLater(
+            () -> DialogLoggerUtil.showErrorDialog("Batch had errors and stopped", errorMessage));
+      }
+      error(errorMessage);
+      return TaskStatus.ERROR;
+    }
+
     return finishedTask.getActualTask().getStatus();
   }
 
   @Override
   public void run() {
-
     Instant batchStart = Instant.now();
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
+    try {
+      // run batch that may fail with error message
+      // BatchTask is often run directly without WrappedTask, so handling of error message is important
+      runBatchQueue();
+    } catch (Throwable e) {
+      // in case of an exception
+      // regular errors are already handled in the runBatchQueue methods
+      if (getErrorMessage() != null) {
+        if (DesktopService.isGUI()) {
+          FxThread.runLater(
+              () -> DialogLoggerUtil.showErrorDialog("EXCEPTION Batch had errors and stopped",
+                  getErrorMessage()));
+        }
+      } else {
+        logger.log(Level.WARNING, e.getMessage(), e);
+      }
+      return;
+    }
+
+    if (getStatus() == TaskStatus.ERROR && getErrorMessage() != null) {
+      logger.log(Level.WARNING, getErrorMessage());
+    }
+
+    if (isCanceled()) {
+      return;
+    }
+
+    logger.info("Finished a batch of " + totalSteps + " steps");
+    setStatus(TaskStatus.FINISHED);
+    Duration duration = Duration.between(batchStart, Instant.now());
+    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration));
+    printBatchTimes();
+  }
+
+  private void runBatchQueue() {
     int errorDataset = 0;
     currentDataset = -1;
     String datasetName = "";
@@ -177,7 +229,7 @@ public class BatchTask extends AbstractTask {
 
         // print step times
         if (!stepTimes.isEmpty()) {
-          printBatchTimes(batchStart);
+          printBatchTimes();
           stepTimes.clear();
         }
 
@@ -193,7 +245,7 @@ public class BatchTask extends AbstractTask {
 
         if (allFiles.length != 0) {
           // set files to import
-          if (!queue.setImportFiles(allFiles, null)) {
+          if (!queue.setImportFiles(allFiles, null, null)) {
             if (skipOnError) {
               processedSteps += stepsPerDataset;
               continue;
@@ -226,36 +278,38 @@ public class BatchTask extends AbstractTask {
       // run step
       processQueueStep(i % stepsPerDataset);
       processedSteps++;
+      if (requireNonNullElse(getPreference(runGCafterBatchStep), false)) {
+        System.gc();
+      }
 
       // If we are canceled or ran into error, stop here
-      if (isCanceled()) {
-        return;
-      } else if (getStatus() == TaskStatus.ERROR) {
+      if (getStatus() == TaskStatus.ERROR) {
         errorDataset++;
         if (skipOnError && datasets - currentDataset > 0) {
           // skip to next dataset
           logger.info("Error in dataset: " + datasetName + " total error datasets:" + errorDataset);
           processedSteps = (processedSteps / stepsPerDataset + 1) * stepsPerDataset;
           continue;
-        } else {
-          return;
         }
       }
+      if (isCanceled()) {
+        return;
+      }
     }
-
-    logger.info("Finished a batch of " + totalSteps + " steps");
-    setStatus(TaskStatus.FINISHED);
-    printBatchTimes(batchStart);
-    Duration duration = Duration.between(batchStart, Instant.now());
-    stepTimes.addFirst(new StepTimeMeasurement(0, getName(), duration));
   }
 
-  private void printBatchTimes(final Instant batchStart) {
-    Duration duration = Duration.between(batchStart, Instant.now());
-    String times = stepTimes.stream().map(Objects::toString).collect(Collectors.joining("\n"));
-    logger.info(STR."""
-    Timing: Whole batch took \{duration} to finish
-    \{times}""");
+  private void printBatchTimes() {
+    String csv = CsvWriter.writeToString(stepTimes, StepTimeMeasurement.class, '\t', true);
+    logger.info("""
+        Timing: Whole batch took %.3f seconds to finish
+        %s""".formatted(stepTimes.getLast().secondsToFinish(), csv));
+
+//    CsvWriter.writeToFile();
+//    logger.info(csv);
+//    String times = stepTimes.stream().map(Objects::toString).collect(Collectors.joining("\n"));
+//    logger.info(STR."""
+//    Timing: Whole batch took \{duration} to finish
+//    \{times}""");
   }
 
   private void setOutputFiles(final File parentDir, final boolean createResultsDir,
@@ -402,7 +456,7 @@ public class BatchTask extends AbstractTask {
     }
 
     Duration duration = Duration.between(start, Instant.now());
-    stepTimes.add(new StepTimeMeasurement(stepNumber, method.getName(), duration));
+    stepTimes.add(new StepTimeMeasurement(stepNumber + 1, method.getName(), duration));
   }
 
   /**
@@ -418,7 +472,21 @@ public class BatchTask extends AbstractTask {
         .addTasks(tasksToRun.toArray(new Task[0]));
     tasksToRun.clear(); // do not keep the instance alive during long-running tasks
 
-    return TaskUtils.waitForTasksToFinish(this, wrappedTasks);
+    TaskStatus result = TaskUtils.waitForTasksToFinish(this, wrappedTasks);
+
+    // any error message?
+    Optional<String> errorMessage = Arrays.stream(wrappedTasks)
+        .filter(t -> t.getStatus() == TaskStatus.ERROR).map(WrappedTask::getErrorMessage)
+        .findFirst();
+    if (errorMessage.isPresent()) {
+      if (DesktopService.isGUI()) {
+        FxThread.runLater(() -> DialogLoggerUtil.showErrorDialog("Batch had errors and stopped",
+            errorMessage.get()));
+      }
+      error(errorMessage.get());
+      return TaskStatus.ERROR;
+    }
+    return result;
   }
 
   private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {

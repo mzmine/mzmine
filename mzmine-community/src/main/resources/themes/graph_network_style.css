@@ -104,3 +104,7 @@ node.FEATURE {
   fill-color: #ffffe6, yellow, orange, #c10000,
   #570025, black;
 }
+
+node.root_fragment {
+  fill-color: #156CA2;
+}

@@ -53,11 +53,14 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMa
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFPasefFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFPrecursorTable;
+import io.github.mzmine.modules.io.import_rawdata_bruker_uv.BrukerUvReader;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -107,36 +110,25 @@ public class TDFImportTask extends AbstractTask {
   /**
    * Bruker tims format: - Folder - contains multiple files - one folder per analysis - .d extension
    * - *.tdf - SQLite database; contains metadata - *.tdf_bin - contains peak data
-   *
-   * - *.tdf_bin
-   *   - list of frames
-   *     - frame:
-   *       - set of spectra at one specific time
-   *         - single spectrum
+   * <p>
+   * - *.tdf_bin - list of frames - frame: - set of spectra at one specific time - single spectrum
    * for "each" mobility - spectrum: - intensity vs m/z
    */
 
-  /**
-   * @param project
-   * @param file
-   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via
-   *                      {@link MZmineCore#createNewIMSFile}.
-   */
-  public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
+  public TDFImportTask(MZmineProject project, File file, MemoryMapStorage storage,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
-    this(project, file, newMZmineFile, ScanImportProcessorConfig.createDefault(), module,
-        parameters, moduleCallDate);
+    this(project, file, storage, ScanImportProcessorConfig.createDefault(), module, parameters,
+        moduleCallDate);
   }
 
-  public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
+  public TDFImportTask(MZmineProject project, File file, MemoryMapStorage storage,
       final @NotNull ScanImportProcessorConfig scanProcessorConfig,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
-    super(newMZmineFile.getMemoryMapStorage(), moduleCallDate);
+    super(storage, moduleCallDate);
     this.fileNameToOpen = file;
     this.project = project;
-    this.newMZmineFile = newMZmineFile;
     this.scanProcessorConfig = scanProcessorConfig;
     this.module = module;
     this.parameters = parameters;
@@ -206,20 +198,22 @@ public class TDFImportTask extends AbstractTask {
 
     readMetadata();
     if (isMaldi) {
-      try {
-        newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName(),
-            newMZmineFile.getAbsolutePath(), newMZmineFile.getMemoryMapStorage());
-        ((IMSImagingRawDataFile) newMZmineFile).setImagingParam(
-            new ImagingParameters(metaDataTable, maldiFrameInfoTable, maldiFrameLaserInfoTable));
-      } catch (IOException e) {
-        e.printStackTrace();
-        return;
-      }
+      newMZmineFile = new IMSImagingRawDataFileImpl(tdf.getParentFile().getName(),
+          tdf.getParentFile().getAbsolutePath(), getMemoryMapStorage());
+      ((IMSImagingRawDataFile) newMZmineFile).setImagingParam(
+          new ImagingParameters(metaDataTable, maldiFrameInfoTable, maldiFrameLaserInfoTable));
+    } else {
+      newMZmineFile = new IMSRawDataFileImpl(tdf.getParentFile().getName(),
+          tdf.getParentFile().getAbsolutePath(), getMemoryMapStorage());
     }
 
     newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
 
     rawDataFileName = tdfBin.getParentFile().getName();
+    synchronized (org.sqlite.JDBC.class) {
+      BrukerUvReader.loadAndAddForFile(tdfBin.getParentFile(), (RawDataFileImpl) newMZmineFile,
+          getMemoryMapStorage());
+    }
 
     if (!(newMZmineFile instanceof IMSRawDataFileImpl)) {
       setStatus(TaskStatus.ERROR);
@@ -338,9 +332,8 @@ public class TDFImportTask extends AbstractTask {
     logger.finest(() -> "Establishing SQL connection to " + tdf.getName());
 
     synchronized (org.sqlite.JDBC.class) {
-      Connection connection;
-      try {
-        connection = DriverManager.getConnection("jdbc:sqlite:" + tdf.getAbsolutePath());
+      try (Connection connection = DriverManager.getConnection(
+          "jdbc:sqlite:" + tdf.getAbsolutePath())) {
         logger.finest(() -> "Connection established. " + connection.toString());
 
         setDescription("Reading metadata for " + tdf.getName());
@@ -368,7 +361,6 @@ public class TDFImportTask extends AbstractTask {
           maldiFrameLaserInfoTable.executeQuery(connection);
         }
 
-        connection.close();
       } catch (Throwable t) {
         t.printStackTrace();
         logger.info("If stack trace contains \"out of memory\" the file was not found.");

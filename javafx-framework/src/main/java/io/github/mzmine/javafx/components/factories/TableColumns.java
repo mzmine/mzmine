@@ -27,6 +27,8 @@ package io.github.mzmine.javafx.components.factories;
 
 import com.google.common.collect.Range;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import javafx.beans.value.ObservableValue;
@@ -34,6 +36,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Options to manipulate table views and maybe treetableviews
@@ -116,9 +119,7 @@ public class TableColumns {
   @NotNull
   public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name,
       @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
-    TableColumn<MODEL, V> column = new TableColumn<>(name);
-    column.setCellValueFactory(row -> valueFactory.apply(row.getValue()));
-    return column;
+    return createColumn(name, 0, valueFactory);
   }
 
   /**
@@ -131,9 +132,7 @@ public class TableColumns {
   @NotNull
   public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name, double minWidth,
       @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
-    var column = createColumn(name, valueFactory);
-    column.setMinWidth(minWidth);
-    return column;
+    return createColumn(name, minWidth, 0, valueFactory);
   }
 
   /**
@@ -146,9 +145,128 @@ public class TableColumns {
   @NotNull
   public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name, double minWidth,
       double maxWidth, @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
-    var column = createColumn(name, minWidth, valueFactory);
-    column.setMaxWidth(maxWidth);
+    return createColumn(name, minWidth, maxWidth, null, null, valueFactory);
+  }
+
+  /**
+   * @param name         column name
+   * @param valueFactory defines the value of the cell
+   * @param sorter       comparator for value class or null for default
+   * @param alignment    alignment of content or null for default
+   * @param <MODEL>      the table row data model
+   * @param <V>          the value type of the property
+   * @return a new TableColumn
+   */
+  @NotNull
+  public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name, double minWidth,
+      double maxWidth, @Nullable ColumnAlignment alignment, final Comparator<V> sorter,
+      @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
+    TableColumn<MODEL, V> column = new TableColumn<>(name);
+    column.setCellValueFactory(row -> valueFactory.apply(row.getValue()));
+    if (minWidth > 0) {
+      column.setMinWidth(minWidth);
+    }
+    if (maxWidth > 0) {
+      column.setMaxWidth(maxWidth);
+    }
+    if (alignment != null) {
+      setAlignment(alignment, column);
+    }
+    if (sorter != null) {
+      column.setComparator(sorter);
+    }
     return column;
   }
 
+  // #################################################
+  // Number columns
+  // #################################################
+
+  /**
+   * @param name         column name
+   * @param valueFactory defines the value of the cell
+   * @param alignment    the column alignment. uses the default if null.
+   * @param <MODEL>      the table row data model
+   * @param <V>          the value type of the property
+   * @return a new TableColumn
+   */
+  @NotNull
+  public static <MODEL, V extends Number> TableColumn<MODEL, V> createColumn(@NotNull String name,
+      double minWidth, NumberFormat format, @Nullable ColumnAlignment alignment,
+      @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
+    return createColumn(name, minWidth, 0, format, alignment, valueFactory);
+  }
+
+  /**
+   * @param name         column name
+   * @param valueFactory defines the value of the cell
+   * @param alignment    the column alignment. uses the default if null.
+   * @param <MODEL>      the table row data model
+   * @param <V>          the value type of the property
+   * @return a new TableColumn
+   */
+  @NotNull
+  public static <MODEL, V extends Number> TableColumn<MODEL, V> createColumn(@NotNull String name,
+      double minWidth, double maxWidth, NumberFormat format, @Nullable ColumnAlignment alignment,
+      @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
+    return createColumn(name, minWidth, maxWidth, format, alignment, null, valueFactory);
+  }
+
+  /**
+   * @param name         column name
+   * @param valueFactory defines the value of the cell
+   * @param alignment    the column alignment. uses the default if null.
+   * @param sorter       comparator to sort elements
+   * @param <MODEL>      the table row data model
+   * @param <V>          the value type of the property
+   * @return a new TableColumn
+   */
+  @NotNull
+  public static <MODEL, V extends Number> TableColumn<MODEL, V> createColumn(@NotNull String name,
+      double minWidth, NumberFormat format, @Nullable ColumnAlignment alignment,
+      final Comparator<V> sorter, @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
+    return createColumn(name, minWidth, 0, format, alignment, sorter, valueFactory);
+  }
+
+  /**
+   * @param name         column name
+   * @param valueFactory defines the value of the cell
+   * @param alignment    the column alignment. uses the default if null.
+   * @param sorter       comparator to sort elements
+   * @param <MODEL>      the table row data model
+   * @param <V>          the value type of the property
+   * @return a new TableColumn
+   */
+  @NotNull
+  public static <MODEL, V extends Number> TableColumn<MODEL, V> createColumn(@NotNull String name,
+      double minWidth, double maxWidth, NumberFormat format, @Nullable ColumnAlignment alignment,
+      final Comparator<V> sorter, @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
+    var column = createColumn(name, minWidth, maxWidth, alignment, sorter, valueFactory);
+    setFormattedCellFactory(column, format);
+    return column;
+  }
+
+  public static <MODEL, V> TableColumn<MODEL, V> setAlignment(ColumnAlignment alignment,
+      TableColumn<MODEL, V> column) {
+    alignment.setToColumn(column);
+    return column;
+  }
+
+  public enum ColumnAlignment {
+    LEFT, CENTER, RIGHT;
+
+    public void setToColumn(TableColumn<?, ?> column) {
+      column.getStyleClass().removeIf(styleClass -> Arrays.stream(ColumnAlignment.values())
+          .anyMatch(align -> align.getStyleClass().equals(styleClass)));
+      column.getStyleClass().add(getStyleClass());
+    }
+
+    String getStyleClass() {
+      return switch (this) {
+        case RIGHT -> "align-right-column";
+        case LEFT -> "align-left-column";
+        case CENTER -> "align-center-column";
+      };
+    }
+  }
 }

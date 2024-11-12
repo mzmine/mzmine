@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
@@ -110,22 +111,25 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         FXCollections.observableArrayList(SampleType.values()));
     sampleTypesBox.getCheckModel().clearChecks();
     sampleTypesBox.getCheckModel().check(SampleType.SAMPLE);
-    sampleTypesBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<SampleType>() {
-      @Override
-      public void onChanged(Change<? extends SampleType> c) {
-        model.setSampleTypeFilter(SampleTypeFilter.of((List<SampleType>) c.getList()));
-      }
-    });
-    final HBox sampleBox = FxLayout.newHBox(Insets.EMPTY, FxLabels.newLabel("Sample types"), sampleTypesBox);
+    sampleTypesBox.getCheckModel().getCheckedItems()
+        .addListener(new ListChangeListener<SampleType>() {
+          @Override
+          public void onChanged(Change<? extends SampleType> c) {
+            model.setSampleTypeFilter(SampleTypeFilter.of((List<SampleType>) c.getList()));
+          }
+        });
+    final HBox sampleBox = FxLayout.newHBox(Insets.EMPTY, FxLabels.newLabel("Sample types"),
+        sampleTypesBox);
 
     final TitledPane controls = new TitledPane("Controls",
-        new FlowPane(space, space, scaling, imputation, domain, range, coloring, abundance, sampleBox));
+        new FlowPane(space, space, scaling, imputation, domain, range, coloring, abundance,
+            sampleBox));
     final Accordion accordion = new Accordion(controls);
     accordion.setExpandedPane(controls);
     pane.setBottom(accordion);
 
-    scoresPlot.setMinSize(300, 300);
-    loadingsPlot.setMinSize(300, 300);
+    scoresPlot.setMinSize(200, 200);
+    loadingsPlot.setMinSize(200, 200);
 
     final GridPane plotPane = createPlotPane();
 
@@ -179,16 +183,28 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     if (newValue == null || newValue.isEmpty()) {
       return;
     }
-    newValue.forEach(d -> plot.addDataset(d.dataset(), d.renderer()));
 
     LegendItemCollection collection = new LegendItemCollection();
     newValue.forEach(d -> {
       plot.addDataset(d.dataset(), d.renderer());
       collection.addAll(d.renderer().getLegendItems());
     });
+    int domainPc = model.getDomainPc();
+    int rangePc = model.getRangePc();
+    int maxPc = Math.max(domainPc, rangePc);
+
+    // show PC contribution on label - otherwise 0 before its calculated
+    PCARowsResult results = model.getPcaResult();
+    float[] contributions =
+        results == null ? new float[maxPc] : results.pcaResult().getComponentContributions(maxPc);
+
+    var percent = ConfigService.getGuiFormats().percentFormat();
+
     plot.getXYPlot().setFixedLegendItems(collection);
-    plot.setDomainAxisLabel(STR."PC\{model.getDomainPc()}");
-    plot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
+    plot.setDomainAxisLabel(
+        "PC%d (%s)".formatted(domainPc, percent.format(contributions[domainPc - 1])));
+    plot.setRangeAxisLabel(
+        "PC%d (%s)".formatted(rangePc, percent.format(contributions[rangePc - 1])));
   }
 
   private void initChartListeners() {

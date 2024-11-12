@@ -230,7 +230,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       newMZmineFile.setStartTimeStamp(startTimeStamp);
       logger.info("Finished parsing " + file + ", parsed " + convertedScansAfterFilter + " scans");
 
-      if (totalScansAfterFilter == 0) {
+      if (totalScansAfterFilter == 0 && newMZmineFile.getOtherDataFiles().isEmpty()) {
         var activeFilter = scanProcessorConfig.scanFilter().isActiveFilter();
         String filter = activeFilter ? STR."""
             \nScan filters were active in import and filtered out \{getTotalScansInMzML()} scans, either deactivate the filters or remove this file from the import list"""

@@ -27,6 +27,9 @@ package io.github.mzmine.parameters.parametertypes.elements;
 
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -39,6 +42,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IElement;
 import org.openscience.cdk.interfaces.IIsotope;
 
 public class ElementsCompositionRangeComponent extends BorderPane {
@@ -139,7 +143,12 @@ public class ElementsCompositionRangeComponent extends BorderPane {
     if (elements == null) {
       return;
     }
-    for (IIsotope isotope : elements.isotopes()) {
+
+    List<IIsotope> isotopes = new ArrayList<>();
+    elements.isotopes().forEach(isotopes::add);
+    isotopes.sort(Comparator.comparing(IElement::getSymbol));
+
+    for (IIsotope isotope : isotopes) {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
       ElementsCompositionRangeValue elementsValue = new ElementsCompositionRangeValue(isotope,
