@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.util.converter.DoubleStringConverter;
 import javafx.util.converter.NumberStringConverter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DoubleComponent extends FlowPane implements ValuePropertyComponent<Double> {
 
@@ -43,7 +45,8 @@ public class DoubleComponent extends FlowPane implements ValuePropertyComponent<
   private final TextField textField;
   private final ObjectProperty<Double> value = new SimpleObjectProperty<>();
 
-  public DoubleComponent(int inputsize, Double minimum, Double maximum, NumberFormat format, Double defvalue) {
+  public DoubleComponent(int inputsize, @Nullable Double minimum, @Nullable Double maximum,
+      @NotNull NumberFormat format, @Nullable Double defvalue) {
     this.minimum = minimum;
     this.maximum = maximum;
 
@@ -52,13 +55,12 @@ public class DoubleComponent extends FlowPane implements ValuePropertyComponent<
     textField.setPrefWidth(inputsize);
     textField.textProperty().bindBidirectional(value, new DoubleStringConverter());
 
-    // Add an input verifier if any bounds are specified.
-    if (minimum != null || maximum != null) {
-      // textField.setInputVerifier(new MinMaxVerifier());
-    }
-
     getChildren().add(textField);
-    textField.setText(format.format(defvalue)); // why not format.format(defValue)?
+    if (defvalue != null) {
+      // could also just set the value.set but by setting the text the number will be rounded
+      // maybe more reproducible
+      textField.setText(format.format(defvalue));
+    }
   }
 
   public String getText() {
@@ -101,7 +103,6 @@ public class DoubleComponent extends FlowPane implements ValuePropertyComponent<
    *
    * // Not a number. } return verified; } }
    */
-
   public TextField getTextField() {
     return textField;
   }
