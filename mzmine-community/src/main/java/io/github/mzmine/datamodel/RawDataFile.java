@@ -305,6 +305,9 @@ public interface RawDataFile {
 
   void addScan(Scan newScan) throws IOException;
 
+  /**
+   * Immutable list of scans.
+   */
   @NotNull ObservableList<Scan> getScans();
 
   default @NotNull Stream<Scan> stream() {

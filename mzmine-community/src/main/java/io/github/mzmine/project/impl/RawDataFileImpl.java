@@ -382,7 +382,16 @@ public class RawDataFileImpl implements RawDataFile {
 
   @Override
   public @NotNull ObservableList<Scan> getScans() {
-    return scans;
+    return FXCollections.unmodifiableObservableList(scans);
+  }
+
+  public void clearScans() {
+    scans.clear();
+    maxRawDataPoints = -1;
+    dataMaxTIC.clear();
+    dataMaxBasePeakIntensity.clear();
+    dataMZRange.clear();
+    dataRTRange.clear();
   }
 
   @NotNull
