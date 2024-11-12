@@ -36,7 +36,8 @@ public enum MzMLArrayType {
   MZ("MS:1000514"), // m/z values array
   INTENSITY("MS:1000515"), // Intensity values array
   TIME("MS:1000595"), // Retention time values array
-  WAVELENGTH("MS:1000617"); // wavelength array, eg. PDA detector
+  WAVELENGTH("MS:1000617"), // wavelength array, eg. PDA detector
+  ION_MOBILITY("MS:1003007"); // ion mobility array for merged mzml file
 
   private static final Map<String, MzMLArrayType> map = Arrays.stream(MzMLArrayType.values()).collect(
       Collectors.toMap(MzMLArrayType::getAccession, v -> v));

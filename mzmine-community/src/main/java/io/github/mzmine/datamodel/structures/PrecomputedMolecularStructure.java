@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,21 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
+package io.github.mzmine.datamodel.structures;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import io.github.mzmine.main.MZmineCore;
 
-public class MultidetectorVisualizerTab extends SimpleTab {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
-  public MultidetectorVisualizerTab() {
-    super("Multi detector visualizer");
+/**
+ * Contains precomputed values in case they need to be accessed more frequently
+ */
+public record PrecomputedMolecularStructure(@NotNull IAtomContainer structure,
+                                            @NotNull IMolecularFormula formula,
+                                            @Nullable String canonicalSmiles,
+                                            @Nullable String isomericSmiles, @Nullable String inchi,
+                                            @Nullable String inchiKey, double monoIsotopicMass,
+                                            double mostAbundantMass,
+                                            int totalFormalCharge) implements MolecularStructure {
 
-    final MultidetectorVisualizerController controller = new MultidetectorVisualizerController();
-    setContent(controller.buildView());
-  }
-
-  public static void addTab() {
-    MZmineCore.getDesktop().addTab(new MultidetectorVisualizerTab());
-  }
 }

@@ -42,21 +42,28 @@ public class OtherFeatureDataProvider implements PlotXYDataProvider {
   private final OtherFeature feature;
   private final String seriesKey;
   private final Color awt;
+  private final double normalizationFactor;
 
   public OtherFeatureDataProvider(OtherFeature feature, Color awt) {
-    this.feature = feature;
+    this(feature, awt, 1d);
+  }
+
+  public OtherFeatureDataProvider(OtherFeature feature, Color awt, double normalizationFactor) {
     final OtherTimeSeries timeSeries = feature.getFeatureData();
-    final String name = timeSeries.getName();
     final NumberFormats formats = ConfigService.getGuiFormats();
-    seriesKey = "%s %s-%s".formatted(name, formats.rt(timeSeries.getRetentionTime(0)),
-        formats.rt(timeSeries.getRetentionTime(timeSeries.getNumberOfValues() - 1)));
-    this.awt = awt;
+    this(feature, feature.toString(), awt, normalizationFactor);
   }
 
   public OtherFeatureDataProvider(OtherFeature feature, String seriesKey, Color awt) {
+    this(feature, seriesKey, awt, 1d);
+  }
+
+  public OtherFeatureDataProvider(OtherFeature feature, String seriesKey, Color awt,
+      double normalizationFactor) {
     this.feature = feature;
     this.seriesKey = seriesKey;
     this.awt = awt;
+    this.normalizationFactor = normalizationFactor;
   }
 
   @NotNull
@@ -106,7 +113,7 @@ public class OtherFeatureDataProvider implements PlotXYDataProvider {
 
   @Override
   public double getRangeValue(int index) {
-    return feature.getFeatureData().getIntensity(index);
+    return feature.getFeatureData().getIntensity(index) * normalizationFactor;
   }
 
   @Override

@@ -72,15 +72,15 @@ public abstract class UnivariateBaselineCorrector extends AbstractResolverBaseli
     UnivariateFunction function = initializeFunction(subData.x(), subData.y());
 
     for (int i = 0; i < numValues; i++) {
-      // must be above zero, but not bigger than the original value.
       double baseline = function.value(xDataToCorrect[i]);
       if (Double.isNaN(baseline)) {
         // TODO change and create function with different settings
         // LOESS - wider bandwidth, maybe more iterations
         baseline = 0;
       }
-
-      yDataToCorrect[i] = Math.min(Math.max(yDataToCorrect[i] - baseline, 0), yDataToCorrect[i]);
+      // corrected value must be above zero. the baseline itself may be below zero, e.g. for signal
+      // drifts due to solvent composition change
+      yDataToCorrect[i] = Math.max(yDataToCorrect[i] - baseline, 0);
     }
 
     if (addPreview) {

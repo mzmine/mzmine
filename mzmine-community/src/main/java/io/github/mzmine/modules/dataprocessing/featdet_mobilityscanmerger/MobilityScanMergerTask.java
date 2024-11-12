@@ -57,6 +57,7 @@ public class  MobilityScanMergerTask extends AbstractTask {
   private final ParameterSet parameters;
   private final double noiseLevel;
   private final IntensityMergingType mergingType;
+  private final Integer minDetections;
   private int totalFrames;
   private int processedFrames;
 
@@ -75,6 +76,7 @@ public class  MobilityScanMergerTask extends AbstractTask {
     weighting = parameters.getParameter(MobilityScanMergerParameters.weightingType).getValue();
     scanSelection = parameters.getParameter(MobilityScanMergerParameters.scanSelection).getValue();
     noiseLevel = parameters.getParameter(MobilityScanMergerParameters.noiseLevel).getValue();
+    minDetections = parameters.getValue(MobilityScanMergerParameters.minNumberOfDetections);
   }
 
   @Override
@@ -102,7 +104,7 @@ public class  MobilityScanMergerTask extends AbstractTask {
         SimpleFrame frame = (SimpleFrame) f;
         double[][] merged = SpectraMerging.calculatedMergedMzsAndIntensities(
             frame.getMobilityScans().stream().map(MobilityScan::getMassList).toList(), mzTolerance,
-            mergingType, cf, null, noiseLevel, null);
+            mergingType, cf, null, noiseLevel, minDetections);
 
         frame.setDataPoints(merged[0], merged[1]);
         frame.addMassList(new ScanPointerMassList(frame));

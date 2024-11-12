@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,19 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
+package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.util.ExitCode;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class MultidetectorVisualizerParameters extends SimpleParameterSet {
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import org.junit.jupiter.api.Test;
 
-  public MultidetectorVisualizerParameters() {
-    super();
-  }
+class DataTypesTest {
 
-  @Override
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    return ExitCode.OK;
+  @Test
+  void isAbstractType() {
+    assertTrue(DataTypes.isAbstractType(StringType.class));
+    assertTrue(DataTypes.isAbstractType(DoubleType.class));
+    assertFalse(DataTypes.isAbstractType(MZType.class));
+    assertFalse(DataTypes.isAbstractType(SpectralLibraryMatchesType.class));
+    assertTrue(DataTypes.isRealType(MZType.class));
+    assertTrue(DataTypes.isRealType(SpectralLibraryMatchesType.class));
   }
 }

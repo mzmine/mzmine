@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,26 +25,13 @@
 
 package io.github.mzmine.datamodel.structures;
 
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-
 /**
- * Contains precomputed values in case they need to be accessed more frequently
+ * simple representation to keep track of inchi and inchi key. Also see {@link MolecularStructure}
+ * and {@link PrecomputedMolecularStructure} for precomputed values
+ *
+ * @param inchi
+ * @param inchiKey
  */
-public record ComplexMolecularStructure(
-     @NotNull IAtomContainer structure,
-     IMolecularFormula formula,
-     String inChIKey,
-     double monoIsotopicMass,
-     double mostAbundantMass,
-     int totalFormalCharge
-) implements MolecularStructure {
+public record InchiStructure(String inchi, String inchiKey) {
 
-  @Override
-  public @Nullable String inChIKey(@NotNull final StructureParser parser) {
-    return inChIKey;
-  }
 }

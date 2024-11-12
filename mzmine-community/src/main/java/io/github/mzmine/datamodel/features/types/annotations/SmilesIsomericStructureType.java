@@ -23,15 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
+package io.github.mzmine.datamodel.features.types.annotations;
 
-enum State {
-  SETTING_LEFT, SETTING_RIGHT, NOT_INTEGRATING;
+import org.jetbrains.annotations.NotNull;
 
-  boolean isIntegrating() {
-    return switch (this) {
-      case SETTING_LEFT, SETTING_RIGHT -> true;
-      case NOT_INTEGRATING -> false;
-    };
+public class SmilesIsomericStructureType extends SmilesStructureType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "isomeric_smiles";
   }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "SMILES (isomeric)";
+  }
+
 }

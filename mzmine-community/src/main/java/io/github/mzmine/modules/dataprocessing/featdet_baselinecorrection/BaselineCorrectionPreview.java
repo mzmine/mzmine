@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
@@ -47,7 +48,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BaselineCorrectionPreview extends FeaturePreviewPane {
+class BaselineCorrectionPreview extends FeaturePreviewPane {
 
   public BaselineCorrectionPreview(ParameterSet parameterSet) {
     super(parameterSet);
@@ -102,17 +103,20 @@ public class BaselineCorrectionPreview extends FeaturePreviewPane {
     final List<DatasetAndRenderer> data = new ArrayList<>();
 
     data.addAll(List.of(new DatasetAndRenderer(new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider(corrected, feature.toString() + " corrected",
-                feature.getRawDataFile().getColor())), new ColoredAreaShapeRenderer()),
-        new DatasetAndRenderer(new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider(full, feature.toString(),
-                feature.getRawDataFile().getColor())), new ColoredXYLineRenderer())));
+        new IonTimeSeriesToXYProvider(corrected, feature.toString() + " corrected",
+            feature.getRawDataFile().getColor()), RunOption.THIS_THREAD),
+        new ColoredAreaShapeRenderer()), new DatasetAndRenderer(new ColoredXYDataset(
+        new IonTimeSeriesToXYProvider(full, feature.toString(),
+            feature.getRawDataFile().getColor()), RunOption.THIS_THREAD),
+        new ColoredXYLineRenderer())));
 
     additionalPreviewData.forEach(a -> {
       if ("samples".equals(a.getSeriesKey())) {
-        data.add(new DatasetAndRenderer(new ColoredXYDataset(a), new ColoredXYShapeRenderer()));
+        data.add(new DatasetAndRenderer(new ColoredXYDataset(a, RunOption.THIS_THREAD),
+            new ColoredXYShapeRenderer()));
       } else {
-        data.add(new DatasetAndRenderer(new ColoredXYDataset(a), new ColoredXYLineRenderer()));
+        data.add(new DatasetAndRenderer(new ColoredXYDataset(a, RunOption.THIS_THREAD),
+            new ColoredXYLineRenderer()));
       }
     });
 

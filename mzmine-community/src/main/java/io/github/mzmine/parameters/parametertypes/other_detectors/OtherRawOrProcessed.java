@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,31 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
+package io.github.mzmine.parameters.parametertypes.other_detectors;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.impl.AbstractRunnableModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
-import java.time.Instant;
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
+import java.util.stream.Stream;
 
-public class MultidetectorVisualizerModule extends AbstractRunnableModule {
+public enum OtherRawOrProcessed {
+  RAW, PREPROCESSED, FEATURES;
 
-  public MultidetectorVisualizerModule() {
-    super("Multi detector visualizer", MultidetectorVisualizerParameters.class,
-        MZmineModuleCategory.VISUALIZATION_RAW_AND_FEATURE,
-        "Visualize chromatograms of other detectors.");
+  public Stream<OtherFeature> streamMatching(OtherTimeSeriesData data) {
+    return switch (this) {
+      case RAW -> data.getRawTraces().stream();
+      case PREPROCESSED -> data.getPreprocessedTraces().stream();
+      case FEATURES -> data.getProcessedFeatures().stream();
+    };
   }
 
   @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Instant moduleCallDate) {
-    MultidetectorVisualizerTab.addTab();
-    return ExitCode.OK;
+  public String toString() {
+    return switch (this) {
+      case RAW -> "raw";
+      case PREPROCESSED -> "pre-processed";
+      case FEATURES -> "features";
+    };
   }
 }

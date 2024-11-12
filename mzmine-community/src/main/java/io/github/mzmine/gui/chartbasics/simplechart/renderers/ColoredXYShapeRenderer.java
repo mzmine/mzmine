@@ -40,6 +40,7 @@ import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.axis.ValueAxis;
@@ -56,21 +57,33 @@ import org.jfree.data.xy.XYDataset;
 
 /**
  * Renderer that either draws outlines or filled shapes. If this renderer is used for an XYZ
- * dataset, it will try to use the paint scale of the xyz dataset.
+ * dataset, it will try to use the paint scale of the xyz dataset, unless the
+ * {@link ColoredXYShapeRenderer#ignoreZPaintScale} is set to true using the
+ * {@link ColoredXYShapeRenderer#ColoredXYShapeRenderer(boolean, Shape, boolean)} constructor.
  */
 public class ColoredXYShapeRenderer extends XYShapeRenderer {
 
   private static final int defaultSize = 7;
+  public static final Shape defaultShape = new Ellipse2D.Double((double) -defaultSize / 2,
+      (double) -defaultSize / 2, defaultSize, defaultSize);
+
   private final Shape dataPointsShape;
   private final boolean drawOutlinesOnly;
   private final BasicStroke outlineStroke = EStandardChartTheme.DEFAULT_ITEM_OUTLINE_STROKE;
+  private final boolean ignoreZPaintScale;
 
-  public ColoredXYShapeRenderer(boolean drawOutlinesOnly, Shape shape) {
+  /**
+   * @param ignoreZPaintScale If true, the paint scale of a {@link ColoredXYZDataset} is ignored and
+   *                          {@link ColoredXYDataset#getAWTColor()} is used instead.
+   */
+  public ColoredXYShapeRenderer(boolean drawOutlinesOnly, @NotNull Shape shape,
+      boolean ignoreZPaintScale) {
     super();
     this.drawOutlinesOnly = drawOutlinesOnly;
     setDrawOutlines(drawOutlinesOnly);
     setUseOutlinePaint(false); // uses the "normal" paint (from the dataset)
 
+    this.ignoreZPaintScale = ignoreZPaintScale;
     dataPointsShape = shape;
 
     SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
@@ -81,10 +94,12 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
     setSeriesShape(0, dataPointsShape);
   }
 
+  public ColoredXYShapeRenderer(boolean drawOutlinesOnly, @NotNull Shape shape) {
+    this(drawOutlinesOnly, shape, false);
+  }
+
   public ColoredXYShapeRenderer(boolean drawOutlinesOnly) {
-    this(drawOutlinesOnly,
-        new Ellipse2D.Double((double) -defaultSize / 2, (double) -defaultSize / 2, defaultSize,
-            defaultSize));
+    this(drawOutlinesOnly, defaultShape);
   }
 
   public ColoredXYShapeRenderer() {
@@ -93,7 +108,7 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
 
   @Override
   protected Paint getPaint(XYDataset dataset, int series, int item) {
-    if (dataset instanceof ColoredXYZDataset zds) {
+    if (dataset instanceof ColoredXYZDataset zds && !ignoreZPaintScale) {
       final PaintScale ps = zds.getPaintScale();
       if (ps != null) {
         return ps.getPaint(zds.getZValue(series, item));
@@ -250,8 +265,7 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
       return super.getLegendItems();
     }
 
-    final EStandardChartTheme theme = MZmineCore.getConfiguration()
-        .getDefaultChartTheme();
+    final EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     LegendItemCollection result = new LegendItemCollection();
     final int numCategories = zcat.getNumberOfCategories();
     for (int i = 0; i < numCategories; i++) {
