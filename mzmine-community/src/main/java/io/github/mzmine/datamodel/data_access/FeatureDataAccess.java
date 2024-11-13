@@ -264,15 +264,15 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
    * @return
    */
   @Override
-  public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
+  public IonTimeSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newIntensityValues) {
     return copyAndReplace(storage, getMzValuesCopy(), newIntensityValues);
   }
 
   @Override
-  public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
+  public IonTimeSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
-    IonSpectrumSeries<Scan> oldData = (IonSpectrumSeries<Scan>) getFeature().getFeatureData();
+    IonTimeSeries<Scan> oldData = (IonTimeSeries<Scan>) getFeature().getFeatureData();
     int numValues = oldData.getNumberOfValues();
     if (numValues < newIntensityValues.length) {
       // need to transfer data points to actual scans with detections.
@@ -296,9 +296,9 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
         actualIntensities[i] = newIntensityValues[newDataIndex];
       }
 
-      return oldData.copyAndReplace(storage, actualMzs, actualIntensities);
+      return (IonTimeSeries<Scan>) oldData.copyAndReplace(storage, actualMzs, actualIntensities);
     } else {
-      return oldData.copyAndReplace(storage, newMzValues, newIntensityValues);
+      return (IonTimeSeries<Scan>) oldData.copyAndReplace(storage, newMzValues, newIntensityValues);
     }
   }
 
