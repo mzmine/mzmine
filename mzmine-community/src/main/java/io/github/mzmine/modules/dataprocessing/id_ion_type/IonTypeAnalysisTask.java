@@ -590,7 +590,7 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
           if ((charge == null || charge > 1) && (mz < minMz || mz > maxMz)) {
             // For charge > 1 (or null), remove only data points within the precursor range
             filteredDataPoints.add(dp);
-          } else if (charge != null && charge <= 1 && mz > minMz) {
+          } else if ((charge != null && charge <= 1) && (mz < minMz)) {
             // For charge <= 1, remove data points above the precursor m/z minus tolerance
             filteredDataPoints.add(dp);
           }
