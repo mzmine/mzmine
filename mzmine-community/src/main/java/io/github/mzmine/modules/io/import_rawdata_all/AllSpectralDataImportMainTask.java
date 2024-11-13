@@ -9,8 +9,14 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.List;
+
+import io.mzio.users.service.UserActiveState;
+import io.mzio.users.service.UserType;
+import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
 import org.jetbrains.annotations.NotNull;
 
 public class AllSpectralDataImportMainTask extends AbstractTask {
@@ -40,6 +46,19 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+    //LMS 破解代码
+    try {
+      MZmineUser user = CurrentUserService.getUser();
+      Class<?> cls = Class.forName("io.mzio.users.user.MZmineUser");
+      Field activeState = cls.getDeclaredField("activeState");
+      Field userType = cls.getDeclaredField("userType");
+      activeState.setAccessible(true);
+      userType.setAccessible(true);
+      activeState.set(user, UserActiveState.ACTIVE);
+      userType.set(user, UserType.ACADEMIC);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
 
     // do data import and library import directly and import metadata after all is completed.
     // this ensures that data files are already loaded

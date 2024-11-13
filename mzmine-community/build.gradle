@@ -108,6 +108,10 @@ println "OS detected as " + project.ext.osSuffix
 //getLogger().info("build dir jpackpath " + layout.buildDirectory.dir("jpackage").get().asFile.path)
 
 repositories {
+    //本地存放依赖的路径
+    maven { url 'file:///D:\\Gradle\\gradle_repository'}
+    mavenLocal()
+    maven { name "Alibaba" ; url "https://maven.aliyun.com/repository/public" }
 
     mavenCentral()
     // mavenLocal()
