@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -173,39 +172,8 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
           final double peakMinLeft = y[currentRegionStart];
           final double peakMinRight = y[currentRegionEnd];
 
-          // inclusive start and end values
-          final int numberOfDataPoints = currentRegionEnd - currentRegionStart + 1;
-          // Check the shape of the peak.
-          if (numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
-              && currentRegionHeight >= peakMinLeft * minRatio
-              && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
-              x[currentRegionEnd] - x[currentRegionStart])) {
-
-            // adjust start and end points of signals to produce better peak shapes
-            // (e.g. include 0 intensity points on the edges.), as start and end points of this
-            // resolver will never be 0.
-            int start;
-            if (y[currentRegionStart] != 0 && y[Math.max(currentRegionStart - 1, 0)] == 0.0) {
-              start = currentRegionStart - 1;
-            } else {
-              start = currentRegionStart;
-            }
-
-            int end;
-            if (y[currentRegionEnd] != 0
-                && y[Math.min(currentRegionEnd + 1, y.length - 1)] == 0.0) {
-              end = currentRegionEnd + 1;
-            } else {
-              end = currentRegionEnd;
-            }
-
-            resolved.add(Range.closed(x[start], x[end]));
-          }
-
-          // Set the next region start to current region end - 1
-          // because it will be immediately
-          // increased +1 as we continue the for-cycle.
-          currentRegionStart = currentRegionEnd - 1;
+          currentRegionStart = tryToFinalizePeak(x, y, currentRegionEnd, currentRegionStart,
+              currentRegionHeight, minHeight, peakMinLeft, peakMinRight, resolved);
           continue startSearch;
         }
 
@@ -251,44 +219,68 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
           // the peak shape would not fulfill the
           // ratio condition, continue searching for next minimum.
           if (currentRegionHeight >= peakMinRight * minRatio) {
-            // inclusive start and end values
-            final int numberOfDataPoints = currentRegionEnd - currentRegionStart + 1;
-            // Check the shape of the peak.
-            if (numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
-                && currentRegionHeight >= peakMinLeft * minRatio
-                && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
-                x[currentRegionEnd] - x[currentRegionStart])) {
-
-              // adjust start and end points of signals to produce better peak shapes
-              // (e.g. include 0 intensity points on the edges.), as start and end points of this
-              // resolver will never be 0.
-              int start;
-              if (y[currentRegionStart] != 0 && y[Math.max(currentRegionStart - 1, 0)] == 0.0) {
-                start = currentRegionStart - 1;
-              } else {
-                start = currentRegionStart;
-              }
-
-              int end;
-              if (y[currentRegionEnd] != 0
-                  && y[Math.min(currentRegionEnd + 1, y.length - 1)] == 0.0) {
-                end = currentRegionEnd + 1;
-              } else {
-                end = currentRegionEnd;
-              }
-
-              resolved.add(Range.closed(x[start], x[end]));
-            }
-
-            // Set the next region start to current region end-1
-            // because it will be immediately
-            // increased +1 as we continue the for-cycle.
-            currentRegionStart = currentRegionEnd - 1;
+            currentRegionStart = tryToFinalizePeak(x, y, currentRegionEnd, currentRegionStart,
+                currentRegionHeight, minHeight, peakMinLeft, peakMinRight, resolved);
             continue startSearch;
           }
         }
       }
     }
     return resolved;
+  }
+
+  /**
+   * @return The index at which to start to search for the next peak
+   */
+  private int tryToFinalizePeak(double[] x, double[] y, int currentRegionEnd,
+      int currentRegionStart, double currentRegionHeight, double minHeight, double peakMinLeft,
+      double peakMinRight, List<Range<Double>> resolved) {
+    // inclusive start and end values
+    final int numberOfDataPoints = currentRegionEnd - currentRegionStart + 1;
+    // Check the shape of the peak.
+    if (checkPeakShape(x, numberOfDataPoints, currentRegionHeight, minHeight, peakMinLeft,
+        peakMinRight, currentRegionEnd, currentRegionStart)) {
+
+      final Range<Double> range = adjustStartAndEnd(x, y, currentRegionStart, currentRegionEnd);
+
+      resolved.add(range);
+    }
+
+    // Set the next region start to current region end-1
+    // because it will be immediately
+    // increased +1 as we continue the for-cycle.
+    currentRegionStart = currentRegionEnd - 1;
+    return currentRegionStart;
+  }
+
+  private boolean checkPeakShape(double[] x, int numberOfDataPoints, double currentRegionHeight,
+      double minHeight, double peakMinLeft, double peakMinRight, int currentRegionEnd,
+      int currentRegionStart) {
+    return numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
+        && currentRegionHeight >= peakMinLeft * minRatio
+        && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
+        x[currentRegionEnd] - x[currentRegionStart]);
+  }
+
+  /**
+   * @return Checks if the current start and end points are non-zero but have zero values next to
+   * them. If yes, these zeros will be included in the region of the peak.
+   */
+  private static @NotNull Range<Double> adjustStartAndEnd(double[] x, double[] y,
+      int currentRegionStart, int currentRegionEnd) {
+    // adjust start and end points of signals to produce better peak shapes
+    // (e.g. include 0 intensity points on the edges.), as start and end points of this
+    // resolver will never be 0.
+    int start = currentRegionStart;
+    if (y[currentRegionStart] != 0 && y[Math.max(currentRegionStart - 1, 0)] == 0.0) {
+      start = currentRegionStart - 1;
+    }
+
+    int end = currentRegionEnd;
+    if (y[currentRegionEnd] != 0 && y[Math.min(currentRegionEnd + 1, y.length - 1)] == 0.0) {
+      end = currentRegionEnd + 1;
+    }
+    final Range<Double> range = Range.closed(x[start], x[end]);
+    return range;
   }
 }
