@@ -39,9 +39,11 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.MaldiSpotType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
@@ -213,13 +215,16 @@ public class FeatureResolverTask extends AbstractTask {
         final ModularFeature f = new ModularFeature(resolvedFeatureList,
             originalFeature.getRawDataFile(), resolved, originalFeature.getFeatureStatus());
 
+        originalFeature.getTypes().stream().filter(AnnotationType.class::isInstance)
+            .forEach(type -> f.set(type, originalFeature.get(type)));
+
         if (originalFeature.getMobilityUnit() != null) {
           f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
         }
         if (originalFeature.get(ImageType.class) != null) {
           f.set(ImageType.class, true);
         }
-        if(originalFeature.get(MaldiSpotType.class) != null) {
+        if (originalFeature.get(MaldiSpotType.class) != null) {
           f.set(MaldiSpotType.class, originalFeature.get(MaldiSpotType.class));
         }
         newRow.addFeature(originalFeature.getRawDataFile(), f);
