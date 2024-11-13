@@ -24,6 +24,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -31,6 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -46,6 +48,8 @@ import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionList;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -56,6 +60,7 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -233,6 +238,7 @@ public class FeatureResolverTask extends AbstractTask {
 
         f.set(FeatureDataType.class, resolved);
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
+        handleMrmTraces(f);
 
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);
@@ -251,6 +257,24 @@ public class FeatureResolverTask extends AbstractTask {
             getModuleCallDate()));
 
     newPeakList = resolvedFeatureList;
+  }
+
+  private void handleMrmTraces(ModularFeature f) {
+    final List<MrmTransition> mrmTransitions = f.get(MrmTransitionList.class);
+    if (mrmTransitions == null) {
+      return;
+    }
+
+    final Range<Float> rtRange = f.getRawDataPointsRTRange();
+    List<MrmTransition> newTransitions = new ArrayList<>();
+    for (MrmTransition mrmTransition : mrmTransitions) {
+      final IonTimeSeries<? extends Scan> series = mrmTransition.chromatogram();
+      final IonTimeSeries<? extends Scan> resolved = series.subSeries(getMemoryMapStorage(),
+          rtRange.lowerEndpoint(), rtRange.upperEndpoint());
+      newTransitions.add(mrmTransition.with(resolved));
+    }
+
+    f.set(MrmTransitionList.class, newTransitions);
   }
 
   @Override

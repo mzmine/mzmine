@@ -12,4 +12,8 @@ public record MrmTransition(double q1mass, double q3mass,
   public String toString() {
     return "%.2f -> %.2f".formatted(q1mass, q3mass);
   }
+
+  public MrmTransition with(IonTimeSeries<? extends Scan> chromatogram) {
+    return new MrmTransition(q1mass, q3mass, chromatogram);
+  }
 }
