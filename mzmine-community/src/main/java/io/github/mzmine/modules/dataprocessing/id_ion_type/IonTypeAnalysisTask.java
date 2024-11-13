@@ -228,13 +228,11 @@ class IonTypeAnalysisTask extends AbstractFeatureListTask {
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(representativeMs1, useMassList);
 
       // Find all MSn fragment scans related to the data points in the representative scan
-      for (DataPoint dp : dataPoints) {
-        double ms1SignalMz = dp.getMZ();
-        Scan[] broadFragmentScans = findAllMSnFragmentScans(raw, msLevelRange, rawRtRange,
-            toleranceMsn.getToleranceRange(ms1SignalMz));
-        allPrecursorsMsnScans.addAll(Arrays.asList(broadFragmentScans));
-      }
-
+      List<Scan> broadFragmentScans = Arrays.stream(dataPoints).map(
+              dp -> findAllMSnFragmentScans(raw, msLevelRange, rawRtRange,
+                  toleranceMsn.getToleranceRange(dp.getMZ()))).flatMap(Arrays::stream).distinct()
+          .collect(Collectors.toList());
+      allPrecursorsMsnScans.addAll(broadFragmentScans);
       processIsotopesAndAdductsForFeature(feature, matches, isoMzDiffsForCharge, maxIsoMzDiff);
     }
   }
