@@ -39,11 +39,12 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.ImageType;
-import io.github.mzmine.datamodel.features.types.MaldiSpotType;
-import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
@@ -51,20 +52,34 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
-import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureResolverTask extends AbstractTask {
 
   // Logger.
   private static final Logger logger = Logger.getLogger(FeatureResolverTask.class.getName());
+
+  // These types will not be copied to a new feature
+  private final Set<DataType<?>> excludedTypes = DataTypes.getInstances().stream()
+      .<DataType<?>>mapMulti((t, c) -> {
+        switch (t) {
+          case AnnotationType _, FragmentScanNumbersType _, FeatureDataType _, MsMsInfoType _ -> {
+            c.accept(t);
+          }
+          default -> {
+          }
+        }
+        ;
+      }).collect(Collectors.toSet());
 
   // Feature lists.
   private final MZmineProject project;
@@ -215,10 +230,9 @@ public class FeatureResolverTask extends AbstractTask {
         final ModularFeature f = new ModularFeature(resolvedFeatureList,
             originalFeature.getRawDataFile(), resolved, originalFeature.getFeatureStatus());
 
-        originalFeature.getTypes().stream().filter(AnnotationType.class::isInstance)
-            .forEach(type -> f.set(type, originalFeature.get(type)));
+        DataTypeUtils.copyAllBut(originalFeature, f, excludedTypes);
 
-        if (originalFeature.getMobilityUnit() != null) {
+        /*if (originalFeature.getMobilityUnit() != null) {
           f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
         }
         if (originalFeature.get(ImageType.class) != null) {
@@ -226,7 +240,7 @@ public class FeatureResolverTask extends AbstractTask {
         }
         if (originalFeature.get(MaldiSpotType.class) != null) {
           f.set(MaldiSpotType.class, originalFeature.get(MaldiSpotType.class));
-        }
+        }*/
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);
         if (resolved.getSpectra().size() <= 3) {
