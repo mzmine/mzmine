@@ -36,6 +36,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.LipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipidStatus;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.IMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.SphingoMolecularSpeciesLevelMatchedLipidFactory;
@@ -165,7 +166,8 @@ public class LipidAnnotationUtils {
 
           // make MS1 annotation
           MatchedLipid matchedLipid = new MatchedLipid(lipidIon.lipidAnnotation(),
-              row.getAverageMZ(), lipidIon.ionizationType(), null, 0.0);
+              row.getAverageMZ(), lipidIon.ionizationType(), null, 0.0,
+              MatchedLipidStatus.UNCONFIRMED);
           matchedLipid.setComment("Warning, this annotation is based on MS1 mass accuracy only!");
           possibleRowAnnotations.add(matchedLipid);
         }
@@ -247,7 +249,7 @@ public class LipidAnnotationUtils {
       }
       if (keepUnconfirmedAnnotations && matchedLipids.isEmpty()) {
         MatchedLipid unconfirmedMatchedLipid = new MatchedLipid(lipid, row.getAverageMZ(),
-            ionization, null, 0.0);
+            ionization, null, 0.0, MatchedLipidStatus.UNCONFIRMED);
         unconfirmedMatchedLipid.setComment(
             "Warning, this annotation is based on MS1 mass accuracy only!");
         matchedLipids.add(unconfirmedMatchedLipid);
