@@ -11,29 +11,31 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 
 public enum CombinedResolverEnum implements ModuleOptionsEnum<FeatureResolverModule> {
-    ML_RESOLVER, LOCAL_MIN;
+  ML_RESOLVER, LOCAL_MIN;
 
-    @java.lang.Override
-    public Class<? extends FeatureResolverModule> getModuleClass() {
-        return switch (this) {
-            case ML_RESOLVER -> MLFeatureResolverModule.class;
-            case LOCAL_MIN -> MinimumSearchFeatureResolverModule.class;
-        };
-    }
-
-    @java.lang.Override
-    public String getStableId() {
-        return switch (this){
-            case ML_RESOLVER -> "machine_learning_resolver";
-            case LOCAL_MIN -> "local_min_reolver";
+  @java.lang.Override
+  public Class<? extends FeatureResolverModule> getModuleClass() {
+    return switch (this) {
+      case ML_RESOLVER -> MLFeatureResolverModule.class;
+      case LOCAL_MIN -> MinimumSearchFeatureResolverModule.class;
     };
-    }
+  }
 
-    @Override
-    public GeneralResolverParameters getModuleParameters(){
-        return switch(this){
-            case LOCAL_MIN -> (GeneralResolverParameters) new MinimumSearchFeatureResolverParameters(Setup.INTEGRATED);
-            case ML_RESOLVER ->(GeneralResolverParameters) new MLFeatureResolverParameters(MLSetup.INTEGRATED);
-        };
-    }
+  @java.lang.Override
+  public String getStableId() {
+    return switch (this) {
+      case ML_RESOLVER -> "machine_learning_resolver";
+      case LOCAL_MIN -> "local_min_reolver";
+    };
+  }
+
+  @Override
+  public GeneralResolverParameters getModuleParameters() {
+    return switch (this) {
+      case LOCAL_MIN ->
+          (GeneralResolverParameters) new MinimumSearchFeatureResolverParameters(Setup.INTEGRATED);
+      case ML_RESOLVER ->
+          (GeneralResolverParameters) new MLFeatureResolverParameters(MLSetup.INTEGRATED);
+    };
+  }
 }
