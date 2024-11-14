@@ -94,6 +94,14 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, Modifiabl
   IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull SummedIntensityMobilitySeries summedMobilogram);
 
+  @Override
+  IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
+      @NotNull double[] newIntensityValues);
+
+  @Override
+  IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
+
   /**
    * @param scan
    * @return The intensity value for the given scan or 0 if the no intensity was measured at that

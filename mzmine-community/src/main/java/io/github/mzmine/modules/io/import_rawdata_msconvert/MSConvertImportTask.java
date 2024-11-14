@@ -43,6 +43,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
+import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionInfo;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -89,6 +90,8 @@ public class MSConvertImportTask extends AbstractTask {
   public static @NotNull List<String> buildCommandLine(File filePath, File msConvertPath,
       boolean convertToFile) {
 
+    final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(filePath);
+
     List<String> cmdLine = new ArrayList<>();
     cmdLine.addAll(List.of(inQuotes(msConvertPath.toString()), // MSConvert path
         inQuotes(filePath.getAbsolutePath()), // raw file path
@@ -101,13 +104,16 @@ public class MSConvertImportTask extends AbstractTask {
       cmdLine.add("--numpressLinear");
     }
 
-    if (ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)) {
+    if (fileType == RawDataFileType.AGILENT_D_IMS || fileType == RawDataFileType.WATERS_RAW_IMS) {
+      cmdLine.addAll(List.of("--combineIonMobilitySpectra"));
+    }
+
+    if (ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)
+        && isPeakPickingSupported(fileType)) {
       cmdLine.addAll(List.of("--filter", "\"peakPicking vendor msLevel=1-\""));
     }
 
-    // deactivated, since waters files converted by MSConvert have poor quality.
-    final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(filePath);
-    if (fileType == RawDataFileType.WATERS_RAW) {
+    if (fileType == RawDataFileType.WATERS_RAW || fileType == RawDataFileType.WATERS_RAW_IMS) {
       addWatersOptions(filePath, cmdLine);
     }
 
@@ -119,8 +125,33 @@ public class MSConvertImportTask extends AbstractTask {
     return cmdLine;
   }
 
-  private static void addWatersOptions(File filePath, List<String> cmdLine) {
-    final PolarityType polarity = getWatersPolarity(filePath);
+  private static boolean isPeakPickingSupported(RawDataFileType fileType) {
+    return switch (fileType) {
+      case MZML -> true;
+      case IMZML -> true;
+      case MZML_IMS -> true;
+      case MZXML -> true;
+      case MZDATA -> true;
+      case NETCDF -> true;
+      case THERMO_RAW -> true;
+      case WATERS_RAW -> true;
+      case MZML_ZIP -> true;
+      case MZML_GZIP -> true;
+      case ICPMSMS_CSV -> true;
+      case BRUKER_TDF -> true;
+      case BRUKER_TSF -> true;
+      case BRUKER_BAF -> true;
+      case SCIEX_WIFF -> true;
+      case SCIEX_WIFF2 -> true;
+      case AGILENT_D -> true;
+      case WATERS_RAW_IMS, AGILENT_D_IMS -> false;
+    };
+  }
+
+  private static void addWatersOptions(File rawFolder, List<String> cmdLine) {
+    final WatersAcquisitionInfo acquisitionInfo = RawDataFileTypeDetector.detectWatersAcquisitionType(
+        rawFolder);
+    PolarityType polarity = acquisitionInfo.polarity();
 
     final MZminePreferences preferences = ConfigService.getPreferences();
     final Boolean lockmassEnabled = preferences.getValue(MZminePreferences.watersLockmass);
@@ -132,20 +163,19 @@ public class MSConvertImportTask extends AbstractTask {
     if (lockmassEnabled && polarity == PolarityType.POSITIVE) {
       logger.finest(
           "Determined polarity of file %s to be %s. Applying lockmass correction with lockmass %.6f.".formatted(
-              filePath.getName(), polarity, positiveLockmass));
+              rawFolder.getName(), polarity, positiveLockmass));
       cmdLine.addAll(List.of("--filter",
           inQuotes("lockmassRefiner mz=%.6f tol=0.1".formatted(positiveLockmass))));
     } else if (lockmassEnabled && polarity == PolarityType.NEGATIVE) {
       logger.finest(
           "Determined polarity of file %s to be %s. Applying lockmass correction with lockmass %.6f.".formatted(
-              filePath.getName(), polarity, negativeLockmass));
+              rawFolder.getName(), polarity, negativeLockmass));
       cmdLine.addAll(List.of("--filter",
           inQuotes("lockmassRefiner mz=%.6f tol=0.1".formatted(negativeLockmass))));
     }
 
-    final WatersAcquisitionType type = RawDataFileTypeDetector.detectWatersAcquisitionType(
-        filePath);
-    logger.finest("Determined acquisition type of file %s to be %s".formatted(filePath.getName(),
+    final WatersAcquisitionType type = acquisitionInfo.acquisitionType();
+    logger.finest("Determined acquisition type of file %s to be %s".formatted(rawFolder.getName(),
         type.name()));
     switch (type) {
       case MS_ONLY, MSE -> {
@@ -156,34 +186,6 @@ public class MSConvertImportTask extends AbstractTask {
         cmdLine.addAll(List.of("--ddaProcessing", "--filter", inQuotes("metadataFixer")));
       }
     }
-  }
-
-  private static PolarityType getWatersPolarity(File rawFilePath) {
-    final File file = new File(rawFilePath, "_extern.inf");
-    if (!file.exists() || !file.canRead()) {
-      return PolarityType.UNKNOWN;
-    }
-
-    final Pattern polarityPattern = Pattern.compile("(Polarity)(\\s+)([a-zA-Z]+)([+-])");
-
-    // somehow does not work with Files.newBufferedReader
-    try (var reader = new BufferedReader(new FileReader(file))) {
-      String line = reader.readLine();
-      while (line != null) {
-        final Matcher matcher = polarityPattern.matcher(line);
-        if (matcher.matches()) {
-          final PolarityType polarity = PolarityType.fromSingleChar(matcher.group(4));
-          return polarity;
-        }
-        line = reader.readLine();
-      }
-    } catch (IOException e) {
-      logger.log(Level.WARNING,
-          "Cannot determine raw data polarity for file %s. Cannot apply lockmass correction.".formatted(
-              rawFilePath), e);
-      return PolarityType.UNKNOWN;
-    }
-    return PolarityType.UNKNOWN;
   }
 
   @Override
@@ -246,7 +248,7 @@ public class MSConvertImportTask extends AbstractTask {
 
   public static @NotNull File getMzMLFileName(File filePath) {
     final String fileName = filePath.getName();
-    final String mzMLName =  FileAndPathUtil.getRealFileName(fileName, "mzML");
+    final String mzMLName = FileAndPathUtil.getRealFileName(fileName, "mzML");
     final File mzMLFile = new File(filePath.getParent(), mzMLName);
     return mzMLFile;
   }
@@ -331,8 +333,8 @@ public class MSConvertImportTask extends AbstractTask {
 
       if (parsedScans != totalScans) {
         throw (new RuntimeException(
-            "ThermoRawFileParser/MSConvert process crashed before all scans were extracted (" + parsedScans
-                + " out of " + totalScans + ")"));
+            "ThermoRawFileParser/MSConvert process crashed before all scans were extracted ("
+                + parsedScans + " out of " + totalScans + ")"));
       }
 
       msdkTask.addAppliedMethodAndAddToProject(dataFile);

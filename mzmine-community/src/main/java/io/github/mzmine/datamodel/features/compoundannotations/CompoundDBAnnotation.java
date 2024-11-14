@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,15 +45,19 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
@@ -201,6 +205,14 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   <T> T get(Class<? extends DataType<T>> key);
 
+  /**
+   * Stores the given value to this annotation. If new value is null, removes the mapping.
+   *
+   * @param key   The key.
+   * @param value The value.
+   * @return The previously mapped value. Also returns the currently mapped value if the parameter
+   * was null.
+   */
   <T> T put(@NotNull DataType<T> key, T value);
 
   /**
@@ -218,6 +230,14 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(key);
   }
 
+  /**
+   * Stores the given value to this annotation. If new value is null, removes the mapping.
+   *
+   * @param key   The key.
+   * @param value The value.
+   * @return The previously mapped value. Also returns the currently mapped value if the parameter
+   * was null.
+   */
   <T> T put(@NotNull Class<? extends DataType<T>> key, T value);
 
   /**
@@ -388,6 +408,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     clone.put(MzPpmDifferenceType.class,
         (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
             row.getAverageMZ()));
+    clone.put(MzAbsoluteDifferenceType.class, row.getAverageMZ() - clone.getPrecursorMZ());
 
     // if the compound entry contained <=0 for RT or mobility
     // do not check. This is defined as wildcard in the documentation and outside valid values
@@ -396,10 +417,15 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
       clone.put(CCSRelativeErrorType.class,
           PercentTolerance.getPercentError(compCcs, row.getAverageCCS()));
     }
+    var compMob = getMobility();
+    if (compMob != null && compMob > 0 && row.getAverageMobility() != null) {
+      clone.put(MobilityAbsoluteDifferenceType.class, row.getAverageMobility() - compMob);
+    }
     var compRt = get(RTType.class);
     if (compRt != null && compRt > 0 && row.getAverageRT() != null) {
       clone.put(RtRelativeErrorType.class,
           PercentTolerance.getPercentError(compRt, row.getAverageRT()));
+      clone.put(RtAbsoluteDifferenceType.class, row.getAverageRT() - compRt);
     }
 
     return clone;
@@ -497,4 +523,6 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     }
     return -Float.compare(sc, sc2);
   }
+
+  void setStructure(MolecularStructure structure);
 }

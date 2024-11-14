@@ -103,19 +103,20 @@ class BaselineCorrectionPreview extends FeaturePreviewPane {
     final List<DatasetAndRenderer> data = new ArrayList<>();
 
     data.addAll(List.of(new DatasetAndRenderer(new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider(corrected, feature.toString() + " corrected",
-                feature.getRawDataFile().getColor()), RunOption.THIS_THREAD),
-            new ColoredAreaShapeRenderer()),
-        new DatasetAndRenderer(new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider(full, feature.toString(),
-                feature.getRawDataFile().getColor()), RunOption.THIS_THREAD),
-            new ColoredXYLineRenderer())));
+        new IonTimeSeriesToXYProvider(corrected, feature.toString() + " corrected",
+            feature.getRawDataFile().getColor()), RunOption.THIS_THREAD),
+        new ColoredAreaShapeRenderer()), new DatasetAndRenderer(new ColoredXYDataset(
+        new IonTimeSeriesToXYProvider(full, feature.toString(),
+            feature.getRawDataFile().getColor()), RunOption.THIS_THREAD),
+        new ColoredXYLineRenderer())));
 
     additionalPreviewData.forEach(a -> {
       if ("samples".equals(a.getSeriesKey())) {
-        data.add(new DatasetAndRenderer(new ColoredXYDataset(a), new ColoredXYShapeRenderer()));
+        data.add(new DatasetAndRenderer(new ColoredXYDataset(a, RunOption.THIS_THREAD),
+            new ColoredXYShapeRenderer()));
       } else {
-        data.add(new DatasetAndRenderer(new ColoredXYDataset(a), new ColoredXYLineRenderer()));
+        data.add(new DatasetAndRenderer(new ColoredXYDataset(a, RunOption.THIS_THREAD),
+            new ColoredXYLineRenderer()));
       }
     });
 

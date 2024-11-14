@@ -25,11 +25,16 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.*;
+
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.color.ColorScaleUtil;
@@ -40,6 +45,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.io.ClipboardWriter;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
@@ -72,11 +78,13 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import org.controlsfx.control.Notifications;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -295,21 +303,35 @@ public class SpectralMatchPanelFX extends GridPane {
     g1.add(leftBox, 0, 0);
     g1.add(rightBox, 1, 0);
 
+    // add scan information
+    final HBox spectrumInfo = getSpectrumInfo();
+    g1.add(spectrumInfo, 0, 1, 2, 1);
+
     metaDataPanel.getChildren().add(g1);
     metaDataPanel.setMinSize(META_WIDTH, ENTRY_HEIGHT);
-    metaDataPanel.setPrefSize(META_WIDTH, -1);
+//    metaDataPanel.setPrefSize(META_WIDTH, -1);
+    metaDataPanel.setPrefWidth(META_WIDTH);
+    VBox.setVgrow(g1, Priority.ALWAYS);
 
     metaDataScroll = new ScrollPane(metaDataPanel);
     metaDataScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
-    metaDataScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    metaDataScroll.setVbarPolicy(ScrollBarPolicy.ALWAYS);
     metaDataScroll.setFitToWidth(true);
-    metaDataScroll.setFitToHeight(true);
+//    metaDataScroll.setFitToHeight(true); // this disables the scrolling option, leading to unreadable fields
     int margin = 20;
     metaDataScroll.setMinSize(META_WIDTH + margin, ENTRY_HEIGHT + margin);
     metaDataScroll.setMaxSize(META_WIDTH + margin, ENTRY_HEIGHT + margin);
     metaDataScroll.setPrefSize(META_WIDTH + margin, ENTRY_HEIGHT + margin);
 
     return metaDataScroll;
+  }
+
+  private @NotNull HBox getSpectrumInfo() {
+    final String spectrumSource = ScanUtils.extractScanIdString(hit.getQueryScan(), true);
+    final TextFlow text = FxTextFlows.newTextFlow(text("Matched spectra: "), text(spectrumSource));
+    text.setOnMouseClicked(_ -> copyTextToClipboard(spectrumSource));
+    final HBox spectrumInfo = FxLayout.newHBox(Pos.TOP_LEFT, text);
+    return spectrumInfo;
   }
 
   private BorderPane extractLibraryPanel(SpectralLibraryEntry entry) {
@@ -380,12 +402,24 @@ public class SpectralMatchPanelFX extends GridPane {
       if (!o.equalsIgnoreCase("n/a")) {
         Label text = new Label(db.toString() + ": " + o);
         text.setWrapText(true);
-        text.setOnMouseClicked(event -> {
-          ClipboardWriter.writeToClipBoard(o);
-          Notifications.create().title("Copied to clipboard").hideAfter(new Duration(2500))
-              .owner(MZmineCore.getDesktop().getMainWindow()).show();
+        text.setOnMouseClicked(_ -> copyTextToClipboard(o));
+        panelOther.getChildren().addAll(text);
+      }
+    }
 
-          // Other option for overlay
+    Label otherInfo = new Label(title);
+    otherInfo.getStyleClass().add("bold-title-label");
+    BorderPane pn = new BorderPane(panelOther);
+    pn.setTop(otherInfo);
+    return pn;
+  }
+
+  private static void copyTextToClipboard(String o) {
+    ClipboardWriter.writeToClipBoard(o);
+    Notifications.create().title("Copied to clipboard").hideAfter(new Duration(2500))
+        .owner(MZmineCore.getDesktop().getMainWindow()).show();
+
+    // Other option for overlay
 //          var popOver = new PopOver();
 //          popOver.setContentNode(new Label("Copied to clipboard"));
 //          popOver.setAutoHide(true);
@@ -400,18 +434,6 @@ public class SpectralMatchPanelFX extends GridPane {
 //          pause.play();
 //
 //          popOver.show(text);
-
-        });
-
-        panelOther.getChildren().addAll(text);
-      }
-    }
-
-    Label otherInfo = new Label(title);
-    otherInfo.getStyleClass().add("bold-title-label");
-    BorderPane pn = new BorderPane(panelOther);
-    pn.setTop(otherInfo);
-    return pn;
   }
 
   public void applySettings(@Nullable ParameterSet param) {

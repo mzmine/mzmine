@@ -166,6 +166,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
@@ -203,6 +205,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
   // IMS parameter currently all the same
   protected final boolean isImsActive;
+  protected final boolean isNonTdfIms;
   protected final boolean imsSmoothing;
   protected final MobilityType imsInstrumentType;
   protected final Integer minImsDataPoints;
@@ -265,6 +268,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     imsSmoothing = getValue(params, IonMobilityWizardParameters.smoothing);
     imsFwhm = getValue(params, IonMobilityWizardParameters.approximateImsFWHM);
     imsFwhmMobTolerance = new MobilityTolerance(imsFwhm.floatValue());
+    isNonTdfIms = Arrays.stream(dataFiles)
+        .map(RawDataFileTypeDetector::detectDataFileType)
+        .noneMatch(type -> type == RawDataFileType.BRUKER_TDF);
 
     // mass spectrometer
     params = steps.get(WizardPart.MS);
@@ -787,17 +793,12 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
   protected void makeAndAddMassDetectorSteps(final BatchQueue q) {
     if (isImsActive) {
-      // waters raw is technically also an mzml import.
-      final boolean isImsFromMzml = Arrays.stream(dataFiles).anyMatch(
-          file -> file.getName().toLowerCase().endsWith(".mzml") || file.getName().toLowerCase()
-              .endsWith(".raw"));
-      if (!isImsFromMzml) { // == Bruker file
+      if (!isNonTdfIms) { // == Bruker file
         makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.FRAMES);
       }
       makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.MOBLITY_SCANS);
       makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.MOBLITY_SCANS);
-      if (isImsFromMzml || imsInstrumentType == MobilityType.DRIFT_TUBE
-          || imsInstrumentType == MobilityType.TRAVELING_WAVE) {
+      if (isNonTdfIms) {
         makeAndAddMobilityScanMergerStep(q);
       }
     } else {
@@ -960,6 +961,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
     param.setParameter(MobilityScanMergerParameters.mergingType, IntensityMergingType.SUMMED);
     param.setParameter(MobilityScanMergerParameters.weightingType, Weighting.LINEAR);
+    param.setParameter(MobilityScanMergerParameters.minNumberOfDetections, 2);
 
     final RawDataFilesSelection rawDataFilesSelection = new RawDataFilesSelection(
         RawDataFilesSelectionType.BATCH_LAST_FILES);
@@ -974,16 +976,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     ParameterSet param = MZmineCore.getConfiguration().getModuleParameters(ImsExpanderModule.class)
         .cloneParameterSet();
 
-    // waters raw is technically also an mzml import.
-    final boolean isImsFromMzml = Arrays.stream(dataFiles).anyMatch(
-        file -> file.getName().toLowerCase().endsWith(".mzml") || file.getName().toLowerCase()
-            .endsWith(".raw"));
-
     param.setParameter(ImsExpanderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(ImsExpanderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ImsExpanderParameters.useRawData,
-        isImsFromMzml || imsInstrumentType != MobilityType.TIMS ? false : true);
+    param.setParameter(ImsExpanderParameters.useRawData, !isNonTdfIms);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
     param.setParameter(ImsExpanderParameters.mzTolerance, true);
     param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()

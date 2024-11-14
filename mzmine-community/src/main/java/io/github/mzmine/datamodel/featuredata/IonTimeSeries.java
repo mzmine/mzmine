@@ -77,7 +77,7 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   }
 
   @Override
-  default IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end) {
+  default IonTimeSeries<T> subSeries(MemoryMapStorage storage, float start, float end) {
     final IndexRange indexRange = BinarySearch.indexRange(Range.closed(start, end), getSpectra(),
         Scan::getRetentionTime);
     if(indexRange.isEmpty()) {
@@ -87,7 +87,7 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   }
 
   @Override
-  default IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+  default IonTimeSeries<T> subSeries(MemoryMapStorage storage, int startIndexInclusive,
       int endIndexExclusive) {
     if(endIndexExclusive-startIndexInclusive<=0) {
       return EMPTY;
@@ -97,6 +97,14 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
 
   @Override
   IonTimeSeries<T> subSeries(@Nullable MemoryMapStorage storage, @NotNull List<T> subset);
+
+  @Override
+  IonTimeSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @NotNull double[] newIntensityValues);
+
+  @Override
+  IonTimeSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage, @NotNull double[] newMzValues,
+      @NotNull double[] newIntensityValues);
 
   /**
    * Saves this time series to xml. The implementing class is responsible for creating the xml
