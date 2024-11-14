@@ -3,12 +3,14 @@ package io.github.mzmine.modules.dataprocessing.comb_resolver;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.comb_resolver.CombinedResolverResult.DetectedBy;
 import io.github.mzmine.modules.dataprocessing.featdet_ML.MLFeatureResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.util.ArrayUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,8 +23,10 @@ public class CombinedResolver extends AbstractResolver {
   private static final Logger logger = Logger.getLogger("CombinedResolver logger");
   private static final double varianceThreshold = 2;
 
-  private static Resolver firstResolver;
-  private static Resolver secondResolver;
+  private Resolver firstResolver;
+  private Resolver secondResolver;
+
+  private final List<CombinedResolverResult> debug = new ArrayList<>();
 
   protected CombinedResolver(@NotNull ParameterSet parameters, @NotNull ModularFeatureList flist) {
     super(parameters, flist);
@@ -67,16 +71,6 @@ public class CombinedResolver extends AbstractResolver {
   @Override
   public @NotNull Class<? extends MZmineModule> getModuleClass() {
     return CombinedResolverModule.class;
-  }
-
-  private int findIndex(double[] arr, double value) {
-    for (int i = 0; i < arr.length; i++) {
-      if (arr[i] == value) {
-        return i;
-      }
-    }
-
-    return -1;
   }
 
   private FilterOutput filterRanges(double[] time, double[] intensity,
@@ -166,13 +160,13 @@ public class CombinedResolver extends AbstractResolver {
     return new FilterOutput(onlyFirstResolverRanges, onlySecondResolverRanges, bothResolverRanges);
   }
 
-  private boolean checkVariance(double[] time, double[] intensity, double leftBound,
+  private double getVarianceRatio(double[] time, double[] intensity, double leftBound,
       double rightBound) {
-    int leftIndex = findIndex(time, leftBound);
-    int rightIndex = findIndex(time, rightBound);
+    int leftIndex = ArrayUtils.indexOf(leftBound, time);
+    int rightIndex = ArrayUtils.indexOf(rightBound, time);
     if (leftIndex == -1 || rightIndex == -1) {
       logger.fine("Could not find Index of bounds");
-      return false;
+      return 0d;
     }
     // calculate width with both endpoints indluded
     int peakWidth = rightIndex - leftIndex + 1;
@@ -185,7 +179,7 @@ public class CombinedResolver extends AbstractResolver {
 
     if (rangeIntensity.length == 0 || extendedRangeIntensity.length == 0) {
       logger.fine("Can not calculate variance for width 0");
-      return false;
+      return 0d;
     }
     // calculate the means for both ranges
     double mean =
@@ -201,11 +195,7 @@ public class CombinedResolver extends AbstractResolver {
         Arrays.stream(extendedRangeIntensity).map(x -> Math.pow((x - mean), 2))
             .reduce((x, y) -> x + y).orElse(0.0) / extendedRangeIntensity.length;
 
-    if (variance / extendedVariance > varianceThreshold) {
-      return true;
-    }
-
-    return false;
+    return variance / extendedVariance;
   }
 
   public double calculateZigZagIndex(double[] featureIntensity) {
@@ -227,7 +217,7 @@ public class CombinedResolver extends AbstractResolver {
       return 0;
     }
     double peakIntensity = Arrays.stream(featureIntensities).max().orElse(0);
-    int peakIndex = findIndex(featureIntensities, peakIntensity);
+    int peakIndex = ArrayUtils.indexOf(peakIntensity, featureIntensities);
     double leftSharpness = 0;
     double rightSharpness = 0;
     for (int i = 1; i <= peakIndex; i++) {
@@ -245,27 +235,40 @@ public class CombinedResolver extends AbstractResolver {
   public @NotNull List<Range<Double>> resolve(double[] time, double[] intensity) {
     List<Range<Double>> firstResolverRanges = firstResolver.resolve(time, intensity);
     List<Range<Double>> secondResolverRanges = secondResolver.resolve(time, intensity);
+    debug.clear();
 
     FilterOutput filteredRanges = filterRanges(time, intensity, firstResolverRanges,
         secondResolverRanges);
 
-    List<Range<Double>> totalRanges = new ArrayList<Range<Double>>();
-    totalRanges.addAll(filteredRanges.bothResolverRanges());
-    for (Range<Double> range : filteredRanges.onlyFirstResolverRanges()) {
-      totalRanges.add(range);
-      // if (checkVariance(time, intensity, range.lowerEndpoint(),
-      // range.upperEndpoint())) {
-      // totalRanges.add(range);
-      // }
-    }
-    for (Range<Double> range : filteredRanges.onlySecondResolverRanges()) {
-      int leftIndex = findIndex(time, range.lowerEndpoint());
-      int rightIndex = findIndex(time, range.upperEndpoint());
+    List<Range<Double>> validRanges = new ArrayList<>();
+
+    processRanges(time, intensity, filteredRanges.bothResolverRanges(), validRanges,
+        DetectedBy.BOTH);
+
+    processRanges(time, intensity, filteredRanges.onlyFirstResolverRanges(), validRanges,
+        DetectedBy.FIRST);
+
+    processRanges(time, intensity, filteredRanges.onlySecondResolverRanges(), validRanges,
+        DetectedBy.SECOND);
+    return validRanges;
+  }
+
+  private void processRanges(double[] time, double[] intensity, List<Range<Double>> ranges,
+      List<Range<Double>> validRanges, DetectedBy detectedBy) {
+    for (Range<Double> range : ranges) {
+      int leftIndex = ArrayUtils.indexOf(range.lowerEndpoint(), time);
+      int rightIndex = ArrayUtils.indexOf(range.upperEndpoint(), time);
       double[] featureIntensities = Arrays.copyOfRange(intensity, leftIndex, rightIndex + 1);
-      if (calculateZigZagIndex(featureIntensities) < 2) {
-        totalRanges.add(range);
-      }
+      final double zigZagIndex = calculateZigZagIndex(featureIntensities);
+      final double varianceRatio = getVarianceRatio(time, intensity, range.lowerEndpoint(),
+          range.upperEndpoint());
+      final double sharpness = calculateSharpness(featureIntensities);
+      validRanges.add(range);
+      debug.add(new CombinedResolverResult(zigZagIndex, varianceRatio, 0d, sharpness, detectedBy));
     }
-    return totalRanges;
+  }
+
+  public List<CombinedResolverResult> getDebug() {
+    return debug;
   }
 }
