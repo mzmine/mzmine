@@ -1268,7 +1268,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     q.add(step);
   }
 
-  protected void makeAndAddLipidAnnotationStep(final BatchQueue q, boolean checkMS2) {
+  protected void makeAndAddLipidAnnotationStep(final BatchQueue q) {
     if (!annotateLipids) {
       return;
     }
@@ -1283,15 +1283,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(LipidAnnotationParameters.lipidChainParameters,
         new LipidAnnotationChainParameters());
     param.setParameter(LipidAnnotationParameters.mzTolerance, mzTolInterSample);
-    param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, (checkMS2 || isImaging));
-    if (checkMS2 || isImaging) {
+    param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, true);
       param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
           .setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
       param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
           .setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
       param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
           .setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
-    }
     param.setParameter(LipidAnnotationParameters.advanced, false);
     var advanced = param.getEmbeddedParameterValue(LipidAnnotationParameters.advanced);
     advanced.setParameter(AdvancedLipidAnnotationParameters.IONS_TO_IGNORE,
