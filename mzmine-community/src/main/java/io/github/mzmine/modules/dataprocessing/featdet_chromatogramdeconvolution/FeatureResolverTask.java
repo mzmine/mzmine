@@ -43,7 +43,9 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.MaldiSpotType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.annotations.resolver.CombinedResolverResultsType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.modules.dataprocessing.comb_resolver.CombinedResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_ML.MLFeatureResolver;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
@@ -264,6 +266,11 @@ public class FeatureResolverTask extends AbstractTask {
                             peakId++);
                     final ModularFeature f = new ModularFeature(resolvedFeatureList,
                             originalFeature.getRawDataFile(), resolved, originalFeature.getFeatureStatus());
+
+                    if(resolver instanceof CombinedResolver combinedResolver) {
+                        f.set(CombinedResolverResultsType.class, combinedResolver.getDebug()
+                            .get(resolvedSeries.indexOf(resolved)));
+                    }
 
                     if (originalFeature.get(MaldiSpotType.class) != null) {
                         f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());

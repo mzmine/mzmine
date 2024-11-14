@@ -1,11 +1,13 @@
 package io.github.mzmine.modules.dataprocessing.comb_resolver;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 
 public class CombinedResolverParameters extends GeneralResolverParameters {
@@ -66,6 +68,14 @@ public class CombinedResolverParameters extends GeneralResolverParameters {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    final FeatureResolverSetupDialog dialog = new FeatureResolverSetupDialog(valueCheckRequired,
+        this, null);
+    dialog.showAndWait();
+    return dialog.getExitCode();
   }
 
 }
