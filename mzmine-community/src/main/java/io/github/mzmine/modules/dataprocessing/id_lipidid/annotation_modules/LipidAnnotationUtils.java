@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -185,8 +185,7 @@ public class LipidAnnotationUtils {
       LipidCategories lipidCategory) {
     Set<MatchedLipid> matchedLipids = new HashSet<>();
     LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
-    // Check if selected feature has MSMS spectra and LipidIdentity
-    if (!row.getAllFragmentScans().isEmpty()) {
+    if (!row.getAllFragmentScans().isEmpty() || keepUnconfirmedAnnotations) {
       List<Scan> msmsScans = row.getAllFragmentScans();
       for (Scan msmsScan : msmsScans) {
         Set<MatchedLipid> matchedLipidsInScan = new HashSet<>();
