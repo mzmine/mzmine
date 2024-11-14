@@ -80,8 +80,11 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   default IonTimeSeries<T> subSeries(MemoryMapStorage storage, float start, float end) {
     final IndexRange indexRange = BinarySearch.indexRange(Range.closed(start, end), getSpectra(),
         Scan::getRetentionTime);
-    if(indexRange.isEmpty()) {
-      return EMPTY;
+    if (indexRange.isEmpty()) {
+      return switch (this) {
+        case IonMobilogramTimeSeries _ -> (IonTimeSeries<T>) IonMobilogramTimeSeries.EMPTY;
+        default -> (IonTimeSeries<T>) IonTimeSeries.EMPTY;
+      };
     }
     return subSeries(storage, indexRange.min(), indexRange.maxExclusive());
   }
@@ -89,8 +92,11 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   @Override
   default IonTimeSeries<T> subSeries(MemoryMapStorage storage, int startIndexInclusive,
       int endIndexExclusive) {
-    if(endIndexExclusive-startIndexInclusive<=0) {
-      return EMPTY;
+    if (endIndexExclusive - startIndexInclusive <= 0) {
+      return switch (this) {
+        case IonMobilogramTimeSeries _ -> (IonTimeSeries<T>) IonMobilogramTimeSeries.EMPTY;
+        default -> (IonTimeSeries<T>) IonTimeSeries.EMPTY;
+      };
     }
     return subSeries(storage, getSpectra().subList(startIndexInclusive, endIndexExclusive));
   }

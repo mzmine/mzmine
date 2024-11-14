@@ -179,6 +179,10 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   @Override
   public IonMobilogramTimeSeries subSeries(@Nullable MemoryMapStorage storage,
       @NotNull List<Frame> subset, @NotNull final BinningMobilogramDataAccess mobilogramBinning) {
+    if (subset.isEmpty()) {
+      return IonMobilogramTimeSeries.EMPTY;
+    }
+
     double[] mzs = new double[subset.size()];
     double[] intensities = new double[subset.size()];
 
@@ -222,6 +226,10 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   @Override
   public IonMobilogramTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
       int endIndexExclusive, BinningMobilogramDataAccess mobilogramBinning) {
+
+    if (endIndexExclusive - startIndexInclusive <= 0) {
+      return IonMobilogramTimeSeries.EMPTY;
+    }
 
     final List<IonMobilitySeries> mobilograms = this.mobilograms.subList(startIndexInclusive,
         endIndexExclusive);
