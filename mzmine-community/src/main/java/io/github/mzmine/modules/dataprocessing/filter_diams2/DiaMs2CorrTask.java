@@ -254,6 +254,11 @@ public class DiaMs2CorrTask extends AbstractTask {
       return null;
     }
 
+    // only compare ions with other spectra that have at least 25% of the tic of the most intense
+    final double minTic = Objects.requireNonNullElse(mostIntense.getTIC(), 0d) * 0.25;
+    final List<@NotNull PseudoSpectrum> minTicSpectra = correlatedMs2s.stream()
+        .filter(ms2 -> Objects.requireNonNullElse(ms2.getTIC(), 0d) >= minTic).toList();
+
     DoubleArrayList mzs = new DoubleArrayList();
     DoubleArrayList intensities = new DoubleArrayList();
 
@@ -261,7 +266,7 @@ public class DiaMs2CorrTask extends AbstractTask {
       final double mzInMostIntense = mostIntense.getMzValue(i);
       boolean foundInAll = true;
 
-      for (@NotNull PseudoSpectrum ms2 : correlatedMs2s) {
+      for (@NotNull PseudoSpectrum ms2 : minTicSpectra) {
         if (ms2 == mostIntense) {
           continue;
         }
@@ -356,7 +361,7 @@ public class DiaMs2CorrTask extends AbstractTask {
       // todo: to make this efficient, merge PR #2016
       final IntensityTimeSeries subSeries = ms2Eic.subSeries(getMemoryMapStorage(),
           correlationRange.lowerEndpoint(), correlationRange.upperEndpoint());
-      if(subSeries.getNumberOfValues() < minCorrPoints) {
+      if (subSeries.getNumberOfValues() < minCorrPoints) {
         continue;
       }
       final double[] rts = new double[subSeries.getNumberOfValues()];
@@ -433,7 +438,8 @@ public class DiaMs2CorrTask extends AbstractTask {
     }
 
     final int closestIndex = mergedMobilityScan.binarySearch(mz, DefaultTo.CLOSEST_VALUE);
-    if (closestIndex == -1 || !mzTolerance.checkWithinTolerance(mz, mergedMobilityScan.getMzValue(closestIndex))) {
+    if (closestIndex == -1 || !mzTolerance.checkWithinTolerance(mz,
+        mergedMobilityScan.getMzValue(closestIndex))) {
       return false;
     }
 
