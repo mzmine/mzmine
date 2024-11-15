@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
@@ -36,8 +37,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Accordion;
@@ -221,22 +220,13 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
     Accordion accordion = new Accordion(filterPane);
 
     // Set action for combo box and checkboxes to update the plot based on filter and options
-//    PropertyUtils.onChange(
-//        updatePlot(plotPane, titleLabel, originalLipids, filterComboBox, lipidDescription,
-//            includeCategoryCheckbox, includeMainClassCheckbox, includeSubClassCheckbox,
-//            includeSpeciesCheckbox),//
-//        filterComboBox.getSelectionModel().selectedItemProperty(),
-//        includeCategoryCheckbox.selectedProperty(), includeMainClassCheckbox.selectedProperty(),
-//        includeSubClassCheckbox.selectedProperty(), includeSpeciesCheckbox.selectedProperty());
-
-    EventHandler<ActionEvent> action = _ -> updatePlot(plotPane, titleLabel, originalLipids,
-        filterComboBox, lipidDescription, includeCategoryCheckbox, includeMainClassCheckbox,
-        includeSubClassCheckbox, includeSpeciesCheckbox);
-    filterComboBox.setOnAction(action);
-    includeCategoryCheckbox.setOnAction(action);
-    includeMainClassCheckbox.setOnAction(action);
-    includeSubClassCheckbox.setOnAction(action);
-    includeSpeciesCheckbox.setOnAction(action);
+    PropertyUtils.onChange(
+        () -> updatePlot(plotPane, titleLabel, originalLipids, filterComboBox, lipidDescription,
+            includeCategoryCheckbox, includeMainClassCheckbox, includeSubClassCheckbox,
+            includeSpeciesCheckbox),//
+        filterComboBox.getSelectionModel().selectedItemProperty(),
+        includeCategoryCheckbox.selectedProperty(), includeMainClassCheckbox.selectedProperty(),
+        includeSubClassCheckbox.selectedProperty(), includeSpeciesCheckbox.selectedProperty());
 
     // Layout structure: VBox to stack title, accordion, and plot
     VBox layout = new VBox();
