@@ -224,7 +224,7 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
     includeCategoryCheckbox.setSelected(true);
     CheckBox includeMainClassCheckbox = new CheckBox("Lipid Main Class");
     includeMainClassCheckbox.setSelected(true);
-    CheckBox includeSubClassCheckbox = new CheckBox("Lipid Subclass");
+    CheckBox includeSubClassCheckbox = new CheckBox("Lipid Sub Class");
     includeSubClassCheckbox.setSelected(true);
     CheckBox includeSpeciesCheckbox = new CheckBox("Lipid Species");
     includeSpeciesCheckbox.setSelected(false);
