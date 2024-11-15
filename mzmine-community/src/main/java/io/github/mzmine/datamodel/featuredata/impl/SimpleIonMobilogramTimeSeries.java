@@ -314,6 +314,9 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
 
   private boolean checkRawFileIntegrity(@NotNull List<IonMobilitySeries> mobilograms) {
+    if(mobilograms.isEmpty()) {
+      return true;
+    }
     RawDataFile file = null;
     for (IonMobilitySeries mobilogram : mobilograms) {
       if (file == null) {
