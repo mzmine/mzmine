@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,28 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.structures;
-
+package io.github.mzmine.datamodel.features.types.annotations;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 
-/**
- * Contains precomputed values in case they need to be accessed more frequently
- */
-public record ComplexMolecularStructure(
-     @NotNull IAtomContainer structure,
-     IMolecularFormula formula,
-     String inChIKey,
-     double monoIsotopicMass,
-     double mostAbundantMass,
-     int totalFormalCharge
-) implements MolecularStructure {
+public class SmilesIsomericStructureType extends SmilesStructureType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "isomeric_smiles";
+  }
 
   @Override
-  public @Nullable String inChIKey(@NotNull final StructureParser parser) {
-    return inChIKey;
+  public @NotNull String getHeaderString() {
+    return "SMILES (isomeric)";
   }
+
 }

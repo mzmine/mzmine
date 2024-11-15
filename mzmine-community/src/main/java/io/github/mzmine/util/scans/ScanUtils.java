@@ -67,6 +67,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
@@ -593,7 +594,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-                                                                       - leftNeighbourBinIndex);
+              - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -2266,6 +2267,120 @@ public class ScanUtils {
       // add single spectrum
       consumer.accept(parent);
     }
+  }
+
+  /**
+   * @param scan Any kind of spectrum.
+   * @return a string of the spectra in this scan.
+   * <br></br>
+   * regular scan: 4
+   * <br></br>
+   * merged scan with regular scans: 4-7,9
+   * <br></br>
+   * merged scan with mobility scans: 4[8-25],5[8-26],6[5-24,28]
+   * <br></br>
+   * merged scan with mixed: 4[8-25],5[8-26],6[5-24,28],7-9,11
+   */
+  public static String extractScanIdString(final Scan scan,
+      final boolean includeFilenameForSingleFiles) {
+    return switch (scan) {
+      case MergedMassSpectrum merged -> {
+        final Map<RawDataFile, List<Scan>> groupedByFile = merged.getSourceSpectra().stream()
+            .filter(Scan.class::isInstance).map(Scan.class::cast)
+            .collect(Collectors.groupingBy(Scan::getDataFile));
+        final StringBuilder sb = new StringBuilder();
+        for (Entry<RawDataFile, List<Scan>> fileEntry : groupedByFile.entrySet()) {
+          final RawDataFile file = fileEntry.getKey();
+          final List<Scan> allScans = fileEntry.getValue();
+          final String fileStr = extractIdStringForScansOfSingleFile(allScans);
+
+          if (groupedByFile.size() > 1 || includeFilenameForSingleFiles) {
+            sb.append(file.getName());
+            sb.append(":");
+          }
+          sb.append(fileStr);
+          sb.append(";");
+        }
+        final String str = sb.toString();
+        yield str.substring(0, str.length() - 1);
+      }
+      case Scan s -> "%d".formatted(s.getScanNumber());
+    };
+  }
+
+  /**
+   * @param allScans Scans of a single {@link RawDataFile}. May contain mobility scans or regular
+   *                 scans. To handle merged spectra, use {@link #extractScanIdString(Scan)}
+   * @return Consecutive enumeration of scan numbers. for mobility scans: 6[7-14,16],7[8-18]. for
+   * regular scans: 5-13,15.
+   */
+  public static @NotNull String extractIdStringForScansOfSingleFile(List<Scan> allScans) {
+    final StringBuilder builder = new StringBuilder();
+    final List<MobilityScan> mobScans = allScans.stream().filter(MobilityScan.class::isInstance)
+        .map(MobilityScan.class::cast).toList();
+    final Map<Frame, List<MobilityScan>> sortedByFrame = mobScans.stream()
+        .sorted(Comparator.comparingInt(MobilityScan::getMobilityScanNumber))
+        .collect(Collectors.groupingBy(MobilityScan::getFrame));
+    final String imsString = extractIdStringForFramesAndMobilityScans(sortedByFrame);
+    if (!imsString.isBlank()) {
+      builder.append(imsString).append(",");
+    }
+
+    final String scanString = extractIdStringForRegularScans(allScans);
+    if (!scanString.isBlank()) {
+      builder.append(scanString).append(",");
+    }
+    final String fileStr = builder.toString();
+    return fileStr.isBlank() ? "" : fileStr.substring(0, fileStr.length() - 1);
+  }
+
+  /**
+   * @param allScans Only "regular" scans or frames, no mobility scans or merged spectra. Mobility
+   *                 scans may be contained, but will be filtered out.
+   * @return List of scans, e.g. "5-9,11".
+   */
+  private static @NotNull String extractIdStringForRegularScans(List<Scan> allScans) {
+    var scanRanges = IndexRange.findRanges(
+        allScans.stream().filter(s -> !(s instanceof MobilityScan)).map(Scan::getScanNumber)
+            .toList());
+    final String scanString = scanRanges.stream().map(IndexRange::toString)
+        .collect(Collectors.joining(","));
+    return scanString;
+  }
+
+  /**
+   * @param sortedByFrame A map of mobility scans mapped to their respective frame.
+   * @return A string <Frame>[mobscans],<Frame>[mobscans],... e.g. 6[5-30,32],7[8-20]
+   */
+  private static @NotNull String extractIdStringForFramesAndMobilityScans(
+      Map<Frame, List<MobilityScan>> sortedByFrame) {
+    final List<Entry<Frame, List<MobilityScan>>> sortedByFrameId = sortedByFrame.entrySet().stream()
+        .sorted(Entry.comparingByKey()).toList();
+    StringBuilder sbFile = new StringBuilder();
+    for (Entry<Frame, List<MobilityScan>> frameEntry : sortedByFrameId) {
+      final Frame frame = frameEntry.getKey();
+      final List<MobilityScan> mobilityScans = frameEntry.getValue();
+      final String frameStr = extractIdStringForMobilityScanNumbersOfFrame(frame, mobilityScans);
+      sbFile.append(frameStr).append(",");
+    }
+    final String str = sbFile.toString();
+    return str.isBlank() ? "" : str.substring(0, str.length() - 1);
+  }
+
+  /**
+   * @param frame         The frame
+   * @param mobilityScans The mobility scans, all belonging to the frame.
+   * @return A string <FrameNumber>[Mobility scan numbers], e.g. 6[5-30,32]
+   */
+  private static @NotNull String extractIdStringForMobilityScanNumbersOfFrame(Frame frame,
+      List<MobilityScan> mobilityScans) {
+    if (mobilityScans.isEmpty()) {
+      return "";
+    }
+    final List<IndexRange> ranges = IndexRange.findRanges(
+        mobilityScans.stream().map(MobilityScan::getMobilityScanNumber).toList());
+    return "%d[%s]".formatted(frame.getScanNumber(),
+        ranges.stream().map(IndexRange::toString).collect(Collectors.joining(",")));
   }
 
   /**

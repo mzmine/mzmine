@@ -25,6 +25,9 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
+import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -93,7 +96,8 @@ public class RawDataFileTypeDetector {
 //              "https://mzmine.github.io/mzmine_documentation/data_conversion.html#waters");
 //          throw new RuntimeException(
 //              "Waters raw data detected. Please download Waters DataConnect(R) and convert to mzML.");
-          return RawDataFileType.WATERS_RAW;
+          return detectWatersAcquisitionType(fileName).isIms() ? RawDataFileType.WATERS_RAW_IMS
+              : RawDataFileType.WATERS_RAW;
         }
         if (f.isFile() && (f.getName().contains(TDF_SUFFIX) || f.getName()
             .contains(TDF_BIN_SUFFIX))) {
@@ -107,6 +111,9 @@ public class RawDataFileTypeDetector {
           return RawDataFileType.BRUKER_BAF;
         }
         if (f.isDirectory() && f.getName().equals(AGILENT_ACQDATATA_FOLDER)) {
+          if (new File(f, "IMSFrame.bin").exists()) {
+            return RawDataFileType.AGILENT_D_IMS;
+          }
           return RawDataFileType.AGILENT_D;
         }
       }
@@ -242,8 +249,8 @@ public class RawDataFileTypeDetector {
     }
   }
 
-
-  public static WatersAcquisitionType detectWatersAcquisitionType(File watersFolder) {
+  @NotNull
+  public static WatersAcquisitionInfo detectWatersAcquisitionType(File watersFolder) {
     final Pattern parentFunctionPattern = Pattern.compile(
         "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - TOF PARENT FUNCTION");
     final Pattern ddaFunctionPattern = Pattern.compile(
@@ -252,11 +259,17 @@ public class RawDataFileTypeDetector {
         "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - TOF SURVEY FUNCTION");
     final Pattern referenceFunctionPattern = Pattern.compile(
         "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - REFERENCE");
+    final Pattern mobilityPattern = Pattern.compile("\\[MOBILITY\\]");
+    final Pattern positivePolarityPattern = Pattern.compile("(Polarity)(\\s+)([a-zA-Z]+)([+])");
+    final Pattern negativePolarityPattern = Pattern.compile("(Polarity)(\\s+)([a-zA-Z]+)([-])");
 
     final PatternMatchCounter parentCounter = new PatternMatchCounter(parentFunctionPattern);
     final PatternMatchCounter ddaCounter = new PatternMatchCounter(ddaFunctionPattern);
     final PatternMatchCounter surveyCounter = new PatternMatchCounter(surveyFunctionPattern);
     final PatternMatchCounter referenceCounter = new PatternMatchCounter(referenceFunctionPattern);
+    final PatternMatchCounter mobilityCounter = new PatternMatchCounter(mobilityPattern);
+    final PatternMatchCounter postiveCounter = new PatternMatchCounter(positivePolarityPattern);
+    final PatternMatchCounter negativeCounter = new PatternMatchCounter(negativePolarityPattern);
 
     try (var reader = new BufferedReader(new FileReader(new File(watersFolder, "_extern.inf")))) {
       reader.lines().forEach(line -> {
@@ -264,16 +277,31 @@ public class RawDataFileTypeDetector {
         ddaCounter.checkMatch(line);
         surveyCounter.checkMatch(line);
         referenceCounter.checkMatch(line);
+        mobilityCounter.checkMatch(line);
+        postiveCounter.checkMatch(line);
+        negativeCounter.checkMatch(line);
       });
+
+      final PolarityType polarity =
+          (postiveCounter.matches > negativeCounter.matches) ? PolarityType.POSITIVE
+              : PolarityType.NEGATIVE;
+
       if (ddaCounter.getMatches() > 0 && surveyCounter.getMatches() > 0) {
-        return WatersAcquisitionType.DDA;
+        return new WatersAcquisitionInfo(WatersAcquisitionType.DDA, mobilityCounter.matches > 0,
+            polarity);
       }
       if (parentCounter.getMatches() > 1) {
-        return WatersAcquisitionType.MSE;
+        return new WatersAcquisitionInfo(WatersAcquisitionType.MSE, mobilityCounter.matches > 0,
+            polarity);
       } else if (parentCounter.getMatches() == 1) {
-        return WatersAcquisitionType.MS_ONLY;
+        return new WatersAcquisitionInfo(WatersAcquisitionType.MS_ONLY, mobilityCounter.matches > 0,
+            polarity);
       }
-      return WatersAcquisitionType.MSE;
+
+      logger.info(
+          "Unable to detect file type of Waters raw data. Defaulting to MSe and no mobility separation.");
+      return new WatersAcquisitionInfo(WatersAcquisitionType.MSE, mobilityCounter.matches > 0,
+          polarity);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -282,6 +310,12 @@ public class RawDataFileTypeDetector {
   public enum WatersAcquisitionType {
     MS_ONLY, DDA, MSE;
   }
+
+  public record WatersAcquisitionInfo(WatersAcquisitionType acquisitionType, boolean isIms,
+                                      PolarityType polarity) {
+
+  }
+
 
   private static final class PatternMatchCounter {
 
@@ -297,7 +331,7 @@ public class RawDataFileTypeDetector {
     }
 
     public boolean checkMatch(String str) {
-      if (pattern.matcher(str).matches()) {
+      if (pattern.matcher(str).find()) {
         matches++;
         return true;
       }

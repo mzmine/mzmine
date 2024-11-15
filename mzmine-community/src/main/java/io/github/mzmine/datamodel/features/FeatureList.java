@@ -61,6 +61,15 @@ import org.w3c.dom.Element;
 public interface FeatureList {
 
   /**
+   * Creates a dummy feature list. e.g. for creating a
+   * {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver} for
+   * an intermediate processing step. Not intended to be added to a project.
+   */
+  public static ModularFeatureList createDummy() {
+    return new ModularFeatureList("dummy flist", null, RawDataFile.createDummyFile());
+  }
+
+  /**
    * @return Short descriptive name for the feature list
    */
   @NotNull String getName();
