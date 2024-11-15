@@ -209,7 +209,7 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
       List<MatchedLipid> originalLipids, String lipidDescription) {
 
     ComboBox<String> filterComboBox = new ComboBox<>();
-    filterComboBox.getItems().addAll("All", "Confirmed", "Unconfirmed");
+    filterComboBox.getItems().addAll("All", "Confirmed (MS2)", "Unconfirmed (only MS1)");
     filterComboBox.setValue("All");
 
     // Create the title pane and get its label
@@ -235,7 +235,7 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
     filterOptions.setPadding(new Insets(5));
 
     // Accordion and filter combo box
-    TitledPane filterPane = new TitledPane("Filter", filterOptions);
+    TitledPane filterPane = new TitledPane("Filter Annotations", filterOptions);
     Accordion accordion = new Accordion(filterPane);
 
     // Set action for combo box and checkboxes to update the plot based on filter and options
