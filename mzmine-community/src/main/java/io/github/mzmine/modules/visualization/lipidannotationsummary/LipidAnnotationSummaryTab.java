@@ -201,13 +201,13 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
     BorderPane plotPane = new BorderPane(plot.getSunburstChart());
 
     // Checkboxes for plot options
-    CheckBox includeCategoryCheckbox = new CheckBox("Lipid Category");
+    CheckBox includeCategoryCheckbox = new CheckBox("Lipid category");
     includeCategoryCheckbox.setSelected(true);
-    CheckBox includeMainClassCheckbox = new CheckBox("Lipid Main Class");
+    CheckBox includeMainClassCheckbox = new CheckBox("Lipid main class");
     includeMainClassCheckbox.setSelected(true);
-    CheckBox includeSubClassCheckbox = new CheckBox("Lipid Sub Class");
+    CheckBox includeSubClassCheckbox = new CheckBox("Lipid sub class");
     includeSubClassCheckbox.setSelected(true);
-    CheckBox includeSpeciesCheckbox = new CheckBox("Lipid Species");
+    CheckBox includeSpeciesCheckbox = new CheckBox("Lipid species");
     includeSpeciesCheckbox.setSelected(false);
 
     // HBox to hold filter combo box and checkboxes
@@ -216,7 +216,7 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
     filterOptions.setPadding(new Insets(5));
 
     // Accordion and filter combo box
-    TitledPane filterPane = new TitledPane("Filter Annotations", filterOptions);
+    TitledPane filterPane = new TitledPane("Filter annotations", filterOptions);
     Accordion accordion = new Accordion(filterPane);
 
     // Set action for combo box and checkboxes to update the plot based on filter and options
