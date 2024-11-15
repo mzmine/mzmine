@@ -50,7 +50,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
-import java.lang.foreign.Arena;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.logging.Logger;
@@ -102,8 +101,8 @@ public class BafImportTask extends AbstractTask {
     final RawDataFileImpl file = new RawDataFileImpl(folderPath.getName(),
         folderPath.getAbsolutePath(), getMemoryMapStorage());
 
-    try (Arena arena = Arena.ofConfined()) {
-      final BafDataAccess baf = new BafDataAccess(arena);
+    try (BafDataAccess baf = new BafDataAccess()) {
+
       final boolean b = baf.openBafFile(folderPath);
       if (!b) {
         setErrorMessage(baf.getLastErrorString());
@@ -140,14 +139,12 @@ public class BafImportTask extends AbstractTask {
               metadataScan.getMSLevel(), metadataScan.getRetentionTime(), msMsInfo, arrays.mzs(),
               arrays.intensities(), spectrumType, metadataScan.getPolarity(),
               "%s [%s - %s]".formatted(metadata.getValue(Values.InstrumentName),
-                  formats.mz(scanMzRange.lowerEndpoint()),
-                  formats.mz(scanMzRange.upperEndpoint())), scanMzRange);
+                  formats.mz(scanMzRange.lowerEndpoint()), formats.mz(scanMzRange.upperEndpoint())),
+              scanMzRange);
           file.addScan(scan);
         }
         importedScans++;
       }
-
-      baf.closeHandle();
 
       synchronized (org.sqlite.JDBC.class) {
         BrukerUvReader.loadAndAddForFile(folderPath, file, getMemoryMapStorage());
@@ -158,6 +155,9 @@ public class BafImportTask extends AbstractTask {
 
       file.getAppliedMethods()
           .add(new SimpleFeatureListAppliedMethod(callingModule, parameters, getModuleCallDate()));
+    } catch (Exception e) {
+      error("Error while reading BAF file.", e);
+      return;
     }
 
     project.addFile(file);
