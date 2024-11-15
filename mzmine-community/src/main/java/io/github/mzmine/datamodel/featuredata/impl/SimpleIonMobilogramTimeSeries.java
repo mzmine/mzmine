@@ -393,4 +393,9 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     return Objects.hash(getMobilograms(), frames, intensityValues.byteSize(), mzValues.byteSize(),
         getSummedMobilogram(), mobilogramMzValues.byteSize(), mobilogramIntensityValues.byteSize());
   }
+
+  @Override
+  public IonMobilogramTimeSeries emptySeries() {
+    return IonMobilogramTimeSeries.EMPTY;
+  }
 }
