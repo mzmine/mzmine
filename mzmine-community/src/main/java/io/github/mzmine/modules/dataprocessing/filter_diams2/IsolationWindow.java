@@ -34,7 +34,22 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
                               @Nullable Range<Float> mobilityIsolation) {
 
   boolean contains(MobilityScan scan) {
-    return mobilityIsolation == null || mobilityIsolation.contains((float) scan.getMobility());
+//    if (mzIsolation != null) {
+//      if (!(scan.getMsMsInfo() instanceof MsMsInfo info)) {
+//        return false;
+//      }
+//      if (!(info.getIsolationWindow() instanceof Range<Double> range)) {
+//        return false;
+//      }
+//      if (!range.equals(mzIsolation)) {
+//        return false;
+//      }
+//    }
+
+    if (mobilityIsolation != null && !mobilityIsolation.contains((float) scan.getMobility())) {
+      return false;
+    }
+    return true;
   }
 
   boolean contains(Feature f) {

@@ -71,6 +71,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.collections.EmptyIndexRange;
@@ -151,8 +152,12 @@ public class DiaMs2CorrTask extends AbstractTask {
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minMs2Intensity);
   }
 
+  /**
+   * @param mzTolerance If the feauture's raw data point mz range is smaller than this range, the
+   *                    range specified by the mz tolerance will be used.
+   */
   private static @NotNull Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> mapIsoWindowToEics(
-      Map<IsolationWindow, FeatureList> ms2Flists) {
+      Map<IsolationWindow, FeatureList> ms2Flists, @NotNull MZTolerance mzTolerance) {
     final Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> isoWindowEicsMap = new HashMap<>();
 
     for (Entry<IsolationWindow, FeatureList> entry : ms2Flists.entrySet()) {
@@ -163,7 +168,8 @@ public class DiaMs2CorrTask extends AbstractTask {
       ms2Flist.getRows().stream().map(row -> row.getFeature(file)).filter(Objects::nonNull)
           .sorted(Comparator.comparingDouble(Feature::getHeight).reversed()).forEach(
               feature -> ms2Eics.put(SpectraMerging.createNewNonOverlappingRange(ms2Eics,
-                  feature.getRawDataPointsMZRange()), feature.getFeatureData()));
+                  RangeUtils.max(feature.getRawDataPointsMZRange(),
+                      mzTolerance.getToleranceRange(feature.getMZ()))), feature.getFeatureData()));
       isoWindowEicsMap.put(entry.getKey(), ms2Eics);
     }
     return isoWindowEicsMap;
@@ -195,7 +201,7 @@ public class DiaMs2CorrTask extends AbstractTask {
         isolationWindowScanMap);
     final Map<IsolationWindow, FeatureList> ms2Flists = buildChromatograms(isolationWindowFileMap);
     final Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> isoWindowEicsMap = mapIsoWindowToEics(
-        ms2Flists);
+        ms2Flists, mzTolerance);
     final Set<IsolationWindow> isolationWindows = isoWindowEicsMap.keySet();
 
     for (FeatureListRow row : flist.getRows()) {
@@ -215,17 +221,8 @@ public class DiaMs2CorrTask extends AbstractTask {
           matchingWindows, isoWindowEicsMap, isolationWindowScanMap);
 
       PseudoSpectrum reoccurringIons = refineMs2s(correlatedMs2s);
-      if (reoccurringIons != null) {
-        feature.setAllMS2FragmentScans(List.of(reoccurringIons));
-      }
-    }
-
-    if (ms2Flists.isEmpty()) {
-      flist.getAppliedMethods().add(
-          new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
-              getModuleCallDate()));
-      setStatus(TaskStatus.FINISHED);
-      return;
+      feature.setAllMS2FragmentScans(
+          reoccurringIons != null ? List.of(reoccurringIons) : List.of());
     }
 
     flist.getAppliedMethods().add(
@@ -288,7 +285,7 @@ public class DiaMs2CorrTask extends AbstractTask {
     }
 
     return new SimplePseudoSpectrum(mostIntense.getDataFile(), mostIntense.getMSLevel(),
-        mostIntense.getRetentionTime(), null, mzs.toDoubleArray(), mzs.toDoubleArray(),
+        mostIntense.getRetentionTime(), null, mzs.toDoubleArray(), intensities.toDoubleArray(),
         mostIntense.getPolarity(), mostIntense.getScanDefinition(),
         mostIntense.getPseudoSpectrumType());
   }
@@ -318,6 +315,9 @@ public class DiaMs2CorrTask extends AbstractTask {
       }
 
       final Scan closestMs2 = getClosestMs2(feature.getRT(), ms2Scans);
+      if (closestMs2 == null) {
+        continue;
+      }
       final RangeMap<Double, IonTimeSeries<?>> eics = isoWindowEicsMap.get(window);
 
       final List<IonTimeSeries<?>> eligibleEics = getEligibleEics(closestMs2, eics);
@@ -358,7 +358,6 @@ public class DiaMs2CorrTask extends AbstractTask {
     MergedMassSpectrum mergedMobilityScan = null; // lazy initialization
 
     for (IonTimeSeries<?> ms2Eic : eligibleEics) {
-      // todo: to make this efficient, merge PR #2016
       final IntensityTimeSeries subSeries = ms2Eic.subSeries(getMemoryMapStorage(),
           correlationRange.lowerEndpoint(), correlationRange.upperEndpoint());
       if (subSeries.getNumberOfValues() < minCorrPoints) {
@@ -497,7 +496,7 @@ public class DiaMs2CorrTask extends AbstractTask {
       }
     }
 
-    return result;
+    return result.stream().distinct().toList();
   }
 
   private boolean checkMs2ScanRequirements(float featureRt, List<Scan> ms2Scans,
