@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,8 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffEvent;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffHandler;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
 import io.github.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
@@ -53,11 +55,9 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -250,7 +250,8 @@ public class KovatsIndexExtractionDialog extends EmptyParameterSetupDialogBase {
 
     // add combo for raw data file
 
-    var rawFiles = FXCollections.observableList(ProjectService.getProject().getCurrentRawDataFiles());
+    var rawFiles = FXCollections.observableList(
+        ProjectService.getProject().getCurrentRawDataFiles());
     comboDataFileName = new ComboBox<>(rawFiles);
     comboDataFileName2 = new ComboBox<>(rawFiles);
     cbSecondRaw = new CheckBox();
@@ -547,21 +548,21 @@ public class KovatsIndexExtractionDialog extends EmptyParameterSetupDialogBase {
       chart.getGestureAdapter().addGestureHandler(
           new ChartGestureDragDiffHandler(Entity.PLOT, GestureButton.BUTTON1, new Key[]{Key.NONE},
               e -> handleMarkerDrag(e)));
-      chart.getGestureAdapter().addGestureHandler(
-          new ChartGestureHandler(new ChartGesture(Entity.PLOT, Event.RELEASED), e -> {
-            if (chart != null) {
-              chart.setMouseZoomable(true);
-            }
-            if (currentlyDraggedMarker != null) {
-              // set value of current marker
-              logger.info("Marker dragging ended at " + currentlyDraggedMarker.getValue());
-              int index = markers.indexOf(currentlyDraggedMarker);
-              double value = e.getCoordinates().getX();
-              setValue(index, value);
-              //
-              currentlyDraggedMarker = null;
-            }
-          }));
+      chart.getGestureAdapter().addGestureHandler(new ChartGestureHandler(
+          new ChartGesture(Entity.PLOT, Event.RELEASED, GestureButton.BUTTON1), e -> {
+        if (chart != null) {
+          chart.setMouseZoomable(true);
+        }
+        if (currentlyDraggedMarker != null) {
+          // set value of current marker
+          logger.info("Marker dragging ended at " + currentlyDraggedMarker.getValue());
+          int index = markers.indexOf(currentlyDraggedMarker);
+          double value = e.getCoordinates().getX();
+          setValue(index, value);
+          //
+          currentlyDraggedMarker = null;
+        }
+      }));
 
       kovatsValuesChanged();
       pnChart.getChildren().clear();
@@ -822,7 +823,7 @@ public class KovatsIndexExtractionDialog extends EmptyParameterSetupDialogBase {
     if (!parseValues()) {
       logger.log(Level.WARNING,
           "Parsing of Kovats values failed (text box). Maybe you have to select more markers: "
-              + MIN_MARKERS + " (at least)");
+          + MIN_MARKERS + " (at least)");
       return;
     }
     final TreeMap<KovatsIndex, Double> values = parsedValues;

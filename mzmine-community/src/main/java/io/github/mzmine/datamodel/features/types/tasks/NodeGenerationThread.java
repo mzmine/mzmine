@@ -122,8 +122,7 @@ public class NodeGenerationThread extends AbstractTask {
               }
 
               try {
-                pair.parent().getChildren().clear();
-                pair.parent().getChildren().add(pair.child());
+                pair.parent().getChildren().setAll(pair.child());
               } catch (Exception e) {
                 logger.log(Level.INFO, e.getMessage(), e);
               }

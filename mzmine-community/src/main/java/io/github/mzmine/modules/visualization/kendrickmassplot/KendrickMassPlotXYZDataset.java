@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemFeatureProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -52,7 +52,7 @@ import org.jfree.data.xy.AbstractXYZDataset;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Task,
-    XYZBubbleDataset, XYItemObjectProvider<FeatureListRow> {
+    XYZBubbleDataset, XYItemFeatureProvider {
   // TODO replace with getTask method or AbstractTaskXYZDataset
 
   private static final Logger logger = Logger.getLogger(KendrickMassPlotXYZDataset.class.getName());
@@ -371,7 +371,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     double kendrickMassChargeAndDivisorDependent = calculateKendrickMassChargeAndDivisorDependent(
         mz, kendrickMassBase, charge, divisor);
     return Math.round(kendrickMassChargeAndDivisorDependent)
-        - kendrickMassChargeAndDivisorDependent;
+           - kendrickMassChargeAndDivisorDependent;
   }
 
   private double calculateRemainderOfKendrickMassChargeAndDivisorDependent(double mz,
@@ -462,10 +462,11 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
   }
 
   @Override
-  public FeatureListRow getItemObject(int item) {
+  public FeatureListRow getRow(final int item) {
     if (item < selectedRows.length) {
       return selectedRows[item];
     }
     return null;
   }
+
 }

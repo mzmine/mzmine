@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,6 +49,10 @@ public class FxTexts {
     return styledText(content, Styles.ITALIC.getStyleClass());
   }
 
+  public static Text boldTitle(String content) {
+    return styledText(content, Styles.BOLD_TITLE);
+  }
+
   public static Text styledText(String content, String styleClass) {
     final Text text = new Text(content);
     text.getStyleClass().add(styleClass);
@@ -56,18 +60,17 @@ public class FxTexts {
     return text;
   }
 
+  public static Text styledText(String name, Styles style) {
+    return styledText(name, style.getStyleClass());
+  }
+
   public static Text hyperlinkText(String link) {
-    final Text text = new Text(link);
-    text.getStyleClass().add("hyperlink");
-    text.setOnMouseReleased(_ -> DesktopService.getDesktop().openWebPage(link));
-    return text;
+    return hyperlinkText(link, link);
   }
 
   public static Text hyperlinkText(String content, String link) {
     final Text text = new Text(content);
-    text.getStyleClass().add("hyperlink");
-    text.setOnMouseReleased(_ -> DesktopService.getDesktop().openWebPage(link));
-    return text;
+    return hyperlinkText(text, link);
   }
 
   public static Text hyperlinkText(Text text, String link) {

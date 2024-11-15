@@ -27,7 +27,6 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.ImageType;
@@ -57,18 +56,12 @@ import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.geometry.Point2D;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.annotations.XYImageAnnotation;
 import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.entity.XYItemEntity;
-import org.jfree.chart.fx.interaction.ChartMouseEventFX;
-import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 
@@ -80,14 +73,13 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
   private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
   private RegionSelectionListener currentRegionListener = null;
   private XYShapeAnnotation currentRegionAnnotation;
-  private XYImageAnnotation currentImageAnnotation;
-  private java.awt.geom.Rectangle2D imageBounds;
 
 
   public KendrickMassPlotChart(String title, String xAxisLabel, String yAxisLabel,
       String colorScaleLabel, KendrickMassPlotXYZDataset dataset) {
     super(ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
         PlotOrientation.VERTICAL, false, true, true));
+
     setStickyZeroRangeAxis(false);
     this.colorScaleLabel = colorScaleLabel;
 
@@ -112,94 +104,112 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
     getChart().addSubtitle(legend);
     this.getChart().getXYPlot().setRenderer(renderer);
 
-    addChartMouseListener(new ChartMouseListenerFX() {
-      @Override
-      public void chartMouseClicked(ChartMouseEventFX event) {
-      }
+//    getMouseAdapter().addGestureHandler(
+//        new ChartGestureHandler(new ChartGesture(Entity.XY_ITEM, Event.ENTERED), e -> {
+//          if (e.getEntity() instanceof XYItemEntity xy) {
+//            if (xy.getDataset() instanceof ColoredXYDataset data) {
+//              if (data.getValueProvider() instanceof XYItemFeatureProvider provider) {
+//                var row = provider.getItemObject(xy.getItem());
+//                // always set even if null - will automatically show and hide
+//                infoPane.setRow(row);
+//                if (row != null) {
+//                  createAndAddAnnotation(itemEntity, itemIndex, seriesIndex, xValue, yValue, plot,
+//                      screenX, screenY);
+//                }
+//              }
+//            }
+//          }
+//        }));
 
-      @Override
-      public void chartMouseMoved(ChartMouseEventFX event) {
-        handleMouseMovement(event);
-      }
-
-      private void handleMouseMovement(ChartMouseEventFX event) {
-        int displayTolerance = 30;
-        int removeTolerance = 50;
-
-        if (event.getEntity() instanceof XYItemEntity) {
-          XYItemEntity itemEntity = (XYItemEntity) event.getEntity();
-          int seriesIndex = itemEntity.getSeriesIndex();
-          int itemIndex = itemEntity.getItem();
-          XYPlot plot = getChart().getXYPlot();
-
-          double xValue = itemEntity.getDataset().getXValue(seriesIndex, itemIndex);
-          double yValue = itemEntity.getDataset().getYValue(seriesIndex, itemIndex);
-
-          Rectangle2D dataArea = getCanvas().getRenderingInfo().getPlotInfo().getDataArea();
-
-          double screenX = plot.getDomainAxis()
-              .valueToJava2D(xValue, dataArea, plot.getDomainAxisEdge());
-          double screenY = plot.getRangeAxis()
-              .valueToJava2D(yValue, dataArea, plot.getRangeAxisEdge());
-
-          Point2D canvasScreenPosition = getCanvas().localToScreen(0, 0);
-
-          double localMouseX = event.getTrigger().getScreenX() - canvasScreenPosition.getX();
-          double localMouseY = event.getTrigger().getScreenY() - canvasScreenPosition.getY();
-
-          double distance = Math.sqrt(
-              Math.pow(screenX - localMouseX, 2) + Math.pow(screenY - localMouseY, 2));
-
-          // If mouse is within the display tolerance, show or update the annotation
-          if (distance <= displayTolerance || (imageBounds != null && imageBounds.contains(
-              localMouseX, localMouseY))) {
-            if (currentImageAnnotation == null) {
-              createAndAddAnnotation(itemEntity, itemIndex, seriesIndex, xValue, yValue, plot,
-                  screenX, screenY);
-            }
-          }
-          // If mouse is outside the remove tolerance and not within image bounds, remove the annotation
-          else if (distance > removeTolerance && currentImageAnnotation != null && (
-              imageBounds == null || !imageBounds.contains(localMouseX, localMouseY))) {
-            plot.removeAnnotation(currentImageAnnotation);
-            currentImageAnnotation = null;
-            imageBounds = null;
-          }
-        } else {
-          // Clear annotation if not hovering over a data point
-          if (currentImageAnnotation != null) {
-            getChart().getXYPlot().removeAnnotation(currentImageAnnotation);
-            currentImageAnnotation = null;
-            imageBounds = null;
-          }
-        }
-      }
-
-      private void createAndAddAnnotation(XYItemEntity itemEntity, int itemIndex, int seriesIndex,
-          double xValue, double yValue, XYPlot plot, double screenX, double screenY) {
-        // Create and add the annotation if it's not already displayed
-        KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) itemEntity.getDataset();
-        FeatureListRow row = dataset.getItemObject(itemIndex);
-
-        if (row != null) {
-          KendrickToolTipGenerator generator = new KendrickToolTipGenerator("m/z", "Retention Time",
-              "Intensity", "Bubble Size");
-          String tooltipText = generator.generateToolTip(itemEntity.getDataset(), seriesIndex,
-              itemIndex);
-
-          BufferedImage image = createTooltipImageWithChart(tooltipText,
-              (ModularFeatureListRow) row);
-
-          currentImageAnnotation = new XYImageAnnotation(xValue, yValue, image);
-          plot.addAnnotation(currentImageAnnotation);
-
-          imageBounds = new Rectangle2D.Double(screenX - image.getWidth() / 2,
-              screenY - image.getHeight(), image.getWidth(), image.getHeight());
-        }
-      }
-
-    });
+//    addChartMouseListener(new ChartMouseListenerFX() {
+//      @Override
+//      public void chartMouseClicked(ChartMouseEventFX event) {
+//      }
+//
+//      @Override
+//      public void chartMouseMoved(ChartMouseEventFX event) {
+//        handleMouseMovement(event);
+//      }
+//
+//      private void handleMouseMovement(ChartMouseEventFX event) {
+//        int displayTolerance = 30;
+//        int removeTolerance = 50;
+//        if (true) { // TODO remove
+//          return; // blank out for now
+//        }
+//        if (event.getEntity() instanceof XYItemEntity itemEntity) {
+//          int seriesIndex = itemEntity.getSeriesIndex();
+//          int itemIndex = itemEntity.getItem();
+//          XYPlot plot = getChart().getXYPlot();
+//
+//          double xValue = itemEntity.getDataset().getXValue(seriesIndex, itemIndex);
+//          double yValue = itemEntity.getDataset().getYValue(seriesIndex, itemIndex);
+//
+//          Rectangle2D dataArea = getCanvas().getRenderingInfo().getPlotInfo().getDataArea();
+//
+//          double screenX = plot.getDomainAxis()
+//              .valueToJava2D(xValue, dataArea, plot.getDomainAxisEdge());
+//          double screenY = plot.getRangeAxis()
+//              .valueToJava2D(yValue, dataArea, plot.getRangeAxisEdge());
+//
+//          Point2D canvasScreenPosition = getCanvas().localToScreen(0, 0);
+//
+//          double localMouseX = event.getTrigger().getScreenX() - canvasScreenPosition.getX();
+//          double localMouseY = event.getTrigger().getScreenY() - canvasScreenPosition.getY();
+//
+//          double distance = Math.sqrt(
+//              Math.pow(screenX - localMouseX, 2) + Math.pow(screenY - localMouseY, 2));
+//
+//          // If mouse is within the display tolerance, show or update the annotation
+//          if (distance <= displayTolerance || (imageBounds != null && imageBounds.contains(
+//              localMouseX, localMouseY))) {
+//            if (currentImageAnnotation == null) {
+//              createAndAddAnnotation(itemEntity, itemIndex, seriesIndex, xValue, yValue, plot,
+//                  screenX, screenY);
+//            }
+//          }
+//          // If mouse is outside the remove tolerance and not within image bounds, remove the annotation
+//          else if (distance > removeTolerance && currentImageAnnotation != null && (
+//              imageBounds == null || !imageBounds.contains(localMouseX, localMouseY))) {
+//            plot.removeAnnotation(currentImageAnnotation);
+//            currentImageAnnotation = null;
+//            imageBounds = null;
+//          }
+//        } else {
+//          // Clear annotation if not hovering over a data point
+//          if (currentImageAnnotation != null) {
+//            getChart().getXYPlot().removeAnnotation(currentImageAnnotation);
+//            currentImageAnnotation = null;
+//            imageBounds = null;
+//          }
+//        }
+//      }
+//
+//      private void createAndAddAnnotation(XYItemEntity itemEntity, int itemIndex, int seriesIndex,
+//          double xValue, double yValue, XYPlot plot, double screenX, double screenY) {
+//        // Create and add the annotation if it's not already displayed
+//        KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) itemEntity.getDataset();
+//        FeatureListRow row = dataset.getItemObject(itemIndex);
+//
+//        if (row != null) {
+//          KendrickToolTipGenerator generator = new KendrickToolTipGenerator("m/z", "Retention Time",
+//              "Intensity", "Bubble Size");
+//          String tooltipText = generator.generateToolTip(itemEntity.getDataset(), seriesIndex,
+//              itemIndex);
+//
+//          XYAnnotation currentImageAnnotation = new XYImageAnnotation(xValue, yValue, image);
+//          plot.addAnnotation(currentImageAnnotation);
+//          getChart().addSubtitle(new CompositeTitle(new BlockContainer()));
+//          plot.addAnnotation(new TextAnnotation(xValue, yValue, tooltipText));
+//
+//          imageBounds = new Rectangle2D.Double(screenX - image.getWidth() / 2,
+//              screenY - image.getHeight(), image.getWidth(), image.getHeight());
+//        }
+//      }
+//
+//    });
   }
+
   private PaintScaleLegend generateLegend(@NotNull PaintScale scale) {
     Paint axisPaint = this.getChart().getXYPlot().getDomainAxis().getAxisLinePaint();
     Font axisLabelFont = this.getChart().getXYPlot().getDomainAxis().getLabelFont();
@@ -358,8 +368,8 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
       // in dark mode chart background is transparent
       g2d.setColor(new Color(46, 46, 46));
     } else {
-    g2d.setColor(
-        (Color) ConfigService.getConfiguration().getDefaultChartTheme().getChartBackgroundPaint());
+      g2d.setColor((Color) ConfigService.getConfiguration().getDefaultChartTheme()
+          .getChartBackgroundPaint());
     }
     g2d.fill(new Rectangle2D.Double(0, 0, width, height));
 
