@@ -168,7 +168,6 @@ public class LipidAnnotationUtils {
           MatchedLipid matchedLipid = new MatchedLipid(lipidIon.lipidAnnotation(),
               row.getAverageMZ(), lipidIon.ionizationType(), null, 0.0,
               MatchedLipidStatus.UNCONFIRMED);
-          matchedLipid.setComment("Warning, this annotation is based on MS1 mass accuracy only!");
           possibleRowAnnotations.add(matchedLipid);
         }
       }
@@ -212,8 +211,7 @@ public class LipidAnnotationUtils {
               lipidCategory);
           MatchedLipid matchedSpeciesLevelLipid = matchedLipidFactory.validateSpeciesLevelAnnotation(
               row.getAverageMZ(), lipid, annotatedFragments, dataPoints, minMsMsScore,
-              mzToleranceMS2,
-              ionization);
+              mzToleranceMS2, ionization);
           if (matchedSpeciesLevelLipid != null) {
             matchedLipidsInScan.add(matchedSpeciesLevelLipid);
           }
@@ -222,8 +220,7 @@ public class LipidAnnotationUtils {
               lipidCategory);
           Set<MatchedLipid> molecularSpeciesLevelMatchedLipids = matchedMolecularSpeciesLipidFactory.predictMolecularSpeciesLevelMatches(
               annotatedFragments, lipid, row.getAverageMZ(), dataPoints, minMsMsScore,
-              mzToleranceMS2,
-              ionization);
+              mzToleranceMS2, ionization);
           if (molecularSpeciesLevelMatchedLipids != null
               && !molecularSpeciesLevelMatchedLipids.isEmpty()) {
             //Add species level fragments to score

@@ -28,17 +28,16 @@ package io.github.mzmine.modules.visualization.lipidannotationsummary;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipidStatus;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Accordion;
@@ -60,7 +59,6 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
   private final ParameterSet parameters;
   private final FeatureList featureList;
   private final ObservableList<FeatureListRow> featureListRows;
-  private List<FeatureListRow> rowsWithLipidID;
   private BorderPane lipidIDsPane;
   private BorderPane bestLipidIDsPane;
 
@@ -99,7 +97,6 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
     SplitPane splitPane = new SplitPane(lipidIDsPane, bestLipidIDsPane);
     splitPane.setOrientation(Orientation.HORIZONTAL);
     mainPane.setCenter(splitPane);
-    rowsWithLipidID = featureListRows.stream().filter(this::rowHasMatchedLipidSignals).toList();
     buildLLipidIDSunburstPlot();
     this.setContent(mainPane);
   }
@@ -158,36 +155,21 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
   }
 
   private boolean rowHasMatchedLipidSignals(FeatureListRow row) {
-    List<MatchedLipid> matches = row.get(LipidMatchListType.class);
-    return matches != null && !matches.isEmpty();
+    List<MatchedLipid> matches = row.getLipidMatches();
+    return !matches.isEmpty();
   }
 
   private List<MatchedLipid> extractMatchedLipids(List<FeatureListRow> rowsWithLipidID) {
-    List<MatchedLipid> matchedLipids = new ArrayList<>();
-    for (FeatureListRow featureListRow : rowsWithLipidID) {
-      if (featureListRow instanceof ModularFeatureListRow) {
-        List<MatchedLipid> lipidMatches = featureListRow.get(LipidMatchListType.class);
-        if (lipidMatches != null) {
-          matchedLipids.addAll(lipidMatches.stream().filter(
-              matchedLipid -> matchedLipid.getStatus() == MatchedLipidStatus.MATCHED
-                  || matchedLipid.getStatus() == MatchedLipidStatus.UNCONFIRMED).toList());
-        }
-      }
-    }
-    return matchedLipids;
+    return rowsWithLipidID.stream().flatMap(row -> row.getLipidMatches().stream()).toList();
   }
 
   private List<MatchedLipid> extractBestLipidMatches(List<FeatureListRow> rowsWithLipidID) {
-    List<MatchedLipid> bestLipidMatches = new ArrayList<>();
-    for (FeatureListRow featureListRow : rowsWithLipidID) {
-      if (featureListRow instanceof ModularFeatureListRow) {
-        List<MatchedLipid> lipidMatches = featureListRow.get(LipidMatchListType.class);
-        if (lipidMatches != null) {
-          bestLipidMatches.add(featureListRow.get(LipidMatchListType.class).getFirst());
-        }
+    return rowsWithLipidID.stream().<MatchedLipid>mapMulti((row, consumer) -> {
+      var matches = row.getLipidMatches();
+      if (!matches.isEmpty()) {
+        consumer.accept(matches.getFirst());
       }
-    }
-    return bestLipidMatches;
+    }).toList();
   }
 
   private Pane createTitlePane(List<MatchedLipid> matchedLipids, String lipidDescription) {
@@ -208,9 +190,9 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
   private Pane createFilteredPane(LipidAnnotationSunburstPlot plot,
       List<MatchedLipid> originalLipids, String lipidDescription) {
 
-    ComboBox<String> filterComboBox = new ComboBox<>();
-    filterComboBox.getItems().addAll("All", "Confirmed (MS2)", "Unconfirmed (only MS1)");
-    filterComboBox.setValue("All");
+    ComboBox<AnnotationFilter> filterComboBox = new ComboBox<>();
+    filterComboBox.getItems().addAll(AnnotationFilter.values());
+    filterComboBox.setValue(AnnotationFilter.ALL);
 
     // Create the title pane and get its label
     Pane titlePane = createTitlePane(originalLipids, lipidDescription);
@@ -239,26 +221,22 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
     Accordion accordion = new Accordion(filterPane);
 
     // Set action for combo box and checkboxes to update the plot based on filter and options
-    filterComboBox.setOnAction(
-        event -> updatePlot(plotPane, titleLabel, originalLipids, filterComboBox, lipidDescription,
-            includeCategoryCheckbox, includeMainClassCheckbox, includeSubClassCheckbox,
-            includeSpeciesCheckbox));
-    includeCategoryCheckbox.setOnAction(
-        event -> updatePlot(plotPane, titleLabel, originalLipids, filterComboBox, lipidDescription,
-            includeCategoryCheckbox, includeMainClassCheckbox, includeSubClassCheckbox,
-            includeSpeciesCheckbox));
-    includeMainClassCheckbox.setOnAction(
-        event -> updatePlot(plotPane, titleLabel, originalLipids, filterComboBox, lipidDescription,
-            includeCategoryCheckbox, includeMainClassCheckbox, includeSubClassCheckbox,
-            includeSpeciesCheckbox));
-    includeSubClassCheckbox.setOnAction(
-        event -> updatePlot(plotPane, titleLabel, originalLipids, filterComboBox, lipidDescription,
-            includeCategoryCheckbox, includeMainClassCheckbox, includeSubClassCheckbox,
-            includeSpeciesCheckbox));
-    includeSpeciesCheckbox.setOnAction(
-        event -> updatePlot(plotPane, titleLabel, originalLipids, filterComboBox, lipidDescription,
-            includeCategoryCheckbox, includeMainClassCheckbox, includeSubClassCheckbox,
-            includeSpeciesCheckbox));
+//    PropertyUtils.onChange(
+//        updatePlot(plotPane, titleLabel, originalLipids, filterComboBox, lipidDescription,
+//            includeCategoryCheckbox, includeMainClassCheckbox, includeSubClassCheckbox,
+//            includeSpeciesCheckbox),//
+//        filterComboBox.getSelectionModel().selectedItemProperty(),
+//        includeCategoryCheckbox.selectedProperty(), includeMainClassCheckbox.selectedProperty(),
+//        includeSubClassCheckbox.selectedProperty(), includeSpeciesCheckbox.selectedProperty());
+
+    EventHandler<ActionEvent> action = _ -> updatePlot(plotPane, titleLabel, originalLipids,
+        filterComboBox, lipidDescription, includeCategoryCheckbox, includeMainClassCheckbox,
+        includeSubClassCheckbox, includeSpeciesCheckbox);
+    filterComboBox.setOnAction(action);
+    includeCategoryCheckbox.setOnAction(action);
+    includeMainClassCheckbox.setOnAction(action);
+    includeSubClassCheckbox.setOnAction(action);
+    includeSpeciesCheckbox.setOnAction(action);
 
     // Layout structure: VBox to stack title, accordion, and plot
     VBox layout = new VBox();
@@ -272,13 +250,13 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
   }
 
   private void updatePlot(BorderPane plotPane, Label titleLabel, List<MatchedLipid> originalLipids,
-      ComboBox<String> filterComboBox, String lipidDescription, CheckBox includeCategoryCheckbox,
-      CheckBox includeMainClassCheckbox, CheckBox includeSubClassCheckbox,
-      CheckBox includeSpeciesCheckbox) {
+      ComboBox<AnnotationFilter> filterComboBox, String lipidDescription,
+      CheckBox includeCategoryCheckbox, CheckBox includeMainClassCheckbox,
+      CheckBox includeSubClassCheckbox, CheckBox includeSpeciesCheckbox) {
 
     // Get filter and checkbox states
-    String filter = filterComboBox.getValue();
-    List<MatchedLipid> filteredLipids = filterLipids(new ArrayList<>(originalLipids), filter);
+    AnnotationFilter filter = filterComboBox.getValue();
+    List<MatchedLipid> filteredLipids = filter.filterLipids(new ArrayList<>(originalLipids));
 
     boolean includeCategory = includeCategoryCheckbox.isSelected();
     boolean includeMainClass = includeMainClassCheckbox.isSelected();
@@ -294,15 +272,27 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
     titleLabel.setText(filteredLipids.size() + " " + lipidDescription);
   }
 
-  private List<MatchedLipid> filterLipids(List<MatchedLipid> lipids, String filter) {
-    return switch (filter) {
-      case "Confirmed" -> lipids.stream().filter(
-          lipid -> lipid.getStatus() == MatchedLipidStatus.MATCHED
-              || lipid.getStatus() == MatchedLipidStatus.ESTIMATED).toList();
-      case "Unconfirmed" ->
-          lipids.stream().filter(lipid -> lipid.getStatus() == MatchedLipidStatus.UNCONFIRMED)
-              .toList();
-      default -> new ArrayList<>(lipids);  // "All" - include all statuses without filtering
-    };
+
+  enum AnnotationFilter {
+    ALL, CONFIRMED_BY_MS2, UNCONFIRMED;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case ALL -> "All";
+        case UNCONFIRMED -> "Unconfirmed (MS1-only)";
+        case CONFIRMED_BY_MS2 -> "Confirmed (by MS2)";
+      };
+    }
+
+    public List<MatchedLipid> filterLipids(List<MatchedLipid> lipids) {
+      return switch (this) {
+        case ALL -> new ArrayList<>(lipids);
+        case CONFIRMED_BY_MS2 ->
+            lipids.stream().filter(lipid -> lipid.getStatus().isConfirmedByMS2()).toList();
+        case UNCONFIRMED ->
+            lipids.stream().filter(lipid -> !lipid.getStatus().isConfirmedByMS2()).toList();
+      };
+    }
   }
 }
