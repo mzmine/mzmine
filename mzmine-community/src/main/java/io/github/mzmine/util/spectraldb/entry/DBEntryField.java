@@ -27,7 +27,9 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.DatasetIdType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
@@ -212,26 +214,42 @@ public enum DBEntryField {
   /**
    * @return enum field for a DataType or {@link #UNSPECIFIED} if no clear mapping exists
    */
+  public static @NotNull DBEntryField fromDataTypeClass(@NotNull Class<? extends DataType> type) {
+    return fromDataType(DataTypes.get(type));
+  }
+
+  /**
+   * @return enum field for a DataType or {@link #UNSPECIFIED} if no clear mapping exists
+   */
   public static @NotNull DBEntryField fromDataType(@NotNull DataType type) {
     return switch (type) {
-      case BestScanNumberType ignored -> SCAN_NUMBER;
-      case PrecursorMZType ignored -> PRECURSOR_MZ;
-      case MZType ignored -> PRECURSOR_MZ;
-      case NeutralMassType ignored -> EXACT_MASS;
-      case IDType ignored -> FEATURE_ID;
-      case ChargeType ignored -> CHARGE;
-      case FormulaType ignored -> FORMULA;
-      case InChIStructureType ignored -> INCHI;
-      case InChIKeyStructureType ignored -> INCHIKEY;
-      case SmilesStructureType ignored -> SMILES;
-      case IonTypeType ignored -> ION_TYPE;
-      case CompoundNameType ignored -> NAME;
-      case RTType ignored -> RT;
-      case CCSType ignored -> CCS;
-      case UsiType ignored -> USI;
-      case SplashType ignored -> SPLASH;
+      case BestScanNumberType _ -> SCAN_NUMBER;
+      case PrecursorMZType _ -> PRECURSOR_MZ;
+      case MZType _ -> PRECURSOR_MZ;
+      case NeutralMassType _ -> EXACT_MASS;
+      case IDType _ -> FEATURE_ID;
+      case ChargeType _ -> CHARGE;
+      case FormulaType _ -> FORMULA;
+      case InChIStructureType _ -> INCHI;
+      case InChIKeyStructureType _ -> INCHIKEY;
+      case SmilesStructureType _ -> SMILES;
+      case IonTypeType _ -> ION_TYPE;
+      case CompoundNameType _ -> NAME;
+      case RTType _ -> RT;
+      case CCSType _ -> CCS;
+      case UsiType _ -> USI;
+      case SplashType _ -> SPLASH;
       case HeightType _ -> FEATURE_MS1_HEIGHT;
       case RelativeHeightType _ -> FEATURE_MS1_REL_HEIGHT;
+      case CommentType _ -> DBEntryField.COMMENT;
+      case ClassyFireSuperclassType _ -> DBEntryField.CLASSYFIRE_SUPERCLASS;
+      case ClassyFireClassType _ -> DBEntryField.CLASSYFIRE_CLASS;
+      case ClassyFireSubclassType _ -> DBEntryField.CLASSYFIRE_SUBCLASS;
+      case ClassyFireParentType _ -> DBEntryField.CLASSYFIRE_PARENT;
+      case NPClassifierSuperclassType _ -> DBEntryField.NPCLASSIFIER_SUPERCLASS;
+      case NPClassifierClassType _ -> DBEntryField.NPCLASSIFIER_CLASS;
+      case NPClassifierPathwayType _ -> DBEntryField.NPCLASSIFIER_PATHWAY;
+//        case SynonymType _ -> DBEntryField.SYNONYM;
       default -> UNSPECIFIED;
     };
   }

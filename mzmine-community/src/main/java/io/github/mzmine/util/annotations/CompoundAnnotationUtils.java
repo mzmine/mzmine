@@ -32,9 +32,21 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.util.ArrayUtils;
@@ -42,6 +54,8 @@ import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.collections.SortOrder;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.util.Collection;
 import java.util.Comparator;
@@ -53,6 +67,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CompoundAnnotationUtils {
 
@@ -198,6 +213,46 @@ public class CompoundAnnotationUtils {
 
   public static void calculateBoundTypes(CompoundDBAnnotation annotation, FeatureListRow row) {
     ConnectedTypeCalculation.LIST.forEach(calc -> calc.calculateIfAbsent(row, annotation));
+  }
+
+  /**
+   * Get value from annotation by {@link DataType} key. {@link SpectralDBAnnotation} currently does
+   * not use DataTypes, but {@link DBEntryField#fromDataTypeClass(Class)} allows mapping between the
+   * keys.
+   *
+   * @param annotation to extract value from
+   * @param type       key to extract value
+   * @param <T>        Type of value
+   * @return The mapped value for this annotation and key or null if there is no mapping.
+   */
+  public static <T> @Nullable T getTypeValue(@NotNull FeatureAnnotation annotation,
+      @NotNull Class<? extends DataType<T>> type) {
+    return switch (annotation) {
+      case CompoundDBAnnotation db -> db.get(type);
+      case SpectralDBAnnotation db ->
+          db.getEntry().getOrElse(DBEntryField.fromDataTypeClass(type), null);
+//      Matched lipids currently uses the default case.
+//      case MatchedLipid db -> ;
+      default -> {
+        DataType<T> dataType = DataTypes.get(type);
+        yield (T) switch (dataType) {
+          case PrecursorMZType _, MZType _ -> annotation.getPrecursorMZ();
+          case SmilesStructureType _ -> annotation.getSmiles();
+          case CompoundNameType _ -> annotation.getCompoundName();
+          case IonTypeType _ -> annotation.getAdductType();
+          case FormulaType _ -> annotation.getFormula();
+          case InChIStructureType _ -> annotation.getInChI();
+          case InChIKeyStructureType _ -> annotation.getInChIKey();
+          case MolecularStructureType _ -> annotation.getStructure();
+          case CCSType _ -> annotation.getCCS();
+          case MobilityType _ -> annotation.getMobility();
+          case ScoreType _ -> annotation.getScore();
+          case RTType _ -> annotation.getRT();
+          case DatabaseNameType _ -> annotation.getDatabase();
+          default -> throw new IllegalStateException("Unexpected value: " + dataType);
+        };
+      }
+    };
   }
 
   /**
