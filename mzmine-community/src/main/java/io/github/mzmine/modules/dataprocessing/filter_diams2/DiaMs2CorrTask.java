@@ -532,6 +532,10 @@ public class DiaMs2CorrTask extends AbstractTask {
       final double numIsolationWindows = isolationWindowScanMap.size();
       double finishedIsolationWindows = 0;
 
+      final long framesToMerge = isolationWindowScanMap.entrySet().stream().mapToLong(e -> e.getValue().size())
+          .sum();
+      long mergedFrames = 0;
+
       for (Entry<IsolationWindow, List<Scan>> entry : isolationWindowScanMap.entrySet()) {
         final IsolationWindow isolationWindow = entry.getKey();
         if (entry.getValue().size() < minCorrPoints) {
@@ -563,9 +567,10 @@ public class DiaMs2CorrTask extends AbstractTask {
               scan.getInjectionTime());
           newFrame.addMassList(new ScanPointerMassList(newFrame));
           windowFile.addScan(newFrame);
+
+          isolationWindowMergingProgress = (double) (++mergedFrames) / framesToMerge;
         }
 
-        isolationWindowMergingProgress = (++finishedIsolationWindows) / numIsolationWindows;
         /*logger.finest(
             "File: %s - Finished merging isolation window %s (%.0f/%.0f)".formatted(file.getName(),
                 isolationWindow.toString(), finishedIsolationWindows, numIsolationWindows));*/
