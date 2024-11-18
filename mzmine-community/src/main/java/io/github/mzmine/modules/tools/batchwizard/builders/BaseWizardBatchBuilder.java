@@ -82,6 +82,7 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpe
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingOptions;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor.NoPrecursorCosineSpectralNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
@@ -1147,27 +1148,33 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         param));
   }
 
+  /**
+   * @param noPrecursor no precursor matching like in GC-EI-MS
+   */
   protected void makeAndAddSpectralNetworkingSteps(final BatchQueue q, final boolean isExportActive,
-      final File exportPath) {
-    boolean noPrecursor = false;
+      final File exportPath, final boolean noPrecursor) {
     // NETWORKING
     ParameterSet mainParams = MZmineCore.getConfiguration()
         .getModuleParameters(MainSpectralNetworkingModule.class).cloneParameterSet();
     mainParams.setParameter(MainSpectralNetworkingParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
 
-    mainParams.setParameter(MainSpectralNetworkingParameters.algorithms,
-        SpectralNetworkingOptions.MODIFIED_COSINE);
+    var algorithm = noPrecursor ? SpectralNetworkingOptions.COSINE_NO_PRECURSOR
+        : SpectralNetworkingOptions.MODIFIED_COSINE;
+    mainParams.setParameter(MainSpectralNetworkingParameters.algorithms, algorithm);
     var param = mainParams.getEmbeddedParameterValue(MainSpectralNetworkingParameters.algorithms);
 
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MAX_MZ_DELTA, true, 500d);
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH, 4);
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY, 0.7);
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.ONLY_BEST_MS2_SCAN, true);
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE, mzTolScans);
-
-    param.getParameter(ModifiedCosineSpectralNetworkingParameters.signalFilters)
-        .getEmbeddedParameters().setValue(SpectralSignalFilter.DEFAULT);
+    switch (algorithm) {
+      case MODIFIED_COSINE -> {
+        ModifiedCosineSpectralNetworkingParameters.setAll(param, true, true, 500d, 4, 0.7,
+            mzTolScans, SpectralSignalFilter.DEFAULT);
+      }
+      case COSINE_NO_PRECURSOR -> {
+        NoPrecursorCosineSpectralNetworkingParameters.setAll(param, 4, 0.7, mzTolScans,
+            SpectralSignalFilter.DEFAULT_NO_PRECURSOR);
+      }
+      // MS2Deepscore hard to do without the file path or maybe just dont set the file path
+    }
 
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(MainSpectralNetworkingModule.class), mainParams);

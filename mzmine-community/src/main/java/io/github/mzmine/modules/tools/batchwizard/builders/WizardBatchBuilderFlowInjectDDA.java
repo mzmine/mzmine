@@ -93,7 +93,7 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     makeAndAddLipidAnnotationStep(q);
     // networking
     if (applySpectralNetworking) {
-      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
+      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
     }
 
     // export

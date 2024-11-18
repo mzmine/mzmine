@@ -26,10 +26,13 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor;
 
 
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingParameters;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -51,6 +54,15 @@ public class NoPrecursorCosineSpectralNetworkingParameters extends SimpleParamet
         ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE,
         ModifiedCosineSpectralNetworkingParameters.MIN_MATCH,
         ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY, signalFilters);
+  }
+
+  public static void setAll(final ParameterSet param, final int minMatched, final double minCosine,
+      final MZTolerance mzTol, final SpectralSignalFilter filter) {
+    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH, minMatched);
+    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY, minCosine);
+    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE, mzTol);
+    param.getParameter(NoPrecursorCosineSpectralNetworkingParameters.signalFilters)
+        .getEmbeddedParameters().setValue(filter);
   }
 
   @Override
