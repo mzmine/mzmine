@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -129,7 +129,11 @@ public enum NodeAtt implements GraphElementAttr {
       case ROW -> row;
       case FORMULA -> {
         List<ResultFormula> formulas = row.getFormulas();
-        yield formulas == null || formulas.isEmpty() ? null : formulas.get(0);
+        if (formulas == null || formulas.isEmpty()) {
+          // find annotation formula
+          yield extractFirstFeatureAnnotation(row, FeatureAnnotation::getFormula);
+        }
+        yield formulas.getFirst();
       }
       case ADDUCT -> row.getBestIonIdentity();
       case RT -> row.getAverageRT();
