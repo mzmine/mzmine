@@ -71,7 +71,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.collections.EmptyIndexRange;
@@ -91,6 +90,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -235,7 +235,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
   /**
    * @param correlatedMs2s A list of all correlated ms2 spectra.
-   * @return A new PseudoSpectrum, which only contains ions that appear in every individual pseudo
+   * @return A new PseudoSpectrum, which only containsMobility ions that appear in every individual pseudo
    * spectrum. Null if no ions were found or the list was empty.
    */
   private @Nullable PseudoSpectrum refineMs2s(
@@ -544,14 +544,14 @@ public class DiaMs2CorrTask extends AbstractTask {
         for (Scan scan : entry.getValue()) {
           if (!(scan instanceof Frame frame)) {
             logger.warning(
-                () -> "Data file %s is an ims file but also contains scans without ims dimension %s.".formatted(
+                () -> "Data file %s is an ims file but also containsMobility scans without ims dimension %s.".formatted(
                     file.getName(), ScanUtils.scanToString(scan)));
             continue;
           }
 
           // merge scans from isolation window only
           final List<MobilityScan> mobilityScansInWindow = frame.getMobilityScans().stream()
-              .filter(isolationWindow::contains).toList();
+              .filter(isolationWindow::containsMobility).toList();
           final double[][] mzIntensities = SpectraMerging.calculatedMergedMzsAndIntensities(
               mobilityScansInWindow, mzTolerance, IntensityMergingType.SUMMED,
               SpectraMerging.DEFAULT_CENTER_FUNCTION, null, null, 2);
@@ -722,14 +722,14 @@ public class DiaMs2CorrTask extends AbstractTask {
     final List<MergingIsolationWindow> mergingWindows = new ArrayList<>();
     for (Entry<IsolationWindow, List<Scan>> entry : sortedWindowEntries) {
       final IsolationWindow window = entry.getKey();
-      final List<MergingIsolationWindow> bestWindows = mergingWindows.stream()
-          .sorted(Comparator.comparingDouble(mw -> mw.window().overlap(window))).toList();
+      final Optional<MergingIsolationWindow> bestWindow = mergingWindows.stream()
+          .max(Comparator.comparingDouble(mw -> mw.window().overlap(window)));
 
-      if (bestWindows.isEmpty()) {
+      if (bestWindow.isEmpty()) {
         mergingWindows.add(new MergingIsolationWindow(window, entry.getValue()));
         continue;
       }
-      final MergingIsolationWindow best = bestWindows.getLast();
+      final MergingIsolationWindow best = bestWindow.get();
       final double overlap = best.window().overlap(window);
       if (overlap > 0.95) {
         best.setWindow(best.window().merge(window));

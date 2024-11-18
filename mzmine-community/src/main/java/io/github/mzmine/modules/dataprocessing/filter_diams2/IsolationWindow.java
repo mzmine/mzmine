@@ -25,30 +25,18 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_diams2;
 
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.util.RangeUtils;
 import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.data.RangeInfo;
 
 public record IsolationWindow(@Nullable Range<Double> mzIsolation,
                               @Nullable Range<Float> mobilityIsolation) {
 
-  boolean contains(MobilityScan scan) {
-//    if (mzIsolation != null) {
-//      if (!(scan.getMsMsInfo() instanceof MsMsInfo info)) {
-//        return false;
-//      }
-//      if (!(info.getIsolationWindow() instanceof Range<Double> range)) {
-//        return false;
-//      }
-//      if (!range.equals(mzIsolation)) {
-//        return false;
-//      }
-//    }
-
+  boolean containsMobility(MobilityScan scan) {
     if (mobilityIsolation != null && !mobilityIsolation.contains((float) scan.getMobility())) {
       return false;
     }
@@ -70,7 +58,6 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
   }
 
   /**
-   *
    * @return The lowest overlap (between 0 and 1) of the two isolation windows (mz and mobility).
    */
   double overlap(IsolationWindow other) {
@@ -98,7 +85,7 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
     if (mzIsolation == null && other.mzIsolation() == null) {
       overlap = Math.min(overlap, 1d);
     } else if (mzIsolation != null && other.mzIsolation() != null) {
-      if(mzIsolation.isConnected(other.mzIsolation())) {
+      if (mzIsolation.isConnected(other.mzIsolation())) {
         final Range<Double> intersection = mzIsolation.intersection(other.mzIsolation());
         overlap = Math.min(overlap, RangeUtils.rangeLength(intersection) / RangeUtils.rangeLength(
             mzIsolation.span(other.mzIsolation())));
@@ -115,11 +102,11 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
 
   IsolationWindow merge(IsolationWindow other) {
     Range<Double> mz = null;
-    if(mzIsolation != null && other.mzIsolation() != null) {
+    if (mzIsolation != null && other.mzIsolation() != null) {
       mz = mzIsolation.span(other.mzIsolation());
     }
     Range<Float> mobility = null;
-    if(mobilityIsolation != null && other.mobilityIsolation() != null) {
+    if (mobilityIsolation != null && other.mobilityIsolation() != null) {
       mobility = mobilityIsolation.span(other.mobilityIsolation());
     }
     return new IsolationWindow(mz, mobility);

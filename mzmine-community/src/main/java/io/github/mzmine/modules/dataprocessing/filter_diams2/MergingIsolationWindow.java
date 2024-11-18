@@ -1,18 +1,15 @@
 package io.github.mzmine.modules.dataprocessing.filter_diams2;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Scan;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 public final class MergingIsolationWindow {
 
   private IsolationWindow window;
-  private final @Nullable List<Scan> scans;
+  private final @NotNull List<Scan> scans;
 
-  public MergingIsolationWindow(IsolationWindow window, @Nullable List<Scan> scans) {
+  public MergingIsolationWindow(IsolationWindow window, @NotNull List<Scan> scans) {
     this.window = window;
     this.scans = scans;
   }
@@ -21,7 +18,7 @@ public final class MergingIsolationWindow {
     return window;
   }
 
-  public @Nullable List<Scan> scans() {
+  public @NotNull List<Scan> scans() {
     return scans;
   }
 
