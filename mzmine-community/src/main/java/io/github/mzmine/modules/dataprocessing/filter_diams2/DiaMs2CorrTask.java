@@ -164,12 +164,14 @@ public class DiaMs2CorrTask extends AbstractTask {
       final RawDataFile file = entry.getValue().getRawDataFile(0);
       // store feature data in TreeRangeMap, to query by m/z in ms2 spectra
       var ms2Flist = entry.getValue();
+      if (ms2Flist.isEmpty()) {
+        continue;
+      }
       final RangeMap<Double, IonTimeSeries<?>> ms2Eics = TreeRangeMap.create();
       ms2Flist.getRows().stream().map(row -> row.getFeature(file)).filter(Objects::nonNull)
           .sorted(Comparator.comparingDouble(Feature::getHeight).reversed()).forEach(
               feature -> ms2Eics.put(SpectraMerging.createNewNonOverlappingRange(ms2Eics,
-                  RangeUtils.max(feature.getRawDataPointsMZRange(),
-                      mzTolerance.getToleranceRange(feature.getMZ()))), feature.getFeatureData()));
+                  feature.getRawDataPointsMZRange()), feature.getFeatureData()));
       isoWindowEicsMap.put(entry.getKey(), ms2Eics);
     }
     return isoWindowEicsMap;
@@ -532,6 +534,9 @@ public class DiaMs2CorrTask extends AbstractTask {
 
       for (Entry<IsolationWindow, List<Scan>> entry : isolationWindowScanMap.entrySet()) {
         final IsolationWindow isolationWindow = entry.getKey();
+        if(entry.getValue().size() < minCorrPoints) {
+          continue;
+        }
         final IMSRawDataFileImpl windowFile = new IMSRawDataFileImpl(
             file.getName() + " %s".formatted(isolationWindow.toString()), null,
             getMemoryMapStorage());
