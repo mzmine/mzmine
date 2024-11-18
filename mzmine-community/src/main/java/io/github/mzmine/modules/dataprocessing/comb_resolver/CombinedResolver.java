@@ -171,64 +171,149 @@ public class CombinedResolver extends AbstractResolver {
     // calculate width with both endpoints indluded
     int peakWidth = rightIndex - leftIndex + 1;
     int extendedLeftIndex = Math.max(leftIndex - peakWidth, 0);
-    int extendedRightIndex = Math.min(rightIndex + 1 + peakWidth, intensity.length - 1);
+    int extendedRightIndex = Math.min(rightIndex + peakWidth, intensity.length - 1);
     // take a copy of the original range and an extended range to compare variance
-    double[] rangeIntensity = Arrays.copyOfRange(intensity, leftIndex, rightIndex + 1);
-    double[] extendedRangeIntensity = Arrays.copyOfRange(intensity, extendedLeftIndex,
-        extendedRightIndex);
+    double[] rangeIntensity = Arrays.copyOfRange(intensity, leftIndex, rightIndex);
+    double[] extendedRangeIntensityLeft = Arrays.copyOfRange(intensity, extendedLeftIndex,
+        leftIndex);
+    double[] extendedRangeIntensityRight = Arrays.copyOfRange(intensity,
+        Math.min(rightIndex + 1, extendedRightIndex), extendedRightIndex);
 
-    if (rangeIntensity.length == 0 || extendedRangeIntensity.length == 0) {
+    if (rangeIntensity.length == 0) {
       logger.fine("Can not calculate variance for width 0");
       return 0d;
     }
     // calculate the means for both ranges
-    double mean =
-        Arrays.stream(rangeIntensity).reduce((x, y) -> x + y).orElse(0.0) / rangeIntensity.length;
-    double extendedMean = Arrays.stream(extendedRangeIntensity).reduce((x, y) -> x + y).orElse(0.0)
-        / rangeIntensity.length;
+    double rangeMax = Arrays.stream(rangeIntensity).max().orElse(0);
+    double leftMax = Arrays.stream(extendedRangeIntensityLeft).max().orElse(0);
+    double rightMax = Arrays.stream(extendedRangeIntensityRight).max().orElse(0);
+    if (leftMax >= rangeMax) {
+      extendedLeftIndex = leftIndex;
+    }
+    if (rightMax >= rangeMax) {
+      extendedRightIndex = rightIndex;
+    }
+    int rangeLength = (rightIndex - leftIndex);
+    if (rangeLength <= 1) {
+      logger.fine("Range too arrow to calculate variance");
+      return 0d;
+    }
+    int extendedLength = (extendedRightIndex - extendedLeftIndex) - (rightIndex - leftIndex);
+    if (extendedLength <= 1) {
+      logger.fine("Extended range too narrow to calculate variance");
+      return 0d;
+    }
+    double mean = 0;
+    double variance = 0;
+    for (int i = leftIndex; i <= rightIndex; i++) {
+      mean += intensity[i] / rangeLength;
+    }
+    for (int i = leftIndex; i <= rightIndex; i++) {
+      variance += Math.pow(intensity[i] - mean, 2) / (rangeLength - 1);
+    }
+    double extendedMean = 0;
+    double extendedVariance = 0;
+    for (int i = extendedLeftIndex; i <= extendedRightIndex; i++) {
+      if (leftIndex <= i && i <= rightIndex) {
+        continue;
+      }
+      extendedMean += intensity[i] / extendedLength;
+    }
+    for (int i = extendedLeftIndex; i <= extendedRightIndex; i++) {
+      if (leftIndex <= i && i <= rightIndex) {
+        continue;
+      }
+      extendedVariance += Math.pow(intensity[i] - extendedMean, 2) / (extendedLength - 1);
+    }
 
-    // calculate both variances
-    double variance =
-        Arrays.stream(rangeIntensity).map(x -> Math.pow((x - mean), 2)).reduce((x, y) -> x + y)
-            .orElse(0.0) / rangeIntensity.length;
-    double extendedVariance =
-        Arrays.stream(extendedRangeIntensity).map(x -> Math.pow((x - mean), 2))
-            .reduce((x, y) -> x + y).orElse(0.0) / extendedRangeIntensity.length;
+    // double mean = Arrays.stream(rangeIntensity).reduce((x, y) -> x +
+    // y).orElse(0.0) / rangeIntensity.length;
+    // double extendedMean = Arrays.stream(extendedRangeIntensity).reduce((x, y) ->
+    // x + y).orElse(0.0)
+    // / rangeIntensity.length;
 
-    return variance / extendedVariance;
+    // // calculate both variances
+    // double variance = Arrays.stream(rangeIntensity).map(x -> Math.pow((x - mean),
+    // 2)).reduce((x, y) -> x + y)
+    // .orElse(0.0) / rangeIntensity.length;
+    // double extendedVariance = Arrays.stream(extendedRangeIntensity).map(x ->
+    // Math.pow((x - extendedMean), 2))
+    // .reduce((x, y) -> x + y).orElse(0.0) / extendedRangeIntensity.length;
+
+    return variance / (extendedVariance + 1e-5);
   }
 
   public double calculateZigZagIndex(double[] featureIntensity) {
+    if (featureIntensity.length == 0) {
+      return 0d;
+    }
     double zigZagSum = 0;
     for (int i = 1; i < featureIntensity.length - 1; i++) {
       zigZagSum += Math.pow(
           (2 * featureIntensity[i] - featureIntensity[i - 1] - featureIntensity[i + 1]), 2);
     }
-    // TODO implement baseline calculation
-    double baseline = 0;
+    double baseline = (featureIntensity[0] + featureIntensity[featureIntensity.length - 1]) / 2;
     double EPI = Arrays.stream(featureIntensity).max().orElse(0) - baseline;
     double zigZagIndex = zigZagSum / (featureIntensity.length * EPI);
     return zigZagIndex;
   }
 
-
   public double calculateSharpness(double[] featureIntensities) {
     if (featureIntensities.length < 2) {
-      return 0;
+      return 0d;
     }
     double peakIntensity = Arrays.stream(featureIntensities).max().orElse(0);
     int peakIndex = ArrayUtils.indexOf(peakIntensity, featureIntensities);
     double leftSharpness = 0;
     double rightSharpness = 0;
     for (int i = 1; i <= peakIndex; i++) {
+      if (featureIntensities[i - 1] == 0) {
+        continue;
+      }
       leftSharpness +=
           (featureIntensities[i] - featureIntensities[i - 1]) / featureIntensities[i - 1];
     }
     for (int i = peakIndex; i < featureIntensities.length - 1; i++) {
+      if (featureIntensities[i + 1] == 0) {
+        continue;
+      }
       rightSharpness +=
           (featureIntensities[i] - featureIntensities[i + 1]) / featureIntensities[i + 1];
     }
     return leftSharpness + rightSharpness;
+  }
+
+  public boolean checkEdgeTooClose(double[] time, double[] intensity, double left, double right) {
+    int leftIndex = ArrayUtils.indexOf(left, time);
+    int rightIndex = ArrayUtils.indexOf(right, time);
+    double maxIntensity = 0;
+    int peakIndex = leftIndex;
+    for (int i = leftIndex; i < rightIndex + 1; i++) {
+      if (intensity[i] > maxIntensity) {
+        maxIntensity = intensity[i];
+        peakIndex = i;
+      }
+    }
+    int len = time.length;
+    if (peakIndex < 4 || peakIndex > len - 4) {
+      return true;
+    }
+    return false;
+  }
+
+  public boolean isZero(double[] time, double[] intensity, double left, double right) {
+    if (left == right) {
+      return true;
+    }
+    int leftIndex = ArrayUtils.indexOf(left, time);
+    int rightIndex = ArrayUtils.indexOf(right, time);
+    for (int i = leftIndex; i < rightIndex + 1; i++) {
+      if (intensity[i] != 0) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @Override
@@ -263,7 +348,15 @@ public class CombinedResolver extends AbstractResolver {
       final double varianceRatio = getVarianceRatio(time, intensity, range.lowerEndpoint(),
           range.upperEndpoint());
       final double sharpness = calculateSharpness(featureIntensities);
-      validRanges.add(range);
+      if (isZero(time, intensity, range.lowerEndpoint(), range.upperEndpoint())) {
+        continue;
+      }
+      if (checkEdgeTooClose(time, intensity, range.lowerEndpoint(), range.upperEndpoint())) {
+        continue;
+      }
+      if (sharpness >= 1) {
+        validRanges.add(range);
+      }
       debug.add(new CombinedResolverResult(zigZagIndex, varianceRatio, 0d, sharpness, detectedBy));
     }
   }
