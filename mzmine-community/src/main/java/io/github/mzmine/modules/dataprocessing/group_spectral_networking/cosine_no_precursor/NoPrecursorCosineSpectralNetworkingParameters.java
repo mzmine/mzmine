@@ -23,41 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor;
 
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
+
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingParameters;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import io.github.mzmine.util.scans.similarity.Weights;
+import org.jetbrains.annotations.NotNull;
 
-public class MirrorScanParameters extends SimpleParameterSet {
+/**
+ * GC-EI-MS
+ *
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
+ */
+public class NoPrecursorCosineSpectralNetworkingParameters extends SimpleParameterSet {
 
-  public static final MZToleranceParameter mzTol = new MZToleranceParameter("m/z tolerance",
-      "Tolerance to match signals in both scans", 0.0025, 20);
 
-  public static final ComboParameter<Weights> weight = new ComboParameter<>("Weights",
-      "Weights for m/z and intensity", Weights.VALUES, Weights.SQRT);
-
-  public static final ParameterSetParameter<SignalFiltersParameters> signalFilters = new ParameterSetParameter<>(
+  public static final ParameterSetParameter<NoPrecursorSignalFiltersParameters> signalFilters = new ParameterSetParameter<>(
       "Signal filters", """
       Signal filters to limit the number of signals etc.
-      """, new SignalFiltersParameters());
+      """, new NoPrecursorSignalFiltersParameters());
 
-  /**
-   * Windows size and position
-   */
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
-
-  public MirrorScanParameters() {
-    super(mzTol, weight, signalFilters, windowSettings);
+  public NoPrecursorCosineSpectralNetworkingParameters() {
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
+        ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE,
+        ModifiedCosineSpectralNetworkingParameters.MIN_MATCH,
+        ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY, signalFilters);
   }
 
   @Override
-  public int getVersion() {
-    // changed to signal filters for version 2
-    return 2;
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
+
 }

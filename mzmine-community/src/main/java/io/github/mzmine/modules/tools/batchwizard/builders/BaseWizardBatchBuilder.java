@@ -271,8 +271,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     imsSmoothing = getValue(params, IonMobilityWizardParameters.smoothing);
     imsFwhm = getValue(params, IonMobilityWizardParameters.approximateImsFWHM);
     imsFwhmMobTolerance = new MobilityTolerance(imsFwhm.floatValue());
-    isNonTdfIms = Arrays.stream(dataFiles)
-        .map(RawDataFileTypeDetector::detectDataFileType)
+    isNonTdfIms = Arrays.stream(dataFiles).map(RawDataFileTypeDetector::detectDataFileType)
         .noneMatch(type -> type == RawDataFileType.BRUKER_TDF);
 
     // Imaging
@@ -1150,6 +1149,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
   protected void makeAndAddSpectralNetworkingSteps(final BatchQueue q, final boolean isExportActive,
       final File exportPath) {
+    boolean noPrecursor = false;
     // NETWORKING
     ParameterSet mainParams = MZmineCore.getConfiguration()
         .getModuleParameters(MainSpectralNetworkingModule.class).cloneParameterSet();
@@ -1284,12 +1284,12 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new LipidAnnotationChainParameters());
     param.setParameter(LipidAnnotationParameters.mzTolerance, mzTolInterSample);
     param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, true);
-      param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
-      param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
-      param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
+    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
+        .setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
+    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
+        .setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
+    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
+        .setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
     param.setParameter(LipidAnnotationParameters.advanced, false);
     var advanced = param.getEmbeddedParameterValue(LipidAnnotationParameters.advanced);
     advanced.setParameter(AdvancedLipidAnnotationParameters.IONS_TO_IGNORE,
