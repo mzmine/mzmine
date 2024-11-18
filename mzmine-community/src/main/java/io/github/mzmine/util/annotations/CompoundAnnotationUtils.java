@@ -249,7 +249,7 @@ public class CompoundAnnotationUtils {
           case ScoreType _ -> annotation.getScore();
           case RTType _ -> annotation.getRT();
           case DatabaseNameType _ -> annotation.getDatabase();
-          default -> throw new IllegalStateException("Unexpected value: " + dataType);
+          default -> null;
         };
       }
     };
