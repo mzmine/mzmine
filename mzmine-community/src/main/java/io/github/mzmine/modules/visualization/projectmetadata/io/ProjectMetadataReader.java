@@ -193,9 +193,8 @@ public class ProjectMetadataReader {
    */
   private @NotNull List<String[]> extractRemoveHeaderTitlesAndTypes(List<String[]> lines) {
     // FILENAME_HEADER may duplicate one of the other options but better to check all of them
-    // this makes it future proof in case FILENAME_HEADER changes
-    List<String> FILE_HEADERS = List.of(FILENAME_HEADER.toLowerCase(), "filename", "filenames",
-        "raws");
+    // this makes it future-proof in case FILENAME_HEADER changes
+    List<String> FILE_HEADERS = List.of(FILENAME_HEADER.toLowerCase(), "filename", "filenames");
 
     for (int i = 0; i < lines.size() && i < 4; i++) {
       String[] cells = lines.get(i);
