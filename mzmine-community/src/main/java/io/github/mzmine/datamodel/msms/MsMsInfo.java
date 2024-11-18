@@ -69,6 +69,8 @@ public interface MsMsInfo {
           PasefMsMsInfoImpl.loadFromXML(reader, (IMSRawDataFile) file, allProjectFiles);
       case DDAMsMsInfoImpl.XML_TYPE_NAME ->
           DDAMsMsInfoImpl.loadFromXML(reader, file, allProjectFiles);
+      case DIAMsMsInfoImpl.XML_TYPE_NAME ->
+          DIAMsMsInfoImpl.loadFromXML(reader, file, allProjectFiles);
       case MSnInfoImpl.XML_TYPE_NAME -> MSnInfoImpl.loadFromXML(reader, file, allProjectFiles);
       case DIAImsMsMsInfoImpl.XML_TYPE_NAME ->
           DIAImsMsMsInfoImpl.loadFromXML(reader, (IMSRawDataFile) file, allProjectFiles);
