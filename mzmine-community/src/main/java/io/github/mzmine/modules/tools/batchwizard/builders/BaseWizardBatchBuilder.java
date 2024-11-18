@@ -212,6 +212,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final Double imsFwhm;
   protected final MobilityTolerance imsFwhmMobTolerance;
 
+  //Imaging
+  protected final boolean isImaging;
+
   // MS parameters currently all the same
   protected final WizardMassDetectorNoiseLevels massDetectorOption;
   protected final Double minFeatureHeight;
@@ -271,6 +274,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     isNonTdfIms = Arrays.stream(dataFiles)
         .map(RawDataFileTypeDetector::detectDataFileType)
         .noneMatch(type -> type == RawDataFileType.BRUKER_TDF);
+
+    // Imaging
+    isImaging = steps.isImaging();
 
     // mass spectrometer
     params = steps.get(WizardPart.MS);
@@ -1262,7 +1268,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     q.add(step);
   }
 
-  protected void makeAndAddLipidAnnotationStep(final BatchQueue q, boolean checkMS2) {
+  protected void makeAndAddLipidAnnotationStep(final BatchQueue q) {
     if (!annotateLipids) {
       return;
     }
@@ -1277,15 +1283,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(LipidAnnotationParameters.lipidChainParameters,
         new LipidAnnotationChainParameters());
     param.setParameter(LipidAnnotationParameters.mzTolerance, mzTolInterSample);
-    param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, checkMS2);
-    if (checkMS2) {
+    param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, true);
       param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, false);
+          .setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
       param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
           .setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
       param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
           .setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
-    }
     param.setParameter(LipidAnnotationParameters.advanced, false);
     var advanced = param.getEmbeddedParameterValue(LipidAnnotationParameters.advanced);
     advanced.setParameter(AdvancedLipidAnnotationParameters.IONS_TO_IGNORE,
