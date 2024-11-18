@@ -282,7 +282,7 @@ public class DiaMs2CorrTask extends AbstractTask {
     }
 
     if (mzs.isEmpty()) {
-      logger.finest("No reoccurring ions found in %d spectra.".formatted(correlatedMs2s.size()));
+//      logger.finest("No reoccurring ions found in %d spectra.".formatted(correlatedMs2s.size()));
       return null;
     }
 
@@ -534,7 +534,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
       for (Entry<IsolationWindow, List<Scan>> entry : isolationWindowScanMap.entrySet()) {
         final IsolationWindow isolationWindow = entry.getKey();
-        if(entry.getValue().size() < minCorrPoints) {
+        if (entry.getValue().size() < minCorrPoints) {
           continue;
         }
         final IMSRawDataFileImpl windowFile = new IMSRawDataFileImpl(
@@ -713,6 +713,35 @@ public class DiaMs2CorrTask extends AbstractTask {
         scans.add(scan);
       }
     }
+
+    // now merge some isolation windows, if they are largely overlapping (e.g. MSConvert converted Agilent AllIons files.)
+    final List<Entry<IsolationWindow, List<Scan>>> sortedWindowEntries = new ArrayList<>(
+        windowScanMap.entrySet().stream()
+            .sorted(Comparator.comparingDouble(iw -> iw.getKey().mzIsolation().lowerEndpoint()))
+            .toList());
+    final List<MergingIsolationWindow> mergingWindows = new ArrayList<>();
+    for (Entry<IsolationWindow, List<Scan>> entry : sortedWindowEntries) {
+      final IsolationWindow window = entry.getKey();
+      final List<MergingIsolationWindow> bestWindows = mergingWindows.stream()
+          .sorted(Comparator.comparingDouble(mw -> mw.window().overlap(window))).toList();
+
+      if (bestWindows.isEmpty()) {
+        mergingWindows.add(new MergingIsolationWindow(window, entry.getValue()));
+        continue;
+      }
+      final MergingIsolationWindow best = bestWindows.getLast();
+      final double overlap = best.window().overlap(window);
+      if (overlap > 0.95) {
+        best.setWindow(best.window().merge(window));
+        best.scans().addAll(entry.getValue());
+      } else {
+        mergingWindows.add(new MergingIsolationWindow(window, entry.getValue()));
+      }
+    }
+
+    windowScanMap.clear();
+    mergingWindows.forEach(mw -> windowScanMap.put(mw.window(),
+        mw.scans().stream().sorted(Comparator.comparingDouble(Scan::getRetentionTime)).toList()));
 
     return windowScanMap;
   }

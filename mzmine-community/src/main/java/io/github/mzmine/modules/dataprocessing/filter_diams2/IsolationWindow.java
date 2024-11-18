@@ -28,7 +28,10 @@ package io.github.mzmine.modules.dataprocessing.filter_diams2;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.util.RangeUtils;
+import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.data.RangeInfo;
 
 public record IsolationWindow(@Nullable Range<Double> mzIsolation,
                               @Nullable Range<Float> mobilityIsolation) {
@@ -64,5 +67,61 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
       return false;
     }
     return true;
+  }
+
+  /**
+   *
+   * @return The lowest overlap (between 0 and 1) of the two isolation windows (mz and mobility).
+   */
+  double overlap(IsolationWindow other) {
+
+    if (Objects.equals(mzIsolation, other.mzIsolation()) && Objects.equals(mobilityIsolation,
+        other.mobilityIsolation())) {
+      return 1d;
+    }
+
+    double overlap = 0d;
+    if (mobilityIsolation == null && other.mobilityIsolation() == null) {
+      overlap = 1d;
+    } else if (mobilityIsolation != null && other.mobilityIsolation() != null) {
+      if (mobilityIsolation.isConnected(other.mobilityIsolation())) {
+        final Range<Float> intersection = mobilityIsolation.intersection(other.mobilityIsolation());
+        overlap = RangeUtils.rangeLength(intersection) / RangeUtils.rangeLength(
+            mobilityIsolation.span(other.mobilityIsolation()));
+      } else {
+        overlap = 0d;
+      }
+    } else {
+      overlap = 0d;
+    }
+
+    if (mzIsolation == null && other.mzIsolation() == null) {
+      overlap = Math.min(overlap, 1d);
+    } else if (mzIsolation != null && other.mzIsolation() != null) {
+      if(mzIsolation.isConnected(other.mzIsolation())) {
+        final Range<Double> intersection = mzIsolation.intersection(other.mzIsolation());
+        overlap = Math.min(overlap, RangeUtils.rangeLength(intersection) / RangeUtils.rangeLength(
+            mzIsolation.span(other.mzIsolation())));
+      } else {
+        overlap = 0d;
+      }
+    } else {
+      // one has mz isolation, the other does not. -> no overlap.
+      overlap = 0d;
+    }
+
+    return overlap;
+  }
+
+  IsolationWindow merge(IsolationWindow other) {
+    Range<Double> mz = null;
+    if(mzIsolation != null && other.mzIsolation() != null) {
+      mz = mzIsolation.span(other.mzIsolation());
+    }
+    Range<Float> mobility = null;
+    if(mobilityIsolation != null && other.mobilityIsolation() != null) {
+      mobility = mobilityIsolation.span(other.mobilityIsolation());
+    }
+    return new IsolationWindow(mz, mobility);
   }
 }
