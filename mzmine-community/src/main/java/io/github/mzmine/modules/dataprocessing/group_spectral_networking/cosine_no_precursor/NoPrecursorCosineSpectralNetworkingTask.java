@@ -72,7 +72,6 @@ public class NoPrecursorCosineSpectralNetworkingTask extends AbstractFeatureList
   private final int minMatch;
   private final MZTolerance mzTolerance;
   private final double minCosineSimilarity;
-  private final int maxDPForDiff;
   private final @Nullable ModularFeatureList featureList;
   // target
   private final SpectralSignalFilter signalFilter;
@@ -102,7 +101,6 @@ public class NoPrecursorCosineSpectralNetworkingTask extends AbstractFeatureList
     minMatch = subParams.getValue(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH);
     minCosineSimilarity = subParams.getValue(
         ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY);
-    maxDPForDiff = 0;
     // embedded signal filters
     signalFilter = subParams.getValue(NoPrecursorCosineSpectralNetworkingParameters.signalFilters)
         .createFilter();
