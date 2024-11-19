@@ -1170,7 +1170,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
             mzTolScans, SpectralSignalFilter.DEFAULT);
       }
       case COSINE_NO_PRECURSOR -> {
-        NoPrecursorCosineSpectralNetworkingParameters.setAll(param, 4, 0.7, mzTolScans,
+        NoPrecursorCosineSpectralNetworkingParameters.setAll(param, 8, 0.7, mzTolScans,
             SpectralSignalFilter.DEFAULT_NO_PRECURSOR);
       }
       // MS2Deepscore hard to do without the file path or maybe just dont set the file path

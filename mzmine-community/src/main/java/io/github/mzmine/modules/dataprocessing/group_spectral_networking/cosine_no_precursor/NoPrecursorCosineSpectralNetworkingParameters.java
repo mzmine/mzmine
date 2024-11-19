@@ -31,6 +31,7 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modifie
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +43,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class NoPrecursorCosineSpectralNetworkingParameters extends SimpleParameterSet {
 
+  public static final IntegerParameter MIN_MATCH = new IntegerParameter(
+      ModifiedCosineSpectralNetworkingParameters.MIN_MATCH.getName(),
+      "Minimum matched signals. Default is 8 for small molecules but the higher the more confident.",
+      8);
 
   public static final ParameterSetParameter<NoPrecursorSignalFiltersParameters> signalFilters = new ParameterSetParameter<>(
       "Signal filters", """
@@ -51,14 +56,13 @@ public class NoPrecursorCosineSpectralNetworkingParameters extends SimpleParamet
   public NoPrecursorCosineSpectralNetworkingParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
-        ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE,
-        ModifiedCosineSpectralNetworkingParameters.MIN_MATCH,
+        ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE, MIN_MATCH,
         ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY, signalFilters);
   }
 
   public static void setAll(final ParameterSet param, final int minMatched, final double minCosine,
       final MZTolerance mzTol, final SpectralSignalFilter filter) {
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH, minMatched);
+    param.setParameter(MIN_MATCH, minMatched);
     param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY, minCosine);
     param.setParameter(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE, mzTol);
     param.getParameter(NoPrecursorCosineSpectralNetworkingParameters.signalFilters)
