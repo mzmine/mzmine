@@ -23,15 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor;
 
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 
-public class ModifiedCosineSpectralNetworkingModule implements MZmineModule {
+public class NoPrecursorCosineSpectralNetworkingModule implements MZmineModule {
 
-  public static final String NAME = "Modified cosine";
+  public static final String NAME = "Cosine similarity (GC-EI-MS)";
 
   @Override
   public @NotNull String getName() {
@@ -40,7 +40,7 @@ public class ModifiedCosineSpectralNetworkingModule implements MZmineModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return ModifiedCosineSpectralNetworkingParameters.class;
+    return NoPrecursorCosineSpectralNetworkingParameters.class;
   }
 
 }
