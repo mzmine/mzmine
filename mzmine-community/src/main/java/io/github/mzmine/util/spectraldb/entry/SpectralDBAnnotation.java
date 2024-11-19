@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -334,7 +334,7 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     return Objects.equals(getEntry(), that.getEntry()) && Objects.equals(getSimilarity(),
         that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects.equals(
         getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
-        && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
+           && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
   }
 
   @Override
