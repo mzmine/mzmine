@@ -41,7 +41,12 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import org.jfree.chart.JFreeChart;
 
 /**
@@ -84,13 +89,22 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     theme = ChartThemeFactory2.createExportChartTheme("Export theme");
     chartParam.applyToChartTheme(theme);
 
+    // do not set min width on this otherwise scrollpane freaks out and does not show bars
     pnChartPreview = new BorderPane();
 
-    pnChartPreview.setMinWidth(400);
-    pnChartPreview.setMinHeight(300);
-    mainPane.setRight(FxLayout.newScrollPane(pnChartPreview));
+    var centerNode = mainPane.getCenter();
+    if (centerNode instanceof Region r) {
+      r.setMinWidth(400);
+    }
+
+    var scrollChart = new StackPane(
+        FxLayout.newScrollPane(pnChartPreview, ScrollBarPolicy.AS_NEEDED,
+            ScrollBarPolicy.AS_NEEDED));
+//    mainPane.setRight(scrollChart);
     chartPanel = new EChartViewer(this.chart, false, false, true, true, false);
     pnChartPreview.setCenter(chartPanel);
+    mainPane.setCenter(FxLayout.newHBox(centerNode, scrollChart));
+    HBox.setHgrow(scrollChart, Priority.ALWAYS);
 
     // add buttons
     btnRenewPreview = new Button("Renew Preview");
@@ -107,6 +121,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     setMinHeight(400.0);
 
     centerOnScreen();
+    renewPreview();
   }
 
   protected void applyTheme() {
