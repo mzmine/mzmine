@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -71,7 +71,8 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     try {
       this.chart = (JFreeChart) chart.clone();
     } catch (Exception e1) {
-      logger.log(Level.WARNING, "Clone not implemented for chart of class" + chart.getClass(), e1);
+      logger.log(Level.WARNING,
+          "Clone not implemented (will use original) for chart of class" + chart.getClass(), e1);
       this.chart = chart;
     }
 
@@ -82,7 +83,8 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     pnChartPreview.setMinWidth(400);
     pnChartPreview.setMinHeight(300);
     mainPane.setRight(pnChartPreview);
-    chartPanel = new EChartViewer(this.chart);
+    chartPanel = new EChartViewer(this.chart, false, false, true, true, false);
+//    chartPanel.setStickyZeroRangeAxis(false);
     pnChartPreview.setCenter(chartPanel);
 
     // add buttons
