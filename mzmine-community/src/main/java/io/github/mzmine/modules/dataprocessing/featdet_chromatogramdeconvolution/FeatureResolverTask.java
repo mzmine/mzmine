@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -48,8 +47,9 @@ import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionList;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -260,21 +260,23 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private void handleMrmTraces(ModularFeature f) {
-    final List<MrmTransition> mrmTransitions = f.get(MrmTransitionList.class);
+    final MrmTransitionList mrmTransitions = f.get(MrmTransitionListType.class);
     if (mrmTransitions == null) {
       return;
     }
 
     final Range<Float> rtRange = f.getRawDataPointsRTRange();
     List<MrmTransition> newTransitions = new ArrayList<>();
-    for (MrmTransition mrmTransition : mrmTransitions) {
+    for (MrmTransition mrmTransition : mrmTransitions.transitions()) {
       final IonTimeSeries<? extends Scan> series = mrmTransition.chromatogram();
       final IonTimeSeries<? extends Scan> resolved = series.subSeries(getMemoryMapStorage(),
           rtRange.lowerEndpoint(), rtRange.upperEndpoint());
       newTransitions.add(mrmTransition.with(resolved));
     }
 
-    f.set(MrmTransitionList.class, newTransitions);
+    final MrmTransitionList resolvedTransitions = new MrmTransitionList(newTransitions);
+    f.set(MrmTransitionListType.class, resolvedTransitions);
+    resolvedTransitions.setQuantifier(resolvedTransitions.quantifier(), f);
   }
 
   @Override

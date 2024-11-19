@@ -51,9 +51,6 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
-import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -160,6 +157,18 @@ public class FeatureDataUtils {
       return Range.singleton((float) min);
     }
     return min < max ? Range.closed((float) min, (float) max) : null;
+  }
+
+  /**
+   * Caclualtes the highest point of the intensity series. Usually, this method is not needed
+   * because {@link #getIntensityRange(IntensitySeries)} returns more information.
+   */
+  public static float getHeight(IntensitySeries series) {
+    final Range<Float> range = getIntensityRange(series);
+    if (range == null) {
+      return 0f;
+    }
+    return range.upperEndpoint();
   }
 
   /**

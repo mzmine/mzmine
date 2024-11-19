@@ -40,8 +40,9 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionList;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -121,10 +122,10 @@ public class BaselineCorrectionTask extends AbstractSimpleTask {
 
   private void handleMrmFeature(Feature feature) {
     final ModularFeature f = (ModularFeature) feature;
-    if (f.get(MrmTransitionList.class) instanceof List<MrmTransition> transitions) {
+    if (f.get(MrmTransitionListType.class) instanceof MrmTransitionList transitions) {
       final List<? extends Scan> allScans = newFlist.getSeletedScans(f.getRawDataFile());
       final List<MrmTransition> correctedTransitions = new ArrayList<>();
-      for (MrmTransition transition : transitions) {
+      for (MrmTransition transition : transitions.transitions()) {
         // todo this may be optimised by an MrmDataAccess, similar to the feature data access,
         //  if this limits performance
         // remap so we get the same behaviour
@@ -137,7 +138,10 @@ public class BaselineCorrectionTask extends AbstractSimpleTask {
             rtRange.lowerEndpoint(), rtRange.upperEndpoint());
         correctedTransitions.add(transition.with(remappedMrm));
       }
-      f.set(MrmTransitionList.class, correctedTransitions);
+
+      final MrmTransitionList corrected = new MrmTransitionList(correctedTransitions);
+      f.set(MrmTransitionListType.class, corrected);
+      corrected.setQuantifier(corrected.quantifier(), f);
     }
   }
 

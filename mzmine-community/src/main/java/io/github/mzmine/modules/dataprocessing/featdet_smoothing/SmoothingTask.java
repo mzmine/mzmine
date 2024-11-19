@@ -39,15 +39,15 @@ import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionList;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -158,12 +158,12 @@ public class SmoothingTask extends AbstractTask {
   }
 
   private void handleMrmTraces(ModularFeature feature, SmoothingAlgorithm smoother) {
-    if (!(feature.get(MrmTransitionList.class) instanceof List<MrmTransition> transitions)) {
+    if (!(feature.get(MrmTransitionListType.class) instanceof MrmTransitionList transitions)) {
       return;
     }
 
     List<MrmTransition> smoothedTransitions = new ArrayList<>();
-    for (MrmTransition transition : transitions) {
+    for (MrmTransition transition : transitions.transitions()) {
       final IonTimeSeries<Scan> remapped = IonTimeSeriesUtils.remapRtAxis(transition.chromatogram(),
           flist.getSeletedScans(feature.getRawDataFile()));
       final @Nullable double[] intensities = smoother.smoothRt(remapped);
@@ -180,7 +180,9 @@ public class SmoothingTask extends AbstractTask {
 
       smoothedTransitions.add(transition.with(smoothed));
     }
-    feature.set(MrmTransitionList.class, smoothedTransitions);
+    final MrmTransitionList mrmTransitionList = new MrmTransitionList(smoothedTransitions);
+    feature.set(MrmTransitionListType.class, mrmTransitionList);
+    mrmTransitionList.setQuantifier(mrmTransitionList.quantifier(), feature);
   }
 
   // -----------------------------
