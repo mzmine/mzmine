@@ -44,7 +44,6 @@ import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -96,11 +95,11 @@ public class NoPrecursorCosineSpectralNetworkingTask extends AbstractFeatureList
     var subParams = mainParameters.getEmbeddedParameterValue(
         MainSpectralNetworkingParameters.algorithms);
     this.featureList = featureList;
-    mzTolerance = subParams.getValue(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE);
+    mzTolerance = subParams.getValue(NoPrecursorCosineSpectralNetworkingParameters.MZ_TOLERANCE);
 
-    minMatch = subParams.getValue(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH);
+    minMatch = subParams.getValue(NoPrecursorCosineSpectralNetworkingParameters.MIN_MATCH);
     minCosineSimilarity = subParams.getValue(
-        ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY);
+        NoPrecursorCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY);
     // embedded signal filters
     signalFilter = subParams.getValue(NoPrecursorCosineSpectralNetworkingParameters.signalFilters)
         .createFilter();
