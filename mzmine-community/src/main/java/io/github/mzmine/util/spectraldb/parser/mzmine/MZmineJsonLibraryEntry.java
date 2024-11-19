@@ -40,6 +40,7 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -76,6 +77,7 @@ import org.jetbrains.annotations.Nullable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
 @Generated("jsonschema2pojo")
+@Deprecated
 public class MZmineJsonLibraryEntry {
 
   public String softwaresource;
@@ -90,7 +92,7 @@ public class MZmineJsonLibraryEntry {
   public Double rt, ccs;
   public String cas, splash;
   public String formula, smiles, inchi, inchikey, peptideSequence;
-  public Double fragmentationEnergy;
+  public FloatArrayList fragmentationEnergy;
   public String mergedSpectrumType;
   public String fragmentationMethod;
   public String instrumentType, instrument, resolution, ionSource;
@@ -247,7 +249,7 @@ public class MZmineJsonLibraryEntry {
       case CCS -> ccs = (double) value;
       case PRECURSOR_MZ -> precursorMz = (double) value;
       case MERGED_SPEC_TYPE -> mergedSpectrumType = value.toString();
-      case COLLISION_ENERGY -> fragmentationEnergy = (double) value;
+      case COLLISION_ENERGY -> fragmentationEnergy = (FloatArrayList) value;
       case FRAGMENTATION_METHOD -> fragmentationMethod = value.toString();
       case ISOLATION_WINDOW -> isolationWindow = (double) value;
       case ACQUISITION -> compoundSource = value.toString();

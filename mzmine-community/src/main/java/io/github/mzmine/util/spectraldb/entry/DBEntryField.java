@@ -63,7 +63,9 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.collections.IndexRange;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -98,7 +100,7 @@ public enum DBEntryField {
   MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
 
   // MS2
-  COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
+  COLLISION_ENERGY(FloatArrayList.class), FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
 
   // MSn
   MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS,
@@ -653,14 +655,19 @@ public enum DBEntryField {
    * @throws NumberFormatException if the object class was specified as number but was not parsable
    */
   public Object convertValue(String content) throws NumberFormatException {
-    if (getObjectClass() == Double.class) {
+    if (getObjectClass().equals(Double.class)) {
       return Double.parseDouble(content);
     }
-    if (getObjectClass() == Float.class) {
+    if (getObjectClass().equals(Float.class)) {
       return Float.parseFloat(content);
     }
-    if (getObjectClass() == Integer.class) {
+    if (getObjectClass().equals(Integer.class)) {
       return Integer.parseInt(content);
+    }
+    if (getObjectClass().equals(FloatArrayList.class)) {
+      final String replaced = content.replaceAll("[\\[\\]]", "");
+      final float[] floats = ParsingUtils.stringToFloatArray(replaced, ",");
+      return new FloatArrayList(floats);
     }
     return content;
   }

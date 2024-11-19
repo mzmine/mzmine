@@ -45,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
+@Deprecated
 public class MZmineFullJsonParser extends SpectralDBParser {
 
   private static final Logger logger = Logger.getLogger(MZmineFullJsonParser.class.getName());

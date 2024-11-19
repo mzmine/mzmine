@@ -74,6 +74,7 @@ import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -231,7 +232,14 @@ public class ScanUtils {
           mob.getMsMsInfo() != null ? mob.getMsMsInfo().getActivationEnergy() : null;
       case Scan scan ->
           scan.getMsMsInfo() != null ? scan.getMsMsInfo().getActivationEnergy() : null;
-      case SpectralLibraryEntry entry -> entry.getOrElse(DBEntryField.COLLISION_ENERGY, null);
+      case SpectralLibraryEntry entry -> {
+        final FloatArrayList list = entry.getOrElse(DBEntryField.COLLISION_ENERGY,
+            FloatArrayList.of());
+        if(!list.isEmpty()) {
+          yield list.getFirst();
+        }
+        yield null;
+      }
       default -> null;
     };
   }
