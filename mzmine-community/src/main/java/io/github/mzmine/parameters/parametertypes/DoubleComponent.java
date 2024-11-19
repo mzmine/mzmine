@@ -57,14 +57,7 @@ public class DoubleComponent extends FlowPane implements ValuePropertyComponent<
     textField.setPrefWidth(inputsize);
     textFormatter.setValue(defvalue);
 
-    valueProperty().addListener((o, _, nv) -> logger.info("Double is now " + nv));
-
     getChildren().add(textField);
-//    if (defvalue != null) {
-    // could also just set the value.set but by setting the text the number will be rounded
-    // maybe more reproducible
-//      textField.setText(format.format(defvalue));
-//    }
   }
 
   public String getText() {
