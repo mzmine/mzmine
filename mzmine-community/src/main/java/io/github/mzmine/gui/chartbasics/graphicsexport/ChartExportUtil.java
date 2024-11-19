@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JMenuItem;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
@@ -75,8 +77,10 @@ import org.w3c.dom.DOMImplementation;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartExportUtil {
+
   // ######################################################################################
   // VECTORS: PDF uses ITextpdf lib
+  private static final Logger logger = Logger.getLogger(ChartExportUtil.class.getName());
 
   /**
    * Add export dialog to popup menu of a chartpanel
@@ -175,13 +179,12 @@ public class ChartExportUtil {
     chart.setPrefSize(size.getWidth(), size.getHeight());
     chart.setMaxSize(size.getWidth(), size.getHeight());
     chart.setMinSize(size.getWidth(), size.getHeight());
-    // repaint TODO:
-//    if (repaint) {
-//      chart.revalidate();
-//      chart.repaint();
-//    }
-    writeChartToImage(chart.getChart(), sett, chart.getRenderingInfo());
-    // reset size
+    try {
+      writeChartToImage(chart.getChart(), sett, chart.getRenderingInfo());
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot export graphics" + ex.getMessage(), ex);
+    }
+    // definitely reset size otherwise the text box will show different value
     sett.setPixelSize(oldW, oldH);
   }
 

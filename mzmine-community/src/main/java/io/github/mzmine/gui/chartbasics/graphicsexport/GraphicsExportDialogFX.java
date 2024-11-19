@@ -84,7 +84,6 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     pnChartPreview.setMinHeight(300);
     mainPane.setRight(pnChartPreview);
     chartPanel = new EChartViewer(this.chart, false, false, true, true, false);
-//    chartPanel.setStickyZeroRangeAxis(false);
     pnChartPreview.setCenter(chartPanel);
 
     // add buttons
