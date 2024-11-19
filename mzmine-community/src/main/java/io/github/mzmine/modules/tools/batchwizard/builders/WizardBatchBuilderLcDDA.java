@@ -116,7 +116,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
 
     // networking
     if (applySpectralNetworking) {
-      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
+      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
     }
 
     // export

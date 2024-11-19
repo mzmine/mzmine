@@ -130,7 +130,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
 
     // networking
     if (applySpectralNetworking) {
-      makeAndAddSpectralNetworkingSteps(q, true, exportPath);
+      makeAndAddSpectralNetworkingSteps(q, true, exportPath, false);
     }
 
     return q;

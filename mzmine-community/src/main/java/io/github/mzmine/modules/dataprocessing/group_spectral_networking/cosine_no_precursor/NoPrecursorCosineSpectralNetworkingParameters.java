@@ -23,69 +23,57 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor;
 
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * MS/MS similarity check based on difference and signal comparison
+ * GC-EI-MS
  *
- * @author Robin Schmid (robinschmid@uni-muenster.de)
+ * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterSet {
+public class NoPrecursorCosineSpectralNetworkingParameters extends SimpleParameterSet {
 
-  // MZ-tolerance: deisotoping, adducts
-  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter("m/z tolerance",
-      "Tolerance value of the m/z difference between MS2 signals (add absolute tolerance to cover small neutral losses (5 ppm on m=18 is insufficient))",
-      0.003, 10);
+  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
+      ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE.getName(),
+      ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE.getDescription(), 0.003, 10);
 
   public static final DoubleParameter MIN_COSINE_SIMILARITY = new DoubleParameter(
-      "Min cosine similarity", "Minimum spectral cosine similarity (scaled 0-1). Default is 0.7",
+      ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY.getName(),
+      ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY.getDescription(),
       MZmineCore.getConfiguration().getScoreFormat(), 0.7, 0d, 1d);
 
-  public static final BooleanParameter ONLY_BEST_MS2_SCAN = new BooleanParameter(
-      "Only best MS2 scan", "Compares only the best MS2 scan (or all MS2 scans)", true);
 
-  public static final IntegerParameter MIN_MATCH = new IntegerParameter("Minimum matched signals",
-      "Minimum matched signals or neutral losses (m/z differences). Default is 4 for small molecules but the higher the more confident.",
-      4);
+  public static final IntegerParameter MIN_MATCH = new IntegerParameter(
+      ModifiedCosineSpectralNetworkingParameters.MIN_MATCH.getName(),
+      "Minimum matched signals. Default is 8 for small molecules but the higher the more confident.",
+      8);
 
-  public static final OptionalParameter<DoubleParameter> MAX_MZ_DELTA = new OptionalParameter<>(
-      new DoubleParameter("Max precursor m/z delta",
-          "Maximum allowed m/z delta between precursor ions to be tested. This can speed up the process",
-          MZmineCore.getConfiguration().getMZFormat(), 600d), true);
-
-  public static final ParameterSetParameter<SignalFiltersParameters> signalFilters = new ParameterSetParameter<>(
+  public static final ParameterSetParameter<NoPrecursorSignalFiltersParameters> signalFilters = new ParameterSetParameter<>(
       SignalFiltersParameters.NAME, SignalFiltersParameters.DESCRIPTION,
-      new SignalFiltersParameters());
+      new NoPrecursorSignalFiltersParameters());
 
-  public ModifiedCosineSpectralNetworkingParameters() {
+  public NoPrecursorCosineSpectralNetworkingParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
-        MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, MAX_MZ_DELTA, MIN_MATCH, MIN_COSINE_SIMILARITY,
-        signalFilters);
+        MZ_TOLERANCE, MIN_MATCH, MIN_COSINE_SIMILARITY, signalFilters);
   }
 
-
-  public static void setAll(final ParameterSet param, final boolean onlyBestMs2,
-      final boolean removePrecursor, final double maxMzDelta, final int minMatched,
-      final double minCosine, final MZTolerance mzTol, final SpectralSignalFilter filter) {
-    param.setParameter(MAX_MZ_DELTA, removePrecursor, maxMzDelta);
-    param.setParameter(ONLY_BEST_MS2_SCAN, onlyBestMs2);
+  public static void setAll(final ParameterSet param, final int minMatched, final double minCosine,
+      final MZTolerance mzTol, final SpectralSignalFilter filter) {
     param.setParameter(MIN_MATCH, minMatched);
     param.setParameter(MIN_COSINE_SIMILARITY, minCosine);
     param.setParameter(MZ_TOLERANCE, mzTol);
@@ -97,8 +85,4 @@ public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterS
     return IonMobilitySupport.SUPPORTED;
   }
 
-  @Override
-  public int getVersion() {
-    return 2;
-  }
 }

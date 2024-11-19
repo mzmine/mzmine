@@ -25,22 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine;
 
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 
-public class ModifiedCosineSpectralNetworkingModule implements MZmineModule {
-
-  public static final String NAME = "Modified cosine";
-
-  @Override
-  public @NotNull String getName() {
-    return NAME;
-  }
-
-  @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return ModifiedCosineSpectralNetworkingParameters.class;
-  }
+/**
+ * the filtered data of the best MS2 scan from row
+ */
+public record FilteredRowData(FeatureListRow row, DataPoint[] data) {
 
 }
