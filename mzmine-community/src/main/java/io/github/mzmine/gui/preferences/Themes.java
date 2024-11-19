@@ -40,7 +40,10 @@ public enum Themes {
       "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true), //
   JABREF_DARK_CUSTOM("Dark (High contrast)",
       List.of("themes/jabref_light.css", "themes/jabref_dark_2.css",
-          "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true) //
+          "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true), //
+  ABREF_DARK_CUSTOM("Dark grey",
+      List.of("themes/jabref_light.css", "themes/jabref_dark_grey.css",
+      "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true) //
   ;
 
   private final String name;
