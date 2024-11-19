@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -170,9 +170,10 @@ public class NistMspParser extends SpectralDBTextParser {
           Object value = field.convertValue(content);
           fields.put(field, value);
         } catch (Exception e) {
-          logger.log(Level.WARNING,
-              "Cannot convert value type of " + content + " to " + field.getObjectClass()
-                  .toString(), e);
+          logger.log(Level.WARNING, """
+              Cannot convert value '%s' to type %s
+              Parsing will skip this value for field %s""".formatted(content,
+              field.getObjectClass(), field.toString()));
         }
       }
     }

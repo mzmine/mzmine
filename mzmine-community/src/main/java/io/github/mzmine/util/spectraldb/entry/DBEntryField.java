@@ -68,9 +68,12 @@ import io.github.mzmine.util.collections.IndexRange;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The order reflects the rough order of these fields when exported
@@ -146,6 +149,8 @@ public enum DBEntryField {
   public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[]{INSTRUMENT_TYPE,
       INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, MERGED_SPEC_TYPE, ACQUISITION,
       SOFTWARE};
+
+  private static final Logger logger = Logger.getLogger(DBEntryField.class.getName());
 
   private final Class clazz;
 
@@ -648,6 +653,26 @@ public enum DBEntryField {
   }
 
   /**
+   * Converts the content to the correct value type - on exception this will log the warning and
+   * return null.
+   *
+   * @param content the value to be converted
+   * @return the converted value or original if the target object class is string or null if there
+   * is an exception during conversion
+   */
+  @Nullable
+  public Object tryConvertValue(String content) {
+    try {
+      return convertValue(content);
+    } catch (Throwable t) {
+      logger.log(Level.WARNING, """
+          Cannot convert value '%s' to type %s for field %s""".formatted(content,
+          this.getObjectClass(), this.toString()));
+      return null;
+    }
+  }
+
+  /**
    * Converts the content to the correct value type
    *
    * @param content the value to be converted
@@ -663,6 +688,9 @@ public enum DBEntryField {
     }
     if (getObjectClass().equals(Integer.class)) {
       return Integer.parseInt(content);
+    }
+    if (getObjectClass().equals(Long.class)) {
+      return Long.parseLong(content);
     }
     if (getObjectClass().equals(FloatArrayList.class)) {
       final String replaced = content.replaceAll("[\\[\\]]", "");
