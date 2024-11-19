@@ -450,7 +450,7 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
 
     long comparedPairs = StreamUtils.processPairs(filteredRows, this::isCanceled, true, //
         // stop inner loop if mz distance is too far
-        (first, later) -> maxMzDelta < later.row.getAverageMZ() - first.row.getAverageMZ(), //
+        (first, later) -> maxMzDelta < later.row().getAverageMZ() - first.row().getAverageMZ(), //
         pair -> {
           // the actual processing
           checkSpectralPair(pair.left(), pair.right(), mapSimilarity, mapNeutralLoss);
@@ -719,10 +719,4 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
     return "Check similarity of MSMS scans (mass lists)";
   }
 
-  /**
-   * the filtered data of the best MS2 scan from row
-   */
-  private record FilteredRowData(FeatureListRow row, DataPoint[] data) {
-
-  }
 }
