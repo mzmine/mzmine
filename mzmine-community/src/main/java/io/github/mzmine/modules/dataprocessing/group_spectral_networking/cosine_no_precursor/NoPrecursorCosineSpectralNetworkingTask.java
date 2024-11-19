@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.FilteredRowData;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -234,13 +235,7 @@ public class NoPrecursorCosineSpectralNetworkingTask extends AbstractFeatureList
 
   @Override
   public String getTaskDescription() {
-    return "Check similarity of MSMS scans (mass lists)";
+    return "Check cosine similarity of pseudo MS2 scans (mass lists)";
   }
 
-  /**
-   * the filtered data of the best MS2 scan from row - for GC EI-MS this is a pseudo spectrum
-   */
-  private record FilteredRowData(FeatureListRow row, DataPoint[] data) {
-
-  }
 }
