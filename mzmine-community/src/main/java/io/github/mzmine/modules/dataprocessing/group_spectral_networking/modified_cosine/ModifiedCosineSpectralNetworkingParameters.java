@@ -71,9 +71,8 @@ public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterS
           MZmineCore.getConfiguration().getMZFormat(), 600d), true);
 
   public static final ParameterSetParameter<SignalFiltersParameters> signalFilters = new ParameterSetParameter<>(
-      "Signal filters", """
-      Signal filters to limit the number of signals etc.
-      """, new SignalFiltersParameters());
+      SignalFiltersParameters.NAME, SignalFiltersParameters.DESCRIPTION,
+      new SignalFiltersParameters());
 
   public ModifiedCosineSpectralNetworkingParameters() {
     super(

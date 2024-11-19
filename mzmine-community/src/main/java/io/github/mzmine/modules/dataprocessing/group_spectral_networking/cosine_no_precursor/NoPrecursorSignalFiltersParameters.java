@@ -30,6 +30,8 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalF
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 
 /**
  * Filters to apply to spectra
@@ -38,10 +40,22 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
  */
 public class NoPrecursorSignalFiltersParameters extends SimpleParameterSet {
 
+  public static final IntegerParameter signalThresholdIntensityFilter = new IntegerParameter(
+      SignalFiltersParameters.signalThresholdIntensityFilter.getName(),
+      SignalFiltersParameters.signalThresholdIntensityFilter.getDescription(), 100, 0, null);
+
+
+  public static final PercentParameter intensityPercentFilter = new PercentParameter(
+      SignalFiltersParameters.intensityPercentFilter.getName(),
+      SignalFiltersParameters.intensityPercentFilter.getDescription(), 0.98, 0.1, 1d);
+
+  public static final IntegerParameter cropToMaxSignals = new IntegerParameter(
+      SignalFiltersParameters.cropToMaxSignals.getName(),
+      SignalFiltersParameters.cropToMaxSignals.getDescription(), 350, 2, null);
+
+
   public NoPrecursorSignalFiltersParameters() {
-    super(SignalFiltersParameters.cropToMaxSignals,
-        SignalFiltersParameters.signalThresholdIntensityFilter,
-        SignalFiltersParameters.intensityPercentFilter);
+    super(cropToMaxSignals, signalThresholdIntensityFilter, intensityPercentFilter);
   }
 
   public SpectralSignalFilter createFilter() {
@@ -49,20 +63,17 @@ public class NoPrecursorSignalFiltersParameters extends SimpleParameterSet {
   }
 
   public static SpectralSignalFilter createFilter(ParameterSet params) {
-    var cropToMaxSignals = params.getValue(SignalFiltersParameters.cropToMaxSignals);
-    var signalThresholdForTargetIntensityPercent = params.getValue(
-        SignalFiltersParameters.signalThresholdIntensityFilter);
-    var targetIntensityPercentage = params.getValue(SignalFiltersParameters.intensityPercentFilter);
+    var cropToMaxSignals = params.getValue(NoPrecursorSignalFiltersParameters.cropToMaxSignals);
+    var signalThresholdForTargetIntensityPercent = params.getValue(signalThresholdIntensityFilter);
+    var targetIntensityPercentage = params.getValue(intensityPercentFilter);
     return new SpectralSignalFilter(cropToMaxSignals, signalThresholdForTargetIntensityPercent,
         targetIntensityPercentage);
   }
 
   public NoPrecursorSignalFiltersParameters setValue(SpectralSignalFilter filter) {
-    setParameter(SignalFiltersParameters.intensityPercentFilter,
-        filter.targetIntensityPercentage());
-    setParameter(SignalFiltersParameters.signalThresholdIntensityFilter,
-        filter.signalThresholdForTargetIntensityPercent());
-    setParameter(SignalFiltersParameters.cropToMaxSignals, filter.cropToMaxSignals());
+    setParameter(intensityPercentFilter, filter.targetIntensityPercentage());
+    setParameter(signalThresholdIntensityFilter, filter.signalThresholdForTargetIntensityPercent());
+    setParameter(cropToMaxSignals, filter.cropToMaxSignals());
     return this;
   }
 }
