@@ -180,11 +180,11 @@
       <MenuItem onAction="#runModule" text="Chromatogram builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
       <MenuItem onAction="#runModule"
-              text="Targeted feature detection"
-              userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
+        text="Targeted feature detection"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
       <MenuItem onAction="#runModule"
-              text="Isotope labeling"
-              userData="io.github.mzmine.modules.dataprocessing.isolab_targeted.IsotopeLabelingTargetedModule"/>
+        text="Isotope labeling"
+        userData="io.github.mzmine.modules.dataprocessing.isolab_targeted.IsotopeLabelingTargetedModule"/>
     </Menu>
     <Menu text="GC-MS">
       <MenuItem onAction="#runModule" text="Chromatogram builder"
