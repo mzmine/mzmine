@@ -46,6 +46,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -159,7 +160,8 @@ public interface SpectralLibraryEntry extends MassList {
     }
     List<Float> energies = ScanUtils.extractCollisionEnergies(scan);
     if (!energies.isEmpty()) {
-      entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, energies);
+      FloatArrayList list = new FloatArrayList(energies);
+      entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, list);
     }
 
     // merged scans are derived from multiple source scans - add all information here and overwrite
