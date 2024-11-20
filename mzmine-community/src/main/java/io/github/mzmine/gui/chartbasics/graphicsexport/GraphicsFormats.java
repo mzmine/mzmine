@@ -23,24 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine;
+package io.github.mzmine.gui.chartbasics.graphicsexport;
 
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import org.jetbrains.annotations.NotNull;
+public enum GraphicsFormats {
+  PDF, EMF, SVG, JPG, PNG;
 
-public class ModifiedCosineSpectralNetworkingModule implements MZmineModule {
-
-  public static final String NAME = "Modified cosine";
-
-  @Override
-  public @NotNull String getName() {
-    return NAME;
+  public boolean isVectroGraphics() {
+    return !isPixelGraphics();
   }
 
-  @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return ModifiedCosineSpectralNetworkingParameters.class;
+  public boolean isPixelGraphics() {
+    return switch (this) {
+      case PNG, JPG -> true;
+      case PDF, EMF, SVG -> false;
+    };
   }
 
 }

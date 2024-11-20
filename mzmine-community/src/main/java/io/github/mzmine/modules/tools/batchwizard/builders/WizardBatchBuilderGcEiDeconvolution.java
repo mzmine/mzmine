@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -89,6 +89,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private final boolean recalibrateRetentionTime;
   private final int minNumberOfSignalsInDeconSpectra;
   private final Boolean exportAnnotationGraphics;
+  private final Boolean applySpectralNetworking;
 
   public WizardBatchBuilderGcEiDeconvolution(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -137,8 +138,11 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     exportMsp = getValue(params, WorkflowGcElectronImpactWizardParameters.exportMsp);
     exportAnnotationGraphics = getValue(params,
         WorkflowGcElectronImpactWizardParameters.exportAnnotationGraphics);
+    applySpectralNetworking = getValue(params,
+        WorkflowGcElectronImpactWizardParameters.applySpectralNetworking);
     minNumberOfSignalsInDeconSpectra = getValue(params,
         WorkflowGcElectronImpactWizardParameters.MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA);
+
   }
 
   @Override
@@ -159,9 +163,9 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     makeSpectralDeconvolutionStep(q);
     makeAndAddAlignmentStep(q);
     makeAndAddRowFilterStep(q);
-    makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
-        rtFwhm, imsInstrumentType);
-    makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
+    if (applySpectralNetworking) {
+      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, true);
+    }
     makeAndAddLibrarySearchMS1Step(q, false);
 
     if (isExportActive) {

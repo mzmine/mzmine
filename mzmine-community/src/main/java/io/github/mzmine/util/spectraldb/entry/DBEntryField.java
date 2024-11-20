@@ -27,7 +27,9 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.DatasetIdType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
@@ -66,9 +68,12 @@ import io.github.mzmine.util.collections.IndexRange;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The order reflects the rough order of these fields when exported
@@ -145,6 +150,8 @@ public enum DBEntryField {
       INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, MERGED_SPEC_TYPE, ACQUISITION,
       SOFTWARE};
 
+  private static final Logger logger = Logger.getLogger(DBEntryField.class.getName());
+
   private final Class clazz;
 
   DBEntryField() {
@@ -214,26 +221,42 @@ public enum DBEntryField {
   /**
    * @return enum field for a DataType or {@link #UNSPECIFIED} if no clear mapping exists
    */
+  public static @NotNull DBEntryField fromDataTypeClass(@NotNull Class<? extends DataType> type) {
+    return fromDataType(DataTypes.get(type));
+  }
+
+  /**
+   * @return enum field for a DataType or {@link #UNSPECIFIED} if no clear mapping exists
+   */
   public static @NotNull DBEntryField fromDataType(@NotNull DataType type) {
     return switch (type) {
-      case BestScanNumberType ignored -> SCAN_NUMBER;
-      case PrecursorMZType ignored -> PRECURSOR_MZ;
-      case MZType ignored -> PRECURSOR_MZ;
-      case NeutralMassType ignored -> EXACT_MASS;
-      case IDType ignored -> FEATURE_ID;
-      case ChargeType ignored -> CHARGE;
-      case FormulaType ignored -> FORMULA;
-      case InChIStructureType ignored -> INCHI;
-      case InChIKeyStructureType ignored -> INCHIKEY;
-      case SmilesStructureType ignored -> SMILES;
-      case IonTypeType ignored -> ION_TYPE;
-      case CompoundNameType ignored -> NAME;
-      case RTType ignored -> RT;
-      case CCSType ignored -> CCS;
-      case UsiType ignored -> USI;
-      case SplashType ignored -> SPLASH;
+      case BestScanNumberType _ -> SCAN_NUMBER;
+      case PrecursorMZType _ -> PRECURSOR_MZ;
+      case MZType _ -> PRECURSOR_MZ;
+      case NeutralMassType _ -> EXACT_MASS;
+      case IDType _ -> FEATURE_ID;
+      case ChargeType _ -> CHARGE;
+      case FormulaType _ -> FORMULA;
+      case InChIStructureType _ -> INCHI;
+      case InChIKeyStructureType _ -> INCHIKEY;
+      case SmilesStructureType _ -> SMILES;
+      case IonTypeType _ -> ION_TYPE;
+      case CompoundNameType _ -> NAME;
+      case RTType _ -> RT;
+      case CCSType _ -> CCS;
+      case UsiType _ -> USI;
+      case SplashType _ -> SPLASH;
       case HeightType _ -> FEATURE_MS1_HEIGHT;
       case RelativeHeightType _ -> FEATURE_MS1_REL_HEIGHT;
+      case CommentType _ -> DBEntryField.COMMENT;
+      case ClassyFireSuperclassType _ -> DBEntryField.CLASSYFIRE_SUPERCLASS;
+      case ClassyFireClassType _ -> DBEntryField.CLASSYFIRE_CLASS;
+      case ClassyFireSubclassType _ -> DBEntryField.CLASSYFIRE_SUBCLASS;
+      case ClassyFireParentType _ -> DBEntryField.CLASSYFIRE_PARENT;
+      case NPClassifierSuperclassType _ -> DBEntryField.NPCLASSIFIER_SUPERCLASS;
+      case NPClassifierClassType _ -> DBEntryField.NPCLASSIFIER_CLASS;
+      case NPClassifierPathwayType _ -> DBEntryField.NPCLASSIFIER_PATHWAY;
+//        case SynonymType _ -> DBEntryField.SYNONYM;
       default -> UNSPECIFIED;
     };
   }
@@ -630,6 +653,26 @@ public enum DBEntryField {
   }
 
   /**
+   * Converts the content to the correct value type - on exception this will log the warning and
+   * return null.
+   *
+   * @param content the value to be converted
+   * @return the converted value or original if the target object class is string or null if there
+   * is an exception during conversion
+   */
+  @Nullable
+  public Object tryConvertValue(String content) {
+    try {
+      return convertValue(content);
+    } catch (Throwable t) {
+      logger.log(Level.WARNING, """
+          Cannot convert value '%s' to type %s for field %s""".formatted(content,
+          this.getObjectClass(), this.toString()));
+      return null;
+    }
+  }
+
+  /**
    * Converts the content to the correct value type
    *
    * @param content the value to be converted
@@ -645,6 +688,9 @@ public enum DBEntryField {
     }
     if (getObjectClass().equals(Integer.class)) {
       return Integer.parseInt(content);
+    }
+    if (getObjectClass().equals(Long.class)) {
+      return Long.parseLong(content);
     }
     if (getObjectClass().equals(FloatArrayList.class)) {
       final String replaced = content.replaceAll("[\\[\\]]", "");

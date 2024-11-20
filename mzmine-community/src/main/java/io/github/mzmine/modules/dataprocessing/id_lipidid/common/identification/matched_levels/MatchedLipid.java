@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -82,13 +82,14 @@ public class MatchedLipid implements FeatureAnnotation {
 
   public MatchedLipid(ILipidAnnotation lipidAnnotation, Double accurateMz,
       IonizationType ionizationType, Set<LipidFragment> matchedFragments, Double msMsScore,
-      MatchedLipidStatus status) {
+      @NotNull MatchedLipidStatus status) {
     this.lipidAnnotation = lipidAnnotation;
     this.accurateMz = accurateMz;
     this.ionizationType = ionizationType;
     this.matchedFragments = matchedFragments;
     this.msMsScore = msMsScore;
     this.status = status;
+    this.comment = status.getComment();
   }
 
   public static MatchedLipid loadFromXML(XMLStreamReader reader,
@@ -115,7 +116,8 @@ public class MatchedLipid implements FeatureAnnotation {
     String comment = "";
     MatchedLipidStatus status = null;
     while (reader.hasNext() && !(reader.isEndElement() && (reader.getLocalName().equals(XML_ELEMENT)
-        || reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)))) {
+                                                           || reader.getLocalName().equals(
+        FeatureAnnotation.XML_ELEMENT)))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -149,6 +151,9 @@ public class MatchedLipid implements FeatureAnnotation {
         default -> {
         }
       }
+    }
+    if (status == null) {
+      status = MatchedLipidStatus.UNCONFIRMED; // should always load
     }
 
     MatchedLipid matchedLipid = new MatchedLipid(lipidAnnotation, accurateMz, ionizationType,
