@@ -36,7 +36,8 @@ public class MrmTransitionListType extends DataType<MrmTransitionList> {
 
   @Override
   public @NotNull String getFormattedString(MrmTransitionList list, boolean export) {
-    return list == null ? ""
-        : list.transitions().stream().map(MrmTransition::toString).collect(Collectors.joining(", "));
+    return list == null ? "" : list.transitions().stream()
+        .map(t -> t.toString() + (t == list.quantifier() ? " (quant)" : ""))
+        .collect(Collectors.joining(", "));
   }
 }
