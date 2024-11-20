@@ -38,9 +38,7 @@ import javafx.util.converter.NumberStringConverter;
  */
 public class FormatDoubleStringConverter extends StringConverter<Double> {
 
-  final Locale locale;
-  final String pattern;
-  final NumberFormat numberFormat;
+  private final NumberFormat numberFormat;
 
   /**
    * Constructs a {@code FormatDoubleStringConverter} with the default locale and format.
@@ -93,8 +91,19 @@ public class FormatDoubleStringConverter extends StringConverter<Double> {
   }
 
   FormatDoubleStringConverter(Locale locale, String pattern, NumberFormat numberFormat) {
-    this.locale = locale;
-    this.pattern = pattern;
+    if (locale == null) {
+      locale = Locale.getDefault();
+    }
+
+    if (numberFormat == null) {
+      if (pattern != null) {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(locale);
+        numberFormat = new DecimalFormat(pattern, symbols);
+      } else {
+        numberFormat = NumberFormat.getNumberInstance(locale);
+      }
+    }
+    assert numberFormat != null;
     this.numberFormat = numberFormat;
   }
 
@@ -115,11 +124,8 @@ public class FormatDoubleStringConverter extends StringConverter<Double> {
         return null;
       }
 
-      // Create and configure the parser to be used
-      NumberFormat parser = getNumberFormat();
-
       // Perform the requested parsing
-      return parser.parse(value).doubleValue();
+      return numberFormat.parse(value).doubleValue();
     } catch (ParseException ex) {
       throw new RuntimeException(ex);
     }
@@ -135,30 +141,8 @@ public class FormatDoubleStringConverter extends StringConverter<Double> {
       return "";
     }
 
-    // Create and configure the formatter to be used
-    NumberFormat formatter = getNumberFormat();
-
     // Perform the requested formatting
-    return formatter.format(value);
+    return numberFormat.format(value);
   }
 
-  /**
-   * Returns a {@code NumberFormat} instance to use for formatting and parsing in this
-   * {@code StringConverter}.
-   *
-   * @return a {@code NumberFormat} instance for formatting and parsing in this
-   * {@code StringConverter}
-   */
-  protected NumberFormat getNumberFormat() {
-    Locale _locale = locale == null ? Locale.getDefault() : locale;
-
-    if (numberFormat != null) {
-      return numberFormat;
-    } else if (pattern != null) {
-      DecimalFormatSymbols symbols = new DecimalFormatSymbols(_locale);
-      return new DecimalFormat(pattern, symbols);
-    } else {
-      return NumberFormat.getNumberInstance(_locale);
-    }
-  }
 }
