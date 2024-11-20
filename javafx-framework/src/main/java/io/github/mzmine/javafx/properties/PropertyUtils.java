@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,12 +26,19 @@
 package io.github.mzmine.javafx.properties;
 
 import java.util.Arrays;
+import javafx.animation.PauseTransition;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.util.Duration;
 import javafx.util.Subscription;
 
 public class PropertyUtils {
+
+  /**
+   * Default delay to wait for user input before using updated text field
+   */
+  public static final Duration DEFAULT_TEXT_FIELD_DELAY = Duration.millis(2000);
 
   /**
    * Add subscriptions (change) to all triggers and call operation on any change. If subscription is
@@ -45,6 +52,21 @@ public class PropertyUtils {
     Subscription[] subscriptions = Arrays.stream(triggers)
         .map(trigger -> trigger.subscribe((_, _) -> operation.run())).toArray(Subscription[]::new);
     return Subscription.combine(subscriptions);
+  }
+
+  /**
+   * Add subscriptions (change) to all triggers and call operation on any change, but with a delay.
+   *
+   * @param operation called on any change to trigger values
+   * @param delay     delay to wait before triggering an update, may want to use
+   *                  {@link #DEFAULT_TEXT_FIELD_DELAY}
+   * @return a combined subscription that may be used to unsubscribe later (optional)
+   */
+  public static Subscription onChangeDelayedSubscription(Runnable operation, Duration delay,
+      final ObservableValue<?>... triggers) {
+    PauseTransition pause = new PauseTransition(delay);
+    pause.setOnFinished(_ -> operation.run());
+    return onChangeSubscription(pause::playFromStart, triggers);
   }
 
   /**
@@ -76,4 +98,5 @@ public class PropertyUtils {
       operation.run();
     });
   }
+
 }
