@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,8 +50,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
-import java.io.IOException;
-import java.lang.foreign.Arena;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.logging.Logger;
@@ -103,8 +101,8 @@ public class BafImportTask extends AbstractTask {
     final RawDataFileImpl file = new RawDataFileImpl(folderPath.getName(),
         folderPath.getAbsolutePath(), getMemoryMapStorage());
 
-    try (Arena arena = Arena.ofConfined()) {
-      final BafDataAccess baf = new BafDataAccess(arena);
+    try (BafDataAccess baf = new BafDataAccess()) {
+
       final boolean b = baf.openBafFile(folderPath);
       if (!b) {
         setErrorMessage(baf.getLastErrorString());
@@ -125,35 +123,28 @@ public class BafImportTask extends AbstractTask {
             scanTable.getPolarity(i), scanTable.getSpectrumType(), scanTable.getRt(i), 0d, 0);
 
         if (scanProcessorConfig.scanFilter().matches(metadataScan)) {
-          try {
-            final SimpleSpectralArrays mzIntensities = baf.loadPeakData(i);
-            final SimpleSpectralArrays arrays = scanProcessorConfig.processor()
-                .processScan(metadataScan,
-                    new SimpleSpectralArrays(mzIntensities.mzs(), mzIntensities.intensities()));
+          final SimpleSpectralArrays mzIntensities = baf.loadPeakData(i);
+          final SimpleSpectralArrays arrays = scanProcessorConfig.processor()
+              .processScan(metadataScan,
+                  new SimpleSpectralArrays(mzIntensities.mzs(), mzIntensities.intensities()));
 
-            final MassSpectrumType spectrumType =
-                metadataScan.getSpectrumType() == MassSpectrumType.CENTROIDED
-                    || scanProcessorConfig.isMassDetectActive(metadataScan.getMSLevel())
-                    ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
-            final Range<Double> scanMzRange = Range.closed(scanTable.getAcqMzRangeLower(i),
-                scanTable.getAcqMzRangeUpper(i));
+          final MassSpectrumType spectrumType =
+              metadataScan.getSpectrumType() == MassSpectrumType.CENTROIDED
+                  || scanProcessorConfig.isMassDetectActive(metadataScan.getMSLevel())
+                  ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
+          final Range<Double> scanMzRange = Range.closed(scanTable.getAcqMzRangeLower(i),
+              scanTable.getAcqMzRangeUpper(i));
 
-            final Scan scan = new SimpleScan(file, metadataScan.getScanNumber(),
-                metadataScan.getMSLevel(), metadataScan.getRetentionTime(), msMsInfo, arrays.mzs(),
-                arrays.intensities(), spectrumType, metadataScan.getPolarity(),
-                "%s [%s - %s]".formatted(metadata.getValue(Values.InstrumentName),
-                    formats.mz(scanMzRange.lowerEndpoint()),
-                    formats.mz(scanMzRange.upperEndpoint())), scanMzRange);
-            file.addScan(scan);
-          } catch (IOException e) {
-            baf.closeHandle();
-            throw new RuntimeException(e);
-          }
+          final Scan scan = new SimpleScan(file, metadataScan.getScanNumber(),
+              metadataScan.getMSLevel(), metadataScan.getRetentionTime(), msMsInfo, arrays.mzs(),
+              arrays.intensities(), spectrumType, metadataScan.getPolarity(),
+              "%s [%s - %s]".formatted(metadata.getValue(Values.InstrumentName),
+                  formats.mz(scanMzRange.lowerEndpoint()), formats.mz(scanMzRange.upperEndpoint())),
+              scanMzRange);
+          file.addScan(scan);
         }
         importedScans++;
       }
-
-      baf.closeHandle();
 
       synchronized (org.sqlite.JDBC.class) {
         BrukerUvReader.loadAndAddForFile(folderPath, file, getMemoryMapStorage());
@@ -164,6 +155,9 @@ public class BafImportTask extends AbstractTask {
 
       file.getAppliedMethods()
           .add(new SimpleFeatureListAppliedMethod(callingModule, parameters, getModuleCallDate()));
+    } catch (Exception e) {
+      error("Error while reading BAF file.", e);
+      return;
     }
 
     project.addFile(file);

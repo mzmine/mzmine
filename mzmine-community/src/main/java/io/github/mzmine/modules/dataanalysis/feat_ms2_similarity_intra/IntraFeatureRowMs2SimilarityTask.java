@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -84,6 +84,7 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
   private final ParameterSet parameters;
   private int totalRows = 0;
   private @Nullable ParallelTextWriterTask writerTask;
+  private final boolean splitByEnergy;
 
   public IntraFeatureRowMs2SimilarityTask(ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
@@ -103,6 +104,8 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
         IntraFeatureRowMs2SimilarityParameters.minMatchedSignals);
     signalFilters = parameters.getValue(IntraFeatureRowMs2SimilarityParameters.signalFilters)
         .createFilter();
+    splitByEnergy = parameters.getValue(
+        IntraFeatureRowMs2SimilarityParameters.splitByFragmentationEnergy);
     this.parameters = parameters;
   }
 
@@ -146,7 +149,7 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
         setErrorMessage("Error during intra feature MS2 similarity export " + fileName);
         logger.log(Level.WARNING,
             "Error during compound annotations csv export of feature list: " + featureList.getName()
-            + ": " + e.getMessage(), e);
+                + ": " + e.getMessage(), e);
         if (writerTask != null) {
           writerTask.setWriteFinished();
         }
@@ -184,7 +187,8 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
     }
 
     // split by energy
-    Map<Float, List<Scan>> byFragmentationEnergy = ScanUtils.splitByFragmentationEnergy(scans);
+    Map<Float, List<Scan>> byFragmentationEnergy =
+        splitByEnergy ? ScanUtils.splitByFragmentationEnergy(scans) : Map.of(0f, scans);
 
     double[] similarities = byFragmentationEnergy.values().stream().map(this::processScans)
         .flatMapToDouble(DoubleCollection::doubleStream).toArray();

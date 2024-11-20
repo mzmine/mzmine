@@ -39,6 +39,21 @@ public interface OtherTimeSeries extends IntensityTimeSeries {
   String XML_ELEMENT = "othertimeseries";
   String XML_OTHER_TIME_SERIES_ATTR = "othertimeseriestype";
 
+  static OtherTimeSeries loadFromXML(XMLStreamReader reader, @NotNull RawDataFile file)
+      throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(OtherTimeSeries.XML_ELEMENT))) {
+      throw new IllegalStateException("Wrong element");
+    }
+
+    return switch (reader.getAttributeValue(null, XML_OTHER_TIME_SERIES_ATTR)) {
+      case SimpleOtherTimeSeries.XML_OTHER_TIME_SERIES_ATTR_VALUE ->
+          SimpleOtherTimeSeries.loadFromXML(reader, file);
+      default -> throw new IllegalStateException(
+          "Unknown OtherTImeSeries data type (%s).".formatted(
+              reader.getAttributeValue(null, XML_OTHER_TIME_SERIES_ATTR)));
+    };
+  }
+
   String getName();
 
   ChromatogramType getChromatoogramType();
@@ -66,18 +81,6 @@ public interface OtherTimeSeries extends IntensityTimeSeries {
    */
   void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 
-  static OtherTimeSeries loadFromXML(XMLStreamReader reader, @NotNull RawDataFile file)
-      throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(OtherTimeSeries.XML_ELEMENT))) {
-      throw new IllegalStateException("Wrong element");
-    }
-
-    return switch (reader.getAttributeValue(null, XML_OTHER_TIME_SERIES_ATTR)) {
-      case SimpleOtherTimeSeries.XML_OTHER_TIME_SERIES_ATTR_VALUE ->
-          SimpleOtherTimeSeries.loadFromXML(reader, file);
-      default -> throw new IllegalStateException(
-          "Unknown OtherTImeSeries data type (%s).".formatted(
-              reader.getAttributeValue(null, XML_OTHER_TIME_SERIES_ATTR)));
-    };
-  }
+  @Override
+  OtherTimeSeries emptySeries();
 }

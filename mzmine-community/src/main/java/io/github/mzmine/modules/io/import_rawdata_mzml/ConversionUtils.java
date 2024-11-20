@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
+import com.google.common.collect.Range;
 import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.IsolationInfo;
@@ -42,6 +43,8 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.DetectorType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
@@ -65,6 +68,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorEl
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
+import io.github.mzmine.util.RangeUtils;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -279,16 +283,7 @@ public class ConversionUtils {
    */
   public static Scan mzmlScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
       MemorySegment mzs, MemorySegment intensities, MassSpectrumType spectrumType) {
-    DDAMsMsInfo info = null;
-    if (scan.getPrecursorList() != null) {
-      final var precursorElements = scan.getPrecursorList().getPrecursorElements();
-      if (precursorElements.size() == 1) {
-        info = DDAMsMsInfoImpl.fromMzML(precursorElements.get(0), scan.getMSLevel());
-      } else if (precursorElements.size() > 1) {
-        info = MSnInfoImpl.fromMzML(precursorElements, scan.getMSLevel());
-      }
-    }
-
+    MsMsInfo info = scan.getMsMsInfo();
     Float injTime = scan.getInjectionTime();
 
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMSLevel(),
