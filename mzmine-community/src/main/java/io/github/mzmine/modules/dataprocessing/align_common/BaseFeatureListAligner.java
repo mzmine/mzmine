@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,12 +34,17 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.align_join.RowVsRowScore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.mzio.links.MzioMZmineLinks;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -174,7 +179,11 @@ public class BaseFeatureListAligner {
   public ModularFeatureList alignFeatureLists() {
     // Remember how many rows we need to process. Each row will be processed
     // twice, first for score calculation, second for actual alignment.
-    progress.setTotal(featureLists.stream().mapToLong(FeatureList::getNumberOfRows).sum());
+    long totalRows = featureLists.stream().mapToLong(FeatureList::getNumberOfRows).sum();
+    progress.setTotal(totalRows);
+
+    // open dialog if there may be too much work
+    checkTotalWorkloadAndMemory(totalRows);
 
     var alignedFeatureList = createEmptyAlignedList(featureLists, featureListName, storage);
     if (alignedFeatureList == null) {
@@ -216,6 +225,36 @@ public class BaseFeatureListAligner {
     rowAligner.calculateAlignmentScores(alignedFeatureList, featureLists);
 
     return alignedFeatureList;
+  }
+
+  /**
+   * Check the estimated memory requirements for this run
+   */
+  private void checkTotalWorkloadAndMemory(final long totalRows) {
+    // after alignment:  25000 rows x 250 samples = 7 GB
+    // before alignment: 250 feature lists: 4,011,743 features to be aligned 9 GB
+    // during end of alignment (both aligned and non aligned lists present): 15 GB
+    int rowsPerList = (int) (totalRows / featureLists.size());
+    double gbMemoryPerMillionFeatures = 3.74; // this is from 15 GB per 4M features
+    double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
+
+    logger.info("""
+        Alignment started on a total of %d rows across %d samples (mean %d rows).
+        Max memory available: %.1f GB""".formatted(totalRows, featureLists.size(), rowsPerList,
+        maxMemoryGB));
+
+    // estimate if there might be an issue with this size and memory
+    if (gbMemoryPerMillionFeatures / 1_000_000 * totalRows > maxMemoryGB) {
+      DialogLoggerUtil.showMessageDialog("Large dataset feature alignment", false,
+          FxTextFlows.newTextFlow(FxTexts.text("""
+                  mzmine feature alignment started on %d total features across %d samples.
+                  This may result in a huge aligned feature list and memory constraints.
+                  Consider applying higher filters during chromatogram builder and feature resolving, /
+                  such as higher minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver.
+                  When working on large datasets, consult the performance documentation for tuning options:
+                  """.formatted(totalRows, featureLists.size())),
+              FxTexts.hyperlinkText(MzioMZmineLinks.PERFORMANCE_DOCU.getUrl())));
+    }
   }
 
   private boolean nextAlignmentIteration(final List<List<FeatureListRow>> allRows,
