@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -222,8 +222,8 @@ public class ParameterSetupPane extends BorderPane {
       mainPane.setTop(pane);
     }
 
-//    setMinWidth(500.0);
-//    setMinHeight(400.0);
+    setMinWidth(300.0);
+    setMinHeight(100);
   }
 
   /**
