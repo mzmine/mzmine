@@ -260,21 +260,21 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private void handleMrmTraces(ModularFeature f) {
-    final MrmTransitionList mrmTransitions = f.get(MrmTransitionListType.class);
+    final MrmTransitionList<?> mrmTransitions = f.get(MrmTransitionListType.class);
     if (mrmTransitions == null) {
       return;
     }
 
     final Range<Float> rtRange = f.getRawDataPointsRTRange();
-    List<MrmTransition> newTransitions = new ArrayList<>();
-    for (MrmTransition mrmTransition : mrmTransitions.transitions()) {
+    List<MrmTransition<?>> newTransitions = new ArrayList<>();
+    for (MrmTransition<?> mrmTransition : mrmTransitions.transitions()) {
       final IonTimeSeries<? extends Scan> series = mrmTransition.chromatogram();
       final IonTimeSeries<? extends Scan> resolved = series.subSeries(getMemoryMapStorage(),
           rtRange.lowerEndpoint(), rtRange.upperEndpoint());
       newTransitions.add(mrmTransition.with(resolved));
     }
 
-    final MrmTransitionList resolvedTransitions = new MrmTransitionList(newTransitions);
+    final MrmTransitionList<?> resolvedTransitions = new MrmTransitionList(newTransitions);
     f.set(MrmTransitionListType.class, resolvedTransitions);
     resolvedTransitions.setQuantifier(resolvedTransitions.quantifier(), f);
   }

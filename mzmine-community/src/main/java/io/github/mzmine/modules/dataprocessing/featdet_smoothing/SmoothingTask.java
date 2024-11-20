@@ -158,12 +158,12 @@ public class SmoothingTask extends AbstractTask {
   }
 
   private void handleMrmTraces(ModularFeature feature, SmoothingAlgorithm smoother) {
-    if (!(feature.get(MrmTransitionListType.class) instanceof MrmTransitionList transitions)) {
+    if (!(feature.get(MrmTransitionListType.class) instanceof MrmTransitionList<?> transitions)) {
       return;
     }
 
-    List<MrmTransition> smoothedTransitions = new ArrayList<>();
-    for (MrmTransition transition : transitions.transitions()) {
+    List<MrmTransition<?>> smoothedTransitions = new ArrayList<>();
+    for (MrmTransition<?> transition : transitions.transitions()) {
       final IonTimeSeries<Scan> remapped = IonTimeSeriesUtils.remapRtAxis(transition.chromatogram(),
           flist.getSeletedScans(feature.getRawDataFile()));
       final @Nullable double[] intensities = smoother.smoothRt(remapped);
