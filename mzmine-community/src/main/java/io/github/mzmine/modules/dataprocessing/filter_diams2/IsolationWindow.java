@@ -29,12 +29,16 @@ package io.github.mzmine.modules.dataprocessing.filter_diams2;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.RangeUtils;
 import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 
 public record IsolationWindow(@Nullable Range<Double> mzIsolation,
                               @Nullable Range<Float> mobilityIsolation) {
+
+  private static final NumberFormats formats = ConfigService.getExportFormats();
 
   boolean containsMobility(MobilityScan scan) {
     if (mobilityIsolation != null && !mobilityIsolation.contains((float) scan.getMobility())) {
@@ -110,5 +114,11 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
       mobility = mobilityIsolation.span(other.mobilityIsolation());
     }
     return new IsolationWindow(mz, mobility);
+  }
+
+  @Override
+  public String toString() {
+    return "IsolationWindow{" + "mz=" + formats.mz(mzIsolation) + ", mobility="
+        + formats.mobility(mobilityIsolation) + '}';
   }
 }

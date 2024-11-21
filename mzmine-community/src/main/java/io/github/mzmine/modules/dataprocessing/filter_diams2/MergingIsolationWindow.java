@@ -25,4 +25,9 @@ public final class MergingIsolationWindow {
   public void setWindow(IsolationWindow window) {
     this.window = window;
   }
+
+  @Override
+  public String toString() {
+    return "%s (%s scans)".formatted(window.toString(), scans.size());
+  }
 }
