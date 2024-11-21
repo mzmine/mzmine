@@ -179,7 +179,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "DIA MS2 for feature list: " + flist.getName();
+    return "DIA MS2 for feature list: " + flist.getName() + " - " + description;
   }
 
   @Override
@@ -198,14 +198,18 @@ public class DiaMs2CorrTask extends AbstractTask {
     }
 
     final RawDataFile file = flist.getRawDataFile(0);
+    description = "Extracting isolation windows.";
     final Map<IsolationWindow, List<Scan>> isolationWindowScanMap = extractIsolationWindows(file);
+    description = "Building isolation window files.";
     final Map<IsolationWindow, RawDataFile> isolationWindowFileMap = buildIsolationWindowFiles(
         isolationWindowScanMap);
+    description = "Building isolation window chromatograms.";
     final Map<IsolationWindow, FeatureList> ms2Flists = buildChromatograms(isolationWindowFileMap);
     final Map<IsolationWindow, RangeMap<Double, IonTimeSeries<?>>> isoWindowEicsMap = mapIsoWindowToEics(
         ms2Flists, mzTolerance);
     final Set<IsolationWindow> isolationWindows = isoWindowEicsMap.keySet();
 
+    description = "Finding correlated MS2 chromatograms.";
     for (FeatureListRow row : flist.getRows()) {
       currentRow++;
       if (isCanceled()) {
@@ -235,8 +239,8 @@ public class DiaMs2CorrTask extends AbstractTask {
 
   /**
    * @param correlatedMs2s A list of all correlated ms2 spectra.
-   * @return A new PseudoSpectrum, which only containsMobility ions that appear in every individual pseudo
-   * spectrum. Null if no ions were found or the list was empty.
+   * @return A new PseudoSpectrum, which only containsMobility ions that appear in every individual
+   * pseudo spectrum. Null if no ions were found or the list was empty.
    */
   private @Nullable PseudoSpectrum refineMs2s(
       @NotNull List<@NotNull PseudoSpectrum> correlatedMs2s) {
@@ -532,8 +536,8 @@ public class DiaMs2CorrTask extends AbstractTask {
       final double numIsolationWindows = isolationWindowScanMap.size();
       double finishedIsolationWindows = 0;
 
-      final long framesToMerge = isolationWindowScanMap.entrySet().stream().mapToLong(e -> e.getValue().size())
-          .sum();
+      final long framesToMerge = isolationWindowScanMap.entrySet().stream()
+          .mapToLong(e -> e.getValue().size()).sum();
       long mergedFrames = 0;
 
       for (Entry<IsolationWindow, List<Scan>> entry : isolationWindowScanMap.entrySet()) {
@@ -557,8 +561,8 @@ public class DiaMs2CorrTask extends AbstractTask {
           final List<MobilityScan> mobilityScansInWindow = frame.getMobilityScans().stream()
               .filter(isolationWindow::containsMobility).toList();
           final double[][] mzIntensities = SpectraMerging.calculatedMergedMzsAndIntensities(
-              mobilityScansInWindow, mzTolerance, IntensityMergingType.SUMMED,
-              SpectraMerging.DEFAULT_CENTER_FUNCTION, null, null, 2);
+              mobilityScansInWindow.stream().map(MobilityScan::getMassList).toList(), mzTolerance,
+              IntensityMergingType.SUMMED, SpectraMerging.DEFAULT_CENTER_FUNCTION, null, null, 2);
 
           final SimpleFrame newFrame = new SimpleFrame(windowFile, scan.getScanNumber(),
               scan.getMSLevel(), scan.getRetentionTime(), mzIntensities[0], mzIntensities[1],
@@ -719,11 +723,13 @@ public class DiaMs2CorrTask extends AbstractTask {
       }
     }
 
+    logger.finest(() -> "%s: Extracted %d raw isolation windows.".formatted(file.getName(),
+        windowScanMap.size()));
     // now merge some isolation windows, if they are largely overlapping (e.g. MSConvert converted Agilent AllIons files.)
     final List<Entry<IsolationWindow, List<Scan>>> sortedWindowEntries = new ArrayList<>(
-        windowScanMap.entrySet().stream()
-            .sorted(Comparator.comparingDouble(iw -> iw.getKey().mzIsolation().lowerEndpoint()))
-            .toList());
+        windowScanMap.entrySet().stream().sorted(Comparator.comparingDouble(
+            iw -> Objects.requireNonNullElse(iw.getKey().mzIsolation(), Range.singleton(0d))
+                .lowerEndpoint())).toList());
     final List<MergingIsolationWindow> mergingWindows = new ArrayList<>();
     for (Entry<IsolationWindow, List<Scan>> entry : sortedWindowEntries) {
       final IsolationWindow window = entry.getKey();
@@ -744,6 +750,9 @@ public class DiaMs2CorrTask extends AbstractTask {
       }
     }
 
+    logger.finest(
+        () -> "%s: %d isolation windows remained after merging. (%s)".formatted(file.getName(),
+            mergingWindows.size(), mergingWindows.toString()));
     windowScanMap.clear();
     mergingWindows.forEach(mw -> windowScanMap.put(mw.window(),
         mw.scans().stream().sorted(Comparator.comparingDouble(Scan::getRetentionTime)).toList()));

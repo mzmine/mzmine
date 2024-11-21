@@ -41,7 +41,6 @@ import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
-import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModule;
@@ -373,6 +372,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
       int storageOffset = frameStorage.getStorageOffset(scanIndex);
       int basePeakIndex = frameStorage.getBasePeakIndex(scanIndex);
 
+      // start msms info construction here in case there are missing scans
+      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
+          frameNumber, mobilityScanNumberCounter);
+
       // fill in missing scans
       // I'm not proud of this piece of code, but some manufactures or conversion tools leave out
       // empty scans. Looking at you, Agilent. however, we need that info for proper processing ~SteffenHeu
@@ -384,10 +387,12 @@ public class MSDKmzMLImportTask extends AbstractTask {
         storageOffsets[mobilityScanNumberCounter] = storageOffset;
         basePeakIndices[mobilityScanNumberCounter] = -1;
         mobilityScanNumberCounter++;
+
+        // keep incrementing msms info construction here for missing scans
+        ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
+            frameNumber, mobilityScanNumberCounter);
       }
 
-      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
-          frameNumber, mobilityScanNumberCounter);
       storageOffsets[mobilityScanNumberCounter] = storageOffset;
       basePeakIndices[mobilityScanNumberCounter] = basePeakIndex;
       mobilityScanNumberCounter++;
@@ -399,6 +404,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
 //          new BuildingMobilityScan(mobilityScanNumberCounter, MassDetector.EMPTY_DATA));
       storageOffsets[mobilityScanNumberCounter] = storageOffsets[mobilityScanNumberCounter - 1];
       basePeakIndices[mobilityScanNumberCounter] = -1;
+      if(!buildingImsMsMsInfos.isEmpty()) {
+        buildingImsMsMsInfos.getLast().setLastSpectrumNumber(mobilityScanNumberCounter);
+      }
     }
 
     SimpleFrame finishedFrame = frameStorage.createFrame(newImsFile, frameNumber);
