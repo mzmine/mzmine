@@ -235,6 +235,7 @@ public class DiaMs2CorrTask extends AbstractTask {
         new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
             getModuleCallDate()));
     setStatus(TaskStatus.FINISHED);
+
   }
 
   /**
