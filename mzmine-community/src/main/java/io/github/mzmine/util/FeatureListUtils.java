@@ -31,6 +31,7 @@ import static io.github.mzmine.util.RangeUtils.calcCenterScore;
 import static io.github.mzmine.util.RangeUtils.isBounded;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -45,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -692,5 +694,19 @@ public class FeatureListUtils {
               ids.stream().map(Object::toString).collect(Collectors.joining(","))));
     }
     return list;
+  }
+
+  /**
+   * Ims features usually consume more ram than non ims features. IF memory usage can be estimated
+   * for regular features, estimate a correction factor for the ram usage if ims files are present.
+   */
+  public static double getImsRamFactor(FeatureList flist) {
+    final int numRaws = flist.getNumberOfRawDataFiles();
+    final long numImsFiles = flist.getRawDataFiles().stream()
+        .filter(IMSRawDataFile.class::isInstance).count();
+    final boolean isIms = flist.getFeatureTypes().contains(DataTypes.get(MobilityType.class));
+    // ims features generally consume 10 times the ram of non ims features. not all files may be ims though
+    final double imsRamFactor = isIms ? (double) (numImsFiles * 10) / numRaws : 1;
+    return imsRamFactor;
   }
 }
