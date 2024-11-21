@@ -167,7 +167,7 @@ public interface MZmineConfiguration {
    */
   default double getUsedMemoryGB() {
     final double GB = 1 << 30; // 1 GB
-    double totalMemGB = Runtime.getRuntime().totalMemory() / GB;
+    final double totalMemGB = Runtime.getRuntime().totalMemory() / GB;
     return totalMemGB - Runtime.getRuntime().freeMemory() / GB;
   }
 }

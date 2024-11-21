@@ -234,9 +234,9 @@ public class BaseFeatureListAligner {
     // after alignment:  25000 rows x 250 samples = 7 GB
     // before alignment: 250 feature lists: 4,011,743 features to be aligned 9 GB
     // during end of alignment (both aligned and non aligned lists present): 15 GB
-    int rowsPerList = (int) (totalRows / featureLists.size());
-    double gbMemoryPerMillionFeatures = 3.74; // this is from 15 GB per 4M features
-    double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
+    final int rowsPerList = (int) (totalRows / featureLists.size());
+    final double gbMemoryPerMillionFeatures = 3.74; // this is from 15 GB per 4M features
+    final double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
 
     logger.info("""
         Alignment started on a total of %d rows across %d samples (mean %d rows).
@@ -244,7 +244,7 @@ public class BaseFeatureListAligner {
         maxMemoryGB));
 
     // estimate if there might be an issue with this size and memory
-    if (gbMemoryPerMillionFeatures / 1_000_000 * totalRows > maxMemoryGB) {
+    if (gbMemoryPerMillionFeatures / 1_000_000 * totalRows > maxMemoryGB * 0.85) {
       DialogLoggerUtil.showMessageDialog("Large dataset feature alignment", false,
           FxTextFlows.newTextFlow(FxTexts.text("""
                   mzmine feature alignment started on %d total features across %d samples.

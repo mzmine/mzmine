@@ -193,24 +193,24 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
   private void checkTotalWorkloadAndMemory() {
     // 2556327 total features after gap filling 5.9 GB memory
     // after finishing peak finder and GC drops to 3.7 GB memory
-    int totalRows = peakList.getNumberOfRows();
-    double gbMemoryPerMillionFeatures = 2.5; // this is from 6 GB per 2.5M features
-    double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
-    int numRaws = peakList.getNumberOfRawDataFiles();
-    long totalFeatures = totalRows * (long) numRaws;
+    final int totalRows = peakList.getNumberOfRows();
+    final double gbMemoryPerMillionFeatures = 2.5; // this is from 6 GB per 2.5M features
+    final double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
+    final int numRaws = peakList.getNumberOfRawDataFiles();
+    final long totalFeatures = totalRows * (long) numRaws;
 
     logger.info("""
         Gap-filling started on a total of %d feature list rows across %d samples (%d potential features).
         Max memory available: %.1f GB""".formatted(totalRows, numRaws, totalFeatures, maxMemoryGB));
 
     // check if memory constrains may arise
-    if (gbMemoryPerMillionFeatures / 1_000_000 * totalFeatures > maxMemoryGB) {
+    if (gbMemoryPerMillionFeatures / 1_000_000 * totalFeatures > maxMemoryGB * 0.85) {
       DialogLoggerUtil.showMessageDialog("Large dataset gap-filling", false,
           FxTextFlows.newTextFlow(FxTexts.text("""
                   mzmine gap-filling started on a total of %d feature list rows across %d samples. \
                   This results in a total of %d possible features (rows x samples), that may cause memory constraints.
                   Consider applying the feature list rows filter to remove features below X%% detections. \
-                  Great filters to reduce the number of noisy features are also found in the chromatogram builder and feature resolvers, \
+                  Other great filters to reduce the number of noisy features are also found in the chromatogram builder and feature resolvers, \
                   such as higher minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver.
                   When working on large datasets, consult the performance documentation for tuning options:
                   """.formatted(totalRows, numRaws, totalFeatures)),
