@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,8 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modifi
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -35,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,15 +70,26 @@ public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterS
           MZmineCore.getConfiguration().getMZFormat(), 600d), true);
 
   public static final ParameterSetParameter<SignalFiltersParameters> signalFilters = new ParameterSetParameter<>(
-      "Signal filters", """
-      Signal filters to limit the number of signals etc.
-      """, new SignalFiltersParameters());
+      SignalFiltersParameters.NAME, SignalFiltersParameters.DESCRIPTION,
+      new SignalFiltersParameters());
 
   public ModifiedCosineSpectralNetworkingParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
         MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, MAX_MZ_DELTA, MIN_MATCH, MIN_COSINE_SIMILARITY,
         signalFilters);
+  }
+
+
+  public static void setAll(final ParameterSet param, final boolean onlyBestMs2,
+      final boolean removePrecursor, final double maxMzDelta, final int minMatched,
+      final double minCosine, final MZTolerance mzTol, final SpectralSignalFilter filter) {
+    param.setParameter(MAX_MZ_DELTA, removePrecursor, maxMzDelta);
+    param.setParameter(ONLY_BEST_MS2_SCAN, onlyBestMs2);
+    param.setParameter(MIN_MATCH, minMatched);
+    param.setParameter(MIN_COSINE_SIMILARITY, minCosine);
+    param.setParameter(MZ_TOLERANCE, mzTol);
+    param.getParameter(signalFilters).getEmbeddedParameters().setValue(filter);
   }
 
   @Override

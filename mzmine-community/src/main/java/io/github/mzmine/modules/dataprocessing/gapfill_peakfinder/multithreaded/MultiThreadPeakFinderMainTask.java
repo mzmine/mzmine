@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,10 +28,15 @@ package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumOfThreadsParameter;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -41,7 +46,9 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.utils.TaskUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.mzio.links.MzioMZmineLinks;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -90,11 +97,13 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
         () -> String.format("Running multithreaded gap filler on %s (handle original list:%s)",
             peakList.toString(), originalFeatureListOption.toString()));
 
+    checkTotalWorkloadAndMemory();
+
     // Create new results feature list
     processedPeakList = switch (originalFeatureListOption) {
       case PROCESS_IN_PLACE -> peakList;
-      case KEEP, REMOVE -> peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage(),
-          false);
+      case KEEP, REMOVE ->
+          peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage(), false);
     };
 
     progress.getAndSet(0.1);
@@ -105,6 +114,13 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     int maxRunningThreads = getMaxThreads();
     // raw files
     int raw = processedPeakList.getNumberOfRawDataFiles();
+
+    // total gaps
+    long totalFeatures = peakList.getNumberOfRows() * (long) raw;
+    long detectedFeatures = peakList.stream().mapToLong(FeatureListRow::getNumberOfFeatures).sum();
+    long totalGaps = totalFeatures - detectedFeatures;
+    System.gc();
+    double usedGbBefore = ConfigService.getConfiguration().getUsedMemoryGB();
 
     // Submit the tasks to the task controller for processing
     List<AbstractTask> tasks = createSubTasks(raw, maxRunningThreads);
@@ -157,6 +173,54 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     // start
     var wrappedTasks = MZmineCore.getTaskController().addTasks(tasks.toArray(AbstractTask[]::new));
     TaskUtils.waitForTasksToFinish(thistask, wrappedTasks);
+
+    long afterGapFill = peakList.stream().mapToLong(FeatureListRow::getNumberOfFeatures).sum();
+    System.gc();
+    double usedGbAfter = ConfigService.getConfiguration().getUsedMemoryGB();
+    logger.info("""
+        Gap-filling statistics:
+        %d x %d (rows x samples) = %d total possible features
+        Initial RAM %.1f GB: %d detected with %d gaps to search
+        After RAM %.1f GB: %d total features""".formatted(peakList.getNumberOfRows(),
+        peakList.getNumberOfRawDataFiles(), totalFeatures, //
+        usedGbBefore, detectedFeatures, totalGaps,//
+        usedGbAfter, afterGapFill));
+  }
+
+
+  /**
+   * Check the estimated memory requirements for this run
+   */
+  private void checkTotalWorkloadAndMemory() {
+    // 2556327 total features after gap filling 5.9 GB memory
+    // after finishing peak finder and GC drops to 3.7 GB memory
+    final int totalRows = peakList.getNumberOfRows();
+    final int numRaws = peakList.getNumberOfRawDataFiles();
+    final double imsRamFactor = FeatureListUtils.getImsRamFactor(peakList);
+    final double gbMemoryPerMillionFeatures =
+        2.5 * imsRamFactor; // this is from 6 GB per 2.5M features
+    final double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
+    final long totalFeatures = totalRows * (long) numRaws;
+    final double expectedMemoryUsage = gbMemoryPerMillionFeatures / 1_000_000 * totalFeatures;
+
+    logger.info("""
+        Gap-filling started on a total of %d feature list rows across %d samples (%d potential features). \
+        Max memory available: %.1f GB. Expecting to use %.1f GB during gap filling""".formatted(
+        totalRows, numRaws, totalFeatures, maxMemoryGB, expectedMemoryUsage));
+
+    // check if memory constrains may arise
+    if (expectedMemoryUsage > maxMemoryGB * 0.85) {
+      DialogLoggerUtil.showMessageDialog("Large dataset gap-filling", false,
+          FxTextFlows.newTextFlow(FxTexts.text("""
+                  mzmine gap-filling started on a total of %d feature list rows across %d samples. \
+                  This results in a total of %d possible features (rows x samples), that may cause memory constraints.
+                  Consider applying the feature list rows filter to remove features below X%% detections. \
+                  Other great filters to reduce the number of noisy features are also found in the chromatogram builder and feature resolvers, \
+                  such as increased minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver.
+                  When working on large datasets, consult the performance documentation for tuning options:
+                  """.formatted(totalRows, numRaws, totalFeatures)),
+              FxTexts.hyperlinkText(MzioMZmineLinks.PERFORMANCE_DOCU.getUrl())));
+    }
   }
 
   private int getMaxThreads() {

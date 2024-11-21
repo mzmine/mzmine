@@ -36,17 +36,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.features.types.annotations.CommentType;
-import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
-import io.github.mzmine.datamodel.features.types.numbers.CCSType;
-import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
-import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -57,6 +46,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -170,7 +160,8 @@ public interface SpectralLibraryEntry extends MassList {
     }
     List<Float> energies = ScanUtils.extractCollisionEnergies(scan);
     if (!energies.isEmpty()) {
-      entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, energies);
+      FloatArrayList list = new FloatArrayList(energies);
+      entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, list);
     }
 
     // merged scans are derived from multiple source scans - add all information here and overwrite
@@ -213,21 +204,10 @@ public interface SpectralLibraryEntry extends MassList {
 
   default void addAnnotationFields(CompoundDBAnnotation match) {
     for (var dbentry : match.getReadOnlyMap().entrySet()) {
-      DBEntryField field = switch (dbentry.getKey()) {
-        case RTType _ -> DBEntryField.RT;
-        case CompoundNameType _ -> DBEntryField.NAME;
-        case FormulaType _ -> DBEntryField.FORMULA;
-        case SmilesStructureType _ -> DBEntryField.SMILES;
-        case InChIStructureType _ -> DBEntryField.INCHI;
-        case InChIKeyStructureType _ -> DBEntryField.INCHIKEY;
-        case CCSType _ -> DBEntryField.CCS;
-        case ChargeType _ -> DBEntryField.CHARGE;
-        case NeutralMassType _ -> DBEntryField.EXACT_MASS;
-        case CommentType _ -> DBEntryField.COMMENT;
-        case IonTypeType _ -> DBEntryField.ION_TYPE;
-//        case SynonymType _ -> DBEntryField.SYNONYM;
-        default -> null;
-      };
+      DBEntryField field = DBEntryField.fromDataType(dbentry.getKey());
+      if (field == DBEntryField.UNSPECIFIED) {
+        continue;
+      }
       try {
         putIfNotNull(field, dbentry.getValue());
       } catch (Exception ex) {

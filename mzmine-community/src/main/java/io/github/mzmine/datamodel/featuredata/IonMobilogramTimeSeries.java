@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.ModifiableSpectra;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
@@ -45,6 +46,12 @@ import org.jetbrains.annotations.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, ModifiableSpectra<Frame> {
+
+  IonMobilogramTimeSeries EMPTY = new SimpleIonMobilogramTimeSeries(null, new double[0],
+      new double[0], List.of(), List.of(), new SummedIntensityMobilitySeries(null, List.of()));
+
+  @Override
+  IonMobilogramTimeSeries emptySeries();
 
   @Override
   default float getRetentionTime(int index) {

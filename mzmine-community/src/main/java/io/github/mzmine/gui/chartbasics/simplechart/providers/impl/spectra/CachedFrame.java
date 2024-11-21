@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
@@ -143,13 +144,13 @@ public class CachedFrame implements Frame {
   }
 
   @Override
-  public @NotNull Set<PasefMsMsInfo> getImsMsMsInfos() {
+  public @NotNull Set<IonMobilityMsMsInfo> getImsMsMsInfos() {
     return originalFrame.getImsMsMsInfos();
   }
 
   @Nullable
   @Override
-  public PasefMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+  public IonMobilityMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
     return originalFrame.getImsMsMsInfoForMobilityScan(mobilityScanNumber);
   }
 

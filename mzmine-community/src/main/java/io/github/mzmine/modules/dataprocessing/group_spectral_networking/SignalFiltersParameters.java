@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,12 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
 public class SignalFiltersParameters extends SimpleParameterSet {
+
+  public static final String NAME = "Signal filters";
+  public static final String DESCRIPTION = """
+      Signal filters to limit the number of signals based on a maximum number
+      and a target percentile of intensity retained. Above a signal threshold,
+      signals are limited so that XX % of intensity remains. Then the signals are limited to the max N signals.""";
 
   public static final OptionalParameter<DoubleParameter> removePrecursor = new OptionalParameter<>(
       new DoubleParameter("Remove residual precursor m/z",
