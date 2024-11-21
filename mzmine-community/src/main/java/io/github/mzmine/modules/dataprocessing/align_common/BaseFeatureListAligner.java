@@ -235,16 +235,20 @@ public class BaseFeatureListAligner {
     // before alignment: 250 feature lists: 4,011,743 features to be aligned 9 GB
     // during end of alignment (both aligned and non aligned lists present): 15 GB
     final int rowsPerList = (int) (totalRows / featureLists.size());
-    final double gbMemoryPerMillionFeatures = 3.74; // this is from 15 GB per 4M features
+    final double imsCorrectionFactor = featureLists.stream()
+        .mapToDouble(FeatureListUtils::getImsRamFactor).average().orElse(1d);
+    final double gbMemoryPerMillionFeatures =
+        3.74 * imsCorrectionFactor; // this is from 15 GB per 4M features
     final double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
+    final double expectedRamUsage = gbMemoryPerMillionFeatures / 1_000_000 * totalRows;
 
     logger.info("""
-        Alignment started on a total of %d rows across %d samples (mean %d rows).
-        Max memory available: %.1f GB""".formatted(totalRows, featureLists.size(), rowsPerList,
-        maxMemoryGB));
+        Alignment started on a total of %d rows across %d samples (mean %d rows). \
+        Max memory available: %.1f GB. Expecting to use %.1f GB.""".formatted(totalRows,
+        featureLists.size(), rowsPerList, maxMemoryGB, expectedRamUsage));
 
     // estimate if there might be an issue with this size and memory
-    if (gbMemoryPerMillionFeatures / 1_000_000 * totalRows > maxMemoryGB * 0.85) {
+    if (expectedRamUsage > maxMemoryGB * 0.85) {
       DialogLoggerUtil.showMessageDialog("Large dataset feature alignment", false,
           FxTextFlows.newTextFlow(FxTexts.text("""
                   mzmine feature alignment started on %d total features across %d samples.

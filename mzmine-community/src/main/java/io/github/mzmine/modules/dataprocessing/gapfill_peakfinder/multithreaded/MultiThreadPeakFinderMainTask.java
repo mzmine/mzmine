@@ -46,6 +46,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.utils.TaskUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.mzio.links.MzioMZmineLinks;
 import java.time.Instant;
@@ -179,8 +180,8 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     logger.info("""
         Gap-filling statistics:
         %d x %d (rows x samples) = %d total possible features
-        Initial RAM %.1f: %d detected with %d gaps to search
-        After RAM %.1f: %d total features""".formatted(peakList.getNumberOfRows(),
+        Initial RAM %.1f GB: %d detected with %d gaps to search
+        After RAM %.1f GB: %d total features""".formatted(peakList.getNumberOfRows(),
         peakList.getNumberOfRawDataFiles(), totalFeatures, //
         usedGbBefore, detectedFeatures, totalGaps,//
         usedGbAfter, afterGapFill));
@@ -194,17 +195,21 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     // 2556327 total features after gap filling 5.9 GB memory
     // after finishing peak finder and GC drops to 3.7 GB memory
     final int totalRows = peakList.getNumberOfRows();
-    final double gbMemoryPerMillionFeatures = 2.5; // this is from 6 GB per 2.5M features
-    final double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
     final int numRaws = peakList.getNumberOfRawDataFiles();
+    final double imsRamFactor = FeatureListUtils.getImsRamFactor(peakList);
+    final double gbMemoryPerMillionFeatures =
+        2.5 * imsRamFactor; // this is from 6 GB per 2.5M features
+    final double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
     final long totalFeatures = totalRows * (long) numRaws;
+    final double expectedMemoryUsage = gbMemoryPerMillionFeatures / 1_000_000 * totalFeatures;
 
     logger.info("""
-        Gap-filling started on a total of %d feature list rows across %d samples (%d potential features).
-        Max memory available: %.1f GB""".formatted(totalRows, numRaws, totalFeatures, maxMemoryGB));
+        Gap-filling started on a total of %d feature list rows across %d samples (%d potential features). \
+        Max memory available: %.1f GB. Expecting to use %.1f GB during gap filling""".formatted(
+        totalRows, numRaws, totalFeatures, maxMemoryGB, expectedMemoryUsage));
 
     // check if memory constrains may arise
-    if (gbMemoryPerMillionFeatures / 1_000_000 * totalFeatures > maxMemoryGB * 0.85) {
+    if (expectedMemoryUsage > maxMemoryGB * 0.85) {
       DialogLoggerUtil.showMessageDialog("Large dataset gap-filling", false,
           FxTextFlows.newTextFlow(FxTexts.text("""
                   mzmine gap-filling started on a total of %d feature list rows across %d samples. \
