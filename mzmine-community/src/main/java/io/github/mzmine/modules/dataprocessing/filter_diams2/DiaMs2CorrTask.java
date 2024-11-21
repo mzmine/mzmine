@@ -235,8 +235,8 @@ public class DiaMs2CorrTask extends AbstractTask {
 
   /**
    * @param correlatedMs2s A list of all correlated ms2 spectra.
-   * @return A new PseudoSpectrum, which only containsMobility ions that appear in every individual pseudo
-   * spectrum. Null if no ions were found or the list was empty.
+   * @return A new PseudoSpectrum, which only containsMobility ions that appear in every individual
+   * pseudo spectrum. Null if no ions were found or the list was empty.
    */
   private @Nullable PseudoSpectrum refineMs2s(
       @NotNull List<@NotNull PseudoSpectrum> correlatedMs2s) {
@@ -532,8 +532,8 @@ public class DiaMs2CorrTask extends AbstractTask {
       final double numIsolationWindows = isolationWindowScanMap.size();
       double finishedIsolationWindows = 0;
 
-      final long framesToMerge = isolationWindowScanMap.entrySet().stream().mapToLong(e -> e.getValue().size())
-          .sum();
+      final long framesToMerge = isolationWindowScanMap.entrySet().stream()
+          .mapToLong(e -> e.getValue().size()).sum();
       long mergedFrames = 0;
 
       for (Entry<IsolationWindow, List<Scan>> entry : isolationWindowScanMap.entrySet()) {
@@ -721,9 +721,9 @@ public class DiaMs2CorrTask extends AbstractTask {
 
     // now merge some isolation windows, if they are largely overlapping (e.g. MSConvert converted Agilent AllIons files.)
     final List<Entry<IsolationWindow, List<Scan>>> sortedWindowEntries = new ArrayList<>(
-        windowScanMap.entrySet().stream()
-            .sorted(Comparator.comparingDouble(iw -> iw.getKey().mzIsolation().lowerEndpoint()))
-            .toList());
+        windowScanMap.entrySet().stream().sorted(Comparator.comparingDouble(
+            iw -> Objects.requireNonNullElse(iw.getKey().mzIsolation(), Range.singleton(0d))
+                .lowerEndpoint())).toList());
     final List<MergingIsolationWindow> mergingWindows = new ArrayList<>();
     for (Entry<IsolationWindow, List<Scan>> entry : sortedWindowEntries) {
       final IsolationWindow window = entry.getKey();
