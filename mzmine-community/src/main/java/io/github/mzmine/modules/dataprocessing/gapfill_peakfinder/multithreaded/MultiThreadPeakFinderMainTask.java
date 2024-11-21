@@ -211,7 +211,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
                   This results in a total of %d possible features (rows x samples), that may cause memory constraints.
                   Consider applying the feature list rows filter to remove features below X%% detections. \
                   Other great filters to reduce the number of noisy features are also found in the chromatogram builder and feature resolvers, \
-                  such as higher minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver.
+                  such as increased minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver.
                   When working on large datasets, consult the performance documentation for tuning options:
                   """.formatted(totalRows, numRaws, totalFeatures)),
               FxTexts.hyperlinkText(MzioMZmineLinks.PERFORMANCE_DOCU.getUrl())));

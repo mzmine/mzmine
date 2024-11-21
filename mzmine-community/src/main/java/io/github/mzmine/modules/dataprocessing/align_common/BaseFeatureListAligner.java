@@ -248,9 +248,9 @@ public class BaseFeatureListAligner {
       DialogLoggerUtil.showMessageDialog("Large dataset feature alignment", false,
           FxTextFlows.newTextFlow(FxTexts.text("""
                   mzmine feature alignment started on %d total features across %d samples.
-                  This may result in a huge aligned feature list and memory constraints.
-                  Consider applying higher filters during chromatogram builder and feature resolving, /
-                  such as higher minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver.
+                  This may result in a large aligned feature list and memory constraints.
+                  Consider applying higher thresholds during chromatogram builder and feature resolving, /
+                  such as increased minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver.
                   When working on large datasets, consult the performance documentation for tuning options:
                   """.formatted(totalRows, featureLists.size())),
               FxTexts.hyperlinkText(MzioMZmineLinks.PERFORMANCE_DOCU.getUrl())));
