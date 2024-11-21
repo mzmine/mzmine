@@ -254,7 +254,7 @@ public class CombinedResolver extends AbstractResolver {
     }
     double baseline = (featureIntensity[0] + featureIntensity[featureIntensity.length - 1]) / 2;
     double EPI = Arrays.stream(featureIntensity).max().orElse(0) - baseline;
-    double zigZagIndex = zigZagSum / (featureIntensity.length * EPI);
+    double zigZagIndex = zigZagSum / (featureIntensity.length * Math.pow(EPI, 2));
     return zigZagIndex;
   }
 
@@ -316,6 +316,38 @@ public class CombinedResolver extends AbstractResolver {
     return true;
   }
 
+  // counts the number of sign changes inside a given range
+  // returns -1 if input is invalid, i.e. left>right or values are not in time
+  // array
+  private int countSignChanges(double[] featureIntensities) {
+    if (featureIntensities.length < 2) {
+      return -1;
+    }
+    int changes = 0;
+    // currently starts with true as peaks are expected to start with positive
+    // slope. Could also check on the first values.
+    boolean increasing = true;
+    for (int i = 0; i < featureIntensities.length - 1; i++) {
+      if (featureIntensities[i] < featureIntensities[i + 1]) {
+        if (increasing) {
+        } else {
+          increasing = true;
+          changes++;
+        }
+      } else if (featureIntensities[i] > featureIntensities[i + 1]) {
+        if (!increasing) {
+        } else {
+          increasing = false;
+          changes++;
+        }
+      }
+      // does nothing if featureIntensities[i] == featureIntensities[i+1]
+
+    }
+
+    return changes;
+  }
+
   @Override
   public @NotNull List<Range<Double>> resolve(double[] time, double[] intensity) {
     List<Range<Double>> firstResolverRanges = firstResolver.resolve(time, intensity);
@@ -341,6 +373,7 @@ public class CombinedResolver extends AbstractResolver {
   private void processRanges(double[] time, double[] intensity, List<Range<Double>> ranges,
       List<Range<Double>> validRanges, DetectedBy detectedBy) {
     for (Range<Double> range : ranges) {
+      boolean added = false;
       int leftIndex = ArrayUtils.indexOf(range.lowerEndpoint(), time);
       int rightIndex = ArrayUtils.indexOf(range.upperEndpoint(), time);
       double[] featureIntensities = Arrays.copyOfRange(intensity, leftIndex, rightIndex + 1);
@@ -348,16 +381,33 @@ public class CombinedResolver extends AbstractResolver {
       final double varianceRatio = getVarianceRatio(time, intensity, range.lowerEndpoint(),
           range.upperEndpoint());
       final double sharpness = calculateSharpness(featureIntensities);
-      if (isZero(time, intensity, range.lowerEndpoint(), range.upperEndpoint())) {
-        continue;
-      }
-      if (checkEdgeTooClose(time, intensity, range.lowerEndpoint(), range.upperEndpoint())) {
-        continue;
-      }
-      if (sharpness >= 1) {
+
+      if (detectedBy == DetectedBy.FIRST || detectedBy == DetectedBy.BOTH) {
+        added = true;
         validRanges.add(range);
       }
-      debug.add(new CombinedResolverResult(zigZagIndex, varianceRatio, 0d, sharpness, detectedBy));
+      if (detectedBy == DetectedBy.SECOND) {
+        if (isZero(time, intensity, range.lowerEndpoint(), range.upperEndpoint())) {
+          continue;
+        }
+        if (checkEdgeTooClose(time, intensity, range.lowerEndpoint(), range.upperEndpoint())) {
+          continue;
+        }
+        if (sharpness < 1) {
+          continue;
+        }
+        if (zigZagIndex < 0.5) {
+          validRanges.add(range);
+          added = true;
+        } else if (countSignChanges(featureIntensities) == 1) {
+          validRanges.add(range);
+          added = true;
+        }
+      }
+      if (added) {
+        debug.add(
+            new CombinedResolverResult(zigZagIndex, varianceRatio, 0d, sharpness, detectedBy));
+      }
     }
   }
 

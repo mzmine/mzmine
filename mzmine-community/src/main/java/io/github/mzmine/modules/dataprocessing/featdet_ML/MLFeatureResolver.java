@@ -32,319 +32,399 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.scans.PeakPickingModel.PeakPickingModel;
 import io.github.mzmine.util.scans.PeakPickingModel.PeakPickingOutput;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.ArrayUtils;
 
 public class MLFeatureResolver extends AbstractResolver {
 
-    private final ParameterSet parameters;
-    private final double threshold;
-    private final int regionSize;
-    private final int overlap;
-    private final boolean withOffset;
-    private final int minWidth;
-    // private final boolean resizeRanges;
-    private final boolean correctRanges;
-    private final boolean correctIntersections;
-    private final float minSlope;
-    private final PeakPickingModel model;
+  private final ParameterSet parameters;
+  private final double threshold;
+  private final int regionSize;
+  private final int overlap;
+  private final boolean withOffset;
+  private final int minWidth;
+  // private final boolean resizeRanges;
+  private final boolean correctRanges;
+  private final boolean correctIntersections;
+  private final float minSlope;
+  private final PeakPickingModel model;
 
-    private final Logger logger;
+  private final Logger logger;
 
-    // for debugging
-    private final int numFeaturesOffset;
+  // for debugging
+  private final int numFeaturesOffset;
 
-    double[] xBuffer;
-    double[] yBuffer;
+  double[] xBuffer;
+  double[] yBuffer;
 
-    public MLFeatureResolver(ParameterSet parameterSet, ModularFeatureList flist) {
-        super(parameterSet, flist);
-        this.numFeaturesOffset = 8;
+  public MLFeatureResolver(ParameterSet parameterSet, ModularFeatureList flist) {
+    super(parameterSet, flist);
+    this.numFeaturesOffset = 8;
 
-        this.parameters = parameterSet;
-        this.threshold = parameterSet.getParameter(MLFeatureResolverParameters.threshold).getValue();
-        this.regionSize = 128;
-        this.overlap = 32;
-        // this is for debugging purposes. In the final version this should either
-        // alawys be true or false, depending on what works best.
-        this.withOffset = parameterSet.getParameter(MLFeatureResolverParameters.withOffset).getValue();
-        this.minWidth = parameterSet.getParameter(MLFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS).getValue();
-        // this.resizeRanges =
-        // parameterSet.getParameter(MLFeatureResolverParameters.resizeRanges).getValue();
-        this.correctRanges = parameterSet.getParameter(MLFeatureResolverParameters.correctRanges).getValue();
-        this.correctIntersections =true; // parameterSet.getParameter(MLFeatureResolverParameters.correctIntersections)
-                //.getValue();
-        //minimal slope (normalized with respect to intensity) that has to be present before range correction stops
-        // I.e. the next intensity has to be at least 20% less than the previous
-        this.minSlope = (float) 0.0;
-        this.model = new PeakPickingModel(this.withOffset, this.numFeaturesOffset);
+    this.parameters = parameterSet;
+    this.threshold = parameterSet.getParameter(MLFeatureResolverParameters.threshold).getValue();
+    this.regionSize = 128;
+    this.overlap = 32;
+    // this is for debugging purposes. In the final version this should either
+    // alawys be true or false, depending on what works best.
+    this.withOffset = parameterSet.getParameter(MLFeatureResolverParameters.withOffset).getValue();
+    this.minWidth = parameterSet.getParameter(MLFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS)
+        .getValue();
+    // this.resizeRanges =
+    // parameterSet.getParameter(MLFeatureResolverParameters.resizeRanges).getValue();
+    this.correctRanges = parameterSet.getParameter(MLFeatureResolverParameters.correctRanges)
+        .getValue();
+    this.correctIntersections = true; // parameterSet.getParameter(MLFeatureResolverParameters.correctIntersections)
+    // .getValue();
+    // minimal slope (normalized with respect to intensity) that has to be present
+    // before range correction stops
+    // I.e. the next intensity has to be at least 20% less than the previous
+    this.minSlope = (float) 0.0;
+    this.model = new PeakPickingModel(this.withOffset, this.numFeaturesOffset);
 
-        this.logger = Logger.getLogger("MLFeatureResolverLogger");
+    this.logger = Logger.getLogger("MLFeatureResolverLogger");
 
+  }
+
+  @Override
+  public Class<? extends MZmineProcessingModule> getModuleClass() {
+    return MLFeatureResolverModule.class;
+  }
+
+  private boolean isValidRange(double prob, int indexLeft, int indexPeak, int indexRight,
+      double valuePeak) {
+    if (prob < this.threshold) {
+      return false;
     }
-
-    @Override
-    public Class<? extends MZmineProcessingModule> getModuleClass() {
-        return MLFeatureResolverModule.class;
+    if (indexLeft >= indexPeak) {
+      return false;
     }
-
-    private boolean isValidRange(double prob, int indexLeft, int indexPeak, int indexRight,
-            double valuePeak) {
-        if (prob < this.threshold) {
-            return false;
-        }
-        if (indexLeft >= indexPeak) {
-            return false;
-        }
-        if (indexRight <= indexPeak) {
-            return false;
-        }
-        if (valuePeak == 0.0) {
-            return false;
-        }
-        if (indexPeak < this.overlap / 2) {
-            return false;
-        }
-        if (indexPeak > (this.regionSize - this.overlap / 2)) {
-            return false;
-        }
-        return true;
+    if (indexRight <= indexPeak) {
+      return false;
     }
-
-    private double calculateDerivative(double[] intensity, int index, int epsilon) {
-        int indexEpsilon = Math.min(Math.max(index + epsilon, 0), intensity.length);
-        return (intensity[indexEpsilon] - intensity[index]) / epsilon;
+    if (valuePeak == 0.0) {
+      return false;
     }
+    if (indexPeak < this.overlap / 2) {
+      return false;
+    }
+    if (indexPeak > (this.regionSize - this.overlap / 2)) {
+      return false;
+    }
+    return true;
+  }
 
-    // corrects bounds of ranges in case they overlap
-    // this assumes that there are at most two ranges overlapping at the same point
-    // (which I hope is reasonable)
-    private List<Range<Double>> correctInter(List<Range<Double>> ranges, double[] times, double[] intensities) {
-        int numRanges = ranges.size();
-        // if there are less than two ranges there is nothing to do
-        if (numRanges < 2) {
-            return ranges;
-        }
-        List<Range<Double>> correctedRanges = new ArrayList<>();
-        Range<Double> currentRange = ranges.get(0);
-        for (int i = 1; i < numRanges; i++) {
-            Range<Double> nextRange = ranges.get(i);
-            Double currentRight = currentRange.upperEndpoint();
-            Double nextLeft = nextRange.lowerEndpoint();
-            // use currentRange.isConnected(nextRanges) or something
-            if (currentRight <= nextLeft) {
-                correctedRanges.add(currentRange);
-                currentRange = nextRange;
-                continue;
-            }
-            int currentRightIndex = Arrays.binarySearch(times, currentRight);
-            int nextLeftIndex = Arrays.binarySearch(times, nextLeft);
+  private double calculateDerivative(double[] intensity, int index, int epsilon) {
+    int indexEpsilon = Math.min(Math.max(index + epsilon, 0), intensity.length);
+    return (intensity[indexEpsilon] - intensity[index]) / epsilon;
+  }
 
-            int minIndex = 0;
-            double minIntensity = Double.POSITIVE_INFINITY;
-            for (int j = nextLeftIndex; j <= currentRightIndex; j++) {
-                if (intensities[j] < minIntensity) {
-                    minIntensity = intensities[j];
-                    minIndex = j;
-                }
-            }
-            double minIntensityTime = times[minIndex];
-            if (currentRange.lowerEndpoint() >= minIntensityTime) {
-                logger.finer("Incompatible range endpoints. Continue with processing.");
-            } else {
-                Range<Double> updatedCurrentRange = Range.closed(currentRange.lowerEndpoint(), minIntensityTime);
-                correctedRanges.add(updatedCurrentRange);
-            }
-            // updates for the next iteration. Next range (with corrected left bound) is
-            // now
-            // the new current range
-            if (minIntensityTime >= nextRange.upperEndpoint()) {
-                logger.finer("Incompatible range endpoints when setting next current range. Continue with processing.");
-                i++;
-                if (i < numRanges) {
-                    currentRange = ranges.get(i);
-                }
-            } else {
-                currentRange = Range.closed(minIntensityTime, nextRange.upperEndpoint());
-            }
-        }
-        // need to add last Range because it has no next range and the previous step
-        // does not apply
+  // corrects bounds of ranges in case they overlap
+  // this assumes that there are at most two ranges overlapping at the same point
+  // (which I hope is reasonable)
+  private List<Range<Double>> correctInter(List<Range<Double>> ranges, double[] times,
+      double[] intensities) {
+    int numRanges = ranges.size();
+    // if there are less than two ranges there is nothing to do
+    if (numRanges < 2) {
+      return ranges;
+    }
+    List<Range<Double>> correctedRanges = new ArrayList<>();
+    Range<Double> currentRange = ranges.get(0);
+    for (int i = 1; i < numRanges; i++) {
+      Range<Double> nextRange = ranges.get(i);
+      Double currentRight = currentRange.upperEndpoint();
+      Double nextLeft = nextRange.lowerEndpoint();
+      // use currentRange.isConnected(nextRanges) or something
+      if (currentRight <= nextLeft) {
         correctedRanges.add(currentRange);
-        return correctedRanges;
+        currentRange = nextRange;
+        continue;
+      }
+      int currentRightIndex = Arrays.binarySearch(times, currentRight);
+      int nextLeftIndex = Arrays.binarySearch(times, nextLeft);
+
+      int minIndex = 0;
+      double minIntensity = Double.POSITIVE_INFINITY;
+      for (int j = nextLeftIndex; j <= currentRightIndex; j++) {
+        if (intensities[j] < minIntensity) {
+          minIntensity = intensities[j];
+          minIndex = j;
+        }
+      }
+      double minIntensityTime = times[minIndex];
+      if (currentRange.lowerEndpoint() >= minIntensityTime) {
+        logger.finer("Incompatible range endpoints. Continue with processing.");
+      } else {
+        Range<Double> updatedCurrentRange = Range.closed(currentRange.lowerEndpoint(),
+            minIntensityTime);
+        correctedRanges.add(updatedCurrentRange);
+      }
+      // updates for the next iteration. Next range (with corrected left bound) is
+      // now
+      // the new current range
+      if (minIntensityTime >= nextRange.upperEndpoint()) {
+        logger.finer(
+            "Incompatible range endpoints when setting next current range. Continue with processing.");
+        i++;
+        if (i < numRanges) {
+          currentRange = ranges.get(i);
+        }
+      } else {
+        currentRange = Range.closed(minIntensityTime, nextRange.upperEndpoint());
+      }
+    }
+    // need to add last Range because it has no next range and the previous step
+    // does not apply
+    correctedRanges.add(currentRange);
+    return correctedRanges;
+  }
+
+  private Range<Double> correctBoundary(double[] time, double[] intensity, Range<Double> range) {
+    double left = range.lowerEndpoint();
+    double right = range.upperEndpoint();
+    int leftIndex = ArrayUtils.indexOf(time, left);
+    int rightIndex = ArrayUtils.indexOf(time, right);
+
+    double maxIntensity = Double.NEGATIVE_INFINITY;
+    int maxIndex = 0;
+    for (int i = leftIndex; i <= rightIndex; i++) {
+      if (intensity[i] > maxIntensity) {
+        maxIntensity = intensity[i];
+        maxIndex = i;
+      }
     }
 
-    // This should probably be located somewhere else
-    public int[] roundFloatArray(float[] input, int min, int max) {
-        int[] output = new int[input.length];
-        for (int i = 0; i < input.length; i++) {
-            output[i] = Math.max(Math.min(Math.round(input[i]), max), min);
-        }
-        return output;
+    //left side
+    int leftGoingLeftIndex = leftIndex;
+    while (calculateDerivative(intensity, leftGoingLeftIndex, -1) > this.minSlope) {
+      leftGoingLeftIndex++;
+    }
+    double leftGoingLeftValue = intensity[leftGoingLeftIndex];
+
+    int leftGoingRightIndex = leftIndex;
+    while (calculateDerivative(intensity, leftGoingRightIndex, 1) < -this.minSlope) {
+      if (leftGoingRightIndex == maxIndex) {
+        break;
+      }
+      leftGoingRightIndex++;
+    }
+    double leftGoingRightValue = intensity[leftGoingRightIndex];
+
+    int minLeftIndex;
+    if (leftGoingLeftValue < leftGoingRightValue) {
+      minLeftIndex = leftGoingLeftIndex;
+    } else {
+      minLeftIndex = leftGoingRightIndex;
+    }
+    double newLeftBound = time[minLeftIndex];
+
+    //right side
+    int rightGoingLeftIndex = rightIndex;
+    while (calculateDerivative(intensity, rightGoingLeftIndex, -1) > this.minSlope) {
+      if (rightGoingLeftIndex == maxIndex) {
+        break;
+      }
+      rightGoingLeftIndex++;
+    }
+    double rightGoingLeftValue = intensity[rightGoingLeftIndex];
+
+    int rightGoingRightIndex = rightIndex;
+    while (calculateDerivative(intensity, rightGoingRightIndex, 1) < -this.minSlope) {
+      leftGoingRightIndex++;
+    }
+    double rightGoingRightValue = intensity[rightGoingRightIndex];
+
+    int minRightIndex;
+    if (rightGoingLeftValue > rightGoingRightValue) {
+      minRightIndex = rightGoingRightIndex;
+    } else {
+      minRightIndex = rightGoingLeftIndex;
+    }
+    double newRightBound = time[minRightIndex];
+
+    return Range.closed(newLeftBound, newRightBound);
+  }
+
+  // This should probably be located somewhere else
+  public int[] roundFloatArray(float[] input, int min, int max) {
+    int[] output = new int[input.length];
+    for (int i = 0; i < input.length; i++) {
+      output[i] = Math.max(Math.min(Math.round(input[i]), max), min);
+    }
+    return output;
+  }
+
+  private double findTime(double[] timeArray, double[] intensityArray, double intensityToFind) {
+    if (timeArray.length != intensityArray.length) {
+      System.out.println(
+          "Arrays lenghts to not match when looking for retention time corresponding to intensity value");
+      return 0.;
+    }
+    for (int i = 0; i < timeArray.length; i++) {
+      if (intensityArray[i] != intensityToFind) {
+        continue;
+      }
+      return timeArray[i];
+    }
+    System.out.println("Intensity could not be found");
+    return 0.;
+  }
+
+  public String[] doubleArrayToString(double[] time, double[] intensity) {
+    String[] outputArray = new String[time.length + 1];
+    String header = "x\ty\n";
+    outputArray[0] = header;
+    for (int i = 1; i < time.length + 1; i++) {
+      String nextString =
+          String.valueOf((float) time[i - 1]) + "\t" + String.valueOf((float) intensity[i - 1])
+              + "\n";
+      outputArray[i] = nextString;
+    }
+    return outputArray;
+  }
+
+  public List<Range<Double>> resolve(double[] x, double[] y) {
+    if (x.length != y.length) {
+      throw new AssertionError("Lengths of x, y and indices array do not match.");
     }
 
-    private double findTime(double[] timeArray, double[] intensityArray, double intensityToFind) {
-        if (timeArray.length != intensityArray.length) {
-            System.out.println(
-                    "Arrays lenghts to not match when looking for retention time corresponding to intensity value");
-            return 0.;
-        }
-        for (int i = 0; i < timeArray.length; i++) {
-            if (intensityArray[i] != intensityToFind) {
-                continue;
-            }
-            return timeArray[i];
-        }
-        System.out.println("Intensity could not be found");
-        return 0.;
+    // Efficiency can be improved by having less overlap (and theorecically by
+    // having longer regions)
+    List<double[]> standardRegions = SplitSeries.extractRegionBatch(y, this.regionSize,
+        this.overlap, "zero", true);
+    List<double[]> standardRegionsRT = SplitSeries.extractRegionBatch(x, this.regionSize,
+        this.overlap, "time", false);
+    // try (var writer = new FileWriter("/home/max/Programming/testFeature.tsv")){
+    // double[] time = standardRegionsRT.get(0);
+    // double[] intensity = standardRegions.get(0);
+    // String[] rows = doubleArrayToString(time , intensity);
+    // for(int i=0; i<rows.length;i++){
+    // writer.write(rows[i]);
+    // }
+    // } catch(Exception e) {
+    // e.printStackTrace();
+    // throw new Error("Error instanciating writer");
+    // }
+    List<PeakPickingOutput> resolvedRegions;
+    try {
+      resolvedRegions = model.predictor.batchPredict(standardRegions);
+    } catch (Exception e) {
+      System.out.println("Error during prediction.");
+      e.printStackTrace();
+      return null;
     }
+    // extracts the different predictions and peaks from PeakPickingOutput
+    List<float[]> predProbs = resolvedRegions.stream().map(r -> r.prob())
+        .collect(Collectors.toList());
 
-    public String[] doubleArrayToString(double[] time, double[] intensity) {
-        String[] outputArray = new String[time.length + 1];
-        String header = "x\ty\n";
-        outputArray[0] = header;
-        for (int i = 1; i < time.length + 1; i++) {
-            String nextString = String.valueOf((float) time[i - 1]) + "\t" + String.valueOf((float) intensity[i - 1])
-                    + "\n";
-            outputArray[i] = nextString;
+    // List<double[]> predPeaks = resolvedRegions.stream().map(r -> r.peak())
+    // .collect(Collectors.toList());
+
+    // Rounds the predictions to Indices and make sure they are insde the bounds
+    List<int[]> peakIndices = resolvedRegions.stream()
+        .map(r -> roundFloatArray(r.peak(), 0, this.regionSize - 1)).collect(Collectors.toList());
+    List<int[]> leftIndices = resolvedRegions.stream()
+        .map(r -> roundFloatArray(r.left(), 0, this.regionSize - 1)).collect(Collectors.toList());
+    List<int[]> rightIndices = resolvedRegions.stream()
+        .map(r -> roundFloatArray(r.right(), 0, this.regionSize - 1)).collect(Collectors.toList());
+
+    // number of standard regions
+    int lenList = predProbs.size();
+    // number of predictions per standard region
+    int lenFeatures = predProbs.get(0).length;
+
+    // iteraltes over lenList and lenFeatures and creates a range if the prediction
+    // is greater than the threshold and left<right (the latter is just a safety
+    // check)
+    List<Range<Double>> resolved = new ArrayList<>();
+    List<Double> peakTimes = new ArrayList<>();
+    for (int i = 0; i < lenList; i++) {
+      for (int j = 0; j < lenFeatures; j++) {
+        double prob = predProbs.get(i)[j];
+        int indexLeft = leftIndices.get(i)[j];
+        int indexRight = rightIndices.get(i)[j];
+        int indexPeak = peakIndices.get(i)[j];
+        double peakValue = standardRegions.get(i)[indexPeak];
+        if (!this.isValidRange(prob, indexLeft, indexPeak, indexRight, peakValue)) {
+          continue;
         }
-        return outputArray;
-    }
 
-    public List<Range<Double>> resolve(double[] x, double[] y) {
-        if (x.length != y.length) {
-            throw new AssertionError("Lengths of x, y and indices array do not match.");
-        }
+        // if (this.correctRanges) {
+        //     int currentLeftIndex = indexLeft;
+        //     while (currentLeftIndex > 0) {
+        //         // left derivative at currentLeftIndex normalized by intensity at
+        //         // currentLeftIndex
+        //         if (this.calculateDerivative(standardRegions.get(i), currentLeftIndex, -1) > this.minSlope
+        //                 * standardRegions.get(i)[currentLeftIndex]) {
+        //             // positive derivative means intensity if increasing with increasing retention
+        //             // time.
+        //             // if the derivative is not small enough anymore (in relation to the current
+        //             // intensity) we stop the process.
+        //             currentLeftIndex--;
+        //         } else if (this.calculateDerivative(standardRegions.get(i), currentLeftIndex,
+        //                 1) <= -this.minSlope * standardRegions.get(i)[currentLeftIndex]) {
+        //             currentLeftIndex++;
+        //         }
+        //         break;
+        //     }
+        //     indexLeft = currentLeftIndex;
 
-        // Efficiency can be improved by having less overlap (and theorecically by
-        // having longer regions)
-        List<double[]> standardRegions = SplitSeries.extractRegionBatch(y, this.regionSize,
-                this.overlap, "zero", true);
-        List<double[]> standardRegionsRT = SplitSeries.extractRegionBatch(x, this.regionSize,
-                this.overlap, "time", false);
-        // try (var writer = new FileWriter("/home/max/Programming/testFeature.tsv")){
-        // double[] time = standardRegionsRT.get(0);
-        // double[] intensity = standardRegions.get(0);
-        // String[] rows = doubleArrayToString(time , intensity);
-        // for(int i=0; i<rows.length;i++){
-        // writer.write(rows[i]);
+        //     int currentRightIndex = indexRight;
+        //     while (currentRightIndex < this.regionSize - 1) {
+        //         // right derivative at currentRightIndex normalized by intensity at
+        //         // currentRightIndex
+        //         if (this.calculateDerivative(standardRegions.get(i), currentRightIndex, 1) < -this.minSlope
+        //                 * standardRegions.get(i)[currentRightIndex]) {
+        //             // negative derivative means intensity is falling with increasing retention
+        //             // time.
+        //             // if the derivative is not small enough anymore (in relation to the current
+        //             // intensity) we stop the process.
+        //             currentRightIndex++;
+        //         } else if (this.calculateDerivative(standardRegions.get(i), currentRightIndex,
+        //                 -1) >= this.minSlope * standardRegions.get(i)[currentRightIndex]) {
+        //             currentRightIndex--;
+        //         }
+        //         break;
+        //     }
+        //     indexRight = currentRightIndex;
         // }
-        // } catch(Exception e) {
-        // e.printStackTrace();
-        // throw new Error("Error instanciating writer");
-        // }
-        List<PeakPickingOutput> resolvedRegions;
-        try {
-            resolvedRegions = model.predictor.batchPredict(standardRegions);
-        } catch (Exception e) {
-            System.out.println("Error during prediction.");
-            e.printStackTrace();
-            return null;
+        double[] currentRegion = Arrays.copyOfRange(standardRegions.get(i), indexLeft,
+            indexRight + 1);
+        double currentMaxIntensity = Arrays.stream(currentRegion).max().orElse(0);
+        double currentMaxRT = findTime(standardRegionsRT.get(i), standardRegions.get(i),
+            currentMaxIntensity);
+        // checks if the current peak is a duplicate of the previous one by
+        // comparing the retention times at which the maximal intensity is reached
+        if (peakTimes.contains(currentMaxRT)) {
+          continue;
         }
-        // extracts the different predictions and peaks from PeakPickingOutput
-        List<float[]> predProbs = resolvedRegions.stream().map(r -> r.prob())
-                .collect(Collectors.toList());
-
-        // List<double[]> predPeaks = resolvedRegions.stream().map(r -> r.peak())
-        // .collect(Collectors.toList());
-
-        // Rounds the predictions to Indices and make sure they are insde the bounds
-        List<int[]> peakIndices = resolvedRegions.stream()
-                .map(r -> roundFloatArray(r.peak(), 0, this.regionSize - 1)).collect(Collectors.toList());
-        List<int[]> leftIndices = resolvedRegions.stream()
-                .map(r -> roundFloatArray(r.left(), 0, this.regionSize - 1)).collect(Collectors.toList());
-        List<int[]> rightIndices = resolvedRegions.stream()
-                .map(r -> roundFloatArray(r.right(), 0, this.regionSize - 1)).collect(Collectors.toList());
-
-        // number of standard regions
-        int lenList = predProbs.size();
-        // number of predictions per standard region
-        int lenFeatures = predProbs.get(0).length;
-
-        // iteraltes over lenList and lenFeatures and creates a range if the prediction
-        // is greater than the threshold and left<right (the latter is just a safety
-        // check)
-        List<Range<Double>> resolved = new ArrayList<>();
-        List<Double> peakTimes = new ArrayList<>();
-        for (int i = 0; i < lenList; i++) {
-            for (int j = 0; j < lenFeatures; j++) {
-                double prob = predProbs.get(i)[j];
-                int indexLeft = leftIndices.get(i)[j];
-                int indexRight = rightIndices.get(i)[j];
-                int indexPeak = peakIndices.get(i)[j];
-                double peakValue = standardRegions.get(i)[indexPeak];
-                if (!this.isValidRange(prob, indexLeft, indexPeak, indexRight, peakValue)) {
-                    continue;
-                }
-
-                if (this.correctRanges) {
-                    int currentLeftIndex = indexLeft;
-                    while (currentLeftIndex > 0) {
-                        // left derivative at currentLeftIndex normalized by intensity at
-                        // currentLeftIndex
-                        if (this.calculateDerivative(standardRegions.get(i), currentLeftIndex, -1) > this.minSlope
-                                * standardRegions.get(i)[currentLeftIndex]) {
-                            // positive derivative means intensity if increasing with increasing retention
-                            // time.
-                            // if the derivative is not small enough anymore (in relation to the current
-                            // intensity) we stop the process.
-                            currentLeftIndex--;
-                        } else if (this.calculateDerivative(standardRegions.get(i), currentLeftIndex, 1)<= -this.minSlope * standardRegions.get(i)[currentLeftIndex]){
-                            currentLeftIndex++;
-                        }
-                        break;
-                    }
-                    indexLeft = currentLeftIndex;
-
-                    int currentRightIndex = indexRight;
-                    while (currentRightIndex < this.regionSize - 1) {
-                        // right derivative at currentRightIndex normalized by intensity at
-                        // currentRightIndex
-                        if (this.calculateDerivative(standardRegions.get(i), currentRightIndex, 1) < -this.minSlope
-                                * standardRegions.get(i)[currentRightIndex]) {
-                            // negative derivative means intensity is falling with increasing retention
-                            // time.
-                            // if the derivative is not small enough anymore (in relation to the current
-                            // intensity) we stop the process.
-                            currentRightIndex++;
-                        } else if (this.calculateDerivative(standardRegions.get(i), currentRightIndex, -1)>= this.minSlope * standardRegions.get(i)[currentRightIndex]){
-                            currentRightIndex --;
-                        }
-                        break;
-                    }
-                    indexRight = currentRightIndex;
-                }
-                double[] currentRegion = Arrays.copyOfRange(standardRegions.get(i), indexLeft, indexRight + 1);
-                double currentMaxIntensity = Arrays.stream(currentRegion).max().orElse(0);
-                double currentMaxRT = findTime(standardRegionsRT.get(i), standardRegions.get(i), currentMaxIntensity);
-                // checks if the current peak is a duplicate of the previous one by
-                // comparing the retention times at which the maximal intensity is reached
-                if (peakTimes.contains(currentMaxRT)) {
-                    continue;
-                }
-                if (indexLeft + this.minWidth <= indexRight) {
-                    peakTimes.add(currentMaxRT);
-                    double left = Double.valueOf(standardRegionsRT.get(i)[indexLeft]);
-                    double right = Double.valueOf(standardRegionsRT.get(i)[indexRight]);
-                    Range<Double> nextRange = Range.closed(left, right);
-                    resolved.add(nextRange);
-                }
-            }
+        if (indexLeft + this.minWidth <= indexRight) {
+          peakTimes.add(currentMaxRT);
+          double left = Double.valueOf(standardRegionsRT.get(i)[indexLeft]);
+          double right = Double.valueOf(standardRegionsRT.get(i)[indexRight]);
+          Range<Double> nextRange = Range.closed(left, right);
+          if (this.correctRanges) {
+            nextRange = correctBoundary(x, y, nextRange);
+          }
+          resolved.add(nextRange);
         }
-        if (this.correctIntersections) {
-            resolved = correctInter(resolved, x, y);
-        }
-        return resolved;
+      }
     }
-
-    public void closeModel() {
-        if (model != null) {
-            model.closeModel();
-        }
+    if (this.correctIntersections) {
+      resolved = correctInter(resolved, x, y);
     }
+    return resolved;
+  }
+
+  public void closeModel() {
+    if (model != null) {
+      model.closeModel();
+    }
+  }
 
 }
