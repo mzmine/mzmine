@@ -26,8 +26,10 @@
 package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class EquivalentCarbonNumberParameters extends SimpleParameterSet {
 
@@ -36,6 +38,11 @@ public class EquivalentCarbonNumberParameters extends SimpleParameterSet {
   public EquivalentCarbonNumberParameters() {
     super(new Parameter[]{featureLists},
         "https://mzmine.github.io/mzmine_documentation/visualization_modules/ecn_plots/ecn_plots.html");
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 
 }

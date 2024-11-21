@@ -192,12 +192,18 @@ public class ProjectMetadataReader {
    * @return output lines without header
    */
   private @NotNull List<String[]> extractRemoveHeaderTitlesAndTypes(List<String[]> lines) {
+    // FILENAME_HEADER may duplicate one of the other options but better to check all of them
+    // this makes it future-proof in case FILENAME_HEADER changes
+    List<String> FILE_HEADERS = List.of(FILENAME_HEADER.toLowerCase(), "filename", "filenames");
+
     for (int i = 0; i < lines.size() && i < 4; i++) {
       String[] cells = lines.get(i);
       if (cells.length == 0) {
         continue;
       }
-      if (FILENAME_HEADER.equalsIgnoreCase(cells[0])) {
+
+      String firstCellLower = cells[0].toLowerCase();
+      if (FILE_HEADERS.stream().anyMatch(s -> s.equals(firstCellLower))) {
         titles = cells;
         // remove lines too retain only data
         lines = lines.subList(i + 1, lines.size());

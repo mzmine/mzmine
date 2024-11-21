@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -107,7 +107,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
 
     // annotation
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
-    makeAndAddLipidAnnotationStep(q, true);
+    makeAndAddLipidAnnotationStep(q);
 
     // library generation, reload library
     makeAndAddBatchLibraryGeneration(q, exportPath, libGenMetadata);
@@ -130,7 +130,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
 
     // networking
     if (applySpectralNetworking) {
-      makeAndAddSpectralNetworkingSteps(q, true, exportPath);
+      makeAndAddSpectralNetworkingSteps(q, true, exportPath, false);
     }
 
     return q;

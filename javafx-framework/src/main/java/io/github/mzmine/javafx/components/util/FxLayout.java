@@ -33,12 +33,13 @@ import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -49,6 +50,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.controlsfx.tools.Borders;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FxLayout {
 
@@ -174,10 +176,21 @@ public class FxLayout {
   }
 
   public static ScrollPane newScrollPane(final Node root) {
+    return newScrollPane(root, null, null);
+  }
+
+  public static ScrollPane newScrollPane(final Node root, @Nullable ScrollBarPolicy hBarPolicy,
+      @Nullable ScrollBarPolicy vBarPolicy) {
     ScrollPane scroll = new ScrollPane(root);
     scroll.setFitToWidth(true);
     scroll.setFitToHeight(true);
     scroll.setCenterShape(true);
+    if (hBarPolicy != null) {
+      scroll.setHbarPolicy(hBarPolicy);
+    }
+    if (vBarPolicy != null) {
+      scroll.setVbarPolicy(vBarPolicy);
+    }
     return scroll;
   }
 

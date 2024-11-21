@@ -28,12 +28,13 @@ package io.github.mzmine.javafx.dialogs;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.JavaFxDesktop;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxTextUtils;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.animation.PauseTransition;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -53,24 +54,65 @@ public class DialogLoggerUtil {
     showDialog(AlertType.ERROR, title, message, true);
   }
 
-  @Nullable
-  public static Alert showMessageDialog(String title, String message) {
-    return showMessageDialog(title, message, true);
+  /**
+   * Logs the message and shows a dialog when in GUI mode
+   */
+  public static void showMessageDialog(String title, String message) {
+    showMessageDialog(title, true, message);
   }
 
-  @Nullable
-  public static Alert showMessageDialog(String title, String message, boolean modal) {
+  /**
+   * Logs the message and shows a dialog when in GUI mode
+   */
+  public static void showMessageDialog(String title, Node content) {
+    showMessageDialog(title, true, content);
+  }
+
+  /**
+   * Logs the message and shows a dialog when in GUI mode
+   */
+  public static void showMessageDialog(String title, boolean modal, Node content) {
+    // log text content
+    String message = FxTextUtils.extractText(content);
+    if (!message.isBlank()) {
+      logger.info(title + ": " + message);
+    }
+
+    if (DesktopService.isHeadLess()) {
+      return;
+    }
+
+    if (modal) {
+      FxThread.runOnFxThreadAndWait(() -> {
+        createAlert(AlertType.INFORMATION, title, content).showAndWait();
+      });
+    } else {
+      // non blocking
+      FxThread.runLater(() -> {
+        createAlert(AlertType.INFORMATION, title, content).show();
+      });
+    }
+  }
+
+  /**
+   * Logs the message and shows a dialog when in GUI mode
+   */
+  public static void showMessageDialog(String title, boolean modal, String message) {
     logger.info(title + ": " + message);
     if (DesktopService.isHeadLess()) {
-      return null;
+      return;
     }
-    var alert = createAlert(AlertType.INFORMATION, title, message);
+
     if (modal) {
-      alert.showAndWait();
+      FxThread.runOnFxThreadAndWait(() -> {
+        createAlert(AlertType.INFORMATION, title, message).showAndWait();
+      });
     } else {
-      alert.show();
+      // non blocking
+      FxThread.runLater(() -> {
+        createAlert(AlertType.INFORMATION, title, message).show();
+      });
     }
-    return alert;
   }
 
   public static void applyMainWindowStyle(final Alert alert) {
@@ -165,17 +207,25 @@ public class DialogLoggerUtil {
    */
   private static @NotNull Alert createAlert(final AlertType type, final String title,
       final String message, @Nullable final ButtonType... buttons) {
-    Alert alert = new Alert(type, message, buttons);
-    applyMainWindowStyle(alert);
-
-    alert.setTitle(title);
-    alert.setHeaderText(title);
     // seems like a good size for the dialog message when an old batch is loaded into new version
     Text label = new Text(message);
     label.setWrappingWidth(415);
     HBox box = new HBox(label);
     box.setPadding(new Insets(5));
-    alert.getDialogPane().setContent(box);
+    return createAlert(type, title, box, buttons);
+  }
+
+  /**
+   * Internal method to create an alert. use {@link #showDialog}
+   */
+  private static @NotNull Alert createAlert(final AlertType type, final String title,
+      final Node content, @Nullable final ButtonType... buttons) {
+    Alert alert = new Alert(type, "", buttons);
+    applyMainWindowStyle(alert);
+
+    alert.setTitle(title);
+    alert.setHeaderText(title);
+    alert.getDialogPane().setContent(content);
     return alert;
   }
 
@@ -188,15 +238,16 @@ public class DialogLoggerUtil {
 
   public static void showMessageDialogForTime(String title, String message, long timeMillis) {
     FxThread.runLater(() -> {
-      Alert alert = showMessageDialog(title, message, false);
-      if (alert == null) {
+      logger.info(title + ": " + message);
+      if (DesktopService.isHeadLess()) {
         return;
       }
+      var alert = createAlert(AlertType.INFORMATION, title, message);
+      alert.show();
 
-      Timeline idleTimer = new Timeline(
-          new KeyFrame(Duration.millis(timeMillis), e -> alert.hide()));
-      idleTimer.setCycleCount(1);
-      idleTimer.play();
+      PauseTransition delay = new PauseTransition(Duration.millis(timeMillis));
+      delay.setOnFinished(_ -> alert.hide());
+      delay.play();
     });
   }
 

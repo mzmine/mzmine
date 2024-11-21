@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,6 +49,9 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   SimpleIonTimeSeries EMPTY = new SimpleIonTimeSeries(null, new double[0], new double[0],
       List.of());
 
+  @Override
+  IonTimeSeries<T> emptySeries();
+
   /**
    * @param scan
    * @return The intensity value for the given scan or 0 if the no intensity was measured at that
@@ -80,12 +83,18 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   default IonTimeSeries<T> subSeries(MemoryMapStorage storage, float start, float end) {
     final IndexRange indexRange = BinarySearch.indexRange(Range.closed(start, end), getSpectra(),
         Scan::getRetentionTime);
+    if (indexRange.isEmpty()) {
+      return emptySeries();
+    }
     return subSeries(storage, indexRange.min(), indexRange.maxExclusive());
   }
 
   @Override
   default IonTimeSeries<T> subSeries(MemoryMapStorage storage, int startIndexInclusive,
       int endIndexExclusive) {
+    if (endIndexExclusive - startIndexInclusive <= 0) {
+      return emptySeries();
+    }
     return subSeries(storage, getSpectra().subList(startIndexInclusive, endIndexExclusive));
   }
 

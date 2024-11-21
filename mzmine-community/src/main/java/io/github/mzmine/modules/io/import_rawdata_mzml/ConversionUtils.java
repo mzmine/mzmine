@@ -36,12 +36,10 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
-import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
-import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
-import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.DetectorType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
@@ -279,16 +277,7 @@ public class ConversionUtils {
    */
   public static Scan mzmlScanToSimpleScan(RawDataFile rawDataFile, BuildingMzMLMsScan scan,
       MemorySegment mzs, MemorySegment intensities, MassSpectrumType spectrumType) {
-    DDAMsMsInfo info = null;
-    if (scan.getPrecursorList() != null) {
-      final var precursorElements = scan.getPrecursorList().getPrecursorElements();
-      if (precursorElements.size() == 1) {
-        info = DDAMsMsInfoImpl.fromMzML(precursorElements.get(0), scan.getMSLevel());
-      } else if (precursorElements.size() > 1) {
-        info = MSnInfoImpl.fromMzML(precursorElements, scan.getMSLevel());
-      }
-    }
-
+    MsMsInfo info = scan.getMsMsInfo();
     Float injTime = scan.getInjectionTime();
 
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMSLevel(),
@@ -313,6 +302,7 @@ public class ConversionUtils {
     Double lowerWindow = null;
     Double upperWindow = null;
     Double isolationMz = null;
+    Double precursorMz = null;
     Integer charge = null;
     Float colissionEnergy = null;
     for (MzMLPrecursorElement precursorElement : precursorList.getPrecursorElements()) {
@@ -324,7 +314,7 @@ public class ConversionUtils {
         for (MzMLCVParam param : selectedIonList.get().getSelectedIonList().get(0)
             .getCVParamsList()) {
           if (param.getAccession().equals(MzMLCV.cvPrecursorMz)) {
-            isolationMz = Double.parseDouble(param.getValue().get());
+            precursorMz = Double.parseDouble(param.getValue().get());
           }
           if (param.getAccession().equals(MzMLCV.cvChargeState)) {
             charge = Integer.parseInt(param.getValue().orElse("0"));
@@ -359,17 +349,20 @@ public class ConversionUtils {
           && colissionEnergy != null) {
         boolean infoFound = false;
         for (BuildingImsMsMsInfo buildingInfo : buildingInfos) {
-          if (Double.compare(isolationMz, buildingInfo.getLargestPeakMz()) == 0
+          if (Double.compare(Objects.requireNonNullElse(precursorMz, isolationMz),
+              buildingInfo.getPrecursorMz()) == 0
               && Float.compare(colissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
             buildingInfo.setLastSpectrumNumber(currentScanNumber);
             infoFound = true;
           }
         }
         if (!infoFound) {
-          BuildingImsMsMsInfo info = new BuildingImsMsMsInfo(isolationMz,
-              Objects.requireNonNullElse(colissionEnergy, PasefMsMsInfo.UNKNOWN_COLISSIONENERGY)
-                  .floatValue(), Objects.requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE),
-              currentFrameNumber, currentScanNumber);
+          BuildingImsMsMsInfo info = new BuildingImsMsMsInfo(
+              Objects.requireNonNullElse(precursorMz, isolationMz), colissionEnergy,
+              Objects.requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
+              currentScanNumber);
+          info.setLowerIsolationMz(isolationMz - lowerWindow);
+          info.setUpperIsolationMz(isolationMz + upperWindow);
           buildingInfos.add(info);
         }
       }

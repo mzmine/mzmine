@@ -41,13 +41,17 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MobilitySpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
@@ -531,16 +535,19 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
   @Override
   public @Nullable MsMsInfo getMsMsInfo() {
-    if (!getIsolations().isEmpty()) {
-      IsolationInfo isolationInfo = getIsolations().get(0);
-      ActivationInfo activationInfo = isolationInfo.getActivationInfo();
-      Float energy = activationInfo != null && activationInfo.getActivationEnergy() != null
-          ? activationInfo.getActivationEnergy().floatValue() : null;
-      ActivationMethod activationMethod = activationInfo != null ? ActivationMethod.valueOf(
-          activationInfo.getActivationType().name()) : null;
 
-      return new DDAMsMsInfoImpl(isolationInfo.getPrecursorMz(), isolationInfo.getPrecursorCharge(),
-          energy, this, null, getMSLevel(), activationMethod, null);
+    if (getPrecursorList() != null
+        && getPrecursorList().getPrecursorElements() instanceof List<MzMLPrecursorElement> precursorElements) {
+      if (precursorElements.size() == 1) {
+        MsMsInfo info = DDAMsMsInfoImpl.fromMzML(precursorElements.get(0), getMSLevel());
+        if (info != null && info.getIsolationWindow() instanceof Range<Double> isolationRange
+            && RangeUtils.rangeLength(isolationRange) > 15d) {
+          return new DIAMsMsInfoImpl((DDAMsMsInfo) info);
+        }
+        return info;
+      } else if (precursorElements.size() > 1) {
+        return MSnInfoImpl.fromMzML(precursorElements, getMSLevel());
+      }
     }
     return null;
   }

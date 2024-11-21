@@ -215,6 +215,10 @@ public class IonMobilogramTimeSeriesFactory {
 
   static MobilogramStorageResult storeMobilograms(SimpleIonMobilogramTimeSeries trace,
       @Nullable MemoryMapStorage storage, List<IonMobilitySeries> mobilograms) {
+    if(mobilograms.isEmpty()) {
+      return MobilogramStorageResult.EMPTY;
+    }
+
     if (mobilograms.stream().allMatch(m -> m instanceof StorableIonMobilitySeries)) {
       return storeMobilogramsFromAlreadyStored(trace, storage,
           (List<StorableIonMobilitySeries>) (List<? extends IonMobilitySeries>) mobilograms);
@@ -247,6 +251,9 @@ public class IonMobilogramTimeSeriesFactory {
   private static MobilogramStorageResult storeMobilogramsFromAlreadyStored(
       SimpleIonMobilogramTimeSeries newTrace, MemoryMapStorage storage,
       List<StorableIonMobilitySeries> mobilograms) {
+    if(mobilograms.isEmpty()) {
+      return MobilogramStorageResult.EMPTY;
+    }
 
     // check if the mobilograms are consecutive
     for (int i = 1; i < mobilograms.size(); i++) {

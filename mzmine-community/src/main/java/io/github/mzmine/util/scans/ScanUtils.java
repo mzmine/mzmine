@@ -74,6 +74,7 @@ import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -91,7 +92,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -231,7 +231,14 @@ public class ScanUtils {
           mob.getMsMsInfo() != null ? mob.getMsMsInfo().getActivationEnergy() : null;
       case Scan scan ->
           scan.getMsMsInfo() != null ? scan.getMsMsInfo().getActivationEnergy() : null;
-      case SpectralLibraryEntry entry -> entry.getOrElse(DBEntryField.COLLISION_ENERGY, null);
+      case SpectralLibraryEntry entry -> {
+        final FloatArrayList list = entry.getOrElse(DBEntryField.COLLISION_ENERGY,
+            FloatArrayList.of());
+        if(!list.isEmpty()) {
+          yield list.getFirst();
+        }
+        yield null;
+      }
       default -> null;
     };
   }
@@ -865,8 +872,9 @@ public class ScanUtils {
     List<PasefMsMsInfo> featureMsMsInfos = new ArrayList<>();
     Collection<? extends Frame> ms2Frames = imsRawDataFile.getFrames(2, rtRange);
     for (Frame frame : ms2Frames) {
-      Set<PasefMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
-      for (PasefMsMsInfo msmsInfo : frameMsMsInfos) {
+      final List<PasefMsMsInfo> infos = frame.getImsMsMsInfos().stream()
+          .filter(info -> info instanceof PasefMsMsInfo).map(info -> (PasefMsMsInfo) info).toList();
+      for (PasefMsMsInfo msmsInfo : infos) {
         if (mzRange.contains(msmsInfo.getIsolationMz())) {
           featureMsMsInfos.add(msmsInfo);
         }

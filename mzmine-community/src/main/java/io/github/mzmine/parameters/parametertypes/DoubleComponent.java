@@ -24,26 +24,26 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.javafx.components.factories.FxTextFields;
+import io.github.mzmine.javafx.components.formatters.FormatDoubleStringConverter;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import java.text.NumberFormat;
-import javafx.beans.property.ObjectProperty;
+import java.util.logging.Logger;
 import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
-import javafx.util.converter.DoubleStringConverter;
-import javafx.util.converter.NumberStringConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DoubleComponent extends FlowPane implements ValuePropertyComponent<Double> {
 
+  private static final Logger logger = Logger.getLogger(DoubleComponent.class.getName());
   private final Double minimum;
   private final Double maximum;
   private final TextField textField;
-  private final ObjectProperty<Double> value = new SimpleObjectProperty<>();
+  private final TextFormatter<Double> textFormatter;
 
   public DoubleComponent(int inputsize, @Nullable Double minimum, @Nullable Double maximum,
       @NotNull NumberFormat format, @Nullable Double defvalue) {
@@ -51,16 +51,13 @@ public class DoubleComponent extends FlowPane implements ValuePropertyComponent<
     this.maximum = maximum;
 
     textField = new TextField();
-    textField.setTextFormatter(new TextFormatter<>(new NumberStringConverter(format)));
+    textFormatter = new TextFormatter<>(new FormatDoubleStringConverter(format));
+    FxTextFields.attachDelayedTextFormatter(textField, textFormatter);
+
     textField.setPrefWidth(inputsize);
-    textField.textProperty().bindBidirectional(value, new DoubleStringConverter());
+    textFormatter.setValue(defvalue);
 
     getChildren().add(textField);
-    if (defvalue != null) {
-      // could also just set the value.set but by setting the text the number will be rounded
-      // maybe more reproducible
-      textField.setText(format.format(defvalue));
-    }
   }
 
   public String getText() {
@@ -109,7 +106,7 @@ public class DoubleComponent extends FlowPane implements ValuePropertyComponent<
 
   @Override
   public Property<Double> valueProperty() {
-    return value;
+    return textFormatter.valueProperty();
   }
 
   /*

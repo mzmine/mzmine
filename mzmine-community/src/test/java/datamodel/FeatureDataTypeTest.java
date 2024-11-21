@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,7 +50,6 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.paint.Color;
@@ -83,12 +82,7 @@ public class FeatureDataTypeTest {
     }
 
     for (Scan scan : scans) {
-      try {
-        file.addScan(scan);
-      } catch (IOException e) {
-        e.printStackTrace();
-        Assertions.fail("Cannot add scans to raw data file.");
-      }
+      file.addScan(scan);
     }
     flist.setSelectedScans(file, scans.subList(3, 18));
 
@@ -142,11 +136,7 @@ public class FeatureDataTypeTest {
           MobilityType.TIMS, null, null);
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
       frame.setMobilityScans(scans, true);
-      try {
-        file.addScan(frame);
-      } catch (IOException e) {
-        Assertions.fail();
-      }
+      file.addScan(frame);
     }
 
     flist.setSelectedScans(file, file.getFrames().subList(3, 18));
