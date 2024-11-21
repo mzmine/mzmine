@@ -202,7 +202,7 @@ public class MLFeatureResolver extends AbstractResolver {
     //left side
     int leftGoingLeftIndex = leftIndex;
     while (calculateDerivative(intensity, leftGoingLeftIndex, -1) > this.minSlope) {
-      leftGoingLeftIndex++;
+      leftGoingLeftIndex--;
     }
     double leftGoingLeftValue = intensity[leftGoingLeftIndex];
 
@@ -229,7 +229,7 @@ public class MLFeatureResolver extends AbstractResolver {
       if (rightGoingLeftIndex == maxIndex) {
         break;
       }
-      rightGoingLeftIndex++;
+      rightGoingLeftIndex--;
     }
     double rightGoingLeftValue = intensity[rightGoingLeftIndex];
 
