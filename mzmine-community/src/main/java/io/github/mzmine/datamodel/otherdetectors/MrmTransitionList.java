@@ -192,4 +192,30 @@ public final class MrmTransitionList<T extends Scan> {
 
     return new MrmTransitionList(q1Mass, transitions, quantifier.get());
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MrmTransitionList<?> that)) {
+      return false;
+    }
+
+    if (Double.compare(q1mass, that.q1mass) != 0) {
+      return false;
+    }
+    if (!transitions.equals(that.transitions)) {
+      return false;
+    }
+    return quantifier.equals(that.quantifier);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Double.hashCode(q1mass);
+    result = 31 * result + transitions.hashCode();
+    result = 31 * result + quantifier.hashCode();
+    return result;
+  }
 }

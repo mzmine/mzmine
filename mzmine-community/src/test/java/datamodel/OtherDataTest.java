@@ -160,7 +160,7 @@ public class OtherDataTest {
         file.getScans().subList(3, 8));
 
     final MrmTransition mrmA = new MrmTransition(322, 300, seriesA);
-    final MrmTransition mrmB = new MrmTransition(322, 300, seriesB);
+    final MrmTransition mrmB = new MrmTransition(322, 10, seriesB);
     Assertions.assertThrows(IllegalArgumentException.class,
         () -> new MrmTransition(322, 300, failingSeries));
 
@@ -179,6 +179,12 @@ public class OtherDataTest {
             row, feature, file));
     Assertions.assertEquals(null,
         DataTypeTestUtils.saveAndLoad(new MrmTransitionListType(), null, proj, flist,
+            row, feature, file));
+
+    // test setting specific quantifier
+    mrmTransitionList.setQuantifier(mrmA, null);
+    Assertions.assertEquals(mrmTransitionList,
+        DataTypeTestUtils.saveAndLoad(new MrmTransitionListType(), mrmTransitionList, proj, flist,
             row, feature, file));
   }
 }
