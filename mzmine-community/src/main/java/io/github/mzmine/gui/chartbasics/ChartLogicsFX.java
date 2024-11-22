@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -265,7 +265,7 @@ public class ChartLogicsFX {
       double plotHeight, int iterations) {
     makeChartResizable(myChart);
 
-    // estimate plotwidth / height
+    // estimate plotwidth / height needs to be a bit bigger because plot is only part of chart
     double estimatedChartWidth = plotWidth + 200;
     double estimatedChartHeight = plotHeight + 200;
 

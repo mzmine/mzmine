@@ -279,7 +279,9 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
     final List<Frame> frames = (List<Frame>) scans;
     final List<MsMsInfo> eligibleMsMsInfos = new ArrayList<>();
     for (Frame frame : frames) {
-      frame.getImsMsMsInfos().forEach(imsMsMsInfo -> {
+      final List<PasefMsMsInfo> infos = frame.getImsMsMsInfos().stream()
+          .filter(info -> info instanceof PasefMsMsInfo).map(info -> (PasefMsMsInfo) info).toList();
+      infos.forEach(imsMsMsInfo -> {
         if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getIsolationMz())) {
           // if we have a mobility (=processed by IMS workflow), we can check for the correct range during assignment.
           if (mobility != null) {

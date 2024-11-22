@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -273,14 +272,14 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
     // (e.g. include 0 intensity points on the edges.), as start and end points of this
     // resolver will never be 0.
     int start = currentRegionStart;
-    /*if (y[currentRegionStart] != 0 && y[Math.max(currentRegionStart - 1, 0)] == 0.0) {
+    if (y[currentRegionStart] != 0 && y[Math.max(currentRegionStart - 1, 0)] == 0.0) {
       start = currentRegionStart - 1;
-    }*/
+    }
 
     int end = currentRegionEnd;
-    /*if (y[currentRegionEnd] != 0 && y[Math.min(currentRegionEnd + 1, y.length - 1)] == 0.0) {
+    if (y[currentRegionEnd] != 0 && y[Math.min(currentRegionEnd + 1, y.length - 1)] == 0.0) {
       end = currentRegionEnd + 1;
-    }*/
+    }
     final Range<Double> range = Range.closed(x[start], x[end]);
     return range;
   }

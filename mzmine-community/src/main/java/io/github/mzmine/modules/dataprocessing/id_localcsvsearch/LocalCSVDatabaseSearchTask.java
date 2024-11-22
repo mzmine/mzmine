@@ -250,7 +250,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       // option to read more fields and append to comment as json
       List<ImportType> commentFields = extractCommentFields();
       if (commentFields == null) {
-        setStatus(TaskStatus.ERROR);
+        error("Comment fields not found in CSV annotation");
         return;
       }
 

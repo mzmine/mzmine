@@ -82,6 +82,7 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpe
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingOptions;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor.NoPrecursorCosineSpectralNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
@@ -205,12 +206,15 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
   // IMS parameter currently all the same
   protected final boolean isImsActive;
-  protected final boolean isNonTdfIms;
+  protected final boolean isNativeIms;
   protected final boolean imsSmoothing;
   protected final MobilityType imsInstrumentType;
   protected final Integer minImsDataPoints;
   protected final Double imsFwhm;
   protected final MobilityTolerance imsFwhmMobTolerance;
+
+  //Imaging
+  protected final boolean isImaging;
 
   // MS parameters currently all the same
   protected final WizardMassDetectorNoiseLevels massDetectorOption;
@@ -268,9 +272,11 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     imsSmoothing = getValue(params, IonMobilityWizardParameters.smoothing);
     imsFwhm = getValue(params, IonMobilityWizardParameters.approximateImsFWHM);
     imsFwhmMobTolerance = new MobilityTolerance(imsFwhm.floatValue());
-    isNonTdfIms = Arrays.stream(dataFiles)
-        .map(RawDataFileTypeDetector::detectDataFileType)
-        .noneMatch(type -> type == RawDataFileType.BRUKER_TDF);
+    isNativeIms = Arrays.stream(dataFiles).map(RawDataFileTypeDetector::detectDataFileType)
+        .allMatch(type -> type == RawDataFileType.BRUKER_TDF);
+
+    // Imaging
+    isImaging = steps.isImaging();
 
     // mass spectrometer
     params = steps.get(WizardPart.MS);
@@ -793,12 +799,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
   protected void makeAndAddMassDetectorSteps(final BatchQueue q) {
     if (isImsActive) {
-      if (!isNonTdfIms) { // == Bruker file
+      if (isNativeIms) { // == Bruker file
         makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.FRAMES);
+        makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.FRAMES);
       }
       makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.MOBLITY_SCANS);
       makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.MOBLITY_SCANS);
-      if (isNonTdfIms) {
+      if (!isNativeIms) {
         makeAndAddMobilityScanMergerStep(q);
       }
     } else {
@@ -901,6 +908,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       case ABSOLUTE_NOISE_LEVEL -> {
         if (msLevel == 1 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
           yield massDetectorOption.getMs1NoiseLevel() / 5; // lower threshold for mobility scans
+        } else if (msLevel >= 2 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
+          yield massDetectorOption.getMsnNoiseLevel() / 5; // lower threshold for mobility scans
         } else if (msLevel >= 2) {
           yield massDetectorOption.getMsnNoiseLevel();
         } else {
@@ -956,7 +965,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         .getModuleParameters(MobilityScanMergerModule.class).cloneParameterSet();
 
     param.setParameter(MobilityScanMergerParameters.mzTolerance, mzTolScans);
-    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection(1));
+    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection());
     param.setParameter(MobilityScanMergerParameters.noiseLevel,
         0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
     param.setParameter(MobilityScanMergerParameters.mergingType, IntensityMergingType.SUMMED);
@@ -979,7 +988,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(ImsExpanderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(ImsExpanderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ImsExpanderParameters.useRawData, !isNonTdfIms);
+    param.setParameter(ImsExpanderParameters.useRawData, isNativeIms);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
     param.setParameter(ImsExpanderParameters.mzTolerance, true);
     param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
@@ -1142,26 +1151,33 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         param));
   }
 
+  /**
+   * @param noPrecursor no precursor matching like in GC-EI-MS
+   */
   protected void makeAndAddSpectralNetworkingSteps(final BatchQueue q, final boolean isExportActive,
-      final File exportPath) {
+      final File exportPath, final boolean noPrecursor) {
     // NETWORKING
     ParameterSet mainParams = MZmineCore.getConfiguration()
         .getModuleParameters(MainSpectralNetworkingModule.class).cloneParameterSet();
     mainParams.setParameter(MainSpectralNetworkingParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
 
-    mainParams.setParameter(MainSpectralNetworkingParameters.algorithms,
-        SpectralNetworkingOptions.MODIFIED_COSINE);
+    var algorithm = noPrecursor ? SpectralNetworkingOptions.COSINE_NO_PRECURSOR
+        : SpectralNetworkingOptions.MODIFIED_COSINE;
+    mainParams.setParameter(MainSpectralNetworkingParameters.algorithms, algorithm);
     var param = mainParams.getEmbeddedParameterValue(MainSpectralNetworkingParameters.algorithms);
 
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MAX_MZ_DELTA, true, 500d);
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH, 4);
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY, 0.7);
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.ONLY_BEST_MS2_SCAN, true);
-    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE, mzTolScans);
-
-    param.getParameter(ModifiedCosineSpectralNetworkingParameters.signalFilters)
-        .getEmbeddedParameters().setValue(SpectralSignalFilter.DEFAULT);
+    switch (algorithm) {
+      case MODIFIED_COSINE -> {
+        ModifiedCosineSpectralNetworkingParameters.setAll(param, true, true, 500d, 4, 0.7,
+            mzTolScans, SpectralSignalFilter.DEFAULT);
+      }
+      case COSINE_NO_PRECURSOR -> {
+        NoPrecursorCosineSpectralNetworkingParameters.setAll(param, 8, 0.7, mzTolScans,
+            SpectralSignalFilter.DEFAULT_NO_PRECURSOR);
+      }
+      // MS2Deepscore hard to do without the file path or maybe just dont set the file path
+    }
 
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(MainSpectralNetworkingModule.class), mainParams);
@@ -1262,7 +1278,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     q.add(step);
   }
 
-  protected void makeAndAddLipidAnnotationStep(final BatchQueue q, boolean checkMS2) {
+  protected void makeAndAddLipidAnnotationStep(final BatchQueue q) {
     if (!annotateLipids) {
       return;
     }
@@ -1277,15 +1293,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(LipidAnnotationParameters.lipidChainParameters,
         new LipidAnnotationChainParameters());
     param.setParameter(LipidAnnotationParameters.mzTolerance, mzTolInterSample);
-    param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, checkMS2);
-    if (checkMS2) {
-      param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, false);
-      param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
-      param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
-    }
+    param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, true);
+    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
+        .setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
+    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
+        .setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
+    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
+        .setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
     param.setParameter(LipidAnnotationParameters.advanced, false);
     var advanced = param.getEmbeddedParameterValue(LipidAnnotationParameters.advanced);
     advanced.setParameter(AdvancedLipidAnnotationParameters.IONS_TO_IGNORE,

@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -67,12 +68,13 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       ColorByMetadataModule.MODULE_NAME), true);
 
   public AllSpectralDataImportParameters() {
-    super(fileNames, //
+    super(new Parameter[]{fileNames, //
         advancedImport, // directly process masslists
         metadataFile, // metadata import
         sortAndRecolor, // sort and recolor
         // allow import of spectral libraries
-        SpectralLibraryImportParameters.dataBaseFiles);
+            SpectralLibraryImportParameters.dataBaseFiles},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/io/data-import.html");
   }
 
 

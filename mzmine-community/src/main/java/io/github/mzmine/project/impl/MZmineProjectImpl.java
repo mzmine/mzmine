@@ -36,6 +36,7 @@ import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
@@ -202,12 +203,12 @@ public class MZmineProjectImpl implements MZmineProject {
       if (names.contains(name)) {
         if (!MZmineCore.isHeadLessMode()) {
           MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
-              + " because a file with the same name already exists in the project. Please copy "
-              + "the file and rename it, if you want to import it twice.");
+                                                      + " because a file with the same name already exists in the project. Please copy "
+                                                      + "the file and rename it, if you want to import it twice.");
         }
         logger.warning(
             "Cannot add file with an original name that already exists in project. (filename="
-                + newFile.getName() + ")");
+            + newFile.getName() + ")");
         return;
       }
 
@@ -313,11 +314,12 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public @Nullable RawDataFile getDataFileByName(@Nullable String name) {
-    if (name == null) {
+    if (StringUtils.isBlank(name)) {
       return null;
     }
     try {
       rawLock.readLock().lock();
+      name = name.trim();
       for (final RawDataFile raw : rawDataFiles) {
         if (name.equalsIgnoreCase(raw.getName()) || name.equalsIgnoreCase(
             FileAndPathUtil.eraseFormat(raw.getName()))) {

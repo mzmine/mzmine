@@ -264,4 +264,9 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   public int hashCode() {
     return Objects.hash(scans, intensityValues.byteSize(), mzValues.byteSize());
   }
+
+  @Override
+  public IonTimeSeries<Scan> emptySeries() {
+    return IonTimeSeries.EMPTY;
+  }
 }

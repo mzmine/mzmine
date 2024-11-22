@@ -1,4 +1,4 @@
-/*
+package datamodel;/*
  * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
@@ -51,7 +51,7 @@ import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class IonTimeSeriesTest {
+public class IonTimeSeriesTest {
 
   private static final Logger logger = Logger.getLogger(IonTimeSeriesTest.class.getName());
   final double[] intensities = {663.0, 683.0, 624.0, 505.0, 505.0, 525.0, 515.0, 753.0, 624.0,
@@ -384,7 +384,7 @@ class IonTimeSeriesTest {
     testSortedSeries(IonTimeSeriesUtils.getIntensitySortedIndices(i3), i3);
   }
 
-  public List<Scan> makeSomeScans(RawDataFile file, int numFrames) {
+  public static List<Scan> makeSomeScans(RawDataFile file, int numFrames) {
     final List<Scan> scans = new ArrayList<>();
     for (int i = 0; i < numFrames; i++) {
       final SimpleScan scan = new SimpleScan(file, i, 1, i, null, new double[]{0d, 1},

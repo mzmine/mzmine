@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.EMPTY_DOUBLE_SEGMENT;
+
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import java.lang.foreign.MemorySegment;
 import java.util.List;
@@ -33,4 +35,6 @@ public record MobilogramStorageResult(List<IonMobilitySeries> storedMobilograms,
                                       MemorySegment storedMzValues,
                                       MemorySegment storedIntensityValues) {
 
+  public static final MobilogramStorageResult EMPTY = new MobilogramStorageResult(List.of(),
+      EMPTY_DOUBLE_SEGMENT, EMPTY_DOUBLE_SEGMENT);
 }
