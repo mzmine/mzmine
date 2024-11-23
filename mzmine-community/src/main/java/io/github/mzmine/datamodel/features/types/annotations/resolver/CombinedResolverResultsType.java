@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 public class CombinedResolverResultsType extends SimpleSubColumnsType<CombinedResolverResult> {
 
   private static final List<DataType> dataTypes = List.of(new DetectedByType(),
-      new VarianceRatioType(), new ZigZagIndexType(), new SharpnessType());
+      new VarianceRatioType(), new ZigZagIndexType(), new SharpnessType(), new SignChangesType());
 
   @Override
   public @NotNull List<DataType> getSubDataTypes() {

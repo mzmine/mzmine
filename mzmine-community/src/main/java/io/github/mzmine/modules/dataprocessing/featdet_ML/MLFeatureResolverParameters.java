@@ -39,9 +39,9 @@ public class MLFeatureResolverParameters extends GeneralResolverParameters {
     return switch (setup) {
       case FULL ->
           new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, dimension,
-              threshold, correctRanges, MIN_NUMBER_OF_DATAPOINTS, withOffset};
+              threshold,  MIN_NUMBER_OF_DATAPOINTS, withOffset};
       case INTEGRATED ->
-          new Parameter[]{dimension, threshold, correctRanges, MIN_NUMBER_OF_DATAPOINTS,
+          new Parameter[]{dimension, threshold,  MIN_NUMBER_OF_DATAPOINTS,
               withOffset};
     };
   }
