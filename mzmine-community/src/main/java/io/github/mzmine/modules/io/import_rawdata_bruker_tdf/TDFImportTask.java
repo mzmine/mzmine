@@ -40,7 +40,7 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
@@ -250,7 +250,7 @@ public class TDFImportTask extends AbstractTask {
     // collect average spectra for each frame
     List<SimpleFrame> frames = new ArrayList<>();
 
-    final boolean importProfile = MZmineCore.getInstance().isTdfPseudoProfile();
+    final boolean importProfile = ConfigService.isTdfPseudoProfile();
 
     try {
       for (int i = 0; i < numFrames; i++) {
@@ -520,7 +520,7 @@ public class TDFImportTask extends AbstractTask {
     final Map<Long, Long> frameToGroup = diaInfo.getFrameToWindowGroupMap();
     final Map<Long, Set<DIAImsMsMsInfoImpl>> groupInfoMap = diaWindows.getWindowGroupMsMsInfoMap();
 
-    if(frameToGroup.isEmpty() || groupInfoMap.isEmpty()) {
+    if (frameToGroup.isEmpty() || groupInfoMap.isEmpty()) {
       return;
     }
 
