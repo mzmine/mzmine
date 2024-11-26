@@ -42,11 +42,11 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormul
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.EdgeTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.FormulaTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.NodeTable;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.components.FormulaTextField;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;

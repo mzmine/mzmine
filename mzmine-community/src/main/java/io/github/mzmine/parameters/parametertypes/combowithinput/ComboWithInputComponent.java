@@ -25,8 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.ValueChangeDecorator;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

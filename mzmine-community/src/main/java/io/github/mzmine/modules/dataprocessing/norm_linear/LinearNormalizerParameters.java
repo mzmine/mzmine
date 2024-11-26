@@ -26,12 +26,12 @@
 package io.github.mzmine.modules.dataprocessing.norm_linear;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class LinearNormalizerParameters extends SimpleParameterSet {
 

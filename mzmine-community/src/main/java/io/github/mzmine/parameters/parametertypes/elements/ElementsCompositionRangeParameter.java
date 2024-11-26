@@ -25,7 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.elements;
 
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Level;

@@ -28,10 +28,10 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine
 
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 
 /**
  * Filters to apply to spectra

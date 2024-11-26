@@ -27,7 +27,7 @@ package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;

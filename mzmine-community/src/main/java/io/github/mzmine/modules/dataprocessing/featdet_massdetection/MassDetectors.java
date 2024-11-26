@@ -32,9 +32,9 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_l
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima.LocalMaxMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;

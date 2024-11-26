@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpr
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 
 /**
  * Stores {@link DataPointProcessingModule}s and their parameters in a tree item. All MZmineModules

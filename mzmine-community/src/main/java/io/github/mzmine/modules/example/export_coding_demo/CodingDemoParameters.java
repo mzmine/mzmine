@@ -27,13 +27,13 @@ package io.github.mzmine.modules.example.export_coding_demo;
 
 import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithDownloadParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.util.List;
 
 /**

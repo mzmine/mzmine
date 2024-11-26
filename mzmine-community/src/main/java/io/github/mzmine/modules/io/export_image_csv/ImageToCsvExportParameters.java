@@ -25,12 +25,12 @@
 
 package io.github.mzmine.modules.io.export_image_csv;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class ImageToCsvExportParameters extends SimpleParameterSet {
 

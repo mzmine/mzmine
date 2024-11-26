@@ -38,11 +38,10 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit;
 
-import java.util.logging.Logger;
-
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitParameters;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import java.util.logging.Logger;
 
 /**
  * 

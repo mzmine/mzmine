@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.other_detectors;
 
 import io.github.mzmine.parameters.PropertyParameter;
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;

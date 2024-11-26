@@ -28,8 +28,8 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 
 public enum MassDetectorWizardOptions {
   ABSOLUTE_NOISE_LEVEL, FACTOR_OF_LOWEST_SIGNAL;

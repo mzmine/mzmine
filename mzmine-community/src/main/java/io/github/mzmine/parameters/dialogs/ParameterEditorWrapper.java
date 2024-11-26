@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import javafx.scene.Node;
 import org.controlsfx.control.PropertySheet;
 import org.controlsfx.property.editor.PropertyEditor;

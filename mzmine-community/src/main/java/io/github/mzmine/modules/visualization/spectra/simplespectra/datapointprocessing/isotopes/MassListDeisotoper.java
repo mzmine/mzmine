@@ -25,18 +25,17 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
 
 /**
  * Deisotope mass list This is basically copy-pasted from

@@ -25,9 +25,9 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.EmbeddedParameter;
 import java.util.Collection;
 import java.util.Objects;
 import javafx.collections.FXCollections;

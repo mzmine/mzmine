@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.IOException;
 
 /**

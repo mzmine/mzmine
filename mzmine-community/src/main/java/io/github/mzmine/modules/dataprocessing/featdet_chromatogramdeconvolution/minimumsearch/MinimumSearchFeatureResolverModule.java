@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch;
 
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

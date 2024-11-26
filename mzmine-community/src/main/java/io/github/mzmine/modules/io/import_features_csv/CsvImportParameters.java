@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.io.import_features_csv;
 
-import java.util.List;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class CsvImportParameters extends SimpleParameterSet {

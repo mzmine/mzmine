@@ -25,21 +25,19 @@
 
 package io.github.mzmine.modules.tools.sortfeaturelists;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
-
 import org.jetbrains.annotations.NotNull;
-
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
 
 /**
  * This is a very simple module which reorders feature lists alphabetically

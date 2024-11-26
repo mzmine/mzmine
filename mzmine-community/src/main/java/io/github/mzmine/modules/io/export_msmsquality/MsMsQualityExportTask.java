@@ -50,7 +50,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_l
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore.Result;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -62,6 +61,7 @@ import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;

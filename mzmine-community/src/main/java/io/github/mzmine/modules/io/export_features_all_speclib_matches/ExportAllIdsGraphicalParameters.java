@@ -26,13 +26,13 @@
 package io.github.mzmine.modules.io.export_features_all_speclib_matches;
 
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
 import org.jetbrains.annotations.NotNull;
 
 public class ExportAllIdsGraphicalParameters extends SimpleParameterSet {

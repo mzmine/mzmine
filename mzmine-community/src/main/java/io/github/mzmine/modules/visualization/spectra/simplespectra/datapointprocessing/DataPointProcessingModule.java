@@ -25,14 +25,14 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
-import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *

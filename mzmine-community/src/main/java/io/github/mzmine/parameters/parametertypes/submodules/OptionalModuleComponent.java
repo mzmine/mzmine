@@ -25,10 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
-import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
-import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.mzio.mzmine.datamodel.parameters.EstimatedComponentHeightProvider;
+import io.mzio.mzmine.datamodel.parameters.EstimatedComponentWidthProvider;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.impl.dialogs.IParameterSetupPane;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -115,7 +116,7 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
 
   }
 
-  public ParameterSetupPane getEmbeddedParameterPane() {
+  public IParameterSetupPane getEmbeddedParameterPane() {
     return paramPane;
   }
 

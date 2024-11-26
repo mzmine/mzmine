@@ -25,6 +25,10 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Hashtable;
@@ -37,10 +41,6 @@ import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
 
 class UserParameterSaveHandler {
 

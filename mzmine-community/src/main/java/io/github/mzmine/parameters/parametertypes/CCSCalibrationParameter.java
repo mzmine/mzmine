@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.Collection;
 import javafx.scene.layout.BorderPane;
 import org.w3c.dom.Element;

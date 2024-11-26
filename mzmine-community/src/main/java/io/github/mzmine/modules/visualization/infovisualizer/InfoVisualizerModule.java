@@ -26,9 +26,9 @@
 package io.github.mzmine.modules.visualization.infovisualizer;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
 
 public class InfoVisualizerModule implements MZmineModule {
 

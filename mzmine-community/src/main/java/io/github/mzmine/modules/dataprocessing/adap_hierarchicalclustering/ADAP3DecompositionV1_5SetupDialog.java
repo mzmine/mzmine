@@ -48,8 +48,8 @@
 //import dulab.adap.datamodel.Peak;
 //import dulab.adap.workflow.TwoStepDecomposition;
 //import io.github.mzmine.main.MZmineCore;
-//import io.github.mzmine.parameters.Parameter;
-//import io.github.mzmine.parameters.ParameterSet;
+//import io.mzio.mzmine.datamodel.Parameter;
+//import io.mzio.mzmine.datamodel.ParameterSet;
 //import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 //import javafx.collections.FXCollections;
 //import javafx.collections.ObservableList;

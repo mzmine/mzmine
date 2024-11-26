@@ -26,10 +26,10 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.io.File;
 import java.util.List;
 import javafx.collections.FXCollections;

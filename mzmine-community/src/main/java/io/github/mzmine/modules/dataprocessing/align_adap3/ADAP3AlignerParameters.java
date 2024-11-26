@@ -25,7 +25,7 @@
 //package io.github.mzmine.modules.dataprocessing.align_adap3;
 //
 //import dulab.adap.workflow.AlignmentParameters;
-//import io.github.mzmine.parameters.Parameter;
+//import io.mzio.mzmine.datamodel.Parameter;
 //import io.github.mzmine.parameters.impl.SimpleParameterSet;
 //import io.github.mzmine.parameters.parametertypes.ComboParameter;
 //import io.github.mzmine.parameters.parametertypes.DoubleParameter;

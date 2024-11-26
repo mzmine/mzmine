@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.text.DecimalFormat;
 
 public class CalcEcmsPotentialParameters extends SimpleParameterSet {

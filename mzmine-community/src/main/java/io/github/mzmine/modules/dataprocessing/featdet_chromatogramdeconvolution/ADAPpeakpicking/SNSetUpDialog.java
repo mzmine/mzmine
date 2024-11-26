@@ -27,10 +27,10 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.awt.Font;
 import java.util.logging.Logger;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 
 public class SNSetUpDialog extends ParameterSetupDialog {
 

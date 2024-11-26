@@ -26,9 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class AutoMassDetectorParameters extends SimpleParameterSet {
 

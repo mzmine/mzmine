@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 

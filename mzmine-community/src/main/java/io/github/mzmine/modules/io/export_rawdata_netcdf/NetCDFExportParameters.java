@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.io.export_rawdata_netcdf;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 
 public class NetCDFExportParameters extends SimpleParameterSet {
 

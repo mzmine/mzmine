@@ -37,11 +37,11 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Reaction
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters.TransformationTypes;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.CSVParsingUtils.CompoundDbLoadResult;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;

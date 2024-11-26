@@ -27,8 +27,8 @@ package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.
 
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionAlgorithm;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;

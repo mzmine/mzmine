@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -34,6 +33,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.Map;
 
 public class ChromatogramAndSpectraVisualizerParameters extends SimpleParameterSet {

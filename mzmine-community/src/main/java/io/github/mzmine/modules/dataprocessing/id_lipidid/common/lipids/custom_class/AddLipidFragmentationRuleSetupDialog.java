@@ -30,8 +30,8 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClassFragmentationRulesChoiceComponent.AddLipidFragmentationRuleParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 
 public class AddLipidFragmentationRuleSetupDialog extends ParameterSetupDialog {
 

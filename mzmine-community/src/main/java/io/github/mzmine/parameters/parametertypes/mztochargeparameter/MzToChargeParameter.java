@@ -28,7 +28,7 @@ package io.github.mzmine.parameters.parametertypes.mztochargeparameter;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.Collection;
 import java.util.Map.Entry;
 import org.jetbrains.annotations.Nullable;

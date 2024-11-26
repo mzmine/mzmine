@@ -48,8 +48,6 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.MaldiMs2AcquisitionWriters;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.SingleSpotMs2Writer;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeDouble;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -58,6 +56,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;

@@ -25,7 +25,7 @@
 
 package io.github.mzmine.gui.preferences;
 
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.text.DecimalFormat;
 import java.util.Collection;
 import org.jetbrains.annotations.Nullable;

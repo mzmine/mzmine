@@ -43,8 +43,8 @@ import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerP
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters.TransformationTypes;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerUtil;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;

@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.text.NumberFormat;
 import java.util.Collection;
 import org.jetbrains.annotations.Nullable;

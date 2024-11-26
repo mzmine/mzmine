@@ -25,13 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.Map;
 
 public class SameRangeGapFillerParameters extends SimpleParameterSet {

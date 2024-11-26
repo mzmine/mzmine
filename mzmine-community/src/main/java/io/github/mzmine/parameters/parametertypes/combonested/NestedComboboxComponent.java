@@ -25,10 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes.combonested;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.HiddenParameter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;

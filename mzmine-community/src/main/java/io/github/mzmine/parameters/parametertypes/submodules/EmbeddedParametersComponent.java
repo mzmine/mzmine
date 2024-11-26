@@ -26,7 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.submodules;
 
 import io.github.mzmine.parameters.ParameterComponent;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.impl.dialogs.IParameterSetupPane;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import javafx.scene.layout.BorderPane;
 
@@ -38,7 +39,7 @@ import javafx.scene.layout.BorderPane;
 public abstract class EmbeddedParametersComponent<ValueType> extends BorderPane implements
     ParameterComponent<ValueType> {
 
-  protected ParameterSetupPane paramPane;
+  protected IParameterSetupPane paramPane;
 
   public EmbeddedParametersComponent(final ParameterSet parameters) {
     paramPane = new ParameterSetupPane(true, parameters, false, false, null, true, false);

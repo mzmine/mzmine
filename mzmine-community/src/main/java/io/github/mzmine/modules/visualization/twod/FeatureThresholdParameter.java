@@ -25,13 +25,11 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.Collection;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import io.github.mzmine.parameters.Parameter;
 
 public class FeatureThresholdParameter implements Parameter<Object> {
 

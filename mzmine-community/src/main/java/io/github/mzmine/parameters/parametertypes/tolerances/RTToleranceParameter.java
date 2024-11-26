@@ -25,8 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.Collection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

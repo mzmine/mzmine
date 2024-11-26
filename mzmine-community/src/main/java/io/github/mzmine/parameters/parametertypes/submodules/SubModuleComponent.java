@@ -25,7 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;

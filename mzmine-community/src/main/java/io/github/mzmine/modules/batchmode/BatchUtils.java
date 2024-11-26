@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -34,6 +33,7 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParam
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.project.ProjectService;
+import io.mzio.mzmine.datamodel.MZmineModule;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;

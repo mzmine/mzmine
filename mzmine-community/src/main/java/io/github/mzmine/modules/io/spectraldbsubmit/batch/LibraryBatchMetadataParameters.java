@@ -42,12 +42,12 @@ import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.CompoundS
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Instrument;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.IonSource;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.util.HashMap;
 import java.util.Map;
 

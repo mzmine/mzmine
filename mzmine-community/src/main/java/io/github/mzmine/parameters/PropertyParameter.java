@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters;
 
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import javafx.scene.Node;
 
 /**

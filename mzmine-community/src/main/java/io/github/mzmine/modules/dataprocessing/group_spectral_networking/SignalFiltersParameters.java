@@ -27,12 +27,12 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 
 /**
  * Filters to apply to spectra

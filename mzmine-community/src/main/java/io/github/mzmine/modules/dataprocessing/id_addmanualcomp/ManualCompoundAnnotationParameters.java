@@ -28,13 +28,13 @@ package io.github.mzmine.modules.dataprocessing.id_addmanualcomp;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedXMLParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.util.FeatureListUtils;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.List;
 
 public class ManualCompoundAnnotationParameters extends SimpleParameterSet {

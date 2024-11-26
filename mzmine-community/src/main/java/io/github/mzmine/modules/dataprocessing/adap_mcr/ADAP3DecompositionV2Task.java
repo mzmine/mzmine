@@ -48,7 +48,7 @@
 //import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 //import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 //import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
-//import io.github.mzmine.parameters.ParameterSet;
+//import io.mzio.mzmine.datamodel.ParameterSet;
 //import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 //import io.github.mzmine.taskcontrol.AbstractTask;
 //import io.github.mzmine.taskcontrol.TaskStatus;

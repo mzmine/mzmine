@@ -38,7 +38,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.Maldi
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.MaldiTimsPrecursor;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.PrecursorSelectionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.TimsTOFPrecursorSelectionOptions;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;

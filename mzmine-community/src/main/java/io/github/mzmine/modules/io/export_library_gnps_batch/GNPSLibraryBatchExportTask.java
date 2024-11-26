@@ -27,13 +27,13 @@ package io.github.mzmine.modules.io.export_library_gnps_batch;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;

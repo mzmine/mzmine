@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.ProcessingParameter;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.impl.HiddenParameter;
 
 public class DataPointProcessingParameters extends SimpleParameterSet {
 

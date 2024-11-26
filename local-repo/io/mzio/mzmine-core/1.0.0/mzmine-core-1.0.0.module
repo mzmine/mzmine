@@ -27,11 +27,11 @@
         {
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
-          "size": 10466,
-          "sha512": "26a6e2ea8212c961a7ca8ef2b66436007d9a5df6ec2c8a148a029813e0fbeb46ec68524442ee347abfe68037b137bd014c21b520aa6e0aac14fb1ab4fa1d712e",
-          "sha256": "0c161b1a4cf854c803d52ecc42c567a6060c9d58ae52dcba427a65275910dcb6",
-          "sha1": "5394f2d8fbddc2d3c201de1a99ee90b67e95b471",
-          "md5": "1d0cb86958eaef8e63259b24e9976174"
+          "size": 32644,
+          "sha512": "f240497505cc8d8adad04117431047d20f25a71537049ad080a3def0dc727a3b16ed9f975a78e4c623c36742d75eb6d767285a5fd523f9389b37b74f868be880",
+          "sha256": "8f4a88cc43a65a5a19463ce2ee0bdc6a5602b338c72e12f9d335840a6d2559df",
+          "sha1": "677a099e6c181dca3e0255fc639eb48197832df3",
+          "md5": "a95b081d650b06e554bb68ed69d6914e"
         }
       ]
     },
@@ -50,6 +50,34 @@
           "module": "annotations",
           "version": {
             "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "org.controlsfx",
+          "module": "controlsfx",
+          "version": {
+            "requires": "11.1.1"
+          }
+        },
+        {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-javafx",
+          "version": {
+            "requires": "12.3.1"
+          }
+        },
+        {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-bootstrapicons-pack",
+          "version": {
+            "requires": "12.3.1"
+          }
+        },
+        {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-lineawesome-pack",
+          "version": {
+            "requires": "12.3.1"
           }
         },
         {
@@ -75,6 +103,13 @@
         },
         {
           "group": "io.mzio",
+          "module": "taskcontroller",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "io.mzio",
           "module": "user-client",
           "version": {
             "requires": "1.0.0"
@@ -83,17 +118,59 @@
         {
           "group": "io.github.mzmine",
           "module": "utils"
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-base",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-graphics",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-controls",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-fxml",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-swing",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-web",
+          "version": {
+            "requires": "21"
+          }
         }
       ],
       "files": [
         {
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
-          "size": 10466,
-          "sha512": "26a6e2ea8212c961a7ca8ef2b66436007d9a5df6ec2c8a148a029813e0fbeb46ec68524442ee347abfe68037b137bd014c21b520aa6e0aac14fb1ab4fa1d712e",
-          "sha256": "0c161b1a4cf854c803d52ecc42c567a6060c9d58ae52dcba427a65275910dcb6",
-          "sha1": "5394f2d8fbddc2d3c201de1a99ee90b67e95b471",
-          "md5": "1d0cb86958eaef8e63259b24e9976174"
+          "size": 32644,
+          "sha512": "f240497505cc8d8adad04117431047d20f25a71537049ad080a3def0dc727a3b16ed9f975a78e4c623c36742d75eb6d767285a5fd523f9389b37b74f868be880",
+          "sha256": "8f4a88cc43a65a5a19463ce2ee0bdc6a5602b338c72e12f9d335840a6d2559df",
+          "sha1": "677a099e6c181dca3e0255fc639eb48197832df3",
+          "md5": "a95b081d650b06e554bb68ed69d6914e"
         }
       ]
     }

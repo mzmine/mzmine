@@ -27,8 +27,8 @@ package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;

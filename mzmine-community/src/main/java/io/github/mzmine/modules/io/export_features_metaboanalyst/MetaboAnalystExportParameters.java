@@ -26,12 +26,12 @@
 package io.github.mzmine.modules.io.export_features_metaboanalyst;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 

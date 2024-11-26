@@ -37,20 +37,19 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.param;
 
-import java.text.DecimalFormat;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.CompoundSource;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Instrument;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.IonSource;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
+import java.text.DecimalFormat;
 
 /**
  * 

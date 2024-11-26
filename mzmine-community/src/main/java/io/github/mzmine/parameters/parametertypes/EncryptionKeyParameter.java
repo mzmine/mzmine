@@ -26,7 +26,7 @@ package io.github.mzmine.parameters.parametertypes;
 
 import org.w3c.dom.Element;
 
-import io.github.mzmine.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import io.github.mzmine.util.StringCrypter;
 
 import java.io.IOException;

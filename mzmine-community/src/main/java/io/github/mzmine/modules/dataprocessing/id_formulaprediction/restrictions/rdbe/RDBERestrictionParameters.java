@@ -25,14 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe;
 
-import java.text.NumberFormat;
-
 import com.google.common.collect.Range;
-
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import java.text.NumberFormat;
 
 public class RDBERestrictionParameters extends SimpleParameterSet {
 

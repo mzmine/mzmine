@@ -25,13 +25,12 @@
 
 package io.github.mzmine.modules.io.import_features_mztabm;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
-import javafx.stage.FileChooser.ExtensionFilter;
-
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MzTabmImportParameters extends SimpleParameterSet {
 

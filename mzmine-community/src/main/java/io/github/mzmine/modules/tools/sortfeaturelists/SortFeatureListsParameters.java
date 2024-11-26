@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.tools.sortfeaturelists;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class SortFeatureListsParameters extends SimpleParameterSet {
 

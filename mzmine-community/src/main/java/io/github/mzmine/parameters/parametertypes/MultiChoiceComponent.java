@@ -28,11 +28,11 @@ package io.github.mzmine.parameters.parametertypes;
 
 import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.StringMapParser;
 import io.github.mzmine.util.io.WriterOptions;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

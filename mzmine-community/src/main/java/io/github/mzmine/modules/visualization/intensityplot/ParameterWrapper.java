@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 
 /**
  * A simple wrapper providing the toString() method for adding parameters to combo boxes etc.

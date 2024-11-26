@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.scatterplot;
 
-import io.github.mzmine.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;

@@ -29,8 +29,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.ProjectService;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -72,7 +72,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   }
 
   /*
-   * @see io.github.mzmine.parameters.Parameter#loadValueFromXML(org.w3c.dom. Element)
+   * @see io.mzio.mzmine.datamodel.Parameter#loadValueFromXML(org.w3c.dom. Element)
    */
   @Override
   public void loadValueFromXML(Element xmlElement) {
@@ -116,7 +116,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   }
 
   /*
-   * @see io.github.mzmine.parameters.Parameter#saveValueToXML(org.w3c.dom.Element)
+   * @see io.mzio.mzmine.datamodel.Parameter#saveValueToXML(org.w3c.dom.Element)
    */
   @Override
   public void saveValueToXML(Element xmlElement) {
@@ -173,7 +173,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   }
 
   /*
-   * @see io.github.mzmine.parameters.UserParameter#cloneParameter()
+   * @see io.mzio.mzmine.datamodel.UserParameter#cloneParameter()
    */
   @Override
   public FeaturesParameter cloneParameter() {

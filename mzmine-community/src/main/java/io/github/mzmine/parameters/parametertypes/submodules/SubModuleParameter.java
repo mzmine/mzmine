@@ -26,10 +26,10 @@
 package io.github.mzmine.parameters.parametertypes.submodules;
 
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.mzio.mzmine.datamodel.parameters.EmbeddedParameterSet;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.Collection;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;

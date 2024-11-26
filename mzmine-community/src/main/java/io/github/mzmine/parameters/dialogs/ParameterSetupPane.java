@@ -28,11 +28,12 @@ package io.github.mzmine.parameters.dialogs;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.FullColumnComponent;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComponent;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.HiddenParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.dialogs.IParameterSetupPane;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,7 +69,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  */
 @SuppressWarnings("rawtypes")
-public class ParameterSetupPane extends BorderPane {
+public class ParameterSetupPane extends BorderPane implements IParameterSetupPane {
 
   public static final Logger logger = Logger.getLogger(ParameterSetupPane.class.getName());
   protected final URL helpURL;
@@ -243,14 +244,17 @@ public class ParameterSetupPane extends BorderPane {
     };
   }
 
+  @Override
   public BorderPane getCenterPane() {
     return centerPane;
   }
 
+  @Override
   public Map<String, Node> getParametersAndComponents() {
     return parametersAndComponents;
   }
 
+  @Override
   public ButtonBar getButtonBar() {
     return pnlButtons;
   }
@@ -279,8 +283,8 @@ public class ParameterSetupPane extends BorderPane {
    * @param parameters parameters to fill the grid pane
    * @return a grid pane
    */
-  @NotNull
-  public GridPane createParameterPane(@NotNull Parameter<?>[] parameters) {
+  @Override
+  public @NotNull GridPane createParameterPane(@NotNull Parameter<?>[] parameters) {
     GridPane paramsPane = new GridPane();
     paramsPane.setPadding(new Insets(5));
     // paramsPane.setStyle("-fx-border-color: blue;");
@@ -366,12 +370,14 @@ public class ParameterSetupPane extends BorderPane {
   }
 
   @SuppressWarnings("unchecked")
+  @Override
   public <ComponentType extends Node> ComponentType getComponentForParameter(
       UserParameter<?, ComponentType> p) {
     return (ComponentType) parametersAndComponents.get(p.getName());
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
+  @Override
   public ParameterSet updateParameterSetFromComponents() {
     for (Parameter<?> p : parameterSet.getParameters()) {
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
@@ -395,6 +401,7 @@ public class ParameterSetupPane extends BorderPane {
     return parameterSet;
   }
 
+  @Override
   public void setParameterValuesToComponents() {
     for (Parameter<?> p : parameterSet.getParameters()) {
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
@@ -417,7 +424,8 @@ public class ParameterSetupPane extends BorderPane {
     }
   }
 
-  protected int getNumberOfParameters() {
+  @Override
+  public int getNumberOfParameters() {
     return parameterSet.getParameters().length;
   }
 
@@ -428,10 +436,12 @@ public class ParameterSetupPane extends BorderPane {
   protected void parametersChanged() {
   }
 
+  @Override
   public GridPane getParamsPane() {
     return paramsPane;
   }
 
+  @Override
   public ParameterSet getParameterSet() {
     return parameterSet;
   }
@@ -461,11 +471,13 @@ public class ParameterSetupPane extends BorderPane {
     }
   }
 
+  @Override
   public boolean isValueCheckRequired() {
     return valueCheckRequired;
   }
 
-  protected void addToolTipToControls(Node node, String toolTipText) {
+  @Override
+  public void addToolTipToControls(Node node, String toolTipText) {
     if (node instanceof Control) {
       ((Control) node).setTooltip(new Tooltip(toolTipText));
     }
@@ -480,6 +492,7 @@ public class ParameterSetupPane extends BorderPane {
   /**
    * Adds a button to check the parameter
    */
+  @Override
   public void addCheckParametersButton() {
     Button btnCheck = new Button("Check");
     btnCheck.setOnAction(e -> callCheckParametersButton());

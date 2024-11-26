@@ -26,9 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 /**
  * MS/MS similarity check based on difference and signal comparison

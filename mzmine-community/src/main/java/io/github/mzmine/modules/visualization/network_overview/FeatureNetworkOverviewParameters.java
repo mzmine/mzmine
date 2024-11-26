@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.visualization.network_overview;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class FeatureNetworkOverviewParameters extends CurrentProjectNoDialogParameterSet {
 

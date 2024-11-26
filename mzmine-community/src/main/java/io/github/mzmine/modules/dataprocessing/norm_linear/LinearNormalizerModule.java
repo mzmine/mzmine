@@ -25,19 +25,17 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_linear;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.time.Instant;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class LinearNormalizerModule implements MZmineProcessingModule {
 

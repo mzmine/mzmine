@@ -26,13 +26,13 @@
 package io.github.mzmine.modules.tools.isotopeprediction;
 
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.FormulaParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import javafx.collections.FXCollections;
 
 public class IsotopePatternCalculatorParameters extends SimpleParameterSet {

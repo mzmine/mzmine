@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules;
 
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import io.github.mzmine.parameters.ParameterSet;
 
 /**
  * Interface for a processing step. Processing step means a reference to MZmine module and its

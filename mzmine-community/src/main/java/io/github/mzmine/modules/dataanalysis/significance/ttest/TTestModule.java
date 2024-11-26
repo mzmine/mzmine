@@ -27,10 +27,10 @@ package io.github.mzmine.modules.dataanalysis.significance.ttest;
 
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
 import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationComponent;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

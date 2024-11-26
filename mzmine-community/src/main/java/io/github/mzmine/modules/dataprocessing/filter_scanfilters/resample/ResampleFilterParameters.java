@@ -27,10 +27,10 @@ package io.github.mzmine.modules.dataprocessing.filter_scanfilters.resample;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilterSetupDialog;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class ResampleFilterParameters extends SimpleParameterSet {
 

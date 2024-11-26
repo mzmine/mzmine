@@ -32,7 +32,7 @@ import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.javafx.mvci.LatestTaskScheduler;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.List;
 import javafx.scene.layout.BorderPane;
 

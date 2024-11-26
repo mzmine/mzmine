@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class MassvoltammogramExportParameters extends SimpleParameterSet {
 

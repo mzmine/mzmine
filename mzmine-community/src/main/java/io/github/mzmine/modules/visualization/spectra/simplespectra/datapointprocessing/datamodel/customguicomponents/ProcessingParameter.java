@@ -27,7 +27,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpr
 
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPParameterValueWrapper;
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.Collection;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;

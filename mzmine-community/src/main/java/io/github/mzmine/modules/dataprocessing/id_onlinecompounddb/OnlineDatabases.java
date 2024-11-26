@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.ChemSpiderGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.ChemSpiderParameters;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.HMDBGateway;
@@ -35,9 +34,10 @@ import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.Mas
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.MetaCycGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.PubChemGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.YMDBGateway;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

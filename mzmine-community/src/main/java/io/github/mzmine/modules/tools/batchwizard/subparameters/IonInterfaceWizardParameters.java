@@ -27,7 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
-import io.github.mzmine.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public abstract sealed class IonInterfaceWizardParameters extends WizardStepParameters permits
     IonInterfaceHplcWizardParameters, IonInterfaceGcElectronImpactWizardParameters,

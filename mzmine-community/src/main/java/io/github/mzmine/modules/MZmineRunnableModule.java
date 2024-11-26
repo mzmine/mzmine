@@ -25,10 +25,12 @@
 
 package io.github.mzmine.modules;
 
+
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;

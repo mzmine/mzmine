@@ -56,6 +56,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.impl.dialogs.IParameterSetupPane;
 import java.io.File;
 import java.text.MessageFormat;
 import java.time.LocalDate;
@@ -106,7 +107,7 @@ public class BatchWizardTab extends SimpleTab {
    * Parameter panes of the selected presets
    */
   private final Map<File, LocalWizardSequenceFile> localPresets = new HashMap<>();
-  private final Map<WizardStepParameters, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
+  private final Map<WizardStepParameters, @NotNull IParameterSetupPane> paramPaneMap = new HashMap<>();
   private final Map<WizardPart, ComboBox<WizardStepParameters>> combos = new HashMap<>();
   private final LastFilesButton localPresetsButton;
   private boolean listenersActive = true;
@@ -501,7 +502,7 @@ public class BatchWizardTab extends SimpleTab {
    * Updates the parameters in all steps from the UI components. Does not check for completeness.
    */
   private void updateAllParametersFromUi() {
-    paramPaneMap.values().forEach(ParameterSetupPane::updateParameterSetFromComponents);
+    paramPaneMap.values().forEach(IParameterSetupPane::updateParameterSetFromComponents);
   }
 
   public void setListenersActive(final boolean listenersActive) {

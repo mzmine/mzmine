@@ -36,7 +36,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageP
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.awt.Color;
 import java.util.List;
 import java.util.logging.Logger;

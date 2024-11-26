@@ -26,11 +26,11 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.XMLUtils;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;

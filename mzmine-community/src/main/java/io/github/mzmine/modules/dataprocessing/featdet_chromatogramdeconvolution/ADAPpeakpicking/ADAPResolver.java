@@ -44,7 +44,7 @@
 //import io.github.mzmine.modules.MZmineProcessingModule;
 //import io.github.mzmine.modules.MZmineProcessingStep;
 //import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
-//import io.github.mzmine.parameters.ParameterSet;
+//import io.mzio.mzmine.datamodel.ParameterSet;
 //import java.util.ArrayList;
 //import java.util.Collections;
 //import java.util.HashMap;

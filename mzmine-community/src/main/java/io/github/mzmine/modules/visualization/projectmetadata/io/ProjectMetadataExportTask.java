@@ -27,9 +27,9 @@ package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 import java.time.Instant;
 import org.jetbrains.annotations.NotNull;

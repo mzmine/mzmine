@@ -25,8 +25,8 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.Optional;
 import javafx.beans.value.ObservableValue;
 import org.controlsfx.control.PropertySheet;

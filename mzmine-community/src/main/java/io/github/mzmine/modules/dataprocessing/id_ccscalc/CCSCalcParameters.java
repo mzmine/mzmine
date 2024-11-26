@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ccscalc;
 
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.mztochargeparameter.MzToChargeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import org.jetbrains.annotations.NotNull;

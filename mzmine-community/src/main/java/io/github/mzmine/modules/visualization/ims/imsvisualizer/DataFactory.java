@@ -39,7 +39,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.ParameterSet;
 
 public class DataFactory {
 

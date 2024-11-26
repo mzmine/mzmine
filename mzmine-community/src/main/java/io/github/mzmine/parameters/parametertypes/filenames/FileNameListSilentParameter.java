@@ -25,7 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
-import io.github.mzmine.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;

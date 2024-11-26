@@ -26,8 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.ProjectService;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;

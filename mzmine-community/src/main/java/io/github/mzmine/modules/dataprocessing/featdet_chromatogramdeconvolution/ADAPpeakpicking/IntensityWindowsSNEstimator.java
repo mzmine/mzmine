@@ -27,9 +27,8 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
-
-import io.github.mzmine.parameters.ParameterSet;
 
 public class IntensityWindowsSNEstimator implements SNEstimatorChoice {
   @Override

@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.visualization.spectra.msn_tree;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class MSnTreeVisualizerParameters extends CurrentProjectNoDialogParameterSet {
 

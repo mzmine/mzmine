@@ -53,8 +53,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFra
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidIon;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidAnnotationResolver;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;

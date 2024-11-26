@@ -28,8 +28,8 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.io.File;
 
 public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWizardParameters {

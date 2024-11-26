@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class;
 
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.Arrays;
 import java.util.List;
 import javafx.collections.FXCollections;

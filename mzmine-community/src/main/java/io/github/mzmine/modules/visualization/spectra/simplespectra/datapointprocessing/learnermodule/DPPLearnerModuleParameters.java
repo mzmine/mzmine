@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ColorParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import javafx.scene.paint.Color;
 
 /**

@@ -27,8 +27,8 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.awt.Color;
 import org.jfree.data.xy.AbstractXYDataset;
 

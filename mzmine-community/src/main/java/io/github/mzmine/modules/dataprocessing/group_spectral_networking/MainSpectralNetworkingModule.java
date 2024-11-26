@@ -32,9 +32,9 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
