@@ -101,12 +101,12 @@ public final class ConfigService {
   }
 
   public static boolean isTdfPseudoProfile() {
-    return getArgsParser() != null && getArgsParser().isLoadTdfPseudoProfile();
+    return argsParser != null && getArgsParser().isLoadTdfPseudoProfile();
   }
 
 
   public static boolean isTsfProfile() {
-    return getArgsParser() != null && getArgsParser().isLoadTsfProfile();
+    return argsParser != null && getArgsParser().isLoadTsfProfile();
   }
 
   /**
