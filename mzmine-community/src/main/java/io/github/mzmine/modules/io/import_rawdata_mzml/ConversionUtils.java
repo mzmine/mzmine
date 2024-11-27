@@ -401,6 +401,14 @@ public class ConversionUtils {
         otherFile.setDescription(unit + "_" + chromType.getDescription());
 
         for (MzMLChromatogram chrom : unitChromEntry.getValue()) {
+          if (chrom.getNumberOfDataPoints() == 0) {
+            // drop empty chromatograms
+            logger.finest(
+                () -> "%s: Empty chromatogram %s imported. Will be skipped.".formatted(
+                    file.getName(), chrom.getId()));
+            continue;
+          }
+
           final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
               file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
               chrom.getId(), timeSeriesData);
