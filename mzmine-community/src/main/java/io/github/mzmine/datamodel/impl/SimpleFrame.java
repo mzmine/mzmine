@@ -35,14 +35,12 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
-import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -79,7 +77,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
-    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, new HashSet<>(0));
+    setPrecursorInfos(precursorInfos);
   }
 
   public void setDataPoints(double[] newMzValues, double[] newIntensityValues) {
@@ -209,7 +207,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public void setPrecursorInfos(@Nullable Set<IonMobilityMsMsInfo> precursorInfos) {
-    this.precursorInfos = precursorInfos != null ? precursorInfos : new HashSet<>();
+    this.precursorInfos = precursorInfos != null ? precursorInfos : new HashSet<>(0);
+    this.precursorInfos.forEach(i -> i.setMsMsScan(this));
   }
 
   /**
