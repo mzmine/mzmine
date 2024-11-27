@@ -51,12 +51,12 @@ import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionForValues;
 import io.github.mzmine.parameters.parametertypes.ValueOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;

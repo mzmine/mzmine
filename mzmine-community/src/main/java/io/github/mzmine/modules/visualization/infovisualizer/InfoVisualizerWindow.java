@@ -25,16 +25,16 @@
 
 package io.github.mzmine.modules.visualization.infovisualizer;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.text.NumberFormat;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;

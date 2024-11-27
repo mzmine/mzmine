@@ -26,15 +26,15 @@
 package io.github.mzmine.modules.dataprocessing.featdet_maldispotfeaturedetection;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;

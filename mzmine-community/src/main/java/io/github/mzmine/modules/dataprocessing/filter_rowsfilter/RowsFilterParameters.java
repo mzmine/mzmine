@@ -27,16 +27,12 @@ package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectParameter;
@@ -48,6 +44,10 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import org.jetbrains.annotations.NotNull;
 
 public class RowsFilterParameters extends SimpleParameterSet {

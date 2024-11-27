@@ -25,15 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.ListDoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.util.ArrayList;
 
 public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {

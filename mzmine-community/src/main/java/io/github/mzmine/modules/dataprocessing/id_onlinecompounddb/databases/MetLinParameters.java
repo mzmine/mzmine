@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 /**
  * Set of parameters specific to METLIN searches.

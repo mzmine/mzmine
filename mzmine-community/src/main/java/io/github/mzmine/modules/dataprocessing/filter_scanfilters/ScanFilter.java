@@ -27,7 +27,7 @@ package io.github.mzmine.modules.dataprocessing.filter_scanfilters;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.MZmineModule;
+import io.mzio.mzmine.datamodel.MZmineModule;
 
 public interface ScanFilter extends MZmineModule {
 

@@ -25,7 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.Collection;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;

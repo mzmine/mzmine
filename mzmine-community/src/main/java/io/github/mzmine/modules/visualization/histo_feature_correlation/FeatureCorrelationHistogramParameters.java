@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.visualization.histo_feature_correlation;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class FeatureCorrelationHistogramParameters extends SimpleParameterSet {
 

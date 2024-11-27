@@ -33,8 +33,8 @@
 //import dulab.adap.workflow.decomposition.RetTimeClusterer;
 //import io.github.mzmine.datamodel.features.FeatureList;
 //import io.github.mzmine.datamodel.features.FeatureListRow;
-//import io.github.mzmine.parameters.Parameter;
-//import io.github.mzmine.parameters.ParameterSet;
+//import io.mzio.mzmine.datamodel.Parameter;
+//import io.mzio.mzmine.datamodel.ParameterSet;
 //import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 //import io.github.mzmine.util.RangeUtils;
 //import java.awt.Dimension;

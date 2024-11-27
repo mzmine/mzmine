@@ -39,11 +39,11 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRe
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingTask.SmoothingDimension;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.SortableFeatureComboBox;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;

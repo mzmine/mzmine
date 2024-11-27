@@ -25,13 +25,13 @@
 
 package io.github.mzmine.modules.io.export_scans;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class ExportScansFromRawFilesParameters extends SimpleParameterSet {
 

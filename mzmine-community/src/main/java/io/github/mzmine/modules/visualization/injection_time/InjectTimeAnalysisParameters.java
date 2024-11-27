@@ -26,17 +26,17 @@
 package io.github.mzmine.modules.visualization.injection_time;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 
 public class InjectTimeAnalysisParameters extends SimpleParameterSet {
 

@@ -44,12 +44,12 @@ import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportTas
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowCommonElement;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowDataFileElement;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.awt.Desktop;
 import java.io.File;
 import java.time.Instant;

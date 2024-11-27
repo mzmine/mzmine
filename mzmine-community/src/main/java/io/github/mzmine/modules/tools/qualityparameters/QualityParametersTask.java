@@ -27,9 +27,9 @@ package io.github.mzmine.modules.tools.qualityparameters;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 

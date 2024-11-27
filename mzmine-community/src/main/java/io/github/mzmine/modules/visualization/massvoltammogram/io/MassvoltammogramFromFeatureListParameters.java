@@ -27,13 +27,13 @@ package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
 
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.ReactionMode;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.text.DecimalFormat;
 
 public class MassvoltammogramFromFeatureListParameters extends SimpleParameterSet {

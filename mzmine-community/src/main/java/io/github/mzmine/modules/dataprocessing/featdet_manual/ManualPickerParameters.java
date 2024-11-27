@@ -26,9 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 
 public class ManualPickerParameters extends SimpleParameterSet {
 

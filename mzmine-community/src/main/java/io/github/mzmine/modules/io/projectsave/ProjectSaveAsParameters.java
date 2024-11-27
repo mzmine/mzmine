@@ -31,7 +31,6 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -39,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExport
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;

@@ -25,21 +25,21 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZAnalyzerWindow;
+import io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot.CVParameters;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.awt.Color;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.data.xy.AbstractXYZDataset;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZAnalyzerWindow;
-import io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot.CVParameters;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
 public class LogratioPlotModule implements MZmineRunnableModule {
 

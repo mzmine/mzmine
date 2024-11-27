@@ -29,9 +29,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.project.ProjectService;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.Vector;
 
 /**

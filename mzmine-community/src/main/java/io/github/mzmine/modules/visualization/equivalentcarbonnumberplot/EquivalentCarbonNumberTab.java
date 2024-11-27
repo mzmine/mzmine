@@ -7,7 +7,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

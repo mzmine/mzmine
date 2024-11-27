@@ -26,15 +26,15 @@
 package io.github.mzmine.modules.visualization.scan_histogram;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.text.DecimalFormat;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;

@@ -40,8 +40,8 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRende
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.previewpane.FeaturePreviewPane;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

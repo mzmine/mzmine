@@ -25,12 +25,12 @@
 
 package io.github.mzmine.gui.preferences;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.web.Proxy;
 import io.github.mzmine.util.web.ProxyType;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.Map;
 
 /**

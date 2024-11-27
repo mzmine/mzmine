@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class BatchModeParameters extends SimpleParameterSet {
 

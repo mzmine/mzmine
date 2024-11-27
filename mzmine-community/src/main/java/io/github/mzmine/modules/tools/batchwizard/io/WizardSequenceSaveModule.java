@@ -26,11 +26,11 @@
 package io.github.mzmine.modules.tools.batchwizard.io;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;

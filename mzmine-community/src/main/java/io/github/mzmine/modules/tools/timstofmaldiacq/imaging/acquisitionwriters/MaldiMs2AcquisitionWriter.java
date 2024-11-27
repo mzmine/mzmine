@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters;
 
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.ImagingSpot;
+import io.mzio.mzmine.datamodel.MZmineModule;
 import java.io.File;
 import java.util.List;
 import java.util.function.BooleanSupplier;

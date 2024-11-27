@@ -32,8 +32,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
@@ -42,11 +42,12 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMa
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_uv.BrukerUvReader;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -174,7 +175,7 @@ public class TSFImportTask extends AbstractTask {
 
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
-    final boolean tryProfile = MZmineCore.getInstance().isTsfProfile();
+    final boolean tryProfile = ConfigService.isTsfProfile();
     final MassSpectrumType importSpectrumType =
         tryProfile && metaDataTable.hasProfileSpectra() ? MassSpectrumType.PROFILE
             : MassSpectrumType.CENTROIDED;

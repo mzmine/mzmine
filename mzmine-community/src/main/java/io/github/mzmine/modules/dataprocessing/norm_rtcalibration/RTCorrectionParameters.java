@@ -27,7 +27,6 @@
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -37,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class RTCorrectionParameters extends SimpleParameterSet {
 

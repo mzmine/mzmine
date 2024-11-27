@@ -31,8 +31,8 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters.SingleSpotMs2Writer;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.text.DecimalFormat;
 
 public class AdvancedImageMsMsParameters extends SimpleParameterSet {

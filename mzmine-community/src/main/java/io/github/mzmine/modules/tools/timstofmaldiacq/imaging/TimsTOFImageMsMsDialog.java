@@ -35,7 +35,6 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.Maldi
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImagingPlot;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.project.ProjectService;
@@ -43,6 +42,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ImagingUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.SortableFeatureComboBox;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;

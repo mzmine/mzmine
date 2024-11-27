@@ -44,7 +44,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standards
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist.StandardsListExtractor;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist.StandardsListExtractorFactory;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist.UniversalCalibrantsListCsvExtractor;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.combonested.NestedCombo;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -52,6 +51,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.Instant;

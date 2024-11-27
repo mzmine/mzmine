@@ -39,7 +39,6 @@ import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
@@ -47,6 +46,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 import java.text.NumberFormat;
 import java.time.Instant;

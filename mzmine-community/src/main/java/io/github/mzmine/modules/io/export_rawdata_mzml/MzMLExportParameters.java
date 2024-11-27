@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.io.export_rawdata_mzml;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class MzMLExportParameters extends SimpleParameterSet {
 

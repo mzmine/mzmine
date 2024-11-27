@@ -34,11 +34,11 @@ import io.github.mzmine.modules.dataprocessing.align_path.functions.AlignmentPat
 import io.github.mzmine.modules.dataprocessing.align_path.functions.ScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 
 public class RTScore implements ScoreCalculator {
 

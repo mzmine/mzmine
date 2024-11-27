@@ -28,10 +28,11 @@ package io.github.mzmine.parameters.parametertypes.submodules;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
-import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
-import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
+import io.mzio.mzmine.datamodel.parameters.EstimatedComponentHeightProvider;
+import io.mzio.mzmine.datamodel.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.FullColumnComponent;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.impl.dialogs.IParameterSetupPane;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import java.util.EnumMap;
 import javafx.beans.property.BooleanProperty;
@@ -132,7 +133,7 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
 
   }
 
-  public ParameterSetupPane getEmbeddedParameterPane() {
+  public IParameterSetupPane getEmbeddedParameterPane() {
     return paramPane;
   }
 

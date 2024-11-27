@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureRowAlignScorer;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
@@ -45,6 +44,7 @@ import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 

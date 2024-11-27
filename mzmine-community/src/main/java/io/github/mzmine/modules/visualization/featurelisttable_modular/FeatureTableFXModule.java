@@ -27,9 +27,9 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FeatureTableFXUtil;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

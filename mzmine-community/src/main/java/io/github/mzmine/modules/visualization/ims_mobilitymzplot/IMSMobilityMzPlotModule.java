@@ -27,8 +27,8 @@ package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.Collection;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;

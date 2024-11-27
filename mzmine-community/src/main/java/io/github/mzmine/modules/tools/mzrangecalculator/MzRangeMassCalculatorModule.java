@@ -25,16 +25,14 @@
 
 package io.github.mzmine.modules.tools.mzrangecalculator;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * m/z range calculator module. Calculates m/z range from a given mass and m/z tolerance.

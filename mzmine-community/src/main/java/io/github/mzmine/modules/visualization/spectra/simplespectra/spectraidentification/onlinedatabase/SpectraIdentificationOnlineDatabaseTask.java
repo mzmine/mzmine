@@ -39,12 +39,12 @@ import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabas
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.time.Instant;

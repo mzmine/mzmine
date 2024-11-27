@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
 import org.jetbrains.annotations.NotNull;
 
 public class PCAParameters extends SimpleParameterSet {

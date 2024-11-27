@@ -31,9 +31,9 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidCla
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClassParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidDatabaseCalculator;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;

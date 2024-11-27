@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingAlgorithm;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

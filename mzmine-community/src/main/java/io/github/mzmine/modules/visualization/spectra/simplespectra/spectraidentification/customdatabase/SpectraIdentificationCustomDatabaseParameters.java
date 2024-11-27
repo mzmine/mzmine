@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase;
 
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.FieldItem;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -35,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 /**
  * Parameter set for spectra custom database search

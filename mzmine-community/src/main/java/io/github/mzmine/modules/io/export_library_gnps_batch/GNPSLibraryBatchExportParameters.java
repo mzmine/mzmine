@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.io.export_library_gnps_batch;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 

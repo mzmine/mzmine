@@ -25,12 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration.external;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import org.jetbrains.annotations.NotNull;
 
 public class ExternalCCSCalibrationParameters extends SimpleParameterSet {

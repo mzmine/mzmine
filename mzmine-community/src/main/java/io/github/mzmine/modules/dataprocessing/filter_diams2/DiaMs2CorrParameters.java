@@ -26,8 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.filter_diams2;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -36,6 +34,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.text.DecimalFormat;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;

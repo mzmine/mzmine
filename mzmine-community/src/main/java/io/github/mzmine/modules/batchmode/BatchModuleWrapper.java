@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.modules.MZmineModule;
+import io.mzio.mzmine.datamodel.MZmineModule;
 import java.util.Objects;
 
 /**

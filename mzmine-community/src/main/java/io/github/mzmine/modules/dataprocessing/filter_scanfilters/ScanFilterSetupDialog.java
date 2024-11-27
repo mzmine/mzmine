@@ -32,8 +32,8 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.awt.Color;
 
 /**

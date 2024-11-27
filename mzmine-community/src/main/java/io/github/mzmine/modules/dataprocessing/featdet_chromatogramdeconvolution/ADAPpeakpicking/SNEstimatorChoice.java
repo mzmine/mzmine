@@ -27,7 +27,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
-import io.github.mzmine.modules.MZmineModule;
+import io.mzio.mzmine.datamodel.MZmineModule;
 
 public interface SNEstimatorChoice extends MZmineModule {
   /**

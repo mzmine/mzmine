@@ -28,9 +28,9 @@ package io.github.mzmine.parameters.parametertypes;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.exceptions.DecryptionException;
 import io.github.mzmine.util.exceptions.EncryptionException;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.Collection;
 import javafx.scene.control.PasswordField;
 import org.jetbrains.annotations.Nullable;

@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tsf;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.io.File;
 import java.util.List;
 import javafx.stage.DirectoryChooser;

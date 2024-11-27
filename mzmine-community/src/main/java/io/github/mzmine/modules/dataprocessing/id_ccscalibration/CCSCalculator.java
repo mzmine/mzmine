@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

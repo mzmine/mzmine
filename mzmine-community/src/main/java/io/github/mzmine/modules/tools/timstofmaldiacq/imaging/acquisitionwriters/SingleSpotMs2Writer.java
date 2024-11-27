@@ -30,7 +30,7 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables;
 import io.github.mzmine.modules.tools.timstofmaldiacq.CeSteppingTables.CeSteppingTable;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFAcquisitionUtils;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.ImagingSpot;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;

@@ -29,10 +29,10 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.util.Collection;
 
 public class AdvancedSpectralLibrarySearchParameters extends SimpleParameterSet {

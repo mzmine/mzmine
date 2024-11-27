@@ -26,11 +26,11 @@ package io.github.mzmine.modules.io.export_features_msp;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 

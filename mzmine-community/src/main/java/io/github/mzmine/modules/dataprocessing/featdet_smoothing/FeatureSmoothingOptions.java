@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.loess.LoessSmoothing;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolaySmoothing;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 
 public enum FeatureSmoothingOptions implements ModuleOptionsEnum {
   LOESS, SAVITZKY_GOLAY;

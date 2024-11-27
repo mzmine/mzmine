@@ -37,7 +37,6 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.CosineP
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalAlignmentAnnotation;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
@@ -49,6 +48,7 @@ import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.NumberFormat;

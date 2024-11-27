@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
 
-import io.github.mzmine.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
 

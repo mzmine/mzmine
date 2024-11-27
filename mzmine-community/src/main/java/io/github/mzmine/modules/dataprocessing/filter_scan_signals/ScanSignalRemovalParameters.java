@@ -25,7 +25,6 @@
 package io.github.mzmine.modules.dataprocessing.filter_scan_signals;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
@@ -33,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.ListDoubleRangeParamete
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 

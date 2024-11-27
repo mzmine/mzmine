@@ -26,9 +26,7 @@
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -42,6 +40,8 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;

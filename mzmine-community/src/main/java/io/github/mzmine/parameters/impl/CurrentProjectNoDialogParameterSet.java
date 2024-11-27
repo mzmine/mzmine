@@ -25,12 +25,12 @@
 
 package io.github.mzmine.parameters.impl;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 /**
  * A parameter set that uses the currently selected project feature list and skips the setup dialog.

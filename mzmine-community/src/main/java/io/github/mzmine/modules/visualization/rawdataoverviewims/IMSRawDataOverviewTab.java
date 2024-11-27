@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.rawdataoverviewims;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.Collection;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;

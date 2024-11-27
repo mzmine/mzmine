@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.savitzkygolay;
 
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilterSetupDialog;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class SGFilterParameters extends SimpleParameterSet {
 

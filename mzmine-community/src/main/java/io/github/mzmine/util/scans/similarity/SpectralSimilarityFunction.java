@@ -26,9 +26,9 @@
 package io.github.mzmine.util.scans.similarity;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanAlignment;
+import io.mzio.mzmine.datamodel.MZmineModule;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
 

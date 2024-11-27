@@ -26,13 +26,13 @@
 package io.github.mzmine.modules.dataprocessing.filter_scansmoothing;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class ScanSmoothingParameters extends SimpleParameterSet {
 

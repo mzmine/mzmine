@@ -42,7 +42,6 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectr
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -53,6 +52,7 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;

@@ -24,11 +24,13 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterContainer;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.EmbeddedParameterSet;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.ParameterContainer;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.util.Collection;
 import java.util.Objects;
 import javafx.scene.layout.Priority;

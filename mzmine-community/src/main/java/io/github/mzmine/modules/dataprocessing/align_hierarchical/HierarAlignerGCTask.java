@@ -36,7 +36,7 @@ package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 //import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 //import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 //import io.github.mzmine.main.MZmineCore;
-//import io.github.mzmine.parameters.ParameterSet;
+//import io.mzio.mzmine.datamodel.ParameterSet;
 //import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 //import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 //import io.github.mzmine.taskcontrol.AbstractTask;

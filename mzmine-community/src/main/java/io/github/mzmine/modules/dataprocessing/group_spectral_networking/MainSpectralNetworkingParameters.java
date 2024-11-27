@@ -32,11 +32,11 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 

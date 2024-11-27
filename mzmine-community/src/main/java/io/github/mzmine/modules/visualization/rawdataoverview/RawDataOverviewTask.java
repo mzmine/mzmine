@@ -27,9 +27,9 @@ package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.time.Instant;
 import java.util.Arrays;
 import javafx.application.Platform;

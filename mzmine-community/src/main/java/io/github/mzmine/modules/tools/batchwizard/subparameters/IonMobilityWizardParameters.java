@@ -31,8 +31,8 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMob
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.HiddenParameter;
 import java.text.DecimalFormat;
 
 public final class IonMobilityWizardParameters extends WizardStepParameters {

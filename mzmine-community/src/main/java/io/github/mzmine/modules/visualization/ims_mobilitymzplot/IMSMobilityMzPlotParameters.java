@@ -25,8 +25,8 @@
 
 package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
 import org.jetbrains.annotations.NotNull;
 
 public class IMSMobilityMzPlotParameters extends SimpleParameterSet {

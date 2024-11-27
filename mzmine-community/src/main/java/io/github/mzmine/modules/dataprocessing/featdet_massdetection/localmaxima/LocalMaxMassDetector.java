@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxim
 import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 
 /**

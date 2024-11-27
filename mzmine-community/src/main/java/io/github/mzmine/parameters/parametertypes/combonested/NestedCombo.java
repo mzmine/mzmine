@@ -25,8 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.combonested;
 
-import io.github.mzmine.parameters.ParameterSet;
-
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.TreeMap;
 
 public class NestedCombo {

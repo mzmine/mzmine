@@ -33,9 +33,9 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYZDotRende
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.awt.Color;
 import javafx.beans.property.Property;
 import javafx.scene.canvas.Canvas;

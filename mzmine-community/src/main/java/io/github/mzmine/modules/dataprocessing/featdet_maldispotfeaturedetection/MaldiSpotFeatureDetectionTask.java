@@ -54,7 +54,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ExpandingTrac
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderSubTask;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -63,6 +62,7 @@ import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;

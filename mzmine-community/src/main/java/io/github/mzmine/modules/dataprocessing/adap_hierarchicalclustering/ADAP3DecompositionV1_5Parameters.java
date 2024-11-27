@@ -24,7 +24,7 @@
 //package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 //
 //import dulab.adap.workflow.TwoStepDecompositionParameters;
-//import io.github.mzmine.parameters.Parameter;
+//import io.mzio.mzmine.datamodel.Parameter;
 //import io.github.mzmine.parameters.impl.SimpleParameterSet;
 //import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 //import io.github.mzmine.parameters.parametertypes.ComboParameter;

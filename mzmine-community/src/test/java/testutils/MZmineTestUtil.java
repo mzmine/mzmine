@@ -59,13 +59,13 @@ import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParam
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.user.CurrentUserService;
 import io.mzio.users.user.UserFileReader;

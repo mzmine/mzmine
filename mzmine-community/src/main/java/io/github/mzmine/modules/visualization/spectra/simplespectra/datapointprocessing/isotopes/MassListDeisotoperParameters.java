@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class MassListDeisotoperParameters extends SimpleParameterSet {
 

@@ -36,9 +36,9 @@ import io.github.mzmine.datamodel.featuredata.impl.ModifiableSpectra;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.mzio.mzmine.datamodel.MZmineModule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

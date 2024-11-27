@@ -25,12 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonModificationParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class IonNetRelationsParameters extends SimpleParameterSet {
 

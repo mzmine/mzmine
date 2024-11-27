@@ -25,8 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes.paintscale;
 
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

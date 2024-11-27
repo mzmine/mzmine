@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 
 public class BatchModeParameterSetupDialog extends ParameterSetupDialog {
 

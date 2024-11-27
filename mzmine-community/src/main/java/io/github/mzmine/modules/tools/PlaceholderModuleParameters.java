@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.tools;
 
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.XMLUtils;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.w3c.dom.Element;
 
 public final class PlaceholderModuleParameters extends SimpleParameterSet {

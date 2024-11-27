@@ -28,7 +28,6 @@ package io.github.mzmine.modules.visualization.intensityplot;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -39,6 +38,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.Arrays;
 
 public class IntensityPlotParameters extends SimpleParameterSet {

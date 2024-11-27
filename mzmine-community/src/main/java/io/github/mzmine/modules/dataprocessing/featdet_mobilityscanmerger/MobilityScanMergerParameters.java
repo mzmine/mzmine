@@ -26,8 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -39,6 +37,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 

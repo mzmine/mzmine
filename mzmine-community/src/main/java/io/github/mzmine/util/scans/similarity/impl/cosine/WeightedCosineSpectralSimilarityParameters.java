@@ -25,12 +25,12 @@
 
 package io.github.mzmine.util.scans.similarity.impl.cosine;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.Weights;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.text.DecimalFormat;
 import javafx.collections.FXCollections;
 

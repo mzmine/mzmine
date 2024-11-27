@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -36,6 +34,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParamet
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 

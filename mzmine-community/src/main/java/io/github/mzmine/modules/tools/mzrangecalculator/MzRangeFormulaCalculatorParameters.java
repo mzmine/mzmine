@@ -26,11 +26,11 @@
 package io.github.mzmine.modules.tools.mzrangecalculator;
 
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.FormulaParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class MzRangeFormulaCalculatorParameters extends SimpleParameterSet {
 

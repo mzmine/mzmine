@@ -24,10 +24,11 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.FullColumnComponent;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.mzio.mzmine.datamodel.parameters.EstimatedComponentHeightProvider;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.impl.dialogs.IParameterSetupPane;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.control.Accordion;
@@ -40,7 +41,7 @@ import javafx.scene.control.TitledPane;
 public class AdvancedParametersComponent extends Accordion implements
     EstimatedComponentHeightProvider, FullColumnComponent {
 
-  private final ParameterSetupPane paramPane;
+  private final IParameterSetupPane paramPane;
   private final CheckBox checkBox;
   private final DoubleProperty estimatedHeightProperty = new SimpleDoubleProperty(0);
 

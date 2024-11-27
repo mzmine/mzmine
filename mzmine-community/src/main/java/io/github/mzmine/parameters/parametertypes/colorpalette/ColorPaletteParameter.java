@@ -25,9 +25,9 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.javafx.util.color.Vision;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

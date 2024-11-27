@@ -25,12 +25,12 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.files.ExtensionFilters;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 
 public class ProjectMetadataExportParameters extends SimpleParameterSet {

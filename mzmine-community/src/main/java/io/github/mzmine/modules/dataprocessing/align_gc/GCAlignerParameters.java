@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.align_gc;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -37,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class GCAlignerParameters extends SimpleParameterSet {
 

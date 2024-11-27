@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonCheckComboBoxParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
@@ -37,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.util.io.CSVUtils;
 import io.github.mzmine.util.io.CsvWriter;
 import io.github.mzmine.util.io.WriterOptions;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;

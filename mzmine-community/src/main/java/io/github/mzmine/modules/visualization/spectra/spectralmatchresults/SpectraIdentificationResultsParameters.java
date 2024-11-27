@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 /**
  * Saves the export paths of the SpectraIdentificationResultsWindow

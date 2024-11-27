@@ -39,13 +39,13 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidCla
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidIon;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClassParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Comparator;

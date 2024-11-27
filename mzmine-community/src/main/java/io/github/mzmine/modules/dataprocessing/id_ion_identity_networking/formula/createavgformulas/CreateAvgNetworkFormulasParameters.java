@@ -26,10 +26,10 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formu
 
 
 import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortParameters;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class CreateAvgNetworkFormulasParameters extends SimpleParameterSet {
 

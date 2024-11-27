@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.io.export_features_mztabm;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 

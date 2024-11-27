@@ -27,8 +27,8 @@ package io.github.mzmine.parameters.parametertypes.submodules;
 
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.Optional;
 
 public interface ModuleOptionsEnum<MODULE extends MZmineModule> {

@@ -25,8 +25,8 @@
 
 package io.github.mzmine.modules.dataanalysis.significance;
 
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ValuePropertyComponent;
+import io.mzio.mzmine.datamodel.MZmineModule;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

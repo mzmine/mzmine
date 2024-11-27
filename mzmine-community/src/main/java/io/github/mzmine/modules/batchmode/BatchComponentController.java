@@ -34,8 +34,6 @@ import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesModul
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesParameters;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -52,6 +50,8 @@ import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.DraggableListCell;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;

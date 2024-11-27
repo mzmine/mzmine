@@ -24,19 +24,16 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
+import com.google.common.collect.Range;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
-
-import com.google.common.collect.Range;
-
-import io.github.mzmine.parameters.ParameterSet;
 
 public class RANSAC {
 

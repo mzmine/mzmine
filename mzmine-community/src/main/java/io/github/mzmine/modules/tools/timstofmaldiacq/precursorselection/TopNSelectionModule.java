@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection;
 
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;

@@ -25,8 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes.elements;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.UserParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

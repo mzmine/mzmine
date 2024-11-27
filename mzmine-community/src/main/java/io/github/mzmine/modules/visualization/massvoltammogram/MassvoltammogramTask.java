@@ -33,10 +33,10 @@ import io.github.mzmine.modules.visualization.massvoltammogram.io.Massvoltammogr
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramFromFileParameters;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.ReactionMode;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 

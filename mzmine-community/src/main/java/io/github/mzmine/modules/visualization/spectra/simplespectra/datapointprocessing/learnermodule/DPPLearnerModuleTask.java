@@ -26,15 +26,15 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
-import io.github.mzmine.javafx.util.FxColorUtil;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.awt.Color;
 
 /**

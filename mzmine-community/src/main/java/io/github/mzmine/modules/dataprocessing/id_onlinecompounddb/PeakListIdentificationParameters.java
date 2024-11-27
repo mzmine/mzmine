@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;

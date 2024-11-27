@@ -27,8 +27,8 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.ProjectService;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;

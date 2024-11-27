@@ -37,9 +37,9 @@ import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementatio
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeCliqueModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeIsotopesModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.PeakData;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;

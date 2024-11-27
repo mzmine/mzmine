@@ -25,8 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine;
 
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 
 public class ModifiedCosineSpectralNetworkingModule implements MZmineModule {

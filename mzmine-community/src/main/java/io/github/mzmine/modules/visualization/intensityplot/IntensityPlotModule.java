@@ -25,20 +25,20 @@
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
-import java.time.Instant;
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Feature intensity plot module

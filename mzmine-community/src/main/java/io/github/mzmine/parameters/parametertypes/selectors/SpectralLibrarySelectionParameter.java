@@ -26,8 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.base.Strings;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.mzio.mzmine.datamodel.parameters.UserParameter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;

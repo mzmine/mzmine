@@ -26,7 +26,6 @@
 package io.github.mzmine.util.scans.similarity.impl.cosine;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.maths.similarity.Similarity;
 import io.github.mzmine.util.scans.ScanAlignment;
@@ -34,6 +33,7 @@ import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.Weights;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;

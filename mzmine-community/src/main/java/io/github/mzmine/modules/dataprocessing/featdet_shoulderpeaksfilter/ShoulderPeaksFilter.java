@@ -25,15 +25,14 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.TreeSet;
-
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.TreeSet;
 
 public class ShoulderPeaksFilter {
 

@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging.acquisitionwriters;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 
 public class SingleSpotMs2Parameters extends SimpleParameterSet {
 

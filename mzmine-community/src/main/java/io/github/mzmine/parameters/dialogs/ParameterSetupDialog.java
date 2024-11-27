@@ -25,7 +25,7 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 

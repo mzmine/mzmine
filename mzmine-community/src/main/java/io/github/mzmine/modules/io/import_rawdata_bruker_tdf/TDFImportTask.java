@@ -40,8 +40,7 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.BuildingPASEFMsMsInfo;
@@ -59,12 +58,13 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFPa
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFPrecursorTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_uv.BrukerUvReader;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -250,7 +250,7 @@ public class TDFImportTask extends AbstractTask {
     // collect average spectra for each frame
     List<SimpleFrame> frames = new ArrayList<>();
 
-    final boolean importProfile = MZmineCore.getInstance().isTdfPseudoProfile();
+    final boolean importProfile = ConfigService.isTdfPseudoProfile();
 
     try {
       for (int i = 0; i < numFrames; i++) {
@@ -520,7 +520,7 @@ public class TDFImportTask extends AbstractTask {
     final Map<Long, Long> frameToGroup = diaInfo.getFrameToWindowGroupMap();
     final Map<Long, Set<DIAImsMsMsInfoImpl>> groupInfoMap = diaWindows.getWindowGroupMsMsInfoMap();
 
-    if(frameToGroup.isEmpty() || groupInfoMap.isEmpty()) {
+    if (frameToGroup.isEmpty() || groupInfoMap.isEmpty()) {
       return;
     }
 

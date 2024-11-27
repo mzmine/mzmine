@@ -27,17 +27,17 @@ package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionTask.BlankSubtractionOptions;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {

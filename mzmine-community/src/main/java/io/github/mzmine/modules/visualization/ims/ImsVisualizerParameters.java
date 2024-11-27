@@ -30,7 +30,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
-import io.github.mzmine.parameters.Parameter;
+import io.mzio.mzmine.datamodel.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.PaintScaleParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;

@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.impl;
 
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 

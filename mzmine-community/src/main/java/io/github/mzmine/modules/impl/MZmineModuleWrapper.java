@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.impl;
 
-import io.github.mzmine.modules.MZmineModule;
+import io.mzio.mzmine.datamodel.MZmineModule;
 
 /**
  * A simple wrapper providing the toString() method for adding modules to combo boxes etc.

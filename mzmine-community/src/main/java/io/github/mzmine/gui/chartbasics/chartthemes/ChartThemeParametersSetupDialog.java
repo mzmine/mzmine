@@ -25,12 +25,12 @@
 
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.FontParameter;
 import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.FontSpecsComponent;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import javafx.scene.text.Font;
 
 /**

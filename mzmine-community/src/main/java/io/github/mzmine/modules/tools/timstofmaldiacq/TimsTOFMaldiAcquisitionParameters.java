@@ -26,14 +26,14 @@
 package io.github.mzmine.modules.tools.timstofmaldiacq;
 
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.TimsTOFPrecursorSelectionOptions;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.NumberListParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;

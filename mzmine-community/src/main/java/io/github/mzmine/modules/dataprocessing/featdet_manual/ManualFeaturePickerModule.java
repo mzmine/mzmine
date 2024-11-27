@@ -31,11 +31,11 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 
 public class ManualFeaturePickerModule implements MZmineModule {

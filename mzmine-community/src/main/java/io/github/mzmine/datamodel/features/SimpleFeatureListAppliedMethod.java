@@ -27,10 +27,10 @@ package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.tools.PlaceholderModule;
 import io.github.mzmine.modules.tools.PlaceholderModuleParameters;
-import io.github.mzmine.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Date;

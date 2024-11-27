@@ -27,7 +27,6 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
@@ -35,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.RangeUtils;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import javafx.collections.FXCollections;

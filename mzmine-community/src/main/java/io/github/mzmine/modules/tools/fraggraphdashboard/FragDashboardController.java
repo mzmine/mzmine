@@ -45,9 +45,9 @@ import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.S
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.mvci.FragmentGraphController;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableController;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableViewBuilder.Layout;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;

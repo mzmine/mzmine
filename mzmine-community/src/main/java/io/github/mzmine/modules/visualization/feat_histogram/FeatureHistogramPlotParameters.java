@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.visualization.feat_histogram;
 
 import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureHistogramPlotParameters extends CurrentProjectNoDialogParameterSet {

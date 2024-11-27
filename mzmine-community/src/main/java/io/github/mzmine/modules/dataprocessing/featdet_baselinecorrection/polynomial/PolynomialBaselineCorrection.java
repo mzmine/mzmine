@@ -32,8 +32,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Baseli
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.math3.analysis.UnivariateFunction;

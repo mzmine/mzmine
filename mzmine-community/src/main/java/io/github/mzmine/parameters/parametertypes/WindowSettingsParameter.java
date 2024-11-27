@@ -25,18 +25,18 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 import java.util.Collection;
 import java.util.logging.Logger;
+import javafx.beans.value.ChangeListener;
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import io.github.mzmine.parameters.Parameter;
-import javafx.beans.value.ChangeListener;
-import javafx.geometry.Rectangle2D;
-import javafx.stage.Screen;
-import javafx.stage.Stage;
 
 public class WindowSettingsParameter implements Parameter<Object> {
 

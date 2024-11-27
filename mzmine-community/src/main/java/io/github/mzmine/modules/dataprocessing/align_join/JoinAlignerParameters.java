@@ -27,13 +27,9 @@ package io.github.mzmine.modules.dataprocessing.align_join;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -49,6 +45,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import io.mzio.mzmine.datamodel.parameters.IonMobilitySupport;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.Map;

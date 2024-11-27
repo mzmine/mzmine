@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -33,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 public class ScanFiltersParameters extends SimpleParameterSet {
 

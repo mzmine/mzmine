@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.visualization.fx3d;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -34,6 +33,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeaturesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
 
 /**
  * 3D visualizer parameter set

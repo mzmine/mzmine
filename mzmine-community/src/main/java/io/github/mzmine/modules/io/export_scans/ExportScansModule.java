@@ -25,12 +25,12 @@
 
 package io.github.mzmine.modules.io.export_scans;
 
-import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.mzmine.datamodel.MZmineModule;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Module for identifying peaks by searching custom databases file.

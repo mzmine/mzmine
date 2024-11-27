@@ -25,21 +25,19 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_neutralloss;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.text.NumberFormat;
-import java.util.Collection;
-import java.util.Locale;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.FormulaUtils;
+import io.mzio.mzmine.datamodel.parameters.Parameter;
+import java.text.NumberFormat;
+import java.util.Collection;
+import java.util.Locale;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class NeutralLossFilterParameters extends SimpleParameterSet {
 

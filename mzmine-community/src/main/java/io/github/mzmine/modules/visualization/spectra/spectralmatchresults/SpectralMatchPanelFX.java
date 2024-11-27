@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
-import static io.github.mzmine.javafx.components.factories.FxTexts.*;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -33,14 +33,12 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -50,6 +48,7 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.awt.Dimension;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;

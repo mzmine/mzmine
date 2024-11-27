@@ -25,19 +25,19 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.mzio.mzmine.datamodel.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Logger;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;

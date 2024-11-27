@@ -28,8 +28,8 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.mzio.mzmine.datamodel.parameters.impl.OptionalParameter;
 
 /**
  * Reduced set of parameter for {@link LocalCSVDatabaseSearchParameters} used in the wizard
