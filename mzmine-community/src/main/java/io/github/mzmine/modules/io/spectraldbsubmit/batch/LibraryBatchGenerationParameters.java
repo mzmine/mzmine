@@ -38,6 +38,7 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -49,6 +50,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
@@ -89,4 +91,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
         handleChimerics, quality);
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

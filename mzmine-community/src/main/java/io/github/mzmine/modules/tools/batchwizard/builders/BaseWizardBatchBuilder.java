@@ -63,6 +63,7 @@ import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateF
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMs2AdvancedParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
@@ -1068,11 +1069,15 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     groupMs2Params.setParameter(GroupMS2Parameters.mzTol, MZTolerance.max(mzTolScans, 0.01, 10.0));
     groupMs2Params.setParameter(GroupMS2Parameters.combineTimsMsMs, false);
     groupMs2Params.setParameter(GroupMS2Parameters.limitMobilityByFeature, true);
-    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevel, hasTims,
-        massDetectorOption.getMsnNoiseLevel() * 2);
-    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, hasTims, 0.01);
     groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, true, 1);
     groupMs2Params.setParameter(GroupMS2Parameters.minimumRelativeFeatureHeight, true, 0.25);
+    groupMs2Params.setParameter(GroupMS2Parameters.minImsRawSignals, 2);
+
+    final GroupMs2AdvancedParameters advanced = GroupMs2AdvancedParameters.create(
+        hasTims ? massDetectorOption.getMsnNoiseLevel() * 2 : null, hasTims ? 0.01 : null);
+
+    groupMs2Params.setParameter(GroupMS2Parameters.advancedParameters, false);
+    groupMs2Params.getParameter(GroupMS2Parameters.advancedParameters).setEmbeddedParameters(advanced);
 
     // retention time
     // rt tolerance is +- while FWHM is the width. still the MS2 might be triggered very early

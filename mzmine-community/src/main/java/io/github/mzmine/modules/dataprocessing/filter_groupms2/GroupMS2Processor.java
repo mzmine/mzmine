@@ -83,6 +83,7 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
   private final int totalRows;
   private final RtLimitsFilter rtFilter;
   private final FragmentScanSelection timsFragmentScanSelection;
+  private final int minImsDetections;
   private int processedRows;
   private GroupedMs2RefinementProcessor refineTask;
   private @NotNull String description = "";
@@ -109,10 +110,16 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
     mzTol = parameterSet.getValue(GroupMS2Parameters.mzTol);
     combineTimsMS2 = parameterSet.getValue(GroupMS2Parameters.combineTimsMsMs);
     lockToFeatureMobilityRange = parameterSet.getValue(GroupMS2Parameters.limitMobilityByFeature);
-    minMs2IntensityAbs = parameterSet.getEmbeddedParameterValueIfSelectedOrElse(
-        GroupMS2Parameters.outputNoiseLevel, null);
-    minMs2IntensityRel = parameterSet.getEmbeddedParameterValueIfSelectedOrElse(
-        GroupMS2Parameters.outputNoiseLevelRelative, null);
+    minImsDetections = parameterSet.getValue(GroupMS2Parameters.minImsRawSignals);
+
+    final ParameterSet advancedParam = parameterSet.getEmbeddedParameterValue(
+        GroupMS2Parameters.advancedParameters);
+    final Boolean advancedSelected = parameterSet.getValue(GroupMS2Parameters.advancedParameters);
+
+    minMs2IntensityAbs = advancedSelected ? advancedParam.getEmbeddedParameterValueIfSelectedOrElse(
+        GroupMs2AdvancedParameters.outputNoiseLevel, null) : null;
+    minMs2IntensityRel = advancedSelected ? advancedParam.getEmbeddedParameterValueIfSelectedOrElse(
+        GroupMs2AdvancedParameters.outputNoiseLevelRelative, null) : null;
 
     // if active, only features with min relative height get MS2
     minimumRelativeFeatureHeight = parameterSet.getEmbeddedParameterValueIfSelectedOrElse(
@@ -252,7 +259,7 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
       precursorMZ = Objects.requireNonNullElse(scan.getPrecursorMz(), 0d);
     }
     return rtFilter.accept(feature, scan.getRetentionTime()) && precursorMZ != 0
-           && mzTol.checkWithinTolerance(feature.getMZ(), precursorMZ);
+        && mzTol.checkWithinTolerance(feature.getMZ(), precursorMZ);
   }
 
 
@@ -313,7 +320,7 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
           ? feature.getMobilityRange() : null;
       MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(
           (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
-          timsScanStorage, mobilityLimits, minMs2IntensityAbs, minMs2IntensityRel, null);
+          timsScanStorage, mobilityLimits, minMs2IntensityAbs, minMs2IntensityRel, minImsDetections);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }
