@@ -404,7 +404,7 @@ public class ConversionUtils {
           if (chrom.getNumberOfDataPoints() == 0) {
             // drop empty chromatograms
             logger.finest(
-                () -> "%s: Zero data points detected for chromatogram %s. Dropping".formatted(
+                () -> "%s: Empty chromatogram %s imported. Will be skipped.".formatted(
                     file.getName(), chrom.getId()));
             continue;
           }
