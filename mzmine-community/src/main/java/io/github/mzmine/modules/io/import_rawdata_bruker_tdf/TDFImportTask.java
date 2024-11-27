@@ -115,7 +115,8 @@ public class TDFImportTask extends AbstractTask {
   private int loadedFrames;
 
   /**
-   * Bruker tims format: - Folder - contains multiple files - one folder per analysis - .d extension
+   * Bruker tims format: - Folder - contains multiple files - one folder per analysis - .d
+   * extension
    * - *.tdf - SQLite database; contains metadata - *.tdf_bin - contains peak data
    * <p>
    * - *.tdf_bin - list of frames - frame: - set of spectra at one specific time - single spectrum
@@ -139,6 +140,7 @@ public class TDFImportTask extends AbstractTask {
     this.scanProcessorConfig = scanProcessorConfig;
     this.module = module;
     this.parameters = parameters;
+    setDescription("Importing raw data file %s".formatted(file.getName()));
   }
 
   @Override
@@ -520,7 +522,7 @@ public class TDFImportTask extends AbstractTask {
     final Map<Long, Long> frameToGroup = diaInfo.getFrameToWindowGroupMap();
     final Map<Long, Set<DIAImsMsMsInfoImpl>> groupInfoMap = diaWindows.getWindowGroupMsMsInfoMap();
 
-    if(frameToGroup.isEmpty() || groupInfoMap.isEmpty()) {
+    if (frameToGroup.isEmpty() || groupInfoMap.isEmpty()) {
       return;
     }
 
