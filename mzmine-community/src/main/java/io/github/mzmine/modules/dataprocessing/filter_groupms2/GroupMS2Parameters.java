@@ -87,9 +87,9 @@ public class GroupMS2Parameters extends SimpleParameterSet {
       "Minimum detections in IMS dimension", """
       During data-dependent IMS-resolved MS2 acquisition, e.g., PASEF, multiple spectra are acquired for each precursor during a single IMS ramp.
       This allows filtering for reoccurring signals with the same m/z. Since electrical noise is distributed randomly,
-      this filter will remove statistical noise generated from the merged MS2, even at higher intensities, 
+      this filter will remove statistical noise generated from the merged MS2, even at higher intensities,
       but can retain actual fragment ion signals at low intensities (if they were detected more than this number).
-      Default value: 2. Typical values: 1-4, the higher, the less like noise signals are, but also removes real ion signals if set too high.
+      Default value: 2. Typical values: 1-4, the higher, the less likely noise signals are, but also removes real ion signals if set too high.
       To reproduce behavior of mzmine <=4.4, use 1.
       Note: The signal occurrence is checked on a per-frame basis (before merging CEs and across CEs).""", 2, 1, Integer.MAX_VALUE);
 
