@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,11 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -42,17 +47,25 @@ import io.github.mzmine.util.FormulaUtils;
 import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.chart.plot.XYPlot;
 
 public class KendrickMassPlotAnchorPaneController {
+
+  private static final Logger logger = Logger.getLogger(
+      KendrickMassPlotAnchorPaneController.class.getName());
 
   private FeatureList featureList;
   private String customYAxisKMBase;
@@ -231,14 +244,54 @@ public class KendrickMassPlotAnchorPaneController {
 
     kendrickMassPlotXYZDataset.addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.FINISHED) {
-        kendrickChart = new KendrickMassPlotChart(title, xAxisLabel,
-            yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
+        kendrickChart = new KendrickMassPlotChart(title, xAxisLabel, yAxisLabel, zAxisLabel,
+            kendrickMassPlotXYZDataset);
         KendrickMassPlotBubbleLegend kendrickMassPlotBubbleLegend = new KendrickMassPlotBubbleLegend(
             kendrickMassPlotXYZDataset);
-        var selectionWrapper = new RegionSelectionWrapper<>(kendrickChart,
-            this::onExtractPressed);
+        var selectionWrapper = new RegionSelectionWrapper<>(kendrickChart, this::onExtractPressed);
+
+        final InChartFeatureInfoPane infoPane = new InChartFeatureInfoPane();
+
+        kendrickChart.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
+            new ChartGesture(Entity.ALL, Event.CLICK, GestureButton.BUTTON1), e -> {
+          logger.fine("Mouse click");
+          if (e.getEntity() instanceof XYItemEntity xy) {
+            var row = kendrickMassPlotXYZDataset.getRow(xy.getItem());
+            infoPane.setRow(row);
+            if (row != null) {
+              infoPane.setFixedVisible(true);
+              logger.fine("Mouse click on feature " + row.getID());
+            } else {
+              logger.fine("Mouse click not on feature ");
+            }
+          } else {
+            infoPane.setFixedVisible(false);
+            infoPane.setRow(null);
+          }
+        }));
+        kendrickChart.getMouseAdapter().addGestureHandler(
+            new ChartGestureHandler(new ChartGesture(Entity.ALL, Event.MOVED), e -> {
+              if (infoPane.isFixedVisible()) {
+                return; // do not change as long as fixed visible by click is on
+              }
+              if (e.getEntity() instanceof XYItemEntity xy) {
+                var row = kendrickMassPlotXYZDataset.getRow(xy.getItem());
+                infoPane.setRow(row);
+                if (row != null) {
+                  logger.fine("Mouse moved on feature " + row.getID());
+                } else {
+                  logger.fine("Mouse moved not on feature ");
+                }
+              } else {
+                infoPane.setRow(null);
+              }
+            }));
+        StackPane centerChart = new StackPane(selectionWrapper, infoPane);
+        StackPane.setAlignment(infoPane, Pos.TOP_RIGHT);
+        StackPane.setMargin(infoPane, new Insets(8, 15, 0, 0));
+
         FxThread.runLater(() -> {
-          plotPane.setCenter(selectionWrapper);
+          plotPane.setCenter(centerChart);
           bubbleLegendPane.setCenter(kendrickMassPlotBubbleLegend);
           updateToolBar();
           setTooltips();
@@ -397,11 +450,13 @@ public class KendrickMassPlotAnchorPaneController {
   private void setTooltips() {
     if (customYAxisKMBase != null) {
       tooltipYAxisLabel.setText("The KM-Plot for divisor " + //
-          getDivisorKM(customYAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+                                getDivisorKM(customYAxisKMBase)
+                                + " is equal to a regular KM-Plot with divisor 1");
     }
     if (customXAxisKMBase != null) {
       tooltipXAxisLabel.setText("The KM-Plot for divisor " + //
-          getDivisorKM(customXAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+                                getDivisorKM(customXAxisKMBase)
+                                + " is equal to a regular KM-Plot with divisor 1");
     }
 
   }

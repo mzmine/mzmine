@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,10 +44,10 @@ import org.jfree.chart.title.TextTitle;
 
 /**
  * {@link ChartGesture}s are part of {@link ChartGestureEvent} which are generated and processed by
- * the {@link ChartGestureMouseAdapter}. Processing can be performed in multiple {@link
- * ChartGestureHandler}s. <br> ChartGestures can be filtered by <br> - MouseEvents (also mouse
- * wheel)<br> - Mouse buttons <br> - Keyboard keys (Ctrl, Alt, Shift) <br> - ChartEntities (general
- * like AXIS or specific like DOMAIN_AXIS) <br>
+ * the {@link ChartGestureMouseAdapter}. Processing can be performed in multiple
+ * {@link ChartGestureHandler}s. <br> ChartGestures can be filtered by <br> - MouseEvents (also
+ * mouse wheel)<br> - Mouse buttons <br> - Keyboard keys (Ctrl, Alt, Shift) <br> - ChartEntities
+ * (general like AXIS or specific like DOMAIN_AXIS) <br>
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
@@ -70,7 +70,7 @@ public class ChartGesture {
    * @param event
    */
   public ChartGesture(Entity entity, Event event) {
-    this(entity, event, GestureButton.BUTTON1);
+    this(entity, event, GestureButton.ALL);
   }
 
   /**
@@ -82,7 +82,7 @@ public class ChartGesture {
    * @param key
    */
   public ChartGesture(Entity entity, Event event, Key key) {
-    this(entity, event, GestureButton.BUTTON1, key);
+    this(entity, event, GestureButton.ALL, key);
   }
 
   /**
@@ -93,7 +93,7 @@ public class ChartGesture {
    * @param event
    */
   public ChartGesture(Entity entity, Event[] event) {
-    this(entity, event, GestureButton.BUTTON1);
+    this(entity, event, GestureButton.ALL);
   }
 
   /**
@@ -170,7 +170,7 @@ public class ChartGesture {
     } else {
       ChartGesture g = (ChartGesture) obj;
       return this.getEntity().equals(g.getEntity()) && this.getEvent().equals(g.getEvent())
-          && this.getButton().equals(g.getButton()) && this.getKey().equals(g.getKey());
+             && this.getButton().equals(g.getButton()) && this.getKey().equals(g.getKey());
     }
   }
 
@@ -182,11 +182,11 @@ public class ChartGesture {
   public boolean filter(ChartGesture g) {
     return this.getEntity().filter(g.getEntity()) && (this.getButton() == null || this.getButton()
         .filter(g.getButton())) &&
-        // any element fits to any element?
-        Stream.of(this.getEvent())
-            .anyMatch(e1 -> Stream.of(g.getEvent()).anyMatch(e2 -> e1.filter(e2))) &&
-        // key match?
-        (this.getKey() == null || this.getKey().filter(g.getKey()));
+           // any element fits to any element?
+           Stream.of(this.getEvent())
+               .anyMatch(e1 -> Stream.of(g.getEvent()).anyMatch(e2 -> e1.filter(e2))) &&
+           // key match?
+           (this.getKey() == null || this.getKey().filter(g.getKey()));
   }
 
   public Key getKey() {
@@ -341,7 +341,7 @@ public class ChartGesture {
       }
       if (this.equals(ALL_PLOT_AND_DATA)) {
         return PLOT.equals(e) || XY_ANNOTATION.equals(e) || XY_ITEM.equals(e)
-            || CATEGORY_ITEM.equals(e);
+               || CATEGORY_ITEM.equals(e);
       } else {
         return this.equals(e);
       }
