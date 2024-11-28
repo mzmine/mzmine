@@ -37,6 +37,7 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -50,6 +51,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -67,7 +69,7 @@ public class FileAndPathUtil {
 
   private static final Logger logger = Logger.getLogger(FileAndPathUtil.class.getName());
   private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
-  
+
   // changed on other thread so make volatile
   // flag to delete temp files as soon as possible
   private static volatile boolean earlyTempFileCleanup = true;
@@ -728,7 +730,8 @@ public class FileAndPathUtil {
    */
   public static final Set<OpenOption> SPARSE_OPEN_OPTIONS = Set.of(CREATE_NEW, SPARSE, READ, WRITE);
 
-  public static MemorySegment memoryMapSparseTempFile(Arena arena, long size) throws IOException {
+  public static MemorySegment memoryMapSparseTempFile(Arena arena, long size)
+      throws IOException, AccessDeniedException {
     return memoryMapSparseTempFile("mzmine", ".tmp", getTempDir().toPath(), arena, size);
   }
 
@@ -740,9 +743,10 @@ public class FileAndPathUtil {
    * @param size   The size (in bytes) of the mapped memory backing the memory segment
    * @return a new {@link MemorySegment} that maps the sparse file
    * @throws IOException
+   * @throws AccessDeniedException
    */
   public static MemorySegment memoryMapSparseTempFile(String prefix, String suffix, Path dir,
-      Arena arena, long size) throws IOException {
+      Arena arena, long size) throws IOException, AccessDeniedException {
     try (var fc = openTempFileChannel(prefix, suffix, dir)) {
       // Create a mapped memory segment managed by the arena
       MemorySegment segment = fc.map(MapMode.READ_WRITE, 0L, size, arena);
@@ -756,9 +760,10 @@ public class FileAndPathUtil {
    * @param dir    temp directory to create file in
    * @return a new {@link MemorySegment} that maps the sparse file
    * @throws IOException
+   * @throws AccessDeniedException
    */
   public static FileChannel openTempFileChannel(String prefix, String suffix, Path dir)
-      throws IOException {
+      throws IOException, AccessDeniedException {
 
     // filename first
     Path f = generatePath(prefix + suffix, dir);
@@ -783,9 +788,15 @@ public class FileAndPathUtil {
           }
         } catch (Exception e) {
         }
+        logger.fine("Open file channel to: " + f.toFile().getAbsolutePath());
         return channel;
       } catch (FileAlreadyExistsException e) {
         // ignore and try next file name
+      } catch (AccessDeniedException e) {
+        logger.log(Level.WARNING,
+            "Access denied - make sure to use temporary directory with write access. "
+            + e.getMessage());
+        throw e;
       }
       // try adding random numbers
       f = generateRandomPath(prefix, suffix, dir);
