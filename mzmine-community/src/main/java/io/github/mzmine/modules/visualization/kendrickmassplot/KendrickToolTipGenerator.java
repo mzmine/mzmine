@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvider;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -58,18 +59,22 @@ public class KendrickToolTipGenerator implements XYToolTipGenerator {
       // Format m/z and retention time values
       Integer id = selectedRow.getID();
       tooltip.append("Feature list ID: ").append(id);
-      tooltip.append("\n").append(xAxisLabel).append(": ").append(identifyNumberFormat(
-          ((KendrickMassPlotXYZDataset) dataset).getxKendrickDataType()).format(
-          kendrickDataset.getXValue(series, item)));
-      tooltip.append("\n").append(yAxisLabel).append(": ").append(identifyNumberFormat(
-          ((KendrickMassPlotXYZDataset) dataset).getyKendrickDataType()).format(
-          kendrickDataset.getYValue(series, item)));
+      final KendrickPlotDataTypes xDataType = kendrickDataset.getxKendrickDataType();
+      final KendrickPlotDataTypes yDataType = kendrickDataset.getyKendrickDataType();
+      tooltip.append("\n").append(xAxisLabel).append(": ")
+          .append(identifyNumberFormat(xDataType).format(kendrickDataset.getXValue(series, item)));
+      tooltip.append("\n").append(yAxisLabel).append(": ")
+          .append(identifyNumberFormat(yDataType).format(kendrickDataset.getYValue(series, item)));
       tooltip.append("\n").append(colorScaleLabel).append(": ").append(
           identifyNumberFormat(kendrickDataset.getColorKendrickDataType()).format(
               kendrickDataset.getZValue(series, item)));
       tooltip.append("\n").append(bubbleScaleLabel).append(": ").append(
           identifyNumberFormat(kendrickDataset.getBubbleKendrickDataType()).format(
               kendrickDataset.getBubbleSizeValue(series, item)));
+      if (!(xDataType == KendrickPlotDataTypes.MZ || yDataType == KendrickPlotDataTypes.MZ)) {
+        tooltip.append("\nm/z: ")
+            .append(ConfigService.getGuiFormats().mz(selectedRow.getAverageMZ()));
+      }
 
       // Add annotation information if available
       String preferredAnnotationName = selectedRow.getPreferredAnnotationName();
