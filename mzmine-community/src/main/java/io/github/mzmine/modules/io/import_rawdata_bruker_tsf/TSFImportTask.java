@@ -344,6 +344,10 @@ public class TSFImportTask extends AbstractTask {
             end.getTime() - start.getTime()) + " ms");
   }
 
+  /**
+   * bbCID is Bruker's version of all ion fragmentation (AIF) or MSe. Alternating between low (MS1)
+   * and high collision energies (MS2) without quad isolation.
+   */
   private void assignBbCidMsMsInfo(RawDataFile newMZmineFile, TSFFrameTable frameTable,
       TDFFrameMsMsInfoTable frameMsMsInfoTable, TDFMetaDataTable metadataTable) {
     List<? extends Scan> scans = newMZmineFile.getScans();
