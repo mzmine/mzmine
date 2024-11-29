@@ -52,7 +52,6 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.NormalizeIntensityComboParameter;
-import io.github.mzmine.parameters.parametertypes.NormalizeIntensityOptions;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -78,8 +77,8 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
       "Merge high-quality MS/MS instead of exporting just the most intense one.",
       new MsMsSpectraMergeParameters(), true);
 
-  public static final NormalizeIntensityComboParameter NORMALIZER = new NormalizeIntensityComboParameter(
-      NormalizeIntensityOptions.valuesNoScientific(), NormalizeIntensityOptions.ORIGINAL);
+  // scientific format untested on GNPS FBMN
+  public static final NormalizeIntensityComboParameter NORMALIZER = NormalizeIntensityComboParameter.createWithoutScientific();
 
   public static final ComboParameter<FeatureTableExportType> CSV_TYPE = new ComboParameter<>(
       "CSV export",

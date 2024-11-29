@@ -27,11 +27,16 @@ package io.github.mzmine.parameters.parametertypes;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class NormalizeIntensityComboParameter extends ComboParameter<NormalizeIntensityOptions> {
 
   public NormalizeIntensityComboParameter() {
-    this(NormalizeIntensityOptions.values(), NormalizeIntensityOptions.ORIGINAL);
+    this(NormalizeIntensityOptions.ORIGINAL);
+  }
+
+  public NormalizeIntensityComboParameter(final NormalizeIntensityOptions defaultValue) {
+    this(NormalizeIntensityOptions.values(), defaultValue);
   }
 
   public NormalizeIntensityComboParameter(final NormalizeIntensityOptions[] choices,
@@ -51,5 +56,14 @@ public class NormalizeIntensityComboParameter extends ComboParameter<NormalizeIn
         .map(NormalizeIntensityOptions::getDescription).collect(Collectors.joining("\n"));
     description += "\n" + choicesDescription;
     super(name, description, choices, defaultValue);
+  }
+
+  /**
+   * Useful if scientific format is untested or not supported
+   */
+  @NotNull
+  public static NormalizeIntensityComboParameter createWithoutScientific() {
+    return new NormalizeIntensityComboParameter(NormalizeIntensityOptions.valuesNoScientific(),
+        NormalizeIntensityOptions.ORIGINAL);
   }
 }

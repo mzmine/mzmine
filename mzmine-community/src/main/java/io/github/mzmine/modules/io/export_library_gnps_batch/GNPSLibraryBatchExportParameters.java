@@ -46,7 +46,8 @@ public class GNPSLibraryBatchExportParameters extends SimpleParameterSet {
       "Name of the output tsv file. " + "If the file already exists, it will be overwritten.",
       extensions, "gnps_lib");
 
-  public static final NormalizeIntensityComboParameter normalizer = new NormalizeIntensityComboParameter();
+  // scientific format untested on GNPS library submission
+  public static final NormalizeIntensityComboParameter normalizer = NormalizeIntensityComboParameter.createWithoutScientific();
 
 
   public GNPSLibraryBatchExportParameters() {

@@ -165,7 +165,7 @@ public enum NormalizeIntensityOptions {
   public NumberFormat createExportFormat() {
     return switch (this) {
       case ORIGINAL -> new DecimalFormat("0.######");
-      case ORIGINAL_SCIENTIFIC_FORMAT -> new DecimalFormat("0.###E0");
+      case ORIGINAL_SCIENTIFIC_FORMAT -> new DecimalFormat("0.#####E0");
       // percent format not precise enough for intensity export
       case HIGHEST_SIGNAL_AS_100, SUM_AS_100 -> new DecimalFormat("0.######");
       case HIGHEST_SIGNAL_AS_1, SUM_AS_1 -> new DecimalFormat("0.########");
@@ -179,7 +179,7 @@ public enum NormalizeIntensityOptions {
   public NumberFormat createGuiFormat() {
     return switch (this) {
       case ORIGINAL -> new DecimalFormat("0.####");
-      case ORIGINAL_SCIENTIFIC_FORMAT -> new DecimalFormat("0.###E0");
+      case ORIGINAL_SCIENTIFIC_FORMAT -> new DecimalFormat("0.##E0");
       // percent format not precise enough for intensity export
       case HIGHEST_SIGNAL_AS_100, SUM_AS_100 -> new DecimalFormat("0.##");
       case HIGHEST_SIGNAL_AS_1, SUM_AS_1 -> new DecimalFormat("0.####");
