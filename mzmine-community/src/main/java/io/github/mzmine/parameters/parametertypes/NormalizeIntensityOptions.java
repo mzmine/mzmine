@@ -67,7 +67,7 @@ public enum NormalizeIntensityOptions {
     return this.toString() + ": " + switch (this) {
       case ORIGINAL -> "No normalization, regular number format";
       case ORIGINAL_SCIENTIFIC_FORMAT ->
-          "no normalization, scientific exponential format, i.e., 1.005E4";
+          "No normalization, scientific exponential format, i.e., 1.005E4; Better value representation but limited tool compatibility";
       case HIGHEST_SIGNAL_AS_100, HIGHEST_SIGNAL_AS_1 -> "Normalize to highest signal";
       case SUM_AS_100 -> "Normalize values sum to 100";
       case SUM_AS_1 -> "Normalize values sum to 1";
