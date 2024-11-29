@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.export_library_gnps_batch;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.NormalizeIntensityComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import java.util.List;
@@ -45,9 +46,11 @@ public class GNPSLibraryBatchExportParameters extends SimpleParameterSet {
       "Name of the output tsv file. " + "If the file already exists, it will be overwritten.",
       extensions, "gnps_lib");
 
+  public static final NormalizeIntensityComboParameter normalizer = new NormalizeIntensityComboParameter();
+
 
   public GNPSLibraryBatchExportParameters() {
-    super(new Parameter[]{libraries, filename},
+    super(new Parameter[]{libraries, filename, normalizer},
         "https://ccms-ucsd.github.io/GNPSDocumentation/batchupload/");
   }
 

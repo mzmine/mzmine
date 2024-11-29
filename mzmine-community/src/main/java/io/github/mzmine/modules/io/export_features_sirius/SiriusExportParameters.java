@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,11 +45,11 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.NormalizeIntensityComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -67,11 +67,14 @@ public class SiriusExportParameters extends SimpleParameterSet {
       "Merge MS/MS",
       "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.",
       new MsMsSpectraMergeParameters(), true);
+
+  public static final NormalizeIntensityComboParameter NORMALIZE = new NormalizeIntensityComboParameter();
   /**
    * MZTolerance to exclude duplicates in correlated spectrum
    */
   public static final MZToleranceParameter MZ_TOL = new MZToleranceParameter("m/z tolerance",
       "m/z tolerance to exclude duplicates in correlated spectrum", 0.003, 5);
+
   public static final BooleanParameter NEED_ANNOTATION = new BooleanParameter(
       "Only rows with annotation",
       "Only export rows with an annotation (run MS annotate or metaMSEcorrelate)", false);
@@ -87,26 +90,15 @@ public class SiriusExportParameters extends SimpleParameterSet {
   public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
       "Filename", STR."""
       Name of the output MGF file. Use pattern "\{SiriusExportTask.MULTI_NAME_PATTERN}" in the file name
-      to substitute with feature list name. (i.e. "blah\{SiriusExportTask.MULTI_NAME_PATTERN}blah.mgf" would
-      become "blahSourceFeatureListNameblah.mgf"). If the file already exists, it will be overwritten.""",
+      to substitute with feature list name. (i.e. "prefix_\{SiriusExportTask.MULTI_NAME_PATTERN}_suffix.mgf" would
+      become "prefix_SourceFeatureListName_suffix.mgf"). If the file already exists, it will be overwritten.""",
       extensions, "sirius" // suffix
   );
 
   public SiriusExportParameters() {
-    super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, MZ_TOL, NEED_ANNOTATION,
-        EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS});
+    super(FEATURE_LISTS, FILENAME, NORMALIZE, MERGE_PARAMETER, MZ_TOL, NEED_ANNOTATION,
+        EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS);
   }
-
-  // public static final BooleanParameter FRACTIONAL_MZ = new
-  // BooleanParameter(
-  // "Fractional m/z values", "If checked, write fractional m/z values",
-  // true);
-
-  /*
-   * public static final BooleanParameter INCLUDE_MSSCAN = new BooleanParameter( "include MS1",
-   * "For each MS/MS scan include also the corresponding MS scan (additionally to possibly detected isotope patterns). MS1 scans might contain valuable informations that can be processed by SIRIUS. But they increase file size significantly"
-   * , true );
-   */
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {

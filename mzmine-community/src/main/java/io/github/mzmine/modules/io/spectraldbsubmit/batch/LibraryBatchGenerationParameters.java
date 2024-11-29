@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.NormalizeIntensityComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
@@ -70,6 +71,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
   public static final ParameterSetParameter<LibraryBatchMetadataParameters> metadata = new ParameterSetParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
+  public static final NormalizeIntensityComboParameter normalizer = new NormalizeIntensityComboParameter();
+
   public static final OptionalParameter<MZToleranceParameter> mergeMzTolerance = new OptionalParameter<>(
       new MZToleranceParameter("m/z tolerance (merging)",
           "If selected, spectra from different collision energies will be merged.\n"
@@ -85,8 +88,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       new LibraryExportQualityParameters());
 
   public LibraryBatchGenerationParameters() {
-    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, mergeMzTolerance,
-        handleChimerics, quality);
+    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer,
+        mergeMzTolerance, handleChimerics, quality);
   }
 
 }
