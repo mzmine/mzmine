@@ -245,7 +245,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-                                         + "row. Create feature with the correct feature list as an argument.");
+          + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -535,7 +535,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   public boolean isIdentified() {
     for (Entry<DataType, Object> entry : getMap().entrySet()) {
       final DataType dt = entry.getKey();
-      if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType) {
+      if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType
+          && !(dt instanceof IonIdentityListType)) {
         final List<?> list = get(listType);
         if (list != null && !list.isEmpty()) {
           return true;
@@ -680,7 +681,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public IsotopePattern getBestIsotopePattern() {
     return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight))
         .map(ModularFeature::getIsotopePattern).orElse(null);
   }
