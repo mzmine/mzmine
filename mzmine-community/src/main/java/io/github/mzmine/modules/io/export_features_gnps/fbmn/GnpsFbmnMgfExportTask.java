@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,6 +49,7 @@ import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.NormalizeIntensityOptions;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -95,6 +96,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private final OnlineReactionJsonWriter reactionJsonWriter;
+  private final NormalizeIntensityOptions normalizer;
   private int currentIndex = 0;
   // by robin
   private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
@@ -109,6 +111,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists();
 
+    normalizer = parameters.getValue(GnpsFbmnExportAndSubmitParameters.NORMALIZER);
     this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     this.filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
     mergeMS2 = parameters.getValue(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER);
@@ -301,6 +304,9 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
       if (dataPoints == null) {
         dataPoints = massList.getDataPoints();
       }
+
+      // normalize intensity
+      dataPoints = normalizer.normalize(dataPoints, true);
 
       for (DataPoint feature : dataPoints) {
         writer.append(mzForm.format(feature.getMZ())).append(" ")

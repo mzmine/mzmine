@@ -37,6 +37,16 @@ import org.jetbrains.annotations.NotNull;
 public enum NormalizeIntensityOptions {
   ORIGINAL, ORIGINAL_SCIENTIFIC_FORMAT, HIGHEST_SIGNAL_AS_100, HIGHEST_SIGNAL_AS_1, SUM_AS_100, SUM_AS_1;
 
+  /**
+   * Without scientific number format, which may not be compatible with all processing tools.
+   * However, it better captures all numbers.
+   */
+  public static NormalizeIntensityOptions[] valuesNoScientific() {
+    return Arrays.stream(values()).filter(
+            v -> v != ORIGINAL_SCIENTIFIC_FORMAT && !v.name().toLowerCase().contains("scientific"))
+        .toArray(NormalizeIntensityOptions[]::new);
+  }
+
   @Override
   public String toString() {
     return switch (this) {

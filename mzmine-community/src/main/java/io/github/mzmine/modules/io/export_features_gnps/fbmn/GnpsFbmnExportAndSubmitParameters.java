@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,6 +51,8 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.NormalizeIntensityComboParameter;
+import io.github.mzmine.parameters.parametertypes.NormalizeIntensityOptions;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -75,6 +77,10 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
       "Merge MS/MS (experimental)",
       "Merge high-quality MS/MS instead of exporting just the most intense one.",
       new MsMsSpectraMergeParameters(), true);
+
+  public static final NormalizeIntensityComboParameter NORMALIZER = new NormalizeIntensityComboParameter(
+      NormalizeIntensityOptions.valuesNoScientific(), NormalizeIntensityOptions.ORIGINAL);
+
   public static final ComboParameter<FeatureTableExportType> CSV_TYPE = new ComboParameter<>(
       "CSV export",
       "Either the new comprehensive export of mzmine or the legacy export from MZmine 2",
@@ -94,8 +100,8 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
 
   public GnpsFbmnExportAndSubmitParameters() {
-    super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, FEATURE_INTENSITY,
-            CSV_TYPE, SUBMIT, OPEN_FOLDER},
+    super(new Parameter[]{FEATURE_LISTS, FILENAME, FILTER, MERGE_PARAMETER, NORMALIZER,
+            FEATURE_INTENSITY, CSV_TYPE, SUBMIT, OPEN_FOLDER},
         "https://mzmine.github.io/mzmine_documentation/module_docs/GNPS_export/gnps_export.html");
   }
 
