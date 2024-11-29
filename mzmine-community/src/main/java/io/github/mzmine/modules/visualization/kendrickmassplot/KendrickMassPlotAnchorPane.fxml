@@ -176,7 +176,7 @@
                               <Insets bottom="10.0"/>
                            </padding>
                         </GridPane>
-                        <CheckBox fx:id="cbHighlightAnnotated" text="Highlight annotated" GridPane.columnIndex="0"
+                        <CheckBox fx:id="cbHighlightAnnotated" GridPane.columnIndex="0"
                           GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.columnSpan="2">
                            <VBox.margin>
                               <Insets top="5.0" left="5.0"/>

@@ -32,6 +32,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -52,6 +54,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.StrokeType;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -252,17 +256,26 @@ public class KendrickMassPlotAnchorPaneController {
       }
     });
 
-    cbHighlightAnnotated.selectedProperty().addListener((_, _, selected) -> {
+    cbHighlightAnnotated.selectedProperty().subscribe(selected -> {
       setHighlightToRenderer(Objects.requireNonNullElse(selected, false));
     });
+    final Circle circle = new Circle(5);
+    circle.setStroke(ConfigService.getDefaultColorPalette().getNegativeColor());
+    circle.setStrokeWidth(2f);
+    circle.setStrokeType(StrokeType.OUTSIDE);
+    circle.setFill(null);
+    cbHighlightAnnotated.setGraphic(
+        FxLayout.newFlowPane(FxLabels.newLabel("Highlight annotated"), circle));
   }
 
   private void setHighlightToRenderer(boolean highlight) {
+    final boolean hasAnnotations = featureList.stream().anyMatch(FeatureListRow::isIdentified);
+    cbHighlightAnnotated.setDisable(!hasAnnotations);
+
     if (kendrickChart == null) {
       return;
     }
-    final boolean hasAnnotations = featureList.stream().anyMatch(FeatureListRow::isIdentified);
-    cbHighlightAnnotated.setDisable(!hasAnnotations);
+
     for (int i = 0; i < kendrickChart.getChart().getXYPlot().getRendererCount(); i++) {
       final XYItemRenderer renderer = kendrickChart.getChart().getXYPlot().getRenderer(i);
       if (renderer instanceof ColoredBubbleDatasetRenderer r) {
