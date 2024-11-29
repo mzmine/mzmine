@@ -71,7 +71,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
 
   // SIRIUS is compatible with scientific format and this format better captures all numbers
   public static final NormalizeIntensityComboParameter NORMALIZE = new NormalizeIntensityComboParameter(
-      NormalizeIntensityOptions.values(), NormalizeIntensityOptions.ORIGINAL_SCIENTIFIC_FORMAT);
+      NormalizeIntensityOptions.ORIGINAL_SCIENTIFIC_FORMAT);
   /**
    * MZTolerance to exclude duplicates in correlated spectrum
    */
