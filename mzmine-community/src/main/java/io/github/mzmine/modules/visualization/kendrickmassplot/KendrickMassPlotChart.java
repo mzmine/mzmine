@@ -34,6 +34,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.AllowsRegionSelection;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import java.awt.BasicStroke;
@@ -68,7 +69,7 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
     setStickyZeroRangeAxis(false);
     this.colorScaleLabel = colorScaleLabel;
 
-    EStandardChartTheme defaultChartTheme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    EStandardChartTheme defaultChartTheme = ConfigService.getConfiguration().getDefaultChartTheme();
     defaultChartTheme.apply(this);
     double[] colorScaleValues = dataset.getColorScaleValues();
     final double[] quantiles = MathUtils.calcQuantile(colorScaleValues, new double[]{0.00, 1.00});

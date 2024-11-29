@@ -28,6 +28,8 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -45,12 +47,14 @@ import java.util.Objects;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 
 public class KendrickMassPlotAnchorPaneController {
 
@@ -117,6 +121,9 @@ public class KendrickMassPlotAnchorPaneController {
 
   @FXML
   private Label divisorLabelXAxis;
+
+  @FXML
+  private CheckBox cbHighlightAnnotated;
 
   private ParameterSet parameters;
   private KendrickMassPlotChart kendrickChart;
@@ -231,12 +238,11 @@ public class KendrickMassPlotAnchorPaneController {
 
     kendrickMassPlotXYZDataset.addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.FINISHED) {
-        kendrickChart = new KendrickMassPlotChart(title, xAxisLabel,
-            yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
+        kendrickChart = new KendrickMassPlotChart(title, xAxisLabel, yAxisLabel, zAxisLabel,
+            kendrickMassPlotXYZDataset);
         KendrickMassPlotBubbleLegend kendrickMassPlotBubbleLegend = new KendrickMassPlotBubbleLegend(
             kendrickMassPlotXYZDataset);
-        var selectionWrapper = new RegionSelectionWrapper<>(kendrickChart,
-            this::onExtractPressed);
+        var selectionWrapper = new RegionSelectionWrapper<>(kendrickChart, this::onExtractPressed);
         FxThread.runLater(() -> {
           plotPane.setCenter(selectionWrapper);
           bubbleLegendPane.setCenter(kendrickMassPlotBubbleLegend);
@@ -245,6 +251,25 @@ public class KendrickMassPlotAnchorPaneController {
         });
       }
     });
+
+    cbHighlightAnnotated.selectedProperty().addListener((_, _, selected) -> {
+      setHighlightToRenderer(Objects.requireNonNullElse(selected, false));
+    });
+  }
+
+  private void setHighlightToRenderer(boolean highlight) {
+    if (kendrickChart == null) {
+      return;
+    }
+    final boolean hasAnnotations = featureList.stream().anyMatch(FeatureListRow::isIdentified);
+    cbHighlightAnnotated.setDisable(!hasAnnotations);
+    for (int i = 0; i < kendrickChart.getChart().getXYPlot().getRendererCount(); i++) {
+      final XYItemRenderer renderer = kendrickChart.getChart().getXYPlot().getRenderer(i);
+      if (renderer instanceof ColoredBubbleDatasetRenderer r) {
+        r.setHighlightAnnotated(highlight);
+      }
+    }
+    kendrickChart.fireChangeEvent();
   }
 
   public void onExtractPressed(List<List<Point2D>> regionPointLists) {
@@ -376,6 +401,7 @@ public class KendrickMassPlotAnchorPaneController {
           updateToolBar();
           setTooltips();
           bubbleLegendPane.setDisable(false);
+          setHighlightToRenderer(cbHighlightAnnotated.isSelected());
         });
       }
     });
