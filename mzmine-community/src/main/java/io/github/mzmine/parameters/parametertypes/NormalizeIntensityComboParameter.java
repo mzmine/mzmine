@@ -25,6 +25,9 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public class NormalizeIntensityComboParameter extends ComboParameter<NormalizeIntensityOptions> {
 
   public NormalizeIntensityComboParameter() {
@@ -33,9 +36,8 @@ public class NormalizeIntensityComboParameter extends ComboParameter<NormalizeIn
 
   public NormalizeIntensityComboParameter(final NormalizeIntensityOptions[] choices,
       final NormalizeIntensityOptions defaultValue) {
-    super("Intensity normalization", """
-            This parameter may use the original intensity (usually absolute values)
-            or various normalizations based on the TIC (sum of signal intensities) or the highest signal intensity.""",
+    this("Intensity normalization", """
+            This parameter may use the original intensity (usually absolute values) or various normalizations.""",
         choices, defaultValue);
   }
 
@@ -43,8 +45,11 @@ public class NormalizeIntensityComboParameter extends ComboParameter<NormalizeIn
     this(name, description, NormalizeIntensityOptions.values(), NormalizeIntensityOptions.ORIGINAL);
   }
 
-  public NormalizeIntensityComboParameter(final String name, final String description,
+  public NormalizeIntensityComboParameter(final String name, String description,
       final NormalizeIntensityOptions[] choices, final NormalizeIntensityOptions defaultValue) {
+    String choicesDescription = Arrays.stream(choices)
+        .map(NormalizeIntensityOptions::getDescription).collect(Collectors.joining("\n"));
+    description += "\n" + choicesDescription;
     super(name, description, choices, defaultValue);
   }
 }

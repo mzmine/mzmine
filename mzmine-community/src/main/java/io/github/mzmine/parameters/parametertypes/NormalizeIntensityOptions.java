@@ -27,24 +27,40 @@ package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.ArrayUtils;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.function.ToDoubleFunction;
+import org.jetbrains.annotations.NotNull;
 
 public enum NormalizeIntensityOptions {
-  ORIGINAL, HIGHEST_SIGNAL_AS_100, SUM_AS_100, HIGHEST_SIGNAL_AS_1, SUM_AS_1;
+  ORIGINAL, ORIGINAL_SCIENTIFIC_FORMAT, HIGHEST_SIGNAL_AS_100, HIGHEST_SIGNAL_AS_1, SUM_AS_100, SUM_AS_1;
 
   @Override
   public String toString() {
     return switch (this) {
       case ORIGINAL -> "Original";
+      case ORIGINAL_SCIENTIFIC_FORMAT -> "Original (scientific format)";
       case HIGHEST_SIGNAL_AS_100 -> "Highest signal as 100%";
-      case SUM_AS_100 -> "Sum as 100%";
       case HIGHEST_SIGNAL_AS_1 -> "Highest signal as 1";
+      case SUM_AS_100 -> "Sum as 100%";
       case SUM_AS_1 -> "Sum as 1";
+    };
+  }
+
+  /**
+   * Description of options
+   */
+  @NotNull
+  public String getDescription() {
+    return this.toString() + ": " + switch (this) {
+      case ORIGINAL -> "No normalization, regular number format";
+      case ORIGINAL_SCIENTIFIC_FORMAT ->
+          "no normalization, scientific exponential format, i.e., 1.005E4";
+      case HIGHEST_SIGNAL_AS_100, HIGHEST_SIGNAL_AS_1 -> "Normalize to highest signal";
+      case SUM_AS_100 -> "Normalize values sum to 100";
+      case SUM_AS_1 -> "Normalize values sum to 1";
     };
   }
 
@@ -99,7 +115,7 @@ public enum NormalizeIntensityOptions {
    */
   public double getNormalizationFactorForData(double[] intensities) {
     return switch (this) {
-      case ORIGINAL -> 1;
+      case ORIGINAL, ORIGINAL_SCIENTIFIC_FORMAT -> 1;
       case HIGHEST_SIGNAL_AS_100, HIGHEST_SIGNAL_AS_1 ->
           1d / ArrayUtils.max(intensities).orElse(1d) * getBaseNormalizationFactor();
       case SUM_AS_100, SUM_AS_1 -> 1d / ArrayUtils.sum(intensities) * getBaseNormalizationFactor();
@@ -114,7 +130,7 @@ public enum NormalizeIntensityOptions {
    */
   public <T> double getNormalizationFactorForData(T[] values, ToDoubleFunction<T> extractor) {
     return switch (this) {
-      case ORIGINAL -> 1;
+      case ORIGINAL, ORIGINAL_SCIENTIFIC_FORMAT -> 1;
       case HIGHEST_SIGNAL_AS_100, HIGHEST_SIGNAL_AS_1 ->
           1d / ArrayUtils.max(values, extractor).orElse(1d) * getBaseNormalizationFactor();
       case SUM_AS_100, SUM_AS_1 ->
@@ -128,31 +144,35 @@ public enum NormalizeIntensityOptions {
   public double getBaseNormalizationFactor() {
     return switch (this) {
       case HIGHEST_SIGNAL_AS_100, SUM_AS_100 -> 100d;
-      case HIGHEST_SIGNAL_AS_1, SUM_AS_1, ORIGINAL -> 1d;
+      case HIGHEST_SIGNAL_AS_1, SUM_AS_1, ORIGINAL, ORIGINAL_SCIENTIFIC_FORMAT -> 1d;
     };
   }
 
   /**
    * Formats for export
    */
+  @NotNull
   public NumberFormat createExportFormat() {
     return switch (this) {
-      case ORIGINAL -> ConfigService.getExportFormats().intensityFormat();
+      case ORIGINAL -> new DecimalFormat("0.######");
+      case ORIGINAL_SCIENTIFIC_FORMAT -> new DecimalFormat("0.###E0");
       // percent format not precise enough for intensity export
-      case HIGHEST_SIGNAL_AS_100, SUM_AS_100 -> new DecimalFormat("0.#####");
-      case HIGHEST_SIGNAL_AS_1, SUM_AS_1 -> new DecimalFormat("0.#######");
+      case HIGHEST_SIGNAL_AS_100, SUM_AS_100 -> new DecimalFormat("0.######");
+      case HIGHEST_SIGNAL_AS_1, SUM_AS_1 -> new DecimalFormat("0.########");
     };
   }
 
   /**
    * Formats for the graphical user interface
    */
+  @NotNull
   public NumberFormat createGuiFormat() {
     return switch (this) {
-      case ORIGINAL -> ConfigService.getExportFormats().intensityFormat();
+      case ORIGINAL -> new DecimalFormat("0.####");
+      case ORIGINAL_SCIENTIFIC_FORMAT -> new DecimalFormat("0.###E0");
       // percent format not precise enough for intensity export
-      case HIGHEST_SIGNAL_AS_100, SUM_AS_100 -> new DecimalFormat("0.#");
-      case HIGHEST_SIGNAL_AS_1, SUM_AS_1 -> new DecimalFormat("0.###");
+      case HIGHEST_SIGNAL_AS_100, SUM_AS_100 -> new DecimalFormat("0.##");
+      case HIGHEST_SIGNAL_AS_1, SUM_AS_1 -> new DecimalFormat("0.####");
     };
   }
 }
