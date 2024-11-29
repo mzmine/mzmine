@@ -66,6 +66,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
   private double[] yValues;
   private double[] colorScaleValues;
   private double[] bubbleSizeValues;
+  private boolean[] isAnnotated;
   private KendrickPlotDataTypes xKendrickDataType;
   private KendrickPlotDataTypes yKendrickDataType;
   private KendrickPlotDataTypes colorKendrickDataType;
@@ -87,6 +88,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     yValues = new double[selectedRows.length];
     colorScaleValues = new double[selectedRows.length];
     bubbleSizeValues = new double[selectedRows.length];
+    isAnnotated = new boolean[selectedRows.length];
     setStatus(TaskStatus.WAITING);
     MZmineCore.getTaskController().addTask(this);
   }
@@ -165,6 +167,9 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     initDimensionValues(bubbleSizeValues,
         parameters.getParameter(KendrickMassPlotParameters.bubbleSizeCustomKendrickMassBase)
             .getValue(), bubbleKendrickDataType, 1, 1);
+    for (int i = 0; i < selectedRows.length; i++) {
+      isAnnotated[i] = selectedRows[i].isIdentified();
+    }
     finishedSteps = 1;
     setStatus(TaskStatus.FINISHED);
   }
@@ -467,5 +472,9 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
       return selectedRows[item];
     }
     return null;
+  }
+
+  public boolean isAnnotated(int item) {
+    return isAnnotated[item];
   }
 }
