@@ -61,6 +61,7 @@ import java.util.List;
 import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SiriusExportParameters extends SimpleParameterSet {
 
@@ -139,5 +140,20 @@ public class SiriusExportParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(final int version) {
+    return switch (version) {
+      case 2 -> """
+          Up to mzmine 3.4.3 the intensities were exported normalized to the highest signal as 100%. \
+          This mzmine version adds options to control normalization. The default changed to original intensities exported in scientific notation (e.g., 1.05E5).""";
+      default -> null;
+    };
   }
 }

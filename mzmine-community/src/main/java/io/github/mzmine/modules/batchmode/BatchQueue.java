@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -172,25 +173,27 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         final ParameterSet methodParams = parameterSet.cloneParameterSet();
         int currentVersion = parameterSet.getVersion();
 
+        int batchStepVersion = 1; // default before introduction is 1
         // check version introduced in MZmine 3.4.0
         if (!stepElement.hasAttribute(MODULE_VERSION_ATTR)) {
           noModuleVersion = true;
-          // version is known to have changed in MZmine 3.4.0
-          if (currentVersion > 1) {
-            errorMessages.add(
-                "'%s' step parameters were changed.".formatted(moduleFound.getName()));
-          }
         } else {
-          int version = Integer.parseInt(stepElement.getAttribute(MODULE_VERSION_ATTR));
-          String diff = switch (Integer.compare(version, currentVersion)) {
-            case -1 -> "outdated";
-            case 1 -> "newer";
-            default -> null;
-          };
-          if (diff != null) {
-            errorMessages.add(
-                "'%s' step uses %s parameters.".formatted(moduleFound.getName(), diff));
-          }
+          // the actual step version saved to batch file
+          batchStepVersion = Integer.parseInt(stepElement.getAttribute(MODULE_VERSION_ATTR));
+        }
+
+        if (batchStepVersion < currentVersion) {
+          // this mzmine is newer, join find potential messages for user
+          final String versionMessages = IntStream.range(batchStepVersion + 1, currentVersion + 1)
+              .mapToObj(parameterSet::getVersionMessage).filter(Objects::nonNull)
+              .collect(Collectors.joining(" "));
+
+          errorMessages.add(
+              "'%s' step uses outdated parameters. %s".formatted(moduleFound.getName(),
+                  versionMessages));
+        } else if (batchStepVersion > currentVersion) {
+          errorMessages.add("'%s' step uses parameters from a newer mzmine version.".formatted(
+              moduleFound.getName()));
         }
 
         methodParams.loadValuesFromXML(stepElement);
