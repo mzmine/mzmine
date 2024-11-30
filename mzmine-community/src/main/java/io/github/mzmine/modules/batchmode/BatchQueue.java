@@ -184,9 +184,12 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
         if (batchStepVersion < currentVersion) {
           // this mzmine is newer, join find potential messages for user
-          final String versionMessages = IntStream.range(batchStepVersion + 1, currentVersion + 1)
+          String versionMessages = IntStream.range(batchStepVersion + 1, currentVersion + 1)
               .mapToObj(parameterSet::getVersionMessage).filter(Objects::nonNull)
               .collect(Collectors.joining(" "));
+          if (!versionMessages.isBlank()) {
+            versionMessages += "\n"; // add additional break after long version messages
+          }
 
           errorMessages.add(
               "'%s' step uses outdated parameters. %s".formatted(moduleFound.getName(),

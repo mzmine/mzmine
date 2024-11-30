@@ -285,7 +285,8 @@ public class SiriusExportTask extends AbstractTask {
     if (bestFeature == null) {
       // maybe no MS1 data?
       logger.warning(
-          "Cannot export MS1 data for this feature list. This maybe due to missing MS1 data or unsupported workflow. mzmine will skip this MS1 scan.");
+          "Cannot export MS1 data for this feature list. This maybe due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
+          + FeatureUtils.rowToString(row));
       return null;
     }
 
@@ -297,7 +298,8 @@ public class SiriusExportTask extends AbstractTask {
       var ms1Scan = bestFeature.getRepresentativeScan();
       if (ms1Scan == null) {
         logger.fine(
-            "Best feature has no representative scan. This may be due to missing MS1 data or unsupported workflow. mzmine will skip this MS1 scan.");
+            "Best feature has no representative scan. This may be due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
+            + FeatureUtils.rowToString(row));
         return null;
       }
       return spectrumToEntry(MsType.MS, ms1Scan, bestFeature);

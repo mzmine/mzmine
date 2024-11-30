@@ -153,6 +153,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
       case 2 -> """
           Up to mzmine 3.4.3 the intensities were exported normalized to the highest signal as 100%. \
           This mzmine version adds options to control normalization. The default changed to original intensities exported in scientific notation (e.g., 1.05E5).""";
+      case 3 ->
+          "TestTdawdahfjadjksdjasfhsdsjkdTdawdahfjadjksdjasfhsdsjkdTdawdahfjadjksdjasfhsdsjkdTdawdahfjadjksdjasfhsdsjkdTdawdahfjadjksdjasfhsdsjkd";
       default -> null;
     };
   }

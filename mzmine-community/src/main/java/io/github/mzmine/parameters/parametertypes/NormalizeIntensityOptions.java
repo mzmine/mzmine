@@ -50,8 +50,8 @@ public enum NormalizeIntensityOptions {
   @Override
   public String toString() {
     return switch (this) {
-      case ORIGINAL -> "Original";
-      case ORIGINAL_SCIENTIFIC_FORMAT -> "Original (scientific format)";
+      case ORIGINAL -> "No normalization";
+      case ORIGINAL_SCIENTIFIC_FORMAT -> "No normalization (scientific)";
       case HIGHEST_SIGNAL_AS_100 -> "Highest signal as 100%";
       case HIGHEST_SIGNAL_AS_1 -> "Highest signal as 1";
       case SUM_AS_100 -> "Sum as 100%";

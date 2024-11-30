@@ -151,11 +151,15 @@ public class MGFEntryGenerator {
     DataPoint[] dps = entry.getDataPoints();
 
     SpectrumString spectralData = createSpectrumStringWithNumPeaks(normalizer, dps);
+    s.append(createValueLine(DBEntryField.NUM_PEAKS, spectralData.numSignals()));
     s.append(spectralData.spectrum());
     s.append("END IONS").append(br);
     return new SpectrumString(s.toString(), spectralData.numSignals());
   }
 
+  /**
+   * @return spectral data as a string ending with a new line
+   */
   private static SpectrumString createSpectrumStringWithNumPeaks(
       final @NotNull NormalizeIntensityOptions normalizer, DataPoint[] dps) {
     NumberFormat mzForm = new DecimalFormat("0.######");
@@ -181,8 +185,7 @@ public class MGFEntryGenerator {
           .append("\n");
       numExportedValues++;
     }
-    String spectralData = createValueLine(DBEntryField.NUM_PEAKS, numExportedValues) + dataBuilder;
-    return new SpectrumString(spectralData, numExportedValues);
+    return new SpectrumString(dataBuilder.toString(), numExportedValues);
   }
 
   private static String createValueLine(final DBEntryField field, final Object value) {
