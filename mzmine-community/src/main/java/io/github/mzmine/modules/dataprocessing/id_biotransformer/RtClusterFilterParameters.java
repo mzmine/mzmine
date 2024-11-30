@@ -64,7 +64,7 @@ public class RtClusterFilterParameters extends SimpleParameterSet {
   @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
     var map = super.getNameParameterMap();
-    map.put("Filter by Row group", rowCorrelationFilter);
+    map.put("Filter by Row group", getParameter(rowCorrelationFilter));
     return map;
   }
 }

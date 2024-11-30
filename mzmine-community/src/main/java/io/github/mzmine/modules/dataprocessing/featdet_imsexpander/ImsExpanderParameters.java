@@ -122,7 +122,7 @@ public class ImsExpanderParameters extends SimpleParameterSet {
   public Map<String, Parameter<?>> getNameParameterMap() {
 
     final Map<String, Parameter<?>> map = super.getNameParameterMap();
-    map.put("Override default mobility bin witdh (scans)", ImsExpanderParameters.mobilogramBinWidth);
+    map.put("Override default mobility bin witdh (scans)", getParameter(ImsExpanderParameters.mobilogramBinWidth));
     return map;
   }
 }
