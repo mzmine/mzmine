@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,8 @@ package io.github.mzmine.gui.preferences;
 
 import com.google.common.collect.Range;
 import java.text.NumberFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 
 public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
@@ -35,6 +37,7 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
                             NumberFormat percentFormat, NumberFormat scoreFormat,
                             UnitFormat unitFormat) {
 
+  private static final Logger logger = Logger.getLogger(NumberFormats.class.getName());
   private static final String empty = "";
 
   private static String range(Range<? extends Number> range, NumberFormat format) {
@@ -152,5 +155,24 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
 
   public String unit(String label, String unit) {
     return unitFormat.format(label, unit);
+  }
+
+  /**
+   * @param formatted formatted value using the same formatter as second argument
+   * @param format    the formatter used to format the input value
+   * @return true if the formatted value is 0 when parsed by this number format
+   */
+  public static boolean IsZero(String formatted, NumberFormat format) {
+    try {
+      if (Double.compare(format.parse(formatted).doubleValue(), 0d) == 0) {
+        return true;
+      }
+    } catch (Exception ex) {
+      // should not happen if this was the same number format used to format the input
+      logger.log(Level.WARNING,
+          "Unexpected exception parsing formatted intensity value. By default this value will be still used without issue.",
+          ex);
+    }
+    return false;
   }
 }
