@@ -795,7 +795,7 @@ public class FileAndPathUtil {
       } catch (AccessDeniedException e) {
         logger.log(Level.WARNING, //
             """
-                Access denied: Please choose a temporary directory with write access in the mzmine preferences.
+                Access denied: Please choose a temporary directory with write access in the mzmine preferences. \
                 No write access in """ + f.toFile().getAbsolutePath() + e.getMessage());
         throw e;
       }
