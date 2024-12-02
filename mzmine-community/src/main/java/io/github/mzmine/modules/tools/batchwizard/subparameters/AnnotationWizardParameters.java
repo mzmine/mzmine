@@ -25,11 +25,15 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.modules.io.download.AssetCategory;
+import io.github.mzmine.modules.io.download.DownloadAssets;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.AnnotationWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithDownloadParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.files.ExtensionFilters;
 
 /**
  * Reuses spectral library files parameters of {@link SpectralLibraryImportParameters}
@@ -49,10 +53,16 @@ public final class AnnotationWizardParameters extends WizardStepParameters {
       or in combination with MS2 information from either DDA or DIA experiments.
       """, true);
 
+  public static final FileNamesWithDownloadParameter dataBaseFiles = new FileNamesWithDownloadParameter(
+      "Spectral library files", """
+      Path of spectral library files in common formats
+      (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY,
+      DownloadAssets.forAssetGroup(AssetCategory.SPECTRAL_LIBRARIES));
+
   public AnnotationWizardParameters() {
     super(WizardPart.ANNOTATION, AnnotationWizardParameterFactory.Annotation,
         // parameters
-        localCsvSearch, lipidAnnotation, SpectralLibraryImportParameters.dataBaseFiles);
+        localCsvSearch, lipidAnnotation, dataBaseFiles);
   }
 
 }

@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
@@ -111,7 +112,7 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
         MsMsInfo.XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
 
     Range<Integer> spectrumRange = ParsingUtils.parseIntegerRange(
-        reader.getAttributeValue(null, XML_SPECTRUM_NUMBER_RANGE_ATTR));
+        reader.getAttributeValue(null, IonMobilityMsMsInfo.XML_SPECTRUM_NUMBER_RANGE_ATTR));
 
     final String rawFileName = ParsingUtils.readAttributeValueOrDefault(reader,
         CONST.XML_RAW_FILE_ELEMENT, null, s -> s);
@@ -238,7 +239,7 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
           String.valueOf(this.getActivationEnergy()));
     }
 
-    writer.writeAttribute(XML_SPECTRUM_NUMBER_RANGE_ATTR,
+    writer.writeAttribute(IonMobilityMsMsInfo.XML_SPECTRUM_NUMBER_RANGE_ATTR,
         ParsingUtils.rangeToString((Range) getSpectrumNumberRange()));
 
     if (getIsolationWindow() != null) {

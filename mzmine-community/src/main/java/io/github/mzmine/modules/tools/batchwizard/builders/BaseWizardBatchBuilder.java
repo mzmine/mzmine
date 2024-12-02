@@ -144,6 +144,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -206,7 +207,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
   // IMS parameter currently all the same
   protected final boolean isImsActive;
-  protected final boolean isNonTdfIms;
+  protected final boolean isNativeIms;
   protected final boolean imsSmoothing;
   protected final MobilityType imsInstrumentType;
   protected final Integer minImsDataPoints;
@@ -272,8 +273,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     imsSmoothing = getValue(params, IonMobilityWizardParameters.smoothing);
     imsFwhm = getValue(params, IonMobilityWizardParameters.approximateImsFWHM);
     imsFwhmMobTolerance = new MobilityTolerance(imsFwhm.floatValue());
-    isNonTdfIms = Arrays.stream(dataFiles).map(RawDataFileTypeDetector::detectDataFileType)
-        .noneMatch(type -> type == RawDataFileType.BRUKER_TDF);
+    isNativeIms = Arrays.stream(dataFiles).map(RawDataFileTypeDetector::detectDataFileType)
+        .allMatch(type -> type == RawDataFileType.BRUKER_TDF);
 
     // Imaging
     isImaging = steps.isImaging();
@@ -428,8 +429,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    // going back into scans so rather use scan mz tol
     param.setParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER, false);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.NORMALIZER,
+        IntensityNormalizer.createDefault());
     param.setParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT, false);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER, false);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY, AbundanceMeasure.Area);
@@ -451,6 +453,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     // going back into scans so rather use scan mz tol
     param.setParameter(SiriusExportParameters.MERGE_PARAMETER, false);
+    param.setParameter(SiriusExportParameters.NORMALIZE, IntensityNormalizer.createScientific());
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTICHARGE, false);
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTIMERS, false);
     param.setParameter(SiriusExportParameters.NEED_ANNOTATION, false);
@@ -737,6 +740,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(LibraryBatchGenerationParameters.mergeMzTolerance, true, mzTolScans);
     param.setParameter(LibraryBatchGenerationParameters.exportFormat, exportFormat);
+    param.setParameter(LibraryBatchGenerationParameters.normalizer,
+        IntensityNormalizer.createDefault());
     param.setParameter(LibraryBatchGenerationParameters.file, fileName);
     param.setParameter(LibraryBatchGenerationParameters.postMergingMsLevelFilter,
         new MsLevelFilter(Options.MSn));
@@ -799,12 +804,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
   protected void makeAndAddMassDetectorSteps(final BatchQueue q) {
     if (isImsActive) {
-      if (!isNonTdfIms) { // == Bruker file
+      if (isNativeIms) { // == Bruker file
         makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.FRAMES);
+        makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.FRAMES);
       }
       makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.MOBLITY_SCANS);
       makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.MOBLITY_SCANS);
-      if (isNonTdfIms) {
+      if (!isNativeIms) {
         makeAndAddMobilityScanMergerStep(q);
       }
     } else {
@@ -907,6 +913,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       case ABSOLUTE_NOISE_LEVEL -> {
         if (msLevel == 1 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
           yield massDetectorOption.getMs1NoiseLevel() / 5; // lower threshold for mobility scans
+        } else if (msLevel >= 2 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
+          yield massDetectorOption.getMsnNoiseLevel() / 5; // lower threshold for mobility scans
         } else if (msLevel >= 2) {
           yield massDetectorOption.getMsnNoiseLevel();
         } else {
@@ -962,7 +970,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         .getModuleParameters(MobilityScanMergerModule.class).cloneParameterSet();
 
     param.setParameter(MobilityScanMergerParameters.mzTolerance, mzTolScans);
-    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection(1));
+    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection());
     param.setParameter(MobilityScanMergerParameters.noiseLevel,
         0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
     param.setParameter(MobilityScanMergerParameters.mergingType, IntensityMergingType.SUMMED);
@@ -985,7 +993,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(ImsExpanderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(ImsExpanderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ImsExpanderParameters.useRawData, !isNonTdfIms);
+    param.setParameter(ImsExpanderParameters.useRawData, isNativeIms);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
     param.setParameter(ImsExpanderParameters.mzTolerance, true);
     param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()

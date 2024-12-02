@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.export_library_gnps_batch;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -67,6 +68,7 @@ public class GNPSLibraryBatchExportTask extends AbstractTask {
   private final List<SpectralLibrary> libraries;
   private final File tsvFile;
   private final File mgfFile;
+  private final IntensityNormalizer normalizer;
 
   private int totalEntries = 0;
   private int finishedEntries = 0;
@@ -79,6 +81,7 @@ public class GNPSLibraryBatchExportTask extends AbstractTask {
     this.mgfFile = FileAndPathUtil.getRealFilePath(file, "mgf");
     libraries = parameters.getValue(GNPSLibraryBatchExportParameters.libraries)
         .getMatchingLibraries();
+    normalizer = parameters.getValue(GNPSLibraryBatchExportParameters.normalizer);
   }
 
   @Override
@@ -157,8 +160,11 @@ public class GNPSLibraryBatchExportTask extends AbstractTask {
         finishedEntries++;
         entry.putIfNotNull(DBEntryField.SCAN_NUMBER, finishedEntries);
         entry.putIfNotNull(DBEntryField.FEATURE_ID, finishedEntries);
-        var mgfEntry = MGFEntryGenerator.createMGFEntry(entry);
-        mgfWriter.append(mgfEntry).append("\n");
+        var mgfEntry = MGFEntryGenerator.createMGFEntry(entry, normalizer);
+        if (mgfEntry.numSignals() == 0) {
+          continue;
+        }
+        mgfWriter.append(mgfEntry.spectrum()).append("\n");
 
         // write header
         for (int i = 0; i < columns.size(); i++) {

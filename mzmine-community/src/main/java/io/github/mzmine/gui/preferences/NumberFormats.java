@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,8 @@ package io.github.mzmine.gui.preferences;
 
 import com.google.common.collect.Range;
 import java.text.NumberFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 
 public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
@@ -35,10 +37,12 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
                             NumberFormat percentFormat, NumberFormat scoreFormat,
                             UnitFormat unitFormat) {
 
+  private static final Logger logger = Logger.getLogger(NumberFormats.class.getName());
   private static final String empty = "";
 
   private static String range(Range<? extends Number> range, NumberFormat format) {
-    return format.format(range.lowerEndpoint()) + " - " + format.format(range.upperEndpoint());
+    return range != null ? format.format(range.lowerEndpoint()) + " - " + format.format(
+        range.upperEndpoint()) : null;
   }
 
   public String mz(double mz) {
@@ -46,7 +50,7 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
   }
 
   public String mz(@Nullable Number mz) {
-    if(mz == null) {
+    if (mz == null) {
       return empty;
     }
     return mzFormat.format(mz);
@@ -61,7 +65,7 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
   }
 
   public String rt(@Nullable Number rt) {
-    if(rt == null) {
+    if (rt == null) {
       return empty;
     }
     return rtFormat.format(rt);
@@ -80,7 +84,7 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
   }
 
   public String mobility(@Nullable Number mobility) {
-    if(mobility == null) {
+    if (mobility == null) {
       return empty;
     }
     return mobilityFormat.format(mobility);
@@ -95,7 +99,7 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
   }
 
   public String ccs(@Nullable Number ccs) {
-    if(ccs == null) {
+    if (ccs == null) {
       return empty;
     }
     return ccsFormat.format(ccs);
@@ -110,7 +114,7 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
   }
 
   public String intensity(@Nullable Number intensity) {
-    if(intensity == null) {
+    if (intensity == null) {
       return empty;
     }
     return intensityFormat.format(intensity);
@@ -121,7 +125,7 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
   }
 
   public String ppm(@Nullable Number ppm) {
-    if(ppm == null) {
+    if (ppm == null) {
       return empty;
     }
     return ppmFormat.format(ppm);
@@ -132,7 +136,7 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
   }
 
   public String percent(@Nullable Number percent) {
-    if(percent == null) {
+    if (percent == null) {
       return empty;
     }
     return percentFormat.format(percent);
@@ -143,7 +147,7 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
   }
 
   public String score(@Nullable Number score) {
-    if(score == null) {
+    if (score == null) {
       return empty;
     }
     return scoreFormat.format(score);
@@ -151,5 +155,24 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
 
   public String unit(String label, String unit) {
     return unitFormat.format(label, unit);
+  }
+
+  /**
+   * @param formatted formatted value using the same formatter as second argument
+   * @param format    the formatter used to format the input value
+   * @return true if the formatted value is 0 when parsed by this number format
+   */
+  public static boolean IsZero(String formatted, NumberFormat format) {
+    try {
+      if (Double.compare(format.parse(formatted).doubleValue(), 0d) == 0) {
+        return true;
+      }
+    } catch (Exception ex) {
+      // should not happen if this was the same number format used to format the input
+      logger.log(Level.WARNING,
+          "Unexpected exception parsing formatted intensity value. By default this value will be still used without issue.",
+          ex);
+    }
+    return false;
   }
 }

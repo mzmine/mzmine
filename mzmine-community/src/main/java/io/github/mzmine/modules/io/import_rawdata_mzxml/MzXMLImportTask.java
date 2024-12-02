@@ -322,15 +322,8 @@ public class MzXMLImportTask extends AbstractTask {
           numOpenScans = 0;
         }
         if (numOpenScans == 0) {
-          try {
-            for (final SimpleScan scan : parentStack) {
-              newMZmineFile.addScan(scan);
-            }
-          } catch (IOException e) {
-            logger.log(Level.WARNING, "Cannot store scan. " + e.getMessage(), e);
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("IO error: " + e);
-            throw new SAXException("Parsing error: " + e);
+          for (final SimpleScan scan : parentStack) {
+            newMZmineFile.addScan(scan);
           }
           parentStack.clear();
         }

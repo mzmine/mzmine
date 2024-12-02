@@ -92,7 +92,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -873,8 +872,9 @@ public class ScanUtils {
     List<PasefMsMsInfo> featureMsMsInfos = new ArrayList<>();
     Collection<? extends Frame> ms2Frames = imsRawDataFile.getFrames(2, rtRange);
     for (Frame frame : ms2Frames) {
-      Set<PasefMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
-      for (PasefMsMsInfo msmsInfo : frameMsMsInfos) {
+      final List<PasefMsMsInfo> infos = frame.getImsMsMsInfos().stream()
+          .filter(info -> info instanceof PasefMsMsInfo).map(info -> (PasefMsMsInfo) info).toList();
+      for (PasefMsMsInfo msmsInfo : infos) {
         if (mzRange.contains(msmsInfo.getIsolationMz())) {
           featureMsMsInfos.add(msmsInfo);
         }

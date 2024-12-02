@@ -111,4 +111,29 @@ public class TDFFrameMsMsInfoTable extends TDFDataTable<Long> {
         Range.closed(precursor - width / 2, precursor + width / 2));
     return ddaMsMsInfo;
   }
+
+
+  public TDFDataColumn<Long> getFrameId() {
+    return frameId;
+  }
+
+  public TDFDataColumn<Long> getParentId() {
+    return parentId;
+  }
+
+  public TDFDataColumn<Double> getPrecursorMz() {
+    return precursorMz;
+  }
+
+  public TDFDataColumn<Double> getIsolationWidth() {
+    return isolationWidth;
+  }
+
+  public TDFDataColumn<Long> getCharge() {
+    return charge;
+  }
+
+  public TDFDataColumn<Double> getCe() {
+    return ce;
+  }
 }

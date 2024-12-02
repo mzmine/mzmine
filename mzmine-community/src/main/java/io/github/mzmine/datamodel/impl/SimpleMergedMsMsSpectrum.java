@@ -137,7 +137,7 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
                 "Raw file with name '%s' not present. Cannot load merged MS2 spectrum.".formatted(
                     fileName));
           }
-          final List<Scan> tempScans = ParsingUtils.stringToScanList(reader.getElementText(), file);
+          final List<Scan> tempScans = ParsingUtils.stringToScanList(reader.getElementText(), specificFile);
           if (tempScans == null) {
             throw new IllegalStateException(
                 "Could not load MS2 scans in MergedMsMsSpectrum, did not find specified scans.");
