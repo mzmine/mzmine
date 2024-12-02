@@ -65,6 +65,8 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -139,6 +141,7 @@ public class TDFImportTask extends AbstractTask {
     this.scanProcessorConfig = scanProcessorConfig;
     this.module = module;
     this.parameters = parameters;
+    setDescription("Importing raw data file %s".formatted(file.getName()));
   }
 
   @Override
@@ -303,6 +306,7 @@ public class TDFImportTask extends AbstractTask {
     // now assign MS/MS infos
     constructMsMsInfo(newMZmineFile, framePrecursorTable);
     assignDiaMsMsInfo(newMZmineFile, diaFrameMsMsWindowTable, diaFrameMsMsInfoTable);
+    assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
 
     tdfUtils.close();
 
@@ -374,6 +378,9 @@ public class TDFImportTask extends AbstractTask {
         diaFrameMsMsInfoTable.executeQuery(connection);
         diaFrameMsMsWindowTable.executeQuery(connection);
 
+        setDescription("Reading bbCID info for " + tdf.getName());
+        frameMsMsInfoTable.executeQuery(connection);
+
       } catch (Throwable t) {
         logger.log(Level.FINE, t.getMessage(), t);
         logger.info("If stack trace contains \"out of memory\" the file was not found.");
@@ -387,40 +394,6 @@ public class TDFImportTask extends AbstractTask {
 
   private void setDescription(String desc) {
     description = desc;
-  }
-
-  /**
-   * Adds all scans from the pasef segment to a raw data file. Does not add the frame spectra!
-   *
-   * @param tdfFrameTable {@link TDFFrameTable} of the tdf file
-   * @param frames        the frames to load mobility spectra for
-   */
-  private void appendScansFromTimsSegment(@Nonnull final TDFUtils tdfUtils,
-      @NotNull final TDFFrameTable tdfFrameTable, List<SimpleFrame> frames) {
-
-    loadedFrames = 0;
-    final long numFrames = tdfFrameTable.lastFrameId();
-
-    for (SimpleFrame frame : frames) {
-      setDescription(
-          "Loading mobility scans of " + rawDataFileName + ": Frame " + frame.getFrameId() + "/"
-              + numFrames);
-      setFinishedPercentage(0.1 + (0.9 * ((double) loadedFrames / numFrames)));
-
-      final List<BuildingMobilityScan> spectra = tdfUtils.loadSpectraForTIMSFrame(frame, frameTable,
-          scanProcessorConfig);
-      if (spectra.isEmpty()) {
-        spectra.add(new BuildingMobilityScan(0, new double[]{}, new double[]{}));
-      }
-
-      boolean useAsMassList = scanProcessorConfig.isMassDetectActive(frame.getMSLevel());
-      frame.setMobilityScans(spectra, useAsMassList);
-
-      if (isCanceled()) {
-        return;
-      }
-      loadedFrames++;
-    }
   }
 
   private void loadMobilityScansForFrame(@Nonnull final TDFUtils tdfUtils,
@@ -520,7 +493,7 @@ public class TDFImportTask extends AbstractTask {
     final Map<Long, Long> frameToGroup = diaInfo.getFrameToWindowGroupMap();
     final Map<Long, Set<DIAImsMsMsInfoImpl>> groupInfoMap = diaWindows.getWindowGroupMsMsInfoMap();
 
-    if(frameToGroup.isEmpty() || groupInfoMap.isEmpty()) {
+    if (frameToGroup.isEmpty() || groupInfoMap.isEmpty()) {
       return;
     }
 
@@ -537,6 +510,40 @@ public class TDFImportTask extends AbstractTask {
             }).collect(Collectors.toSet());
         ((SimpleFrame) frame).setPrecursorInfos(newInfos);
       }
+    }
+  }
+
+  /**
+   * bbCID is Bruker's version of all ion fragmentation (AIF) or MSe. Alternating between low (MS1)
+   * and high collision energies (MS2) without quad isolation.
+   */
+  private void assignBbCidMsMsInfo(IMSRawDataFile newMZmineFile, TDFFrameTable frameTable,
+      TDFFrameMsMsInfoTable frameMsMsInfoTable, TDFMetaDataTable metadataTable) {
+    List<? extends Frame> frames = newMZmineFile.getFrames();
+
+    final int firstFrameId = (int) frameTable.getFirstFrameNumber();
+    final Range<Double> mzRange = metadataTable.getMzRange();
+
+    for (int i = 0; i < frames.size(); i++) {
+      Frame frame = frames.get(i);
+      final int frameTableIndex = frame.getFrameId() - firstFrameId;
+
+      if (frameTable.getScanModeColumn().get(frameTableIndex).intValue()
+          != BrukerScanMode.BROADBAND_CID.getNum()
+          || frameTable.getMsMsTypeColumn().get(frameTableIndex).intValue() != 2) {
+        continue;
+      }
+
+      final int frameMsMsTableIndex = BinarySearch.binarySearch(frameMsMsInfoTable.getFrameId(),
+          (double) frame.getFrameId(), DefaultTo.MINUS_INSERTION_POINT, Long::doubleValue);
+      if (frameMsMsTableIndex < 0) {
+        continue;
+      }
+
+      final float ce = frameMsMsInfoTable.getCe().get(frameMsMsTableIndex).floatValue();
+      final DIAImsMsMsInfoImpl diaImsMsMsInfo = new DIAImsMsMsInfoImpl(
+          Range.closed(0, frame.getNumberOfMobilityScans() - 1), ce, frame, mzRange);
+      frame.getImsMsMsInfos().add(diaImsMsMsInfo);
     }
   }
 

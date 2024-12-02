@@ -129,7 +129,7 @@ public class MSMSScoreCalculator {
 
       // We don't know the charge of the fragment, so we will simply
       // assume 1
-      double neutralLoss = precursorMZ * precursorCharge - dp.getMZ();
+      double neutralLoss = precursorMZ * Math.abs(precursorCharge) - dp.getMZ();
 
       // Ignore negative neutral losses and parent ion, <5 may be a
       // good threshold
