@@ -793,9 +793,10 @@ public class FileAndPathUtil {
       } catch (FileAlreadyExistsException e) {
         // ignore and try next file name
       } catch (AccessDeniedException e) {
-        logger.log(Level.WARNING,
-            "Access denied - make sure to use temporary directory with write access. "
-            + e.getMessage());
+        logger.log(Level.WARNING, //
+            """
+                Access denied: Please choose a temporary directory with write access in the mzmine preferences.
+                No write access in """ + f.toFile().getAbsolutePath() + e.getMessage());
         throw e;
       }
       // try adding random numbers
