@@ -52,7 +52,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -368,14 +367,16 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
     for (int i = 0; i < mobilities.length; i++) {
       if (firstNonZero == -1 && intensities[i] > 0d) {
-        firstNonZero = Math.max(0, i - 1);
+        firstNonZero = i;
       }
       if (intensities[i] > 0d) {
         lastNonZero = i;
       }
     }
-    firstNonZero = Math.max(firstNonZero, 0);
-    lastNonZero = Math.min(lastNonZero + 1, mobilities.length - 1);
+    // first non zero - 1, include one zero.
+    firstNonZero = Math.max(firstNonZero - 1, 0);
+    // last non zero + 2 because Arrays.copyOfRange is exclusive, include one zero.
+    lastNonZero = Math.min(lastNonZero + 2, mobilities.length - 1);
 
     return new SummedIntensityMobilitySeries(storage,
         Arrays.copyOfRange(mobilities, firstNonZero, lastNonZero),
