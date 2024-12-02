@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.files;
 
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.IOException;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -33,16 +34,43 @@ import java.lang.foreign.ValueLayout;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class FileAndPathUtilTest {
 
+  private static final Logger logger = Logger.getLogger(FileAndPathUtilTest.class.getName());
   @TempDir
   static Path tempDir;
+
+  @Test
+  void existingFile() {
+
+    logger.info("Testing existing file");
+    Path tmp = Path.of("D:\\mzminetemp2\\test.tmp");
+    try (var writer = Files.newBufferedWriter(tmp, StandardCharsets.UTF_8,
+        WriterOptions.REPLACE.toOpenOption())) {
+
+      try {
+        MemorySegment segment = FileAndPathUtil.memoryMapSparseTempFile("test", ".tmp",
+            Path.of("D:\\mzminetemp2"), Arena.ofAuto(), 1L << 20);
+        Assertions.assertNotNull(segment);
+      } catch (Exception e) {
+        logger.warning("Issue memory mapping new file");
+      }
+      // write something to make sure writer is used
+      writer.newLine();
+    } catch (Exception e) {
+      logger.warning("Issue with initial file creation");
+      throw new RuntimeException(e);
+    }
+  }
 
   @Test
   void memoryMapSparseTempFile() throws IOException, InterruptedException {
