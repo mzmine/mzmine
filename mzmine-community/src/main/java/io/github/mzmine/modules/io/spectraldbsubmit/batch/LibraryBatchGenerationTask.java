@@ -376,8 +376,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     // TODO maybe skip empty spectra. After formatting the number of signals may be smaller than before
     // if intensity is 0 after formatting
     String stringEntry = switch (format) {
-      case msp -> MSPEntryGenerator.createMSPEntry(entry);
-      case json -> MZmineJsonGenerator.generateJSON(entry);
+      case msp -> MSPEntryGenerator.createMSPEntry(entry, normalizer);
+      case json -> MZmineJsonGenerator.generateJSON(entry, normalizer);
       case mgf -> MGFEntryGenerator.createMGFEntry(entry, normalizer).spectrum();
     };
     writer.append(stringEntry).append("\n");

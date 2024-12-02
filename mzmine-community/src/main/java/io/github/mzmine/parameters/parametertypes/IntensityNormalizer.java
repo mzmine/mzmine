@@ -32,12 +32,20 @@ import org.jetbrains.annotations.NotNull;
 
 public record IntensityNormalizer(IntensityNormalizerOptions option, boolean scientificFormat) {
 
+  /**
+   * no normalization and regular number format
+   */
+  @NotNull
   public static IntensityNormalizer createDefault() {
-    return new IntensityNormalizer(IntensityNormalizerOptions.ORIGINAL, false);
+    return new IntensityNormalizer(IntensityNormalizerOptions.NO_NORMALIZATION, false);
   }
 
+  /**
+   * no normalization and scientific format
+   */
+  @NotNull
   public static IntensityNormalizer createScientific() {
-    return new IntensityNormalizer(IntensityNormalizerOptions.ORIGINAL, true);
+    return new IntensityNormalizer(IntensityNormalizerOptions.NO_NORMALIZATION, true);
   }
 
   @NotNull
@@ -59,7 +67,7 @@ public record IntensityNormalizer(IntensityNormalizerOptions option, boolean sci
       return 7;
     }
     return switch (option) {
-      case ORIGINAL -> 6; // hard to estimate here what the amplitude of values is...
+      case NO_NORMALIZATION -> 6; // hard to estimate here what the amplitude of values is...
       case HIGHEST_SIGNAL_AS_100, SUM_AS_100 -> 6;
       case HIGHEST_SIGNAL_AS_1, SUM_AS_1 -> 8;
     };
@@ -70,7 +78,7 @@ public record IntensityNormalizer(IntensityNormalizerOptions option, boolean sci
       return 2;
     }
     return switch (option) {
-      case ORIGINAL -> 1; // hard to estimate here what the amplitude of values is...
+      case NO_NORMALIZATION -> 1; // hard to estimate here what the amplitude of values is...
       case HIGHEST_SIGNAL_AS_100, SUM_AS_100 -> 1;
       case HIGHEST_SIGNAL_AS_1, SUM_AS_1 -> 3;
     };

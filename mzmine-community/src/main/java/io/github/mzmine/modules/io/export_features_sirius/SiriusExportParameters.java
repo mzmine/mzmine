@@ -72,7 +72,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
 
   // SIRIUS is compatible with scientific format and this format better captures all numbers
   public static final IntensityNormalizerComboParameter NORMALIZE = new IntensityNormalizerComboParameter(
-      IntensityNormalizerOptions.ORIGINAL, true, true);
+      IntensityNormalizerOptions.NO_NORMALIZATION, true, true);
   /**
    * MZTolerance to exclude duplicates in correlated spectrum
    */
@@ -151,10 +151,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
   public @Nullable String getVersionMessage(final int version) {
     return switch (version) {
       case 2 -> """
-          Up to mzmine 3.4.3 the intensities were exported normalized to the highest signal as 100%. \
-          This mzmine version adds options to control normalization. The default changed to original intensities exported in scientific notation (e.g., 1.05E5).""";
-      case 3 ->
-          "TestTdawdahfjadjksdjasfhsdsjkdTdawdahfjadjksdjasfhsdsjkdTdawdahfjadjksdjasfhsdsjkdTdawdahfjadjksdjasfhsdsjkdTdawdahfjadjksdjasfhsdsjkd";
+          Up to mzmine version ≤ 3.4.3 the intensities were exported normalized to the highest signal as 100%. \
+          mzmine versions > 3.4.3 add options to control normalization. The default changed to original intensities exported in scientific notation (e.g., 1.05E5).""";
       default -> null;
     };
   }

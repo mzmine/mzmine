@@ -25,7 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import static io.github.mzmine.parameters.parametertypes.IntensityNormalizerOptions.ORIGINAL;
+import static io.github.mzmine.parameters.parametertypes.IntensityNormalizerOptions.NO_NORMALIZATION;
 import static io.github.mzmine.parameters.parametertypes.IntensityNormalizerOptions.forUniqueID;
 import static java.util.Objects.requireNonNullElse;
 
@@ -51,7 +51,8 @@ public class IntensityNormalizerComboParameter implements
 
   public IntensityNormalizerComboParameter(final boolean scientificFormat,
       final boolean allowScientificFormatSelection) {
-    this(IntensityNormalizerOptions.ORIGINAL, scientificFormat, allowScientificFormatSelection);
+    this(IntensityNormalizerOptions.NO_NORMALIZATION, scientificFormat,
+        allowScientificFormatSelection);
   }
 
   public IntensityNormalizerComboParameter(@NotNull final IntensityNormalizerOptions defaultValue,
@@ -150,7 +151,8 @@ public class IntensityNormalizerComboParameter implements
     }
 
     boolean scientificFormat = Boolean.parseBoolean(xmlElement.getAttribute("scientific"));
-    IntensityNormalizerOptions option = requireNonNullElse(forUniqueID(elementString), ORIGINAL);
+    IntensityNormalizerOptions option = requireNonNullElse(forUniqueID(elementString),
+        NO_NORMALIZATION);
     value = new IntensityNormalizer(option, scientificFormat);
   }
 

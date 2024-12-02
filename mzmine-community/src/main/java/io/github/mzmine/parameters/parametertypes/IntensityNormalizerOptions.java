@@ -34,13 +34,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public enum IntensityNormalizerOptions {
-  ORIGINAL, HIGHEST_SIGNAL_AS_100, HIGHEST_SIGNAL_AS_1, SUM_AS_100, SUM_AS_1;
+  NO_NORMALIZATION, HIGHEST_SIGNAL_AS_100, HIGHEST_SIGNAL_AS_1, SUM_AS_100, SUM_AS_1;
 
 
   @Override
   public String toString() {
     return switch (this) {
-      case ORIGINAL -> "No normalization";
+      case NO_NORMALIZATION -> "No normalization";
       case HIGHEST_SIGNAL_AS_100 -> "Highest signal as 100%";
       case HIGHEST_SIGNAL_AS_1 -> "Highest signal as 1";
       case SUM_AS_100 -> "Sum as 100%";
@@ -54,7 +54,7 @@ public enum IntensityNormalizerOptions {
   @NotNull
   public String getUniqueID() {
     return switch (this) {
-      case ORIGINAL -> "original";
+      case NO_NORMALIZATION -> "no_normalization";
       case HIGHEST_SIGNAL_AS_100 -> "max100";
       case HIGHEST_SIGNAL_AS_1 -> "max1";
       case SUM_AS_100 -> "sum100";
@@ -78,7 +78,7 @@ public enum IntensityNormalizerOptions {
   @NotNull
   public String getDescription() {
     return this.toString() + ": " + switch (this) {
-      case ORIGINAL -> "No normalization (original values)";
+      case NO_NORMALIZATION -> "No normalization (original values)";
       case HIGHEST_SIGNAL_AS_100, HIGHEST_SIGNAL_AS_1 -> "Normalize to highest signal";
       case SUM_AS_100 -> "Normalize values sum to 100";
       case SUM_AS_1 -> "Normalize values sum to 1";
@@ -91,7 +91,7 @@ public enum IntensityNormalizerOptions {
    */
   public double getNormalizationFactorForData(double[] intensities) {
     return switch (this) {
-      case ORIGINAL -> 1;
+      case NO_NORMALIZATION -> 1;
       case HIGHEST_SIGNAL_AS_100, HIGHEST_SIGNAL_AS_1 ->
           1d / ArrayUtils.max(intensities).orElse(1d) * getBaseNormalizationFactor();
       case SUM_AS_100, SUM_AS_1 -> 1d / ArrayUtils.sum(intensities) * getBaseNormalizationFactor();
@@ -106,7 +106,7 @@ public enum IntensityNormalizerOptions {
    */
   public <T> double getNormalizationFactorForData(T[] values, ToDoubleFunction<T> extractor) {
     return switch (this) {
-      case ORIGINAL -> 1;
+      case NO_NORMALIZATION -> 1;
       case HIGHEST_SIGNAL_AS_100, HIGHEST_SIGNAL_AS_1 ->
           1d / ArrayUtils.max(values, extractor).orElse(1d) * getBaseNormalizationFactor();
       case SUM_AS_100, SUM_AS_1 ->
@@ -120,7 +120,7 @@ public enum IntensityNormalizerOptions {
   public double getBaseNormalizationFactor() {
     return switch (this) {
       case HIGHEST_SIGNAL_AS_100, SUM_AS_100 -> 100d;
-      case HIGHEST_SIGNAL_AS_1, SUM_AS_1, ORIGINAL -> 1d;
+      case HIGHEST_SIGNAL_AS_1, SUM_AS_1, NO_NORMALIZATION -> 1d;
     };
   }
 
@@ -129,7 +129,7 @@ public enum IntensityNormalizerOptions {
   }
 
   public double[] normalize(double[] intensities, boolean inPlace) {
-    if (this == IntensityNormalizerOptions.ORIGINAL || intensities == null
+    if (this == IntensityNormalizerOptions.NO_NORMALIZATION || intensities == null
         || intensities.length == 0) {
       return intensities;
     }
@@ -151,7 +151,7 @@ public enum IntensityNormalizerOptions {
   }
 
   public DataPoint[] normalize(DataPoint[] intensities, boolean inPlace) {
-    if (this == IntensityNormalizerOptions.ORIGINAL || intensities == null
+    if (this == IntensityNormalizerOptions.NO_NORMALIZATION || intensities == null
         || intensities.length == 0) {
       return intensities;
     }

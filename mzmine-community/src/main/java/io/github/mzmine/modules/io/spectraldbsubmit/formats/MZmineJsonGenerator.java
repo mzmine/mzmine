@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -48,6 +49,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObjectBuilder;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Json for MZmine json library entry submission
@@ -63,7 +65,8 @@ public class MZmineJsonGenerator {
    * @param dps
    * @return
    */
-  public static String generateJSON(LibrarySubmitIonParameters param, DataPoint[] dps) {
+  public static String generateJSON(LibrarySubmitIonParameters param, DataPoint[] dps,
+      @NotNull final IntensityNormalizer normalizer) {
     LibraryMetaDataParameters meta = (LibraryMetaDataParameters) param.getParameter(
         LibrarySubmitIonParameters.META_PARAM).getValue();
 
@@ -98,7 +101,7 @@ public class MZmineJsonGenerator {
     }
 
     // add data points array
-    json.add("peaks", genJSONData(dps));
+    json.add("peaks", genJSONData(dps, normalizer));
 
     // add meta data
     for (Parameter<?> p : meta.getParameters()) {
@@ -172,9 +175,13 @@ public class MZmineJsonGenerator {
    * JSON of data points array
    *
    * @param dps
+   * @param normalizer
    * @return
    */
-  public static JsonArray genJSONData(DataPoint[] dps) {
+  public static JsonArray genJSONData(DataPoint[] dps,
+      @NotNull final IntensityNormalizer normalizer) {
+    dps = normalizer.normalize(dps, false);
+
     JsonArrayBuilder data = Json.createArrayBuilder();
     JsonArrayBuilder signal = Json.createArrayBuilder();
     for (DataPoint dp : dps) {
@@ -186,7 +193,8 @@ public class MZmineJsonGenerator {
     return data.build();
   }
 
-  public static String generateJSON(final SpectralLibraryEntry entry) {
+  public static String generateJSON(final SpectralLibraryEntry entry,
+      @NotNull final IntensityNormalizer normalizer) {
     JsonObjectBuilder json = Json.createObjectBuilder();
     // tag spectrum from mzmine
     String version = String.valueOf(SemverVersionReader.getMZmineVersion());
@@ -217,7 +225,7 @@ public class MZmineJsonGenerator {
     json.add(DBEntryField.NUM_PEAKS.getMZmineJsonID(), dps.length);
 
     // add data points array
-    json.add("peaks", genJSONData(dps));
+    json.add("peaks", genJSONData(dps, normalizer));
 
     return json.build().toString();
   }
