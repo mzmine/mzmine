@@ -98,7 +98,7 @@ public class ImageCorrelateGroupingParameters extends SimpleParameterSet {
   public Map<String, Parameter<?>> getNameParameterMap() {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
-    nameParameterMap.put("Ignore very high intensity outliers", HOTSPOT_REMOVAL);
+    nameParameterMap.put("Ignore very high intensity outliers", getParameter(HOTSPOT_REMOVAL));
     return nameParameterMap;
   }
 }

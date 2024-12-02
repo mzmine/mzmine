@@ -119,9 +119,9 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("Correlation grouping", FSHAPE_CORRELATION);
-    nameParameterMap.put("Intensity correlation threshold", NOISE_LEVEL);
-    nameParameterMap.put("Min height", MIN_HEIGHT);
+    nameParameterMap.put("Correlation grouping", getParameter(FSHAPE_CORRELATION));
+    nameParameterMap.put("Intensity correlation threshold", getParameter(NOISE_LEVEL));
+    nameParameterMap.put("Min height", getParameter(MIN_HEIGHT));
     return nameParameterMap;
   }
 

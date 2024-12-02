@@ -142,6 +142,14 @@ public interface ParameterSet extends ParameterContainer {
    * Extend this method to map old parameter names (maybe saved to batch files) to the parameter.
    * Only works if the old and new parameter are of the same type (save and load the parameter
    * values the same way).
+   * <p></p>
+   * Intended usage is: <p></p>
+   * {@code nameParameterMap.put("m/z tolerance", getParameter(mzTolerance));}
+   * <p></p>
+   * <p>
+   * It is important to use {@link ParameterSet#getParameter(Parameter)} instead of directly passing
+   * the static final parameter. Otherwise, new parameter set instances will always use the same
+   * instance of the parameter.
    *
    * @return map of name to parameter
    */
