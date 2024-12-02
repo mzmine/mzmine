@@ -49,7 +49,7 @@ import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.NormalizeIntensityOptions;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -96,7 +96,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private final OnlineReactionJsonWriter reactionJsonWriter;
-  private final NormalizeIntensityOptions normalizer;
+  private final IntensityNormalizer normalizer;
   private int currentIndex = 0;
   // by robin
   private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();

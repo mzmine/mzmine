@@ -28,7 +28,7 @@ package io.github.mzmine.modules.io.export_library_gnps_batch;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.NormalizeIntensityOptions;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -68,7 +68,7 @@ public class GNPSLibraryBatchExportTask extends AbstractTask {
   private final List<SpectralLibrary> libraries;
   private final File tsvFile;
   private final File mgfFile;
-  private final NormalizeIntensityOptions normalizer;
+  private final IntensityNormalizer normalizer;
 
   private int totalEntries = 0;
   private int finishedEntries = 0;

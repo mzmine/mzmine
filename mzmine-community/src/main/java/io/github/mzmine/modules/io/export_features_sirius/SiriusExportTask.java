@@ -51,7 +51,7 @@ import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.NormalizeIntensityOptions;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -103,7 +103,7 @@ public class SiriusExportTask extends AbstractTask {
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private final AtomicInteger processedRows = new AtomicInteger(0);
   private final OnlineReactionJsonWriter reactionJsonWriter;
-  private final NormalizeIntensityOptions normalizer;
+  private final IntensityNormalizer normalizer;
 
 
   protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {

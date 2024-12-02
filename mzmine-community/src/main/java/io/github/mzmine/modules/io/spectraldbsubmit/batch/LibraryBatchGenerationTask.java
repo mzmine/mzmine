@@ -54,7 +54,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.NormalizeIntensityOptions;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -106,7 +106,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final MsMsQualityChecker msMsQualityChecker;
   private final boolean enableMsnMerge;
   private final MsLevelFilter postMergingMsLevelFilter;
-  private final NormalizeIntensityOptions normalizer;
+  private final IntensityNormalizer normalizer;
   public long totalRows = 0;
   public AtomicInteger finishedRows = new AtomicInteger(0);
   public AtomicInteger exported = new AtomicInteger(0);

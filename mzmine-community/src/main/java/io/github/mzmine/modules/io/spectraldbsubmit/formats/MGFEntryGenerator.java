@@ -41,7 +41,7 @@ import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
-import io.github.mzmine.parameters.parametertypes.NormalizeIntensityOptions;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.text.DecimalFormat;
@@ -130,7 +130,7 @@ public class MGFEntryGenerator {
    * formatting the intensity values, removing 0 values after formatting.
    */
   public static SpectrumString createMGFEntry(SpectralLibraryEntry entry,
-      @NotNull final NormalizeIntensityOptions normalizer) {
+      @NotNull final IntensityNormalizer normalizer) {
     String br = "\n";
     StringBuilder s = new StringBuilder();
     s.append("BEGIN IONS").append(br);
@@ -161,7 +161,7 @@ public class MGFEntryGenerator {
    * @return spectral data as a string ending with a new line
    */
   private static SpectrumString createSpectrumStringWithNumPeaks(
-      final @NotNull NormalizeIntensityOptions normalizer, DataPoint[] dps) {
+      final @NotNull IntensityNormalizer normalizer, DataPoint[] dps) {
     NumberFormat mzForm = new DecimalFormat("0.######");
     // minimum intensity after formatting
     NumberFormat intensityForm = normalizer.createExportFormat();

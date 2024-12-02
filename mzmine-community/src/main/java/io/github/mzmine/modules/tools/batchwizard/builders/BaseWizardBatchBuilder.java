@@ -144,8 +144,8 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
-import io.github.mzmine.parameters.parametertypes.NormalizeIntensityOptions;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
@@ -431,7 +431,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER, false);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.NORMALIZER,
-        NormalizeIntensityOptions.ORIGINAL);
+        IntensityNormalizer.createDefault());
     param.setParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT, false);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER, false);
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY, AbundanceMeasure.Area);
@@ -453,8 +453,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     // going back into scans so rather use scan mz tol
     param.setParameter(SiriusExportParameters.MERGE_PARAMETER, false);
-    param.setParameter(SiriusExportParameters.NORMALIZE,
-        NormalizeIntensityOptions.ORIGINAL_SCIENTIFIC_FORMAT);
+    param.setParameter(SiriusExportParameters.NORMALIZE, IntensityNormalizer.createScientific());
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTICHARGE, false);
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTIMERS, false);
     param.setParameter(SiriusExportParameters.NEED_ANNOTATION, false);
@@ -742,7 +741,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(LibraryBatchGenerationParameters.mergeMzTolerance, true, mzTolScans);
     param.setParameter(LibraryBatchGenerationParameters.exportFormat, exportFormat);
     param.setParameter(LibraryBatchGenerationParameters.normalizer,
-        NormalizeIntensityOptions.ORIGINAL);
+        IntensityNormalizer.createDefault());
     param.setParameter(LibraryBatchGenerationParameters.file, fileName);
     param.setParameter(LibraryBatchGenerationParameters.postMergingMsLevelFilter,
         new MsLevelFilter(Options.MSn));

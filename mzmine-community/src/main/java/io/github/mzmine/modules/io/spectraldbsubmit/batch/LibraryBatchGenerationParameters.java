@@ -40,7 +40,7 @@ package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.NormalizeIntensityComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
@@ -71,7 +71,7 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
   public static final ParameterSetParameter<LibraryBatchMetadataParameters> metadata = new ParameterSetParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
-  public static final NormalizeIntensityComboParameter normalizer = new NormalizeIntensityComboParameter();
+  public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createWithoutScientific();
 
   public static final OptionalParameter<MZToleranceParameter> mergeMzTolerance = new OptionalParameter<>(
       new MZToleranceParameter("m/z tolerance (merging)",

@@ -49,8 +49,8 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.NormalizeIntensityComboParameter;
-import io.github.mzmine.parameters.parametertypes.NormalizeIntensityOptions;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizerOptions;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -71,8 +71,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
       new MsMsSpectraMergeParameters(), true);
 
   // SIRIUS is compatible with scientific format and this format better captures all numbers
-  public static final NormalizeIntensityComboParameter NORMALIZE = new NormalizeIntensityComboParameter(
-      NormalizeIntensityOptions.ORIGINAL_SCIENTIFIC_FORMAT);
+  public static final IntensityNormalizerComboParameter NORMALIZE = new IntensityNormalizerComboParameter(
+      IntensityNormalizerOptions.ORIGINAL, true, true);
   /**
    * MZTolerance to exclude duplicates in correlated spectrum
    */

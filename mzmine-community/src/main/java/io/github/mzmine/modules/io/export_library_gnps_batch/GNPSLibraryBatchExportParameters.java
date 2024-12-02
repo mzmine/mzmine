@@ -27,7 +27,7 @@ package io.github.mzmine.modules.io.export_library_gnps_batch;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.NormalizeIntensityComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import java.util.List;
@@ -47,7 +47,7 @@ public class GNPSLibraryBatchExportParameters extends SimpleParameterSet {
       extensions, "gnps_lib");
 
   // scientific format untested on GNPS library submission
-  public static final NormalizeIntensityComboParameter normalizer = NormalizeIntensityComboParameter.createWithoutScientific();
+  public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createWithoutScientific();
 
 
   public GNPSLibraryBatchExportParameters() {

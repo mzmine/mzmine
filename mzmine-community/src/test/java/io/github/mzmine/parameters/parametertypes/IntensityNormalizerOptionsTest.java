@@ -32,20 +32,20 @@ import java.util.Random;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class NormalizeIntensityOptionsTest {
+class IntensityNormalizerOptionsTest {
 
   @Test
   void testNormalizeArray() {
     var values = generateRandomNumbers();
     Assertions.assertEquals(100,
-        Arrays.stream(NormalizeIntensityOptions.SUM_AS_100.normalize(values)).sum(), 0.000001);
+        Arrays.stream(IntensityNormalizerOptions.SUM_AS_100.normalize(values)).sum(), 0.000001);
     Assertions.assertEquals(1,
-        Arrays.stream(NormalizeIntensityOptions.SUM_AS_1.normalize(values)).sum(), 0.000001);
+        Arrays.stream(IntensityNormalizerOptions.SUM_AS_1.normalize(values)).sum(), 0.000001);
     Assertions.assertEquals(100,
-        Arrays.stream(NormalizeIntensityOptions.HIGHEST_SIGNAL_AS_100.normalize(values)).max()
+        Arrays.stream(IntensityNormalizerOptions.HIGHEST_SIGNAL_AS_100.normalize(values)).max()
             .orElse(0), 0.000001);
     Assertions.assertEquals(1,
-        Arrays.stream(NormalizeIntensityOptions.HIGHEST_SIGNAL_AS_1.normalize(values)).max()
+        Arrays.stream(IntensityNormalizerOptions.HIGHEST_SIGNAL_AS_1.normalize(values)).max()
             .orElse(0), 0.000001);
   }
 
@@ -60,15 +60,15 @@ class NormalizeIntensityOptionsTest {
         .toArray(DataPoint[]::new);
 
     Assertions.assertEquals(100,
-        Arrays.stream(NormalizeIntensityOptions.SUM_AS_100.normalize(values))
+        Arrays.stream(IntensityNormalizerOptions.SUM_AS_100.normalize(values))
             .mapToDouble(DataPoint::getIntensity).sum(), 0.000001);
-    Assertions.assertEquals(1, Arrays.stream(NormalizeIntensityOptions.SUM_AS_1.normalize(values))
+    Assertions.assertEquals(1, Arrays.stream(IntensityNormalizerOptions.SUM_AS_1.normalize(values))
         .mapToDouble(DataPoint::getIntensity).sum(), 0.000001);
     Assertions.assertEquals(100,
-        Arrays.stream(NormalizeIntensityOptions.HIGHEST_SIGNAL_AS_100.normalize(values))
+        Arrays.stream(IntensityNormalizerOptions.HIGHEST_SIGNAL_AS_100.normalize(values))
             .mapToDouble(DataPoint::getIntensity).max().orElse(0), 0.000001);
     Assertions.assertEquals(1,
-        Arrays.stream(NormalizeIntensityOptions.HIGHEST_SIGNAL_AS_1.normalize(values))
+        Arrays.stream(IntensityNormalizerOptions.HIGHEST_SIGNAL_AS_1.normalize(values))
             .mapToDouble(DataPoint::getIntensity).max().orElse(0), 0.000001);
   }
 }
