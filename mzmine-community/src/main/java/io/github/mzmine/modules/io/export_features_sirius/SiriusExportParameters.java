@@ -151,8 +151,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
   public @Nullable String getVersionMessage(final int version) {
     return switch (version) {
       case 2 -> """
-          Up to mzmine version ≤ 3.4.3 the intensities were exported normalized to the highest signal as 100%. \
-          mzmine versions > 3.4.3 add options to control normalization. The default changed to original intensities exported in scientific notation (e.g., 1.05E5).""";
+          Up to mzmine version ≤ 4.4.3 the intensities were exported normalized to the highest signal as 100%. \
+          mzmine versions > 4.4.3 add options to control normalization. The default changed to original intensities exported in scientific notation (e.g., 1.05E5).""";
       default -> null;
     };
   }
