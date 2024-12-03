@@ -765,17 +765,15 @@ public class FileAndPathUtil {
   public static FileChannel openTempFileChannel(String prefix, String suffix, Path dir)
       throws IOException, AccessDeniedException {
 
+    // only try to handle a certain number of exceptions.
+
+    int exceptionCounter = 0;
     // filename first
     Path f = generatePath(prefix + suffix, dir);
     // run until successful or exception
     // even if file does not exist in first check - FileChannel.open is best check for success
-    while (true) {
+    while (exceptionCounter < 5) {
       try {
-        // try adding random numbers if file already exists
-        while (f.toFile().exists()) {
-          f = generateRandomPath(prefix, suffix, dir);
-        }
-
         var channel = FileChannel.open(f, SPARSE_OPEN_OPTIONS);
         f.toFile().deleteOnExit();
         try {
@@ -797,16 +795,20 @@ public class FileAndPathUtil {
             f.toFile().delete();
           }
         } catch (Exception e) {
+          exceptionCounter++;
         }
         logger.fine("Open file channel to: " + f.toFile().getAbsolutePath());
         return channel;
       } catch (FileAlreadyExistsException e) {
         // ignore and try next file name
+        exceptionCounter++;
       } catch (AccessDeniedException e) {
+        exceptionCounter++;
         // on exFAT file system the FileChannel.open throws AccessDeniedException for existing files
         // maybe because sparse files are not supported and the direct delete triggers issues
         // therefore only throw exception if the file does not exist
         if (!f.toFile().exists()) {
+          // if the file does not exist and we cannot write, we need to actually cancel and throw
           logger.log(Level.WARNING, //
               """
                   Access denied: Please choose a temporary directory with write access in the mzmine preferences. \
@@ -814,7 +816,14 @@ public class FileAndPathUtil {
           throw e;
         }
       }
+
+      // try adding random numbers if file already exists
+      f = generateRandomPath(prefix, suffix, dir);
     }
+
+    throw new IOException(
+        "Cannot create temp file in path %s. Please select a different directory.".formatted(
+            dir.toFile().getAbsolutePath()));
   }
 
   /**
