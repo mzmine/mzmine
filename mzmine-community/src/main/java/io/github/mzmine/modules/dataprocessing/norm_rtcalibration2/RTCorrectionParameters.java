@@ -27,8 +27,10 @@
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -37,6 +39,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import java.util.List;
 
 public class RTCorrectionParameters extends SimpleParameterSet {
 
@@ -55,14 +58,21 @@ public class RTCorrectionParameters extends SimpleParameterSet {
       "Minimum height of a feature to be selected as standard for RT correction",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final OriginalFeatureListHandlingParameter handleOriginal =
-      new OriginalFeatureListHandlingParameter("Original feature list",
-          "Defines the processing.\nKEEP is to keep the original feature list and create a new"
-              + "processed list.\nREMOVE saves memory.", false);
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      "Original feature list",
+      "Defines the processing.\nKEEP is to keep the original feature list and create a new"
+          + "processed list.\nREMOVE saves memory.", false);
+
+  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>("Reference samples",
+      """
+      Select all sample types that shall be used to calculate the recalibration from.
+      The recalibration of all other samples will be based on the acquisition order, which is
+      determined by the acquisition type column in the metadata (CTRL/CMD + M).
+      """, SampleType.values(), List.of(SampleType.values()));
 
   public RTCorrectionParameters() {
     super(
-        new Parameter[]{featureLists, suffix, MZTolerance, RTTolerance, minHeight, handleOriginal},
+        new Parameter[]{featureLists, sampleTypes, suffix, MZTolerance, RTTolerance, minHeight, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_rt_calibration/norm_rt_calibration.html");
   }
 

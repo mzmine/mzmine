@@ -126,4 +126,9 @@ public class SampleTypeFilter {
   public boolean isEmpty() {
     return types.isEmpty();
   }
+
+  @Override
+  public String toString() {
+    return "SampleTypeFilter{" + "types=" + types + '}';
+  }
 }

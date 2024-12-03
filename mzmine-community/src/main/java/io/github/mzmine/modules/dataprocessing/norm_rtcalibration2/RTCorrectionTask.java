@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteCorrectionType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -54,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,6 +64,7 @@ class RTCorrectionTask extends AbstractTask {
   private final MZmineProject project;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final List<FeatureList> flists;
+  private final SampleTypeFilter sampleTypeFilter;
 
   private int processedRows, totalRows;
 
@@ -88,6 +91,8 @@ class RTCorrectionTask extends AbstractTask {
     mzTolerance = parameters.getParameter(RTCorrectionParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(RTCorrectionParameters.RTTolerance).getValue();
     minHeight = parameters.getParameter(RTCorrectionParameters.minHeight).getValue();
+    sampleTypeFilter = new SampleTypeFilter(
+        parameters.getParameter(RTCorrectionParameters.sampleTypes).getValue());
   }
 
   @Override
@@ -109,19 +114,84 @@ class RTCorrectionTask extends AbstractTask {
     if (flists.size() < 2) {
       setStatus(TaskStatus.FINISHED);
     }
-
-    final List<FeatureListRow> standardCandidates = new ArrayList<>();
-    final FeatureList baseList = flists.getFirst();
+    final List<FeatureList> flistsWithMoreThanOneFile = flists.stream()
+        .filter(fl -> fl.getNumberOfRows() > 1).toList();
+    if (!flistsWithMoreThanOneFile.isEmpty()) {
+      final String message = "RT recalibration requires feature lists with only one file. Some feature lists contain more than one raw data file (%s).".formatted(
+          flistsWithMoreThanOneFile.stream().map(FeatureList::getName)
+              .collect(Collectors.joining(", ")));
+      final RuntimeException ex = new RuntimeException(message);
+      error(message, ex);
+      return;
+    }
 
     final Map<FeatureList, List<FeatureListRow>> mzSortedRows = new HashMap<>();
     flists.forEach(flist -> mzSortedRows.put(flist,
         flist.stream().sorted(Comparator.comparingDouble(FeatureListRow::getAverageMZ)).toList()));
 
+    final List<FeatureList> referenceFlists = flists.stream()
+        .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
+        .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
+    final FeatureList baseList = flists.getFirst();
+
+    if (referenceFlists.isEmpty()) {
+      throw new RuntimeException(
+          "Sample type filter %s does not find any matching feature lists %s.".formatted(
+              sampleTypeFilter,
+              flists.stream().map(FeatureList::getName).collect(Collectors.joining(", "))));
+    }
+
+    final List<RtStandard> goodStandards = findStandards(baseList, referenceFlists, mzSortedRows);
+    goodStandards.sort(Comparator.comparingDouble(RtStandard::getMedianRt));
+    final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
+        referenceFlists);
+
+    for (FeatureList referenceFlist : referenceFlists) {
+      new RtCalibrationFunction(referenceFlist, monotonousStandards);
+    }
+
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  /**
+   * @param goodStandardsByRt All detected standards sorted by rt.
+   * @param referenceFlists   The reference feature lists of these standards.
+   * @return
+   */
+  private static List<RtStandard> removeNonMonotonousStandards(List<RtStandard> goodStandardsByRt,
+      List<FeatureList> referenceFlists) {
+    final List<RtStandard> monotonousStandards = new ArrayList<>(goodStandardsByRt);
+    for (int i = 1; i < monotonousStandards.size(); i++) {
+      // check that all rts of this standard are higher than the individual feature lists rts in the previous standard.
+      // otherwise we may get non-monotonous scan rts.
+      final RtStandard standard = monotonousStandards.get(i);
+      final RtStandard previous = monotonousStandards.get(i - 1);
+
+      for (FeatureList referenceFlist : referenceFlists) {
+        final FeatureListRow rowA = standard.standards().get(referenceFlist);
+        final FeatureListRow rowB = previous.standards().get(referenceFlist);
+        if (rowA == null || rowB == null) {
+          throw new IllegalStateException(
+              "Not all standards found in all reference feature lists. This should not be the case.");
+        }
+
+        // if the previous rt is smaller than this rt, although it is the other way round for the
+        // average across all feature lists, we cannot use this standard.
+        if (rowA.getAverageRT() < rowB.getAverageRT()) {
+          monotonousStandards.remove(i);
+          i--; // decrement by one so we don't skip a standard
+          break;
+        }
+      }
+    }
+    monotonousStandards.sort(Comparator.comparingDouble(RtStandard::getMedianRt));
+    return monotonousStandards;
+  }
+
+  private @NotNull List<RtStandard> findStandards(FeatureList baseList,
+      List<FeatureList> referenceFlists, Map<FeatureList, List<FeatureListRow>> mzSortedRows) {
     final List<FeatureListRow> baseRowsSorted = mzSortedRows.get(baseList);
     final List<RtStandard> goodStandards = new ArrayList<>();
-    final List<RtStandard> minMatchedStandards = new ArrayList<>();
-
-    // option to only use qcs to create fits
 
     for (FeatureListRow canditateRow : baseRowsSorted) {
       final RtStandard rtStandard = new RtStandard(canditateRow, flists);
@@ -130,8 +200,8 @@ class RTCorrectionTask extends AbstractTask {
       final DataPoint[] dataPoints =
           ms2 != null ? ScanUtils.extractDataPoints(ms2, true) : new DataPoint[0];
 
-      for (int i = 1; i < flists.size(); i++) {
-        final FeatureList flist = flists.get(i);
+      for (int i = 1; i < referenceFlists.size(); i++) {
+        final FeatureList flist = referenceFlists.get(i);
         final List<FeatureListRow> rows = mzSortedRows.get(flist);
         // todo: check mz uniqueness
         final List<FeatureListRow> candidates = FeatureListUtils.getCandidatesWithinRanges(
@@ -168,9 +238,6 @@ class RTCorrectionTask extends AbstractTask {
       if (rtStandard.isValid()) {
         goodStandards.add(rtStandard);
       }
-      if (rtStandard.getNumberOfMatches() > 0.8 * flists.size()) {
-        minMatchedStandards.add(rtStandard);
-      }
     }
 
     final DoubleSummaryStatistics stats = goodStandards.stream()
@@ -178,7 +245,7 @@ class RTCorrectionTask extends AbstractTask {
     logger.finest("Found %d good standards that appear in all %d feature lists. %s".formatted(
         goodStandards.size(), flists.size(), stats.toString()));
 
-    setStatus(TaskStatus.FINISHED);
+    return goodStandards;
   }
 
   /**
