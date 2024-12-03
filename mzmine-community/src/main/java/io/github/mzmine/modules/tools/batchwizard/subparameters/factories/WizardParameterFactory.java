@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * implemented by preset enums of parts with multiple preset options
@@ -43,5 +44,7 @@ public interface WizardParameterFactory extends UniqueIdSupplier {
    *
    * @return {@link Enum#name()}
    */
-  String getUniqueId();
+  @Override
+  @NotNull
+  String getUniqueID();
 }
