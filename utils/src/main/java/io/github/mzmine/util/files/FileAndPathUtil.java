@@ -767,8 +767,15 @@ public class FileAndPathUtil {
 
     // filename first
     Path f = generatePath(prefix + suffix, dir);
+    // run until successful or exception
+    // even if file does not exist in first check - FileChannel.open is best check for success
     while (true) {
       try {
+        // try adding random numbers if file already exists
+        while (f.toFile().exists()) {
+          f = generateRandomPath(prefix, suffix, dir);
+        }
+
         var channel = FileChannel.open(f, SPARSE_OPEN_OPTIONS);
         f.toFile().deleteOnExit();
         try {
@@ -783,6 +790,9 @@ public class FileAndPathUtil {
           // TODO macOS
           // TODO wsl
           // TODO docker
+          // does not work on exFAT partition like external drive
+          // will work the first time but then fail on FileChannel.open the second time with AccessDeniedException
+          // NTFS works and apple file system as well
           if (earlyTempFileCleanup) {
             f.toFile().delete();
           }
@@ -793,14 +803,17 @@ public class FileAndPathUtil {
       } catch (FileAlreadyExistsException e) {
         // ignore and try next file name
       } catch (AccessDeniedException e) {
-        logger.log(Level.WARNING, //
-            """
-                Access denied: Please choose a temporary directory with write access in the mzmine preferences. \
-                No write access in """ + f.toFile().getAbsolutePath() + e.getMessage());
-        throw e;
+        // on exFAT file system the FileChannel.open throws AccessDeniedException for existing files
+        // maybe because sparse files are not supported and the direct delete triggers issues
+        // therefore only throw exception if the file does not exist
+        if (!f.toFile().exists()) {
+          logger.log(Level.WARNING, //
+              """
+                  Access denied: Please choose a temporary directory with write access in the mzmine preferences. \
+                  No write access in """ + f.toFile().getAbsolutePath() + e.getMessage());
+          throw e;
+        }
       }
-      // try adding random numbers
-      f = generateRandomPath(prefix, suffix, dir);
     }
   }
 
