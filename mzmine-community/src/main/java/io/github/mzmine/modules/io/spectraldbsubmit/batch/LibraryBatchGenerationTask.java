@@ -377,7 +377,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     // if intensity is 0 after formatting
     String stringEntry = switch (format) {
       case msp -> MSPEntryGenerator.createMSPEntry(entry, normalizer);
-      case json -> MZmineJsonGenerator.generateJSON(entry, normalizer);
+      case json_mzmine -> MZmineJsonGenerator.generateJSON(entry, normalizer);
       case mgf -> MGFEntryGenerator.createMGFEntry(entry, normalizer).spectrum();
     };
     writer.append(stringEntry).append("\n");

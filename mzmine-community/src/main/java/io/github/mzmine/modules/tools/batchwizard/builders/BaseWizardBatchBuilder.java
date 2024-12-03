@@ -731,7 +731,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(LibraryBatchGenerationModule.class).cloneParameterSet();
 
-    var exportFormat = SpectralLibraryExportFormats.json;
+    var exportFormat = SpectralLibraryExportFormats.json_mzmine;
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
     fileName = new File(fileName.getParentFile(),
         fileName.getName() + "_lib." + exportFormat.getExtension());

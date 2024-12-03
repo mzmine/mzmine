@@ -23,38 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.spectraldbsubmit.batch;
+package io.github.mzmine.datamodel.utils;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
-public enum SpectralLibraryExportFormats implements UniqueIdSupplier {
-  json_mzmine, msp, mgf;
+public interface UniqueIdSupplier {
 
-  @Override
-  public String toString() {
-    return switch (this) {
-      case json_mzmine -> "mzmine json (recommended)";
-      case msp -> "NIST msp";
-      case mgf -> "mgf";
-    };
-  }
+  /**
+   * This value should not change throughout versions
+   *
+   * @return a stable unique ID that may be used in save and load
+   */
+  @NotNull
+  String getUniqueID();
 
-  public String getExtension() {
-    return switch (this) {
-      case json_mzmine -> "json";
-      case msp -> "msp";
-      case mgf -> "mgf";
-    };
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    // do not change these values are used for import export
-    return switch (this) {
-      case json_mzmine -> "MZmine json (recommended)"; // this was the initial name
-      case msp -> "msp";
-      case mgf -> "mgf";
-    };
-  }
 }

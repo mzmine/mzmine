@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,13 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 
 /**
  * implemented by preset enums of parts with multiple preset options
  */
-public interface WizardParameterFactory {
+public interface WizardParameterFactory extends UniqueIdSupplier {
 
   /**
    * @return the default parameters for this preset
