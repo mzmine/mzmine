@@ -165,19 +165,16 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   public static int getRecommendedBinWidth(IMSRawDataFile file) {
     // timsTOF data can be empty in the early scans, so we use one from the middle
     final Frame frame = file.getFrame(file.getNumberOfFrames() / 2);
-    switch (frame.getMobilityType()) {
-      case NONE, DRIFT_TUBE, TRAVELING_WAVE, FAIMS -> {
-        return 1;
-      }
+    return switch (frame.getMobilityType()) {
+      case NONE, DRIFT_TUBE, TRAVELING_WAVE, FAIMS, MIXED, OTHER -> 1;
       case TIMS -> {
-        int index = frame.getNumberOfMobilityScans() / 2;
+        final int index = frame.getNumberOfMobilityScans() / 2;
         final double mob1 = frame.getMobilityScan(index).getMobility();
         final double mob2 = frame.getMobilityScan(index + 1).getMobility();
         final double delta = Math.abs(mob1 - mob2);
-        return (int) Math.max(1d, 0.0008 / delta);
+        yield (int) Math.max(1d, 0.0008 / delta) * 2;
       }
-    }
-    return 1;
+    };
   }
 
   @Nullable
