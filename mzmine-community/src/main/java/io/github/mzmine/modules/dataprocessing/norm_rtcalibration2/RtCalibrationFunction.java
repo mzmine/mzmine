@@ -7,6 +7,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.List;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
+import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,6 +52,7 @@ public class RtCalibrationFunction {
 
     interpolation = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
         calibratedRtValues.toDoubleArray());
+    LoessInterpolator loessInterpolator = new LoessInterpolator();
   }
 
   public float getCorrectedRt(float originalRt) {

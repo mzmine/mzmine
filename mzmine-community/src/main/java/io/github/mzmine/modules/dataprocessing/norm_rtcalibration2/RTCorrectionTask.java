@@ -115,7 +115,7 @@ class RTCorrectionTask extends AbstractTask {
       setStatus(TaskStatus.FINISHED);
     }
     final List<FeatureList> flistsWithMoreThanOneFile = flists.stream()
-        .filter(fl -> fl.getNumberOfRows() > 1).toList();
+        .filter(fl -> fl.getNumberOfRawDataFiles() > 1).toList();
     if (!flistsWithMoreThanOneFile.isEmpty()) {
       final String message = "RT recalibration requires feature lists with only one file. Some feature lists contain more than one raw data file (%s).".formatted(
           flistsWithMoreThanOneFile.stream().map(FeatureList::getName)
@@ -147,7 +147,9 @@ class RTCorrectionTask extends AbstractTask {
         referenceFlists);
 
     for (FeatureList referenceFlist : referenceFlists) {
-      new RtCalibrationFunction(referenceFlist, monotonousStandards);
+      final RtCalibrationFunction func = new RtCalibrationFunction(referenceFlist,
+          monotonousStandards);
+      logger.finest(func.toString());
     }
 
     setStatus(TaskStatus.FINISHED);
@@ -177,7 +179,7 @@ class RTCorrectionTask extends AbstractTask {
 
         // if the previous rt is smaller than this rt, although it is the other way round for the
         // average across all feature lists, we cannot use this standard.
-        if (rowA.getAverageRT() < rowB.getAverageRT()) {
+        if (rowA.getAverageRT() <= rowB.getAverageRT()) {
           monotonousStandards.remove(i);
           i--; // decrement by one so we don't skip a standard
           break;
