@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,6 +49,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private int scanNumber;
   private int msLevel;
   private float retentionTime;
+  private Float correctedRetentionTime;
   private PolarityType polarity;
   private String scanDefinition;
   private Range<Double> scanMZRange;
@@ -178,7 +178,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
    */
   @Override
   public float getRetentionTime() {
-    return retentionTime;
+    return correctedRetentionTime != null ? correctedRetentionTime : retentionTime;
   }
 
   /**
@@ -187,7 +187,6 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   public void setRetentionTime(float retentionTime) {
     this.retentionTime = retentionTime;
   }
-
 
   @Override
   public String toString() {
@@ -250,6 +249,18 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   @Override
   public @Nullable Float getInjectionTime() {
     return injectionTime;
+  }
+
+  public void setCorrectedRetentionTime(float corrected) {
+    this.correctedRetentionTime = corrected;
+  }
+
+  public float getUncorrectedRetentionTime() {
+    return retentionTime;
+  }
+
+  public Float getCorrectedRetentionTime() {
+    return correctedRetentionTime;
   }
 }
 

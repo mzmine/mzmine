@@ -30,14 +30,17 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
@@ -61,36 +64,34 @@ import org.jetbrains.annotations.Nullable;
 
 class RTCorrectionTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(RTCorrectionTask.class.getName());
+
   private final MZmineProject project;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final List<FeatureList> flists;
   private final SampleTypeFilter sampleTypeFilter;
+  private final double bandwidth;
 
   private int processedRows, totalRows;
 
-  private final String suffix;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
   private final double minHeight;
   private final ParameterSet parameters;
 
-  private final WeightedCosineSpectralSimilarity cosine = new WeightedCosineSpectralSimilarity();
-
   public RTCorrectionTask(MZmineProject project, ParameterSet parameters,
       @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
+    this.parameters = parameters;
     this.project = project;
     this.flists = Arrays.stream(
             parameters.getParameter(RTCorrectionParameters.featureLists).getValue()
                 .getMatchingFeatureLists()).sorted(Comparator.comparing(FeatureList::getNumberOfRows))
         .map(FeatureList.class::cast).toList();
-    this.parameters = parameters;
-
-    suffix = parameters.getParameter(RTCorrectionParameters.suffix).getValue();
     mzTolerance = parameters.getParameter(RTCorrectionParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(RTCorrectionParameters.RTTolerance).getValue();
     minHeight = parameters.getParameter(RTCorrectionParameters.minHeight).getValue();
+    bandwidth = parameters.getValue(RTCorrectionParameters.correctionBandwidth);
     sampleTypeFilter = new SampleTypeFilter(
         parameters.getParameter(RTCorrectionParameters.sampleTypes).getValue());
   }
@@ -114,50 +115,86 @@ class RTCorrectionTask extends AbstractTask {
     if (flists.size() < 2) {
       setStatus(TaskStatus.FINISHED);
     }
+
     final List<FeatureList> flistsWithMoreThanOneFile = flists.stream()
         .filter(fl -> fl.getNumberOfRawDataFiles() > 1).toList();
     if (!flistsWithMoreThanOneFile.isEmpty()) {
-      final String message = "RT recalibration requires feature lists with only one file. Some feature lists contain more than one raw data file (%s).".formatted(
-          flistsWithMoreThanOneFile.stream().map(FeatureList::getName)
-              .collect(Collectors.joining(", ")));
-      final RuntimeException ex = new RuntimeException(message);
-      error(message, ex);
+      final RuntimeException ex = new RuntimeException(
+          createMoreThanOneFileMessage(flistsWithMoreThanOneFile));
+      error(ex.getMessage(), ex);
       return;
     }
 
-    final Map<FeatureList, List<FeatureListRow>> mzSortedRows = new HashMap<>();
-    flists.forEach(flist -> mzSortedRows.put(flist,
-        flist.stream().sorted(Comparator.comparingDouble(FeatureListRow::getAverageMZ)).toList()));
-    final List<FeatureList> referenceFlists = flists.stream()
+    final List<FeatureList> referenceFlistsByNumRows = flists.stream()
         .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
         .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
-    final FeatureList baseList = flists.getFirst();
-
-    if (referenceFlists.isEmpty()) {
-      throw new RuntimeException(
-          "Sample type filter %s does not find any matching feature lists %s.".formatted(
-              sampleTypeFilter,
-              flists.stream().map(FeatureList::getName).collect(Collectors.joining(", "))));
+    if (referenceFlistsByNumRows.isEmpty()) {
+      final RuntimeException ex = new RuntimeException(
+          createUnsatisfiedSampleFilterMessage(sampleTypeFilter, flists));
+      error(ex.getMessage(), ex);
+      return;
     }
 
-    final List<RtStandard> goodStandards = findStandards(baseList, referenceFlists, mzSortedRows);
+    final FeatureList baseList = referenceFlistsByNumRows.getFirst();
+    final Map<FeatureList, List<FeatureListRow>> mzSortedRows = new HashMap<>();
+    referenceFlistsByNumRows.forEach(flist -> mzSortedRows.put(flist,
+        flist.stream().sorted(Comparator.comparingDouble(FeatureListRow::getAverageMZ)).toList()));
+
+    final List<RtStandard> goodStandards = findStandards(baseList, referenceFlistsByNumRows,
+        mzSortedRows, mzTolerance, rtTolerance, minHeight);
     goodStandards.sort(Comparator.comparingDouble(RtStandard::getMedianRt));
     final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
-        referenceFlists);
+        referenceFlistsByNumRows);
+    final List<RtCalibrationFunction> allCalibrations = interpolateMissingCalibrations(
+        referenceFlistsByNumRows, flists, project.getProjectMetadata(), monotonousStandards,
+        bandwidth);
 
-    final Map<RawDataFile, RtCalibrationFunction> referenceCalibrations = referenceFlists.stream()
-        .map(flist -> new RtCalibrationFunction(flist, monotonousStandards))
-        .collect(Collectors.toMap(cali -> cali.getRawDataFile(), cali -> cali));
+    for (RtCalibrationFunction cali : allCalibrations) {
+      final RawDataFile file = cali.getRawDataFile();
+      for (Scan scan : file.getScans()) {
+        ((SimpleScan) scan).setCorrectedRetentionTime(
+            cali.getCorrectedRtLoess(scan.getRetentionTime()));
+      }
+    }
 
-    // calculate calibrations for other files
     for (FeatureList flist : flists) {
+      flist.streamFeatures().forEach(FeatureDataUtils::recalculateIonSeriesDependingTypes);
+    }
+
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  static @NotNull String createUnsatisfiedSampleFilterMessage(SampleTypeFilter sampleTypeFilter,
+      List<FeatureList> flists) {
+    return "Sample type filter %s does not find any matching feature lists %s.".formatted(
+        sampleTypeFilter,
+        flists.stream().map(FeatureList::getName).collect(Collectors.joining(", ")));
+  }
+
+  static @NotNull String createMoreThanOneFileMessage(List<FeatureList> flistsWithMoreThanOneFile) {
+    final String message = "RT recalibration requires feature lists with only one file. Some feature lists contain more than one raw data file (%s).".formatted(
+        flistsWithMoreThanOneFile.stream().map(FeatureList::getName)
+            .collect(Collectors.joining(", ")));
+    return message;
+  }
+
+  static @NotNull List<RtCalibrationFunction> interpolateMissingCalibrations(
+      List<FeatureList> referenceFlists, List<FeatureList> allFeatureLists, MetadataTable metadata,
+      List<RtStandard> monotonousStandards, double bandwidth) {
+    final Map<RawDataFile, RtCalibrationFunction> referenceCalibrations = referenceFlists.stream()
+        .map(flist -> new RtCalibrationFunction(flist, monotonousStandards, bandwidth))
+        .collect(Collectors.toMap(RtCalibrationFunction::getRawDataFile, cali -> cali));
+    final List<RtCalibrationFunction> allCalibrations = new ArrayList<>(
+        referenceCalibrations.values());
+    // calculate calibrations for other files
+    for (FeatureList flist : allFeatureLists) {
       final RawDataFile file = flist.getRawDataFile(0);
       final RtCalibrationFunction cali = referenceCalibrations.get(file);
-      final MetadataTable metadata = project.getProjectMetadata();
       if (cali != null) {
         continue;
       }
 
+      // if we cannot find one cali, just reuse the same as previous and next. Makes downstream implementation easier.
       RtCalibrationFunction previousCali = getPreviousRun(file, referenceCalibrations, metadata);
       RtCalibrationFunction nextCali = getNextRun(file, referenceCalibrations, metadata);
       previousCali = previousCali == null ? nextCali : previousCali;
@@ -181,10 +218,11 @@ class RTCorrectionTask extends AbstractTask {
       final double nextRunWeight =
           (double) Math.abs(runDate.until(previousRunDate, ChronoUnit.SECONDS)) / totalTimeDistance;
 
-
+      final RtCalibrationFunction newCali = new RtCalibrationFunction(file, monotonousStandards,
+          previousCali, previousWeight, nextCali, nextRunWeight, bandwidth);
+      allCalibrations.add(newCali);
     }
-
-    setStatus(TaskStatus.FINISHED);
+    return allCalibrations;
   }
 
   /**
@@ -192,7 +230,7 @@ class RTCorrectionTask extends AbstractTask {
    * @param referenceFlists   The reference feature lists of these standards.
    * @return
    */
-  private static List<RtStandard> removeNonMonotonousStandards(List<RtStandard> goodStandardsByRt,
+  static List<RtStandard> removeNonMonotonousStandards(List<RtStandard> goodStandardsByRt,
       List<FeatureList> referenceFlists) {
     final List<RtStandard> monotonousStandards = new ArrayList<>(goodStandardsByRt);
     for (int i = 1; i < monotonousStandards.size(); i++) {
@@ -202,8 +240,8 @@ class RTCorrectionTask extends AbstractTask {
       final RtStandard previous = monotonousStandards.get(i - 1);
 
       for (FeatureList referenceFlist : referenceFlists) {
-        final FeatureListRow rowA = standard.standards().get(referenceFlist);
-        final FeatureListRow rowB = previous.standards().get(referenceFlist);
+        final FeatureListRow rowA = standard.standards().get(referenceFlist.getRawDataFile(0));
+        final FeatureListRow rowB = previous.standards().get(referenceFlist.getRawDataFile(0));
         if (rowA == null || rowB == null) {
           throw new IllegalStateException(
               "Not all standards found in all reference feature lists. This should not be the case.");
@@ -222,14 +260,16 @@ class RTCorrectionTask extends AbstractTask {
     return monotonousStandards;
   }
 
-  private @NotNull List<RtStandard> findStandards(FeatureList baseList,
-      List<FeatureList> referenceFlists, Map<FeatureList, List<FeatureListRow>> mzSortedRows) {
+  static @NotNull List<RtStandard> findStandards(FeatureList baseList,
+      List<FeatureList> referenceFlists, Map<FeatureList, List<FeatureListRow>> mzSortedRows,
+      MZTolerance mzTolerance, RTTolerance rtTolerance, double minHeight) {
     final List<FeatureListRow> baseRowsSorted = mzSortedRows.get(baseList);
     final List<RtStandard> goodStandards = new ArrayList<>();
+    final WeightedCosineSpectralSimilarity cosine = new WeightedCosineSpectralSimilarity();
 
     for (FeatureListRow canditateRow : baseRowsSorted) {
-      final RtStandard rtStandard = new RtStandard(flists);
-      rtStandard.standards().put(baseList, canditateRow);
+      final RtStandard rtStandard = new RtStandard(referenceFlists);
+      rtStandard.standards().put(baseList.getRawDataFile(0), canditateRow);
 
       final Scan ms2 = canditateRow.getMostIntenseFragmentScan();
       final DataPoint[] dataPoints =
@@ -242,6 +282,12 @@ class RTCorrectionTask extends AbstractTask {
         final List<FeatureListRow> candidates = FeatureListUtils.getCandidatesWithinRanges(
             mzTolerance.getToleranceRange(canditateRow.getAverageMZ()),
             rtTolerance.getToleranceRange(canditateRow.getAverageRT()), Range.all(), rows, true);
+
+        final List<FeatureListRow> extendedCandidates = FeatureListUtils.getCandidatesWithinRanges(
+            mzTolerance.getToleranceRange(canditateRow.getAverageMZ()),
+            new RTTolerance(rtTolerance.getToleranceInMinutes() * 3,
+                Unit.MINUTES).getToleranceRange(canditateRow.getAverageRT()), Range.all(), rows,
+            true);
 
         if (candidates.isEmpty()) {
           continue;
@@ -263,10 +309,11 @@ class RTCorrectionTask extends AbstractTask {
             }
           }
           if (bestCandidate != null && bestSim > 0.9d) {
-            rtStandard.standards().put(flist, bestCandidate);
+            rtStandard.standards().put(flist.getRawDataFile(0), bestCandidate);
           }
-        } else if (candidates.size() == 1 && candidates.getFirst().getMaxHeight() > minHeight) {
-          rtStandard.standards().put(flist, candidates.getFirst());
+        } else if (candidates.size() == 1 && candidates.getFirst().getMaxHeight() > minHeight
+            && extendedCandidates.size() == 1) {
+          rtStandard.standards().put(flist.getRawDataFile(0), candidates.getFirst());
         }
       }
 
@@ -278,12 +325,12 @@ class RTCorrectionTask extends AbstractTask {
     final DoubleSummaryStatistics stats = goodStandards.stream()
         .mapToDouble(RtStandard::getMedianRt).summaryStatistics();
     logger.finest("Found %d good standards that appear in all %d feature lists. %s".formatted(
-        goodStandards.size(), flists.size(), stats.toString()));
+        goodStandards.size(), referenceFlists.size(), stats.toString()));
 
     return goodStandards;
   }
 
-  private RtCalibrationFunction getPreviousRun(@NotNull RawDataFile file,
+  private static RtCalibrationFunction getPreviousRun(@NotNull RawDataFile file,
       @NotNull Map<RawDataFile, @NotNull RtCalibrationFunction> functions,
       @NotNull MetadataTable metadata) {
     final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();
@@ -312,7 +359,7 @@ class RTCorrectionTask extends AbstractTask {
     return previousRunCali;
   }
 
-  private RtCalibrationFunction getNextRun(@NotNull RawDataFile file,
+  private static RtCalibrationFunction getNextRun(@NotNull RawDataFile file,
       @NotNull Map<RawDataFile, @NotNull RtCalibrationFunction> functions,
       @NotNull MetadataTable metadata) {
     final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();

@@ -1,8 +1,8 @@
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.util.MathUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -11,16 +11,16 @@ import org.jetbrains.annotations.Nullable;
 
 public final class RtStandard {
 
-  private final HashMap<@NotNull FeatureList, @Nullable FeatureListRow> standards; // must be a hash map. supports null values.
+  private final HashMap<@NotNull RawDataFile, @Nullable FeatureListRow> standards; // must be a hash map. supports null values.
   private Float medianRt = null;
 
-  public RtStandard(HashMap<FeatureList, FeatureListRow> standards) {
+  public RtStandard(HashMap<RawDataFile, FeatureListRow> standards) {
     this.standards = standards;
   }
 
   public RtStandard(List<FeatureList> standards) {
-    final HashMap<FeatureList, FeatureListRow> map = new HashMap<>();
-    standards.forEach(standard -> map.put(standard, null));
+    final HashMap<RawDataFile, FeatureListRow> map = new HashMap<>();
+    standards.forEach(standard -> map.put(standard.getRawDataFile(0), null));
     this(map);
   }
 
@@ -34,14 +34,16 @@ public final class RtStandard {
 
   public float getMedianRt() {
     if (medianRt == null) {
-      medianRt = (float) MathUtils.calcQuantileSorted(
-          standards.values().stream().filter(Objects::nonNull)
-              .mapToDouble(FeatureListRow::getAverageRT).sorted().toArray(), 0.5);
+//      medianRt = (float) MathUtils.calcQuantileSorted(
+//          standards.values().stream().filter(Objects::nonNull)
+//              .mapToDouble(FeatureListRow::getAverageRT).sorted().toArray(), 0.5);
+      medianRt = (float) standards.values().stream().filter(Objects::nonNull)
+              .mapToDouble(FeatureListRow::getAverageRT).average().getAsDouble();
     }
     return medianRt;
   }
 
-  public HashMap<FeatureList, FeatureListRow> standards() {
+  public HashMap<RawDataFile, FeatureListRow> standards() {
     return standards;
   }
 

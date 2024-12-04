@@ -26,54 +26,100 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
+import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.createMoreThanOneFileMessage;
+import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.createUnsatisfiedSampleFilterMessage;
+
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.util.ExitCode;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import javafx.application.Platform;
 
 public class RTCorrectionParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter(2);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
-  public static final StringParameter suffix = new StringParameter("Name suffix",
-      "Suffix to be added to feature list name", "RT_corrected");
-
-  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(0.005, 5);
+  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(0.01, 15);
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter(
       "Retention time tolerance", "Maximum allowed difference between two retention time values",
-      new RTTolerance(0.01f, Unit.MINUTES));
+      new RTTolerance(0.03f, Unit.MINUTES));
 
   public static final DoubleParameter minHeight = new DoubleParameter("Minimum standard intensity",
       "Minimum height of a feature to be selected as standard for RT correction",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
-      "Original feature list",
-      "Defines the processing.\nKEEP is to keep the original feature list and create a new"
-          + "processed list.\nREMOVE saves memory.", false);
-
-  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>("Reference samples",
-      """
+  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
+      "Reference samples", """
       Select all sample types that shall be used to calculate the recalibration from.
       The recalibration of all other samples will be based on the acquisition order, which is
       determined by the acquisition type column in the metadata (CTRL/CMD + M).
       """, SampleType.values(), List.of(SampleType.values()));
 
+  public static final PercentParameter correctionBandwidth = new PercentParameter(
+      "Interpolation bandwidth", "", 0.5d, 0.01d, 1d);
+
   public RTCorrectionParameters() {
-    super(
-        new Parameter[]{featureLists, sampleTypes, suffix, MZTolerance, RTTolerance, minHeight, handleOriginal},
+    super(new Parameter[]{featureLists, sampleTypes, MZTolerance, RTTolerance, minHeight,
+            correctionBandwidth},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_rt_calibration/norm_rt_calibration.html");
   }
 
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+
+    if (!skipRawDataAndFeatureListParameters) {
+      var flists = Arrays.stream(
+              getValue(RTCorrectionParameters.featureLists).getMatchingFeatureLists())
+          .sorted(Comparator.comparing(FeatureList::getNumberOfRows)).map(FeatureList.class::cast)
+          .toList();
+
+      final List<FeatureList> flistsWithMoreThanOneFile = flists.stream()
+          .filter(fl -> fl.getNumberOfRawDataFiles() > 1).toList();
+      if (!flistsWithMoreThanOneFile.isEmpty()) {
+        errorMessages.add(createMoreThanOneFileMessage(flistsWithMoreThanOneFile));
+      }
+
+      var sampleTypeFilter = new SampleTypeFilter(getValue(RTCorrectionParameters.sampleTypes));
+      final List<FeatureList> referenceFlists = flists.stream()
+          .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
+          .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
+      if (referenceFlists.isEmpty()) {
+        errorMessages.add(createUnsatisfiedSampleFilterMessage(sampleTypeFilter, flists));
+      }
+    }
+
+    return errorMessages.isEmpty();
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    assert Platform.isFxApplicationThread();
+
+    if ((parameters == null) || (parameters.length == 0)) {
+      return ExitCode.OK;
+    }
+    final ParameterSetupDialog dialog = new ParameterDialogWithPreviewPanes(valueCheckRequired,
+        this, RtCalibrationPreviewPane::new);
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
 }
