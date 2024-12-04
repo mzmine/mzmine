@@ -23,27 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
+package io.github.mzmine.datamodel.utils;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * the defaults should not change the name of enum values. if strings are needed, override the
- * toString method
- */
-public enum FilterWizardParameterFactory implements WizardParameterFactory {
-  Filters;
+public interface UniqueIdSupplier {
 
+  /**
+   * This value should not change throughout versions
+   *
+   * @return a stable unique ID that may be used in save and load
+   */
+  @NotNull
+  String getUniqueID();
 
-  @Override
-  public WizardStepParameters create() {
-    return new FilterWizardParameters();
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return name();
-  }
 }

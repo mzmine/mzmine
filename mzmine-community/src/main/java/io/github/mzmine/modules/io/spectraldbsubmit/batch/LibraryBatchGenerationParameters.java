@@ -68,7 +68,7 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
   public static final ComboParameter<SpectralLibraryExportFormats> exportFormat = new ComboParameter<>(
       "Export format", "format to export", SpectralLibraryExportFormats.values(),
-      SpectralLibraryExportFormats.json);
+      SpectralLibraryExportFormats.json_mzmine);
 
   public static final ParameterSetParameter<LibraryBatchMetadataParameters> metadata = new ParameterSetParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
