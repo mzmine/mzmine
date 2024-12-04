@@ -4,7 +4,9 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
@@ -13,8 +15,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class RtCalibrationFunction {
 
-  private final @NotNull PolynomialSplineFunction interpolation;
+  private final @NotNull PolynomialSplineFunction linear;
   private final RawDataFile file;
+  private final @NotNull PolynomialSplineFunction loess;
 
   public RtCalibrationFunction(FeatureList flist, List<RtStandard> standards) {
     file = flist.getRawDataFiles().getFirst();
@@ -50,15 +53,42 @@ public class RtCalibrationFunction {
       calibratedRtValues.add(fullRtRange.upperEndpoint());
     }
 
-    interpolation = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
+    linear = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
         calibratedRtValues.toDoubleArray());
-    LoessInterpolator loessInterpolator = new LoessInterpolator();
+    LoessInterpolator loessInterpolator = new LoessInterpolator(0.2, 1);
+    loess = loessInterpolator.interpolate(thisRtValues.toDoubleArray(),
+        calibratedRtValues.toDoubleArray());
   }
 
-  public float getCorrectedRt(float originalRt) {
-    if (!interpolation.isValidPoint(originalRt)) {
+  public RtCalibrationFunction(@NotNull RawDataFile file,
+      @NotNull List<@NotNull RtCalibrationFunction> functions, @NotNull MetadataTable metadata, RtStandard standard) {
+
+    final long totalTimeDistance =
+        Math.abs(runDate.until(nextRunDate, ChronoUnit.SECONDS)) + Math.abs(
+            runDate.until(previousRunDate, ChronoUnit.SECONDS));
+    final double previousWeight =
+        (double) Math.abs(runDate.until(nextRunDate, ChronoUnit.SECONDS)) / totalTimeDistance;
+    final double nextRunWeight =
+        (double) Math.abs(runDate.until(previousRunDate, ChronoUnit.SECONDS)) / totalTimeDistance;
+
+
+  }
+
+  public float getCorrectedRtLinear(float originalRt) {
+    if (!linear.isValidPoint(originalRt)) {
       return originalRt;
     }
-    return (float) interpolation.value(originalRt);
+    return (float) linear.value(originalRt);
+  }
+
+  public float getCorrectedRtLoess(float originalRt) {
+    if (!loess.isValidPoint(originalRt)) {
+      return originalRt;
+    }
+    return (float) loess.value(originalRt);
+  }
+
+  public RawDataFile getRawDataFile() {
+    return file;
   }
 }

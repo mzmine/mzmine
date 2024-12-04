@@ -32,11 +32,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteCorrectionType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -47,6 +45,8 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -128,7 +128,6 @@ class RTCorrectionTask extends AbstractTask {
     final Map<FeatureList, List<FeatureListRow>> mzSortedRows = new HashMap<>();
     flists.forEach(flist -> mzSortedRows.put(flist,
         flist.stream().sorted(Comparator.comparingDouble(FeatureListRow::getAverageMZ)).toList()));
-
     final List<FeatureList> referenceFlists = flists.stream()
         .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
         .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
@@ -146,10 +145,43 @@ class RTCorrectionTask extends AbstractTask {
     final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
         referenceFlists);
 
-    for (FeatureList referenceFlist : referenceFlists) {
-      final RtCalibrationFunction func = new RtCalibrationFunction(referenceFlist,
-          monotonousStandards);
-      logger.finest(func.toString());
+    final Map<RawDataFile, RtCalibrationFunction> referenceCalibrations = referenceFlists.stream()
+        .map(flist -> new RtCalibrationFunction(flist, monotonousStandards))
+        .collect(Collectors.toMap(cali -> cali.getRawDataFile(), cali -> cali));
+
+    // calculate calibrations for other files
+    for (FeatureList flist : flists) {
+      final RawDataFile file = flist.getRawDataFile(0);
+      final RtCalibrationFunction cali = referenceCalibrations.get(file);
+      final MetadataTable metadata = project.getProjectMetadata();
+      if (cali != null) {
+        continue;
+      }
+
+      RtCalibrationFunction previousCali = getPreviousRun(file, referenceCalibrations, metadata);
+      RtCalibrationFunction nextCali = getNextRun(file, referenceCalibrations, metadata);
+      previousCali = previousCali == null ? nextCali : previousCali;
+      nextCali = nextCali == null ? previousCali : nextCali;
+      if (previousCali == null) {
+        throw new IllegalStateException(
+            "Could not find previous or next run for file %s".formatted(file.getName()));
+      }
+
+      final LocalDateTime runDate = metadata.getValue(metadata.getRunDateColumn(), file);
+      final LocalDateTime previousRunDate = metadata.getValue(metadata.getRunDateColumn(),
+          previousCali.getRawDataFile());
+      final LocalDateTime nextRunDate = metadata.getValue(metadata.getRunDateColumn(),
+          nextCali.getRawDataFile());
+
+      final long totalTimeDistance =
+          Math.abs(runDate.until(nextRunDate, ChronoUnit.SECONDS)) + Math.abs(
+              runDate.until(previousRunDate, ChronoUnit.SECONDS));
+      final double previousWeight =
+          (double) Math.abs(runDate.until(nextRunDate, ChronoUnit.SECONDS)) / totalTimeDistance;
+      final double nextRunWeight =
+          (double) Math.abs(runDate.until(previousRunDate, ChronoUnit.SECONDS)) / totalTimeDistance;
+
+
     }
 
     setStatus(TaskStatus.FINISHED);
@@ -196,8 +228,9 @@ class RTCorrectionTask extends AbstractTask {
     final List<RtStandard> goodStandards = new ArrayList<>();
 
     for (FeatureListRow canditateRow : baseRowsSorted) {
-      final RtStandard rtStandard = new RtStandard(canditateRow, flists);
+      final RtStandard rtStandard = new RtStandard(flists);
       rtStandard.standards().put(baseList, canditateRow);
+
       final Scan ms2 = canditateRow.getMostIntenseFragmentScan();
       final DataPoint[] dataPoints =
           ms2 != null ? ScanUtils.extractDataPoints(ms2, true) : new DataPoint[0];
@@ -218,7 +251,7 @@ class RTCorrectionTask extends AbstractTask {
           double bestSim = 0d;
           for (FeatureListRow candidate : candidates) {
             final Scan scan = candidate.getMostIntenseFragmentScan();
-            if (scan == null) {
+            if (scan == null || candidate.getMaxHeight() < minHeight) {
               continue;
             }
 
@@ -229,10 +262,10 @@ class RTCorrectionTask extends AbstractTask {
               bestCandidate = candidate;
             }
           }
-          if (bestCandidate != null && bestSim > 0.7d) {
+          if (bestCandidate != null && bestSim > 0.9d) {
             rtStandard.standards().put(flist, bestCandidate);
           }
-        } else if (candidates.size() == 1) {
+        } else if (candidates.size() == 1 && candidates.getFirst().getMaxHeight() > minHeight) {
           rtStandard.standards().put(flist, candidates.getFirst());
         }
       }
@@ -243,86 +276,68 @@ class RTCorrectionTask extends AbstractTask {
     }
 
     final DoubleSummaryStatistics stats = goodStandards.stream()
-        .mapToDouble(std -> std.row().getAverageRT()).summaryStatistics();
+        .mapToDouble(RtStandard::getMedianRt).summaryStatistics();
     logger.finest("Found %d good standards that appear in all %d feature lists. %s".formatted(
         goodStandards.size(), flists.size(), stats.toString()));
 
     return goodStandards;
   }
 
-  /**
-   * Normalize retention time of given row using selected standards
-   *
-   * @param originalRow      Feature list row to be normalized
-   * @param standards        Standard rows in same feature list
-   * @param normalizedStdRTs Normalized retention times of standard rows
-   * @return New feature list row with normalized retention time
-   */
-  private ModularFeatureListRow normalizeRow(ModularFeatureList targetFeatureList,
-      ModularFeatureListRow originalRow, ModularFeatureListRow[] standards,
-      double[] normalizedStdRTs) {
+  private RtCalibrationFunction getPreviousRun(@NotNull RawDataFile file,
+      @NotNull Map<RawDataFile, @NotNull RtCalibrationFunction> functions,
+      @NotNull MetadataTable metadata) {
+    final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();
+    final LocalDateTime runDate = metadata.getValue(runDateColumn, file);
+    if (runDate == null) {
+      throw new FileHasNoRunDateException(file);
+    }
 
-    ModularFeatureListRow normalizedRow = new ModularFeatureListRow(targetFeatureList, originalRow,
-        false);
+    long minPreviousRun = Long.MIN_VALUE;
+    RtCalibrationFunction previousRunCali = null;
 
-    int prevStdIndex = -1, nextStdIndex = -1;
-
-    for (int stdIndex = 0; stdIndex < standards.length; stdIndex++) {
-      if (standards[stdIndex] == originalRow) {
-        prevStdIndex = stdIndex;
-        nextStdIndex = stdIndex;
-        break;
+    for (RtCalibrationFunction function : functions.values()) {
+      final RawDataFile thatFile = function.getRawDataFile();
+      final LocalDateTime thatDate = metadata.getValue(runDateColumn, thatFile);
+      if (thatDate == null) {
+        throw new FileHasNoRunDateException(thatFile);
       }
 
-      if (standards[stdIndex].getAverageRT() < originalRow.getAverageRT()) {
-        if (prevStdIndex == -1
-            || standards[stdIndex].getAverageRT() > standards[prevStdIndex].getAverageRT()) {
-          prevStdIndex = stdIndex;
-        }
-      } else if (standards[stdIndex].getAverageRT() > originalRow.getAverageRT()) {
-        if (nextStdIndex == -1
-            || standards[stdIndex].getAverageRT() < standards[nextStdIndex].getAverageRT()) {
-          nextStdIndex = stdIndex;
-        }
+      final long diff = runDate.until(thatDate, ChronoUnit.SECONDS);
+      if (diff < 0 && diff > minPreviousRun) {
+        minPreviousRun = diff;
+        previousRunCali = function;
       }
     }
 
-    double originalRT = originalRow.getAverageRT();
-    double normalizedRT = originalRT;
-    if (standards.length >= 1) {
-      normalizedRT = calculateNormalizedRT(originalRT, prevStdIndex, nextStdIndex, standards,
-          normalizedStdRTs);
-    }
-
-    for (RawDataFile file : originalRow.getRawDataFiles()) {
-      ModularFeature originalFeature = originalRow.getFeature(file);
-      if (originalFeature != null) {
-        ModularFeature normalizedFeature = new ModularFeature(targetFeatureList, originalFeature);
-        normalizedFeature.setRT((float) normalizedRT);
-        float correctedRt = (float) (normalizedRT - originalRT);
-        normalizedFeature.set(RtAbsoluteCorrectionType.class, correctedRt);
-        normalizedRow.addFeature(file, normalizedFeature);
-      }
-    }
-
-    return normalizedRow;
+    return previousRunCali;
   }
 
-  private double calculateNormalizedRT(double originalRT, int prevStdIndex, int nextStdIndex,
-      ModularFeatureListRow[] standards, double[] normalizedStdRTs) {
-
-    if (standards.length == 1) {
-      return originalRT + (normalizedStdRTs[0] - standards[0].getAverageRT());
-    } else if (prevStdIndex == nextStdIndex) {
-      return normalizedStdRTs[prevStdIndex];
-    } else if (prevStdIndex != -1 && nextStdIndex != -1) {
-      double weight = (originalRT - standards[prevStdIndex].getAverageRT()) / (
-          standards[nextStdIndex].getAverageRT() - standards[prevStdIndex].getAverageRT());
-      return normalizedStdRTs[prevStdIndex] + (weight * (normalizedStdRTs[nextStdIndex]
-          - normalizedStdRTs[prevStdIndex]));
-    } else {
-      return originalRT;
+  private RtCalibrationFunction getNextRun(@NotNull RawDataFile file,
+      @NotNull Map<RawDataFile, @NotNull RtCalibrationFunction> functions,
+      @NotNull MetadataTable metadata) {
+    final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();
+    final LocalDateTime runDate = metadata.getValue(runDateColumn, file);
+    if (runDate == null) {
+      throw new FileHasNoRunDateException(file);
     }
-  }
 
+    long minNextRun = Long.MAX_VALUE;
+    RtCalibrationFunction nextRunCali = null;
+
+    for (RtCalibrationFunction function : functions.values()) {
+      final RawDataFile thatFile = function.getRawDataFile();
+      final LocalDateTime thatDate = metadata.getValue(runDateColumn, thatFile);
+      if (thatDate == null) {
+        throw new FileHasNoRunDateException(thatFile);
+      }
+
+      final long diff = runDate.until(thatDate, ChronoUnit.SECONDS);
+      if (diff > 0 && diff < minNextRun) {
+        minNextRun = diff;
+        nextRunCali = function;
+      }
+    }
+
+    return nextRunCali;
+  }
 }
