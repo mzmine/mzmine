@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.PropertyParameter;
 import java.util.Collection;
 import java.util.List;
@@ -124,13 +125,14 @@ public class ComboParameter<ValueType> implements
   @Override
   public void loadValueFromXML(Element xmlElement) {
     String elementString = xmlElement.getTextContent();
-    if (elementString.length() == 0) {
+    if (elementString.isEmpty()) {
       return;
     }
     for (ValueType option : choices) {
-      if (option.toString().equals(elementString)) {
+      if ((value instanceof UniqueIdSupplier uis && uis.getUniqueID().equals(elementString))
+          || option.toString().equals(elementString)) {
         value = option;
-        break;
+        return;
       }
     }
   }
@@ -140,7 +142,11 @@ public class ComboParameter<ValueType> implements
     if (value == null) {
       return;
     }
-    xmlElement.setTextContent(value.toString());
+    if (value instanceof UniqueIdSupplier uis) {
+      xmlElement.setTextContent(uis.getUniqueID());
+    } else {
+      xmlElement.setTextContent(value.toString());
+    }
   }
 
   @Override
