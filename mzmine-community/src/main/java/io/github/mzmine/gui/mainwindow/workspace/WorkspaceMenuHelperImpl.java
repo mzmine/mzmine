@@ -31,12 +31,10 @@ import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.taskcontrol.SimpleRunnableTask;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.javafx.ModuleMenuItem;
 import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
 import io.mzio.users.client.UserAuthStore;
 import java.awt.Desktop;
@@ -46,8 +44,6 @@ import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Menu;
@@ -58,7 +54,7 @@ import org.apache.commons.io.FileUtils;
 /**
  * Contains static utility methods for workspace related main-menus
  */
-public class WorkspaceMenuHelperImpl implements WorkspaceMenuHelper {
+public class WorkspaceMenuHelperImpl extends WorkspaceMenuHelper {
 
   private static final Logger logger = Logger.getLogger(WorkspaceMenuHelperImpl.class.getName());
 

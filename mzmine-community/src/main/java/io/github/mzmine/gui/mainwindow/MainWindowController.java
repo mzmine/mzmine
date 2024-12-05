@@ -36,6 +36,7 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
+import io.github.mzmine.gui.mainwindow.workspace.AcademicWorkspace;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -79,10 +80,13 @@ import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
 import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
+import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -153,6 +157,7 @@ public class MainWindowController {
       "icons/peaklisticon_aligned.png");
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
   private final Logger logger = Logger.getLogger(this.getClass().getName());
+
   @FXML
   public ContextMenu rawDataContextMenu;
   @FXML
@@ -330,6 +335,10 @@ public class MainWindowController {
       memoryBarLabel.setText("%.1f/%.1f GB used".formatted(usedMemGB, totalMemGB));
     }));
     memoryUpdater.play();
+
+    WorkspaceMenuHelper.addWorkspace(new AcademicWorkspace());
+    mainPane.setTop(WorkspaceMenuHelper.getWorkspaces().get(AcademicWorkspace.uniqueId).buildMainMenu(
+        EnumSet.allOf(WorkspaceTags.class)));
   }
 
   private void initFeatureListsList() {

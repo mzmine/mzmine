@@ -49,6 +49,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
+import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms.ChromatogramBlankSubtractionModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
@@ -92,9 +93,16 @@ import javafx.scene.input.KeyCombination;
 
 public final class AcademicWorkspace extends AbstractWorkspace {
 
+  public static final String uniqueId = "academic";
+
   @Override
   public String getName() {
     return "Academic";
+  }
+
+  @Override
+  public String getUniqueId() {
+    return uniqueId;
   }
 
   @Override
@@ -107,10 +115,11 @@ public final class AcademicWorkspace extends AbstractWorkspace {
     menuBar.getMenus().add(buildFeatureListMethodsMenu());
     menuBar.getMenus().add(buildDefaultVisualizationMenu());
     menuBar.getMenus().add(buildDefaultWizardMenu());
+    menuBar.getMenus().add(buildDefaultToolsMenu());
     menuBar.getMenus().add(buildDefaultWindowsMenu());
     menuBar.getMenus().add(buildDefaultUsersMenu());
-    menuBar.getMenus().add(buildDefaultHelpMenu());
     menuBar.getMenus().add(buildDefaultWorkspacesMenu());
+    menuBar.getMenus().add(buildDefaultHelpMenu());
     return menuBar;
   }
 
@@ -139,8 +148,8 @@ public final class AcademicWorkspace extends AbstractWorkspace {
 
     addSeparator(menu);
 
-    addModuleMenuItems(menu, "Spectral libraries",
-        SpectralLibraryImportModule.class, SpectralLibraryToFeatureListModule.class);
+    addModuleMenuItems(menu, "Spectral libraries", SpectralLibraryImportModule.class,
+        SpectralLibraryToFeatureListModule.class);
 
     return menu;
   }
@@ -173,7 +182,8 @@ public final class AcademicWorkspace extends AbstractWorkspace {
     addModuleMenuItems(menu, "Spectral deconvolution (GC)", SpectralDeconvolutionGCModule.class);
     addModuleMenuItems(menu, "Feature list filtering", DuplicateFilterModule.class,
         RowsFilterModule.class, FeatureFilterModule.class, FeatureListBlankSubtractionModule.class,
-        MobilityMzRegionExtractionModule.class, NeutralLossFilterModule.class);
+        ChromatogramBlankSubtractionModule.class, MobilityMzRegionExtractionModule.class,
+        NeutralLossFilterModule.class);
     addModuleMenuItems(menu, "Alignment", JoinAlignerModule.class, MergeAlignerModule.class,
         RansacAlignerModule.class, GCAlignerModule.class,
         LcImageAlignerModule.class); // HierarAlignerGcModule, ADAP3AlignerModule (not mit compatible)

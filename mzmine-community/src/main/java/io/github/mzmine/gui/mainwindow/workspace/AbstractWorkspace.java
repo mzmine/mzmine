@@ -78,6 +78,7 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
@@ -85,6 +86,7 @@ import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
+import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
@@ -171,6 +173,7 @@ public abstract class AbstractWorkspace implements Workspace {
     menu.setOnShowing(_ -> getWorkspaceMenuHelper().fillRecentProjects(recentProjects));
 
     addModuleMenuItem(menu, ProjectLoadModule.class, KeyCode.O, KeyCombination.SHORTCUT_DOWN);
+    menu.getItems().add(recentProjects);
     addModuleMenuItem(menu, ProjectSaveModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN);
     addModuleMenuItem(menu, ProjectSaveAsModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN,
         KeyCombination.SHIFT_DOWN);
@@ -289,6 +292,9 @@ public abstract class AbstractWorkspace implements Workspace {
     addSeparator(featureVis);
     addModuleMenuItems(featureVis, KendrickMassPlotModule.class, VanKrevelenDiagramModule.class,
         MassvoltammogramFromFeatureListModule.class);
+    addSeparator(featureVis);
+    addModuleMenuItems(featureVis, EquivalentCarbonNumberModule.class,
+        LipidAnnotationSummaryModule.class);
 
     addModuleMenuItems(menu, MSnTreeVisualizerModule.class);
 
@@ -372,8 +378,18 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultWorkspacesMenu() {
     final Menu menu = new Menu("Workspaces");
-    addMenuItem(menu, "Academic", () -> ((MZmineGUI) MZmineCore.getDesktop()).setMenubar(
-        new AcademicWorkspace().buildMainMenu(EnumSet.allOf(WorkspaceTags.class))));
+    menu.getItems().add(new MenuItem("Available workspaces"));
+
+    // this menu needs to be updated on shown, so new workspaces can be added after this workspace has been build.
+    menu.setOnShowing(_ -> {
+      menu.getItems().clear();
+      for (Workspace workspace : helper.getWorkspaces().values()) {
+        addMenuItem(menu, workspace.getName(),
+            () -> ((MZmineGUI) MZmineCore.getDesktop()).setMenubar(
+                workspace.buildMainMenu(EnumSet.allOf(WorkspaceTags.class))));
+      }
+    });
+
     return menu;
   }
 }
