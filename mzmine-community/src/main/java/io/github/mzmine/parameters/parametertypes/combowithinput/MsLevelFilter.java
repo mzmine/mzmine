@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
+import io.github.mzmine.util.scans.ScanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,13 +101,15 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
    * @param scan the tested scan
    * @return true if scan matches filter
    */
-  public boolean accept(Scan scan) {
+  public boolean accept(MassSpectrum scan) {
+    int msLevel = ScanUtils.getMsLevel(scan).orElse(0);
+
     return switch (filter) {
       case ALL -> true;
-      case MS1 -> scan.getMSLevel() == 1;
-      case MS2 -> scan.getMSLevel() == 2;
-      case MSn -> scan.getMSLevel() > 1;
-      case SPECIFIC_LEVEL -> scan.getMSLevel() == specificLevel;
+      case MS1 -> msLevel == 1;
+      case MS2 -> msLevel == 2;
+      case MSn -> msLevel > 1;
+      case SPECIFIC_LEVEL -> msLevel == specificLevel;
     };
   }
 

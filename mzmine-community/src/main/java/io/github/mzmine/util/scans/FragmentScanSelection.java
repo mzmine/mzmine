@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,14 +32,16 @@ import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
+import io.github.mzmine.util.scans.merging.ScanSelectionFilter;
+import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,29 +49,37 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Drives the selection of fragmentation spectra. Based on input spectra (MS2 or MSn) merged spectra
  * are generated.
- *
- * @param mzTol                 tolerance to merge signals
- * @param mergeSeparateEnergies the final list will contain one representative spectrum for each
- *                              energy
- * @param inputSpectra          keep input spectra in the final list or only use representative
- *                              spectra
- * @param msLevelFilter         is applied last after all merging is done. for MSn data this would
- *                              mean that either all MSn levels are used or only the pseudo MS2 scan
- *                              merged from all is kept when using MS2 only
  */
-public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSeparateEnergies,
-                                    @NotNull IncludeInputSpectra inputSpectra,
-                                    @NotNull IntensityMergingType intensityMergeType,
-                                    @NotNull MsLevelFilter msLevelFilter,
-                                    @Nullable MemoryMapStorage storage) {
+public final class FragmentScanSelection {
 
   private static final Logger logger = Logger.getLogger(FragmentScanSelection.class.getName());
+  private final @Nullable SpectraMerger merger;
+  // eg ScanSelectionFilter
+  private final @NotNull ScanSelectionFilter postMergingScanFilter;
+  private final @Nullable MemoryMapStorage storage;
 
-  public FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSeparateEnergies,
-      @NotNull IncludeInputSpectra inputSpectra, @NotNull IntensityMergingType intensityMergeType,
-      @NotNull MsLevelFilter msLevelFilter) {
-    this(mzTol, mergeSeparateEnergies, inputSpectra, intensityMergeType, msLevelFilter, null);
+  /**
+   * @param merger                performs spectral merging
+   * @param postMergingScanFilter Post merging scan filters like
+   *                              {@link ScanSelectionFilter#matchesAllOf(ScanSelectionFilter...)}
+   *                              are applied last after all merging is done. Options to filter for
+   *                              specific {@link MergingType} or MS level like MSn data this would
+   *                              mean that either all MSn levels are used or only the pseudo MS2
+   *                              scan merged from all is kept when using MS2 only
+   */
+  public FragmentScanSelection(@Nullable SpectraMerger merger,
+      final @NotNull ScanSelectionFilter postMergingScanFilter,
+      @Nullable MemoryMapStorage storage) {
+    this.merger = merger;
+    this.postMergingScanFilter = postMergingScanFilter;
+    this.storage = storage;
   }
+
+  public FragmentScanSelection(@Nullable SpectraMerger merger,
+      final @NotNull ScanSelectionFilter postMergingScanFilter) {
+    this(merger, postMergingScanFilter, null);
+  }
+
 
   public List<Scan> getAllFragmentSpectra(final FeatureListRow row) {
     return getAllFragmentSpectra(row.getAllFragmentScans());
@@ -111,7 +121,7 @@ public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSep
 
     final List<Scan> noMergedScans = scans.stream().filter(
         scan -> !(scan instanceof MergedMassSpectrum merged)
-            || merged.getMergingType() == MergingType.PASEF_SINGLE).toList();
+                || merged.getMergingType() == MergingType.PASEF_SINGLE).toList();
 
     if (noMergedScans.isEmpty()) {
       return scans;
@@ -124,7 +134,7 @@ public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSep
     List<Scan> mergedByEnergy = mergeByFragmentationEnergy(byFragmentationEnergy);
     // first entry should be the mergeAll
     allScans.add(mergeSpectra(mergedByEnergy, MergingType.ALL_ENERGIES));
-    addIf(mergeSeparateEnergies, allScans, mergedByEnergy);
+    allScans.addAll(mergedByEnergy);
 
     // filter out duplicates from the original scans list, same energy
     switch (inputSpectra) {
@@ -143,7 +153,7 @@ public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSep
     // for MS2, that means that all spectra are merged first for individual energies and then all of them to one
     // Empty list if only one spectrum
     // get best tree - there should only be one
-    List<PrecursorIonTree> msnTrees = ScanUtils.getMSnFragmentTrees(scans, mzTol, null);
+    List<PrecursorIonTree> msnTrees = ScanUtils.getMSnFragmentTrees(scans, merger.getMzTol(), null);
     if (msnTrees.size() > 1) {
       logger.finer(() -> String.format(
           "List of scans had more than 1 MSn Tree (%d). MZtolerance might be too low, will only use the biggest tree for now",
@@ -249,15 +259,55 @@ public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSep
     return SpectraMerging.mergeSpectra(scans, mzTol, mergeType, intensityMergeType, storage);
   }
 
-  private void addIf(boolean condition, final List<Scan> targetList, final Object scans) {
-    if (condition) {
-      if (scans instanceof Scan scan) {
-        targetList.add(scan);
-      } else if (scans instanceof Collection<?> collection) {
-        targetList.addAll((Collection<? extends Scan>) collection);
-      }
-    }
+  public boolean isMerging() {
+    return merger != null;
   }
+
+  public @Nullable IntensityMergingType intensityMergeType() {
+    return merger != null ? merger.getIntensityMerging() : null;
+  }
+
+  public @Nullable SpectraMerger merger() {
+    return merger;
+  }
+
+  public @NotNull IncludeInputSpectra inputSpectra() {
+    return inputSpectra;
+  }
+
+  public @NotNull MsLevelFilter msLevelFilter() {
+    return msLevelFilter;
+  }
+
+  public @Nullable MemoryMapStorage storage() {
+    return storage;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != this.getClass()) {
+      return false;
+    }
+    var that = (FragmentScanSelection) obj;
+    return Objects.equals(this.merger, that.merger) && Objects.equals(this.inputSpectra,
+        that.inputSpectra) && Objects.equals(this.msLevelFilter, that.msLevelFilter)
+           && Objects.equals(this.storage, that.storage);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(merger, inputSpectra, msLevelFilter, storage);
+  }
+
+  @Override
+  public String toString() {
+    return "FragmentScanSelection[" + "merger=" + merger + ", " + "inputSpectra=" + inputSpectra
+           + ", " + "msLevelFilter=" + msLevelFilter + ", " + "storage=" + storage + ']';
+  }
+
 
   public enum IncludeInputSpectra {
     HIGHEST_TIC_PER_ENERGY, ALL, NONE

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.scans;
 
+import static io.github.mzmine.util.spectraldb.entry.DBEntryField.MERGED_SPEC_TYPE;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsLast;
 import static java.util.Objects.requireNonNullElse;
@@ -92,6 +93,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -234,7 +236,7 @@ public class ScanUtils {
       case SpectralLibraryEntry entry -> {
         final FloatArrayList list = entry.getOrElse(DBEntryField.COLLISION_ENERGY,
             FloatArrayList.of());
-        if(!list.isEmpty()) {
+        if (!list.isEmpty()) {
           yield list.getFirst();
         }
         yield null;
@@ -601,7 +603,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-              - leftNeighbourBinIndex);
+                                                                       - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -2173,6 +2175,34 @@ public class ScanUtils {
     };
   }
 
+  /**
+   * MS level as in MS1 or MS2
+   */
+  public static Optional<Integer> getMsLevel(final MassSpectrum scan) {
+    return switch (scan) {
+      case Scan sc -> Optional.of(sc.getMSLevel());
+      case SpectralLibraryEntry sc -> sc.getMsLevel();
+      case null, default -> Optional.empty();
+    };
+  }
+
+  /**
+   * @return merging type of a merged spectrum or {@link MergingType#SINGLE_SCAN} as default
+   */
+  @NotNull
+  public static MergingType getMergingType(final MassSpectrum scan) {
+    return switch (scan) {
+      case MergedMassSpectrum sc -> sc.getMergingType();
+      case SpectralLibraryEntry sc -> {
+        yield switch (sc.getField(MERGED_SPEC_TYPE).orElse(null)) {
+          case MergingType t -> t;
+          case String s -> MergingType.parseOrElse(s, MergingType.SINGLE_SCAN);
+          case null, default -> MergingType.SINGLE_SCAN;
+        };
+      }
+      default -> MergingType.SINGLE_SCAN;
+    };
+  }
 
   /**
    * @return the scan number or -1 if none
@@ -2390,6 +2420,7 @@ public class ScanUtils {
     return "%d[%s]".formatted(frame.getScanNumber(),
         ranges.stream().map(IndexRange::toString).collect(Collectors.joining(",")));
   }
+
 
   /**
    * Binning modes

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,8 @@ import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
+import io.github.mzmine.util.scans.merging.SampleHandling;
+import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -150,9 +152,9 @@ public class MaldiGroupMS2Task extends AbstractTask {
       final List<PasefMsMsInfo> msmsInfos = files.stream()
           .flatMap(file -> file.getScanNumbers(2).stream()).filter(
               scan -> (scan instanceof ImagingFrame imgFrame)
-                      && imgFrame.getMaldiSpotInfo() != null)
-          .flatMap(f -> ((ImagingFrame) f).getImsMsMsInfos().stream()
-              .filter(i -> i instanceof PasefMsMsInfo).map(i -> (PasefMsMsInfo) i))
+                      && imgFrame.getMaldiSpotInfo() != null).flatMap(
+              f -> ((ImagingFrame) f).getImsMsMsInfos().stream()
+                  .filter(i -> i instanceof PasefMsMsInfo).map(i -> (PasefMsMsInfo) i))
           .sorted(Comparator.comparingDouble(info -> info.getIsolationMz())).toList();
 
       // for all features
@@ -245,9 +247,10 @@ public class MaldiGroupMS2Task extends AbstractTask {
 
     if (!msmsSpectra.isEmpty()) {
       if (combineTimsMS2) {
-        final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(
-            SpectraMerging.pasefMS2MergeTol, combineTimsMS2, IncludeInputSpectra.ALL,
-            IntensityMergingType.SUMMED, MsLevelFilter.ALL_LEVELS, getMemoryMapStorage());
+        var merger = new SpectraMerger(SampleHandling.SAME_SAMPLE, SpectraMerging.pasefMS2MergeTol,
+            IntensityMergingType.SUMMED, IncludeInputSpectra.ALL);
+        final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(merger,
+            MsLevelFilter.ALL_LEVELS, getMemoryMapStorage());
         var spectra = fragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
         feature.setAllMS2FragmentScans(spectra, false);
       } else {

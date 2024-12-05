@@ -174,6 +174,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
+import io.github.mzmine.util.scans.merging.SampleHandling;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import io.github.mzmine.util.scans.similarity.Weights;
@@ -738,7 +739,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     param.setParameter(LibraryBatchGenerationParameters.flists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(LibraryBatchGenerationParameters.mergeMzTolerance, true, mzTolScans);
+    param.setParameter(LibraryBatchGenerationParameters.merging, true);
+    param.getParameter(LibraryBatchGenerationParameters.merging).getEmbeddedParameters()
+        .setAll(SampleHandling.ACROSS_SAMPLES, mzTolScans, IntensityMergingType.MAXIMUM);
     param.setParameter(LibraryBatchGenerationParameters.exportFormat, exportFormat);
     param.setParameter(LibraryBatchGenerationParameters.normalizer,
         IntensityNormalizer.createDefault());

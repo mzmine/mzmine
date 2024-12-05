@@ -25,11 +25,14 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
 
 public interface MergedMassSpectrum extends Scan {
 
@@ -65,7 +68,11 @@ public interface MergedMassSpectrum extends Scan {
   /**
    * The merging type describes the selection of input spectra and on which level it was merged.
    */
-  enum MergingType {
+  enum MergingType implements UniqueIdSupplier {
+    /**
+     * any single scan except for the single best
+     */
+    SINGLE_SCAN,
     /**
      * Single scan so not merged yet
      */
@@ -86,12 +93,51 @@ public interface MergedMassSpectrum extends Scan {
      */
     ALL_MSN_TO_PSEUDO_MS2,
     /**
-     * Merged all {@link MobilityScan}s from a single
-     * {@link io.github.mzmine.datamodel.msms.PasefMsMsInfo} (= single fragmentation event). This
-     * spectrum is created by merging multiple mobility scans, but does not fulfill the criteria of
-     * the other merging types. It is not acquired from multiple MS2 events or multiple collision
-     * energies.
+     * Merged all {@link MobilityScan}s from a single {@link PasefMsMsInfo} (= single fragmentation
+     * event). This spectrum is created by merging multiple mobility scans, but does not fulfill the
+     * criteria of the other merging types. It is not acquired from multiple MS2 events or multiple
+     * collision energies.
      */
-    PASEF_SINGLE
+    PASEF_SINGLE;
+
+    /**
+     * @return merging type from string by unique ID or name, default type if no match
+     */
+    public static @NotNull MergingType parseOrElse(final String value,
+        final MergingType defaultType) {
+      if (value == null) {
+        return defaultType;
+      }
+      for (final MergingType type : values()) {
+        if (type.name().equalsIgnoreCase(value) || type.getUniqueID().equalsIgnoreCase(value)) {
+          return type;
+        }
+      }
+      return defaultType;
+    }
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case SINGLE_SCAN -> "Single scan (other than best)";
+        case SINGLE_BEST_SCAN -> "Single best scan";
+        case SAME_ENERGY -> "Same energy merged";
+        case ALL_ENERGIES -> "All energies merged";
+        case ALL_MSN_TO_PSEUDO_MS2 -> "MSn to pseudo MS2 merged";
+        case PASEF_SINGLE -> "Single PASEF";
+      };
+    }
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case SINGLE_SCAN -> "single_scan";
+        case SINGLE_BEST_SCAN -> "single_best_scan";
+        case SAME_ENERGY -> "same_energy";
+        case ALL_ENERGIES -> "all_energies";
+        case ALL_MSN_TO_PSEUDO_MS2 -> "all_msn_to_pseudo_ms2";
+        case PASEF_SINGLE -> "pasef_single";
+      };
+    }
   }
 }

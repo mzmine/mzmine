@@ -66,7 +66,7 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
-import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
+import io.github.mzmine.util.scans.merging.SpectraMerger;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -140,9 +140,11 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     normalizer = parameters.getValue(LibraryBatchGenerationParameters.normalizer);
 
-    enableMsnMerge = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
-    MZTolerance mzTolMerging = parameters.getEmbeddedParameterValue(
-        LibraryBatchGenerationParameters.mergeMzTolerance);
+    enableMsnMerge = parameters.getValue(LibraryBatchGenerationParameters.merging);
+
+    SpectraMerger merger = !enableMsnMerge ? null
+        : parameters.getParameter(LibraryBatchGenerationParameters.merging).getEmbeddedParameters()
+            .create();
     //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
     if (handleChimerics) {
@@ -155,8 +157,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     }
 
     // used to extract and merge spectra
-    selection = new FragmentScanSelection(mzTolMerging, true,
-        IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY, IntensityMergingType.MAXIMUM,
+    selection = new FragmentScanSelection(merger, IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY,
         postMergingMsLevelFilter);
   }
 

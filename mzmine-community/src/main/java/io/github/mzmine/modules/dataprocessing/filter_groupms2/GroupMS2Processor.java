@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,6 +59,9 @@ import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
+import io.github.mzmine.util.scans.merging.SampleHandling;
+import io.github.mzmine.util.scans.merging.ScanSelectionFilter;
+import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -134,9 +137,10 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
         GroupMS2Parameters.minRequiredSignals, 0);
 
     // only used for tims, keeping input spectra is important for later merging.
-    timsFragmentScanSelection = new FragmentScanSelection(SpectraMerging.pasefMS2MergeTol, true,
-        IncludeInputSpectra.ALL, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS,
-        timsScanStorage);
+    var merger = new SpectraMerger(SampleHandling.SAME_SAMPLE, SpectraMerging.pasefMS2MergeTol,
+        IntensityMergingType.MAXIMUM, IncludeInputSpectra.ALL);
+    timsFragmentScanSelection = new FragmentScanSelection(merger,
+        ScanSelectionFilter.filterMsLevel(MsLevelFilter.ALL_LEVELS), timsScanStorage);
 
     this.list = list;
     processedRows = 0;
@@ -271,7 +275,7 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
       precursorMZ = Objects.requireNonNullElse(scan.getPrecursorMz(), 0d);
     }
     return rtFilter.accept(feature, scan.getRetentionTime()) && precursorMZ != 0
-        && mzTol.checkWithinTolerance(feature.getMZ(), precursorMZ);
+           && mzTol.checkWithinTolerance(feature.getMZ(), precursorMZ);
   }
 
 
@@ -329,7 +333,7 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
     if (eligibleMsMsInfos.isEmpty()) {
       return List.of();
     }
-    feature.set(MsMsInfoType.class, (List<MsMsInfo>) (List<? extends MsMsInfo>)eligibleMsMsInfos);
+    feature.set(MsMsInfoType.class, (List<MsMsInfo>) (List<? extends MsMsInfo>) eligibleMsMsInfos);
 
     List<Scan> msmsSpectra = new ArrayList<>();
     for (PasefMsMsInfo info : eligibleMsMsInfos) {
