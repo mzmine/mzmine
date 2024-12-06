@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,14 +29,15 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.AdductParser;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.exceptions.MissingMassListException;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.swing.IconUtil;
@@ -53,7 +54,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
@@ -73,8 +73,8 @@ public class ScanSelectPanel extends BorderPane {
   static final Image iconTIC = FxIconUtil.loadImageFromResources("icons/btnTIC.png");
   static final Image iconTICFalse = FxIconUtil.loadImageFromResources("icons/btnTIC_grey.png");
   static final Image iconSignals = FxIconUtil.loadImageFromResources("icons/btnSignals.png");
-  static final Image iconSignalsFalse =
-      FxIconUtil.loadImageFromResources("icons/btnSignals_grey.png");
+  static final Image iconSignalsFalse = FxIconUtil.loadImageFromResources(
+      "icons/btnSignals_grey.png");
   static final Image iconAccept = FxIconUtil.loadImageFromResources("icons/btnAccept.png");
   static final Image iconCross = FxIconUtil.loadImageFromResources("icons/btnCross.png");
   static final Image iconNext = FxIconUtil.loadImageFromResources("icons/btnNext.png");
@@ -180,7 +180,7 @@ public class ScanSelectPanel extends BorderPane {
     // TODO: uncomment all and change to JavaFX
     btnToggleUse = new ToggleButton(null, IconUtil.scaledImageView(iconCross, SIZE));
     //btnToggleUse.setSelectedIcon(iconAccept);
-    btnToggleUse.setTooltip(new Tooltip(
+    btnToggleUse.setTooltip(FxTooltips.newTooltip(
         "Export this entry (checked) or exclude from export (X). Useful when multiple ions (adducts) of the same compound are exported at once."));
     pnButtons.add(btnToggleUse, 0, 1);
     btnToggleUse.setSelected(true);
@@ -188,18 +188,18 @@ public class ScanSelectPanel extends BorderPane {
 
     btnNext = new Button(null, IconUtil.scaledImageView(iconNext, SIZE));
     //btnNext.setDisabledIcon(iconNextGrey);
-    btnNext.setTooltip(new Tooltip("Next spectrum (in respect to sorting)"));
+    btnNext.setTooltip(FxTooltips.newTooltip("Next spectrum (in respect to sorting)"));
     btnNext.setOnAction(e -> nextScan());
     pnButtons.add(btnNext, 0, 2);
 
     btnPrev = new Button(null, IconUtil.scaledImageView(iconPrev, SIZE));
     //btnPrev.setDisabledIcon(iconPrevGrey);
-    btnPrev.setTooltip(new Tooltip("Previous spectrum (in respect to sorting)"));
+    btnPrev.setTooltip(FxTooltips.newTooltip("Previous spectrum (in respect to sorting)"));
     btnPrev.setOnAction(a -> prevScan());
     pnButtons.add(btnPrev, 0, 3);
 
     btnMaxTic = new ToggleButton(null, IconUtil.scaledImageView(iconTICFalse, SIZE));
-    btnMaxTic.setTooltip(new Tooltip("Change sorting to max TIC"));
+    btnMaxTic.setTooltip(FxTooltips.newTooltip("Change sorting to max TIC"));
     //btnMaxTic.setSelectedIcon(iconTIC);
     btnMaxTic.selectedProperty().addListener((o, ol, ne) -> {
       if (ne) {
@@ -209,7 +209,7 @@ public class ScanSelectPanel extends BorderPane {
     pnButtons.add(btnMaxTic, 0, 4);
 
     btnSignals = new ToggleButton(null, IconUtil.scaledImageView(iconSignalsFalse, SIZE));
-    btnSignals.setTooltip(new Tooltip("Change sorting to max number of signals"));
+    btnSignals.setTooltip(FxTooltips.newTooltip("Change sorting to max number of signals"));
 //    btnSignals.setSelectedIcon(iconSignals);
     btnSignals.selectedProperty().addListener((o, ol, ne) -> {
       if (ne) {
@@ -235,7 +235,7 @@ public class ScanSelectPanel extends BorderPane {
     if (doc instanceof AbstractDocument) {
       ((AbstractDocument) doc).setDocumentFilter(new DocumentSizeFilter(20));
     }*/
-    txtAdduct.setTooltip(new Tooltip(
+    txtAdduct.setTooltip(FxTooltips.newTooltip(
         "Insert adduct in this format: M+H, M-H2O+H, 2M+Na, M+2H+2 (for doubly charged)"));
 //    pnData.add(txtAdduct, "cell 0 1 3 1,growx");
     pnData.add(txtAdduct, 0, 1, 3, 1);
@@ -246,20 +246,21 @@ public class ScanSelectPanel extends BorderPane {
     pnData.add(lblChargeMz, 0, 2);
 
     txtCharge = new TextField();
-    txtCharge.setTooltip(new Tooltip("Charge (numeric, integer)"));
+    txtCharge.setTooltip(FxTooltips.newTooltip("Charge (numeric, integer)"));
     txtCharge.setText("1");
 //    pnData.add(txtCharge, "cell 0 3,growx,aligny top");
     pnData.add(txtCharge, 0, 3);
     txtCharge.setPrefColumnCount(4);
 
     txtPrecursorMZ = new TextField();
-    txtPrecursorMZ.setTooltip(new Tooltip("Exact (ideally calculated) precursor m/z of this ion"));
+    txtPrecursorMZ.setTooltip(
+        FxTooltips.newTooltip("Exact (ideally calculated) precursor m/z of this ion"));
 //    pnData.add(txtPrecursorMZ, "cell 0 4,growx,aligny top");
     pnData.add(txtPrecursorMZ, 0, 4);
     txtPrecursorMZ.setPrefColumnCount(9);
 
     btnFromScan = new Button("From scan");
-    btnFromScan.setTooltip(new Tooltip("Precursor m/z and charge from scan or feature"));
+    btnFromScan.setTooltip(FxTooltips.newTooltip("Precursor m/z and charge from scan or feature"));
     btnFromScan.setOnAction(e -> setMZandChargeFromScan());
 //    pnData.add(btnFromScan, "cell 0 5,growx");
     pnData.add(btnFromScan, 0, 5);
@@ -283,8 +284,8 @@ public class ScanSelectPanel extends BorderPane {
     lbMassListError = new Label("ERROR with masslist selection: Wrong name or no masslist");
 //    lbMassListError.setFont(new Font("Tahoma", Font.BOLD, 13));
     lbMassListError.setAlignment(Pos.CENTER);
-    lbMassListError
-        .setTextFill(new Color(220 / (double) 255, 20 / (double) 255, 60 / (double) 255, 1d));
+    lbMassListError.setTextFill(
+        new Color(220 / (double) 255, 20 / (double) 255, 60 / (double) 255, 1d));
     lbMassListError.setVisible(false);
 //    add(lbMassListError, BorderLayout.NORTH);
     setTop(lbMassListError);
@@ -468,16 +469,13 @@ public class ScanSelectPanel extends BorderPane {
       if (row != null) {
         if (isFragmentScan) {
           // first entry is the best fragmentation scan
-          scans = ScanUtils.listAllFragmentScans(row, noiseLevel, minNumberOfSignals,
-              sort);
+          scans = ScanUtils.listAllFragmentScans(row, noiseLevel, minNumberOfSignals, sort);
         } else {
           // get most representative MS 1 scans of all features
-          scans =
-              ScanUtils.listAllMS1Scans(row, noiseLevel, minNumberOfSignals, sort);
+          scans = ScanUtils.listAllMS1Scans(row, noiseLevel, minNumberOfSignals, sort);
         }
       } else if (scansEntry != null) {
-        scans =
-            ScanUtils.listAllScans(scansEntry, noiseLevel, minNumberOfSignals, sort);
+        scans = ScanUtils.listAllScans(scansEntry, noiseLevel, minNumberOfSignals, sort);
       }
       selectedScanI = 0;
 
@@ -534,7 +532,7 @@ public class ScanSelectPanel extends BorderPane {
 //        spectrumPlot.setMinSize(400, 400);
         if (listener != null) {
           // chart has changed
-           listener.accept(spectrumPlot);
+          listener.accept(spectrumPlot);
         }
       }
       spectrumPlot.removeAllDataSets();
@@ -544,14 +542,14 @@ public class ScanSelectPanel extends BorderPane {
       spectrumPlot.addDataSet(data, FxColorUtil.fxColorToAWT(colorUsedData), false, true);
       if (showRemovedData) {
         // orange
-        DataPointsDataSet dataRemoved =
-            new DataPointsDataSet("Removed", getFilteredDataPointsRemoved());
+        DataPointsDataSet dataRemoved = new DataPointsDataSet("Removed",
+            getFilteredDataPointsRemoved());
         spectrumPlot.addDataSet(dataRemoved, FxColorUtil.fxColorToAWT(colorRemovedData), false,
             true);
       }
       spectrumPlot.getChart().getLegend().setVisible(showLegend);
       // spectrumPlot.setMaximumSize(new Dimension(chartSize.width, 10000));
-       spectrumPlot.setPrefSize(chartSize.width, chartSize.height);
+      spectrumPlot.setPrefSize(chartSize.width, chartSize.height);
       pnChart.setCenter(spectrumPlot);
 
       Scan scan = scans.get(selectedScanI);
@@ -560,8 +558,9 @@ public class ScanSelectPanel extends BorderPane {
       setValidSelection(true);
     } else {
       // add error label
-      Label error = new Label(MessageFormat
-          .format("NO MS2 SPECTRA: 0 of {0} match the minimum criteria", getTotalScans()));
+      Label error = new Label(
+          MessageFormat.format("NO MS2 SPECTRA: 0 of {0} match the minimum criteria",
+              getTotalScans()));
 //      error.setFont(new Font("Tahoma", Font.BOLD, 13));
       error.setAlignment(Pos.CENTER);
       pnChart.setCenter(error);

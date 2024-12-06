@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,10 +35,11 @@ import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.javafx.util.color.ColorScaleUtil;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,7 +47,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -206,7 +206,7 @@ public class ColocatedImagePane extends StackPane {
     Label lbl = new Label(label);
     lbl.getStyleClass().add(styleClass);
     if (tooltip != null) {
-      lbl.setTooltip(new Tooltip(tooltip));
+      lbl.setTooltip(FxTooltips.newTooltip(tooltip));
     }
     return lbl;
   }
