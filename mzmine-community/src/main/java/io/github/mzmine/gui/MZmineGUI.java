@@ -557,7 +557,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         FxThread.runLater(() -> displayNotification("""
                 Set temp folder to a fast local drive (prefer a public folder over a user folder).
                 mzmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
-                """, "Change", MZmineCore::openTempPreferences,
+                """, "Change", ConfigService::openTempPreferences,
             () -> preferences.setParameter(MZminePreferences.showTempFolderAlert, false)));
       }
     }
