@@ -7,8 +7,8 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
-import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.Weights;
+import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarity;
 
 public class IsotopePatternScoring {
   private IsotopePattern nDetectedPattern;
@@ -37,7 +37,7 @@ public class IsotopePatternScoring {
       nCalculatedDataPoints[i]=dp;
     }
 
-    var similarityLibrary = SpectralSimilarityFunction.compositeCosine.getSimilarity(Weights.SQRT, 0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTolerance, 0,
+    var similarityLibrary = CompositeCosineSpectralSimilarity.getSimilarity(Weights.SQRT, 0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTolerance, 0,
         nCalculatedDataPoints, detectedDataPoints);
     double score = 0.0;
     if (similarityLibrary != null){

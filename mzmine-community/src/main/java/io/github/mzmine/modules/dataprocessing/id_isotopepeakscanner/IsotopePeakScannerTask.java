@@ -57,8 +57,8 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
-import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.Weights;
+import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarity;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -639,7 +639,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
           IsotopePatternStatus.DETECTED, "");
 
 
-      var similarityLibrary = SpectralSimilarityFunction.compositeCosine.getSimilarity(
+      var similarityLibrary = CompositeCosineSpectralSimilarity.getSimilarity(
           Weights.SQRT, 0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTolerance, 0,
           dp2, detectedPatternsDPs.get(integer));
       double score = similarityLibrary.getScore();
@@ -699,7 +699,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
               finalMap.getRowByID(feature).getAverageRT())) {
             assert mzRange != null;
             if (mzRange.contains(resultMap.getRowByID(pattern).getAverageMZ())) {
-            var similarityLibrary = SpectralSimilarityFunction.compositeCosine.getSimilarity(
+            var similarityLibrary = CompositeCosineSpectralSimilarity.getSimilarity(
                 Weights.SQRT, 0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTolerance, 0,
                 calculatedPatternsDPs.get(feature), detectedPatternsDPs.get(pattern));
             double score = 0;
