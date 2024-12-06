@@ -51,9 +51,6 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
-import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -285,8 +282,10 @@ public class FeatureDataUtils {
     var intensityRange = getIntensityRange(featureData);
     feature.set(IntensityRangeType.class, intensityRange);
     feature.set(AreaType.class, calculateArea(featureData));
-    feature.set(HeightType.class, (float) featureData.getIntensity(mostIntenseIndex));
-    feature.set(RTType.class, featureData.getRetentionTime(mostIntenseIndex));
+    if(mostIntenseIndex >= 0) {
+      feature.set(HeightType.class, (float) featureData.getIntensity(mostIntenseIndex));
+      feature.set(RTType.class, featureData.getRetentionTime(mostIntenseIndex));
+    }
     feature.set(RTRangeType.class, getRtRange(featureData));
   }
 

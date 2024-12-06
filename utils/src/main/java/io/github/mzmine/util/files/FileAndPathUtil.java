@@ -37,6 +37,7 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -50,6 +51,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -67,7 +69,7 @@ public class FileAndPathUtil {
 
   private static final Logger logger = Logger.getLogger(FileAndPathUtil.class.getName());
   private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
-  
+
   // changed on other thread so make volatile
   // flag to delete temp files as soon as possible
   private static volatile boolean earlyTempFileCleanup = true;
@@ -728,7 +730,8 @@ public class FileAndPathUtil {
    */
   public static final Set<OpenOption> SPARSE_OPEN_OPTIONS = Set.of(CREATE_NEW, SPARSE, READ, WRITE);
 
-  public static MemorySegment memoryMapSparseTempFile(Arena arena, long size) throws IOException {
+  public static MemorySegment memoryMapSparseTempFile(Arena arena, long size)
+      throws IOException, AccessDeniedException {
     return memoryMapSparseTempFile("mzmine", ".tmp", getTempDir().toPath(), arena, size);
   }
 
@@ -740,9 +743,10 @@ public class FileAndPathUtil {
    * @param size   The size (in bytes) of the mapped memory backing the memory segment
    * @return a new {@link MemorySegment} that maps the sparse file
    * @throws IOException
+   * @throws AccessDeniedException
    */
   public static MemorySegment memoryMapSparseTempFile(String prefix, String suffix, Path dir,
-      Arena arena, long size) throws IOException {
+      Arena arena, long size) throws IOException, AccessDeniedException {
     try (var fc = openTempFileChannel(prefix, suffix, dir)) {
       // Create a mapped memory segment managed by the arena
       MemorySegment segment = fc.map(MapMode.READ_WRITE, 0L, size, arena);
@@ -756,13 +760,19 @@ public class FileAndPathUtil {
    * @param dir    temp directory to create file in
    * @return a new {@link MemorySegment} that maps the sparse file
    * @throws IOException
+   * @throws AccessDeniedException
    */
   public static FileChannel openTempFileChannel(String prefix, String suffix, Path dir)
-      throws IOException {
+      throws IOException, AccessDeniedException {
 
+    // only try to handle a certain number of exceptions.
+
+    int exceptionCounter = 0;
     // filename first
     Path f = generatePath(prefix + suffix, dir);
-    while (true) {
+    // run until successful or exception
+    // even if file does not exist in first check - FileChannel.open is best check for success
+    while (exceptionCounter < 5) {
       try {
         var channel = FileChannel.open(f, SPARSE_OPEN_OPTIONS);
         f.toFile().deleteOnExit();
@@ -778,18 +788,42 @@ public class FileAndPathUtil {
           // TODO macOS
           // TODO wsl
           // TODO docker
+          // does not work on exFAT partition like external drive
+          // will work the first time but then fail on FileChannel.open the second time with AccessDeniedException
+          // NTFS works and apple file system as well
           if (earlyTempFileCleanup) {
             f.toFile().delete();
           }
         } catch (Exception e) {
+          exceptionCounter++;
         }
+        logger.fine("Open file channel to: " + f.toFile().getAbsolutePath());
         return channel;
       } catch (FileAlreadyExistsException e) {
         // ignore and try next file name
+        exceptionCounter++;
+      } catch (AccessDeniedException e) {
+        exceptionCounter++;
+        // on exFAT file system the FileChannel.open throws AccessDeniedException for existing files
+        // maybe because sparse files are not supported and the direct delete triggers issues
+        // therefore only throw exception if the file does not exist
+        if (!f.toFile().exists()) {
+          // if the file does not exist and we cannot write, we need to actually cancel and throw
+          logger.log(Level.WARNING, //
+              """
+                  Access denied: Please choose a temporary directory with write access in the mzmine preferences. \
+                  No write access in """ + f.toFile().getAbsolutePath() + e.getMessage());
+          throw e;
+        }
       }
-      // try adding random numbers
+
+      // try adding random numbers if file already exists
       f = generateRandomPath(prefix, suffix, dir);
     }
+
+    throw new IOException(
+        "Cannot create temp file in path %s. Please select a different directory.".formatted(
+            dir.toFile().getAbsolutePath()));
   }
 
   /**

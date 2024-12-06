@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tsf;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -32,6 +33,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -48,6 +51,8 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -55,6 +60,7 @@ import java.sql.DriverManager;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -184,6 +190,7 @@ public class TSFImportTask extends AbstractTask {
       return;
     }
     addMsMsInfo(newMZmineFile);
+    assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
 
     newMZmineFile.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
@@ -336,5 +343,39 @@ public class TSFImportTask extends AbstractTask {
     logger.info(
         "Construced " + constructed + " DDAMsMsInfos for " + file.getScans().size() + " in " + (
             end.getTime() - start.getTime()) + " ms");
+  }
+
+  /**
+   * bbCID is Bruker's version of all ion fragmentation (AIF) or MSe. Alternating between low (MS1)
+   * and high collision energies (MS2) without quad isolation.
+   */
+  private void assignBbCidMsMsInfo(RawDataFile newMZmineFile, TSFFrameTable frameTable,
+      TDFFrameMsMsInfoTable frameMsMsInfoTable, TDFMetaDataTable metadataTable) {
+    List<? extends Scan> scans = newMZmineFile.getScans();
+
+    final int firstFrameId = (int) frameTable.getFirstFrameNumber();
+    final Range<Double> mzRange = metadataTable.getMzRange();
+
+    for (int i = 0; i < scans.size(); i++) {
+      Scan scan = scans.get(i);
+      final int frameTableIndex = scan.getScanNumber() - firstFrameId;
+
+      if (frameTable.getScanModeColumn().get(frameTableIndex).intValue()
+          != BrukerScanMode.BROADBAND_CID.getNum()
+          || frameTable.getMsMsTypeColumn().get(frameTableIndex).intValue() != 2) {
+        continue;
+      }
+
+      final int frameMsMsTableIndex = BinarySearch.binarySearch(frameMsMsInfoTable.getFrameId(),
+          (double) scan.getScanNumber(), DefaultTo.MINUS_INSERTION_POINT, Long::doubleValue);
+      if (frameMsMsTableIndex < 0) {
+        continue;
+      }
+
+      final float ce = frameMsMsInfoTable.getCe().get(frameMsMsTableIndex).floatValue();
+      final DIAMsMsInfoImpl diaMsMsInfo = new DIAMsMsInfoImpl(ce, scan, scan.getMSLevel(),
+          ActivationMethod.CID, mzRange);
+      ((SimpleScan)scan).setMsMsInfo(diaMsMsInfo);
+    }
   }
 }

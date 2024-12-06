@@ -914,6 +914,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     Set<ModularFeature> features = new LinkedHashSet<>();
     selectedCells.forEach(cell -> {
       // get file of the selected column
+      if(cell == null) {
+        return;
+      }
       ColumnID id = newColumnMap.get(cell.getTableColumn());
       if (id != null) {
         RawDataFile file = id.getRaw();
@@ -923,7 +926,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         }
       }
     });
-    return Collections.unmodifiableList(new ArrayList<>(features));
+    return List.copyOf(features);
   }
 
   @Nullable

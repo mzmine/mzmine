@@ -108,10 +108,12 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Use isotope matcher",
       "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
       (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters().cloneParameterSet());
-  private static final List<ImportType> importTypes = List.of(
+
+  public static final List<ImportType> importTypes = List.of(
       new ImportType(true, "neutral_mass", new NeutralMassType()),
       new ImportType(true, "mz", new PrecursorMZType()), //
-      new ImportType(true, "rt", new RTType()), new ImportType(true, "formula", new FormulaType()),
+      new ImportType(true, "rt", new RTType()), //
+      new ImportType(true, "formula", new FormulaType()),
       new ImportType(true, "smiles", new SmilesStructureType()),
       new ImportType(false, "inchi", new InChIStructureType()),
       new ImportType(false, "inchi_key", new InChIKeyStructureType()),

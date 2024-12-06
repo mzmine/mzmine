@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,6 +51,7 @@ import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -102,6 +103,7 @@ public class SiriusExportTask extends AbstractTask {
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private final AtomicInteger processedRows = new AtomicInteger(0);
   private final OnlineReactionJsonWriter reactionJsonWriter;
+  private final IntensityNormalizer normalizer;
 
 
   protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -120,6 +122,7 @@ public class SiriusExportTask extends AbstractTask {
 
     // new parameters related to ion identity networking and feature grouping
     mzTol = parameters.getValue(SiriusExportParameters.MZ_TOL);
+    normalizer = parameters.getValue(SiriusExportParameters.NORMALIZE);
     excludeMultiCharge = parameters.getValue(SiriusExportParameters.EXCLUDE_MULTICHARGE);
     excludeMultimers = parameters.getValue(SiriusExportParameters.EXCLUDE_MULTIMERS);
     needAnnotation = parameters.getValue(SiriusExportParameters.NEED_ANNOTATION);
@@ -244,20 +247,14 @@ public class SiriusExportTask extends AbstractTask {
     final List<SpectralLibraryEntry> entries = new ArrayList<>();
 
     // export either correlated OR MS1
-    final MassSpectrum correlated = generateCorrelationSpectrum(row, null);
-    if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
-      entries.add(spectrumToEntry(MsType.CORRELATED, correlated, row.getBestFeature()));
-    } else {
-      // export best MS1
-      entries.add(spectrumToEntry(MsType.MS, row.getBestFeature().getRepresentativeScan(),
-          row.getBestFeature()));
+    final SpectralLibraryEntry ms1 = getCorrelatedOrBestMS1Spectrum(row);
+    if (ms1 != null) {
+      entries.add(ms1);
     }
 
     if (mergeEnabled) {
       final List<SpectralLibraryEntry> ms2Entries = getMergedMs2SpectraEntries(mergeMode, row);
-      if (ms2Entries != null) {
-        entries.addAll(ms2Entries);
-      }
+      entries.addAll(ms2Entries);
     } else {
       final List<SpectralLibraryEntry> ms2Entries = row.streamFeatures().flatMap(
               f -> f.getAllMS2FragmentScans().stream().map(s -> spectrumToEntry(MsType.MSMS, s, f)))
@@ -266,16 +263,47 @@ public class SiriusExportTask extends AbstractTask {
     }
 
     if (entries.size() < 2) {
-      // only MS1
+      // only one MS1 scan
       return false;
     }
 
+    int actuallyExported = 0;
     for (SpectralLibraryEntry entry : entries) {
-      final String mgfEntry = MGFEntryGenerator.createMGFEntry(entry);
-      writer.write(mgfEntry);
-      writer.newLine();
+      final var mgfEntry = MGFEntryGenerator.createMGFEntry(entry, normalizer);
+      if (mgfEntry.numSignals() > 0) {
+        writer.write(mgfEntry.spectrum());
+        writer.newLine();
+        actuallyExported++;
+      }
     }
-    return true;
+    return actuallyExported > 0;
+  }
+
+
+  private @Nullable SpectralLibraryEntry getCorrelatedOrBestMS1Spectrum(final FeatureListRow row) {
+    final Feature bestFeature = row.getBestFeature();
+    if (bestFeature == null) {
+      // maybe no MS1 data?
+      logger.warning(
+          "Cannot export MS1 data for this feature list. This maybe due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
+          + FeatureUtils.rowToString(row));
+      return null;
+    }
+
+    final MassSpectrum correlated = generateCorrelationSpectrum(row, null);
+    if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
+      return spectrumToEntry(MsType.CORRELATED, correlated, bestFeature);
+    } else {
+      // export best MS1
+      var ms1Scan = bestFeature.getRepresentativeScan();
+      if (ms1Scan == null) {
+        logger.fine(
+            "Best feature has no representative scan. This may be due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
+            + FeatureUtils.rowToString(row));
+        return null;
+      }
+      return spectrumToEntry(MsType.MS, ms1Scan, bestFeature);
+    }
   }
 
   public SpectralLibraryEntry spectrumToEntry(MsType spectrumType, MassSpectrum spectrum,
@@ -523,7 +551,7 @@ public class SiriusExportTask extends AbstractTask {
   }
 
 
-  private enum MsType {
+  public enum MsType {
     /**
      * Describes the original MS1 spectrum
      */

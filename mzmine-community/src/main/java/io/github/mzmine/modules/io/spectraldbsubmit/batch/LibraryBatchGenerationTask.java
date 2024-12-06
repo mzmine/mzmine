@@ -54,6 +54,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -105,6 +106,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final MsMsQualityChecker msMsQualityChecker;
   private final boolean enableMsnMerge;
   private final MsLevelFilter postMergingMsLevelFilter;
+  private final IntensityNormalizer normalizer;
   public long totalRows = 0;
   public AtomicInteger finishedRows = new AtomicInteger(0);
   public AtomicInteger exported = new AtomicInteger(0);
@@ -135,6 +137,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     postMergingMsLevelFilter = parameters.getValue(
         LibraryBatchGenerationParameters.postMergingMsLevelFilter);
+
+    normalizer = parameters.getValue(LibraryBatchGenerationParameters.normalizer);
 
     enableMsnMerge = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
     MZTolerance mzTolMerging = parameters.getEmbeddedParameterValue(
@@ -369,10 +373,12 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
   private void exportEntry(final BufferedWriter writer, final SpectralLibraryEntry entry)
       throws IOException {
+    // TODO maybe skip empty spectra. After formatting the number of signals may be smaller than before
+    // if intensity is 0 after formatting
     String stringEntry = switch (format) {
-      case msp -> MSPEntryGenerator.createMSPEntry(entry);
-      case json -> MZmineJsonGenerator.generateJSON(entry);
-      case mgf -> MGFEntryGenerator.createMGFEntry(entry);
+      case msp -> MSPEntryGenerator.createMSPEntry(entry, normalizer);
+      case json_mzmine -> MZmineJsonGenerator.generateJSON(entry, normalizer);
+      case mgf -> MGFEntryGenerator.createMGFEntry(entry, normalizer).spectrum();
     };
     writer.append(stringEntry).append("\n");
   }
