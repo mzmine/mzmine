@@ -3,6 +3,7 @@ package io.github.mzmine.gui.mainwindow.workspace;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addMenuItem;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItem;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItems;
+import static io.github.mzmine.util.javafx.FxMenuUtil.addRadioMenuItem;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addSeparator;
 
 import io.github.mzmine.gui.DesktopService;
@@ -116,7 +117,9 @@ import java.util.EnumSet;
 import java.util.List;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 
@@ -383,10 +386,16 @@ public abstract class AbstractWorkspace implements Workspace {
     // this menu needs to be updated on shown, so new workspaces can be added after this workspace has been build.
     menu.setOnShowing(_ -> {
       menu.getItems().clear();
+
+      ToggleGroup grp = new ToggleGroup();
       for (Workspace workspace : helper.getWorkspaces().values()) {
-        addMenuItem(menu, workspace.getName(),
-            () -> ((MZmineGUI) MZmineCore.getDesktop()).setMenubar(
-                workspace.buildMainMenu(EnumSet.allOf(WorkspaceTags.class))));
+        final RadioMenuItem item = addRadioMenuItem(menu, grp, workspace.getName(),
+            () -> ((MZmineGUI) MZmineCore.getDesktop()).setWorkspace(workspace,
+                EnumSet.allOf(WorkspaceTags.class)));
+        if (workspace.getUniqueId()
+            .equals(((MZmineGUI) DesktopService.getDesktop()).getActiveWorkspace().getUniqueId())) {
+          grp.selectToggle(item);
+        }
       }
     });
 

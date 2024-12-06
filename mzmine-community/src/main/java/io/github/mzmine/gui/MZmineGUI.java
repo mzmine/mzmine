@@ -69,6 +69,8 @@ import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
+import io.mzio.mzmine.gui.workspace.Workspace;
+import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.UsersViewState;
 import io.mzio.users.user.CurrentUserService;
@@ -78,6 +80,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -105,7 +108,6 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -372,13 +374,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
           logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-                              + rawDataFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
         if (!libraryFiles.isEmpty()) {
           logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
-                              + libraryFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
 
         // set raw and library files to parameter
@@ -872,7 +872,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     return mainWindowController.getSelectedProjectTab();
   }
 
-  public void setMenubar(MenuBar menubar) {
-    mainWindowController.getMainPane().setTop(menubar);
+  public void setWorkspace(@NotNull Workspace workspace, @NotNull EnumSet<WorkspaceTags> tags) {
+    mainWindowController.setActiveWorkspace(workspace, tags);
+  }
+
+  public Workspace getActiveWorkspace() {
+    return mainWindowController.getActiveWorkspace();
   }
 }

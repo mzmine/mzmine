@@ -118,7 +118,7 @@ public final class AcademicWorkspace extends AbstractWorkspace {
     menuBar.getMenus().add(buildDefaultToolsMenu());
     menuBar.getMenus().add(buildDefaultWindowsMenu());
     menuBar.getMenus().add(buildDefaultUsersMenu());
-    menuBar.getMenus().add(buildDefaultWorkspacesMenu());
+//    menuBar.getMenus().add(buildDefaultWorkspacesMenu()); // not available yet
     menuBar.getMenus().add(buildDefaultHelpMenu());
     return menuBar;
   }

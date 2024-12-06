@@ -80,6 +80,7 @@ import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
 import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.mzio.mzmine.gui.workspace.Workspace;
 import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
 import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import java.io.IOException;
@@ -236,6 +237,7 @@ public class MainWindowController {
   private Region miniTaskView;
   private final PauseTransition manualGcDelay = new PauseTransition(Duration.millis(500));
 
+  private Workspace activeWorkspace;
 
   @NotNull
   private static Pane getRawGraphic(RawDataFile rawDataFile) {
@@ -336,13 +338,22 @@ public class MainWindowController {
     }));
     memoryUpdater.play();
 
-    final AcademicWorkspace workspace = new AcademicWorkspace();
-    WorkspaceMenuHelper.addWorkspace(workspace);
+    final AcademicWorkspace academicWorkspace = new AcademicWorkspace();
+    WorkspaceMenuHelper.addWorkspace(academicWorkspace);
     if (WorkspaceMenuHelper.getDefaultWorkspaceId() == null) {
-      WorkspaceMenuHelper.setDefaultWorkspace(workspace);
+      WorkspaceMenuHelper.setDefaultWorkspace(academicWorkspace);
     }
-    mainPane.setTop(WorkspaceMenuHelper.getDefaultWorkspaceOrElse(workspace)
-        .buildMainMenu(EnumSet.allOf(WorkspaceTags.class)));
+    setActiveWorkspace(WorkspaceMenuHelper.getDefaultWorkspaceOrElse(academicWorkspace),
+        EnumSet.allOf(WorkspaceTags.class));
+  }
+
+  public void setActiveWorkspace(@NotNull Workspace workspace, EnumSet<WorkspaceTags> tags) {
+    activeWorkspace = workspace;
+    mainPane.setTop(workspace.buildMainMenu(tags));
+  }
+
+  public Workspace getActiveWorkspace() {
+    return activeWorkspace;
   }
 
   private void initFeatureListsList() {
