@@ -32,10 +32,9 @@ public class AdvancedLibraryBatchGenerationParameters extends SimpleParameterSet
 
   public static BooleanParameter compactUSI = new BooleanParameter(
       "Compact USI (limited compatibility)", """
-      Universal Spectrum Identifier allow traceability to the source scans in a format: mzspec:DATASET:DATAFILE:SCAN_NUMBER. \
-      The regular format allows for a single (optional) scan number. If this parameter is checked, \
-      one USI is generated per source file with scan numbers as ranges, e.g., 1-5,9 for all scans from \
-      1 to 5 and 9. This reduces the file size.
+      Universal Spectrum Identifier allow traceability to the source scans in a format: mzspec:DATASET:DATAFILE:SCAN_NUMBER.
+      The regular format allows for a single (optional) scan number. If this parameter is checked, one USI is generated
+      per source file with scan numbers as ranges, e.g., 1-5,9 for all scans from 1 to 5 and 9. This reduces the file size.
       Many tools do not parse this USI format.""", false);
 
   public AdvancedLibraryBatchGenerationParameters() {
