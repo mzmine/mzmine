@@ -381,6 +381,8 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultWorkspacesMenu() {
     final Menu menu = new Menu("Workspaces");
+
+    // needs to have at least one item, otherwise onShowing will not be triggered.
     menu.getItems().add(new MenuItem("Available workspaces"));
 
     // this menu needs to be updated on shown, so new workspaces can be added after this workspace has been build.

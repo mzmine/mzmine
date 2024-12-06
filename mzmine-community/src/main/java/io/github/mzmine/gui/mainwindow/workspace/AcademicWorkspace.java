@@ -83,6 +83,7 @@ import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.util.javafx.ModuleMenuItem;
+import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
 import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import java.util.EnumSet;
 import javafx.scene.control.Menu;
@@ -118,7 +119,10 @@ public final class AcademicWorkspace extends AbstractWorkspace {
     menuBar.getMenus().add(buildDefaultToolsMenu());
     menuBar.getMenus().add(buildDefaultWindowsMenu());
     menuBar.getMenus().add(buildDefaultUsersMenu());
-//    menuBar.getMenus().add(buildDefaultWorkspacesMenu()); // not available yet
+    final Menu workspaces = buildDefaultWorkspacesMenu();
+    if (WorkspaceMenuHelper.getWorkspaces().size() > 1) {
+      menuBar.getMenus().add(workspaces);
+    }
     menuBar.getMenus().add(buildDefaultHelpMenu());
     return menuBar;
   }
