@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -180,7 +181,7 @@ public class TSFImportTask extends AbstractTask {
 
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
-    final boolean tryProfile = MZmineCore.getInstance().isTsfProfile();
+    final boolean tryProfile = ConfigService.isTsfProfile();
     final MassSpectrumType importSpectrumType =
         tryProfile && metaDataTable.hasProfileSpectra() ? MassSpectrumType.PROFILE
             : MassSpectrumType.CENTROIDED;
