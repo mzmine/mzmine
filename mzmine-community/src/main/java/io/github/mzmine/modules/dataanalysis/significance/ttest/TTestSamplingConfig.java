@@ -25,18 +25,49 @@
 
 package io.github.mzmine.modules.dataanalysis.significance.ttest;
 
+import io.github.mzmine.util.StringUtils;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public enum TTestSamplingConfig {
 
   UNPAIRED("unpaired",
       "Used for tests of unrelated groups, e.g., separate patients for control and treatment group."), //
+
   PAIRED("paired",
       "Used for tests of related groups, e.g., same patient before and after treatment."); //
 
+  private static final Logger logger = Logger.getLogger(TTestSamplingConfig.class.getName());
   final String name;
   final String description;
 
   TTestSamplingConfig(String name, String description) {
     this.name = name;
     this.description = description;
+  }
+
+  /**
+   * Parses the value and handles any exceptions, null and empty values.
+   *
+   * @return the parsed value or defaultValue in any exceptional case or for empty value
+   */
+  public static TTestSamplingConfig parseOrElse(final String value,
+      final TTestSamplingConfig defaultValue) {
+    if (StringUtils.isBlank(value)) {
+      return defaultValue;
+    }
+    try {
+      return switch (value.toLowerCase()) {
+        case "unpaired" -> TTestSamplingConfig.UNPAIRED;
+        case "paired" -> TTestSamplingConfig.PAIRED;
+        default -> {
+          logger.log(Level.WARNING, "Could not parse %s TTestSamplingConfig".formatted(value));
+          yield defaultValue;
+        }
+      };
+    } catch (Exception exception) {
+      logger.log(Level.WARNING, "Could not parse %s TTestSamplingConfig".formatted(value));
+    }
+    return defaultValue;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,6 +41,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CompressionUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.ByteArrayInputStream;
@@ -60,6 +61,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -110,8 +112,8 @@ public class MzXMLImportTask extends AbstractTask {
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       @NotNull ScanImportProcessorConfig scanProcessorConfig,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // storage in raw data file
+      @NotNull Instant moduleCallDate, final @Nullable MemoryMapStorage storage) {
+    super(storage, moduleCallDate); // storage also set in raw data file
     this.scanProcessorConfig = scanProcessorConfig;
     this.parameters = parameters;
     this.module = module;
@@ -320,15 +322,8 @@ public class MzXMLImportTask extends AbstractTask {
           numOpenScans = 0;
         }
         if (numOpenScans == 0) {
-          try {
-            for (final SimpleScan scan : parentStack) {
-              newMZmineFile.addScan(scan);
-            }
-          } catch (IOException e) {
-            logger.log(Level.WARNING, "Cannot store scan. " + e.getMessage(), e);
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("IO error: " + e);
-            throw new SAXException("Parsing error: " + e);
+          for (final SimpleScan scan : parentStack) {
+            newMZmineFile.addScan(scan);
           }
           parentStack.clear();
         }

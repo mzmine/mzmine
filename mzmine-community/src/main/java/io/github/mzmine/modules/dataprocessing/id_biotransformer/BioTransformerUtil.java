@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerUtil {
@@ -102,12 +103,18 @@ public class BioTransformerUtil {
 
   public static List<CompoundDBAnnotation> parseLibrary(final File file,
       IonNetworkLibrary library) {
+    if (!file.exists() && file.canRead()) {
+      logger.info(
+          () -> "BioTransformer result file does not exist, this means that no metabolites were predicted.");
+      return List.of();
+    }
     final CompoundDbLoadResult annotationResults = CSVParsingUtils.getAnnotationsFromCsvFile(file,
         ",", types, library);
     if (annotationResults.status() != TaskStatus.ERROR) {
       return annotationResults.annotations();
     } else {
-      throw new RuntimeException(annotationResults.errorMessage());
+      logger.info(annotationResults.errorMessage());
+      return List.of();
     }
   }
 
@@ -116,6 +123,10 @@ public class BioTransformerUtil {
       ProcessBuilder b = new ProcessBuilder();
       b.directory(dir);
       b.command(cmd);
+
+      final String command = cmd.stream().collect(Collectors.joining(" "));
+      logger.finest(() -> "Running biotransformer with cmd: " + command);
+
       Process process = b.start();
       StringBuilder output = new StringBuilder();
       BufferedReader errorReader = new BufferedReader(
@@ -125,9 +136,11 @@ public class BioTransformerUtil {
       String line = null;
       String error = null;
       while ((line = reader.readLine()) != null || (error = errorReader.readLine()) != null) {
-        output.append(line).append("\n");
+//        output.append(line).append("\n");
+        logger.finest(line);
         if (error != null) {
-          output.append("ERROR: ").append(error).append("\n");
+          logger.severe(error);
+//          output.append("ERROR: ").append(error).append("\n");
         }
       }
 
@@ -135,7 +148,7 @@ public class BioTransformerUtil {
       errorReader.close();
       reader.close();
       process.getOutputStream().close();
-      logger.info(() -> output.toString());
+//      logger.info(() -> output.toString());
       if (exitVal != 0) {
         logger.warning(() -> "Error " + exitVal + " while running bio transformer command " + cmd);
         return false;

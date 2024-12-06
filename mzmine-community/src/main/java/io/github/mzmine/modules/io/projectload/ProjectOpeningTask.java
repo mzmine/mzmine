@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.projectload;
 
 import com.google.common.io.CountingInputStream;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
@@ -42,6 +43,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -56,7 +58,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javafx.scene.control.ButtonType;
 import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
@@ -134,11 +135,10 @@ public class ProjectOpeningTask extends AbstractTask {
       // Check if existing raw data files are present
       ProjectManager projectManager = ProjectService.getProjectManager();
       if (projectManager.getCurrentProject().getDataFiles().length > 0) {
-        ButtonType confirm = MZmineCore.getDesktop().displayConfirmation(
-            "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?",
-            ButtonType.YES, ButtonType.NO);
+        boolean confirm = DialogLoggerUtil.showDialogYesNo("Replace existing project?",
+            "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?");
 
-        if (confirm != ButtonType.YES) {
+        if (confirm) {
           cancel();
           return;
         }
@@ -280,7 +280,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     String projectVersionString = reader.readLine();
-    String mzmineVersionString = String.valueOf(MZmineCore.getMZmineVersion());
+    String mzmineVersionString = String.valueOf(SemverVersionReader.getMZmineVersion());
 
     // todo adjust for new version when project load/save is done
     Matcher m = versionPattern.matcher(mzmineVersionString);
@@ -312,10 +312,11 @@ public class ProjectOpeningTask extends AbstractTask {
     // Check if project was saved with a newer version
     if (mzmineMajorVersion > 0) {
       if ((projectMajorVersion > mzmineMajorVersion) || ((projectMajorVersion == mzmineMajorVersion)
-          && (projectMinorVersion > mzmineMinorVersion))) {
+                                                         && (projectMinorVersion
+                                                             > mzmineMinorVersion))) {
         String warning = "Warning: this project was saved with a newer version of MZmine ("
-            + projectVersionString + "). Opening this project in MZmine " + mzmineVersionString
-            + " may result in errors or loss of information.";
+                         + projectVersionString + "). Opening this project in MZmine "
+                         + mzmineVersionString + " may result in errors or loss of information.";
         MZmineCore.getDesktop().displayMessage(warning);
       }
     }

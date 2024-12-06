@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,14 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.MolecularClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -57,6 +64,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import io.github.mzmine.util.files.ExtensionFilters;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +77,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
-      "Name of file that contains information for peak identification", FileSelectionType.OPEN);
+      "Name of file that contains information for peak identification",
+      ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN);
 
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the database file. Use '\\t' for tab seperated files.",
@@ -99,10 +108,12 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Use isotope matcher",
       "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
       (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters().cloneParameterSet());
-  private static final List<ImportType> importTypes = List.of(
+
+  public static final List<ImportType> importTypes = List.of(
       new ImportType(true, "neutral_mass", new NeutralMassType()),
       new ImportType(true, "mz", new PrecursorMZType()), //
-      new ImportType(true, "rt", new RTType()), new ImportType(true, "formula", new FormulaType()),
+      new ImportType(true, "rt", new RTType()), //
+      new ImportType(true, "formula", new FormulaType()),
       new ImportType(true, "smiles", new SmilesStructureType()),
       new ImportType(false, "inchi", new InChIStructureType()),
       new ImportType(false, "inchi_key", new InChIKeyStructureType()),
@@ -112,7 +123,14 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(true, "comment", new CommentType()),
       new ImportType(false, "adduct", new IonTypeType()),
       new ImportType(false, "PubChemCID", new PubChemIdType()),
-      new ImportType(false, "molecular_class", new MolecularClassType()));
+      new ImportType(false, "molecular_class", new MolecularClassType()),
+      new ImportType(false, "classyfire_superclass", new ClassyFireSuperclassType()),
+      new ImportType(false, "classyfire_class", new ClassyFireClassType()),
+      new ImportType(false, "classyfire_subclass", new ClassyFireSubclassType()),
+      new ImportType(false, "classyfire_direct_parent", new ClassyFireParentType()),
+      new ImportType(false, "npclassifier_superclass", new NPClassifierSuperclassType()),
+      new ImportType(false, "npclassifier_class", new NPClassifierClassType()),
+      new ImportType(false, "npclassifier_pathway", new NPClassifierPathwayType()));
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);

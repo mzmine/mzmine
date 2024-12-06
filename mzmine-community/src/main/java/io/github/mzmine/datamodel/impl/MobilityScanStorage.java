@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,8 +35,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.nio.DoubleBuffer;
-import java.nio.IntBuffer;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,17 +54,41 @@ public class MobilityScanStorage {
 
   // raw data
   private final Frame frame;
-  private final DoubleBuffer rawMzValues;
-  private final DoubleBuffer rawIntensityValues;
-  private final IntBuffer rawStorageOffsets;
-  private final IntBuffer rawBasePeakIndices;
+  /**
+   * doubles
+   */
+  private final MemorySegment rawMzValues;
+  /**
+   * doubles
+   */
+  private final MemorySegment rawIntensityValues;
+  /**
+   * Per scan, ints.
+   */
+  private final MemorySegment rawStorageOffsets;
+  /**
+   * Per scan, ints.
+   */
+  private final MemorySegment rawBasePeakIndices;
   private final int rawMaxNumPoints;
 
   // mass list
-  private DoubleBuffer massListMzValues = null;
-  private DoubleBuffer massListIntensityValues = null;
-  private IntBuffer massListStorageOffsets = null;
-  private IntBuffer massListBasePeakIndices = null;
+  /**
+   * doubles
+   */
+  private MemorySegment massListMzValues = null;
+  /**
+   * doubles
+   */
+  private MemorySegment massListIntensityValues = null;
+  /**
+   * Per scan, ints.
+   */
+  private MemorySegment massListStorageOffsets = null;
+  /**
+   * Per scan, ints.
+   */
+  private MemorySegment massListBasePeakIndices = null;
   private int massListMaxNumPoints = -1;
 
   public MobilityScanStorage(@Nullable MemoryMapStorage storage, @NotNull final Frame frame,
@@ -104,6 +128,38 @@ public class MobilityScanStorage {
   public MobilityScanStorage(@Nullable MemoryMapStorage storage, @NotNull final Frame frame,
       @NotNull final List<BuildingMobilityScan> mobilityScans, boolean useAsMassList) {
     this(storage, frame, mobilityScans);
+
+    if (useAsMassList) {
+      massListBasePeakIndices = rawBasePeakIndices;
+      massListMaxNumPoints = rawMaxNumPoints;
+      massListMzValues = rawMzValues;
+      massListIntensityValues = rawIntensityValues;
+      massListStorageOffsets = rawStorageOffsets;
+    }
+  }
+
+  /**
+   * Costructor with preloaded already memory mapped data. This is used in the mzML
+   *
+   * @param storage         for memory mapping
+   * @param frame           the actual frame
+   * @param mzValues        already memory mapped mz values, doubles.
+   * @param intensityValues already memory mapped intensity values, doubles.
+   * @param maxNumPoints    the maximum number of signals in the largest scan
+   * @param storageOffsets  the offsets to find the start of each mobility scan in the memory mapped
+   *                        mz and intensity buffers
+   * @param basePeakIndices the
+   * @param useAsMassList
+   */
+  public MobilityScanStorage(final @Nullable MemoryMapStorage storage, final SimpleFrame frame,
+      final MemorySegment mzValues, final MemorySegment intensityValues, final int maxNumPoints,
+      final int[] storageOffsets, final int[] basePeakIndices, final boolean useAsMassList) {
+    this.frame = frame;
+    rawBasePeakIndices = StorageUtils.storeValuesToIntBuffer(storage, basePeakIndices);
+    rawStorageOffsets = StorageUtils.storeValuesToIntBuffer(storage, storageOffsets);
+    rawMzValues = mzValues;
+    rawIntensityValues = intensityValues;
+    rawMaxNumPoints = maxNumPoints;
 
     if (useAsMassList) {
       massListBasePeakIndices = rawBasePeakIndices;
@@ -213,7 +269,7 @@ public class MobilityScanStorage {
   }
 
   public int getNumberOfMobilityScans() {
-    return rawStorageOffsets.capacity();
+    return (int) StorageUtils.numInts(rawStorageOffsets);
   }
 
   /**
@@ -222,10 +278,10 @@ public class MobilityScanStorage {
    */
   public int getNumberOfRawDatapoints(int index) {
     assert index < getNumberOfMobilityScans();
-    if (index < rawStorageOffsets.capacity() - 1) {
-      return rawStorageOffsets.get(index + 1) - rawStorageOffsets.get(index);
+    if (index < getNumberOfMobilityScans() - 1) {
+      return getRawStorageOffset(index + 1) - getRawStorageOffset(index);
     } else {
-      return rawMzValues.capacity() - rawStorageOffsets.get(index);
+      return (int) (getRawTotalNumPoints() - getRawStorageOffset(index));
     }
   }
 
@@ -235,7 +291,7 @@ public class MobilityScanStorage {
    */
   public int getRawBasePeakIndex(int index) {
     assert index < getNumberOfMobilityScans();
-    return rawBasePeakIndices.get(index);
+    return rawBasePeakIndices.getAtIndex(ValueLayout.JAVA_INT, index);
   }
 
   /**
@@ -249,7 +305,7 @@ public class MobilityScanStorage {
    * @return The total number of points in this {@link  MobilityScanStorage}.
    */
   public int getRawTotalNumPoints() {
-    return rawMzValues.capacity();
+    return (int) StorageUtils.numDoubles(rawMzValues);
   }
 
   public Frame getFrame() {
@@ -258,37 +314,50 @@ public class MobilityScanStorage {
 
   public int getRawStorageOffset(int mobilityScanIndex) {
     assert mobilityScanIndex < getNumberOfMobilityScans();
-    return rawStorageOffsets.get(mobilityScanIndex);
+    return rawStorageOffsets.getAtIndex(ValueLayout.JAVA_INT, mobilityScanIndex);
   }
 
-  public void getRawMobilityScanMzValues(int mobilityScanIndex, double[] dst, int offset) {
-    assert getNumberOfRawDatapoints(mobilityScanIndex) + offset <= dst.length;
-    rawMzValues.get(getRawStorageOffset(mobilityScanIndex), dst, offset,
-        getNumberOfRawDatapoints(mobilityScanIndex));
+  /**
+   *
+   */
+  public void getRawMobilityScanMzValues(int mobilityScanIndex, double[] dst) {
+    final int rawNumDp = getNumberOfRawDatapoints(mobilityScanIndex);
+    assert rawNumDp <= dst.length;
+    final MemorySegment slice = StorageUtils.sliceDoubles(rawMzValues,
+        getRawStorageOffset(mobilityScanIndex), getRawStorageOffset(mobilityScanIndex) + rawNumDp);
+    MemorySegment.copy(slice, ValueLayout.JAVA_DOUBLE, 0, dst, 0, rawNumDp);
   }
 
   public void getAllRawMobilityScanMzValues(double[] dst) {
     assert dst.length >= getRawTotalNumPoints();
-    rawMzValues.get(0, dst, 0, getRawTotalNumPoints());
+    StorageUtils.copyToBuffer(dst, rawMzValues, 0, getRawTotalNumPoints());
   }
 
-  public void getRawMobilityScanIntensityValues(int mobilityScanIndex, double[] dst, int offset) {
-    assert getNumberOfRawDatapoints(mobilityScanIndex) + offset <= dst.length;
-    rawIntensityValues.get(getRawStorageOffset(mobilityScanIndex), dst, offset,
-        getNumberOfRawDatapoints(mobilityScanIndex));
+  /**
+   *
+   */
+  public void getRawMobilityScanIntensityValues(int mobilityScanIndex, double[] dst) {
+    final int rawNumDp = getNumberOfRawDatapoints(mobilityScanIndex);
+    assert rawNumDp <= dst.length;
+
+    final MemorySegment slice = StorageUtils.sliceDoubles(rawIntensityValues,
+        getRawStorageOffset(mobilityScanIndex), getRawStorageOffset(mobilityScanIndex) + rawNumDp);
+    MemorySegment.copy(slice, ValueLayout.JAVA_DOUBLE, 0, dst, 0, rawNumDp);
   }
 
   public void getAllRawMobilityScanIntensityValues(double[] dst) {
     assert dst.length >= getRawTotalNumPoints();
-    rawIntensityValues.get(0, dst, 0, getRawTotalNumPoints());
+    StorageUtils.copyToBuffer(dst, rawIntensityValues, 0, getRawTotalNumPoints());
   }
 
   public double getRawMobilityScanMzValue(int mobilityScanIndex, int index) {
-    return rawMzValues.get(getRawStorageOffset(mobilityScanIndex) + index);
+    return rawMzValues.getAtIndex(ValueLayout.JAVA_DOUBLE,
+        getRawStorageOffset(mobilityScanIndex) + index);
   }
 
   public double getRawMobilityScanIntensityValue(int mobilityScanIndex, int index) {
-    return rawIntensityValues.get(getRawStorageOffset(mobilityScanIndex) + index);
+    return rawIntensityValues.getAtIndex(ValueLayout.JAVA_DOUBLE,
+        getRawStorageOffset(mobilityScanIndex) + index);
   }
 
   // mass list
@@ -299,10 +368,11 @@ public class MobilityScanStorage {
           null);
     }
     assert index < getNumberOfMobilityScans();
-    if (index < massListStorageOffsets.capacity() - 1) {
-      return massListStorageOffsets.get(index + 1) - massListStorageOffsets.get(index);
+
+    if (index < getNumberOfMobilityScans() - 1) {
+      return getMassListStorageOffset(index + 1) - getMassListStorageOffset(index);
     } else {
-      return massListMzValues.capacity() - massListStorageOffsets.get(index);
+      return getMassListTotalNumPoints() - getMassListStorageOffset(index);
     }
   }
 
@@ -316,7 +386,7 @@ public class MobilityScanStorage {
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
           null);
     }
-    return massListStorageOffsets.get(index);
+    return massListStorageOffsets.getAtIndex(ValueLayout.JAVA_INT, index);
   }
 
   /**
@@ -329,7 +399,7 @@ public class MobilityScanStorage {
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
           null);
     }
-    return massListBasePeakIndices.get(index);
+    return massListBasePeakIndices.getAtIndex(ValueLayout.JAVA_INT, index);
   }
 
   /**
@@ -353,18 +423,22 @@ public class MobilityScanStorage {
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
           null);
     }
-    return massListIntensityValues.capacity();
+    return (int) StorageUtils.numDoubles(massListIntensityValues);
   }
 
-  public void getMassListMzValues(int mobilityScanIndex, double[] dst, int offset) {
+  public void getMassListMzValues(int mobilityScanIndex, double[] dst) {
     if (massListMzValues == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
           null);
     }
-    assert getNumberOfMassListDatapoints(mobilityScanIndex) + offset <= dst.length;
-    massListMzValues.get(getMassListStorageOffset(mobilityScanIndex), dst, offset,
-        getNumberOfMassListDatapoints(mobilityScanIndex));
+    final int numMassListDp = getNumberOfMassListDatapoints(mobilityScanIndex);
+    assert numMassListDp <= dst.length;
+
+    final MemorySegment slice = StorageUtils.sliceDoubles(massListMzValues,
+        getMassListStorageOffset(mobilityScanIndex),
+        getMassListStorageOffset(mobilityScanIndex) + numMassListDp);
+    MemorySegment.copy(slice, ValueLayout.JAVA_DOUBLE, 0, dst, 0, numMassListDp);
   }
 
   public void getAllMassListMzValues(double[] dst) {
@@ -374,18 +448,22 @@ public class MobilityScanStorage {
           null);
     }
     assert dst.length >= getMassListTotalNumPoints();
-    massListMzValues.get(0, dst, 0, getMassListTotalNumPoints());
+    StorageUtils.copyToBuffer(dst, massListMzValues, 0, getMassListTotalNumPoints());
   }
 
-  public void getMassListIntensityValues(int mobilityScanIndex, double[] dst, int offset) {
+  public void getMassListIntensityValues(int mobilityScanIndex, double[] dst) {
     if (massListIntensityValues == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
           null);
     }
-    assert getNumberOfMassListDatapoints(mobilityScanIndex) + offset <= dst.length;
-    massListIntensityValues.get(getMassListStorageOffset(mobilityScanIndex), dst, offset,
-        getNumberOfMassListDatapoints(mobilityScanIndex));
+    final int numMassListDp = getNumberOfMassListDatapoints(mobilityScanIndex);
+    assert numMassListDp <= dst.length;
+
+    final MemorySegment slice = StorageUtils.sliceDoubles(massListIntensityValues,
+        getMassListStorageOffset(mobilityScanIndex),
+        getMassListStorageOffset(mobilityScanIndex) + numMassListDp);
+    MemorySegment.copy(slice, ValueLayout.JAVA_DOUBLE, 0, dst, 0, numMassListDp);
   }
 
   public void getAllMassListIntensityValues(double[] dst) {
@@ -395,7 +473,7 @@ public class MobilityScanStorage {
           null);
     }
     assert dst.length >= getMassListTotalNumPoints();
-    massListIntensityValues.get(0, dst, 0, getMassListTotalNumPoints());
+    StorageUtils.copyToBuffer(dst, massListIntensityValues, 0, getMassListTotalNumPoints());
   }
 
   public double getMassListMzValue(int mobilityScanIndex, int index) {
@@ -404,7 +482,8 @@ public class MobilityScanStorage {
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
           null);
     }
-    return massListMzValues.get(getMassListStorageOffset(mobilityScanIndex) + index);
+    return massListMzValues.getAtIndex(ValueLayout.JAVA_DOUBLE,
+        getMassListStorageOffset(mobilityScanIndex) + index);
   }
 
   public double getMassListIntensityValue(int mobilityScanIndex, int index) {
@@ -413,6 +492,7 @@ public class MobilityScanStorage {
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
           null);
     }
-    return massListIntensityValues.get(getMassListStorageOffset(mobilityScanIndex) + index);
+    return massListIntensityValues.getAtIndex(ValueLayout.JAVA_DOUBLE,
+        getMassListStorageOffset(mobilityScanIndex) + index);
   }
 }

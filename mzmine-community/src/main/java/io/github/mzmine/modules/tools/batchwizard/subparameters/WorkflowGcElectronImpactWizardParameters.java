@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,15 +29,20 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Workfl
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import java.io.File;
 
 public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWizardParameters {
 
+
   public static final IntegerParameter MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA = new IntegerParameter(
       "Min number of signals in deconvoluted spectrum",
       "Min number of signals in deconvoluted spectrum", 8, true);
+
+  public static final BooleanParameter applySpectralNetworking = new BooleanParameter(
+      "Apply spectral / molecular networking", """
+      Applies feature-based molecular networking by comparing all pseudo MS2 spectra.
+      Adds graphml export and enables use of interactive network visualizer in mzmine.""", true);
 
   public static final BooleanParameter exportGnps = new BooleanParameter(
       "Export for GNPS GC-EI FBMN", "Export to Feature-based Molecular Networking (FBMN) on GNPS",
@@ -50,26 +55,28 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
       "Export annotation graphics", "Exports annotations to png and pdf images.", false);
 
 
-  public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
-      new FileNameParameter("Export path",
-          "If checked, export results for different tools, e.g., GNPS, SIRIUS, ...",
-          FileSelectionType.SAVE, false), false);
+  public static final OptionalParameter<FileNameSuffixExportParameter> exportPath = new OptionalParameter<>(
+      new FileNameSuffixExportParameter("Export path",
+          "If checked, export results for different tools, e.g., GNPS, SIRIUS, ...", null, false),
+      false);
 
 
   public WorkflowGcElectronImpactWizardParameters() {
     super(WorkflowWizardParameterFactory.DECONVOLUTION,
         // actual parameters
-        MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA, exportPath, exportGnps, exportMsp,
-        exportAnnotationGraphics);
+        MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA, applySpectralNetworking, exportPath, exportGnps,
+        exportMsp, exportAnnotationGraphics);
   }
 
 
-  public WorkflowGcElectronImpactWizardParameters(final boolean exportActive,
-      final File exportBasePath, final boolean exportGnpsActive, final boolean exportMspActive,
+  public WorkflowGcElectronImpactWizardParameters(final int numberOfSignals,
+      final boolean applyNetworking, final boolean exportActive, final File exportBasePath,
+      final boolean exportGnpsActive, final boolean exportMspActive,
       final boolean exportAnnotationGraphicsActive) {
     this();
-    setParameter(exportPath, exportActive);
-    getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
+    setParameter(exportPath, exportActive, exportBasePath);
+    setParameter(MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA, numberOfSignals);
+    setParameter(applySpectralNetworking, applyNetworking);
     setParameter(exportGnps, exportGnpsActive);
     setParameter(exportMsp, exportMspActive);
     setParameter(exportAnnotationGraphics, exportAnnotationGraphicsActive);

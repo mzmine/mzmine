@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,18 +38,20 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
@@ -61,20 +63,22 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public static final FileNameParameter file = new FileNameParameter("Export file",
-      "Local library file", FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter file = new FileNameSuffixExportParameter(
+      "Export file", "Local library file", "batch_library");
 
   public static final ComboParameter<SpectralLibraryExportFormats> exportFormat = new ComboParameter<>(
       "Export format", "format to export", SpectralLibraryExportFormats.values(),
-      SpectralLibraryExportFormats.json);
+      SpectralLibraryExportFormats.json_mzmine);
 
   public static final ParameterSetParameter<LibraryBatchMetadataParameters> metadata = new ParameterSetParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
+  public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createWithoutScientific();
+
   public static final OptionalParameter<MZToleranceParameter> mergeMzTolerance = new OptionalParameter<>(
       new MZToleranceParameter("m/z tolerance (merging)",
           "If selected, spectra from different collision energies will be merged.\n"
-              + "The tolerance used to group signals during merging of spectra", 0.008, 25));
+          + "The tolerance used to group signals during merging of spectra", 0.008, 25));
 
   public static final OptionalModuleParameter<HandleChimericMsMsParameters> handleChimerics = new OptionalModuleParameter<>(
       "Handle chimeric spectra",
@@ -86,8 +90,13 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       new LibraryExportQualityParameters());
 
   public LibraryBatchGenerationParameters() {
-    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, mergeMzTolerance,
-        handleChimerics, quality);
+    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer,
+        mergeMzTolerance, handleChimerics, quality);
   }
 
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

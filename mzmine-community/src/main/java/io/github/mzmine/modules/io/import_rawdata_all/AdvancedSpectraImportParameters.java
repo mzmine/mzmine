@@ -27,8 +27,7 @@ package io.github.mzmine.modules.io.import_rawdata_all;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -36,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,15 +47,15 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
       new DoubleRangeParameter("Crop MS1 m/z", "m/z boundary of the cropped region",
           MZmineCore.getConfiguration().getMZFormat()), false);
 
-  public static final OptionalParameter<ModuleComboParameter<MassDetector>> msMassDetection = new OptionalParameter<>(
-      new ModuleComboParameter<MassDetector>("MS1 detector (Advanced)",
+  public static final OptionalParameter<ModuleOptionsEnumComboParameter<MassDetectors>> msMassDetection = new OptionalParameter<>(
+      new ModuleOptionsEnumComboParameter<>("MS1 detector (Advanced)",
           "Algorithm to use on MS1 scans for mass detection and its parameters",
-          MassDetectionParameters.massDetectors, MassDetectionParameters.massDetectors[0]));
+          MassDetectors.FACTOR_OF_LOWEST), false);
 
-  public static final OptionalParameter<ModuleComboParameter<MassDetector>> ms2MassDetection = new OptionalParameter<>(
-      new ModuleComboParameter<MassDetector>("MS2 detector (Advanced)",
+  public static final OptionalParameter<ModuleOptionsEnumComboParameter<MassDetectors>> ms2MassDetection = new OptionalParameter<>(
+      new ModuleOptionsEnumComboParameter<>("MS2 detector (Advanced)",
           "Algorithm to use on MS2 scans for mass detection and its parameters",
-          MassDetectionParameters.massDetectors, MassDetectionParameters.massDetectors[0]));
+          MassDetectors.FACTOR_OF_LOWEST), false);
 
   public static final BooleanParameter denormalizeMSnScans = new BooleanParameter(
       "Denormalize fragment scans (traps)", """
@@ -88,13 +87,15 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
     params.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, denormMsnScans);
     // create centroid mass detectors
     if (ms1NoiseLevel != null) {
+      var mdParam = detector.createMassDetectorParameters(ms1NoiseLevel);
       params.getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
-          .setValue(detector.createMassDetectorStep(ms1NoiseLevel));
+          .setValue(mdParam.value(), mdParam.parameters());
 
     }
     if (ms2NoiseLevel != null) {
+      var mdParam = detector.createMassDetectorParameters(ms2NoiseLevel);
       params.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter()
-          .setValue(detector.createMassDetectorStep(ms2NoiseLevel));
+          .setValue(mdParam.value(), mdParam.parameters());
     }
 
     return params;

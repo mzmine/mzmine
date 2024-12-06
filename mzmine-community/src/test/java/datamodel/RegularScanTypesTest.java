@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,15 @@
 
 package datamodel;
 
+import static datamodel.IMSScanTypesTest.compareMergedMsMs;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
@@ -46,6 +51,7 @@ import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -58,6 +64,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.Weights;
@@ -66,7 +74,6 @@ import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpec
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -116,11 +123,13 @@ public class RegularScanTypesTest {
 
     // add MS2
     for (int i = 5; i < 10; i++) {
-      scans.add(new SimpleScan(file, i, 2, 0.1f * i,
+      final SimpleScan scan = new SimpleScan(file, i, 2, 0.1f * i,
           new DDAMsMsInfoImpl(300, 1, 20f, null, null, 2, ActivationMethod.UNKNOWN,
               Range.closed(299d, 301d)), new double[]{700, 800, 900, 1000, 1100},
           new double[]{1700, 1800, 1900, 11000, 11100}, MassSpectrumType.CENTROIDED,
-          PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
+          PolarityType.POSITIVE, "", Range.closed(0d, 1d));
+      scan.addMassList(new ScanPointerMassList(scan));
+      scans.add(scan);
     }
 
     // add ms3 scan
@@ -131,12 +140,7 @@ public class RegularScanTypesTest {
     scans.add(ms3Scan);
 
     for (Scan scan : scans) {
-      try {
-        file.addScan(scan);
-      } catch (IOException e) {
-        e.printStackTrace();
-        Assertions.fail("Cannot add scans to raw data file.");
-      }
+      file.addScan(scan);
     }
 
     flist.setSelectedScans(file, scans);
@@ -208,6 +212,20 @@ public class RegularScanTypesTest {
 
     DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, null, project, flist, row, feature, file);
+
+    final List<Scan> merged = List.of(
+        SpectraMerging.mergeSpectra(value, SpectraMerging.defaultMs2MergeTol,
+            IntensityMergingType.SUMMED, MergingType.ALL_ENERGIES,
+            SpectraMerging.DEFAULT_CENTER_FUNCTION, null));
+    final List<Scan> loaded = (List<Scan>) DataTypeTestUtils.saveAndLoad(type, merged, project,
+        flist, row, null, null);
+
+    Assertions.assertEquals(merged.size(), loaded.size());
+
+    for (int i = 0; i < merged.size(); i++) {
+      compareMergedMsMs((MergedMsMsSpectrum) merged.get(i), (MergedMsMsSpectrum) loaded.get(i));
+    }
+
   }
 
   @Test
@@ -230,7 +248,7 @@ public class RegularScanTypesTest {
     SpectralLibraryEntry entry = SpectralLibraryEntry.create(null, map,
         ScanUtils.extractDataPoints(library));
 
-    SpectralSimilarity similarity = simFunc.getSimilarity(param, new MZTolerance(0.005, 15), 0,
+    SpectralSimilarity similarity = simFunc.getSimilarity(new MZTolerance(0.005, 15), 0,
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
     List<SpectralDBAnnotation> value = List.of(
@@ -320,6 +338,20 @@ public class RegularScanTypesTest {
     // test fail
     Assertions.assertThrows(AssertionFailedError.class,
         () -> comparePseudoSpectra(spectrum, spectrum2));
+
+    // merged pseudo spectra
+    final MergedMassSpectrum mergedPseudo = SpectraMerging.mergeSpectra(
+        List.of(spectrum, spectrum2), SpectraMerging.defaultMs2MergeTol, MergingType.ALL_ENERGIES,
+        null);
+    final SimplePseudoSpectrum convertedMerged = new SimplePseudoSpectrum(file,
+        mergedPseudo.getMSLevel(), mergedPseudo.getRetentionTime(), null,
+        mergedPseudo.getMzValues(new double[0]), mergedPseudo.getIntensityValues(new double[0]),
+        mergedPseudo.getPolarity(), mergedPseudo.getScanDefinition(),
+        spectrum.getPseudoSpectrumType());
+
+    List<PseudoSpectrum> loaded = (List<PseudoSpectrum>) DataTypeTestUtils.saveAndLoad(
+        new FragmentScanNumbersType(), List.of(mergedPseudo), project, flist, row, feature, file);
+    comparePseudoSpectra(convertedMerged, loaded.get(0));
   }
 
   private static void comparePseudoSpectra(PseudoSpectrum value, PseudoSpectrum loaded) {

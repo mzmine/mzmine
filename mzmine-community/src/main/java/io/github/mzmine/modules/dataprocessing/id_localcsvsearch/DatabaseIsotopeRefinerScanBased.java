@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule;
@@ -53,8 +52,8 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
-import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.Weights;
+import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarity;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.time.Instant;
@@ -265,8 +264,8 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
             // no isotope pattern and no default MS1 scan. e.g., if just a feature list loaded
             return false;
           }
-          var score = calculateIsotopeScoreDifferentResolutions(annotation, measuredIsotopes, minIntensity,
-              ionIsotopePatternMap);
+          var score = calculateIsotopeScoreDifferentResolutions(annotation, measuredIsotopes,
+              minIntensity, ionIsotopePatternMap);
           return score >= minIsotopeScore;
         }).sorted(Comparator.comparing(CompoundDBAnnotation::getIsotopePatternScore,
             Comparators.scoreDescending())).toList());
@@ -302,12 +301,12 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
       var predictedIsotopes = ScanUtils.extractDataPoints(predictedIsotopePattern);
 
       // also match with library as ground truth to give more weight to predicted signals
-      var similarityLibrary = SpectralSimilarityFunction.compositeCosine.getSimilarity(Weights.SQRT,
-          0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTolerance, 0, predictedIsotopes,
+      var similarityLibrary = CompositeCosineSpectralSimilarity.getSimilarity(Weights.SQRT, 0,
+          HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTolerance, 0, predictedIsotopes,
           measuredIsotopes);
 
       if (similarityLibrary != null) {
-        annotation.put(IsotopePatternScoreType.class, (float)similarityLibrary.getScore());
+        annotation.put(IsotopePatternScoreType.class, (float) similarityLibrary.getScore());
         return similarityLibrary.getScore();
       }
       return 0;
@@ -318,9 +317,10 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
     }
   }
 
-  private static double calculateIsotopeScoreDifferentResolutions(final CompoundDBAnnotation annotation,
-      final DataPoint[] measuredIsotopes, final double minIntensity,
-      final Map<IMolecularFormula, Map <Double,IsotopePattern>> ionIsotopePatternMap) {
+  private static double calculateIsotopeScoreDifferentResolutions(
+      final CompoundDBAnnotation annotation, final DataPoint[] measuredIsotopes,
+      final double minIntensity,
+      final Map<IMolecularFormula, Map<Double, IsotopePattern>> ionIsotopePatternMap) {
     var adductType = annotation.getAdductType();
     if (annotation.getFormula() == null || adductType == null) {
       return 0;
@@ -330,19 +330,22 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
     assert ionFormula != null;
     // cache the ionformula to IsotopePattern to reuse isotope patterns for the same formula
     float finalScore = 0;
-    ionIsotopePatternMap.computeIfAbsent(ionFormula, key -> IsotopePatternCalculator.calculateIsotopePatternForResolutions(ionFormula, minIntensity,
-        MZTolerance.getDefaultResolutions(), adductType.getCharge(), adductType.getPolarity(), false));
+    ionIsotopePatternMap.computeIfAbsent(ionFormula,
+        key -> IsotopePatternCalculator.calculateIsotopePatternForResolutions(ionFormula,
+            minIntensity, MZTolerance.getDefaultResolutions(), adductType.getCharge(),
+            adductType.getPolarity(), false));
     for (MZTolerance mzTol : MZTolerance.getDefaultResolutions()) {
       try {
-        IsotopePattern predictedIsotopePattern = ionIsotopePatternMap.get(ionFormula).get(mzTol.getMzTolerance());
+        IsotopePattern predictedIsotopePattern = ionIsotopePatternMap.get(ionFormula)
+            .get(mzTol.getMzTolerance());
         var predictedIsotopes = ScanUtils.extractDataPoints(predictedIsotopePattern);
-        var similarity = SpectralSimilarityFunction.compositeCosine.getSimilarity(Weights.SQRT, 0,
-            HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO,mzTol, 0,
-            predictedIsotopes, measuredIsotopes);
+        var similarity = CompositeCosineSpectralSimilarity.getSimilarity(Weights.SQRT, 0,
+            HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO, mzTol, 0, predictedIsotopes,
+            measuredIsotopes);
         // also match with library as ground truth to give more weight to predicted signals
-        var similarityLibrary = SpectralSimilarityFunction.compositeCosine.getSimilarity(
-            Weights.SQRT, 0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTol, 0,
-            predictedIsotopes, measuredIsotopes);
+        var similarityLibrary = CompositeCosineSpectralSimilarity.getSimilarity(Weights.SQRT, 0,
+            HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTol, 0, predictedIsotopes,
+            measuredIsotopes);
 
         if (similarity != null && similarityLibrary != null) {
           var score = (float) (similarity.getScore() + similarityLibrary.getScore() * 2) / 3f;

@@ -52,7 +52,8 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
     //update on changes of these properties
     PropertyUtils.onChange(this::waitAndUpdate, model.flistsProperty(), model.domainPcProperty(),
         model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty(),
-        model.scalingFunctionProperty(), model.imputationFunctionProperty());
+        model.scalingFunctionProperty(), model.imputationFunctionProperty(),
+        model.sampleTypeFilterProperty());
   }
 
   @Override

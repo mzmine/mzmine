@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,41 +25,37 @@
 
 package io.github.mzmine.util.maths.similarity;
 
-import io.github.mzmine.util.maths.similarity.Similarity;
-
 public enum SimilarityMeasure {
-        PEARSON, COSINE_SIM, SPEARMAN, //
-        LOG_RATIO_VARIANCE_1, LOG_RATIO_VARIANCE_2, //
-        SLOPE, SLOPE_ALPHA_TO_ZERO;
+  PEARSON, COSINE_SIM, SPEARMAN, //
+  LOG_RATIO_VARIANCE_1, LOG_RATIO_VARIANCE_2, //
+  SLOPE, SLOPE_ALPHA_TO_ZERO;
 
-        /**
-         *
-         * @param data [dp][x,y]
-         */
-        public double calc(double[][] data) {
-            switch (this) {
-                case PEARSON:
-                    return Similarity.PEARSONS_CORR.calc(data);
-                case COSINE_SIM:
-                    return Similarity.COSINE.calc(data);
-                case LOG_RATIO_VARIANCE_1:
-                    return Similarity.LOG_VAR_PROPORTIONALITY.calc(data);
-                case LOG_RATIO_VARIANCE_2:
-                    return Similarity.LOG_VAR_CONCORDANCE.calc(data);
-                case SPEARMAN:
-                    return Similarity.SPEARMANS_CORR.calc(data);
-                case SLOPE:
-                    return Similarity.REGRESSION_SLOPE.calc(data);
-                case SLOPE_ALPHA_TO_ZERO:
-                    return Similarity.REGRESSION_SLOPE_SIGNIFICANCE.calc(data);
-                default:
-                    return Double.NaN;
-            }
-        }
+  /**
+   * @param data [dp][x,y]
+   */
+  public double calc(double[][] data) {
+    return getSimilarityFunction().calc(data);
+  }
 
-        @Override
-        public String toString() {
-            return super.toString().replaceAll("_", " ");
-        }
+  public double calc(double[] x, double[] y) {
+    return getSimilarityFunction().calc(x, y);
+  }
+
+  public Similarity getSimilarityFunction() {
+    return switch (this) {
+      case PEARSON -> Similarity.PEARSONS_CORR;
+      case COSINE_SIM -> Similarity.COSINE;
+      case LOG_RATIO_VARIANCE_1 -> Similarity.LOG_VAR_PROPORTIONALITY;
+      case LOG_RATIO_VARIANCE_2 -> Similarity.LOG_VAR_CONCORDANCE;
+      case SPEARMAN -> Similarity.SPEARMANS_CORR;
+      case SLOPE -> Similarity.REGRESSION_SLOPE;
+      case SLOPE_ALPHA_TO_ZERO -> Similarity.REGRESSION_SLOPE_SIGNIFICANCE;
+    };
+  }
+
+  @Override
+  public String toString() {
+    return super.toString().replaceAll("_", " ");
+  }
 
 }

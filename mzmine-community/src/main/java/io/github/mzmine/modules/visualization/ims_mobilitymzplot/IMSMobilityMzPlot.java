@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
-import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -58,7 +57,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Stroke;
-import java.awt.geom.Point2D;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,16 +71,14 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.geometry.Orientation;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.plot.ValueMarker;
@@ -95,7 +91,7 @@ public class IMSMobilityMzPlot extends BorderPane {
   private final SimpleXYChart<IonTimeSeriesToXYProvider> ticChart;
   private final Map<ModularFeature, SingleIMSFeatureVisualiserPane> featureVisualisersMap;
   private final SimpleXYZScatterPlot<RowToMobilityMzHeatmapProvider> heatmap;
-  private final RegionSelectionWrapper<SimpleXYZScatterPlot<?>> selectionWrapper;
+  private final RegionSelectionWrapper<?> selectionWrapper;
   private final ScrollPane scrollPane;
   private final VBox content;
 
@@ -153,12 +149,12 @@ public class IMSMobilityMzPlot extends BorderPane {
     selectedFeaturesPane.setTop(ticChart);
     selectedFeaturesPane.setCenter(scrollPane);
     selectedFeaturesPane.setMinWidth(500);
-    selectionWrapper = new RegionSelectionWrapper<>(heatmap);
+    selectionWrapper = initSelectionPane(heatmap);
     setRight(selectedFeaturesPane);
     setCenter(selectionWrapper);
 
     initChartListeners();
-    initSelectionPane();
+
   }
 
   private void initCharts() {
@@ -182,45 +178,36 @@ public class IMSMobilityMzPlot extends BorderPane {
     ticChart.setMinHeight(250);
   }
 
-  private void initSelectionPane() {
-    final Button btnExtractRegions = new Button("Extract regions");
+  private RegionSelectionWrapper<?> initSelectionPane(SimpleXYZScatterPlot<?> chart) {
     final TextField tfSuffix = new TextField();
     tfSuffix.setPromptText("suffix");
 
-    final GridPane selectionControls = selectionWrapper.getSelectionControls();
+    var wrapper = new RegionSelectionWrapper<>(chart, regions -> {
+      MobilityMzRegionExtractionModule.runExtractionForFeatureList(
+          features.stream().findFirst().get().getFeatureList(), regions,
+          Objects.requireNonNullElse(tfSuffix.getText(), "extracted"),
+          useCCS.get() ? PlotType.CCS : PlotType.MOBILITY);
+    });
 
-    btnExtractRegions.setDisable(true);
-    btnExtractRegions
-        .setOnAction(e -> Platform.runLater(() -> {
-          List<List<Point2D>> regions = selectionWrapper.getFinishedRegionsAsListOfPointLists();
-          MobilityMzRegionExtractionModule.runExtractionForFeatureList(
-              features.stream().findFirst().get().getFeatureList(), regions,
-              Objects.requireNonNullElse(tfSuffix.getText(), "extracted"),
-              useCCS.get() ? PlotType.CCS : PlotType.MOBILITY);
-        }));
+    final FlowPane selectionControls = wrapper.getControlPane();
 
-    selectionWrapper.getFinishedRegionListeners()
-        .addListener((ListChangeListener<RegionSelectionListener>) c -> {
-          c.next();
-          btnExtractRegions.setDisable(c.getList().isEmpty());
-        });
-
-    selectionControls.add(btnExtractRegions, 4, 0);
-    selectionControls.add(tfSuffix, 5, 0);
+    selectionControls.getChildren().add(tfSuffix);
 
     final ComboBox<PlotType> cbPlotType = new ComboBox<>(
         FXCollections.observableList(List.of(PlotType.values())));
     cbPlotType.setValue(useCCS.get() ? PlotType.CCS : PlotType.MOBILITY);
     cbPlotType.valueProperty()
-        .addListener((observable, oldValue, newValue) -> useCCS.set(newValue == PlotType.CCS));
-    selectionControls.add(cbPlotType, 6, 0);
+        .addListener((_, _, newValue) -> useCCS.set(newValue == PlotType.CCS));
+    selectionControls.getChildren().add(cbPlotType);
 
-    useCCS.addListener((observable, oldValue, newValue) -> {
+    useCCS.addListener((_, _, _) -> {
       if (features != null && !features.isEmpty()) {
         heatmap.removeAllDatasets();
         setFeatures(features, cbPlotType.getValue(), useMobilograms);
       }
     });
+
+    return wrapper;
   }
 
   public void setFeatures(@Nullable Collection<ModularFeatureListRow> features, PlotType plotType,
@@ -280,9 +267,9 @@ public class IMSMobilityMzPlot extends BorderPane {
     MZmineCore.getTaskController().addTask(calc);
     calc.addTaskStatusListener(((task, newStatus, oldStatus) -> {
       if (newStatus == TaskStatus.FINISHED) {
-        FxThread.runLater(() ->{
+        FxThread.runLater(() -> {
           heatmap.addDatasetsAndRenderers(calc.getDatasetsRenderers());
-          if(calc.getDatasetsRenderers().size() > 1) {
+          if (calc.getDatasetsRenderers().size() > 1) {
             heatmap.setLegendPaintScale(calc.getPaintScale());
           }
           heatmap.updateLegend();
@@ -293,14 +280,13 @@ public class IMSMobilityMzPlot extends BorderPane {
 
   public void addFeatureToRightSide(ModularFeature feature) {
     if (!rawDataFiles.contains(feature.getRawDataFile())) {
-      ticChart.addDataset(new ColoredXYDataset(
-          new ScanBPCProvider(feature.getRawDataFile().getScanNumbers(1))));
+      ticChart.addDataset(
+          new ColoredXYDataset(new ScanBPCProvider(feature.getRawDataFile().getScanNumbers(1))));
       rawDataFiles.add(feature.getRawDataFile());
     }
     ticChart.addDataset(new IonTimeSeriesToXYProvider(feature.getFeatureData(),
-        FeatureUtils.featureToString(feature),
-        new SimpleObjectProperty<>(
-            MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor())));
+        FeatureUtils.featureToString(feature), new SimpleObjectProperty<>(
+        MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor())));
 
     SingleIMSFeatureVisualiserPane featureVisualiserPane = new SingleIMSFeatureVisualiserPane(
         feature);
@@ -353,8 +339,8 @@ public class IMSMobilityMzPlot extends BorderPane {
         }
         // if the mz + css of a feature was used to generate the plot
         else if (prov instanceof RowToCCSMzHeatmapProvider) {
-          ModularFeatureListRow row = ((RowToCCSMzHeatmapProvider) prov).getSourceRows().get(
-              newValue.getValueIndex());
+          ModularFeatureListRow row = ((RowToCCSMzHeatmapProvider) prov).getSourceRows()
+              .get(newValue.getValueIndex());
           if (row != null && row.getBestFeature() != null) {
             if (!isCtrlPressed) {
               clearRightSide();
@@ -368,8 +354,7 @@ public class IMSMobilityMzPlot extends BorderPane {
         XYZValueProvider prov = ((ColoredXYZDataset) newValue.getDataset()).getXyzValueProvider();
         // if mobilograms were shown
         if (prov instanceof SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider) {
-          ModularFeature f = ((SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider) prov)
-              .getSourceFeature();
+          ModularFeature f = ((SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider) prov).getSourceFeature();
           if (f != null) {
             if (!isCtrlPressed) {
               clearRightSide();

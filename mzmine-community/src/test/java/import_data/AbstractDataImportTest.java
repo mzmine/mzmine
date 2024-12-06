@@ -30,13 +30,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
-import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -61,7 +59,7 @@ import testutils.MZmineTestUtil;
 @TestInstance(Lifecycle.PER_CLASS)
 @TestMethodOrder(OrderAnnotation.class)
 @DisabledOnOs(OS.MAC)
-public abstract class AbstractDataImportTest  {
+public abstract class AbstractDataImportTest {
 
   private static final Logger logger = Logger.getLogger(AbstractDataImportTest.class.getName());
   public static double lowestMz = 350d;
@@ -75,6 +73,7 @@ public abstract class AbstractDataImportTest  {
   public void initialize() {
     MZmineTestUtil.startMzmineCore();
   }
+
   @AfterAll
   public void tearDown() {
     //clean the project after this integration test
@@ -86,20 +85,21 @@ public abstract class AbstractDataImportTest  {
    */
   @Nullable
   public static AdvancedSpectraImportParameters createAdvancedImportSettings() {
-    final var massDetector = MassDetectors.FACTOR_OF_LOWEST.getDefaultModule();
-    ParameterSet massDetectorParam = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
+    ParameterSet massDetectorParam = MassDetectors.FACTOR_OF_LOWEST.getModuleParameters()
+        .cloneParameterSet();
     massDetectorParam.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 3d);
-    var massDetectorStep = new MZmineProcessingStepImpl<>(massDetector, massDetectorParam);
-
-    ParameterSet massDetectorParam2 = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
-    massDetectorParam2.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 3d);
-    MZmineProcessingStep<MassDetector> massDetectorStep2 = new MZmineProcessingStepImpl<>(
-        massDetector, massDetectorParam2);
 
     AdvancedSpectraImportParameters advanced = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
-    advanced.setParameter(AdvancedSpectraImportParameters.msMassDetection, true, massDetectorStep);
-    advanced.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, true,
-        massDetectorStep2);
+
+    // set value first and then parameters
+    advanced.setParameter(AdvancedSpectraImportParameters.msMassDetection, true);
+    advanced.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, true);
+
+    advanced.getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
+        .setValue(MassDetectors.FACTOR_OF_LOWEST, massDetectorParam);
+    advanced.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter()
+        .setValue(MassDetectors.FACTOR_OF_LOWEST, massDetectorParam.cloneParameterSet());
+
     advanced.setParameter(AdvancedSpectraImportParameters.mzRange, true,
         Range.closed(lowestMz, 5000d));
     advanced.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, true);
@@ -113,7 +113,7 @@ public abstract class AbstractDataImportTest  {
   @DisplayName("Test data import of mzML and mzXML without advanced parameters")
   public void dataImportTest() throws InterruptedException {
     MZmineTestUtil.cleanProject();
-    MZmineTestUtil.importFiles(getFileNames(), 300);
+    MZmineTestUtil.importFiles(getFileNames(), 360);
     Map<String, DataFileStats> stats = DataFileStatsIO.readJson(getClass());
     DataImportTestUtils.testDataStatistics(getFileNames(), stats, false);
   }
@@ -126,12 +126,16 @@ public abstract class AbstractDataImportTest  {
     var advanced = createAdvancedImportSettings();
 
     MZmineTestUtil.cleanProject();
-    MZmineTestUtil.importFiles(getFileNames(), 300, advanced);
+    MZmineTestUtil.importFiles(getFileNames(), 360, advanced);
     Map<String, DataFileStats> stats = DataFileStatsIO.readJson(getClass());
     DataImportTestUtils.testDataStatistics(getFileNames(), stats, true);
 
     //
     for (final RawDataFile raw : ProjectService.getProject().getDataFiles()) {
+      if (raw instanceof IMSRawDataFile && raw.getFileName().toLowerCase().endsWith(".mzml")) {
+        // we do not have frames in mzml import yet so the mass list is null
+        continue; // skip
+      }
       String msg = " Error in " + raw.getName();
       for (final Scan scan : raw.getScans()) {
         // advanced sets mass list

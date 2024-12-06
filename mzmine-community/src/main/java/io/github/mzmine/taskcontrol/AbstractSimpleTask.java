@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,12 +44,9 @@ import org.jetbrains.annotations.Nullable;
  * {@link #totalItems} and {@link #finishedItems} and incremented via
  * {@link #incrementFinishedItems()}.
  */
-public abstract class AbstractSimpleTask extends AbstractTask {
+public abstract class AbstractSimpleTask extends AbstractSimpleToolTask {
 
-  private final ParameterSet parameters;
-  private final Class<? extends MZmineModule> moduleClass;
-  protected long totalItems;
-  protected AtomicLong finishedItems = new AtomicLong(0);
+  private final @NotNull Class<? extends MZmineModule> moduleClass;
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -61,49 +57,17 @@ public abstract class AbstractSimpleTask extends AbstractTask {
   protected AbstractSimpleTask(@Nullable final MemoryMapStorage storage,
       @NotNull final Instant moduleCallDate, @NotNull ParameterSet parameters,
       @NotNull Class<? extends MZmineModule> moduleClass) {
-    super(storage, moduleCallDate);
-    this.parameters = parameters;
+    super(storage, moduleCallDate, parameters);
     this.moduleClass = moduleClass;
   }
 
-  @Override
-  public double getFinishedPercentage() {
-    return totalItems != 0 ? finishedItems.get() / (double) totalItems : 0;
-  }
 
   @Override
   public void run() {
-    setStatus(TaskStatus.PROCESSING);
-
-    process();
-
+    super.run();
     if (!isCanceled()) {
       addAppliedMethod();
-      setStatus(TaskStatus.FINISHED);
     }
-  }
-
-  /**
-   * Do the actual processing. Is automatically called in the {@link #run()} method
-   */
-  protected abstract void process();
-
-  /**
-   * Add 1 to finished items. Thread safe
-   *
-   * @return the new finished items number
-   */
-  protected long incrementFinishedItems() {
-    return finishedItems.incrementAndGet();
-  }
-
-  /**
-   * Add n to finished items. Thread safe
-   *
-   * @return the new finished items number
-   */
-  private long incrementFinishedItems(final int add) {
-    return finishedItems.addAndGet(add);
   }
 
   /**
@@ -131,5 +95,9 @@ public abstract class AbstractSimpleTask extends AbstractTask {
     for (final var raw : getProcessedDataFiles()) {
       raw.getAppliedMethods().add(appliedMethod);
     }
+  }
+
+  public Class<? extends MZmineModule> getModuleClass() {
+    return moduleClass;
   }
 }

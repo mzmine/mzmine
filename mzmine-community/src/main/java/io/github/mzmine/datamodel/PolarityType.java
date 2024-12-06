@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,6 +64,7 @@ public enum PolarityType {
     return switch (str.toLowerCase()) {
       case "+", "positive", "pos", "+1", "1+", "1" -> PolarityType.POSITIVE;
       case "-", "negative", "neg", "-1", "1-" -> PolarityType.NEGATIVE;
+      case "any polarity" -> PolarityType.ANY; // sometimes used as filter option
       default -> UNKNOWN;
     };
   }
@@ -98,6 +100,13 @@ public enum PolarityType {
     return sign;
   }
 
+  public String toLabel() {
+    if (this == ANY) {
+      return "Any polarity";
+    }
+    return StringUtils.capitalize(name().toLowerCase());
+  }
+
   @Override
   public String toString() {
     return asSingleChar();
@@ -108,5 +117,20 @@ public enum PolarityType {
    */
   public boolean isDefined() {
     return this == POSITIVE || this == NEGATIVE;
+  }
+
+  public boolean includesPositive() {
+    return this == POSITIVE || this == ANY;
+  }
+
+  public boolean includesNegative() {
+    return this == NEGATIVE || this == ANY;
+  }
+
+  /**
+   * @return true if charge and polarity matches. e.g., -n and negative or any polarity
+   */
+  public boolean includesCharge(final int charge) {
+    return this == ANY || (this == NEGATIVE && charge < 0) || (this == POSITIVE && charge > 0);
   }
 }

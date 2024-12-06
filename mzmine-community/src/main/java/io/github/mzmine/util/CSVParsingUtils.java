@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,8 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingColumnException;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.CSVUtils;
 import io.github.mzmine.util.io.WriterOptions;
 import java.io.BufferedReader;
 import java.io.File;
@@ -218,11 +220,20 @@ public class CSVParsingUtils {
       @Nullable IonNetworkLibrary ionLibrary) {
     List<CompoundDBAnnotation> list = new ArrayList<>();
 
+    if (!peakListFile.exists()) {
+      return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
+          STR."Input file \{peakListFile.getAbsolutePath()} does not exist.");
+    }
+
     List<String[]> peakListValues = null;
     try {
       peakListValues = readData(peakListFile, fieldSeparator);
-    } catch (IOException | CsvException e) {
 
+      if (peakListValues.isEmpty()) {
+        return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
+            STR."File \{peakListFile.getAbsolutePath()} did not contain any content.");
+      }
+    } catch (IOException | CsvException e) {
       throw new RuntimeException(e);
     }
 
@@ -273,6 +284,20 @@ public class CSVParsingUtils {
   public static List<String[]> readData(final File file, final String separator)
       throws IOException, CsvException {
     try (var reader = Files.newBufferedReader(file.toPath())) {
+
+      // some users/programs save csv files with an encoding prefix in the first few bytes. This
+      // prefix is equal to the char code \uFEFF and means that the file is utf-8 encoded. However,
+      // most UTF-8 files don't come with this prefix (=BOM, byte order marker). If it is there,
+      // we want to skip it, otherwise the first csv field may be mis-recognised as a string with a
+      // different encoding.
+      // see: https://stackoverflow.com/questions/4897876/reading-utf-8-bom-marker
+      reader.mark(1);
+      final char[] possibleBom = new char[1];
+      final int read = reader.read(possibleBom);
+      if (read == 1 && possibleBom[0] != '\uFEFF') {
+        reader.reset(); // no BOM found, don't skip
+      }
+
       return readData(reader, separator);
     }
   }
@@ -339,10 +364,27 @@ public class CSVParsingUtils {
     }
   }
 
+  /**
+   * @param file          used to detect format and separator: tsv tab and csv comma
+   * @param defaultFormat if format is not tsv or csv - then enforce default format
+   */
+  public static ICSVWriter createDefaultWriterAutoDetect(File file, String defaultFormat,
+      WriterOptions option) throws IOException {
+    file = CSVUtils.ensureTsvOrCsvFormat(file, defaultFormat);
+    char sep = CSVUtils.detectSeparatorFromName(file);
+    return createDefaultWriter(file, sep, option);
+  }
+
   public static ICSVWriter createDefaultWriter(File file, String separator, WriterOptions option)
       throws IOException {
-    var writer = Files.newBufferedWriter(file.toPath(), option.toOpenOption());
     char sep = separator.equals("\t") ? '\t' : separator.charAt(0);
+    return createDefaultWriter(file, sep, option);
+  }
+
+  public static ICSVWriter createDefaultWriter(File file, char sep, WriterOptions option)
+      throws IOException {
+    FileAndPathUtil.createDirectory(file.getParentFile());
+    var writer = Files.newBufferedWriter(file.toPath(), option.toOpenOption());
     return new CSVWriterBuilder(writer).withSeparator(sep).build();
   }
 

@@ -31,8 +31,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -71,7 +70,7 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
 
   public static final DoubleParameter minScore = new DoubleParameter("Minimum score",
       "Minimum score for blast to be considered as successful "
-          + "(WARN: 'Pearson correlation' similarity method can imply scores < 0.0 and/or > 1.0)",
+      + "(WARN: 'Pearson correlation' similarity method can imply scores < 0.0 and/or > 1.0)",
       NumberFormat.getNumberInstance()/*, HierarAlignerGCTask.MIN_SCORE_ABSOLUTE*/);
 
   // *** GLG HACK: Added...
@@ -90,10 +89,11 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
   public static final BooleanParameter exportDendrogramTxt = new BooleanParameter(
       "Export dendrogram as TXT/CDT",
       "If checked, exports the clustering resulting dendrogram to the given TXT file.", false);
-  public static final FileNameParameter dendrogramTxtFilename = new FileNameParameter(
+  public static final FileNameSuffixExportParameter dendrogramTxtFilename = new FileNameSuffixExportParameter(
       "Dendrogram output text filename", " Requires \"Export dendrogram as TXT\" checked."
-      + " Name of the resulting TXT/CDT file to write the clustering resulting dendrogram to."
-      + " If the file already exists, it will be overwritten.", extensions, FileSelectionType.SAVE);
+                                         + " Name of the resulting TXT/CDT file to write the clustering resulting dendrogram to."
+                                         + " If the file already exists, it will be overwritten.",
+      extensions, "dendrogram");
 
   /**
    * GLG HACK: temporarily removed for clarity public static final BooleanParameter
@@ -121,7 +121,7 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("m/z tolerance", MZTolerance);
+    nameParameterMap.put("m/z tolerance", getParameter(MZTolerance));
     return nameParameterMap;
   }
 }

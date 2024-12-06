@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -60,11 +61,17 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter();
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
-      ToleranceType.SCAN_TO_SCAN, 0.003, 15, false);
+      ToleranceType.SCAN_TO_SCAN, 0.005, 15, false);
+
+  public static final IntegerParameter minNumberOfDetections = new IntegerParameter(
+      "Minimum detections per m/z", """
+      Specify in how many mobility scans a summed m/z signal has to appear to be included in the frame.
+      This can be useful to filter electrical noise signals that only appear in a single scan.""",
+      2, 1, Integer.MAX_VALUE);
 
   public MobilityScanMergerParameters() {
     super(new Parameter[]{rawDataFiles, noiseLevel, mergingType, weightingType, scanSelection,
-            mzTolerance},
+            mzTolerance, minNumberOfDetections},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mobility_scan_merging/mobility-scan-merging.html");
   }
 
@@ -87,7 +94,12 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("m/z tolerance", mzTolerance);
+    nameParameterMap.put("m/z tolerance", getParameter(mzTolerance));
     return nameParameterMap;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 }

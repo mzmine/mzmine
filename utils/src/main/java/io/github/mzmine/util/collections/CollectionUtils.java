@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,11 @@
 
 package io.github.mzmine.util.collections;
 
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -198,5 +200,119 @@ public class CollectionUtils {
     T[] copy = ((Object) newType == (Object) Object[].class) ? (T[]) new Object[newLength]
         : (T[]) Array.newInstance(newType.getComponentType(), newLength);
     return copy;
+  }
+
+  /**
+   * Operation to remove elements by indices from large lists. Avoids copies.
+   *
+   * @param list            changed in place
+   * @param indicesToRemove list of indices to remove - sorted ascending
+   * @return the input list that is changed in place
+   */
+  public static <T> List<T> removeIndicesInPlaceSorted(List<T> list, IntList indicesToRemove) {
+    return removeIndicesInPlaceSorted(list, indicesToRemove.toIntArray());
+  }
+
+  /**
+   * Operation to remove elements by indices from large lists. Avoids copies.
+   *
+   * @param list            changed in place
+   * @param indicesToRemove list of indices to remove - sorted ascending
+   * @return the input list that is changed in place
+   */
+  public static <T> List<T> removeIndicesInPlaceSorted(List<T> list, int[] indicesToRemove) {
+    if (indicesToRemove.length == 0) {
+      return list;
+    }
+    int size = list.size();
+
+    int indicesToRemoveIndex = 0;
+    int nextToSkip = indicesToRemove[0];
+    // Overwrite elements not to remove
+    int writeIndex = nextToSkip; // start writing at index of first to remove
+    // start reading at first to remove+1
+    for (int readIndex = writeIndex; readIndex < size; readIndex++) {
+      if (nextToSkip == readIndex) {
+        indicesToRemoveIndex++;
+        if (indicesToRemoveIndex < indicesToRemove.length) {
+          nextToSkip = indicesToRemove[indicesToRemoveIndex];
+          if (nextToSkip <= readIndex) {
+            throw new IllegalArgumentException("Indices to remove are not sorted ascending");
+          }
+        }
+      } else {
+        list.set(writeIndex, list.get(readIndex));
+        writeIndex++;
+      }
+    }
+
+    // Remove extra elements at the end
+    if (list.size() > writeIndex) {
+      list.subList(writeIndex, list.size()).clear();
+    }
+    return list;
+  }
+
+  /**
+   * Operation to remove elements by indices from large lists. Avoids copies.
+   *
+   * @param list            changed in place
+   * @param indicesToRemove list of indices to remove - can be unsorted
+   * @return the input list that is changed in place
+   */
+  public static <T> List<T> removeIndicesInPlaceBitSet(List<T> list, IntList indicesToRemove) {
+    return removeIndicesInPlaceBitSet(list, indicesToRemove.toIntArray());
+  }
+
+  /**
+   * Operation to remove elements by indices from large lists. Avoids copies.
+   *
+   * @param list            changed in place
+   * @param indicesToRemove list of indices to remove - can be unsorted
+   * @return the input list that is changed in place
+   */
+  public static <T> List<T> removeIndicesInPlaceBitSet(List<T> list, int[] indicesToRemove) {
+    if (indicesToRemove.length == 0) {
+      return list;
+    }
+
+    int size = list.size();
+    BitSet toRemove = new BitSet(size);
+
+    // Mark indices to remove
+    for (int index : indicesToRemove) {
+      if (index >= 0 && index < size) {
+        toRemove.set(index);
+      }
+    }
+
+    // Overwrite elements not to remove
+    int writeIndex = indicesToRemove[0]; // start writing at index of first to remove
+    // start reading at first to remove+1
+    for (int readIndex = writeIndex + 1; readIndex < size; readIndex++) {
+      if (!toRemove.get(readIndex)) {
+        list.set(writeIndex, list.get(readIndex));
+        writeIndex++;
+      }
+    }
+
+    // Remove extra elements at the end
+    if (list.size() > writeIndex) {
+      list.subList(writeIndex, list.size()).clear();
+    }
+    return list;
+  }
+
+  public static <T> List<T> combine(List<? extends T>... lists) {
+    int size = 0;
+    for (final List<? extends T> list : lists) {
+      size += list.size();
+    }
+
+    final List<T> value = new ArrayList<>(size);
+    for (List<? extends T> list : lists) {
+      value.addAll(list);
+    }
+    return value;
   }
 }

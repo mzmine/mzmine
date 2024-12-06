@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,8 +29,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
@@ -38,8 +37,8 @@ public class ExportScansFromRawFilesParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
   public static final ScanSelectionParameter scanSelect = new ScanSelectionParameter();
-  public static final FileNameParameter file =
-      new FileNameParameter("File", "file destination", FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter file = new FileNameSuffixExportParameter("File",
+      "file destination", "rawscans");
   public static final ComboParameter<ScanFormats> formats = new ComboParameter<>("Format",
       "Export formats. mgf: MASCOT, SIRIUS;  txt: plain text;  mzML: Open standard",
       ScanFormats.values(), ScanFormats.mgf);
@@ -47,7 +46,7 @@ public class ExportScansFromRawFilesParameters extends SimpleParameterSet {
       "Export centroid mass list", "Exports the centroid mass list instead of raw data", true);
 
   public ExportScansFromRawFilesParameters() {
-    super(new Parameter[] {dataFiles, scanSelect, file, formats, export_masslist});
+    super(new Parameter[]{dataFiles, scanSelect, file, formats, export_masslist});
   }
 
 }

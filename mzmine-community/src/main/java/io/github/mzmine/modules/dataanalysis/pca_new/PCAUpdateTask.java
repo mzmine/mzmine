@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
@@ -49,7 +50,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
@@ -67,6 +67,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   private final ImputationFunction imputer;
 
   private final ScalingFunction scaling;
+  private final SampleTypeFilter sampleTypeFilter;
   private PCARowsResult pcaRowsResult;
 
   protected PCAUpdateTask(@NotNull String taskName, PCAModel model) {
@@ -76,7 +77,9 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     rangePcIndex = Objects.requireNonNullElse(model.getRangePc(), 0) - 1;
     metadataColumn = model.getMetadataColumn();
     selectedRows = model.getSelectedRows();
-    flists = model.getFlists();
+    // only aligned feature lists
+    flists = model.getFlists().stream().filter(flist -> flist.getNumberOfRawDataFiles() > 1)
+        .toList();
     abundance = model.getAbundance();
 
     final ScalingFunctions scalingFunction = model.getScalingFunction();
@@ -84,6 +87,12 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
     final ImputationFunctions imputationFunction = model.getImputationFunction();
     imputer = imputationFunction.getImputer();
+    sampleTypeFilter = model.getSampleTypeFilter();
+  }
+
+  @Override
+  public void onFailedPreCondition() {
+    clearGui();
   }
 
   @Override
@@ -105,12 +114,16 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
       return false;
     }
 
+    if (sampleTypeFilter.isEmpty()) {
+      return false;
+    }
+
     return true;
   }
 
   @Override
   protected void process() {
-    final ObservableList<FeatureListRow> rows = flists.get(0).getRows();
+    final List<FeatureListRow> rows = sampleTypeFilter.filter(flists.get(0).getRows());
     final Comparator<? super DataType<?>> annotationPrioSorter = FeatureAnnotationPriority.createSorter(
         SortOrder.ASCENDING);
     final Map<FeatureListRow, DataType<?>> rowsMappedToBestAnnotation = CompoundAnnotationUtils.mapBestAnnotationTypesByPriority(
@@ -120,7 +133,10 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
             rowsMappedToBestAnnotation.get(r2)))).toList();
 
     pcaRowsResult = PCAUtils.performPCAOnRows(rowsSortedByAnnotationPrio, abundance, scaling,
-        imputer);
+        imputer, sampleTypeFilter);
+    if (pcaRowsResult == null) {
+      return;
+    }
     progressProvider.getAndIncrement();
 
     final PCAScoresProvider scores = new PCAScoresProvider(pcaRowsResult, "Scores", Color.RED,
@@ -154,14 +170,23 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
     if (rangePcIndex < components.size()) {
       model.setRangePc(rangePcIndex + 1);
-    } else {
+    } else if (!components.isEmpty()) {
       model.setRangePc(components.getLast());
     }
     if (domainPcIndex < components.size()) {
       model.setDomainPc(domainPcIndex + 1);
-    } else {
-      model.setDomainPc(components.getLast());
+    } else if (!components.isEmpty()) {
+      model.setDomainPc(components.getFirst());
     }
+  }
+
+  private void clearGui() {
+    model.setScoresDatasets(List.of());
+    model.setLoadingsDatasets(List.of());
+    model.setPcaResult(null);
+    model.getAvailablePCs().clear();
+    model.setDomainPc(1);
+    model.setRangePc(2);
   }
 
   @Override

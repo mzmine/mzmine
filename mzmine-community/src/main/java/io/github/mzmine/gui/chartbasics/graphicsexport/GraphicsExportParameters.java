@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,8 +30,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.DimensionUnitUtil;
 import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
@@ -45,8 +44,9 @@ import org.jfree.chart.JFreeChart;
 
 public class GraphicsExportParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter path = new FileNameParameter("Path", "The file path",
-      FileSelectionType.SAVE);
+
+  public static final FileNameSuffixExportParameter path = new FileNameSuffixExportParameter("Path",
+      "The file path");
   public static final OptionalParameter<DoubleParameter> height = new OptionalParameter<DoubleParameter>(
       new DoubleParameter("Height",
           "Only uses width if height is unchecked. Otherwise uses fixed height for the chart or plot",
@@ -58,8 +58,8 @@ public class GraphicsExportParameters extends SimpleParameterSet {
   public static final DoubleParameter dpi = new DoubleParameter("Resolution (dpi)",
       "dots per inch resolution (for print usually 300 up to 600 dpi)", DecimalFormat.getInstance(),
       300.0);
-  public static final ComboParameter<String> exportFormat = new ComboParameter<String>("Format",
-      "The image export format", new String[]{"PDF", "EMF", "SVG", "JPG", "PNG"}, "PNG");
+  public static final ComboParameter<GraphicsFormats> exportFormat = new ComboParameter<>("Format",
+      "The image export format", GraphicsFormats.values(), GraphicsFormats.PNG);
   public static final ComboParameter<FixedSize> fixedSize = new ComboParameter<FixedSize>(
       "Fixed size for",
       "Fixed size for the plot (the data space without axes and titles) or the whole chart.",
@@ -89,9 +89,21 @@ public class GraphicsExportParameters extends SimpleParameterSet {
     if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
     }
-    GraphicsExportDialogFX dialog = new GraphicsExportDialogFX(valueCheckRequired, this, chart);
+    GraphicsExportDialogFX dialog = new GraphicsExportDialogFX(valueCheckRequired, this, chart,
+        true);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  /**
+   * Converts the pixel value that already contains DPI to the specified unit by calculating back to
+   * standard dpi on screen
+   *
+   * @param size as pixel that already includes DPI
+   */
+  public void setOutputPixelSize(Dimension size) {
+    double f = getDPIFactor(); // should become smaller in most cases
+    setPixelSize(size.getWidth() / f, size.getHeight() / f);
   }
 
   /**
@@ -145,6 +157,23 @@ public class GraphicsExportParameters extends SimpleParameterSet {
   }
 
   /**
+   * Pixel size considering DPI only for pixel graphics, all other use the actual pixel size
+   */
+  public Dimension getOutputPixelSize() {
+    if (isPixelGraphics()) {
+      double f = getDPIFactor();
+      return new Dimension((int) (getWidthPixel() * f), (int) (getHeightPixel() * f));
+    } else {
+      return getPixelSize();
+    }
+  }
+
+
+  public boolean isPixelGraphics() {
+    return getFormat().isPixelGraphics();
+  }
+
+  /**
    * Pixel width
    *
    * @return
@@ -162,6 +191,13 @@ public class GraphicsExportParameters extends SimpleParameterSet {
     return DimensionUnitUtil.toPixel((float) getHeight(), getUnit());
   }
 
+  /**
+   * dpi / 72 as the default DPI
+   */
+  public double getDPIFactor() {
+    return getDPI() / 72d;
+  }
+
   public double getDPI() {
     return this.getParameter(dpi).getValue();
   }
@@ -170,7 +206,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
     return this.getParameter(unit).getValue();
   }
 
-  public String getFormat() {
+  public GraphicsFormats getFormat() {
     return this.getParameter(exportFormat).getValue();
   }
 
@@ -197,7 +233,8 @@ public class GraphicsExportParameters extends SimpleParameterSet {
    * @return
    */
   public File getFullpath() {
-    return FileAndPathUtil.getRealFilePath(getPathAsFile(), getFilename(), getFormat());
+    return FileAndPathUtil.getRealFilePath(getPathAsFile(), getFilename(),
+        getFormat().name().toLowerCase());
   }
 
   /**
@@ -229,6 +266,24 @@ public class GraphicsExportParameters extends SimpleParameterSet {
     setWidthPixel(w);
     setHeightPixel(h);
   }
+
+  public void applyMaxPixels(final int maxPixelInGui, final int maxPixelInExport) {
+    Dimension size = getPixelSize();
+    double factor = maxPixelInGui / Math.max(size.getWidth(), size.getHeight());
+    if (factor < 1) { // too big
+      size = new Dimension((int) (size.getWidth() * factor), (int) (size.getHeight() * factor));
+      setPixelSize(size);
+    }
+
+    // output pixel may include dpi
+    size = getOutputPixelSize();
+    factor = maxPixelInExport / Math.max(size.getWidth(), size.getHeight());
+    if (factor < 1) { // too big
+      size = new Dimension((int) (size.getWidth() * factor), (int) (size.getHeight() * factor));
+      setOutputPixelSize(size);
+    }
+  }
+
 
   public enum FixedSize {
     Chart, Plot

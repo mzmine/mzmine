@@ -30,10 +30,14 @@ import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 
 public final class ConfigService {
 
+  private static final Logger logger = Logger.getLogger(ConfigService.class.getName());
   private static final MZmineConfiguration config = new MZmineConfigurationImpl();
 
   public static MZmineConfiguration getConfiguration() {
@@ -67,5 +71,20 @@ public final class ConfigService {
 
   public static void setDarkMode(final Boolean dark) {
     getPreferences().setDarkMode(dark);
+  }
+
+  /**
+   * Save current config to user directory
+   *
+   * @return true if successful, false otherwise
+   */
+  public static boolean saveUserConfig() {
+    try {
+      getConfiguration().saveConfiguration(MZmineConfiguration.CONFIG_FILE);
+      return true;
+    } catch (IOException e) {
+      logger.log(Level.SEVERE, "Cannot save user config", e);
+      return false;
+    }
   }
 }

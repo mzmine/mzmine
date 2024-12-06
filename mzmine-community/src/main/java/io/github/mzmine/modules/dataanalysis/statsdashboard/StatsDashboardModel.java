@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataanalysis.statsdashboard;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -32,16 +34,19 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
 
 public class StatsDashboardModel {
+
   private final ObjectProperty<List<FeatureList>> flists = new SimpleObjectProperty<>();
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundance = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
   private final ObjectProperty<MetadataColumn<?>> metadataColumn = new SimpleObjectProperty<>();
 
+  @NotNull
   public List<FeatureList> getFlists() {
-    return flists.get();
+    return requireNonNullElse(flists.get(), List.of());
   }
 
   public void setFlists(List<FeatureList> flists) {

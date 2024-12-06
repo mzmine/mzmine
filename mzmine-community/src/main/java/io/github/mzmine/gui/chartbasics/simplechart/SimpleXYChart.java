@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.NamedArg;
 import javafx.beans.property.BooleanProperty;
@@ -180,6 +181,16 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     defaultShapeRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
 
     datasetListeners = new ArrayList<>();
+
+    // equals check is done internally
+    cursorPositionProperty.addListener((_, _, newPosition) -> {
+      if (newPosition != null) {
+        // notify only for second change and only if notification is not disabled
+        chart.getXYPlot().setDomainCrosshairValue(newPosition.getDomainValue(), false);
+        chart.getXYPlot()
+            .setRangeCrosshairValue(newPosition.getRangeValue(), chart.getXYPlot().isNotify());
+      }
+    });
   }
 
   private void initLabelListeners() {
@@ -411,7 +422,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
 
   @Override
   public void setCursorPosition(PlotCursorPosition cursorPosition) {
-    if (cursorPosition.equals(cursorPositionProperty().get())) {
+    if (Objects.equals(cursorPosition, cursorPositionProperty().get())) {
       return;
     }
     this.cursorPositionProperty.set(cursorPosition);
@@ -430,6 +441,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
         new ChartGesture(Entity.ALL_PLOT_AND_DATA, Event.CLICK, GestureButton.BUTTON1), e -> {
       PlotCursorPosition pos = getCurrentCursorPosition();
       if (pos != null) {
+        pos.setMouseEvent(e.getMouseEvent());
         setCursorPosition(pos);
       }
     }));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,26 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 
 public record DatasetAndRenderer(ColoredXYDataset dataset, XYItemRenderer renderer) {
 
+  public DatasetAndRenderer(PlotXYDataProvider provider, XYItemRenderer renderer) {
+    this(getDataset(provider), renderer);
+  }
+
+  private static ColoredXYDataset getDataset(PlotXYDataProvider provider) {
+    if (provider instanceof PieXYZDataProvider<?> pie) {
+      return new ColoredXYZPieDataset<>(pie);
+    }
+
+    if (provider instanceof PlotXYZDataProvider xyzProvider) {
+      return new ColoredXYZDataset(xyzProvider);
+    }
+
+    return new ColoredXYDataset(provider);
+  }
 }

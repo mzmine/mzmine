@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,7 @@ public abstract class AbstractTask implements Task {
 
   private static final Logger logger = Logger.getLogger(AbstractTask.class.getName());
   protected final MemoryMapStorage storage;
-  protected final Instant moduleCallDate;
+  protected final @NotNull Instant moduleCallDate;
   private final StringProperty name = new SimpleStringProperty("Task name");
   private TaskStatus status = TaskStatus.WAITING;
   private String errorMessage = null;
@@ -103,9 +103,7 @@ public abstract class AbstractTask implements Task {
 
   @Override
   public void cancel() {
-    if (!isFinished()) {
-      setStatus(TaskStatus.CANCELED);
-    }
+    setStatus(TaskStatus.CANCELED);
   }
 
   @Override
@@ -142,10 +140,14 @@ public abstract class AbstractTask implements Task {
   }
 
   /**
-   *
+   * error and finished cannot be overwritten
    */
   public final void setStatus(TaskStatus newStatus) {
     TaskStatus old = status;
+    if (old == TaskStatus.ERROR || old == TaskStatus.FINISHED) {
+      return;
+    }
+
     this.status = newStatus;
     if (listener != null && !status.equals(old)) {
       for (int i = 0; i < listener.size(); i++) {

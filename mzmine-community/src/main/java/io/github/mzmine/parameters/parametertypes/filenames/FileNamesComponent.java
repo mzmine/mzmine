@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,10 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 import com.google.common.collect.ImmutableList;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.modules.io.download.DownloadAsset;
+import io.github.mzmine.modules.io.download.DownloadAssetButton;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.nio.file.Path;
@@ -34,7 +38,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -50,6 +57,7 @@ import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FileNamesComponent extends BorderPane {
@@ -61,10 +69,17 @@ public class FileNamesComponent extends BorderPane {
 
   private final List<ExtensionFilter> filters;
   private final Path defaultDir;
+  private final List<DownloadAsset> assets;
 
   public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir) {
+    this(filters, defaultDir, List.of());
+  }
+
+  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir,
+      @NotNull List<DownloadAsset> assets) {
     this.filters = ImmutableList.copyOf(filters);
     this.defaultDir = defaultDir;
+    this.assets = assets;
 
     txtFilename = new TextArea();
     txtFilename.setPrefColumnCount(65);
@@ -119,15 +134,27 @@ public class FileNamesComponent extends BorderPane {
     buttonGrid.setVgap(3);
     buttonGrid.setPadding(new Insets(0, 0, 0, 5));
 
-    buttonGrid.add(btnFileBrowser, 0, 0);
-    buttonGrid.add(btnClear, 1, 0);
-    buttonGrid.add(useSubFolders, 0, 1, 2, 1);
+    int row = 0;
+    // add asset button if assets available
+    if (!assets.isEmpty()) {
+      var downloadButton = new DownloadAssetButton(assets);
+      downloadButton.setOnDownloadFinished(
+          files -> FxThread.runLater(() -> addFilesSkipDuplicates(files)));
+      buttonGrid.add(downloadButton, 0, row, 2, 1);
+      row++;
+    }
+
+    buttonGrid.add(btnFileBrowser, 0, row);
+    buttonGrid.add(btnClear, 1, row);
+    row++;
+    buttonGrid.add(useSubFolders, 0, row, 2, 1);
+    row++;
 
     List<Button> directoryButtons = createFromDirectoryBtns(filters);
-    int startRow = 2;
-    buttonGrid.add(directoryButtons.remove(0), 0, startRow, 2, 1);
+    buttonGrid.add(directoryButtons.removeFirst(), 0, row, 2, 1);
+    row++;
     for (int i = 0; i < directoryButtons.size(); i++) {
-      buttonGrid.add(directoryButtons.get(i), i % 2, startRow + 1 + i / 2);
+      buttonGrid.add(directoryButtons.get(i), i % 2, row + 1 + i / 2);
       directoryButtons.get(i).getParent().layout();
     }
     buttonGrid.layout();
@@ -135,6 +162,23 @@ public class FileNamesComponent extends BorderPane {
     // main gridpane
     this.setCenter(txtFilename);
     this.setRight(buttonGrid);
+  }
+
+  /**
+   * @return duplicates or empty list
+   */
+  private synchronized Set<File> addFilesSkipDuplicates(final List<File> files) {
+    File[] old = getValue();
+    if (old == null || old.length == 0) {
+      Set<File> duplicates = CollectionUtils.streamDuplicates(files.stream())
+          .collect(Collectors.toSet());
+      setValue(files.stream().distinct().toArray(File[]::new));
+      return duplicates;
+    }
+    Supplier<Stream<File>> supplier = () -> Stream.concat(Arrays.stream(old), files.stream());
+    var duplicates = CollectionUtils.streamDuplicates(supplier.get()).collect(Collectors.toSet());
+    setValue(supplier.get().distinct().toArray(File[]::new));
+    return duplicates;
   }
 
   private List<Button> createFromDirectoryBtns(List<ExtensionFilter> filters) {
@@ -157,7 +201,7 @@ public class FileNamesComponent extends BorderPane {
     if (filter.getExtensions().isEmpty() || filter.getExtensions().get(0).equals("*.*")) {
       return;
     }
-    String name = isAllFilter ? "From folder" : "All " + filter.getExtensions().get(0);
+    String name = isAllFilter ? "All in folder" : "All " + filter.getExtensions().get(0);
 
     Button btnFromDirectory = new Button(name);
     btnFromDirectory.setMinWidth(USE_COMPUTED_SIZE);
@@ -202,7 +246,7 @@ public class FileNamesComponent extends BorderPane {
     String[] fileNameStrings = txtFilename.getText().split("\n");
     List<File> files = new ArrayList<>();
     for (String fileName : fileNameStrings) {
-      if (fileName.trim().equals("")) {
+      if (fileName.isBlank()) {
         continue;
       }
       files.add(new File(fileName.trim()));
@@ -215,8 +259,8 @@ public class FileNamesComponent extends BorderPane {
       txtFilename.setText("");
       return;
     }
-    txtFilename.setText(Arrays.stream(value).filter(Objects::nonNull).map(File::getPath).collect(
-        Collectors.joining("\n")));
+    txtFilename.setText(Arrays.stream(value).filter(Objects::nonNull).map(File::getPath)
+        .collect(Collectors.joining("\n")));
   }
 
   public void setToolTipText(String toolTip) {
@@ -234,15 +278,14 @@ public class FileNamesComponent extends BorderPane {
     txtFilename.setOnDragDropped(e -> {
       if (e.getDragboard().hasFiles()) {
         final List<File> files = e.getDragboard().getFiles();
-        final List<String> patterns = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder(txtFilename.getText());
         if (!sb.toString().endsWith("\n")) {
           sb.append("\n");
         }
 
-        filters.stream().flatMap(f -> f.getExtensions().stream()).forEach(
-            extension -> patterns.add(extension.toLowerCase().replace("*", "").toLowerCase()));
+        final List<String> patterns = filters.stream().flatMap(f -> f.getExtensions().stream())
+            .map(extension -> extension.toLowerCase().replace("*", "").toLowerCase()).toList();
 
         for (File file : files) {
           if (patterns.stream()

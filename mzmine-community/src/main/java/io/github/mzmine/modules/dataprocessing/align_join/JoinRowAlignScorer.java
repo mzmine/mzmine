@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureRowAlignScorer;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
@@ -45,6 +44,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -69,8 +69,9 @@ public class JoinRowAlignScorer implements FeatureRowAlignScorer {
   private final Double isotopeNoiseLevel;
   private final MZTolerance isotopeMZTolerance;
   // fields for spectra similarity
-  private MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
-  private int msLevel;
+  private final SpectralSimilarityFunction simFunction;
+  private final MZTolerance mzToleranceSpectralSim;
+  private final int msLevel;
 
   public JoinRowAlignScorer(final ParameterSet parameters) {
     mzTolerance = parameters.getValue(JoinAlignerParameters.MZTolerance);
@@ -105,11 +106,18 @@ public class JoinRowAlignScorer implements FeatureRowAlignScorer {
     compareSpectraSimilarity = parameters.getValue(JoinAlignerParameters.compareSpectraSimilarity);
 
     if (compareSpectraSimilarity) {
-      simFunction = parameters.getParameter(JoinAlignerParameters.compareSpectraSimilarity)
-          .getEmbeddedParameters()
-          .getValue(JoinAlignerSpectraSimilarityScoreParameters.similarityFunction);
-      msLevel = parameters.getParameter(JoinAlignerParameters.compareSpectraSimilarity)
-          .getEmbeddedParameters().getValue(JoinAlignerSpectraSimilarityScoreParameters.msLevel);
+      var simParam = parameters.getEmbeddedParameterValue(
+          JoinAlignerParameters.compareSpectraSimilarity);
+      mzToleranceSpectralSim = simParam.getValue(
+          JoinAlignerSpectraSimilarityScoreParameters.mzTolerance);
+      msLevel = simParam.getValue(JoinAlignerSpectraSimilarityScoreParameters.msLevel);
+      var simfuncParam = simParam.getParameter(
+          JoinAlignerSpectraSimilarityScoreParameters.similarityFunction).getValueWithParameters();
+      simFunction = SpectralSimilarityFunctions.createOption(simfuncParam);
+    } else {
+      msLevel = 2;
+      mzToleranceSpectralSim = null;
+      simFunction = null;
     }
   }
 
@@ -221,8 +229,7 @@ public class JoinRowAlignScorer implements FeatureRowAlignScorer {
    * @return positive match with similarity or null if criteria was not met
    */
   private SpectralSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
-    return simFunction.getModule()
-        .getSimilarity(simFunction.getParameterSet(), mzTolerance, 0, library, query);
+    return simFunction.getSimilarity(mzToleranceSpectralSim, 0, library, query);
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,15 +36,18 @@ public enum UnitFormat {
   }
 
   public String format(String label, String unit) {
-    switch(this) {
+    if (unit == null || unit.isBlank()) {
+      return label;
+    }
+    switch (this) {
       case SQUARE_BRACKET:
         return label + " [" + unit + "]";
       case ROUND_BRACKED:
         return label + " (" + unit + ")";
       case DIVIDE:
-        return  label + " / " + unit;
+        return label + " / " + unit;
       default:
-        return  label + " / " + unit;
+        return label + " / " + unit;
     }
   }
 

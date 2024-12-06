@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,13 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -41,10 +44,13 @@ import org.jetbrains.annotations.Nullable;
  * @param <T>
  * @author https://github.com/SteffenHeu
  */
-public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, TimeSeries {
+public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, IntensityTimeSeries {
 
   SimpleIonTimeSeries EMPTY = new SimpleIonTimeSeries(null, new double[0], new double[0],
       List.of());
+
+  @Override
+  IonTimeSeries<T> emptySeries();
 
   /**
    * @param scan
@@ -74,13 +80,39 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Tim
   }
 
   @Override
+  default IonTimeSeries<T> subSeries(MemoryMapStorage storage, float start, float end) {
+    final IndexRange indexRange = BinarySearch.indexRange(Range.closed(start, end), getSpectra(),
+        Scan::getRetentionTime);
+    if (indexRange.isEmpty()) {
+      return emptySeries();
+    }
+    return subSeries(storage, indexRange.min(), indexRange.maxExclusive());
+  }
+
+  @Override
+  default IonTimeSeries<T> subSeries(MemoryMapStorage storage, int startIndexInclusive,
+      int endIndexExclusive) {
+    if (endIndexExclusive - startIndexInclusive <= 0) {
+      return emptySeries();
+    }
+    return subSeries(storage, getSpectra().subList(startIndexInclusive, endIndexExclusive));
+  }
+
+  @Override
   IonTimeSeries<T> subSeries(@Nullable MemoryMapStorage storage, @NotNull List<T> subset);
 
   @Override
-  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
+  IonTimeSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @NotNull double[] newIntensityValues);
+
+  @Override
+  IonTimeSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage, @NotNull double[] newMzValues,
+      @NotNull double[] newIntensityValues);
 
   /**
+   * Saves this time series to xml. The implementing class is responsible for creating the xml
+   * element and closing the xml element.
+   *
    * @param writer   The writer.
    * @param allScans All scans of the given raw data file (those are used during import). NOT the
    *                 preselected scans obtained from
@@ -88,4 +120,13 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Tim
    *                 io.github.mzmine.datamodel.features.ModularFeatureList#getSeletedScans(RawDataFile)}.
    */
   void saveValueToXML(XMLStreamWriter writer, List<T> allScans) throws XMLStreamException;
+
+  @Override
+  default @Nullable MemoryMapStorage getStorage() {
+    if (getSpectra().isEmpty() || !(getSpectrum(0) instanceof Scan scan)) {
+      return null;
+    }
+
+    return scan.getDataFile().getMemoryMapStorage();
+  }
 }

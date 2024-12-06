@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -245,7 +245,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-                                         + "row. Create feature with the correct feature list as an argument.");
+          + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -501,11 +501,12 @@ public class ModularFeatureListRow implements FeatureListRow {
   public void addCompoundAnnotation(CompoundDBAnnotation id) {
     synchronized (getMap()) {
       List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
-      if (matches == null) {
-        matches = new ArrayList<>();
+      List<CompoundDBAnnotation> newList = new ArrayList<>();
+      if (matches != null) {
+        newList.addAll(matches);
       }
-      matches.add(id);
-      set(CompoundDatabaseMatchesType.class, matches);
+      newList.add(id);
+      set(CompoundDatabaseMatchesType.class, newList);
     }
   }
 
@@ -514,6 +515,13 @@ public class ModularFeatureListRow implements FeatureListRow {
   public List<CompoundDBAnnotation> getCompoundAnnotations() {
     var list = get(CompoundDatabaseMatchesType.class);
     return list != null ? list : List.of();
+  }
+
+  @Override
+  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
+    synchronized (getMap()) {
+      set(CompoundDatabaseMatchesType.class, annotations);
+    }
   }
 
   /**
@@ -527,7 +535,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   public boolean isIdentified() {
     for (Entry<DataType, Object> entry : getMap().entrySet()) {
       final DataType dt = entry.getKey();
-      if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType) {
+      if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType
+          && !(dt instanceof IonIdentityListType)) {
         final List<?> list = get(listType);
         if (list != null && !list.isEmpty()) {
           return true;
@@ -535,13 +544,6 @@ public class ModularFeatureListRow implements FeatureListRow {
       }
     }
     return false;
-  }
-
-  @Override
-  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
-    synchronized (getMap()) {
-      set(CompoundDatabaseMatchesType.class, annotations);
-    }
   }
 
   @Override
@@ -679,7 +681,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public IsotopePattern getBestIsotopePattern() {
     return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight))
         .map(ModularFeature::getIsotopePattern).orElse(null);
   }
@@ -711,7 +713,6 @@ public class ModularFeatureListRow implements FeatureListRow {
       case FeatureAnnotation ann -> ann.getCompoundName();
       case ManualAnnotation ann -> ann.getCompoundName();
       case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
-      case MatchedLipid lipid -> lipid.getLipidAnnotation().getAnnotation();
       case null -> null;
       default -> throw new IllegalStateException("Unexpected value: " + annotation);
     };
@@ -725,6 +726,17 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public void setFormulas(List<ResultFormula> formulas) {
     set(FormulaListType.class, formulas);
+  }
+
+  @Override
+  public void addFormula(ResultFormula formula, boolean preferred) {
+    final List<ResultFormula> resultFormulas = new ArrayList<>(getFormulas());
+    if (preferred) {
+      resultFormulas.addFirst(formula);
+    } else {
+      resultFormulas.add(formula);
+    }
+    setFormulas(resultFormulas);
   }
 
   @Override

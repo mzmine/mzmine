@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,14 +37,13 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import static io.github.mzmine.util.scans.ScanUtils.extractDataPoints;
-import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorChecker;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorFlag;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorResults;
@@ -55,6 +54,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -75,7 +75,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -107,6 +106,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final MsMsQualityChecker msMsQualityChecker;
   private final boolean enableMsnMerge;
   private final MsLevelFilter postMergingMsLevelFilter;
+  private final IntensityNormalizer normalizer;
   public long totalRows = 0;
   public AtomicInteger finishedRows = new AtomicInteger(0);
   public AtomicInteger exported = new AtomicInteger(0);
@@ -137,6 +137,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     postMergingMsLevelFilter = parameters.getValue(
         LibraryBatchGenerationParameters.postMergingMsLevelFilter);
+
+    normalizer = parameters.getValue(LibraryBatchGenerationParameters.normalizer);
 
     enableMsnMerge = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
     MZTolerance mzTolMerging = parameters.getEmbeddedParameterValue(
@@ -210,7 +212,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     var featureList = row.getFeatureList();
     // might filter matches for compound name in feature list name
     // only if this option is active
-    List<CompoundDBAnnotation> matches = row.getCompoundAnnotations().stream()
+    List<FeatureAnnotation> matches = CompoundAnnotationUtils.streamFeatureAnnotations(row)
         .filter(match -> msMsQualityChecker.matchesName(match, featureList)).toList();
 
     if (scans.isEmpty() || matches.isEmpty()) {
@@ -219,10 +221,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     // first entry for the same molecule reflect the most common ion type, usually M+H
     // if multiple compounds match, they are sorted by score descending
-    var filteredMatches = CompoundAnnotationUtils.getBestMatchesPerCompoundName(matches);
+    matches = CompoundAnnotationUtils.getBestMatchesPerCompoundName(matches);
 
-    if (filteredMatches.stream()
-        .noneMatch(match -> msMsQualityChecker.matchesName(match, featureList))) {
+    if (matches.stream().noneMatch(match -> msMsQualityChecker.matchesName(match, featureList))) {
       return;
     }
 
@@ -231,7 +232,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     scans = selectMergeAndFilterScans(scans);
     // export
-    exportAllMatches(writer, row, scans, filteredMatches, chimericMap);
+    exportAllMatches(writer, row, scans, matches, chimericMap);
   }
 
   /**
@@ -262,11 +263,11 @@ public class LibraryBatchGenerationTask extends AbstractTask {
    * @param chimericMap     flags chimeric spectra
    */
   private void exportAllMatches(final BufferedWriter writer, final FeatureListRow row,
-      final List<Scan> scans, final List<CompoundDBAnnotation> filteredMatches,
+      final List<Scan> scans, final List<FeatureAnnotation> filteredMatches,
       final Map<Scan, ChimericPrecursorResults> chimericMap) throws IOException {
     // filtered matches contain one match per compound name sorted by the least complex first
     // M+H better than 2M+H2+2
-    for (final CompoundDBAnnotation match : filteredMatches) {
+    for (final FeatureAnnotation match : filteredMatches) {
       // cache all formulas
       IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
       FormulaWithExactMz[] sortedFormulas = FormulaUtils.getAllFormulas(formula, 1, 15);
@@ -304,14 +305,13 @@ public class LibraryBatchGenerationTask extends AbstractTask {
    * @return the new spectral library entry
    */
   @NotNull
-  private SpectralLibraryEntry createEntry(final FeatureListRow row,
-      final CompoundDBAnnotation match, final Map<Scan, ChimericPrecursorResults> chimericMap,
-      final Scan msmsScan, final MSMSScore score, final DataPoint[] dps,
-      final List<CompoundDBAnnotation> allMatchedCompounds) {
+  private SpectralLibraryEntry createEntry(final FeatureListRow row, final FeatureAnnotation match,
+      final Map<Scan, ChimericPrecursorResults> chimericMap, final Scan msmsScan,
+      final MSMSScore score, final DataPoint[] dps,
+      final List<FeatureAnnotation> allMatchedCompounds) {
     // add instrument type etc by parameter
-    SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), msmsScan, match,
-        dps);
-    entry.putAll(metadataMap);
+    SpectralLibraryEntry entry = SpectralLibraryEntry.create(row, library.getStorage(), msmsScan,
+        match, dps, metadataMap);
 
     // matched against mutiple compounds in the same sample?
     // usually metadata is filtered so that raw data files only contain specific compounds without interference
@@ -320,7 +320,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       entry.putIfNotNull(DBEntryField.OTHER_MATCHED_COMPOUNDS_N, allMatchedCompounds.size() - 1);
       entry.putIfNotNull(DBEntryField.OTHER_MATCHED_COMPOUNDS_NAMES, allMatchedCompounds.stream()
           .filter(m -> !Objects.equals(match.getCompoundName(), m.getCompoundName()))
-          .map(CompoundDBAnnotation::toString).collect(Collectors.joining("; ")));
+          .map(FeatureAnnotation::toString).collect(Collectors.joining("; ")));
     }
     // score might be successful without having a formula - so check if we actually have scores
     if (score.explainedSignals() > 0) {
@@ -338,14 +338,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
             entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
       }
     }
-    // add file info
-    int scanNumber = msmsScan.getScanNumber();
-    final String fileUSI = Path.of(requireNonNullElse(msmsScan.getDataFile().getAbsolutePath(),
-        msmsScan.getDataFile().getName())).getFileName().toString() + ":" + scanNumber;
-
-    entry.putIfNotNull(DBEntryField.SCAN_NUMBER, scanNumber);
-    entry.getField(DBEntryField.DATASET_ID).ifPresent(
-        dataID -> entry.putIfNotNull(DBEntryField.USI, "mzspec:" + dataID + ":" + fileUSI));
 
     // add experimental data
     if (entry.getField(DBEntryField.RT).isEmpty()) {
@@ -381,10 +373,12 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
   private void exportEntry(final BufferedWriter writer, final SpectralLibraryEntry entry)
       throws IOException {
+    // TODO maybe skip empty spectra. After formatting the number of signals may be smaller than before
+    // if intensity is 0 after formatting
     String stringEntry = switch (format) {
-      case msp -> MSPEntryGenerator.createMSPEntry(entry);
-      case json -> MZmineJsonGenerator.generateJSON(entry);
-      case mgf -> MGFEntryGenerator.createMGFEntry(entry);
+      case msp -> MSPEntryGenerator.createMSPEntry(entry, normalizer);
+      case json_mzmine -> MZmineJsonGenerator.generateJSON(entry, normalizer);
+      case mgf -> MGFEntryGenerator.createMGFEntry(entry, normalizer).spectrum();
     };
     writer.append(stringEntry).append("\n");
   }

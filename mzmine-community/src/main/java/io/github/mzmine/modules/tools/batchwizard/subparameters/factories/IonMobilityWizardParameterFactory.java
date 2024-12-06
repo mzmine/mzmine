@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -68,7 +69,7 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
   }
 
   @Override
-  public String getUniqueId() {
+  public @NotNull String getUniqueID() {
     return name();
   }
 
@@ -80,8 +81,11 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
    */
   public MassSpectrometerWizardParameterFactory[] getMatchingMassSpectrometerPresets() {
     return switch (this) {
-      case TIMS, TWIMS, DTIMS ->
+      case TWIMS, DTIMS ->
           new MassSpectrometerWizardParameterFactory[]{MassSpectrometerWizardParameterFactory.QTOF};
+      case TIMS ->
+          new MassSpectrometerWizardParameterFactory[]{MassSpectrometerWizardParameterFactory.QTOF,
+              MassSpectrometerWizardParameterFactory.FTICR};
       case NO_IMS, IMS -> MassSpectrometerWizardParameterFactory.values();
     };
   }

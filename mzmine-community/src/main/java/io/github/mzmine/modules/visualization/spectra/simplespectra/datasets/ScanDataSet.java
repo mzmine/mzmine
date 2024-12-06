@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,9 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Hashtable;
 import java.util.Map;
@@ -189,8 +191,20 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset,
    * @param annotation m/z value and annotation map
    */
   public void addMzAnnotation(Map<DataPoint, String> annotation) {
-    annotation.entrySet().stream()
-        .forEach(e -> mzAnnotationMap.put(e.getKey().getMZ(), e.getValue()));
+    if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
+      annotation.entrySet().stream()
+          .forEach(e -> mzAnnotationMap.put(e.getKey().getMZ(), e.getValue()));
+    } else {
+      // annotations are almost never displayed in profile data because the mz from the annotation
+      // comes from the mass list, which is centered in the peak and not the local maximum.
+      annotation.entrySet().stream().forEach(e -> {
+        final double mz = e.getKey().getMZ();
+        final int index = scan.binarySearch(mz, DefaultTo.CLOSEST_VALUE);
+        if (scan.getMzValue(index) - mz < 0.01d) {
+          mzAnnotationMap.put(scan.getMzValue(index), e.getValue());
+        }
+      });
+    }
   }
 
 

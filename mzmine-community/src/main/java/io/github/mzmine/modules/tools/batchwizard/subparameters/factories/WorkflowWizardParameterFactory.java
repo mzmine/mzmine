@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,9 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizar
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowImagingWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowTargetPlateWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -41,8 +43,7 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
   /**
    * Options for GNPS, molecular networking, SIRIUS,
    */
-  DDA,
-  DIA,
+  DDA, DIA,
   /**
    * Currently only used in GC-EI; maybe in the future for all ion fragmentation (DIA)
    */
@@ -58,7 +59,11 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
   /**
    * imaging analysis
    */
-  IMAGING;
+  IMAGING,
+  /**
+   * Target plate analysis
+   */
+  TARGET_PLATE;
 
   @Override
   public String toString() {
@@ -68,11 +73,12 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
       case DECONVOLUTION -> "Spectral deconvolution";
       case LIBRARY_GENERATION -> "Library generation";
       case IMAGING -> "Imaging";
+      case TARGET_PLATE -> "Target plate";
     };
   }
 
   @Override
-  public String getUniqueId() {
+  public @NotNull String getUniqueID() {
     return name();
   }
 
@@ -87,8 +93,9 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
           new WorkflowLibraryGenerationWizardParameters(null, true, true, false);
       case DDA -> new WorkflowDdaWizardParameters(true, true, null, true, true, false);
       case DECONVOLUTION ->
-          new WorkflowGcElectronImpactWizardParameters(true, null, true, true, false);
+          new WorkflowGcElectronImpactWizardParameters(8, true, true, null, true, true, false);
       case DIA -> new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true, false);
+      case TARGET_PLATE -> new WorkflowTargetPlateWizardParameters(false, null);
     };
   }
 }

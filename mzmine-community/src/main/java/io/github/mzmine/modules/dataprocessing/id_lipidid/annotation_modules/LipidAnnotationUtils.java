@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,10 +33,10 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.LipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipidStatus;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.IMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.SphingoMolecularSpeciesLevelMatchedLipidFactory;
@@ -166,8 +166,8 @@ public class LipidAnnotationUtils {
 
           // make MS1 annotation
           MatchedLipid matchedLipid = new MatchedLipid(lipidIon.lipidAnnotation(),
-              row.getAverageMZ(), lipidIon.ionizationType(), null, 0.0);
-          matchedLipid.setComment("Warning, this annotation is based on MS1 mass accuracy only!");
+              row.getAverageMZ(), lipidIon.ionizationType(), null, 0.0,
+              MatchedLipidStatus.UNCONFIRMED);
           possibleRowAnnotations.add(matchedLipid);
         }
       }
@@ -186,17 +186,15 @@ public class LipidAnnotationUtils {
       LipidCategories lipidCategory) {
     Set<MatchedLipid> matchedLipids = new HashSet<>();
     LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
-    // Check if selected feature has MSMS spectra and LipidIdentity
-    if (!row.getAllFragmentScans().isEmpty()) {
+    if (!row.getAllFragmentScans().isEmpty() || keepUnconfirmedAnnotations) {
       List<Scan> msmsScans = row.getAllFragmentScans();
       for (Scan msmsScan : msmsScans) {
         Set<MatchedLipid> matchedLipidsInScan = new HashSet<>();
         if (msmsScan.getMassList() == null) {
           return new HashSet<>();
         }
-        DataPoint[] massList = null;
-        massList = msmsScan.getMassList().getDataPoints();
-        massList = MSMSLipidTools.deisotopeMassList(massList, mzToleranceMS2);
+        DataPoint[] dataPoints = null;
+        dataPoints = msmsScan.getMassList().getDataPoints();
         Set<LipidFragment> annotatedFragments = new HashSet<>();
         if (rules != null && rules.length > 0) {
           ILipidFragmentFactory lipidFragmentFactory = new LipidFragmentFactory(mzToleranceMS2,
@@ -212,8 +210,8 @@ public class LipidAnnotationUtils {
           ISpeciesLevelMatchedLipidFactory matchedLipidFactory = getSpeciesLevelMatchedLipidFactory(
               lipidCategory);
           MatchedLipid matchedSpeciesLevelLipid = matchedLipidFactory.validateSpeciesLevelAnnotation(
-              row.getAverageMZ(), lipid, annotatedFragments, massList, minMsMsScore, mzToleranceMS2,
-              ionization);
+              row.getAverageMZ(), lipid, annotatedFragments, dataPoints, minMsMsScore,
+              mzToleranceMS2, ionization);
           if (matchedSpeciesLevelLipid != null) {
             matchedLipidsInScan.add(matchedSpeciesLevelLipid);
           }
@@ -221,8 +219,8 @@ public class LipidAnnotationUtils {
           IMolecularSpeciesLevelMatchedLipidFactory matchedMolecularSpeciesLipidFactory = getMolecularSpeciesLevelMatchedLipidFactory(
               lipidCategory);
           Set<MatchedLipid> molecularSpeciesLevelMatchedLipids = matchedMolecularSpeciesLipidFactory.predictMolecularSpeciesLevelMatches(
-              annotatedFragments, lipid, row.getAverageMZ(), massList, minMsMsScore, mzToleranceMS2,
-              ionization);
+              annotatedFragments, lipid, row.getAverageMZ(), dataPoints, minMsMsScore,
+              mzToleranceMS2, ionization);
           if (molecularSpeciesLevelMatchedLipids != null
               && !molecularSpeciesLevelMatchedLipids.isEmpty()) {
             //Add species level fragments to score
@@ -236,7 +234,7 @@ public class LipidAnnotationUtils {
               //check MSMS score
               molecularSpeciesLevelMatchedLipid = matchedMolecularSpeciesLipidFactory.validateMolecularSpeciesLevelAnnotation(
                   row.getAverageMZ(), molecularSpeciesLevelMatchedLipid.getLipidAnnotation(),
-                  molecularSpeciesLevelMatchedLipid.getMatchedFragments(), massList, minMsMsScore,
+                  molecularSpeciesLevelMatchedLipid.getMatchedFragments(), dataPoints, minMsMsScore,
                   mzToleranceMS2, ionization);
               if (molecularSpeciesLevelMatchedLipid != null) {
                 matchedLipidsInScan.add(molecularSpeciesLevelMatchedLipid);
@@ -248,7 +246,7 @@ public class LipidAnnotationUtils {
       }
       if (keepUnconfirmedAnnotations && matchedLipids.isEmpty()) {
         MatchedLipid unconfirmedMatchedLipid = new MatchedLipid(lipid, row.getAverageMZ(),
-            ionization, null, 0.0);
+            ionization, null, 0.0, MatchedLipidStatus.UNCONFIRMED);
         unconfirmedMatchedLipid.setComment(
             "Warning, this annotation is based on MS1 mass accuracy only!");
         matchedLipids.add(unconfirmedMatchedLipid);

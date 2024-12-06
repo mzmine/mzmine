@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.util;
+
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -88,8 +90,8 @@ public class MirrorChartFactory {
 
     Scan scan = db.getQueryScan();
     if (scan == null || db.getEntry().getDataPoints() == null) {
-      EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + db.getCompoundName(), 0,
-          0, null, "Library: " + db.getDatabase(), 0, 0, null, true, true);
+      EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + db.getCompoundName(), 0d,
+          0, null, "Library: " + db.getDatabase(), 0d, 0, null, true, true);
       mirrorSpecrumPlot.setUserData(LIBRARY_MATCH_USER_DATA);
       EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
       theme.apply(mirrorSpecrumPlot.getChart());
@@ -129,7 +131,8 @@ public class MirrorChartFactory {
     double rtA = scan.getRetentionTime();
 
     Double precursorMZB = db.getEntry().getPrecursorMZ();
-    Double rtB = db.getEntry().getField(DBEntryField.RT).map(v -> v instanceof Number n? n.doubleValue() : 0d).orElse(0d);
+    Double rtB = db.getEntry().getField(DBEntryField.RT)
+        .map(v -> v instanceof Number n ? n.doubleValue() : 0d).orElse(0d);
 
     // create without data
     EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + scan.getScanDefinition(),
@@ -214,10 +217,11 @@ public class MirrorChartFactory {
   }
 
   public static EChartViewer createMirrorPlotFromAligned(MZTolerance mzTol, boolean modified,
-      DataPoint[] dpa, double precursorMZA, DataPoint[] dpb, double precursorMZB) {
+      DataPoint[] dpa, @Nullable Double precursorMZA, DataPoint[] dpb,
+      @Nullable Double precursorMZB) {
     List<DataPoint[]> aligned;
 
-    if (modified) {
+    if (modified && precursorMZA != null && precursorMZB != null) {
       aligned = ScanAlignment.alignModAware(mzTol, dpa, dpb, precursorMZA, precursorMZB);
     } else {
       aligned = ScanAlignment.align(mzTol, dpa, dpb);
@@ -227,7 +231,7 @@ public class MirrorChartFactory {
   }
 
   public static EChartViewer createMirrorPlotFromAligned(MZTolerance mzTol, boolean modified,
-      DataPoint[][] aligned, double precursorMZA, double precursorMZB) {
+      DataPoint[][] aligned, @Nullable Double precursorMZA, @Nullable Double precursorMZB) {
 
     final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.UNALIGNED,
         DataPointsTag.ALIGNED_MODIFIED, DataPointsTag.ALIGNED};
@@ -258,8 +262,9 @@ public class MirrorChartFactory {
     };
 
     // create without data
-    EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Top: " + precursorMZA, precursorMZA,
-        -1, null, "Bottom: " + precursorMZB, precursorMZB, -1, null, false, true);
+    EChartViewer mirrorSpecrumPlot = createMirrorChartViewer(
+        "Top: " + requireNonNullElse(precursorMZA, 0), precursorMZA, -1, null,
+        "Bottom: " + requireNonNullElse(precursorMZB, 0), precursorMZB, -1, null, false, true);
 
     // add datasets and renderer
     // set up renderer
@@ -354,7 +359,7 @@ public class MirrorChartFactory {
     ((NumberAxis) queryPlot.getRangeAxis()).setNumberFormatOverride(intensityFormat);
     ((NumberAxis) libraryPlot.getRangeAxis()).setNumberFormatOverride(intensityFormat);
 
-    if (precursorMZA > 0 && precursorMZB > 0) {
+    if (precursorMZA != null && precursorMZA > 0 && precursorMZB != null && precursorMZB > 0) {
       queryPlot.addDomainMarker(createPrecursorMarker(precursorMZA, Color.GRAY, 0.5f));
       libraryPlot.addDomainMarker(createPrecursorMarker(precursorMZB, Color.GRAY, 0.5f));
     }
@@ -397,7 +402,7 @@ public class MirrorChartFactory {
     return legend;
   }
 
-  private static boolean notInSubsequentMassList(DataPoint dp, DataPoint[][]query, int current) {
+  private static boolean notInSubsequentMassList(DataPoint dp, DataPoint[][] query, int current) {
     for (int i = current + 1; i < query.length; i++) {
       for (DataPoint b : query[i]) {
         if (Double.compare(dp.getMZ(), b.getMZ()) == 0
@@ -438,7 +443,7 @@ public class MirrorChartFactory {
     }
   }
 
-  public static PseudoSpectrumDataSet createMSMSDataSet(double precursorMZ, double rt,
+  public static PseudoSpectrumDataSet createMSMSDataSet(@Nullable Double precursorMZ, double rt,
       DataPoint[] dps, String label) {
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
@@ -449,9 +454,15 @@ public class MirrorChartFactory {
       label = " (" + label + ")";
     }
     // data
-    PseudoSpectrumDataSet series = new PseudoSpectrumDataSet(true,
-        MessageFormat.format("MSMS for m/z={0} RT={1}{2}", mzForm.format(precursorMZ),
-            rtForm.format(rt), label));
+    final String seriesName;
+    if (precursorMZ != null) {
+      seriesName = MessageFormat.format("Fragment spectrum for m/z={0} RT={1}{2}",
+          mzForm.format(precursorMZ), rtForm.format(rt), label);
+    } else {
+      seriesName = MessageFormat.format("Fragment spectrum for RT={0}{1}", rtForm.format(rt),
+          label);
+    }
+    PseudoSpectrumDataSet series = new PseudoSpectrumDataSet(true, seriesName);
     // for each row
     for (DataPoint dp : dps) {
       series.addDP(dp.getMZ(), dp.getIntensity(), null);
@@ -570,9 +581,9 @@ public class MirrorChartFactory {
         showTitle, showLegend));
   }
 
-  public static EChartViewer createMirrorChartViewer(String labelA, double precursorMZA, double rtA,
-      DataPoint[] dpsA, String labelB, double precursorMZB, double rtB, DataPoint[] dpsB,
-      boolean showTitle, boolean showLegend) {
+  public static EChartViewer createMirrorChartViewer(String labelA, @Nullable Double precursorMZA,
+      double rtA, DataPoint[] dpsA, String labelB, @Nullable Double precursorMZB, double rtB,
+      DataPoint[] dpsB, boolean showTitle, boolean showLegend) {
     return new EChartViewer(
         createMirrorChart(labelA, precursorMZA, rtA, dpsA, labelB, precursorMZB, rtB, dpsB,
             showTitle, showLegend));
@@ -580,12 +591,12 @@ public class MirrorChartFactory {
 
   private static JFreeChart createMirrorChart(String labelA, DataPoint[] dpsA, String labelB,
       DataPoint[] dpsB, boolean showTitle, boolean showLegend) {
-    return createMirrorChart(labelA, -1, -1, dpsA, labelB, -1, -1, dpsB, showTitle, showLegend);
+    return createMirrorChart(labelA, -1d, -1, dpsA, labelB, -1d, -1, dpsB, showTitle, showLegend);
   }
 
-  private static JFreeChart createMirrorChart(String labelA, double precursorMZA, double rtA,
-      DataPoint[] dpsA, String labelB, double precursorMZB, double rtB, DataPoint[] dpsB,
-      boolean showTitle, boolean showLegend) {
+  private static JFreeChart createMirrorChart(String labelA, @Nullable Double precursorMZA,
+      double rtA, DataPoint[] dpsA, String labelB, @Nullable Double precursorMZB, double rtB,
+      DataPoint[] dpsB, boolean showTitle, boolean showLegend) {
     PseudoSpectrumDataSet data =
         dpsA == null ? null : createMSMSDataSet(precursorMZA, rtA, dpsA, labelA);
     PseudoSpectrumDataSet dataMirror =

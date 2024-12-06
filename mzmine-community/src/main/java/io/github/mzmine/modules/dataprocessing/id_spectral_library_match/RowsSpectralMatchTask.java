@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,10 +32,10 @@ import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters.ScanMatchingSelection;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
@@ -44,6 +44,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionException;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -55,9 +56,9 @@ import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -67,7 +68,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,12 +77,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
   public final static double[] DELTA_ISOTOPES = new double[]{1.0034, 1.0078, 2.0157, 1.9970};
 
   private static final Logger logger = Logger.getLogger(RowsSpectralMatchTask.class.getName());
-  private static final String METHOD = "Spectral library search";
   protected final List<FeatureListRow> rows;
   protected final AtomicInteger finishedRows = new AtomicInteger(0);
   protected final ParameterSet parameters;
-  protected final List<SpectralLibrary> libraries;
-  protected final String librariesJoined;
+  protected String librariesJoined = "";
   // remove +- 4 Da around the precursor - including the precursor signal
   // this signal does not matter for matching
   protected final MZTolerance mzToleranceRemovePrecursor = new MZTolerance(4d, 0d);
@@ -99,8 +97,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private final int totalRows;
   private final int minMatch;
   private final boolean removePrecursor;
-  private final String description;
-  private final MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
+  private String description = "Spectral library search";
+  private final SpectralSimilarityFunction simFunction;
   private final FragmentScanSelection fragmentScanSelection;
   protected RTTolerance rtTolerance;
   protected PercentTolerance ccsTolerance;
@@ -121,12 +119,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this.parameters = parameters;
     this.scan = scan;
     this.rows = null;
-    this.libraries = parameters.getValue(SpectralLibrarySearchParameters.libraries)
-        .getMatchingLibraries();
-    this.librariesJoined = libraries.stream().map(SpectralLibrary::getName)
-        .collect(Collectors.joining(", "));
-    this.description = String.format("Spectral library matching for Scan %s in %d libraries: %s",
-        scan, libraries.size(), librariesJoined);
 
     mzToleranceSpectra = parameters.getValue(SpectralLibrarySearchParameters.mzTolerance);
 
@@ -141,7 +133,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
     rtTolerance = null;
 
     minMatch = parameters.getValue(SpectralLibrarySearchParameters.minMatch);
-    simFunction = parameters.getValue(SpectralLibrarySearchParameters.similarityFunction);
+    var simfuncParams = parameters.getParameter(SpectralLibrarySearchParameters.similarityFunction)
+        .getValueWithParameters();
+    simFunction = SpectralSimilarityFunctions.createOption(simfuncParams);
     removePrecursor = parameters.getValue(SpectralLibrarySearchParameters.removePrecursor);
     mzTolerancePrecursor = scan.getMSLevel() <= 1 ? null
         : parameters.getValue(SpectralLibrarySearchParameters.mzTolerancePrecursor);
@@ -181,16 +175,12 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this.parameters = parameters;
     this.rows = rows;
     this.scan = null;
-    this.libraries = parameters.getValue(SpectralLibrarySearchParameters.libraries)
-        .getMatchingLibraries();
-    this.librariesJoined = libraries.stream().map(SpectralLibrary::getName)
-        .collect(Collectors.joining(", "));
-    this.description = String.format("Spectral library matching for %d rows in %d libraries: %s",
-        rows.size(), libraries.size(), librariesJoined);
 
     mzToleranceSpectra = parameters.getValue(SpectralLibrarySearchParameters.mzTolerance);
     minMatch = parameters.getValue(SpectralLibrarySearchParameters.minMatch);
-    simFunction = parameters.getValue(SpectralLibrarySearchParameters.similarityFunction);
+    var simfuncParams = parameters.getParameter(SpectralLibrarySearchParameters.similarityFunction)
+        .getValueWithParameters();
+    simFunction = SpectralSimilarityFunctions.createOption(simfuncParams);
     removePrecursor = parameters.getValue(SpectralLibrarySearchParameters.removePrecursor);
 
     scanMatchingSelection = parameters.getValue(
@@ -288,15 +278,24 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   @Override
   public void run() {
-
     // combine libraries
-    List<SpectralLibraryEntry> entries = new ArrayList<>();
-    for (var lib : libraries) {
-      entries.addAll(lib.getEntries());
+    final List<SpectralLibraryEntry> entries;
+    try {
+      entries = parameters.getValue(SpectralLibrarySearchParameters.libraries)
+          .getMatchingLibraryEntriesAndCheckAvailability();
+      if (isCanceled()) {
+        return;
+      }
+    } catch (SpectralLibrarySelectionException e) {
+      error("Error in spectral library search.", e);
+      return;
     }
 
     // run on spectra
     if (scan != null) {
+      description = """
+          Spectral library matching of a selected scan against %d spectral library entries""".formatted(
+          entries.size());
       logger.info(
           () -> String.format("Comparing %d library spectra to scan: %s", entries.size(), scan));
 
@@ -309,6 +308,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
     // run in parallel
     if (rows != null) {
+      description = """
+          Spectral library matching of %d feature rows against %d spectral library entries""".formatted(
+          rows.size(), entries.size());
+
       logger.info(() -> String.format("Comparing %d library spectra to %d feature list rows",
           entries.size(), totalRows));
       // cannot use parallel.forEach with side effects - this thread will continue without waiting for
@@ -344,8 +347,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
       for (var entry : entries) {
         float rt = scan.getRetentionTime();
-        final SpectralSimilarity sim = matchSpectrum(rt, scanPrecursorMZ,
-            precursorCCS, masses, entry);
+        final SpectralSimilarity sim = matchSpectrum(rt, scanPrecursorMZ, precursorCCS, masses,
+            entry);
         if (sim != null) {
           Float ccsError = PercentTolerance.getPercentError(entry.getOrElse(DBEntryField.CCS, null),
               precursorCCS);
@@ -551,8 +554,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @return positive match with similarity or null if criteria was not met
    */
   private SpectralSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
-    return simFunction.getModule()
-        .getSimilarity(simFunction.getParameterSet(), mzToleranceSpectra, minMatch, library, query);
+    return simFunction.getSimilarity(mzToleranceSpectra, minMatch, library, query);
   }
 
   private boolean checkPrecursorMZ(double rowMZ, SpectralLibraryEntry ident) {
@@ -597,14 +599,21 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   public List<Scan> getScans(FeatureListRow row) throws MissingMassListException {
+    var allFragmentScans = fragmentScanSelection.getAllFragmentSpectra(row);
     if (msLevelFilter.isMs1Only()) {
-      var scan = row.getBestFeature().getRepresentativeScan();
-      return scan == null ? List.of() : List.of(scan);
+      List<Scan> pseudoSpectra = allFragmentScans.stream()
+          .filter(scan -> scan instanceof PseudoSpectrum).toList();
+      if (!pseudoSpectra.isEmpty()) {
+        return pseudoSpectra;
+      } else {
+        var scan = row.getBestFeature().getRepresentativeScan();
+        return scan == null ? List.of() : List.of(scan);
+      }
     } else {
-      // merge spectra by enegy and total - or just use all scans
+      // merge spectra by energy and total - or just use all scans
       // depending on selected option
-      var allScans = fragmentScanSelection.getAllFragmentSpectra(row);
-      return allScans.stream().filter(scan -> scan.getNumberOfDataPoints() >= minMatch).toList();
+      return allFragmentScans.stream().filter(scan -> scan.getNumberOfDataPoints() >= minMatch)
+          .toList();
     }
   }
 

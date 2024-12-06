@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
@@ -69,7 +70,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     super("volcanoplot_update", model);
 
     final List<FeatureList> flists = model.getFlists();
-    if(flists != null && !flists.isEmpty()) {
+    if (flists != null && !flists.isEmpty()) {
       flist = flists.getFirst();
     } else {
       flist = null;
@@ -126,19 +127,20 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
       final Color color = colors.getNextColorAWT();
       if (!significantRows.isEmpty()) {
         var provider = new VolcanoDatasetProvider(ttest, significantRows, color,
-            STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
+            STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "unknown"
                 : type.getHeaderString()} (p < \{pValue})", abundanceMeasure);
         temporaryDatasets.add(
-            new DatasetAndRenderer(new ColoredXYDataset(provider, RunOption.THIS_THREAD),
-                new ColoredXYShapeRenderer(false)));
+            new DatasetAndRenderer(new ColoredXYZDataset(provider, RunOption.THIS_THREAD),
+                new ColoredXYShapeRenderer(false, ColoredXYShapeRenderer.defaultShape, true)));
       }
+      // NOT significant
       if (!insignificantRows.isEmpty()) {
         var provider = new VolcanoDatasetProvider(ttest, insignificantRows, color,
-            STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
-                : type.getHeaderString()} (p < \{pValue})", abundanceMeasure);
+            STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "unknown"
+                : type.getHeaderString()} (p ≥ \{pValue})", abundanceMeasure);
         temporaryDatasets.add(
             new DatasetAndRenderer(new ColoredXYDataset(provider, RunOption.THIS_THREAD),
-                new ColoredXYShapeRenderer(true)));
+                new ColoredXYShapeRenderer(true, ColoredXYShapeRenderer.defaultShape, true)));
       }
     }
   }

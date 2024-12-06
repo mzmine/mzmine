@@ -155,7 +155,7 @@ public class SortableFeatureComboBox extends FlowPane {
     return features.get();
   }
 
-  public void setItems(List<Feature> items) {
+  public void setItems(List<? extends Feature> items) {
     final ArrayList<Feature> copy = new ArrayList<>(items);
     features.get().setAll(copy);
     sortBaseList();

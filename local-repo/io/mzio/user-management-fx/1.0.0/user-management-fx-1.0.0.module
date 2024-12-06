@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "8.5"
+      "version": "8.10"
     }
   },
   "variants": [
@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 21,
+        "org.gradle.jvm.version": 22,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 33954,
-          "sha512": "cd9d4e26733a406fc639af780ba3b2a3f47f442a87fdc64c95a00dfb103950ec479a64468dc6563b5e5bc82ac9efc2949923a1d64bd55b2caffc1ce1929d6f22",
-          "sha256": "396d1b012d80ec6af4edf7353ac5a0ed01ab03928ba116459abf484495bfbdf5",
-          "sha1": "ccd40d8ac69c1132b604aa2438816c5928e41f2e",
-          "md5": "3fee9ca86fc6e554c1b468ed1a0f199a"
+          "size": 46290,
+          "sha512": "cbb741bb4a32abe5cc781a0051df582d676529a2ac22152c2c78aff8927689db1de772325a355f5248b4dbf14c6f3e553c30b5aae6b340149b43b2396004c1c2",
+          "sha256": "be737b7ae0b11f361f6dbbc9ee92bd16a7512ba900308620fe49ed1da7df778f",
+          "sha1": "1fe9b0adc464bc99bc2525085a0e2407a3c9a90e",
+          "md5": "48cc6b89d83c529620e506ab787c7683"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 21,
+        "org.gradle.jvm.version": 22,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -50,111 +50,6 @@
           "module": "annotations",
           "version": {
             "requires": "22.0.0"
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-base",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-base",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-graphics",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-graphics",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-controls",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-controls",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-fxml",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-fxml",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-media",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-media",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-swing",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-swing",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
-          }
-        },
-        {
-          "group": "org.openjfx",
-          "module": "javafx-web",
-          "version": {
-            "requires": "21"
-          },
-          "thirdPartyCompatibility": {
-            "artifactSelector": {
-              "name": "javafx-web",
-              "type": "jar",
-              "extension": "jar",
-              "classifier": "win"
-            }
           }
         },
         {
@@ -200,6 +95,13 @@
           }
         },
         {
+          "group": "io.mzio",
+          "module": "global-events",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
           "group": "io.github.mzmine",
           "module": "javafx-framework"
         },
@@ -217,17 +119,59 @@
           "version": {
             "requires": "3.2.0"
           }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-base",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-graphics",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-controls",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-fxml",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-swing",
+          "version": {
+            "requires": "21"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-web",
+          "version": {
+            "requires": "21"
+          }
         }
       ],
       "files": [
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 33954,
-          "sha512": "cd9d4e26733a406fc639af780ba3b2a3f47f442a87fdc64c95a00dfb103950ec479a64468dc6563b5e5bc82ac9efc2949923a1d64bd55b2caffc1ce1929d6f22",
-          "sha256": "396d1b012d80ec6af4edf7353ac5a0ed01ab03928ba116459abf484495bfbdf5",
-          "sha1": "ccd40d8ac69c1132b604aa2438816c5928e41f2e",
-          "md5": "3fee9ca86fc6e554c1b468ed1a0f199a"
+          "size": 46290,
+          "sha512": "cbb741bb4a32abe5cc781a0051df582d676529a2ac22152c2c78aff8927689db1de772325a355f5248b4dbf14c6f3e553c30b5aae6b340149b43b2396004c1c2",
+          "sha256": "be737b7ae0b11f361f6dbbc9ee92bd16a7512ba900308620fe49ed1da7df778f",
+          "sha1": "1fe9b0adc464bc99bc2525085a0e2407a3c9a90e",
+          "md5": "48cc6b89d83c529620e506ab787c7683"
         }
       ]
     }

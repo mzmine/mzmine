@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,26 +29,30 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.FeatureDataType;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
-import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarity;
 import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarityList;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.collections.StreamUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.Combinatorics;
+import io.github.mzmine.util.maths.Transform;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
-import it.unimi.dsi.fastutil.Pair;
 import java.text.MessageFormat;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,29 +60,26 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.math.plot.utils.Array;
 
 public class ImageCorrelateGroupingTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(ImageCorrelateGroupingTask.class.getName());
+  public static final double NON_ZERO_INTENSITY = 0.01;
   private final ParameterSet parameters;
   private final ModularFeatureList featureList;
-  private final List<FeatureListRow> rows;
+  private final boolean singleRawFile;
   private long totalMaxPairs = 0;
   private final AtomicLong processedPairs = new AtomicLong(0);
 
   private final double noiseLevel;
 
   private final int minimumNumberOfCorrelatedPixels;
-  private final int medianFilter;
-  private final double quantileThreshold;
-  private final double hotspotRemovalThreshold;
+  private final double lowerQuantile;
+  private final double upperQuantile;
 
-  private final boolean useMedianFilter;
-  private final boolean useQuantileThreshold;
-  private final boolean useHotspotRemoval;
 
   private final SimilarityMeasure similarityMeasure;
   private final double minR;
@@ -87,32 +88,15 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
       final ModularFeatureList featureList, @NotNull Instant moduleCallDate) {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.featureList = featureList;
+    singleRawFile = featureList.getNumberOfRawDataFiles() == 1;
     this.parameters = parameterSet;
-    rows = featureList.getRows();
     noiseLevel = parameters.getParameter(ImageCorrelateGroupingParameters.NOISE_LEVEL).getValue();
     minimumNumberOfCorrelatedPixels = parameters.getParameter(
         ImageCorrelateGroupingParameters.MIN_NUMBER_OF_PIXELS).getValue();
-    useMedianFilter = parameters.getValue(ImageCorrelateGroupingParameters.MEDIAN_FILTER_WINDOW);
-    if (useMedianFilter) {
-      medianFilter = parameters.getEmbeddedParameterValue(
-          ImageCorrelateGroupingParameters.MEDIAN_FILTER_WINDOW);
-    } else {
-      medianFilter = 0;
-    }
-    useQuantileThreshold = parameters.getValue(ImageCorrelateGroupingParameters.QUANTILE_THRESHOLD);
-    if (useQuantileThreshold) {
-      quantileThreshold = parameters.getEmbeddedParameterValue(
-          ImageCorrelateGroupingParameters.QUANTILE_THRESHOLD);
-    } else {
-      quantileThreshold = 0.0;
-    }
-    useHotspotRemoval = parameters.getValue(ImageCorrelateGroupingParameters.HOTSPOT_REMOVAL);
-    if (useHotspotRemoval) {
-      hotspotRemovalThreshold = parameters.getEmbeddedParameterValue(
-          ImageCorrelateGroupingParameters.HOTSPOT_REMOVAL);
-    } else {
-      hotspotRemovalThreshold = 0.0;
-    }
+    lowerQuantile = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        ImageCorrelateGroupingParameters.QUANTILE_THRESHOLD, 0d);
+    upperQuantile = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        ImageCorrelateGroupingParameters.HOTSPOT_REMOVAL, 1d);
     similarityMeasure = parameters.getValue(ImageCorrelateGroupingParameters.MEASURE);
     minR = parameters.getValue(ImageCorrelateGroupingParameters.MIN_R);
   }
@@ -134,9 +118,10 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
       setStatus(TaskStatus.CANCELED);
     }
     final R2RMap<RowsRelationship> mapImageSim = new R2RMap<>();
-    checkAllFeatures(mapImageSim, rows);
+    checkAllFeatures(mapImageSim);
     logger.info("Image similarity check on rows done.");
 
+//    printDebugStatistics(mapImageSim);
     if (featureList != null) {
       //remove old similarities of same type
       featureList.getRowMaps().removeAllRowRelationships(Type.MS1_FEATURE_CORR);
@@ -152,204 +137,257 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
+  private static void printDebugStatistics(final R2RMap<RowsRelationship> mapImageSim) {
+    Comparator<RowsRelationship> comparator = Comparator.comparing(
+            (RowsRelationship r) -> r.getRowA().getPreferredAnnotationName(),
+            Comparator.nullsLast(Comparator.naturalOrder()))
+        .thenComparing(r -> r.getRowB().getPreferredAnnotationName(),
+            Comparator.nullsLast(Comparator.naturalOrder()))
+        .thenComparing(RowsRelationship::getScore, Comparator.reverseOrder());
+
+    // sorted
+    String stats = mapImageSim.values().stream().sorted(comparator).map(
+        r -> Stream.of(r.getRowA().getPreferredAnnotationName(),
+                r.getRowB().getPreferredAnnotationName(), r.getRowA().getID(), r.getRowB().getID(),
+                r.getScoreFormatted()).map(o -> o == null ? "" : o.toString())
+            .collect(Collectors.joining("\t"))).collect(Collectors.joining("\n"));
+    logger.info("""
+                    Correlation results:
+                    name_a\tname_b\tid_a\tid_b\tscore
+                    """ + stats);
+  }
+
   /**
    * Parallel check of all r2r similarities
    *
    * @param mapSimilarity map for all MS2 cosine similarity edges
-   * @param rows          match rows
    */
-  public void checkAllFeatures(R2RMap<RowsRelationship> mapSimilarity, List<FeatureListRow> rows)
+  public void checkAllFeatures(R2RMap<RowsRelationship> mapSimilarity)
       throws MissingMassListException {
     // prefilter rows: check feature height and sort data
     Map<Feature, FilteredRowData> mapFeatureData = new HashMap<>();
-    List<FeatureListRow> filteredRows = new ArrayList<>();
     FeatureDataAccess featureDataAccess = EfficientDataAccess.of(featureList,
         FeatureDataType.INCLUDE_ZEROS);
 
-    for (FeatureListRow row : rows) {
-      if (prepareRows(mapFeatureData, row, featureDataAccess)) {
-        filteredRows.add(row);
-      }
-
+    while (featureDataAccess.hasNextFeature()) {
+      Feature f = featureDataAccess.nextFeature();
+      double[] intensities = featureDataAccess.getIntensityValuesCopy();
+      // prepare data to lower the complexity within the pair comparison
+      var data = FilteredRowData.create(intensities, lowerQuantile, upperQuantile, noiseLevel,
+          Transform.SQRT);
+      mapFeatureData.put(f, data);
     }
-    int numRows = filteredRows.size();
-    totalMaxPairs = Combinatorics.uniquePairs(filteredRows);
+    List<FeatureListRow> rows = featureList.getRows();
+
+    int numRows = rows.size();
+    totalMaxPairs = Combinatorics.uniquePairs(rows);
     logger.log(Level.INFO,
         () -> MessageFormat.format("Checking image similarity on {0} rows", numRows));
 
     // try map multi for all pairs
-    long comparedPairs = IntStream.range(0, numRows - 1).boxed()
-        .<Pair<FeatureListRow, FeatureListRow>>mapMulti((i, consumer) -> {
-          if (isCanceled()) {
-            return;
-          }
-          FeatureListRow a = filteredRows.get(i);
-          for (int j = i + 1; j < numRows; j++) {
-            FeatureListRow b = filteredRows.get(j);
-            consumer.accept(Pair.of(a, b));
-          }
-        }).parallel().mapToLong(pair -> {
-          // need to map to ensure thread is waiting for completion
+    long comparedPairs = StreamUtils.processPairs(rows, this::isCanceled, true, //
+        pair -> {
+//           need to map to ensure thread is waiting for completion
           checkR2RAllFeaturesImageSimilarity(mapFeatureData, pair.left(), pair.right(),
               mapSimilarity);
-          // count comparisons
           processedPairs.incrementAndGet();
-          return 1;
-        }).sum();
-
+        });
     logger.info(
         "Image correlation: Performed %d pairwise comparisons of rows.".formatted(comparedPairs));
   }
 
-  private boolean prepareRows(
-      @NotNull Map<Feature, ImageCorrelateGroupingTask.FilteredRowData> mapFeatureData,
-      @NotNull FeatureListRow row, FeatureDataAccess featureDataAccess)
-      throws MissingMassListException {
-    boolean result = false;
-    ImageCorrelateGroupingTask.FilteredRowData data = getDataAndFilter(row, featureDataAccess);
-    mapFeatureData.put(featureDataAccess.getFeature(), data);
-    result = true;
-    return result;
-  }
+  //Intensities have to be sorted by scan number
 
-  @Nullable
-  private ImageCorrelateGroupingTask.FilteredRowData getDataAndFilter(@NotNull FeatureListRow row,
-      FeatureDataAccess featureDataAccess) {
+  /**
+   * @param intensities                 sorted by original scan sorting
+   * @param noiseLevelOrLowerPercentile lower percentile intensity or noise level, depending on
+   *                                    which is larger
+   * @param upperPercentile             upper percentile intensity. may be 0 if unused
+   */
+  private record FilteredRowData(double[] intensities, double noiseLevelOrLowerPercentile,
+                                 double upperPercentile) {
 
-    if (featureDataAccess instanceof FeatureFullDataAccess) {
-      while (featureDataAccess.hasNextFeature()) {
-        featureDataAccess.nextFeature();
-        if (featureDataAccess.getFeature().getRow().equals(row)) {
-          double[] intensities = ((FeatureFullDataAccess) featureDataAccess).getIntensityValues()
-              .clone();
-          return intensities.length > 0 ? new ImageCorrelateGroupingTask.FilteredRowData(row,
-              intensities) : null;
+
+    /**
+     * @param intensities   the data
+     * @param lowerQuantile a lower quantile to remove from the non-zero intensities
+     * @param upperQuantile an upper quantile to remove from the non-zero intensities
+     * @param noiseLevel    absolute noise level
+     * @param transform     transformation to scale the contribution of lower to higher intensities
+     * @return a prepared dataset
+     */
+    private static FilteredRowData create(final double[] intensities, final double lowerQuantile,
+        final double upperQuantile, double noiseLevel, final Transform transform) {
+      if (transform != null) {
+        // transform noise level and intensities
+        noiseLevel = transform.transformKeep0(noiseLevel);
+
+        transform.transformKeep0(intensities);
+      }
+      // percentiles are optional
+      // use 1 as minimum to cut out 0 intensity
+      double lowerPercentile = 1;
+      double upperPercentile = 0;
+      boolean useUpperQuantile = upperQuantile < 1;
+      boolean useLowerQuantile = lowerQuantile > 0;
+      if (useLowerQuantile || useUpperQuantile) {
+        double[] sorted = Array.copy(intensities);
+        Arrays.sort(sorted);
+        // find first non-zero index and exclude all below from the quantile ranges
+        // this means that quantiles are taken from non-0 intensities
+        int nonZeroIndex = BinarySearch.binarySearch(sorted, 0.00001, DefaultTo.GREATER_EQUALS);
+        if (useLowerQuantile && nonZeroIndex >= 0) { // otherwise filter off
+          lowerPercentile = MathUtils.calcQuantileSorted(sorted, nonZeroIndex, sorted.length,
+              lowerQuantile);
+        }
+        if (useUpperQuantile && nonZeroIndex >= 0) { // otherwise filter off
+          upperPercentile = MathUtils.calcQuantileSorted(sorted, nonZeroIndex, sorted.length,
+              upperQuantile);
         }
       }
-    } else {
-      return null;
+
+      // minimum is 1
+      noiseLevel = Math.max(1, Math.max(noiseLevel, lowerPercentile));
+
+      // BitSet is better for memory but boolean[] is faster
+      // however the best may be just checking the intensity conditions in isRemoved
+      // this requires no additional memory but is a bit slower than boolean[]
+//      boolean[] removed = new boolean[intensities.length];
+//      for (int i = 0; i < intensities.length; i++) {
+//        double value = intensities[i];
+//        if (value < noiseLevel || (useUpperQuantile && value > upperPercentile)) {
+//          removed[i] = true;
+//        }
+//      }
+
+      return new FilteredRowData(intensities, noiseLevel, upperPercentile);
     }
-    return null;
+
+    public int size() {
+      return intensities.length;
+    }
+
+    public boolean isRemoved(final int index) {
+      // boolean array was not faster in tests for 7000 orbitrap images
+//      return removed[index];
+      double value = intensities[index];
+      return value < noiseLevelOrLowerPercentile || (upperPercentile > 0
+                                                     && value > upperPercentile);
+    }
+
+    public double getIntensity(final int i) {
+      return intensities[i];
+    }
   }
 
-
-  //Intensities have to be sorted by scan number
-  private record FilteredRowData(FeatureListRow row, double[] intensities) {
-
-  }
-
+  /**
+   * This method is called for each pair so it was optimized to move precalculations to
+   * {@link FilteredRowData#create(double[], double, double, double, Transform)}
+   */
   private void checkR2RAllFeaturesImageSimilarity(Map<Feature, FilteredRowData> mapFeatureData,
       FeatureListRow a, FeatureListRow b, final R2RMap<RowsRelationship> mapSimilarity) {
 
-    R2RSimpleSimilarityList imageSimilarities = new R2RSimpleSimilarityList(a, b,
-        Type.MS1_FEATURE_CORR);
+    RowsRelationship imageSimilarities = null;
     for (Feature fa : a.getFeatures()) {
+      RawDataFile dataFile = fa.getRawDataFile();
+      Feature fb = b.getFeature(dataFile);
+      if (fb == null) {
+        continue;
+      }
+
       double similarity = 0;
-      double[] intensitiesA = mapFeatureData.get(fa).intensities;
+      FilteredRowData intensitiesA = mapFeatureData.get(fa);
       if (intensitiesA != null) {
+        FilteredRowData intensitiesB = mapFeatureData.get(fb);
 
-        RawDataFile dataFile = fa.getRawDataFile();
-        Feature fb = b.getFeature(dataFile);
-        if (fb == null) {
-          continue;
-        }
-
-        double[] intensitiesB = mapFeatureData.get(fb).intensities;
         if (intensitiesB != null) {
           similarity = calculateSimilarity(intensitiesA, intensitiesB);
         }
       }
       // always add value also 0 if no correlation
-      imageSimilarities.addSimilarity(similarity);
+      if (singleRawFile) {
+        imageSimilarities = new R2RSimpleSimilarity(a, b, Type.MS1_FEATURE_CORR,
+            (float) similarity);
+      } else {
+        if (imageSimilarities == null) {
+          imageSimilarities = new R2RSimpleSimilarityList(a, b, Type.MS1_FEATURE_CORR);
+        }
+        ((R2RSimpleSimilarityList) imageSimilarities).addSimilarity(similarity);
+      }
     }
-    if (imageSimilarities.getAverageSimilarity() >= minR) {
+    if (imageSimilarities != null && imageSimilarities.getScore() >= minR) {
       mapSimilarity.add(a, b, imageSimilarities);
     }
   }
 
-  private double calculateSimilarity(final double[] intensitiesA, final double[] intensitiesB) {
-    List<IntensityPair> intensityPairs = new ArrayList<>();
+  /**
+   * This method is called for each pair so it was optimized to move precalculations to
+   * {@link FilteredRowData#create(double[], double, double, double, Transform)}
+   */
+  private double calculateSimilarity(final FilteredRowData dataA, final FilteredRowData dataB) {
+    if (similarityMeasure == SimilarityMeasure.PEARSON) {
+      // optimized pearson with zero copy of data
+      // pearson is the default measure
+      return zeroCopyPearsonR(dataA, dataB);
+    }
 
-    // Remove signals below noise level and create intensity pairs
-    for (int i = 0; i < intensitiesA.length; i++) {
-      if (intensitiesA[i] >= noiseLevel && intensitiesB[i] >= noiseLevel) {
-        intensityPairs.add(new IntensityPair(intensitiesA[i], intensitiesB[i]));
+    // if other similarity measure is selected - create arrays of actual matching data and call regular similarity.calc
+    int values = 0;
+    for (int old = 0; old < dataA.size(); old++) {
+      // only exclude if both a and b exclude a data point
+      if (!(dataA.isRemoved(old) && dataB.isRemoved(old))) {
+        values++;
+      }
+    }
+    double[] a = new double[values];
+    double[] b = new double[values];
+    int fi = 0;
+    for (int old = 0; old < dataA.size(); old++) {
+      if (!(dataA.isRemoved(old) && dataB.isRemoved(old))) {
+        a[fi] = dataA.getIntensity(old);
+        b[fi] = dataB.getIntensity(old);
+        fi++;
       }
     }
 
-    List<IntensityPair> filteredIntensityPairs;
-    if (useMedianFilter && intensitiesA.length >= minimumNumberOfCorrelatedPixels) {
-      filteredIntensityPairs = applyMedianFilter(intensityPairs, medianFilter);
-    } else {
-      filteredIntensityPairs = intensityPairs;
-    }
+    return similarityMeasure.calc(a, b);
+  }
 
-    if (useQuantileThreshold && filteredIntensityPairs.size() >= minimumNumberOfCorrelatedPixels) {
-      double quantileThresholdA = calculateQuantile(
-          filteredIntensityPairs.stream().map(IntensityPair::intensityA)
-              .collect(Collectors.toList()), quantileThreshold);
-      double quantileThresholdB = calculateQuantile(
-          filteredIntensityPairs.stream().map(IntensityPair::intensityB)
-              .collect(Collectors.toList()), quantileThreshold);
-      filteredIntensityPairs.removeIf(
-          pair -> pair.intensityA() < quantileThresholdA || pair.intensityB() < quantileThresholdB);
-    }
+  /**
+   * Optimized to avoid data copies and GC
+   */
+  private double zeroCopyPearsonR(final FilteredRowData dataA, final FilteredRowData dataB) {
+    int values = 0;
+    double sumX = 0.0, sumY = 0.0, sumXY = 0.0;
+    double sumX2 = 0.0, sumY2 = 0.0;
 
-    if (useHotspotRemoval && filteredIntensityPairs.size() >= minimumNumberOfCorrelatedPixels) {
-      double hotSpotThresholdA = calculateQuantile(
-          filteredIntensityPairs.stream().map(IntensityPair::intensityA)
-              .collect(Collectors.toList()), hotspotRemovalThreshold);
-      double hotSpotThresholdB = calculateQuantile(
-          filteredIntensityPairs.stream().map(IntensityPair::intensityB)
-              .collect(Collectors.toList()), hotspotRemovalThreshold);
-      filteredIntensityPairs.removeIf(
-          pair -> pair.intensityA() > hotSpotThresholdA || pair.intensityB() > hotSpotThresholdB);
-    }
+    for (int old = 0; old < dataA.size(); old++) {
+      // only exclude if both a and b exclude a data point
+      if (!(dataA.isRemoved(old) && dataB.isRemoved(old))) {
+        values++;
 
-    if (filteredIntensityPairs.size() >= minimumNumberOfCorrelatedPixels) {
-      double[][] correlationDataInput = new double[filteredIntensityPairs.size()][2];
-      for (int i = 0; i < filteredIntensityPairs.size(); i++) {
-        correlationDataInput[i][0] = filteredIntensityPairs.get(i).intensityA;
-        correlationDataInput[i][1] = filteredIntensityPairs.get(i).intensityB;
+        double x = dataA.getIntensity(old);
+        double y = dataB.getIntensity(old);
+
+        sumX += x;
+        sumY += y;
+        sumXY += x * y;
+        sumX2 += x * x;
+        sumY2 += y * y;
       }
-
-      return similarityMeasure.calc(correlationDataInput);
     }
-    return 0;
-  }
-
-  private List<IntensityPair> applyMedianFilter(List<IntensityPair> intensityPairs,
-      int windowSize) {
-    List<IntensityPair> result = new ArrayList<>();
-    int halfWindowSize = windowSize / 2;
-    for (int i = 0; i < intensityPairs.size(); i++) {
-      int start = Math.max(0, i - halfWindowSize);
-      int end = Math.min(intensityPairs.size() - 1, i + halfWindowSize);
-      List<IntensityPair> subarray = intensityPairs.subList(start, end + 1);
-      double medianA = calculateMedian(
-          subarray.stream().mapToDouble(IntensityPair::intensityA).toArray());
-      double medianB = calculateMedian(
-          subarray.stream().mapToDouble(IntensityPair::intensityB).toArray());
-      result.add(new IntensityPair(medianA, medianB));
+    if (values < minimumNumberOfCorrelatedPixels) {
+      return 0d;
     }
 
-    return result;
+    double numerator = values * sumXY - sumX * sumY;
+    double denominator = Math.sqrt((values * sumX2 - sumX * sumX) * (values * sumY2 - sumY * sumY));
+
+    if (denominator == 0) {
+      return 0d;
+    }
+
+    return numerator / denominator;
   }
 
-  private double calculateMedian(double[] values) {
-    Arrays.sort(values);
-    int middle = values.length / 2;
-    return values.length % 2 == 0 ? (values[middle - 1] + values[middle]) / 2.0 : values[middle];
-  }
-
-  private double calculateQuantile(List<Double> values, double quantile) {
-    double[] array = values.stream().mapToDouble(Double::doubleValue).toArray();
-    Arrays.sort(array);
-    int index = (int) Math.ceil(quantile * array.length) - 1;
-    return array[index];
-  }
-
-  private record IntensityPair(double intensityA, double intensityB) {
-
-  }
 }

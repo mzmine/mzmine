@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.projectload;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
@@ -117,12 +118,12 @@ public class CachedIMSFrame implements Frame {
   }
 
   @Override
-  public @NotNull Set<PasefMsMsInfo> getImsMsMsInfos() {
+  public @NotNull Set<IonMobilityMsMsInfo> getImsMsMsInfos() {
     return originalFrame.getImsMsMsInfos();
   }
 
   @Override
-  public @Nullable PasefMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+  public @Nullable IonMobilityMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
     return originalFrame.getImsMsMsInfoForMobilityScan(mobilityScanNumber);
   }
 

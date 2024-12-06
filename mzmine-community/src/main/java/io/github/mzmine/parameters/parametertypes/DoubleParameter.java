@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes;
 import io.github.mzmine.parameters.UserParameter;
 import java.text.NumberFormat;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -42,13 +43,13 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   // Text field width.
   private static final int WIDTH = 100;
 
-  private final NumberFormat format;
+  private final @NotNull NumberFormat format;
 
   private Double value;
   private final String name;
   private final String description;
-  private final Double minimum;
-  private final Double maximum;
+  private final @Nullable Double minimum;
+  private final @Nullable Double maximum;
 
   public DoubleParameter(final String aName, final String aDescription) {
 
@@ -56,20 +57,20 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   }
 
   public DoubleParameter(final String aName, final String aDescription,
-      final NumberFormat numberFormat) {
+      final @NotNull NumberFormat numberFormat) {
 
     this(aName, aDescription, numberFormat, null, null, null);
   }
 
   public DoubleParameter(final String aName, final String aDescription,
-      final NumberFormat numberFormat, final Double defaultValue) {
+      final @NotNull NumberFormat numberFormat, final @Nullable Double defaultValue) {
 
     this(aName, aDescription, numberFormat, defaultValue, null, null);
   }
 
   public DoubleParameter(final String aName, final String aDescription,
-      final NumberFormat numberFormat, final Double defaultValue, final Double min,
-      final Double max) {
+      final @NotNull NumberFormat numberFormat, final @Nullable Double defaultValue,
+      final @Nullable Double min, final @Nullable Double max) {
     name = aName;
     description = aDescription;
     format = numberFormat;
@@ -113,8 +114,9 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   }
 
   @Override
-  public void setValueToComponent(final DoubleComponent component, final @Nullable Double newValue) {
-    component.setText(newValue!=null? format.format(newValue) : "");
+  public void setValueToComponent(final DoubleComponent component,
+      final @Nullable Double newValue) {
+    component.setText(newValue != null ? format.format(newValue) : "");
   }
 
   @Override
@@ -126,10 +128,10 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   public void loadValueFromXML(final Element xmlElement) {
 
     final String numString = xmlElement.getTextContent();
-      if (numString.length() > 0) {
+    if (numString.length() > 0) {
 
-        value = Double.parseDouble(numString);
-      }
+      value = Double.parseDouble(numString);
+    }
   }
 
   @Override

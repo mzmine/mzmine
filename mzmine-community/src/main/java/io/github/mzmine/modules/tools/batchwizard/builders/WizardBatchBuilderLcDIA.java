@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -105,7 +105,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
-        minRtDataPoints, cropRtRange);
+        minRtDataPoints, cropRtRange, polarity);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
 
     var groupMs2Params = createMs2GrouperParameters();
@@ -135,7 +135,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     // annotation
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
-    makeAndAddLipidAnnotationStep(q, true);
+    makeAndAddLipidAnnotationStep(q);
     // export
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
         exportAnnotationGraphics);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,20 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import static io.github.mzmine.javafx.components.factories.FxButtons.createButton;
+import static io.github.mzmine.javafx.components.factories.FxButtons.createCancelButton;
+import static io.github.mzmine.javafx.components.factories.FxButtons.createLoadButton;
+import static io.github.mzmine.javafx.components.factories.FxButtons.createSaveButton;
+import static io.github.mzmine.javafx.components.util.FxLayout.newAccordion;
+import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
+
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
 import io.github.mzmine.util.XMLUtils;
@@ -40,18 +51,23 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javax.validation.constraints.NotNull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -63,6 +79,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.annotations.XYShapeAnnotation;
+import org.jfree.data.xy.XYDataset;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -78,39 +95,44 @@ import org.xml.sax.SAXException;
 public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelection> extends
     BorderPane {
 
-  private static final String REGION_FILE_EXTENSION = "*.mzmineregionxml";
+  private static final Logger logger = Logger.getLogger(RegionSelectionWrapper.class.getName());
+  public static final String REGION_FILE_EXTENSION = "*.mzmineregionxml";
 
-  final GridPane selectionControls;
-  final FlowPane importExportControls;
-  final VBox bottomWrap;
   private final T node;
-  private final ObservableList<RegionSelectionListener> finishedRegionSelectionListeners;
+  private final ObservableList<RegionSelectionListener> finishedRegionSelectionListeners = FXCollections.observableArrayList();
   private final Stroke roiStroke = new BasicStroke(1f);
   private final Paint roiPaint = MZmineCore.getConfiguration().getDefaultColorPalette()
       .getNegativeColorAWT();
+  private FlowPane controlPane;
 
-  public RegionSelectionWrapper(T node) {
+  public RegionSelectionWrapper(@NotNull final T node) {
+    this(node, null);
+  }
+
+  /**
+   * @param node The chart
+   */
+  public RegionSelectionWrapper(T node, Consumer<List<List<Point2D>>> onExtractPressed) {
     this.node = node;
     setCenter(node);
-    selectionControls = new GridPane();
-    importExportControls = new FlowPane();
 
-    final Button btnSaveToFile = new Button("Save regions");
-    btnSaveToFile.setOnAction(e -> saveRegionsToFile());
-    final Button btnLoadFromFile = new Button("Load regions");
-    btnLoadFromFile.setOnAction(e -> loadRegionsFromFile());
+    final Button btnSaveToFile = createSaveButton(this::saveRegionsToFile);
+    final Button btnLoadFromFile = createLoadButton(this::loadRegionsFromFile);
+    var regionDrawingButtons = createSelectionButtons();
 
-    importExportControls.getChildren().addAll(btnSaveToFile, btnLoadFromFile);
-    importExportControls.setHgap(5);
-    importExportControls.setAlignment(Pos.TOP_CENTER);
+    controlPane = newFlowPane(Pos.TOP_CENTER);
+    controlPane.getChildren()
+        .addAll(btnSaveToFile, btnLoadFromFile, new Separator(Orientation.VERTICAL));
+    controlPane.getChildren().addAll(regionDrawingButtons);
 
-    bottomWrap = new VBox();
-    bottomWrap.getChildren().addAll(selectionControls, importExportControls);
-    setBottom(bottomWrap);
-    bottomWrap.setAlignment(Pos.TOP_CENTER);
+    setBottom(
+        newAccordion(false, newTitledPane("Regions of interest (ROI) selection", controlPane)));
 
-    finishedRegionSelectionListeners = FXCollections.observableArrayList();
-    initSelectionPane();
+    if (onExtractPressed != null) {
+      final Button extractButton = FxButtons.createButton("Extract to feature list", FxIcons.FILTER,
+          null, () -> onExtractPressed.accept(getFinishedRegionsAsListOfPointLists()));
+      controlPane.getChildren().add(extractButton);
+    }
   }
 
   public ObservableList<RegionSelectionListener> getFinishedRegionListeners() {
@@ -123,43 +145,39 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
   }
 
   public List<Path2D> getFinishedRegionsAsListOfPaths() {
-    return finishedRegionSelectionListeners.stream().map(l -> l.buildingPathProperty().get())
+    return finishedRegionSelectionListeners.stream().map(l -> l.pathProperty().get())
         .collect(Collectors.toList());
   }
 
-  private void initSelectionPane() {
-    final Button btnStartRegion = new Button("Start region");
-    final Button btnFinishRegion = new Button("Finish region");
-    final Button btnCancelRegion = new Button("Cancel region");
-    final Button btnClearRegions = new Button("Clear regions");
-
-    btnStartRegion.setOnAction(e -> {
-      node.startRegion();
-      btnFinishRegion.setDisable(false);
-    });
-
-    btnFinishRegion.setOnAction(e -> {
+  private List<Button> createSelectionButtons() {
+    final SimpleBooleanProperty disableFinish = new SimpleBooleanProperty(true);
+    final Button btnFinishRegion = createButton("Finish", FxIcons.CHECK_CIRCLE, null, () -> {
       RegionSelectionListener selection = node.finishPath();
       if (selection.buildingPointsProperty().getSize() > 3) {
         finishedRegionSelectionListeners.add(selection);
       }
-      btnFinishRegion.setDisable(true);
+      disableFinish.set(true);
     });
-    btnFinishRegion.setDisable(true);
+    btnFinishRegion.disableProperty().bind(disableFinish);
 
-    btnCancelRegion.setOnAction(e -> {
+    final Button btnStartRegion = createButton("Start", FxIcons.DRAW_REGION, null, () -> {
+      node.startRegion();
+      disableFinish.set(false);
+    });
+
+    final Button btnCancelRegion = createCancelButton(() -> {
       node.finishPath();
-      btnFinishRegion.setDisable(true);
+      disableFinish.set(true);
     });
 
-    btnClearRegions.setDisable(true);
-    btnClearRegions.setOnAction(e -> {
+    final Button btnClearRegions = createButton("Clear", FxIcons.CLEAR, null, () -> {
       final List<XYAnnotation> annotations = node.getChart().getXYPlot().getAnnotations();
       new ArrayList<>(annotations).forEach(
           a -> node.getChart().getXYPlot().removeAnnotation(a, true));
       finishedRegionSelectionListeners.clear();
-      btnFinishRegion.setDisable(true);
+      disableFinish.set(true);
     });
+    btnClearRegions.setDisable(true);
 
     finishedRegionSelectionListeners.addListener(
         (ListChangeListener<RegionSelectionListener>) c -> {
@@ -170,59 +188,63 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
           }
           if (c.wasAdded()) {
             node.getChart().getXYPlot().addAnnotation(
-                new XYShapeAnnotation(c.getAddedSubList().get(0).buildingPathProperty().get(),
-                    roiStroke, roiPaint));
+                new XYShapeAnnotation(c.getAddedSubList().get(0).pathProperty().get(), roiStroke,
+                    roiPaint));
             btnClearRegions.setDisable(false);
           }
         });
 
-    selectionControls.add(btnStartRegion, 0, 0);
-    selectionControls.add(btnFinishRegion, 1, 0);
-    selectionControls.add(btnCancelRegion, 2, 0);
-    selectionControls.add(btnClearRegions, 3, 0);
-    selectionControls.setHgap(5);
-    selectionControls.getStyleClass().add(".region-match-chart-bg");
-    selectionControls.setAlignment(Pos.TOP_CENTER);
+    return List.of(btnStartRegion, btnFinishRegion, btnCancelRegion, btnClearRegions);
   }
 
-  public GridPane getSelectionControls() {
-    return selectionControls;
+  public FlowPane getControlPane() {
+    return controlPane;
   }
 
   private void loadRegionsFromFile() {
     FxThread.runLater(() -> {
       final FileChooser chooser = new FileChooser();
       chooser.getExtensionFilters()
-          .add(new ExtensionFilter("MZmine regions file", REGION_FILE_EXTENSION));
+          .add(new ExtensionFilter("mzmine regions file", REGION_FILE_EXTENSION));
       final File file = chooser.showOpenDialog(MZmineCore.getDesktop().getMainWindow());
-      if (file == null) {
-        return;
-      }
-      try {
-        final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        final DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        final Document regionsFile = dBuilder.parse(file);
-        final XPathFactory factory = XPathFactory.newInstance();
-        final XPath xpath = factory.newXPath();
+      var regions = loadRegionsFromFile(file);
 
-        final XPathExpression expr = xpath.compile("//root");
-        final NodeList nodes = (NodeList) expr.evaluate(regionsFile, XPathConstants.NODESET);
-
-        for (int i = 0; i < nodes.getLength(); i++) {
-          final RegionsParameter param = new RegionsParameter("regions", "User defined regions");
-          param.loadValueFromXML((Element) nodes.item(i));
-
-          for (List<Point2D> point2DS : param.getValue()) {
-            final RegionSelectionListener l = new RegionSelectionListener(node);
-            l.buildingPointsProperty().setValue(FXCollections.observableArrayList(point2DS));
-            finishedRegionSelectionListeners.add(l);
-          }
-        }
-      } catch (ParserConfigurationException | IOException | SAXException |
-               XPathExpressionException e) {
-        e.printStackTrace();
+      for (List<Point2D> point2DS : regions) {
+        final RegionSelectionListener l = new RegionSelectionListener(node);
+        l.buildingPointsProperty().setValue(FXCollections.observableArrayList(point2DS));
+        finishedRegionSelectionListeners.add(l);
       }
     });
+  }
+
+  @NotNull
+  public static List<List<Point2D>> loadRegionsFromFile(File file) {
+    if (file == null || !file.exists() || !file.canRead()) {
+      return List.of();
+    }
+    List<List<Point2D>> regions = new ArrayList<>();
+
+    try {
+      final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+      final DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+      final Document regionsFile = dBuilder.parse(file);
+      final XPathFactory factory = XPathFactory.newInstance();
+      final XPath xpath = factory.newXPath();
+
+      final XPathExpression expr = xpath.compile("//root");
+      final NodeList nodes = (NodeList) expr.evaluate(regionsFile, XPathConstants.NODESET);
+
+      for (int i = 0; i < nodes.getLength(); i++) {
+        final RegionsParameter param = new RegionsParameter("regions", "User defined regions");
+        param.loadValueFromXML((Element) nodes.item(i));
+
+        regions.addAll(param.getValue());
+      }
+    } catch (ParserConfigurationException | IOException | SAXException |
+             XPathExpressionException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+    }
+    return regions;
   }
 
   private void saveRegionsToFile() {
@@ -251,5 +273,21 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
         e.printStackTrace();
       }
     });
+  }
+
+  public static <V, D extends XYDataset & XYItemObjectProvider<V>> boolean isItemInRegion(int item,
+      int series, @NotNull D dataset, @NotNull RegionSelectionListener region) {
+    if (item > dataset.getItemCount(series)) {
+      return false;
+    }
+
+    final double x = dataset.getXValue(series, item);
+    final double y = dataset.getYValue(series, item);
+
+    final Path2D path = region.pathProperty().get();
+    if (path == null) {
+      return false;
+    }
+    return path.contains(x, y);
   }
 }

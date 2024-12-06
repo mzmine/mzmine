@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.gui.mainwindow;
 import io.github.mzmine.main.MZmineCore;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.gui.fx.UsersViewState;
-import javafx.scene.control.TabPane;
 
 /**
  * Options for the user to login, register and control local users
@@ -45,7 +44,7 @@ public class UsersTab extends SimpleTab {
 
   public UsersTab(UsersViewState state) {
     super("Users");
-    controller = new UsersController(state);
+    controller = UsersController.getInstance(state);
     setContent(controller.buildView());
 
     setOnClosed(_ -> {
@@ -57,6 +56,7 @@ public class UsersTab extends SimpleTab {
       }
     });
   }
+
   public static UsersTab showTab() {
     return showTab(UsersViewState.LOCAL_USERS);
   }
@@ -70,7 +70,7 @@ public class UsersTab extends SimpleTab {
         }
       }
     }
-    instance.controller.setState(state);
+    UsersController.getInstance(state);
     var tabPane = instance.getTabPane();
     if (tabPane != null) {
       // show tab
@@ -78,5 +78,4 @@ public class UsersTab extends SimpleTab {
     }
     return instance;
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -37,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Filter used before spectral matching to reduce number of signals, see
- * {@link SignalFiltersParameters} and {@link SpectralNetworkingTask}
+ * {@link SignalFiltersParameters} and {@link ModifiedCosineSpectralNetworkingTask}
  *
  * @param isRemovePrecursor                        remove precursor signals
  * @param removePrecursorMz                        range to remove around the precursor +-
@@ -54,8 +55,28 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
                                    int signalThresholdForTargetIntensityPercent,
                                    double targetIntensityPercentage) {
 
-  public static final SpectralSignalFilter DEFAULT = new SpectralSignalFilter(true, 10d, 250, 50,
+  public static final SpectralSignalFilter DEFAULT_NO_PRECURSOR = new SpectralSignalFilter(250, 50,
       0.98);
+  public static final SpectralSignalFilter DEFAULT = DEFAULT_NO_PRECURSOR.withRemovePrecursor(true,
+      10d);
+
+
+  public SpectralSignalFilter(final int cropToMaxSignals,
+      final int signalThresholdForTargetIntensityPercent, final double targetIntensityPercentage) {
+    this(false, 0d, cropToMaxSignals, signalThresholdForTargetIntensityPercent,
+        targetIntensityPercentage);
+  }
+
+  /**
+   * change state of precursor filter
+   *
+   * @return new instance with changed precursor filter
+   */
+  public SpectralSignalFilter withRemovePrecursor(final boolean isRemovePrecursor,
+      final double removePrecursorMz) {
+    return new SpectralSignalFilter(isRemovePrecursor, removePrecursorMz, this.cropToMaxSignals,
+        this.signalThresholdForTargetIntensityPercent, this.targetIntensityPercentage);
+  }
 
   /**
    * Apply signal filters and sort by {@link DataPointSorter#DEFAULT_INTENSITY}
@@ -67,7 +88,7 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
    */
   @Nullable
   public DataPoint[] applyFilterAndSortByIntensity(final @NotNull Scan scan,
-      final double precursorMz) throws MissingMassListException {
+      @Nullable final Double precursorMz) throws MissingMassListException {
     return applyFilterAndSortByIntensity(scan, precursorMz, -1);
   }
 
@@ -83,9 +104,6 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
   public DataPoint[] applyFilterAndSortByIntensity(final @NotNull Scan scan, final int minDP)
       throws MissingMassListException {
     Double precursorMz = scan.getPrecursorMz();
-    if (precursorMz == null) {
-      return null;
-    }
     return applyFilterAndSortByIntensity(scan, precursorMz, minDP);
   }
 
@@ -100,7 +118,7 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
    */
   @Nullable
   public DataPoint[] applyFilterAndSortByIntensity(final @NotNull Scan scan,
-      final double precursorMz, final int minDP) throws MissingMassListException {
+      @Nullable final Double precursorMz, final int minDP) throws MissingMassListException {
     MassList masses = scan.getMassList();
     if (masses == null) {
       throw new MissingMassListException(scan);
@@ -122,7 +140,7 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
    */
   @Nullable
   public DataPoint[] applyFilterAndSortByIntensity(final @NotNull DataPoint[] dps,
-      final double precursorMz) {
+      @Nullable final Double precursorMz) {
     return applyFilterAndSortByIntensity(dps, precursorMz, -1);
   }
 
@@ -137,9 +155,9 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
    */
   @Nullable
   public DataPoint[] applyFilterAndSortByIntensity(@NotNull DataPoint[] dps,
-      final double precursorMz, final int minDP) {
+      @Nullable final Double precursorMz, final int minDP) {
     // remove precursor signals
-    if (isRemovePrecursor && removePrecursorMz > 0) {
+    if (isRemovePrecursor && removePrecursorMz > 0 && precursorMz != null && precursorMz > 0) {
       dps = DataPointUtils.removePrecursorMz(dps, precursorMz, removePrecursorMz);
       if (dps.length < minDP) {
         return null;

@@ -38,6 +38,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -60,7 +61,7 @@ public class ProjectSavingTask extends AbstractTask {
 
   public static final String VERSION_FILENAME = "MZMINE_VERSION";
   public static final String STANDALONE_FILENAME = "STANDALONE"; // only exists if it's a standalone project.
-  public static final String CONFIG_FILENAME = "configuration" + MZmineConfiguration.CONFIG_FILE;
+  public static final String CONFIG_FILENAME = MZmineConfiguration.CONFIG_FILE.getName();
   public static final String PARAMETERS_FILENAME = "User parameters.xml";
   private static final Logger logger = Logger.getLogger(ProjectSavingTask.class.getName());
   private final ProjectSaveOption projectType;
@@ -150,6 +151,11 @@ public class ProjectSavingTask extends AbstractTask {
         case REFERENCING -> savedProject.setStandalone(false);
       }
 
+      // Update the location of the project
+      // set the location before starting the save process, so we can also determine relative
+      // paths for this project.
+      savedProject.setProjectFile(saveFile);
+
       // Prepare a temporary ZIP file. We create this file in the same
       // directory as the final saveFile to avoid moving between
       // filesystems in the last stage (renameTo)
@@ -228,9 +234,6 @@ public class ProjectSavingTask extends AbstractTask {
             "Could not move the temporary file " + tempFile + " to the final location " + saveFile);
       }
 
-      // Update the location of the project
-      savedProject.setProjectFile(saveFile);
-
       // Update the window title to reflect the new name of the project
       // if (MZmineCore.getDesktop() instanceof MainWindow) {
       // MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
@@ -268,7 +271,7 @@ public class ProjectSavingTask extends AbstractTask {
 
     zipStream.putNextEntry(new ZipEntry(VERSION_FILENAME));
 
-    String MZmineVersion = String.valueOf(MZmineCore.getMZmineVersion());
+    String MZmineVersion = String.valueOf(SemverVersionReader.getMZmineVersion());
 
     zipStream.write(MZmineVersion.getBytes());
 

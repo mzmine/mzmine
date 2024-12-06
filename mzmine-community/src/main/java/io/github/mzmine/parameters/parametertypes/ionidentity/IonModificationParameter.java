@@ -80,9 +80,10 @@ public class IonModificationParameter implements
    */
   public IonModificationParameter(final String name, final String description) {
     super();
-    adducts = new MultiChoiceParameter<IonModification>(name, description, new IonModification[0]);
-    modification = new MultiChoiceParameter<IonModification>("Modifications",
-        "Modifications on adducts", new IonModification[0]);
+    adducts = new MultiChoiceParameter<>(name, description, new IonModification[0],
+        IonModification.POLARITY_MASS_SORTER);
+    modification = new MultiChoiceParameter<>("Modifications", "Modifications on adducts",
+        new IonModification[0], IonModification.POLARITY_MASS_SORTER);
   }
 
   @Override

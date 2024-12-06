@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -97,7 +97,9 @@ public class RawImageProvider implements PlotXYZDataProvider {
     this.normalize = parameters.getValue(ImageVisualizerParameters.imageNormalization);
     this.transformation = parameters.getValue(ImageVisualizerParameters.imageTransformation);
     this.scanSelection = parameters.getValue(ImageVisualizerParameters.scanSelection);
-    this.mzRange = parameters.getValue(ImageVisualizerParameters.mzRange);
+    this.mzRange =
+        parameters.getValue(ImageVisualizerParameters.mzRange) != null ? parameters.getValue(
+            ImageVisualizerParameters.mzRange) : Range.closed(0d, Double.MAX_VALUE);
     this.useMobility = parameters.getValue(ImageVisualizerParameters.mobilityRange);
     this.mobilityRange = parameters.getParameter(ImageVisualizerParameters.mobilityRange)
         .getEmbeddedParameter().getValue();

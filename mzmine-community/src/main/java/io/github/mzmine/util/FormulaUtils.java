@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,14 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -232,7 +238,8 @@ public class FormulaUtils {
   }
 
   /**
-   * Calculates the m/z of the given formula. Formula must have a charge, otherwise the
+   * Calculates the m/z of the given formula. Formula must have a charge, otherwise the neutral mass
+   * is returned
    *
    * @param formula The formula.
    * @return the calculated m/z ratio. if the formula's charge is null or 0, the neutral mass is
@@ -593,6 +600,9 @@ public class FormulaUtils {
         }
       } while (count > 0 && found);
     }
+    final Integer resultCharge = Objects.requireNonNullElse(result.getCharge(), 0);
+    final Integer subtractCharge = Objects.requireNonNullElse(sub.getCharge(), 0);
+    result.setCharge(resultCharge - subtractCharge);
     return result;
   }
 
@@ -669,7 +679,7 @@ public class FormulaUtils {
    * @return A molecular formula representing the smiles or null, if the smiles cannot be parsed.
    */
   @Nullable
-  public static IMolecularFormula getFomulaFromSmiles(@Nullable String smiles) {
+  public static IMolecularFormula getFormulaFromSmiles(@Nullable String smiles) {
     if (smiles == null) {
       return null;
     }
@@ -720,7 +730,7 @@ public class FormulaUtils {
 
         logger.finest(
             () -> "Compound " + string + " is not neutral as determined by molFormula. charge = "
-                  + charge + ". Adjusting protonation.");
+                + charge + ". Adjusting protonation.");
 
         final boolean adjusted = MolecularFormulaManipulator.adjustProtonation(molecularFormula,
             -charge);
@@ -756,8 +766,21 @@ public class FormulaUtils {
       return null;
     }
 
-    IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(annotation.getFormula());
+    IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(
+        annotation.getFormula());
     assert molecularFormula != null;
+
+    if (annotation.getAdductType() == null && annotation instanceof CompoundDBAnnotation c
+        && annotation.getPrecursorMZ() != null && c.get(
+        NeutralMassType.class) instanceof Double neutralMass) {
+      final IonModification mod = IonModification.getBestIonModification(neutralMass,
+          annotation.getPrecursorMZ(), MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, null);
+      c.put(IonTypeType.class, new IonType(mod));
+    }
+
+    if(annotation.getAdductType() == null) {
+      return null;
+    }
     try {
       // ionize formula
       // considering both 2M etc
@@ -767,4 +790,22 @@ public class FormulaUtils {
       throw new RuntimeException(e);
     }
   }
+
+  public static boolean isSubFormula(FormulaWithExactMz a, FormulaWithExactMz b) {
+    if (a.mz() <= b.mz()) {
+      return isSubFormula(a.formula(), b.formula());
+    } else {
+      return isSubFormula(b.formula(), a.formula());
+    }
+  }
+
+  private static boolean isSubFormula(IMolecularFormula smaller, IMolecularFormula larger) {
+    for (IIsotope isotope : smaller.isotopes()) {
+      if (smaller.getIsotopeCount(isotope) > larger.getIsotopeCount(isotope)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 }

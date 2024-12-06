@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,23 +26,17 @@
 package io.github.mzmine.javafx.util;
 
 import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
+import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder.EventHandling;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.animation.Animation;
-import javafx.animation.FadeTransition;
-import javafx.animation.Interpolator;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.property.BooleanProperty;
-import javafx.css.PseudoClass;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -51,6 +45,7 @@ public class FxIconUtil {
 
   private static final Logger logger = Logger.getLogger(FxIconUtil.class.getName());
   public static final int DEFAULT_ICON_SIZE = 18;
+
 
   @NotNull
   public static Image loadImageFromResources(final @NotNull String resourcePath) {
@@ -120,10 +115,22 @@ public class FxIconUtil {
    * <a href="https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html">Icon list</a>
    *
    * @param iconCode icon code supplier
+   * @param size     the size of the icon (default = {@link FxIconUtil#DEFAULT_ICON_SIZE}.
    * @return Icon in color and size
    */
   public static FontIcon getFontIcon(IconCodeSupplier iconCode, int size) {
     return getFontIcon(iconCode.getIconCode(), size);
+  }
+
+  /**
+   * Get FontIcon from Ikonli library
+   * <a href="https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html">Icon list</a>
+   *
+   * @param iconCode icon code supplier
+   * @return Icon in color and size
+   */
+  public static FontIcon getFontIcon(IconCodeSupplier iconCode) {
+    return getFontIcon(iconCode.getIconCode(), DEFAULT_ICON_SIZE);
   }
 
   /**
@@ -178,15 +185,25 @@ public class FxIconUtil {
     return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, onAction);
   }
 
-  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
-      @Nullable String tooltip, @Nullable Runnable onAction) {
-    return FxIconButtonBuilder.ofIconButton(fxIcons).size(size).tooltip(tooltip).onAction(onAction)
-        .build();
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip,
+      @NotNull EventHandling eventHandling, @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, eventHandling, onAction);
   }
 
-  public static ButtonBase newFlashableIconButton(final FxIcons fxIcons, final int size, final BooleanExpression flashingProperty,
-      final String tooltip, final Runnable onAction) {
-    return FxIconButtonBuilder.ofIconButton(fxIcons).size(size).tooltip(tooltip).onAction(onAction).flashingProperty(flashingProperty)
-        .build();
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, size, tooltip, EventHandling.DEFAULT_PASS, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @NotNull EventHandling eventHandling, @Nullable Runnable onAction) {
+    return FxIconButtonBuilder.ofIconButton(fxIcons, eventHandling).size(size).tooltip(tooltip)
+        .onAction(onAction).build();
+  }
+
+  public static ButtonBase newFlashableIconButton(final FxIcons fxIcons, final int size,
+      final BooleanExpression flashingProperty, final String tooltip, final Runnable onAction) {
+    return FxIconButtonBuilder.ofIconButton(fxIcons).size(size).tooltip(tooltip).onAction(onAction)
+        .flashingProperty(flashingProperty).build();
   }
 }

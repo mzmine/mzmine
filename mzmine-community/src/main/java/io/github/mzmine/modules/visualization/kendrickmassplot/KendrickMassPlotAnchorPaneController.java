@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,21 +28,37 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.RegionExtractionModule;
+import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.RegionExtractionParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import java.awt.geom.Point2D;
+import java.util.List;
 import java.util.Objects;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.StrokeType;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 
 public class KendrickMassPlotAnchorPaneController {
 
@@ -110,7 +126,11 @@ public class KendrickMassPlotAnchorPaneController {
   @FXML
   private Label divisorLabelXAxis;
 
+  @FXML
+  private CheckBox cbHighlightAnnotated;
+
   private ParameterSet parameters;
+  private KendrickMassPlotChart kendrickChart;
 
   @FXML
   public void initialize(ParameterSet parameters) {
@@ -118,11 +138,9 @@ public class KendrickMassPlotAnchorPaneController {
     this.featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];
 
-    this.useRKM_X = parameters.getParameter(
-            KendrickMassPlotParameters.xAxisValues).getValue()
+    this.useRKM_X = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
-    this.useRKM_Y = parameters.getParameter(
-            KendrickMassPlotParameters.yAxisValues).getValue()
+    this.useRKM_Y = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
     boolean useCustomXAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.xAxisValues)
         .getValue().isKendrickType();
@@ -153,8 +171,7 @@ public class KendrickMassPlotAnchorPaneController {
     this.yAxisCharge = 1;
     this.xAxisCharge = 1;
 
-    this.useRKM_X = parameters.getParameter(
-            KendrickMassPlotParameters.xAxisValues).getValue()
+    this.useRKM_X = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
     this.useRKM_Y = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
@@ -223,20 +240,67 @@ public class KendrickMassPlotAnchorPaneController {
     KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset = new KendrickMassPlotXYZDataset(
         parameters, 1, 1);
 
-    kendrickMassPlotXYZDataset.addTaskStatusListener((task, newStatus, oldStatus) -> {
+    kendrickMassPlotXYZDataset.addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.FINISHED) {
-        KendrickMassPlotChart kendrickMassPlotChart = new KendrickMassPlotChart(title, xAxisLabel,
-            yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
+        kendrickChart = new KendrickMassPlotChart(title, xAxisLabel, yAxisLabel, zAxisLabel,
+            kendrickMassPlotXYZDataset);
         KendrickMassPlotBubbleLegend kendrickMassPlotBubbleLegend = new KendrickMassPlotBubbleLegend(
             kendrickMassPlotXYZDataset);
+        var selectionWrapper = new RegionSelectionWrapper<>(kendrickChart, this::onExtractPressed);
         FxThread.runLater(() -> {
-          plotPane.setCenter(kendrickMassPlotChart);
+          plotPane.setCenter(selectionWrapper);
           bubbleLegendPane.setCenter(kendrickMassPlotBubbleLegend);
           updateToolBar();
           setTooltips();
         });
       }
     });
+
+    cbHighlightAnnotated.selectedProperty().subscribe(selected -> {
+      setHighlightToRenderer(Objects.requireNonNullElse(selected, false));
+    });
+    final Circle circle = new Circle(5);
+    circle.setStroke(ConfigService.getDefaultColorPalette().getNegativeColor());
+    circle.setStrokeWidth(2f);
+    circle.setStrokeType(StrokeType.OUTSIDE);
+    circle.setFill(null);
+    cbHighlightAnnotated.setGraphic(
+        FxLayout.newFlowPane(FxLabels.newLabel("Highlight annotated"), circle));
+  }
+
+  private void setHighlightToRenderer(boolean highlight) {
+    final boolean hasAnnotations = featureList.stream().anyMatch(FeatureListRow::isIdentified);
+    cbHighlightAnnotated.setDisable(!hasAnnotations);
+
+    if (kendrickChart == null) {
+      return;
+    }
+
+    for (int i = 0; i < kendrickChart.getChart().getXYPlot().getRendererCount(); i++) {
+      final XYItemRenderer renderer = kendrickChart.getChart().getXYPlot().getRenderer(i);
+      if (renderer instanceof ColoredBubbleDatasetRenderer r) {
+        r.setHighlightAnnotated(highlight);
+      }
+    }
+    kendrickChart.fireChangeEvent();
+  }
+
+  public void onExtractPressed(List<List<Point2D>> regionPointLists) {
+    final ParameterSet param = ConfigService.getConfiguration()
+        .getModuleParameters(RegionExtractionModule.class);
+
+    final ParameterSet kendrickParam = param.getEmbeddedParameterValue(
+        RegionExtractionParameters.kendrickParam);
+    ParameterUtils.copyParameters(parameters,
+        kendrickParam); // use the settings used for this plot.
+
+    param.setParameter(RegionExtractionParameters.xAxisDivisor, xAxisDivisor);
+    param.setParameter(RegionExtractionParameters.xAxisCharge, xAxisCharge);
+    param.setParameter(RegionExtractionParameters.yAxisCharge, yAxisCharge);
+    param.setParameter(RegionExtractionParameters.yAxisDivisor, yAxisDivisor);
+    param.setParameter(RegionExtractionParameters.regions, regionPointLists);
+
+    MZmineCore.setupAndRunModule(RegionExtractionModule.class);
   }
 
   private void setArrowIcon(Button button, FontAwesomeIcon icon) {
@@ -343,13 +407,14 @@ public class KendrickMassPlotAnchorPaneController {
     XYPlot plot = Objects.requireNonNull(getChart()).getXYPlot();
     KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(parameters, xAxisDivisor,
         xAxisCharge, yAxisDivisor, yAxisCharge);
-    newDataset.addTaskStatusListener((task, newStatus, oldStatus) -> {
+    newDataset.addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.FINISHED) {
         FxThread.runLater(() -> {
           plot.setDataset(newDataset);
           updateToolBar();
           setTooltips();
           bubbleLegendPane.setDisable(false);
+          setHighlightToRenderer(cbHighlightAnnotated.isSelected());
         });
       }
     });
@@ -357,16 +422,12 @@ public class KendrickMassPlotAnchorPaneController {
     setTooltips();
   }
 
-  public BorderPane getPlotPane() {
-    return plotPane;
-  }
-
   public BorderPane getBubbleLegendPane() {
     return bubbleLegendPane;
   }
 
   private JFreeChart getChart() {
-    if (plotPane.getChildren().get(0) instanceof EChartViewer viewer) {
+    if (kendrickChart instanceof EChartViewer viewer) {
       return viewer.getChart();
     }
     return null;
@@ -418,8 +479,9 @@ public class KendrickMassPlotAnchorPaneController {
     } else if (useRKM && divisor == getDivisorKM(kmdBase) && !divisorUp) {
       divisor--;
       return divisor;
-    } else
+    } else {
       return divisor;
+    }
   }
 
   /*

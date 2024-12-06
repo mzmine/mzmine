@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.StringMapParser;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -51,6 +52,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class IonModification extends NeutralMolecule implements Comparable<IonModification>,
     StringMapParser<IonModification> {
+
+  public static Comparator<IonModification> POLARITY_MASS_SORTER = Comparator.comparing(
+          IonModification::getPolarity).thenComparingInt(IonModification::getAbsCharge)
+      .thenComparing(NeutralMolecule::getMass);
 
   // use combinations of X adducts (2H++; -H+Na2+) and modifications
   public static final IonModification M_MINUS = new IonModification(IonModificationType.ADDUCT, "e",
@@ -218,7 +223,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     }
 
     String name = reader.getAttributeValue(null, "name");
-    String formula = reader.getAttributeValue(null, "formula");
+    String formula = ParsingUtils.readNullableString(reader.getAttributeValue(null, "formula"));
     String massDiff = reader.getAttributeValue(null, "massdifference");
     String type = reader.getAttributeValue(null, "type");
     String charge = reader.getAttributeValue(null, "charge");
@@ -315,8 +320,8 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
         .flatMap(Arrays::stream).filter(m -> {
           String sign = m.getAddRemovePartSign();
           return part.equals(sign + m.getName()) || part.equals(sign + m.getMolFormula()) ||
-              // positive part can also be without sign
-              (sign.equals("+") && (part.equals(m.getName()) || part.equals(m.getMolFormula())));
+                 // positive part can also be without sign
+                 (sign.equals("+") && (part.equals(m.getName()) || part.equals(m.getMolFormula())));
         }).findFirst().orElseGet(() -> {
           // if formula fails - cannot know the charge and massDiff - so just default to zero
           // parser will add charges later

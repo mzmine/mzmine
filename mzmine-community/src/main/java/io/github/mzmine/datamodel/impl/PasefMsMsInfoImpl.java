@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
@@ -99,19 +100,19 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
         XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
 
     final Integer frameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
+        MsMsInfo.XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
 
     final Integer parentFrameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
         XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
 
     final Float collisionEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
+        MsMsInfo.XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
 
     final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
+        MsMsInfo.XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
 
     Range<Integer> spectrumRange = ParsingUtils.parseIntegerRange(
-        reader.getAttributeValue(null, XML_SPECTRUM_NUMBER_RANGE_ATTR));
+        reader.getAttributeValue(null, IonMobilityMsMsInfo.XML_SPECTRUM_NUMBER_RANGE_ATTR));
 
     final String rawFileName = ParsingUtils.readAttributeValueOrDefault(reader,
         CONST.XML_RAW_FILE_ELEMENT, null, s -> s);
@@ -223,7 +224,7 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
 
     // todo nullable
     if (fragmentFrame != null) {
-      writer.writeAttribute(XML_FRAGMENT_SCAN_ATTR,
+      writer.writeAttribute(MsMsInfo.XML_FRAGMENT_SCAN_ATTR,
           String.valueOf(fragmentFrame.getDataFile().getScans().indexOf(fragmentFrame)));
       writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, fragmentFrame.getDataFile().getName());
     }
@@ -234,14 +235,15 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
     }
 
     if (getActivationEnergy() != null) {
-      writer.writeAttribute(XML_ACTIVATION_ENERGY_ATTR, String.valueOf(this.getActivationEnergy()));
+      writer.writeAttribute(MsMsInfo.XML_ACTIVATION_ENERGY_ATTR,
+          String.valueOf(this.getActivationEnergy()));
     }
 
-    writer.writeAttribute(XML_SPECTRUM_NUMBER_RANGE_ATTR,
+    writer.writeAttribute(IonMobilityMsMsInfo.XML_SPECTRUM_NUMBER_RANGE_ATTR,
         ParsingUtils.rangeToString((Range) getSpectrumNumberRange()));
 
     if (getIsolationWindow() != null) {
-      writer.writeAttribute(XML_ISOLATION_WINDOW_ATTR,
+      writer.writeAttribute(MsMsInfo.XML_ISOLATION_WINDOW_ATTR,
           ParsingUtils.rangeToString((Range) getIsolationWindow()));
     }
 

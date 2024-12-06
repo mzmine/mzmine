@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -335,7 +335,7 @@ public class FeatureNetworkGenerator {
     setEdgeWeightQuadraticScore(edge, score);
 
     switch (type) {
-      case MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE ->
+      case MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, MS2Deepscore ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
       case FEATURE_SHAPE_CORRELATION ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,20 +26,21 @@
 package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.DATE_HEADER;
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.FILENAME_HEADER;
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_TYPE_HEADER;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
-import io.github.mzmine.modules.visualization.projectmetadata.io.TableIOUtils;
-import io.github.mzmine.modules.visualization.projectmetadata.io.WideTableIOUtils;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import java.io.File;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,16 +56,27 @@ public class MetadataTable {
 
   private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
   private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
-  // use GoF "State" pattern where the state will interpret the table format (either long or wide)
-  private TableIOUtils tableIOUtils = new WideTableIOUtils(this);
+  // enable auto detection is on in project metadata but off during import
+  private final boolean enableAutoDetection;
 
   public MetadataTable() {
-    this.data = new HashMap<>();
+    this(true);
+  }
+
+  public MetadataTable(boolean enableAutoDetection) {
+    this(enableAutoDetection, new HashMap<>());
   }
 
   public MetadataTable(Map<MetadataColumn<?>, Map<RawDataFile, Object>> data) {
+    this(true, data);
+  }
+
+  public MetadataTable(boolean enableAutoDetection,
+      Map<MetadataColumn<?>, Map<RawDataFile, Object>> data) {
+    this.enableAutoDetection = enableAutoDetection;
     this.data = data;
   }
+
 
   public Map<MetadataColumn<?>, Map<RawDataFile, Object>> getData() {
     return data;
@@ -96,6 +108,15 @@ public class MetadataTable {
   }
 
   /**
+   * Remove parameter column from the metadata table.
+   *
+   * @param name column name
+   */
+  public void removeColumn(String name) {
+    data.keySet().removeIf(key -> key.getTitle().equals(name));
+  }
+
+  /**
    * Add file to the table and try to set the date column
    *
    * @param newFile file to be added
@@ -103,15 +124,45 @@ public class MetadataTable {
   public void addFile(RawDataFile newFile) {
     // try to set a value of a start time stamp parameter for a sample
     try {
-      // is usually saved as ZonedDateTime with 2022-06-01T18:36:09Z where the Z stands for UTC
-      MetadataColumn dateCol = getColumnByName(DATE_HEADER);
-      if (dateCol == null) {
-        dateCol = new DateMetadataColumn(DATE_HEADER, "Run start time stamp of the sample");
+      if (enableAutoDetection) {
+        // is usually saved as ZonedDateTime with 2022-06-01T18:36:09Z where the Z stands for UTC
+        MetadataColumn dateCol = getColumnByName(DATE_HEADER);
+        if (dateCol == null) {
+          dateCol = new DateMetadataColumn(DATE_HEADER, "Run start time stamp of the sample");
+        }
+        setValue(dateCol, newFile, newFile.getStartTimeStamp());
+
+        assignSampleType(newFile);
       }
-      setValue(dateCol, newFile, newFile.getStartTimeStamp());
     } catch (Exception ignored) {
-      logger.warning("Cannot set date " + newFile.getStartTimeStamp().toString());
+      logger.warning("Cannot set date " + newFile.getStartTimeStamp());
     }
+  }
+
+  private void assignSampleType(RawDataFile newFile) {
+    final MetadataColumn<String> sampleTypeColumn = getSampleTypeColumn();
+    setValue(sampleTypeColumn, newFile, SampleType.ofFile(newFile).toString());
+  }
+
+  public MetadataColumn<String> getSampleTypeColumn() {
+    final MetadataColumn<?> col = getColumnByName(SAMPLE_TYPE_HEADER);
+    if (col == null) {
+      final StringMetadataColumn sampleType = new StringMetadataColumn(SAMPLE_TYPE_HEADER,
+          "The type of the sample");
+      addColumn(sampleType);
+      // column was just created, add default sample types
+      data.values().stream().flatMap(m -> m.keySet().stream()).distinct()
+          .forEach(this::assignSampleType);
+      return sampleType;
+    }
+    return (MetadataColumn<String>) col;
+  }
+
+  /**
+   * Maybe push into MetadataTable?
+   */
+  public DateMetadataColumn getRunDateColumn() {
+    return (DateMetadataColumn) getColumnByName(DATE_HEADER);
   }
 
   /**
@@ -204,36 +255,6 @@ public class MetadataTable {
   }
 
   /**
-   * Export the metadata depending on the table format (state).
-   *
-   * @param file where the metadata will be exported to
-   * @return was the export successful?
-   */
-  public boolean exportMetadata(File file) {
-    return tableIOUtils.exportTo(file);
-  }
-
-  /**
-   * Import the metadata depending on the table format (state).
-   *
-   * @param file           from which the metadata will be exported
-   * @param skipColOnError
-   * @return was the import successful?
-   */
-  public boolean importMetadata(File file, final boolean skipColOnError) {
-    return tableIOUtils.importFrom(file, skipColOnError);
-  }
-
-  /**
-   * Update the state of the tableExportUtility.
-   *
-   * @param tableIOUtils the new state which represents the new table format.
-   */
-  public void setTableExportUtility(TableIOUtils tableIOUtils) {
-    this.tableIOUtils = tableIOUtils;
-  }
-
-  /**
    * Column titles
    *
    * @return array of column titles
@@ -261,9 +282,30 @@ public class MetadataTable {
     if (fileValueMap == null) {
       throw new MetadataColumnDoesNotExistException(column.getTitle());
     }
+    return groupFilesByColumn(fileValueMap.keySet(), column);
+  }
 
-    return fileValueMap.entrySet().stream().collect(Collectors.groupingBy(e -> (T) e.getValue(),
-        Collectors.mapping(Entry::getKey, Collectors.toList())));
+  /**
+   * Groups the files by the value in the metadata column.
+   *
+   * @param <T>
+   * @return If the column is null, an empty map is returned. If the column is not in the table, an
+   * error is thrown.
+   * @throws MetadataColumnDoesNotExistException If the column does not exist. Does not throw if the
+   *                                             column is null.
+   */
+  @NotNull
+  public <T> Map<T, List<RawDataFile>> groupFilesByColumn(@NotNull Collection<RawDataFile> raws,
+      @Nullable MetadataColumn<T> column) throws MetadataColumnDoesNotExistException {
+    if (column == null) {
+      return Map.of();
+    }
+    final Map<RawDataFile, Object> fileValueMap = data.get(column);
+    if (fileValueMap == null) {
+      throw new MetadataColumnDoesNotExistException(column.getTitle());
+    }
+    return raws.stream().filter(raw -> fileValueMap.get(raw) != null)
+        .collect(Collectors.groupingBy(raw -> (T) fileValueMap.get(raw)));
   }
 
   /**
@@ -284,7 +326,6 @@ public class MetadataTable {
 
   /**
    * @param column The column
-   * @param value  The column value to match to.
    * @return A list of files associated to the column value or an empty list if the column value
    * does not exist.
    */
@@ -302,5 +343,39 @@ public class MetadataTable {
       throw new MetadataColumnDoesNotExistException(column.getTitle());
     }
     return fileValueMap.values().stream().distinct().map(o -> (T) o).toList();
+  }
+
+  /**
+   * @param sampleType a sample type to filter for
+   * @return list of raw data files that match type in type column
+   */
+  public List<RawDataFile> getFilesOfSampleType(final SampleType sampleType) {
+    var sampleTypeColumn = getSampleTypeColumn();
+    if (sampleTypeColumn == null) {
+      return List.of();
+    }
+    return getMatchingFiles(sampleTypeColumn, sampleType.toString());
+  }
+
+  public StringMetadataColumn createDataFileColumn() {
+    return new StringMetadataColumn(FILENAME_HEADER, "");
+  }
+
+  /**
+   * In place - Merge this and newMetadata using newMetadata values if they are not null.
+   *
+   * @param newMetadata priority over this
+   * @return this metadata
+   */
+  @NotNull
+  public MetadataTable merge(final MetadataTable newMetadata) {
+    newMetadata.getData().forEach((column, data) -> {
+      data.forEach((raw, value) -> {
+        if (value != null) {
+          setValue((MetadataColumn) column, raw, value);
+        }
+      });
+    });
+    return this;
   }
 }
