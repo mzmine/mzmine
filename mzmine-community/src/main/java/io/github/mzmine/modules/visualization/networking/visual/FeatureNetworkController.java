@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import static io.github.mzmine.modules.visualization.networking.visual.enums.Gra
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeType;
@@ -55,7 +56,6 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
@@ -261,7 +261,7 @@ public class FeatureNetworkController {
       networkPane.setAttributeForAllElements(attribute, newValue);
     });
     GraphObject go = selectedValue.getGraphObject();
-    combo.setTooltip(new Tooltip(go + " " + attribute)); // e.g., Node color
+    combo.setTooltip(FxTooltips.newTooltip(go + " " + attribute)); // e.g., Node color
     combo.getSelectionModel().select(selectedValue);
   }
 

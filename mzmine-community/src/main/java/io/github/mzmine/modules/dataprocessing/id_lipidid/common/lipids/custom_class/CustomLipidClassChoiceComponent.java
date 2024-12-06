@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class;
+
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -55,7 +57,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -112,7 +113,7 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
       }
     });
 
-    importButton.setTooltip(new Tooltip("Import custom lipid class from JSON files"));
+    importButton.setTooltip(newTooltip("Import custom lipid class from JSON files"));
     importButton.setOnAction(e -> {
 
       // Create the chooser if necessary.
@@ -145,7 +146,7 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
       }
     });
 
-    exportButton.setTooltip(new Tooltip("Export custom lipid class as JSON file"));
+    exportButton.setTooltip(newTooltip("Export custom lipid class as JSON file"));
     exportButton.setOnAction(e -> {
       FileChooser chooser = new FileChooser();
       chooser.setTitle("Select lipid modification file");
@@ -169,14 +170,14 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
 
     });
 
-    removeButton.setTooltip(new Tooltip("Remove selected custom Lipid Classes"));
+    removeButton.setTooltip(newTooltip("Remove selected custom Lipid Classes"));
     removeButton.setOnAction(e -> {
       ObservableList<CustomLipidClass> selectedItems = checkList.getSelectionModel()
           .getSelectedItems();
       checkList.getItems().removeAll(selectedItems);
     });
 
-    clearButton.setTooltip(new Tooltip("Remove all custom Lipid Classes"));
+    clearButton.setTooltip(newTooltip("Remove all custom Lipid Classes"));
     clearButton.setOnAction(e -> {
       checkList.getItems().clear();
     });

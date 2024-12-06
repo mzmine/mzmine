@@ -36,6 +36,7 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -306,7 +307,7 @@ public class MainWindowController {
 
     memoryBar.setOnMouseClicked(event -> handleMemoryBarClick(event));
     memoryBarLabel.setOnMouseClicked(event -> handleMemoryBarClick(event));
-    memoryBar.setTooltip(new Tooltip("Free memory (is done automatically)"));
+    memoryBar.setTooltip(FxTooltips.newTooltip("Free memory (is done automatically)"));
 
     // Setup the Timeline to update the memory indicator periodically
     final Timeline memoryUpdater = new Timeline();

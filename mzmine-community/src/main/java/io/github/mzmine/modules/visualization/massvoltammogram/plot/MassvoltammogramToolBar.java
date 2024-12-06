@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,18 +26,18 @@
 package io.github.mzmine.modules.visualization.massvoltammogram.plot;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramAxisParameters;
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExportParameters;
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExportTask;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.math.plot.canvas.Plot3DCanvas;
@@ -79,14 +79,14 @@ public class MassvoltammogramToolBar extends ToolBar {
 
     //Creating a button to move the plot.
     final ToggleButton moveButton = new ToggleButton(null, new ImageView(MOVE_PLOT_ICON));
-    moveButton.setTooltip(new Tooltip("Move the massvoltammogram."));
+    moveButton.setTooltip(FxTooltips.newTooltip("Move the massvoltammogram."));
     moveButton.setOnAction(e -> plotCanvas.ActionMode = PlotCanvas.TRANSLATION);
     moveButton.setMinSize(35, 35);
 
     //Creating a Button to rotate the plot.
     final ToggleButton rotateButton = new ToggleButton(null, new ImageView(ROTATE_PLOT_ICON));
     rotateButton.setSelected(true);
-    rotateButton.setTooltip(new Tooltip("Rotate the massvoltammogram."));
+    rotateButton.setTooltip(FxTooltips.newTooltip("Rotate the massvoltammogram."));
     rotateButton.setOnAction(e -> plotCanvas.ActionMode = Plot3DCanvas.ROTATION);
     rotateButton.setMinSize(35, 35);
 
@@ -97,19 +97,20 @@ public class MassvoltammogramToolBar extends ToolBar {
 
     //Creating a button to reset the zoom.
     final Button resetButton = new Button(null, new ImageView(RESET_PLOT_ICON));
-    resetButton.setTooltip(new Tooltip("Reset the view."));
+    resetButton.setTooltip(FxTooltips.newTooltip("Reset the view."));
     resetButton.setOnAction(e -> plotCanvas.resetBase());
     resetButton.setMinSize(35, 35);
 
     //Creating a button to export the plot.
     final Button exportButton = new Button(null, new ImageView(EXPORT_PLOT_ICON));
-    exportButton.setTooltip(new Tooltip("Export the massvoltammogram."));
+    exportButton.setTooltip(FxTooltips.newTooltip("Export the massvoltammogram."));
     exportButton.setOnAction(e -> exportMassvoltammogram());
     exportButton.setMinSize(35, 35);
 
     //Creating a button to edit the m/z-range.
     final Button editAxisRangesButton = new Button(null, new ImageView(EDIT_AXIS_RANGES_ICON));
-    editAxisRangesButton.setTooltip(new Tooltip("Edit the massvoltammograms axis ranges."));
+    editAxisRangesButton.setTooltip(
+        FxTooltips.newTooltip("Edit the massvoltammograms axis ranges."));
     editAxisRangesButton.setOnAction(e -> editAxisRanges());
     editAxisRangesButton.setMinSize(35, 35);
 

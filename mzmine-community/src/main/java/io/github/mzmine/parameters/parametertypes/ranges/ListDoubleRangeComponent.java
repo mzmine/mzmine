@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,11 +26,11 @@
 package io.github.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 
 /**
@@ -72,8 +72,8 @@ public class ListDoubleRangeComponent extends GridPane {
   }
 
   public void setToolTipText(String toolTip) {
-    parsedInput.setTooltip(new Tooltip(toolTip));
-    inputField.setTooltip(new Tooltip(toolTip));
+    parsedInput.setTooltip(FxTooltips.newTooltip(toolTip));
+    inputField.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
 

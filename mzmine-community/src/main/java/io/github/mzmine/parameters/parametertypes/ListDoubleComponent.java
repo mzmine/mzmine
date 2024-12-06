@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,13 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import org.jetbrains.annotations.Nullable;
@@ -109,7 +109,7 @@ public class ListDoubleComponent extends GridPane {
 
   public void setToolTipText(String toolTip) {
     for (TextField inputField : inputFields) {
-      inputField.setTooltip(new Tooltip(toolTip));
+      inputField.setTooltip(FxTooltips.newTooltip(toolTip));
     }
   }
 
