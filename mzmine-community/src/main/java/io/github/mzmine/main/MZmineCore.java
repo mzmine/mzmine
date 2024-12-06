@@ -118,7 +118,7 @@ public final class MZmineCore {
    */
   public void startUp(String[] args) {
     printDebugInfo(args);
-    ConfigService.parseArgs(args);
+    ArgsToConfigUtils.parseArgs(args);
 
     CurrentUserService.subscribe(user -> {
       var nickname = user == null ? null : user.getNickname();
@@ -145,6 +145,10 @@ public final class MZmineCore {
             if (DesktopService.hasTerminalInput()) {
               UsersController.getInstance()
                   .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
+              if(CurrentUserService.isValid()) {
+                // login was successful
+                return;
+              }
             }
             getDesktop().displayMessage(
                 "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
