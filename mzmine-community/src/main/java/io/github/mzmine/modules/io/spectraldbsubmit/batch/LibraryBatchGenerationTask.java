@@ -66,6 +66,7 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
@@ -107,6 +108,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final boolean enableMsnMerge;
   private final MsLevelFilter postMergingMsLevelFilter;
   private final IntensityNormalizer normalizer;
+  private final boolean compactUSI;
   public long totalRows = 0;
   public AtomicInteger finishedRows = new AtomicInteger(0);
   public AtomicInteger exported = new AtomicInteger(0);
@@ -152,6 +154,15 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       chimericsIsolationMzTol = param.getValue(HandleChimericMsMsParameters.isolationWindow);
       chimericsMainIonMzTol = param.getValue(HandleChimericMsMsParameters.mainMassWindow);
       handleChimericsOption = param.getValue(HandleChimericMsMsParameters.option);
+    }
+
+    boolean isAdvanced = parameters.getValue(LibraryBatchGenerationParameters.advanced);
+    if (isAdvanced) {
+      var advanced = parameters.getParameter(LibraryBatchGenerationParameters.advanced)
+          .getEmbeddedParameters();
+      compactUSI = advanced.getValue(AdvancedLibraryBatchGenerationParameters.compactUSI);
+    } else {
+      compactUSI = false;
     }
 
     // used to extract and merge spectra
@@ -312,6 +323,12 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     // add instrument type etc by parameter
     SpectralLibraryEntry entry = SpectralLibraryEntry.create(row, library.getStorage(), msmsScan,
         match, dps, metadataMap);
+
+    if (compactUSI) {
+      String dataset = entry.getOrElse(DBEntryField.DATASET_ID, null);
+      var compressedUSIs = ScanUtils.extractCompressedUSIRanges(msmsScan, dataset).toList();
+      entry.putIfNotNull(DBEntryField.USI, compressedUSIs);
+    }
 
     // matched against mutiple compounds in the same sample?
     // usually metadata is filtered so that raw data files only contain specific compounds without interference
