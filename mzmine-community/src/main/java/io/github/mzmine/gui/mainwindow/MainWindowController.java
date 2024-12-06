@@ -336,9 +336,13 @@ public class MainWindowController {
     }));
     memoryUpdater.play();
 
-    WorkspaceMenuHelper.addWorkspace(new AcademicWorkspace());
-    mainPane.setTop(WorkspaceMenuHelper.getWorkspaces().get(AcademicWorkspace.uniqueId).buildMainMenu(
-        EnumSet.allOf(WorkspaceTags.class)));
+    final AcademicWorkspace workspace = new AcademicWorkspace();
+    WorkspaceMenuHelper.addWorkspace(workspace);
+    if (WorkspaceMenuHelper.getDefaultWorkspaceId() == null) {
+      WorkspaceMenuHelper.setDefaultWorkspace(workspace);
+    }
+    mainPane.setTop(WorkspaceMenuHelper.getDefaultWorkspaceOrElse(workspace)
+        .buildMainMenu(EnumSet.allOf(WorkspaceTags.class)));
   }
 
   private void initFeatureListsList() {
