@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
+
 import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.Property;
@@ -33,7 +35,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import org.controlsfx.control.SearchableComboBox;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +67,7 @@ public class FxComboBox {
       combo.setItems(FXCollections.observableList(List.copyOf(values)));
     }
     combo.valueProperty().bindBidirectional(selectedItem);
-    combo.setTooltip(new Tooltip(tooltip));
+    combo.setTooltip(newTooltip(tooltip));
     return combo;
   }
 
@@ -84,7 +85,7 @@ public class FxComboBox {
     } else {
       combo.setItems(FXCollections.observableList(List.copyOf(values)));
     }
-    combo.setTooltip(new Tooltip(tooltip));
+    combo.setTooltip(newTooltip(tooltip));
     return combo;
   }
 
