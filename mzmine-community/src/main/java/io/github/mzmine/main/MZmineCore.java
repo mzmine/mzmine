@@ -98,9 +98,11 @@ public final class MZmineCore {
    */
   public static void main(final String[] args) {
     try {
-      getInstance().startUp(args);
+      printDebugInfo(args);
+      final MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(args);
+      getInstance().startUp(argsParser);
 
-      launchBatchOrGui(args, ConfigService.getArgsParser());
+      launchBatchOrGui(args, argsParser);
 
     } catch (Exception ex) {
       logger.log(Level.SEVERE, "Error during mzmine start up", ex);
@@ -114,11 +116,9 @@ public final class MZmineCore {
    * the batch or gui. Note: not static so it ensures that the {@link MZmineCore#init()} method is
    * called.
    *
-   * @param args the program arguments.
    */
-  public void startUp(String[] args) {
-    printDebugInfo(args);
-    ArgsToConfigUtils.parseArgs(args);
+  public void startUp(@NotNull final MZmineCoreArgumentParser argsParser) {
+    ArgsToConfigUtils.applyArgsToConfig(argsParser);
 
     CurrentUserService.subscribe(user -> {
       var nickname = user == null ? null : user.getNickname();
@@ -145,7 +145,7 @@ public final class MZmineCore {
             if (DesktopService.hasTerminalInput()) {
               UsersController.getInstance()
                   .loginOrRegisterConsoleBlocking(LoginOptions.CONSOLE_ENTER_CREDENTIALS);
-              if(CurrentUserService.isValid()) {
+              if (CurrentUserService.isValid()) {
                 // login was successful
                 return;
               }
@@ -166,7 +166,7 @@ public final class MZmineCore {
     });
   }
 
-  private static void printDebugInfo(String[] args) {
+  public static void printDebugInfo(String[] args) {
     Semver version = SemverVersionReader.getMZmineVersion();
     logger.info("Starting mzmine %s".formatted(version));
     /*
@@ -189,9 +189,14 @@ public final class MZmineCore {
         "Default temporary directory is %s".formatted(System.getProperty("java.io.tmpdir")));
   }
 
+  /**
+   *
+   * @param args the program arguments, required to launch the gui.
+   * @param argsParser Args parser for easy access to e.g. the batch file.
+   */
   public static void launchBatchOrGui(String[] args, MZmineCoreArgumentParser argsParser) {
     // batch mode defined by command line argument
-    final File batchFile = ConfigService.getArgsParser().getBatchFile();
+    final File batchFile = argsParser.getBatchFile();
     final boolean isCliBatchProcessing = batchFile != null;
     final boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
     final boolean headLessMode = (isCliBatchProcessing || keepRunningInHeadless);
@@ -257,7 +262,7 @@ public final class MZmineCore {
       FxThread.setIsFxInitialized(true);
       Application.launch(MZmineGUI.class, args);
     } catch (Throwable e) {
-      logger.log(Level.SEVERE, "Could not parseArgs GUI", e);
+      logger.log(Level.SEVERE, "Could not applyArgsToConfig GUI", e);
       System.exit(1);
     }
     System.exit(0);

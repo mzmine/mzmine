@@ -27,10 +27,9 @@ class ArgsToConfigUtils {
    * Parses all relevant arguments from the given program arguments and initialises the
    * {@link MZmineCoreArgumentParser} instance in this class.
    *
-   * @param args The program arguments.
+   * @param argsParser The args parser
    */
-  static void parseArgs(final String[] args) {
-    MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(args);
+  static void applyArgsToConfig(final MZmineCoreArgumentParser argsParser) {
     ConfigService.setTsfProfile(argsParser.isLoadTsfProfile());
     ConfigService.setTdfPseudoProfile(argsParser.isLoadTdfPseudoProfile());
 

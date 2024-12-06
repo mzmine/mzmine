@@ -31,7 +31,6 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -105,13 +104,6 @@ public final class ConfigService {
 
   public static boolean isTsfProfile() {
     return tsfProfile;
-  }
-
-  public static MZmineCoreArgumentParser getArgsParser() {
-    if (argsParser == null) {
-      throw new IllegalStateException("MZmineCoreArgumentParser not yet initialized");
-    }
-    return argsParser;
   }
 
   public static void openTempPreferences() {
