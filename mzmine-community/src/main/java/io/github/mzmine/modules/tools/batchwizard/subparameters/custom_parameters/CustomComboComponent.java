@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 
 /**
@@ -65,7 +65,7 @@ public abstract class CustomComboComponent<E extends Enum<?>, V extends CustomCo
   }
 
   public void setToolTipText(String toolTip) {
-    comboBox.setTooltip(new Tooltip(toolTip));
+    comboBox.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,9 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_scans.ExportScansModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
@@ -55,8 +58,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
@@ -76,7 +77,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -163,10 +163,11 @@ public class SpectraVisualizerTab extends MZmineTab {
     toolBar.setOrientation(Orientation.VERTICAL);
 
     centroidContinuousButton = new Button(null, new ImageView(centroidIcon));
-    centroidContinuousButton.setTooltip(new Tooltip("Toggle centroid/continuous mode"));
+    centroidContinuousButton.setTooltip(FxTooltips.newTooltip("Toggle centroid/continuous mode"));
 
     dataPointsButton = new Button(null, new ImageView(dataPointsIcon));
-    dataPointsButton.setTooltip(new Tooltip("Toggle displaying of data points in continuous mode"));
+    dataPointsButton.setTooltip(
+        FxTooltips.newTooltip("Toggle displaying of data points in continuous mode"));
     dataPointsButton.setOnAction(e -> spectrumPlot.switchDataPointsVisible());
 
     centroidContinuousButton.setOnAction(e -> {
@@ -182,19 +183,20 @@ public class SpectraVisualizerTab extends MZmineTab {
     });
 
     Button annotationsButton = new Button(null, new ImageView(annotationsIcon));
-    annotationsButton.setTooltip(new Tooltip("Toggle displaying of peak values"));
+    annotationsButton.setTooltip(FxTooltips.newTooltip("Toggle displaying of peak values"));
     annotationsButton.setOnAction(e -> spectrumPlot.switchItemLabelsVisible());
 
     Button pickedPeakButton = new Button(null, new ImageView(pickedPeakIcon));
-    pickedPeakButton.setTooltip(new Tooltip("Toggle displaying of picked peaks"));
+    pickedPeakButton.setTooltip(FxTooltips.newTooltip("Toggle displaying of picked peaks"));
     pickedPeakButton.setOnAction(e -> spectrumPlot.switchPickedPeaksVisible());
 
     Button isotopePeakButton = new Button(null, new ImageView(isotopePeakIcon));
-    isotopePeakButton.setTooltip(new Tooltip("Toggle displaying of predicted isotope peaks"));
+    isotopePeakButton.setTooltip(
+        FxTooltips.newTooltip("Toggle displaying of predicted isotope peaks"));
     isotopePeakButton.setOnAction(e -> spectrumPlot.switchIsotopePeaksVisible());
 
     Button axesButton = new Button(null, new ImageView(axesIcon));
-    axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
+    axesButton.setTooltip(FxTooltips.newTooltip("Setup ranges for axes"));
     axesButton.setOnAction(e -> {
       AxesSetupDialog dialog = new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(),
           spectrumPlot.getXYPlot());
@@ -202,11 +204,11 @@ public class SpectraVisualizerTab extends MZmineTab {
     });
 
     Button exportButton = new Button(null, new ImageView(exportIcon));
-    exportButton.setTooltip(new Tooltip("Export spectra to spectra file"));
+    exportButton.setTooltip(FxTooltips.newTooltip("Export spectra to spectra file"));
     exportButton.setOnAction(e -> ExportScansModule.showSetupDialog(currentScan));
 
     Button createLibraryEntryButton = new Button(null, new ImageView(exportIcon));
-    createLibraryEntryButton.setTooltip(new Tooltip("Create spectral library entry"));
+    createLibraryEntryButton.setTooltip(FxTooltips.newTooltip("Create spectral library entry"));
     createLibraryEntryButton.setOnAction(e -> {
       // open window with all selected rows
       MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
@@ -215,19 +217,19 @@ public class SpectraVisualizerTab extends MZmineTab {
     });
 
     Button dbCustomButton = new Button(null, new ImageView(dbCustomIcon));
-    dbCustomButton.setTooltip(new Tooltip("Select custom database for annotation"));
+    dbCustomButton.setTooltip(FxTooltips.newTooltip("Select custom database for annotation"));
     dbCustomButton.setOnAction(
         e -> CustomDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot,
             Instant.now()));
 
     Button dbSpectraButton = new Button(null, new ImageView(dbSpectraIcon));
-    dbSpectraButton.setTooltip(new Tooltip("Compare spectrum with spectral libraries"));
+    dbSpectraButton.setTooltip(FxTooltips.newTooltip("Compare spectrum with spectral libraries"));
     dbSpectraButton.setOnAction(
         e -> SingleSpectrumLibrarySearchModule.showSpectraIdentificationDialog(currentScan,
             spectrumPlot, Instant.now()));
 
     Button sumFormulaButton = new Button(null, new ImageView(sumFormulaIcon));
-    sumFormulaButton.setTooltip(new Tooltip("Predict sum formulas for annotation"));
+    sumFormulaButton.setTooltip(FxTooltips.newTooltip("Predict sum formulas for annotation"));
     sumFormulaButton.setOnAction(
         e -> SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan,
             spectrumPlot, Instant.now()));
@@ -362,7 +364,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
       if (basePeak != null) {
         spectrumTitle += ", base peak: " + mzFormat.format(scan.getBasePeakMz()) + " m/z ("
-            + intensityFormat.format(scan.getBasePeakIntensity()) + ")";
+                         + intensityFormat.format(scan.getBasePeakIntensity()) + ")";
       }
       String spectrumSubtitle = null;
       if (!Strings.isNullOrEmpty(currentScan.getScanDefinition())) {
@@ -604,7 +606,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     if (newScan == null) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Raw data file " + dataFile + " does not contain scan at retention time "
-              + currentScan.getRetentionTime());
+          + currentScan.getRetentionTime());
       return;
     }
 

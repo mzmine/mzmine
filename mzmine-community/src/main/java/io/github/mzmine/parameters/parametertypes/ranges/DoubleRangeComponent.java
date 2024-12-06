@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes.ranges;
 
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
+
 import com.google.common.collect.Range;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -32,7 +34,6 @@ import java.util.logging.Logger;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.converter.NumberStringConverter;
 
@@ -121,8 +122,8 @@ public class DoubleRangeComponent extends HBox {
   }
 
   public void setToolTipText(String toolTip) {
-    minTxtField.setTooltip(new Tooltip(toolTip));
-    maxTxtField.setTooltip(new Tooltip(toolTip));
+    minTxtField.setTooltip(newTooltip(toolTip));
+    maxTxtField.setTooltip(newTooltip(toolTip));
   }
 
   /**

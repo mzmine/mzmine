@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
@@ -38,7 +39,6 @@ import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +66,7 @@ public class FeatureListsComponent extends HBox {
         .addListener((options, oldValue, newValue) -> {
           currentValue.setSelectionType(newValue);
           detailsButton.setDisable((newValue != FeatureListsSelectionType.NAME_PATTERN) && (newValue
-              != FeatureListsSelectionType.SPECIFIC_FEATURELISTS));
+                                                                                            != FeatureListsSelectionType.SPECIFIC_FEATURELISTS));
           updateNumPeakLists();
         });
 
@@ -120,7 +120,7 @@ public class FeatureListsComponent extends HBox {
 
 
   public void setToolTipText(String toolTip) {
-    typeCombo.setTooltip(new Tooltip(toolTip));
+    typeCombo.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
   private void updateNumPeakLists() {
@@ -138,7 +138,7 @@ public class FeatureListsComponent extends HBox {
       } else {
         numPeakListsLabel.setText(pls.length + " selected");
       }
-      numPeakListsLabel.setTooltip(new Tooltip(currentValue.toString()));
+      numPeakListsLabel.setTooltip(FxTooltips.newTooltip(currentValue.toString()));
     }
   }
 }

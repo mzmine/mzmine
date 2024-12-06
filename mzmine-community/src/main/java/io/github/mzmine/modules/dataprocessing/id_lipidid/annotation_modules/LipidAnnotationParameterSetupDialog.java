@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassDescription;
@@ -44,7 +45,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 
 /**
@@ -67,7 +67,7 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
     // Add buttons
     Button showDatabaseTable = new Button("Show database");
     showDatabaseTable.setTooltip(
-        new Tooltip("Show a database table for the selected classes and parameters"));
+        FxTooltips.newTooltip("Show a database table for the selected classes and parameters"));
     showDatabaseTable.setOnAction(event -> {
       showDatabaseTable.setDisable(true);
       try {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -62,7 +63,7 @@ public class CombinedXICComponent extends Canvas {
 
     // We use the tool tip text as a id for customTooltipProvider
     if (id >= 0) {
-      Tooltip tooltip = new Tooltip(ComponentToolTipManager.CUSTOM + id);
+      Tooltip tooltip = FxTooltips.newTooltip(ComponentToolTipManager.CUSTOM + id);
       Tooltip.install(this, tooltip);
     }
 
@@ -71,14 +72,16 @@ public class CombinedXICComponent extends Canvas {
 
     // find data boundaries
     for (Feature peak : peaks) {
-      if (peak == null)
+      if (peak == null) {
         continue;
+      }
 
       maxIntensity = Math.max(maxIntensity, peak.getRawDataPointsIntensityRange().upperEndpoint());
-      if (rtRange == null)
+      if (rtRange == null) {
         rtRange = peak.getRawDataFile().getDataRTRange();
-      else
+      } else {
         rtRange = rtRange.span(peak.getRawDataFile().getDataRTRange());
+      }
     }
 
     this.maxIntensity = maxIntensity;
@@ -112,8 +115,9 @@ public class CombinedXICComponent extends Canvas {
       colorIndex = (colorIndex + 1) % plotColors.length;
 
       // if we have no data, just return
-      if ((peak == null) || (peak.getScanNumbers().size() == 0))
+      if ((peak == null) || (peak.getScanNumbers().size() == 0)) {
         continue;
+      }
 
       // get scan numbers, one data point per each scan
       List<Scan> scans = peak.getScanNumbers();
@@ -130,17 +134,20 @@ public class CombinedXICComponent extends Canvas {
         double dataPointIntensity = 0;
         DataPoint dataPoint = peak.getDataPointAtIndex(i);
 
-        if (dataPoint != null)
+        if (dataPoint != null) {
           dataPointIntensity = dataPoint.getIntensity();
+        }
 
         // get retention time (X value)
         float retentionTime = scans.get(i).getRetentionTime();
 
         // calculate [X:Y] coordinates
-        xValues[i + 1] = (int) Math.floor((retentionTime - rtRange.lowerEndpoint())
-            / (rtRange.upperEndpoint() - rtRange.lowerEndpoint()) * ((int) getWidth() - 1));
-        yValues[i + 1] = (int) getHeight()
-            - (int) Math.floor(dataPointIntensity / maxIntensity * ((int) getHeight() - 1));
+        xValues[i + 1] = (int) Math.floor(
+            (retentionTime - rtRange.lowerEndpoint()) / (rtRange.upperEndpoint()
+                                                         - rtRange.lowerEndpoint()) * (
+                (int) getWidth() - 1));
+        yValues[i + 1] = (int) getHeight() - (int) Math.floor(
+            dataPointIntensity / maxIntensity * ((int) getHeight() - 1));
       }
 
       // add first point

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,8 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -43,7 +45,6 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SimpleSorter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -62,7 +63,6 @@ import java.util.Set;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -84,16 +84,16 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 public class TICVisualizerTab extends MZmineTab {
 
   // Icons.
-  private static final Image SHOW_SPECTRUM_ICON =
-      FxIconUtil.loadImageFromResources("icons/spectrumicon.png");
-  private static final Image DATA_POINTS_ICON =
-      FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
-  private static final Image ANNOTATIONS_ICON =
-      FxIconUtil.loadImageFromResources("icons/annotationsicon.png");
+  private static final Image SHOW_SPECTRUM_ICON = FxIconUtil.loadImageFromResources(
+      "icons/spectrumicon.png");
+  private static final Image DATA_POINTS_ICON = FxIconUtil.loadImageFromResources(
+      "icons/datapointsicon.png");
+  private static final Image ANNOTATIONS_ICON = FxIconUtil.loadImageFromResources(
+      "icons/annotationsicon.png");
   private static final Image AXES_ICON = FxIconUtil.loadImageFromResources("icons/axesicon.png");
   private static final Image LEGEND_ICON = FxIconUtil.loadImageFromResources("icons/legendkey.png");
-  private static final Image BACKGROUND_ICON =
-      FxIconUtil.loadImageFromResources("icons/bgicon.png");
+  private static final Image BACKGROUND_ICON = FxIconUtil.loadImageFromResources(
+      "icons/bgicon.png");
 
   // CSV extension.
   private static final String CSV_EXTENSION = "*.csv";
@@ -158,7 +158,7 @@ public class TICVisualizerTab extends MZmineTab {
     toolBar.setOrientation(Orientation.VERTICAL);
 
     Button showSpectrumBtn = new Button(null, new ImageView(SHOW_SPECTRUM_ICON));
-    showSpectrumBtn.setTooltip(new Tooltip("Show spectrum of selected scan"));
+    showSpectrumBtn.setTooltip(FxTooltips.newTooltip("Show spectrum of selected scan"));
     showSpectrumBtn.setOnAction(e -> {
       ChromatogramCursorPosition pos = getCursorPosition();
       if (pos != null) {
@@ -166,23 +166,20 @@ public class TICVisualizerTab extends MZmineTab {
       }
     });
 
-
     Button datapointsBtn = new Button(null, new ImageView(DATA_POINTS_ICON));
-    datapointsBtn.setTooltip(new Tooltip("Toggle displaying of data points"));
+    datapointsBtn.setTooltip(FxTooltips.newTooltip("Toggle displaying of data points"));
     datapointsBtn.setOnAction(e -> {
       ticPlot.switchDataPointsVisible();
     });
 
-
     Button annotationsBtn = new Button(null, new ImageView(ANNOTATIONS_ICON));
-    annotationsBtn.setTooltip(new Tooltip("Toggle displaying of peak labels"));
+    annotationsBtn.setTooltip(FxTooltips.newTooltip("Toggle displaying of peak labels"));
     annotationsBtn.setOnAction(e -> {
       ticPlot.switchItemLabelsVisible();
     });
 
-
     Button axesBtn = new Button(null, new ImageView(AXES_ICON));
-    axesBtn.setTooltip(new Tooltip("Setup ranges for axes"));
+    axesBtn.setTooltip(FxTooltips.newTooltip("Setup ranges for axes"));
     axesBtn.setOnAction(e -> {
       AxesSetupDialog dialog = new AxesSetupDialog(getTabPane().getScene().getWindow(),
           ticPlot.getXYPlot());
@@ -190,19 +187,20 @@ public class TICVisualizerTab extends MZmineTab {
     });
 
     Button legendBtn = new Button(null, new ImageView(LEGEND_ICON));
-    legendBtn.setTooltip(new Tooltip("Toggle display of the legend"));
+    legendBtn.setTooltip(FxTooltips.newTooltip("Toggle display of the legend"));
     legendBtn.setOnAction(e -> {
       ticPlot.switchLegendVisible();
     });
 
     Button backgroundBtn = new Button(null, new ImageView(BACKGROUND_ICON));
-    backgroundBtn.setTooltip(new Tooltip("Toggle between white or gray background color"));
+    backgroundBtn.setTooltip(
+        FxTooltips.newTooltip("Toggle between white or gray background color"));
     backgroundBtn.setOnAction(e -> {
       ticPlot.switchBackground();
     });
 
-    toolBar.getItems().addAll(showSpectrumBtn, datapointsBtn, annotationsBtn, axesBtn, legendBtn,
-        backgroundBtn);
+    toolBar.getItems()
+        .addAll(showSpectrumBtn, datapointsBtn, annotationsBtn, axesBtn, legendBtn, backgroundBtn);
     mainPane.setRight(toolBar);
 
     // add all features
@@ -232,8 +230,8 @@ public class TICVisualizerTab extends MZmineTab {
     // pack();
 
     // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(ChromatogramVisualizerModule.class);
+    ParameterSet paramSet = MZmineCore.getConfiguration()
+        .getModuleParameters(ChromatogramVisualizerModule.class);
 //    WindowSettingsParameter settings =
 //        paramSet.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
 
@@ -267,8 +265,8 @@ public class TICVisualizerTab extends MZmineTab {
           // Select or deselect dataset
           Font font = new Font("Helvetica", Font.BOLD, 11);
           BasicStroke stroke = new BasicStroke(4);
-          if (renderer.getDefaultLegendTextFont() != null
-              && renderer.getDefaultLegendTextFont().isBold()) {
+          if (renderer.getDefaultLegendTextFont() != null && renderer.getDefaultLegendTextFont()
+              .isBold()) {
             font = new Font("Helvetica", Font.PLAIN, 11);
             stroke = new BasicStroke(1);
           }
@@ -340,8 +338,8 @@ public class TICVisualizerTab extends MZmineTab {
       }
     }
 
-    mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint()) + " - "
-        + mzFormat.format(mzRange.upperEndpoint()));
+    mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat.format(
+        mzRange.upperEndpoint()));
 
     ChromatogramCursorPosition pos = getCursorPosition();
 
@@ -362,8 +360,9 @@ public class TICVisualizerTab extends MZmineTab {
     RawDataFile files[] = ticDataSets.keySet().toArray(new RawDataFile[0]);
     Arrays.sort(files, new SimpleSorter());
     String dataFileNames = Joiner.on(",").join(files);
-    setText("Chromatogram: [" + dataFileNames + "; " + mzFormat.format(mzRange.lowerEndpoint())
-        + " - " + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
+    setText(
+        "Chromatogram: [" + dataFileNames + "; " + mzFormat.format(mzRange.lowerEndpoint()) + " - "
+        + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
 
     // update plot title
     ticPlot.setTitle(mainTitle.toString(), subTitle.toString());
@@ -382,6 +381,7 @@ public class TICVisualizerTab extends MZmineTab {
   }
 
   /**
+   *
    */
   public void setRTRange(Range<Double> rtRange) {
     ticPlot.getXYPlot().getDomainAxis().setRange(rtRange.lowerEndpoint(), rtRange.upperEndpoint());
@@ -443,8 +443,7 @@ public class TICVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
@@ -496,8 +495,8 @@ public class TICVisualizerTab extends MZmineTab {
       final File exportFile = exportChooser.showSaveDialog(getTabPane().getScene().getWindow());
       if (exportFile != null) {
 
-        MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile,
-            Instant.now()));
+        MZmineCore.getTaskController()
+            .addTask(new ExportChromatogramTask(dataSet, exportFile, Instant.now()));
       }
     }
   }
@@ -518,8 +517,7 @@ public class TICVisualizerTab extends MZmineTab {
           mz = dataSet.getZValue(0, index);
         }
         ChromatogramCursorPosition pos = new ChromatogramCursorPosition(selectedRT, mz, selectedIT,
-            dataSet.getDataFile(),
-            dataSet.getScan(index));
+            dataSet.getDataFile(), dataSet.getScan(index));
         return pos;
       }
     }
@@ -577,7 +575,6 @@ public class TICVisualizerTab extends MZmineTab {
     }
 
   }
-
 
 
   public TICPlot getTICPlot() {

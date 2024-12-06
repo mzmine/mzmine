@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,10 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import java.io.File;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
@@ -102,7 +102,7 @@ public class DirectoryComponent extends BorderPane {
   }
 
   public void setToolTipText(final String text) {
-    txtDirectory.setTooltip(new Tooltip(text));
+    txtDirectory.setTooltip(FxTooltips.newTooltip(text));
   }
 
 }

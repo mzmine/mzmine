@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.parameters.UserParameter;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
@@ -67,7 +67,7 @@ public class OptionalParameterComponent<EmbeddedComponent extends Node> extends 
   }
 
   public void setToolTipText(String toolTip) {
-    checkBox.setTooltip(new Tooltip(toolTip));
+    checkBox.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
 }

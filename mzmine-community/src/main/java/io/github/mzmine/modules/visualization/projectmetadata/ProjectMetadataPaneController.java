@@ -29,6 +29,7 @@ package io.github.mzmine.modules.visualization.projectmetadata;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
@@ -58,7 +59,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Stage;
 
@@ -142,7 +142,7 @@ public class ProjectMetadataPaneController {
 
     // add the tooltips
     Label descriptionLabel = new Label(title);
-    descriptionLabel.setTooltip(new Tooltip(columnDescription));
+    descriptionLabel.setTooltip(FxTooltips.newTooltip(columnDescription));
     descriptionLabel.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     column.setGraphic(descriptionLabel);
 

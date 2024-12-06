@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,13 +34,13 @@ import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.cell.ComboBoxTreeTableCell;
@@ -75,6 +75,7 @@ public class EditComboCellFactory implements
 
       Label textValue = new Label();
       VBox textWrapper = new VBox(textValue);
+
       {
         textValue.setWrapText(true);
         textWrapper.setMaxHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
@@ -138,11 +139,11 @@ public class EditComboCellFactory implements
             getTableColumn().setMinWidth(graphType.getColumnWidth());
             setGraphic(node);
             setText(null);
-            setTooltip(new Tooltip(type.getFormattedStringCheckType(list)));
+            setTooltip(FxTooltips.newTooltip(type.getFormattedStringCheckType(list)));
           } else {
             String formatted = type.getFormattedStringCheckType(list);
             textValue.setText(formatted);
-            setTooltip(new Tooltip(formatted));
+            setTooltip(FxTooltips.newTooltip(formatted));
             setText(null);
             setGraphic(textWrapper);
           }
@@ -179,8 +180,8 @@ public class EditComboCellFactory implements
         } else if (value == null) {
           return null;
         } else {
-          throw new UnsupportedOperationException("Unhandled data type in edit combo CellFactory: "
-                                                  + type.getHeaderString());
+          throw new UnsupportedOperationException(
+              "Unhandled data type in edit combo CellFactory: " + type.getHeaderString());
         }
       }
     };

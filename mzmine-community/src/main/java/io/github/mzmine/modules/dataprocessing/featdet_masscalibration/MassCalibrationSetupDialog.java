@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts.ErrorDistributionChart;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts.ErrorVsMzChart;
@@ -52,7 +53,6 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
@@ -93,7 +93,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     super(valueCheckRequired, parameters, FxTextFlows.newTextFlowInAccordion("How to cite",
         boldText("Universal calibrants list disclaimer:\n"), text(
             "If you use universal calibrants matching mode, please cite suitable publication (source of universal "
-                + "calibrants list) depending on which list you used. References are available in the help file.")));
+            + "calibrants list) depending on which list you used. References are available in the help file.")));
 
     dataFiles = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
 
@@ -152,10 +152,10 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     chartChoicePane.setHgap(5);
 
     labelsCheckbox = new CheckBox("Labels preview");
-    labelsCheckbox.setTooltip(new Tooltip(WordUtils.wrap(
+    labelsCheckbox.setTooltip(FxTooltips.newTooltip(WordUtils.wrap(
         "When selected, labels such as extraction range"
-            + " and bias estimation value markers plus additional trend extraction details are displayed on the charts."
-            + " Deselecting can come in handy when the charts get cluttered with overlapping labels.",
+        + " and bias estimation value markers plus additional trend extraction details are displayed on the charts."
+        + " Deselecting can come in handy when the charts get cluttered with overlapping labels.",
         90)));
     labelsCheckbox.setSelected(true);
     labelsCheckbox.setOnAction(event -> loadPreview(false));
@@ -205,7 +205,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
   protected void cancelRunningPreviewTask() {
     if (previewTask != null && (previewTask.getStatus() == TaskStatus.PROCESSING
-        || previewTask.getStatus() == TaskStatus.WAITING)) {
+                                || previewTask.getStatus() == TaskStatus.WAITING)) {
       previewTask.cancel();
     }
   }

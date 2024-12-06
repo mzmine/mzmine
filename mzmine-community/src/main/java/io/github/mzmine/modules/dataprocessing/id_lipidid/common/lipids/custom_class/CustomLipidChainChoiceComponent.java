@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -37,7 +38,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 
@@ -70,7 +70,7 @@ public class CustomLipidChainChoiceComponent extends BorderPane {
       checkList.getItems().add(lipidChainType);
     });
 
-    removeButton.setTooltip(new Tooltip("Remove all Lipid Chains"));
+    removeButton.setTooltip(FxTooltips.newTooltip("Remove all Lipid Chains"));
     removeButton.setOnAction(e -> {
       checkList.getItems().clear();
     });

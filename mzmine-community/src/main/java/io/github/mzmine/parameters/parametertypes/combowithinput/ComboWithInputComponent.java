@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.ValueChangeDecorator;
 import java.util.ArrayList;
@@ -34,7 +35,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,7 +84,7 @@ public class ComboWithInputComponent<EnumValue> extends HBox implements ValueCha
   }
 
   public void setToolTipText(String toolTip) {
-    comboBox.setTooltip(new Tooltip(toolTip));
+    comboBox.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
   public EnumValue getSelectedOption() {
