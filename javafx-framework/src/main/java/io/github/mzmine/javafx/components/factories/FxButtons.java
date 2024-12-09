@@ -25,6 +25,8 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
+
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.util.IconCodeSupplier;
@@ -70,13 +72,13 @@ public class FxButtons {
     return createButton(label, tooltip, null, onAction);
   }
 
-  
+
   public static Button createButton(@Nullable String label, @Nullable String tooltip,
       @Nullable Node icon, EventHandler<ActionEvent> onAction) {
     Button b = new Button(label, icon);
     b.setOnAction(onAction);
     if (tooltip != null) {
-      Tooltip.install(b, new Tooltip(tooltip));
+      Tooltip.install(b, newTooltip(tooltip));
     }
     return b;
   }
@@ -86,7 +88,7 @@ public class FxButtons {
     Button b = new Button(null, icon);
     b.setOnAction(onAction);
     if (tooltip != null) {
-      Tooltip.install(b, new Tooltip(tooltip));
+      Tooltip.install(b, newTooltip(tooltip));
     }
     b.getStyleClass().add("icon-button");
     return b;
@@ -97,7 +99,7 @@ public class FxButtons {
     Button b = new Button(label);
     b.onActionProperty().bind(handlerProperty);
     if (tooltip != null) {
-      b.setTooltip(new Tooltip(tooltip));
+      b.setTooltip(newTooltip(tooltip));
     }
     return b;
   }

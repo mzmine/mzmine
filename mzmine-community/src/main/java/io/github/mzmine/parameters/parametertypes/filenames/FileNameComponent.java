@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.modules.io.download.DownloadAsset;
@@ -100,7 +101,7 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
     getChildren().addAll(txtFilename, btnLastFiles, btnFileBrowser);
     if (exportExamples != null) {
       Button button = new Button("Example");
-      Tooltip.install(button, new Tooltip("Export an example file with expected format"));
+      Tooltip.install(button, FxTooltips.newTooltip("Export an example file with expected format"));
       button.setOnAction(event -> {
         var selectedFile = openSelectDialog(lastFiles, FileSelectionType.SAVE, filters);
 
@@ -190,7 +191,7 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
   }
 
   public void setToolTipText(String toolTip) {
-    txtFilename.setTooltip(new Tooltip(toolTip));
+    txtFilename.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
   private void initDragDropped() {

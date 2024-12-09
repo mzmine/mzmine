@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes;
 
 
 import com.opencsv.exceptions.CsvException;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.CSVParsingUtils;
@@ -52,7 +53,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -125,10 +125,10 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
     setCenter(adductsView);
     setRight(buttonBar);
 
-    clearButton.setTooltip(new Tooltip("Remove all items"));
+    clearButton.setTooltip(FxTooltips.newTooltip("Remove all items"));
     clearButton.setOnAction(e -> currentChoices.clear());
 
-    toggleSelectButton.setTooltip(new Tooltip("Toggle selection"));
+    toggleSelectButton.setTooltip(FxTooltips.newTooltip("Toggle selection"));
     toggleSelectButton.setOnAction(e -> {
       final IndexedCheckModel<T> model = adductsView.getCheckModel();
       final ObservableList<T> items = currentChoices;
@@ -143,7 +143,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
       }
     });
 
-    addButton.setTooltip(new Tooltip("Add a custom choice to the set of choices"));
+    addButton.setTooltip(FxTooltips.newTooltip("Add a custom choice to the set of choices"));
     addButton.setOnAction(e -> {
       if (addChoiceParam == null) {
         return;
@@ -169,7 +169,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
       }
     });
 
-    importButton.setTooltip(new Tooltip("Import custom adducts from a CSV file"));
+    importButton.setTooltip(FxTooltips.newTooltip("Import custom adducts from a CSV file"));
     importButton.setOnAction(e -> {
       // Parent component.
       FileChooser fileChooser = new FileChooser();
@@ -201,7 +201,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
       loadChoices(csvLines, currentChoices);
     });
 
-    exportButton.setTooltip(new Tooltip("Export custom adducts to a CSV file"));
+    exportButton.setTooltip(FxTooltips.newTooltip("Export custom adducts to a CSV file"));
     exportButton.setOnAction(e -> {
 
       FileChooser fileChooser = new FileChooser();
@@ -223,7 +223,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
       }
     });
 
-    defaultButton.setTooltip(new Tooltip("Reset choices to default set"));
+    defaultButton.setTooltip(FxTooltips.newTooltip("Reset choices to default set"));
     defaultButton.setOnAction(e -> {
       ObservableList<T> newAdducts = FXCollections.observableArrayList();
       newAdducts.addAll(defaultChoices);

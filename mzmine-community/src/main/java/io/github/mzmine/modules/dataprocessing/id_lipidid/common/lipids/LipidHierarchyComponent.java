@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBoxTreeItem;
-import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -96,11 +96,11 @@ public class LipidHierarchyComponent extends BorderPane {
     FlowPane buttonsPanel = new FlowPane(Orientation.HORIZONTAL);
     buttonsPanel.getChildren().addAll(selectAllButton, selectNoneButton);
     setTop(buttonsPanel);
-    selectAllButton.setTooltip(new Tooltip("Select all choices"));
+    selectAllButton.setTooltip(FxTooltips.newTooltip("Select all choices"));
     selectAllButton.setOnAction(e -> {
       lipidChoices.getCheckModel().checkAll();
     });
-    selectNoneButton.setTooltip(new Tooltip("Clear all selections"));
+    selectNoneButton.setTooltip(FxTooltips.newTooltip("Clear all selections"));
     selectNoneButton.setOnAction(e -> {
       lipidChoices.getCheckModel().clearChecks();
     });

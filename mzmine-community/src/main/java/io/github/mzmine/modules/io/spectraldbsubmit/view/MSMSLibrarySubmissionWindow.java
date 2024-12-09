@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,8 @@ import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.LibrarySubmitModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.LibrarySubmitTask;
@@ -46,7 +48,6 @@ import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -375,7 +376,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
       }
 
       Node comp = up.createEditingComponent();
-      Tooltip.install(comp, new Tooltip(up.getDescription()));
+      Tooltip.install(comp, FxTooltips.newTooltip(up.getDescription()));
 
       // Set the initial value
       Object value = up.getValue();
@@ -418,7 +419,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
       }
 
       Node comp = up.createEditingComponent();
-      Tooltip.install(comp, new Tooltip(up.getDescription()));
+      Tooltip.install(comp, FxTooltips.newTooltip(up.getDescription()));
 
       // Set the initial value
       Object value = up.getValue();
@@ -465,7 +466,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
     ArrayList<String> messages = new ArrayList<>();
 
     boolean checkIon = streamSelection().filter(ScanSelectPanel::isValidAndSelected)
-        .filter(pn -> !pn.checkParameterValues(messages)).count() == 0;
+                           .filter(pn -> !pn.checkParameterValues(messages)).count() == 0;
     boolean checkSubmit = paramSubmit.checkParameterValues(messages);
     boolean checkMeta = paramMeta.checkParameterValues(messages);
     if (checkMeta && checkSubmit && checkIon) {
@@ -861,7 +862,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
 
     boolean changed =
         mzTolerance != this.mzTolerance || (this.mzTolerance == null && mzTolerance != null)
-            || !this.mzTolerance.equals(mzTolerance);
+        || !this.mzTolerance.equals(mzTolerance);
     this.mzTolerance = mzTolerance;
     exchangeTolerance = false;
 

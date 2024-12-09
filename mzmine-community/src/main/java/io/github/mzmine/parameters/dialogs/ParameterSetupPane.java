@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.FullColumnComponent;
 import io.github.mzmine.parameters.Parameter;
@@ -51,7 +52,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -59,7 +59,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -332,9 +331,7 @@ public class ParameterSetupPane extends BorderPane {
       label.setPadding(new Insets(0.0, 10.0, 0.0, 0.0));
 
       if (!up.getDescription().isEmpty()) {
-        final Tooltip tooltip = new Tooltip(up.getDescription());
-        tooltip.setShowDuration(new Duration(20_000));
-        label.setTooltip(tooltip);
+        label.setTooltip(FxTooltips.newTooltip(up.getDescription()));
       }
 
       label.setStyle("-fx-font-weight: bold");
@@ -467,7 +464,7 @@ public class ParameterSetupPane extends BorderPane {
 
   protected void addToolTipToControls(Node node, String toolTipText) {
     if (node instanceof Control) {
-      ((Control) node).setTooltip(new Tooltip(toolTipText));
+      ((Control) node).setTooltip(FxTooltips.newTooltip(toolTipText));
     }
     if (node instanceof Region panelComp) {
       for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {

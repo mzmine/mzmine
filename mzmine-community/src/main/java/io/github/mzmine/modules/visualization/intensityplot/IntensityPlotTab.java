@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,11 +30,12 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -46,7 +47,6 @@ import java.util.logging.Logger;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -113,7 +113,7 @@ public class IntensityPlotTab extends MZmineTab {
     Object xAxisValueSource = parameters.getParameter(IntensityPlotParameters.xAxisValueSource)
         .getValue();
     boolean isCombo = (xAxisValueSource instanceof ParameterWrapper)
-        && (!(((ParameterWrapper) xAxisValueSource).getParameter() instanceof DoubleParameter));
+                      && (!(((ParameterWrapper) xAxisValueSource).getParameter() instanceof DoubleParameter));
     if ((xAxisValueSource == IntensityPlotParameters.rawDataFilesOption) || isCombo) {
 
       chart = ChartFactory.createLineChart(title, xAxisLabel, yAxisLabel, dataset,
@@ -166,7 +166,7 @@ public class IntensityPlotTab extends MZmineTab {
     mainPane.setRight(toolBar);
 
     Button linesVisibleButton = new Button(null, new ImageView(linesIcon));
-    linesVisibleButton.setTooltip(new Tooltip("Switch lines on/off"));
+    linesVisibleButton.setTooltip(FxTooltips.newTooltip("Switch lines on/off"));
     linesVisibleButton.setOnAction(e -> {
       Plot plot = chart.getPlot();
 
@@ -208,7 +208,7 @@ public class IntensityPlotTab extends MZmineTab {
 
     if (chart.getPlot() instanceof XYPlot) {
       Button setupAxesButton = new Button(null, new ImageView(axesIcon));
-      setupAxesButton.setTooltip(new Tooltip("Setup ranges for axes"));
+      setupAxesButton.setTooltip(FxTooltips.newTooltip("Setup ranges for axes"));
       setupAxesButton.setOnAction(e -> {
         AxesSetupDialog dialog = new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(),
             chart.getXYPlot());

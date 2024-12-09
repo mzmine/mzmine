@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.text.MessageFormat;
@@ -36,7 +37,6 @@ import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,7 +85,7 @@ public class LastFilesButton extends Button implements LastFilesComponent {
   }
 
   private void init() {
-    setTooltip(new Tooltip("Load last files"));
+    setTooltip(FxTooltips.newTooltip("Load last files"));
     menu = new ContextMenu();
     lastFiles = new ArrayList<>();
     setLastFiles(lastFiles);
