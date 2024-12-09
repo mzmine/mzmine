@@ -28,7 +28,7 @@ afterEvaluate {
                 }
             }
             /*maven {
-            url = uri(layout.projectDirectory.dir("../../local-repo/"))
+                url = uri(layout.projectDirectory.dir("../../local-repo/"))
         }*/
         }
         publications {
