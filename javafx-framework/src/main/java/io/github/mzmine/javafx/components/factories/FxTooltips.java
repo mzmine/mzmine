@@ -38,7 +38,7 @@ public class FxTooltips {
   }
 
   public static @NotNull Tooltip newTooltip(@Nullable String text, @Nullable Duration duration) {
-    final Tooltip tooltip = newTooltip(text);
+    final Tooltip tooltip = new Tooltip(text);
     tooltip.setWrapText(true);
     tooltip.setMaxWidth(1000);
     tooltip.setShowDuration(duration);
