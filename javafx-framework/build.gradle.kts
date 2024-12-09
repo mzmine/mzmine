@@ -28,7 +28,6 @@ afterEvaluate {
     publishing {
         repositories {
             maven {
-                name = "mzmine_community-javafx-framework-${semver.version}"
                 url = uri("https://maven.pkg.github.com/mzio-gmbh/mzio_mzmine")
                 credentials {
                     username = System.getenv("PUBLISH_PACKAGE_USERNAME")
@@ -37,7 +36,7 @@ afterEvaluate {
             }
             /*maven {
             url = uri(layout.projectDirectory.dir("../local-repo/"))
-        }*/
+            }*/
         }
         publications {
             register<MavenPublication>("gpr") {

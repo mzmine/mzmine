@@ -1,6 +1,7 @@
 plugins {
     `kotlin-dsl`
     id("maven-publish")
+    alias(libs.plugins.semver)
 }
 
 kotlin {
@@ -11,11 +12,15 @@ dependencies {
     implementation(libs.javafx.plugin)
 }
 
+semver {
+    properties = "../../mzmine-community/src/main/resources/mzmineversion.properties"
+}
+
 afterEvaluate {
     publishing {
         repositories {
             maven {
-                name = "mzmine_community-convention-plugins-1.0.0"
+                name = "mzmine_community-convention-plugins"
                 url = uri("https://maven.pkg.github.com/mzio-gmbh/mzio_mzmine")
                 credentials {
                     username = System.getenv("PUBLISH_PACKAGE_USERNAME")
@@ -23,7 +28,7 @@ afterEvaluate {
                 }
             }
             /*maven {
-            url = uri(layout.projectDirectory.dir("../local-repo/"))
+            url = uri(layout.projectDirectory.dir("../../local-repo/"))
         }*/
         }
         publications {
@@ -35,7 +40,7 @@ afterEvaluate {
                     name = "mzmine-community convention-plugins"
                     description = "mzmine-community convention plugins"
                     url = "https://github.com/mzmine/mzmine"
-                    version = "1.0.0"
+                    version = semver.version
                     developers {
                         developer {
                             id = "mzmine"
