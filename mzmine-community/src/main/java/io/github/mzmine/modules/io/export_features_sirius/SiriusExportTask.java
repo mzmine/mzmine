@@ -130,6 +130,7 @@ public class SiriusExportTask extends AbstractTask {
     totalRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
 
     entryFactory = new SpectralLibraryEntryFactory(true, true, true, false);
+    entryFactory.setAddOnlineReactivityFlags(true);
   }
 
   private static void putMergedSpectrumFieldsIntoEntry(MergedSpectrum spectrum,

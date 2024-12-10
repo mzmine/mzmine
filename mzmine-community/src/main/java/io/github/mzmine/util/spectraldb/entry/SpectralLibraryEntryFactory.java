@@ -280,8 +280,11 @@ public class SpectralLibraryEntryFactory {
   }
 
 
-  private static void addExperimentalFeatureResults(final SpectralLibraryEntry entry,
+  public void addExperimentalFeatureResults(final SpectralLibraryEntry entry,
       final @NotNull FeatureListRow row) {
+    if (!addExperimentalResults) {
+      return;
+    }
     if (entry.getField(DBEntryField.RT).isEmpty()) {
       entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
     }
@@ -387,12 +390,10 @@ public class SpectralLibraryEntryFactory {
 
   /**
    * Add metadata to spectral library entry from feature annotation.
-   *
-   * @param match
    */
   public void addFeatureAnnotationFields(@NotNull final SpectralLibraryEntry entry,
       @Nullable FeatureAnnotation match) {
-    if (addAnnotation && match == null) {
+    if (!addAnnotation || match == null) {
       return;
     }
     switch (match) {
@@ -412,7 +413,7 @@ public class SpectralLibraryEntryFactory {
 
   public void addAnnotationFields(@NotNull final SpectralLibraryEntry entry,
       @Nullable CompoundDBAnnotation match) {
-    if (addAnnotation && match == null) {
+    if (!addAnnotation || match == null) {
       return;
     }
     for (var dbentry : match.getReadOnlyMap().entrySet()) {
@@ -431,7 +432,7 @@ public class SpectralLibraryEntryFactory {
 
   public void addAnnotationFields(@NotNull final SpectralLibraryEntry entry,
       @Nullable SpectralLibraryEntry match) {
-    if (addAnnotation && match == null) {
+    if (!addAnnotation || match == null) {
       return;
     }
     for (var dbentry : match.getFields().entrySet()) {
@@ -478,7 +479,7 @@ public class SpectralLibraryEntryFactory {
    * Put experimental results from feature to entry
    */
   public void putFeatureFieldsIntoEntry(@NotNull SpectralLibraryEntry entry, @Nullable Feature f) {
-    if (f == null && addExperimentalResults) {
+    if (f == null || !addExperimentalResults) {
       return;
     }
 
@@ -491,21 +492,22 @@ public class SpectralLibraryEntryFactory {
     this.addOnlineReactivityFlags = addOnlineReactivityFlags;
   }
 
+  /**
+   * Add online reactivity fields if activated by flag
+   */
   public void addOnlineReactivityFlags(@NotNull final SpectralLibraryEntry entry,
-      @Nullable FeatureListRow row) {
-    if (row == null) {
+      @Nullable final FeatureListRow row) {
+    if (row == null || !addOnlineReactivityFlags) {
       return;
     }
 
-    if (addOnlineReactivityFlags) {
-      // reactivity only for MS1
-      if (entry.getMsLevel().stream().anyMatch(msLevel -> msLevel == 1)) {
-        String reactivityString = reactionJsonWriter.createReactivityString(row,
-            row.getOnlineReactionMatches());
+    // reactivity only for MS1
+    if (entry.getMsLevel().stream().anyMatch(msLevel -> msLevel == 1)) {
+      String reactivityString = reactionJsonWriter.createReactivityString(row,
+          row.getOnlineReactionMatches());
 
-        if (reactivityString != null) {
-          entry.putIfNotNull(DBEntryField.ONLINE_REACTIVITY, reactivityString);
-        }
+      if (reactivityString != null) {
+        entry.putIfNotNull(DBEntryField.ONLINE_REACTIVITY, reactivityString);
       }
     }
   }
