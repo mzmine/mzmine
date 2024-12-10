@@ -8,6 +8,8 @@ semver {
     properties = "../../mzmine-community/src/main/resources/mzmineversion.properties"
 }
 
+val pushOnline: Boolean = project.findProperty("mziorepo")?.toString()?.toBoolean() ?: false
+
 
 kotlin {
     jvmToolchain(21)
@@ -20,17 +22,19 @@ dependencies {
 afterEvaluate {
     publishing {
         repositories {
-            maven {
-                name = "mzmine_community-convention-plugins"
-                url = uri("https://maven.pkg.github.com/mzio-gmbh/mzio_mzmine")
-                credentials {
-                    username = System.getenv("PUBLISH_PACKAGE_USERNAME")
-                    password = System.getenv("PUBLISH_PACKAGE_TOKEN")
+            if (pushOnline) {
+                maven {
+                    url = uri("https://maven.pkg.github.com/mzio-gmbh/mzio_mzmine")
+                    credentials {
+                        username = System.getenv("PUBLISH_PACKAGE_USERNAME")
+                        password = System.getenv("PUBLISH_PACKAGE_TOKEN")
+                    }
+                }
+            } else {
+                maven {
+                    url = uri(layout.projectDirectory.dir("../../local-repo/"))
                 }
             }
-            /*maven {
-                url = uri(layout.projectDirectory.dir("../../local-repo/"))
-            }*/
         }
         publications {
             register<MavenPublication>("publish-convention-plugins") {

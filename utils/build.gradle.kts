@@ -50,18 +50,6 @@ semver {
 
 afterEvaluate {
     publishing {
-        repositories {
-            maven {
-                url = uri("https://maven.pkg.github.com/mzio-gmbh/mzio_mzmine")
-                credentials {
-                    username = System.getenv("PUBLISH_PACKAGE_USERNAME")
-                    password = System.getenv("PUBLISH_PACKAGE_TOKEN")
-                }
-            }
-            /*maven {
-                url = uri(layout.projectDirectory.dir("../local-repo/"))
-            }*/
-        }
         publications {
             register<MavenPublication>("publish-utils") {
                 from(components["java"])

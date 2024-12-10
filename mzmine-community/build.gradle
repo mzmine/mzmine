@@ -628,19 +628,6 @@ tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseI
 // otherwise the version will always be 1.0.0
 afterEvaluate {
     publishing {
-        repositories {
-            maven {
-                url = uri("https://maven.pkg.github.com/mzio-gmbh/mzio_mzmine")
-                credentials {
-                    username = System.getenv("PUBLISH_PACKAGE_USERNAME")
-                    password = System.getenv("PUBLISH_PACKAGE_TOKEN")
-                }
-            }
-            /*maven {
-                url = uri(layout.projectDirectory.dir("../local-repo/"))
-            }*/
-        }
-
         publications {
             register("mzmine-community-package", MavenPublication) {
                 from(components["java"])
