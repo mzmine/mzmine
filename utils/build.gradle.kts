@@ -63,7 +63,7 @@ afterEvaluate {
             }
         }
         publications {
-            register<MavenPublication>("gpr") {
+            register<MavenPublication>("publish-utils") {
                 from(components["java"])
                 pom {
                     group = "io.github.mzmine"

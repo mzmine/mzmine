@@ -39,7 +39,7 @@ afterEvaluate {
             }
         }
         publications {
-            register<MavenPublication>("gpr") {
+            register<MavenPublication>("publish-javafx-framework") {
                 from(components["java"])
                 pom {
                     group = "io.github.mzmine"

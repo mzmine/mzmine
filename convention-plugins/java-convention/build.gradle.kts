@@ -4,16 +4,17 @@ plugins {
     alias(libs.plugins.semver)
 }
 
+semver {
+    properties = "../../mzmine-community/src/main/resources/mzmineversion.properties"
+}
+
+
 kotlin {
     jvmToolchain(21)
 }
 
 dependencies {
     implementation(libs.javafx.plugin)
-}
-
-semver {
-    properties = "../../mzmine-community/src/main/resources/mzmineversion.properties"
 }
 
 afterEvaluate {
@@ -32,7 +33,7 @@ afterEvaluate {
             }
         }
         publications {
-            register<MavenPublication>("gpr") {
+            register<MavenPublication>("publish-convention-plugins") {
                 from(components["java"])
                 pom {
                     group = "io.github.mzmine"
