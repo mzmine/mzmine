@@ -27,17 +27,21 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorFlag;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorResults;
+import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionJsonWriter;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
@@ -49,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -67,7 +72,11 @@ public class SpectralLibraryEntryFactory {
   private final boolean compactUSI;
   private final boolean addExperimentalResults;
   private final boolean addAnnotation;
-  private boolean flagChimerics;
+  private final boolean useRowIdAsScanNumber;
+  private boolean flagChimerics = true;
+  // online reaction workflow to flag spectra as potential educts or products of reactions
+  private final OnlineReactionJsonWriter reactionJsonWriter = new OnlineReactionJsonWriter(false);
+  private boolean addOnlineReactivityFlags = false;
 
   /**
    * Experimental results and annotation added
@@ -76,7 +85,7 @@ public class SpectralLibraryEntryFactory {
    *                   into a list of ranges
    */
   public SpectralLibraryEntryFactory(final boolean compactUSI) {
-    this(compactUSI, true, true);
+    this(compactUSI, true, true, true);
   }
 
   /**
@@ -86,9 +95,10 @@ public class SpectralLibraryEntryFactory {
    *                               Height
    * @param addAnnotation          add annotation fields if available
    */
-  public SpectralLibraryEntryFactory(final boolean compactUSI, final boolean addExperimentalResults,
-      final boolean addAnnotation) {
+  public SpectralLibraryEntryFactory(final boolean compactUSI, final boolean useRowIdAsScanNumber,
+      final boolean addExperimentalResults, final boolean addAnnotation) {
     this.compactUSI = compactUSI;
+    this.useRowIdAsScanNumber = useRowIdAsScanNumber;
     this.addExperimentalResults = addExperimentalResults;
     this.addAnnotation = addAnnotation;
   }
@@ -141,8 +151,8 @@ public class SpectralLibraryEntryFactory {
    * @param metadataMap add additional fields to the spectral library entry
    * @return spectral library entry
    */
-  public SpectralLibraryEntry create(final @Nullable FeatureListRow row,
-      @Nullable MemoryMapStorage storage, final @Nullable Scan scan,
+  public SpectralLibraryEntry create(@Nullable MemoryMapStorage storage,
+      final @Nullable FeatureListRow row, final @Nullable MassSpectrum scan,
       @Nullable final FeatureAnnotation match, final @NotNull DataPoint[] dataPoints,
       final @Nullable Map<DBEntryField, Object> metadataMap) {
 
@@ -156,10 +166,14 @@ public class SpectralLibraryEntryFactory {
     }
 
     if (row != null) {
+      // FEATURE_ID is used by GNPS and SIRIUS as simple number
+      entry.putIfNotNull(DBEntryField.FEATURE_ID, row.getID());
+
       // write feature ID as feature list and row ID to identify MSn trees or MS2 spectra of the same row
       var flist = row.getFeatureList();
       if (flist != null) {
-        entry.putIfNotNull(DBEntryField.FEATURE_ID, flist.getName() + ":" + row.getID());
+        entry.putIfNotNull(DBEntryField.FEATURELIST_NAME_FEATURE_ID,
+            flist.getName() + ":" + row.getID());
       }
       // add experimental data
       if (addExperimentalResults) {
@@ -183,13 +197,49 @@ public class SpectralLibraryEntryFactory {
     var polarity = FeatureUtils.extractBestPolarity(row, scan, match);
     polarity.ifPresent(pol -> entry.putIfNotNull(DBEntryField.POLARITY, pol));
 
+    final Optional<IonType> ionType = FeatureUtils.extractBestIonIdentity(match, row);
+    ionType.ifPresent(ion -> entry.putIfNotNull(DBEntryField.ION_TYPE, ion.toString(false)));
+
+    // online reactivity workflow
+    addOnlineReactivityFlags(entry, row);
+
+    // replicate what GNPS does - some tools rely on the scan number to be there
+    // GNPS just uses the FEATURE_ID for this
+    if (useRowIdAsScanNumber && row != null) {
+      entry.putIfNotNull(DBEntryField.SCAN_NUMBER, row.getID());
+    }
+
     return entry;
   }
 
 
   /**
+   * This method is specific to unknown spectra. Also see
+   * {@link SpectralLibraryEntryFactory#create(MemoryMapStorage, FeatureListRow, MassSpectrum,
+   * FeatureAnnotation, DataPoint[], Map)} for generation of spectral library entries in a more
+   * general way.
+   *
+   * @param storage  optional memory storage to memory map data
+   * @param row      row to export
+   * @param scan     scan to export
+   * @param dps      data points
+   * @param chimeric chimeric result of scan.
+   * @return the new spectral library entry
+   */
+  @NotNull
+  public SpectralLibraryEntry createUnknown(final @Nullable MemoryMapStorage storage,
+      final @Nullable FeatureListRow row, final @Nullable MassSpectrum scan,
+      @NotNull final DataPoint[] dps, @Nullable final ChimericPrecursorResults chimeric,
+      final @Nullable Map<DBEntryField, Object> metadataMap) {
+    // add instrument type etc by parameter
+    SpectralLibraryEntry entry = create(storage, row, scan, null, dps, metadataMap);
+    addChimericMs1PrecursorResults(entry, chimeric);
+    return entry;
+  }
+
+  /**
    * This method is specific to annotated compounds for library generation. Also see
-   * {@link SpectralLibraryEntryFactory#create(FeatureListRow, MemoryMapStorage, Scan,
+   * {@link SpectralLibraryEntryFactory#create(MemoryMapStorage, FeatureListRow, MassSpectrum,
    * FeatureAnnotation, DataPoint[], Map)} for generation of spectral library entries in a more
    * general way also for unannotated.
    *
@@ -206,13 +256,13 @@ public class SpectralLibraryEntryFactory {
    */
   @NotNull
   public SpectralLibraryEntry createAnnotated(final @Nullable MemoryMapStorage storage,
-      final @Nullable FeatureListRow row, final @Nullable Scan msmsScan,
+      final @Nullable FeatureListRow row, final @Nullable MassSpectrum msmsScan,
       final @NotNull FeatureAnnotation match, @NotNull final DataPoint[] dps,
       @Nullable final ChimericPrecursorResults chimeric, final @Nullable MSMSScore score,
       final @Nullable List<FeatureAnnotation> allMatchedCompounds,
       final @Nullable Map<DBEntryField, Object> metadataMap) {
     // add instrument type etc by parameter
-    SpectralLibraryEntry entry = create(row, storage, msmsScan, match, dps, metadataMap);
+    SpectralLibraryEntry entry = create(storage, row, msmsScan, match, dps, metadataMap);
 
     // only add fields here that are specific to library generation
     // all other fields should be added in {@link SpectralLibraryEntryFactory}
@@ -224,10 +274,7 @@ public class SpectralLibraryEntryFactory {
     // score might be successful without having a formula - so check if we actually have scores
     addMsMsScore(entry, score);
 
-    if (flagChimerics && chimeric != null) {
-      // default is passed
-      addChimericMs1PrecursorResults(entry, chimeric);
-    }
+    addChimericMs1PrecursorResults(entry, chimeric);
 
     return entry;
   }
@@ -248,55 +295,58 @@ public class SpectralLibraryEntryFactory {
 
 
   public void addScanSpecificFields(@NotNull final SpectralLibraryEntry entry,
-      final @Nullable Scan scan) {
-    if (scan == null) {
+      final @Nullable MassSpectrum spec) {
+    if (spec == null) {
       return;
     }
-    MsMsInfo msMsInfo = scan.getMsMsInfo();
-    if (msMsInfo instanceof MSnInfoImpl msnInfo) {
-      // energies are quite complex
-      // [MS2, MS3, MS4] and multiple energies in last level due to merging
-      var msnEnergies = ScanUtils.extractMSnCollisionEnergies(scan);
-      if (!msnEnergies.isEmpty()) {
-        entry.putIfNotNull(DBEntryField.MSN_COLLISION_ENERGIES, msnEnergies);
+    if (spec instanceof Scan scan) {
+      MsMsInfo msMsInfo = scan.getMsMsInfo();
+      if (msMsInfo instanceof MSnInfoImpl msnInfo) {
+        // energies are quite complex
+        // [MS2, MS3, MS4] and multiple energies in last level due to merging
+        var msnEnergies = ScanUtils.extractMSnCollisionEnergies(scan);
+        if (!msnEnergies.isEmpty()) {
+          entry.putIfNotNull(DBEntryField.MSN_COLLISION_ENERGIES, msnEnergies);
+        }
+        //
+        List<DDAMsMsInfo> precursors = msnInfo.getPrecursors();
+        entry.putIfNotNull(DBEntryField.MSN_PRECURSOR_MZS,
+            SpectralLibraryEntryFactory.extractJsonList(precursors, DDAMsMsInfo::getIsolationMz));
+        entry.putIfNotNull(DBEntryField.MSN_FRAGMENTATION_METHODS,
+            SpectralLibraryEntryFactory.extractJsonList(precursors,
+                DDAMsMsInfo::getActivationMethod));
+        entry.putIfNotNull(DBEntryField.MSN_ISOLATION_WINDOWS,
+            SpectralLibraryEntryFactory.extractJsonList(precursors, info -> {
+              Range<Double> window = info.getIsolationWindow();
+              return window == null ? null : RangeUtils.rangeLength(window);
+            }));
+        entry.putIfNotNull(DBEntryField.MS_LEVEL, msnInfo.getMsLevel());
+      } else if (msMsInfo != null) {
+        entry.putIfNotNull(DBEntryField.FRAGMENTATION_METHOD, msMsInfo.getActivationMethod());
+        Range<Double> window = msMsInfo.getIsolationWindow();
+        if (window != null) {
+          entry.putIfNotNull(DBEntryField.ISOLATION_WINDOW, RangeUtils.rangeLength(window));
+        }
+        entry.putIfNotNull(DBEntryField.MS_LEVEL, msMsInfo.getMsLevel());
       }
-      //
-      List<DDAMsMsInfo> precursors = msnInfo.getPrecursors();
-      entry.putIfNotNull(DBEntryField.MSN_PRECURSOR_MZS,
-          SpectralLibraryEntryFactory.extractJsonList(precursors, DDAMsMsInfo::getIsolationMz));
-      entry.putIfNotNull(DBEntryField.MSN_FRAGMENTATION_METHODS,
-          SpectralLibraryEntryFactory.extractJsonList(precursors,
-              DDAMsMsInfo::getActivationMethod));
-      entry.putIfNotNull(DBEntryField.MSN_ISOLATION_WINDOWS,
-          SpectralLibraryEntryFactory.extractJsonList(precursors, info -> {
-            Range<Double> window = info.getIsolationWindow();
-            return window == null ? null : RangeUtils.rangeLength(window);
-          }));
-      entry.putIfNotNull(DBEntryField.MS_LEVEL, msnInfo.getMsLevel());
-    } else if (msMsInfo != null) {
-      entry.putIfNotNull(DBEntryField.FRAGMENTATION_METHOD, msMsInfo.getActivationMethod());
-      Range<Double> window = msMsInfo.getIsolationWindow();
-      if (window != null) {
-        entry.putIfNotNull(DBEntryField.ISOLATION_WINDOW, RangeUtils.rangeLength(window));
-      }
-      entry.putIfNotNull(DBEntryField.MS_LEVEL, msMsInfo.getMsLevel());
     }
-    List<Float> energies = ScanUtils.extractCollisionEnergies(scan);
+
+    List<Float> energies = ScanUtils.extractCollisionEnergies(spec);
     if (!energies.isEmpty()) {
       FloatArrayList list = new FloatArrayList(energies);
       entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, list);
     }
 
-    addUniversalSpectrumIdentifiers(entry, scan);
+    addUniversalSpectrumIdentifiers(entry, spec);
 
-    if (scan instanceof MergedMassSpectrum merged) {
+    if (spec instanceof MergedMassSpectrum merged) {
       entry.putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
       entry.putIfNotNull(DBEntryField.SCAN_NUMBER,
           ScanUtils.extractScanNumbers(merged).boxed().toList());
       entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getMergingType());
     } else {
       entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, MergingType.SINGLE_BEST_SCAN);
-      entry.putIfNotNull(DBEntryField.SCAN_NUMBER, scan.getScanNumber());
+      entry.putIfNotNull(DBEntryField.SCAN_NUMBER, ScanUtils.extractScanNumber(spec));
     }
   }
 
@@ -309,8 +359,8 @@ public class SpectralLibraryEntryFactory {
   }
 
   public void addChimericMs1PrecursorResults(final @NotNull SpectralLibraryEntry entry,
-      final @NotNull ChimericPrecursorResults chimeric) {
-    if (!flagChimerics) {
+      final @Nullable ChimericPrecursorResults chimeric) {
+    if (!flagChimerics || chimeric == null) {
       return;
     }
 
@@ -323,7 +373,7 @@ public class SpectralLibraryEntryFactory {
   }
 
   public void addUniversalSpectrumIdentifiers(final @NotNull SpectralLibraryEntry entry,
-      final @NotNull Scan scan) {
+      final @NotNull MassSpectrum scan) {
     // merged scans are derived from multiple source scans - add all USI here
     String datasetID = entry.getOrElse(DBEntryField.DATASET_ID, null);
     final List<String> usis;
@@ -421,6 +471,42 @@ public class SpectralLibraryEntryFactory {
       entry.putIfNotNull(DBEntryField.OTHER_MATCHED_COMPOUNDS_NAMES, allMatchedCompounds.stream()
           .filter(m -> !Objects.equals(match.getCompoundName(), m.getCompoundName()))
           .map(FeatureAnnotation::toString).collect(Collectors.joining("; ")));
+    }
+  }
+
+  /**
+   * Put experimental results from feature to entry
+   */
+  public void putFeatureFieldsIntoEntry(@NotNull SpectralLibraryEntry entry, @Nullable Feature f) {
+    if (f == null && addExperimentalResults) {
+      return;
+    }
+
+    entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
+    entry.putIfNotNull(DBEntryField.RT, f.getRT());
+    entry.putIfNotNull(DBEntryField.CCS, f.getCCS());
+  }
+
+  public void setAddOnlineReactivityFlags(final boolean addOnlineReactivityFlags) {
+    this.addOnlineReactivityFlags = addOnlineReactivityFlags;
+  }
+
+  public void addOnlineReactivityFlags(@NotNull final SpectralLibraryEntry entry,
+      @Nullable FeatureListRow row) {
+    if (row == null) {
+      return;
+    }
+
+    if (addOnlineReactivityFlags) {
+      // reactivity only for MS1
+      if (entry.getMsLevel().stream().anyMatch(msLevel -> msLevel == 1)) {
+        String reactivityString = reactionJsonWriter.createReactivityString(row,
+            row.getOnlineReactionMatches());
+
+        if (reactivityString != null) {
+          entry.putIfNotNull(DBEntryField.ONLINE_REACTIVITY, reactivityString);
+        }
+      }
     }
   }
 }

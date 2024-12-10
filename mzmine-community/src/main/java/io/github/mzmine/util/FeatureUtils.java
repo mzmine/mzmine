@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -57,6 +58,7 @@ import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatc
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -70,6 +72,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
@@ -661,12 +664,12 @@ public class FeatureUtils {
    */
   @NotNull
   public static OptionalInt extractBestChargeState(@Nullable FeatureListRow row,
-      @Nullable Scan scan, @Nullable FeatureAnnotation annotation) {
+      @Nullable MassSpectrum spec, @Nullable FeatureAnnotation annotation) {
     final Integer rowCharge = row != null ? row.getRowCharge() : null;
     if (rowCharge != null && rowCharge != 0) {
       return OptionalInt.of(rowCharge);
     }
-    if (scan != null && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
+    if (spec instanceof Scan scan && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
       final Integer precursorCharge = dda.getPrecursorCharge();
       if (precursorCharge != null && precursorCharge != 0) {
         return OptionalInt.of(precursorCharge);
@@ -706,8 +709,8 @@ public class FeatureUtils {
    * be wrong polarity, therefore last). Optional.empty if no polarity is found.
    */
   public static Optional<PolarityType> extractBestPolarity(@Nullable FeatureListRow row,
-      @Nullable Scan scan, @Nullable FeatureAnnotation annotation) {
-    PolarityType polarity = scan != null ? scan.getPolarity() : null;
+      @Nullable MassSpectrum scan, @Nullable FeatureAnnotation annotation) {
+    PolarityType polarity = scan instanceof Scan s ? s.getPolarity() : null;
     if (PolarityType.isDefined(polarity)) {
       return Optional.of(polarity);
     }
@@ -756,7 +759,7 @@ public class FeatureUtils {
    */
   @NotNull
   public static OptionalInt extractBestSignedChargeState(@Nullable FeatureListRow row,
-      @Nullable Scan scan, @Nullable FeatureAnnotation annotation) {
+      @Nullable MassSpectrum scan, @Nullable FeatureAnnotation annotation) {
     // just use positive as default here
     final Optional<PolarityType> pol = extractBestPolarity(row, scan, annotation);
     return extractBestChargeState(row, scan, annotation).stream().map(charge -> {
@@ -795,7 +798,7 @@ public class FeatureUtils {
    */
   @NotNull
   public static Optional<Double> getPrecursorMz(@Nullable final FeatureAnnotation match,
-      @Nullable final FeatureListRow row, @Nullable final Scan scan) {
+      @Nullable final FeatureListRow row, @Nullable final MassSpectrum scan) {
     if (match != null) {
       Double mz = match.getPrecursorMZ();
       if (mz != null) {
@@ -810,13 +813,43 @@ public class FeatureUtils {
       }
     }
 
-    if (scan != null) {
-      Double mz = scan.getPrecursorMz();
+    if (scan instanceof Scan s) {
+      Double mz = s.getPrecursorMz();
       if (mz != null) {
         return Optional.of(mz);
       }
     }
 
+    return Optional.empty();
+  }
+
+  /**
+   * Finds the best adduct definition for a match (optional) and a row (optional). If the match is
+   * undefined and only row is searched, all {@link FeatureAnnotation} for this row will be
+   * searched
+   *
+   * @param match first priority if set
+   * @param row   second priority {@link IonIdentity} otherwise the FeatureAnnotations if no match
+   *              is defined as first argument
+   * @return
+   */
+  public static @NotNull Optional<IonType> extractBestIonIdentity(
+      final @Nullable FeatureAnnotation match, final @Nullable FeatureListRow row) {
+    IonType ion = match != null ? match.getAdductType() : null;
+    if (ion != null) {
+      return Optional.of(ion);
+    }
+    if (row != null) {
+      var identity = row.getBestIonIdentity();
+      if (identity != null) {
+        return Optional.ofNullable(identity.getIonType());
+      }
+      // try to get from match - but only if match was not defined
+      if (match == null) {
+        return CompoundAnnotationUtils.streamFeatureAnnotations(row)
+            .map(FeatureAnnotation::getAdductType).filter(Objects::nonNull).findFirst();
+      }
+    }
     return Optional.empty();
   }
 }

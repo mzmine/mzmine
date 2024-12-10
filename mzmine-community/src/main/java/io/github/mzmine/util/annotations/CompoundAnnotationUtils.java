@@ -269,6 +269,10 @@ public class CompoundAnnotationUtils {
    * @return usually the signed charge if present. Either from adduct or from charge type
    */
   public static OptionalInt extractCharge(@Nullable final FeatureAnnotation annotation) {
+    if (annotation == null) {
+      return OptionalInt.empty();
+    }
+
     IonType adduct = annotation.getAdductType();
     if (adduct != null) {
       return OptionalInt.of(adduct.getCharge());

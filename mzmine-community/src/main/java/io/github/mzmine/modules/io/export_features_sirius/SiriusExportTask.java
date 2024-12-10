@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -44,7 +43,6 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionJsonWriter;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergeMode;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
@@ -103,7 +101,6 @@ public class SiriusExportTask extends AbstractTask {
   private final MergeMode mergeMode;
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private final AtomicInteger processedRows = new AtomicInteger(0);
-  private final OnlineReactionJsonWriter reactionJsonWriter;
   private final IntensityNormalizer normalizer;
   private final SpectralLibraryEntryFactory entryFactory;
 
@@ -130,11 +127,9 @@ public class SiriusExportTask extends AbstractTask {
     needAnnotation = parameters.getValue(SiriusExportParameters.NEED_ANNOTATION);
     mergeMode = mergeParameters.getValue(MsMsSpectraMergeParameters.MERGE_MODE);
 
-    reactionJsonWriter = new OnlineReactionJsonWriter(false);
-
     totalRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
 
-    entryFactory = new SpectralLibraryEntryFactory(true, true, false);
+    entryFactory = new SpectralLibraryEntryFactory(true, true, true, false);
   }
 
   private static void putMergedSpectrumFieldsIntoEntry(MergedSpectrum spectrum,
@@ -145,20 +140,6 @@ public class SiriusExportTask extends AbstractTask {
         Arrays.stream(spectrum.scanIds).mapToObj(Integer::toString)
             .collect(Collectors.joining(",")));
     entry.putIfNotNull(DBEntryField.SIRIUS_MERGED_STATS, spectrum.getMergeStatsDescription());
-  }
-
-  private static void putFeatureFieldsIntoEntry(Feature f, SpectralLibraryEntry entry) {
-    final int charge = FeatureUtils.extractBestSignedChargeState(f.getRow(),
-        f.getMostIntenseFragmentScan()).orElse(1);
-    final PolarityType pol = FeatureUtils.extractBestPolarity(f.getRow()).orElse(null);
-
-    entry.putIfNotNull(DBEntryField.FEATURE_ID, f.getRow().getID());
-    // replicate what GNPS does - some tools rely on the scan number to be there
-    // GNPS just uses the FEATURE_ID for this
-    entry.putIfNotNull(DBEntryField.SCAN_NUMBER, f.getRow().getID());
-    entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
-    entry.putIfNotNull(DBEntryField.RT, f.getRT());
-    entry.setCharge(charge, pol);
   }
 
   @Override
@@ -321,10 +302,15 @@ public class SiriusExportTask extends AbstractTask {
       data = ScanUtils.extractDataPoints(spectrum, true);
     }
 
-    // TODO MSAnnotationFlags from old sirius import
-    final SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(null, f.getMZ(), data);
+    // create unknown to not interfer with annotation by sirius by adding to much info
+    final SpectralLibraryEntry entry = entryFactory.createUnknown(null, f.getRow(), spectrum, data,
+        null, null);
 
-    putFeatureFieldsIntoEntry(f, entry);
+    // below here are only SIRIUS specific fields added or overwritten.
+    // all default behavior should go into {@link SpectralLibraryEntryFactory}
+
+    // use feature mz and rt instead of row or scan
+    entryFactory.putFeatureFieldsIntoEntry(entry, f);
     FeatureListRow row = f.getRow();
 
     switch (spectrumType) {
@@ -339,23 +325,8 @@ public class SiriusExportTask extends AbstractTask {
       case MSMS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 2);
     }
 
-    final IonIdentity ionType = row.getBestIonIdentity();
-    if (ionType != null) {
-      entry.putIfNotNull(DBEntryField.ION_TYPE, ionType.getAdduct());
-    }
-
     if (spectrum instanceof MergedSpectrum spec) {
       putMergedSpectrumFieldsIntoEntry(spec, entry);
-    }
-
-    // reactivity only for MS1
-    if (entry.getMsLevel().stream().anyMatch(msLevel -> msLevel == 1)) {
-      String reactivityString = reactionJsonWriter.createReactivityString(row,
-          row.getOnlineReactionMatches());
-
-      if (reactivityString != null) {
-        entry.putIfNotNull(DBEntryField.ONLINE_REACTIVITY, reactivityString);
-      }
     }
 
     return entry;

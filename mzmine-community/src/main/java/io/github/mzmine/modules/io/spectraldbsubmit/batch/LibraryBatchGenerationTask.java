@@ -169,7 +169,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         IncludeInputSpectra.HIGHEST_TIC_PER_ENERGY, IntensityMergingType.MAXIMUM,
         postMergingMsLevelFilter);
 
-    entryFactory = new SpectralLibraryEntryFactory(compactUSI, true, true);
+    entryFactory = new SpectralLibraryEntryFactory(compactUSI, false, true, true);
     if (handleChimericsOption == ChimericMsOption.FLAG) {
       entryFactory.setFlagChimerics(true);
     }
