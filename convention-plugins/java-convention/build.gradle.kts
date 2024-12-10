@@ -19,17 +19,17 @@ semver {
 afterEvaluate {
     publishing {
         repositories {
-            maven {
+            /*maven {
                 name = "mzmine_community-convention-plugins"
                 url = uri("https://maven.pkg.github.com/mzio-gmbh/mzio_mzmine")
                 credentials {
                     username = System.getenv("PUBLISH_PACKAGE_USERNAME")
                     password = System.getenv("PUBLISH_PACKAGE_TOKEN")
                 }
-            }
-            /*maven {
+            }*/
+            maven {
                 url = uri(layout.projectDirectory.dir("../../local-repo/"))
-        }*/
+            }
         }
         publications {
             register<MavenPublication>("gpr") {
