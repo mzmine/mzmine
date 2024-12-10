@@ -85,7 +85,7 @@ public class SpectralLibraryEntryFactory {
    *                   into a list of ranges
    */
   public SpectralLibraryEntryFactory(final boolean compactUSI) {
-    this(compactUSI, true, true, true);
+    this(compactUSI, false, true, true);
   }
 
   /**
