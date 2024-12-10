@@ -279,9 +279,11 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
             .write(newLine);
       }
 
-      final int charge = FeatureUtils.extractBestAbsoluteChargeState(row, msmsScan);
-      final PolarityType pol = FeatureUtils.extractBestPolarity(row, msmsScan);
-      writer.write(STR."CHARGE=\{charge}\{pol.asSingleChar()}\{newLine}");
+      // TODO maybe skip writing if unknown
+      final int charge = FeatureUtils.extractBestAbsoluteChargeState(row, msmsScan).orElse(1);
+      final PolarityType pol = FeatureUtils.extractBestPolarity(row, msmsScan)
+          .orElse(PolarityType.POSITIVE);
+      writer.append("CHARGE=" + charge).append(pol.asSingleChar()).append(newLine);
 
       writer.append("MSLEVEL=2").write(newLine);
 

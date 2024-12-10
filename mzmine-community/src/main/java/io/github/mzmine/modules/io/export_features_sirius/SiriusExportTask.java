@@ -65,6 +65,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -104,6 +105,7 @@ public class SiriusExportTask extends AbstractTask {
   private final AtomicInteger processedRows = new AtomicInteger(0);
   private final OnlineReactionJsonWriter reactionJsonWriter;
   private final IntensityNormalizer normalizer;
+  private final SpectralLibraryEntryFactory entryFactory;
 
 
   protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -131,6 +133,8 @@ public class SiriusExportTask extends AbstractTask {
     reactionJsonWriter = new OnlineReactionJsonWriter(false);
 
     totalRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
+
+    entryFactory = new SpectralLibraryEntryFactory(true, true, false);
   }
 
   private static void putMergedSpectrumFieldsIntoEntry(MergedSpectrum spectrum,
@@ -144,8 +148,9 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   private static void putFeatureFieldsIntoEntry(Feature f, SpectralLibraryEntry entry) {
-    final int charge = FeatureUtils.extractBestAbsoluteChargeState(f.getRow());
-    final PolarityType pol = FeatureUtils.extractBestPolarity(f.getRow());
+    final int charge = FeatureUtils.extractBestSignedChargeState(f.getRow(),
+        f.getMostIntenseFragmentScan()).orElse(1);
+    final PolarityType pol = FeatureUtils.extractBestPolarity(f.getRow()).orElse(null);
 
     entry.putIfNotNull(DBEntryField.FEATURE_ID, f.getRow().getID());
     // replicate what GNPS does - some tools rely on the scan number to be there
@@ -309,16 +314,15 @@ public class SiriusExportTask extends AbstractTask {
   public SpectralLibraryEntry spectrumToEntry(MsType spectrumType, MassSpectrum spectrum,
       Feature f) {
 
+    final DataPoint[] data;
+    if (spectrum instanceof MergedSpectrum spec) {
+      data = spec.data;
+    } else {
+      data = ScanUtils.extractDataPoints(spectrum, true);
+    }
+
     // TODO MSAnnotationFlags from old sirius import
-    final SpectralLibraryEntry entry = switch (spectrum) {
-      case MergedSpectrum spec -> SpectralLibraryEntry.create(null, f.getMZ(), spec.data);
-      case Scan scan ->
-          SpectralLibraryEntry.create(null, f.getMZ(), ScanUtils.extractDataPoints(scan, true));
-      case SimpleMassSpectrum spec ->
-          SpectralLibraryEntry.create(null, f.getMZ(), ScanUtils.extractDataPoints(spec));
-      default -> throw new IllegalStateException(
-          "Cannot extract data points from spectrum class " + spectrum.getClass().getName());
-    };
+    final SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(null, f.getMZ(), data);
 
     putFeatureFieldsIntoEntry(f, entry);
     FeatureListRow row = f.getRow();
