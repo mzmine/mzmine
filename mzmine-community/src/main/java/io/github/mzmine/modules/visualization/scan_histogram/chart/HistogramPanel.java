@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.scan_histogram.chart;
 
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
+
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.HistogramChartFactory;
 import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
@@ -49,7 +51,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -127,26 +128,25 @@ public class HistogramPanel extends BorderPane {
     {
       ToggleButton btnToggleLegend = new ToggleButton("Toggle legend");
       btnToggleLegend.setOnAction(e -> toggleLegends());
-      btnToggleLegend.setTooltip(new Tooltip("Show/hide legend"));
+      btnToggleLegend.setTooltip(newTooltip("Show/hide legend"));
 
       Button btnUpdateGaussian = new Button("Update");
       btnUpdateGaussian.setOnAction(e -> updateGaussian());
-      btnUpdateGaussian.setTooltip(new Tooltip("Update Gaussian fit"));
+      btnUpdateGaussian.setTooltip(newTooltip("Update Gaussian fit"));
 
       cbGaussianFit = new CheckBox("Gaussian fit");
 
       txtGaussianLower = new TextField();
-      txtGaussianLower.setTooltip(
-          new Tooltip("The lower bound (domain axis) for the Gaussian fit"));
+      txtGaussianLower.setTooltip(newTooltip("The lower bound (domain axis) for the Gaussian fit"));
       txtGaussianLower.setText("0");
 
       txtGaussianUpper = new TextField();
       txtGaussianUpper.setTooltip(
-          new Tooltip("The upper bound (domain axis, x) for the Gaussian fit"));
+          newTooltip("The upper bound (domain axis, x) for the Gaussian fit"));
       txtGaussianUpper.setText("0");
 
       txtPrecision = new TextField();
-      txtPrecision.setTooltip(new Tooltip("Change number of significant figures and press update"));
+      txtPrecision.setTooltip(newTooltip("Change number of significant figures and press update"));
       txtPrecision.setText("6");
 
       HBox gauss1 = new HBox(5, btnToggleLegend, btnUpdateGaussian, cbGaussianFit);
@@ -167,13 +167,13 @@ public class HistogramPanel extends BorderPane {
       Label lblRanges = new Label("x-range");
 
       txtRangeX = new TextField();
-      txtRangeX.setTooltip(new Tooltip("Set the x-range for both histograms"));
+      txtRangeX.setTooltip(newTooltip("Set the x-range for both histograms"));
       txtRangeX.setText("0");
 
       Label label = new Label("-");
 
       txtRangeXEnd = new TextField();
-      txtRangeXEnd.setTooltip(new Tooltip("Set the x-range for both histograms"));
+      txtRangeXEnd.setTooltip(newTooltip("Set the x-range for both histograms"));
       txtRangeXEnd.setText("0");
 
       Button btnApplyX = new Button("Apply");
@@ -188,12 +188,12 @@ public class HistogramPanel extends BorderPane {
 
       txtRangeY = new TextField();
       txtRangeY.setText("0");
-      txtRangeY.setTooltip(new Tooltip("Set the y-range for both histograms"));
+      txtRangeY.setTooltip(newTooltip("Set the y-range for both histograms"));
 
       Label label = new Label("-");
 
       txtRangeYEnd = new TextField();
-      txtRangeYEnd.setTooltip(new Tooltip("Set the y-range for both histograms"));
+      txtRangeYEnd.setTooltip(newTooltip("Set the y-range for both histograms"));
       txtRangeYEnd.setText("0");
 
       Button btnApplyY = new Button("Apply");
@@ -214,11 +214,11 @@ public class HistogramPanel extends BorderPane {
     cbKeepSameXaxis = new CheckBox("keep same x-axis length");
 
     Button btnPrevious = new Button("<");
-    btnPrevious.setTooltip(new Tooltip("Jump to previous distribution (use left arrow"));
+    btnPrevious.setTooltip(newTooltip("Jump to previous distribution (use left arrow"));
     btnPrevious.setOnAction(e -> jumpToPrevFeature());
 
     Button btnNext = new Button(">");
-    btnNext.setTooltip(new Tooltip("Jump to previous distribution (use right arrow"));
+    btnNext.setTooltip(newTooltip("Jump to previous distribution (use right arrow"));
     btnNext.setOnAction(e -> jumpToNextFeature());
 
     HBox pnJump = new HBox(5, cbKeepSameXaxis, btnPrevious, btnNext);

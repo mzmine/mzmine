@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,13 @@
 
 package io.github.mzmine.parameters.parametertypes.absoluterelative;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
 
@@ -95,8 +95,8 @@ public class AbsoluteAndRelativeDoubleComponent extends HBox {
   }
 
   public void setToolTipText(String toolTip) {
-    absField.setTooltip(new Tooltip(toolTip));
-    relField.setTooltip(new Tooltip(toolTip));
+    absField.setTooltip(FxTooltips.newTooltip(toolTip));
+    relField.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
 }

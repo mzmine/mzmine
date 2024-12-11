@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,12 +27,12 @@ package io.github.mzmine.parameters.parametertypes;
 
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.main.MZmineCore;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 
 public class NeutralMassComponent extends GridPane {
@@ -61,8 +61,8 @@ public class NeutralMassComponent extends GridPane {
     add(chargeField, 3, 0);
 
     add(new Label("Ionization type:"), 0, 1, 2, 1);
-    ionTypeCombo =
-        new ComboBox<IonizationType>(FXCollections.observableArrayList(IonizationType.values()));
+    ionTypeCombo = new ComboBox<IonizationType>(
+        FXCollections.observableArrayList(IonizationType.values()));
     ionTypeCombo.setOnAction(e -> {
       updateNeutralMass();
     });
@@ -130,16 +130,19 @@ public class NeutralMassComponent extends GridPane {
   private void updateNeutralMass() {
 
     Integer charge = getCharge();
-    if (charge == null)
+    if (charge == null) {
       return;
+    }
 
     Double ionMass = getIonMass();
-    if (ionMass == null)
+    if (ionMass == null) {
       return;
+    }
 
     IonizationType ionType = getIonType();
-    if (ionType == null)
+    if (ionType == null) {
       return;
+    }
 
     double neutral = (ionMass.doubleValue() - ionType.getAddedMass()) * charge.intValue();
 
@@ -147,6 +150,6 @@ public class NeutralMassComponent extends GridPane {
   }
 
   public void setToolTipText(String toolTip) {
-    ionMassField.setTooltip(new Tooltip(toolTip));
+    ionMassField.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 }

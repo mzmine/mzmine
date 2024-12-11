@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,10 +24,11 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
+
 import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 import io.github.mzmine.parameters.ValueChangeDecorator;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 
 public class IntegerComponent extends FlowPane implements ValueChangeDecorator {
@@ -60,7 +61,7 @@ public class IntegerComponent extends FlowPane implements ValueChangeDecorator {
   }
 
   public void setToolTipText(String toolTip) {
-    textField.setTooltip(new Tooltip(toolTip));
+    textField.setTooltip(newTooltip(toolTip));
   }
 
   private boolean checkBounds(final int number) {
@@ -79,20 +80,20 @@ public class IntegerComponent extends FlowPane implements ValueChangeDecorator {
    */
   /*
    * private class MinMaxVerifier extends InputVerifier {
-   * 
+   *
    * @Override public boolean shouldYieldFocus(final JComponent input) {
-   * 
+   *
    * final boolean yield = super.shouldYieldFocus(input); if (!yield) {
-   * 
+   *
    * // Beep and highlight. Toolkit.getDefaultToolkit().beep(); ((JTextComponent)
    * input).selectAll(); }
-   * 
+   *
    * return yield; }
-   * 
+   *
    * @Override public boolean verify(final JComponent input) {
-   * 
+   *
    * boolean verified = false; try {
-   * 
+   *
    * verified = checkBounds(Integer.parseInt(((JTextComponent) input).getText())); } catch (final
    * NumberFormatException e) {
    *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,9 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffEvent;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffHandler;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
 import io.github.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
@@ -53,11 +56,9 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -83,7 +84,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -235,22 +235,23 @@ public class KovatsIndexExtractionDialog extends EmptyParameterSetupDialogBase {
     btnPickRT.setOnAction(e -> pickRetentionTimes());
     pnButtonFlow.getChildren().add(btnPickRT);
     Button btnSaveFile = new Button("Save to file");
-    btnSaveFile.setTooltip(new Tooltip("Save Kovats index file"));
+    btnSaveFile.setTooltip(FxTooltips.newTooltip("Save Kovats index file"));
     btnSaveFile.setOnAction(e -> saveToFile());
     pnButtonFlow.getChildren().add(btnSaveFile);
     Button btnLoad = new Button("Load");
-    btnLoad.setTooltip(new Tooltip("Load Kovats index file"));
+    btnLoad.setTooltip(FxTooltips.newTooltip("Load Kovats index file"));
     btnLoad.setOnAction(e -> loadFile());
     pnButtonFlow.getChildren().add(btnLoad);
     Button btnCombineFiles = new Button("Combine files");
     btnCombineFiles.setTooltip(
-        new Tooltip("Select multiple Kovats index files to be combined into one"));
+        FxTooltips.newTooltip("Select multiple Kovats index files to be combined into one"));
     btnCombineFiles.setOnAction(e -> combineFiles());
     pnButtonFlow.getChildren().add(btnCombineFiles);
 
     // add combo for raw data file
 
-    var rawFiles = FXCollections.observableList(ProjectService.getProject().getCurrentRawDataFiles());
+    var rawFiles = FXCollections.observableList(
+        ProjectService.getProject().getCurrentRawDataFiles());
     comboDataFileName = new ComboBox<>(rawFiles);
     comboDataFileName2 = new ComboBox<>(rawFiles);
     cbSecondRaw = new CheckBox();
@@ -822,7 +823,7 @@ public class KovatsIndexExtractionDialog extends EmptyParameterSetupDialogBase {
     if (!parseValues()) {
       logger.log(Level.WARNING,
           "Parsing of Kovats values failed (text box). Maybe you have to select more markers: "
-              + MIN_MARKERS + " (at least)");
+          + MIN_MARKERS + " (at least)");
       return;
     }
     final TreeMap<KovatsIndex, Double> values = parsedValues;

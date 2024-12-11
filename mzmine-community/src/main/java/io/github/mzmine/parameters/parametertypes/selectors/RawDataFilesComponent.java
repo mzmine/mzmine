@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
@@ -37,7 +38,6 @@ import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,30 +58,29 @@ public class RawDataFilesComponent extends GridPane {
     detailsButton = new Button("Select");
     add(detailsButton, 2, 0);
 
-    typeCombo =
-        new ComboBox<>(FXCollections.observableArrayList(RawDataFilesSelectionType.values()));
+    typeCombo = new ComboBox<>(
+        FXCollections.observableArrayList(RawDataFilesSelectionType.values()));
     typeCombo.getSelectionModel().selectFirst();
 
-    typeCombo.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-      currentValue.setSelectionType(newValue);
-      detailsButton.setDisable(newValue != RawDataFilesSelectionType.NAME_PATTERN
-          && newValue != RawDataFilesSelectionType.SPECIFIC_FILES);
-      updateNumFiles();
-    });
+    typeCombo.getSelectionModel().selectedItemProperty()
+        .addListener((options, oldValue, newValue) -> {
+          currentValue.setSelectionType(newValue);
+          detailsButton.setDisable(newValue != RawDataFilesSelectionType.NAME_PATTERN
+                                   && newValue != RawDataFilesSelectionType.SPECIFIC_FILES);
+          updateNumFiles();
+        });
 
     add(typeCombo, 1, 0);
-
 
     detailsButton.setOnAction(e -> {
       RawDataFilesSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
 
       if (type == RawDataFilesSelectionType.SPECIFIC_FILES) {
-        final MultiChoiceParameter<RawDataFile> filesParameter =
-            new MultiChoiceParameter<RawDataFile>("Select files", "Select files",
-                ProjectService.getProjectManager().getCurrentProject().getDataFiles(),
-                currentValue.getSpecificFiles());
-        final SimpleParameterSet paramSet =
-            new SimpleParameterSet(new Parameter[] {filesParameter});
+        final MultiChoiceParameter<RawDataFile> filesParameter = new MultiChoiceParameter<RawDataFile>(
+            "Select files", "Select files",
+            ProjectService.getProjectManager().getCurrentProject().getDataFiles(),
+            currentValue.getSpecificFiles());
+        final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[]{filesParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
           RawDataFile files[] = paramSet.getParameter(filesParameter).getValue();
@@ -92,7 +91,7 @@ public class RawDataFilesComponent extends GridPane {
         final StringParameter nameParameter = new StringParameter("Name pattern",
             "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse",
             Objects.requireNonNullElse(currentValue.getNamePattern(), ""));
-        final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[] {nameParameter});
+        final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[]{nameParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
           String namePattern = paramSet.getParameter(nameParameter).getValue();
@@ -102,13 +101,12 @@ public class RawDataFilesComponent extends GridPane {
       updateNumFiles();
     });
 
-
     setMinWidth(getPrefWidth());
 
   }
 
   void setValue(@Nullable RawDataFilesSelection newValue) {
-    if(newValue==null) {
+    if (newValue == null) {
       currentValue = null;
       typeCombo.getSelectionModel().clearSelection();
       updateNumFiles();
@@ -116,8 +114,9 @@ public class RawDataFilesComponent extends GridPane {
     }
     currentValue = newValue.clone();
     RawDataFilesSelectionType type = newValue.getSelectionType();
-    if (type != null)
+    if (type != null) {
       typeCombo.getSelectionModel().select(type);
+    }
     updateNumFiles();
   }
 
@@ -128,7 +127,7 @@ public class RawDataFilesComponent extends GridPane {
   }
 
   public void setToolTipText(String toolTip) {
-    typeCombo.setTooltip(new Tooltip(toolTip));
+    typeCombo.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
   private void updateNumFiles() {
@@ -140,13 +139,14 @@ public class RawDataFilesComponent extends GridPane {
       RawDataFile files[] = currentValue.getMatchingRawDataFiles();
       if (files.length == 1) {
         String fileName = files[0].getName();
-        if (fileName.length() > 22)
+        if (fileName.length() > 22) {
           fileName = fileName.substring(0, 20) + "...";
+        }
         numFilesLabel.setText(fileName);
       } else {
         numFilesLabel.setText(files.length + " selected");
       }
-      numFilesLabel.setTooltip(new Tooltip(currentValue.toString()));
+      numFilesLabel.setTooltip(FxTooltips.newTooltip(currentValue.toString()));
     }
   }
 }
