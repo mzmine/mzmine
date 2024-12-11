@@ -133,7 +133,7 @@ public class SiriusExportTask extends AbstractTask {
     entryFactory.setAddOnlineReactivityFlags(true);
   }
 
-  private static void putMergedSpectrumFieldsIntoEntry(MergedSpectrum spectrum,
+  public static void putMergedSpectrumFieldsIntoEntry(MergedSpectrum spectrum,
       SpectralLibraryEntry entry) {
     entry.putIfNotNull(DBEntryField.FILENAME,
         Arrays.stream(spectrum.origins).map(RawDataFile::getName).collect(Collectors.joining(";")));

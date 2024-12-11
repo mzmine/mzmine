@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
@@ -253,9 +254,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
           MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
           if (spectrum != null) {
             dataPoints = spectrum.data;
-            writer.write("MERGED_STATS=");
-            writer.write(spectrum.getMergeStatsDescription());
-            writer.write(newLine);
           }
         } catch (Exception ex) {
           logger.log(Level.WARNING, "Error during MS2 merge in mgf export: " + ex.getMessage(), ex);
@@ -273,6 +271,9 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
       SpectralLibraryEntry entry = entryFactory.createUnknown(null, row, msmsScan, dataPoints, null,
           null);
 
+      if (msmsScan instanceof MergedSpectrum spec) {
+        SiriusExportTask.putMergedSpectrumFieldsIntoEntry(spec, entry);
+      }
       // requires MS2? or can also be MSn?
 //      entry.putIfNotNull(DBEntryField.MS_LEVEL, 2);
 
