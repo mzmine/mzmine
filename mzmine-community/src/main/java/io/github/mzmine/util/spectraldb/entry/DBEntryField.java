@@ -755,7 +755,9 @@ public enum DBEntryField {
         case Number d -> MZmineCore.getConfiguration().getExportFormats().percent(d);
         default -> throw new IllegalArgumentException("Relative height has to be a number");
       };
-      case POLARITY -> PolarityType.NEGATIVE.equals(value) ? "Negative" : "Positive";
+      // SIRIUS 6.0.7 had issues with Polarity and would parse the spectrum without extended metadata like the adduct
+      // Therefore it was changed from Positive to POSITIVE
+      case POLARITY -> PolarityType.NEGATIVE.equals(value) ? "NEGATIVE" : "POSITIVE";
     };
   }
 }
