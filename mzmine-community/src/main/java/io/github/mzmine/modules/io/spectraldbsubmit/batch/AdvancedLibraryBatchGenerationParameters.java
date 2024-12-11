@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,33 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.io;
+package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
-import com.vdurmont.semver4j.Semver;
-import com.vdurmont.semver4j.Semver.SemverType;
-import java.io.InputStream;
-import java.util.Properties;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 
-public class SemverVersionReader {
+public class AdvancedLibraryBatchGenerationParameters extends SimpleParameterSet {
 
-  @NotNull
-  public static Semver getMZmineVersion() {
-    try {
-      ClassLoader myClassLoader = SemverVersionReader.class.getClassLoader();
-      InputStream inStream = myClassLoader.getResourceAsStream("mzmineversion.properties");
-      if (inStream == null) {
-        return new Semver("4-SNAPSHOT", SemverType.LOOSE);
-      }
-      Properties properties = new Properties();
-      properties.load(inStream);
-      String versionString = properties.getProperty("version.semver");
-      if ((versionString == null) || (versionString.startsWith("$"))) {
-        return new Semver("4-SNAPSHOT", SemverType.LOOSE);
-      }
-      return new Semver(versionString, SemverType.LOOSE);
-    } catch (Exception e) {
-      return new Semver("4-SNAPSHOT", SemverType.LOOSE);
-    }
+  public static BooleanParameter compactUSI = new BooleanParameter(
+      "Compact USI (limited compatibility)", """
+      Universal Spectrum Identifier allow traceability to the source scans in a format: mzspec:DATASET:DATAFILE:SCAN_NUMBER.
+      The regular format allows for a single (optional) scan number. If this parameter is checked, one USI is generated
+      per source file with scan numbers as ranges, e.g., 1-5,9 for all scans from 1 to 5 and 9. This reduces the file size.
+      Many tools do not parse this USI format.""", false);
+
+  public AdvancedLibraryBatchGenerationParameters() {
+    super(compactUSI);
   }
 }

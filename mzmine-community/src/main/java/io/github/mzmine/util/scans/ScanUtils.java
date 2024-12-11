@@ -120,6 +120,14 @@ public class ScanUtils {
   private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
 
   /**
+   * Erase file format
+   */
+  @Nullable
+  public static String eraseRawFileFormat(@Nullable String fileName) {
+    return fileName == null ? null : FileAndPathUtil.eraseFormat(fileName);
+  }
+
+  /**
    * Source file of scan is defined of other MassSpectra may be undefined and return null
    */
   @Nullable
@@ -284,6 +292,7 @@ public class ScanUtils {
    * @return array of data points
    */
   @Deprecated
+  @NotNull
   public static DataPoint[] extractDataPoints(MassSpectrum spectrum) {
     int size = spectrum.getNumberOfDataPoints();
     DataPoint[] result = new DataPoint[size];
@@ -2071,7 +2080,7 @@ public class ScanUtils {
   /**
    * Only use the array when needed. Best way to iterate scan data in a single thread is
    * {@link ScanDataAccess} by {@link EfficientDataAccess}. When sorting of data is needed use
-   * {@link #extractDataPoints(Scan, boolean)} but discouraged for data storage in memory.
+   * {@link #extractDataPoints(MassSpectrum, boolean)} but discouraged for data storage in memory.
    *
    * @param scan        target scan
    * @param useMassList either use mass list or return the input scan
@@ -2087,7 +2096,7 @@ public class ScanUtils {
   /**
    * Only use the array when needed. Best way to iterate scan data in a single thread is
    * {@link ScanDataAccess} by {@link EfficientDataAccess}. When sorting of data is needed use
-   * {@link #extractDataPoints(Scan, boolean)} but discouraged for data storage in memory.
+   * {@link #extractDataPoints(MassSpectrum, boolean)} but discouraged for data storage in memory.
    *
    * @param scan        target scan
    * @param useMassList either use mass list or return the input scan
@@ -2111,7 +2120,8 @@ public class ScanUtils {
    * @throws MissingMassListException users need to run mass detection before on this scan
    */
   @Deprecated
-  public static DataPoint[] extractDataPoints(final Scan scan, final boolean useMassList)
+  @NotNull
+  public static DataPoint[] extractDataPoints(final MassSpectrum scan, final boolean useMassList)
       throws MissingMassListException {
     return extractDataPoints(getMassSpectrum(scan, useMassList));
   }
@@ -2244,11 +2254,37 @@ public class ScanUtils {
 
   /**
    * Extracts all universal spectrum identifier USI from source scans. If spectrum is merged this
-   * will return multiple source USI otherwise just a Stream of one elemen.
+   * will return multiple source USI otherwise just a Stream of one element.
    */
   public static Stream<String> extractUSI(MassSpectrum spectrum, @Nullable String datasetID) {
     String baseUSI = "mzspec:" + (datasetID == null ? "DATASET_ID_PLACEHOLDER" : datasetID) + ":";
     return streamSourceScans(spectrum, Scan.class).map(scan -> scanToUSI(scan, baseUSI)).distinct();
+  }
+
+  /**
+   * Extracts all universal spectrum identifier USI from source scans. If spectrum is merged this
+   * will return multiple source USI otherwise just a Stream of one element.
+   * <p>
+   * This reduced USI ranges merge all USI from the same sample, so different scan numbers, into
+   * number ranges like mzspec:DATASET:SAMPLE:1-5,9 would point to all scans from 1 to 5 and 9.
+   * <p>
+   * Tool compatibility is limited but this greatly reduces the size and redundancy in USI
+   * representing scans from the same file
+   */
+  public static Stream<String> extractCompressedUSIRanges(MassSpectrum spectrum,
+      @Nullable String datasetID) {
+    Map<RawDataFile, List<Scan>> scansForFile = streamSourceScans(spectrum, Scan.class).collect(
+        Collectors.groupingBy(Scan::getDataFile));
+
+    return scansForFile.entrySet().stream().map((entry) -> {
+      var raw = entry.getKey();
+      var scans = entry.getValue();
+      // combine all scans of this sample into range strings
+      String scanNumberStr = extractIdStringForScansOfSingleFile(scans);
+
+      String fileName = requireNonNullElse(eraseRawFileFormat(raw.getFileName()), "");
+      return createUSI(datasetID, fileName, scanNumberStr);
+    });
   }
 
   /**
@@ -2267,10 +2303,28 @@ public class ScanUtils {
   @NotNull
   private static String __scanToUSI(MassSpectrum scan, String baseUSI) {
     String fileName = getSourceFile(scan);
-    fileName = fileName == null ? "" : FileAndPathUtil.eraseFormat(fileName);
     int scanNumber = extractScanNumber(scan);
     // map to USI
     return baseUSI + fileName + ":" + scanNumber;
+  }
+
+  /**
+   * Universal spectrum identifier
+   *
+   * @param datasetID  will use the provided dataset ID or "DATASET_ID_PLACEHOLDER" if null
+   * @param rawFile    used as is. Caller may wants to remove the format first
+   * @param scanNumber adds a scan number if not null otherwise this USI is raw data file level
+   */
+  public static String createUSI(@Nullable String datasetID, final @NotNull String rawFile,
+      final @Nullable String scanNumber) {
+    if (datasetID == null) {
+      datasetID = "DATASET_ID_PLACEHOLDER";
+    }
+    if (scanNumber == null) {
+      return "mzspec:%s:%s".formatted(datasetID, rawFile);
+    } else {
+      return "mzspec:%s:%s:%s".formatted(datasetID, rawFile, scanNumber);
+    }
   }
 
   public static <T extends MassSpectrum> Stream<T> streamSourceScans(final MassSpectrum scan,
@@ -2348,7 +2402,8 @@ public class ScanUtils {
 
   /**
    * @param allScans Scans of a single {@link RawDataFile}. May contain mobility scans or regular
-   *                 scans. To handle merged spectra, use {@link #extractScanIdString(Scan)}
+   *                 scans. To handle merged spectra, use
+   *                 {@link #extractScanIdString(Scan, boolean)}
    * @return Consecutive enumeration of scan numbers. for mobility scans: 6[7-14,16],7[8-18]. for
    * regular scans: 5-13,15.
    */
