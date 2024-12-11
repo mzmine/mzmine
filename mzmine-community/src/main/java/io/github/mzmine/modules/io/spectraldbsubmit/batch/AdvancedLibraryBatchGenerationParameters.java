@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,29 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
+package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.io.IOException;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 
-/**
- * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
- * is only here as reference point
- */
-@Deprecated
-public interface DBGateway {
+public class AdvancedLibraryBatchGenerationParameters extends SimpleParameterSet {
 
-  /**
-   * Retrieves candidate compounds
-   */
-  String[] findCompounds(double mass, MZTolerance mzTolerance, int numOfResults,
-      ParameterSet parameters) throws IOException;
+  public static BooleanParameter compactUSI = new BooleanParameter(
+      "Compact USI (limited compatibility)", """
+      Universal Spectrum Identifier allow traceability to the source scans in a format: mzspec:DATASET:DATAFILE:SCAN_NUMBER.
+      The regular format allows for a single (optional) scan number. If this parameter is checked, one USI is generated
+      per source file with scan numbers as ranges, e.g., 1-5,9 for all scans from 1 to 5 and 9. This reduces the file size.
+      Many tools do not parse this USI format.""", false);
 
-  /**
-   * This method retrieves the details about a compound
-   */
-  CompoundDBAnnotation getCompound(String ID, ParameterSet parameters) throws IOException;
-
+  public AdvancedLibraryBatchGenerationParameters() {
+    super(compactUSI);
+  }
 }
