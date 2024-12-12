@@ -45,6 +45,9 @@ plugins {
     // https://github.com/ethauvin/semver-gradle
     alias(libs.plugins.semver)
     alias(libs.plugins.licensereport)
+
+    id("maven-publish")
+    id("version-catalog")
 }
 
 // save version to main resources
@@ -53,7 +56,14 @@ plugins {
 // version with -beta is currently not supported by jpackage (maybe windows --app-version)
 // java.lang.IllegalArgumentException: "Version [3.0.0-beta] contains invalid component [0-beta]"
 semver {
-    properties = "src/main/resources/mzmineversion.properties"
+    def versionFile = getLayout().getProjectDirectory().dir("src/main/resources").file("mzmineversion.properties").getAsFile()
+    properties = versionFile.toString()
+}
+
+catalog {
+    versionCatalog {
+        from(files("$rootDir/gradle/libs.versions.toml"))
+    }
 }
 
 // version is now in version.properties
@@ -611,3 +621,36 @@ tasks.compileJava.dependsOn(checkLicense, copyLicenseInformationToResources, cop
 // copying must be finished before packaging
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
+
+
+// make sure the publish action is run after the semver plugin has been evaluated,
+// otherwise the version will always be 1.0.0
+afterEvaluate {
+    publishing {
+        publications {
+            register("mzmine-community-package", MavenPublication) {
+                from(components["java"])
+                pom {
+                    name = "mzmine-community"
+                    description = "mzmine-community"
+                    artifactId = "mzmine-community"
+                    url = "https://github.com/mzmine/mzmine"
+                    version = semver.version
+                    developers {
+                        developer {
+                            id = "mzmine"
+                            name = "mzmine"
+                        }
+                    }
+                }
+            }
+
+            register("versionCatalog", MavenPublication) {
+                from(components["versionCatalog"])
+                version = semver.version
+                artifactId = 'mzmine-community-version-catalog'
+                // This is important so the published artifact registers as a .toml file, rather than a library
+            }
+        }
+    }
+}
