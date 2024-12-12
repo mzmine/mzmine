@@ -125,7 +125,7 @@ public class SpectraMerger {
       List<Scan> sampleScans = group.getValue();
       // get merged or best single scans on different MSn levels, and energies
       if (hasMSn) {
-        mergedBySample.addAll(computeAllMergedOrBestFromMSn(sampleScans));
+        mergedBySample.addAll(computeAllMergedOrBestFromMSn(sampleScans, false));
       } else {
         mergedBySample.add(mergeByFragmentationEnergy(sampleScans, true, false));
       }
@@ -149,12 +149,13 @@ public class SpectraMerger {
     return new SpectraMergingResults(mergedBySample, mergedAcrossSamples, null);
   }
 
-  private List<SpectraMergingResultsNode> computeAllMergedOrBestFromMSn(final List<Scan> scans) {
+  private List<SpectraMergingResultsNode> computeAllMergedOrBestFromMSn(final List<Scan> scans,
+      final boolean isAcrossSamples) {
     // get all merged spectra on MSn tree nodes, energies, and then one spectrum for all merged into one
     // for MS2, that means that all spectra are merged first for individual energies and then all of them to one
     // Empty list if only one spectrum
     // get best tree - there should only be one
-    List<PrecursorIonTree> msnTrees = ScanUtils.getMSnFragmentTrees(scans, merger.getMzTol(), null);
+    List<PrecursorIonTree> msnTrees = ScanUtils.getMSnFragmentTrees(scans, getMzTol(), null);
     if (msnTrees.size() > 1) {
       logger.finer(() -> String.format(
           "List of scans had more than 1 MSn Tree (%d). MZtolerance might be too low, will only use the biggest tree for now",
@@ -163,28 +164,36 @@ public class SpectraMerger {
     PrecursorIonTree tree = msnTrees.stream()
         .max(Comparator.comparingInt(PrecursorIonTree::countPrecursor)).orElse(null);
 
-    return tree == null ? List.of() : getAllFragmentSpectra(tree);
+    return tree == null ? List.of() : getAllFragmentSpectra(tree, isAcrossSamples);
   }
 
   @NotNull
-  public List<Scan> getAllFragmentSpectra(final PrecursorIonTree tree) {
-    return getAllFragmentSpectra(tree.getRoot());
+  public List<SpectraMergingResultsNode> getAllFragmentSpectra(final PrecursorIonTree tree,
+      final boolean isAcrossSamples) {
+    return getAllFragmentSpectra(tree.getRoot(), isAcrossSamples);
   }
 
   @NotNull
-  public List<Scan> getAllFragmentSpectra(final PrecursorIonTreeNode root) {
-    // merge each MSn node and add all selected scans
-    List<List<Scan>> mergedPerTreeNode = root.streamWholeTree()
+  public List<SpectraMergingResultsNode> getAllFragmentSpectra(final PrecursorIonTreeNode root,
+      final boolean isAcrossSamples) {
+    // merge each MSn node by energy and across energies
+    List<SpectraMergingResultsNode> mergedPerTreeNode = root.streamWholeTree()
         .map(PrecursorIonTreeNode::getFragmentScans)
-        .map(scans -> computeAllMergedOrBest(scans, true)).toList();
+        .map(scans -> mergeByFragmentationEnergy(scans, true, isAcrossSamples)).toList();
 
-    // first scan of each list is the representative scan (merged from all other or a single if solitary)
-    List<Scan> representativeMergedScans = mergedPerTreeNode.stream().map(List::getFirst).toList();
+    // merge all to pseudo MS2
+    List<Scan> representativeMergedScans = mergedPerTreeNode.stream()
+        .map(SpectraMergingResultsNode::getAcrossEnergiesOrSingleScan).toList();
 
-    Scan allMerged = mergeSpectra(representativeMergedScans, MergingType.ALL_MSN_TO_PSEUDO_MS2);
+    Scan pseudoMs2 = null;
+    if (representativeMergedScans.size() > 1) {
+      pseudoMs2 = mergeSpectra(representativeMergedScans, MergingType.ALL_MSN_TO_PSEUDO_MS2);
+    }
+
+    // TODO how to return this result - extra class?
 
     List<Scan> allScans = new ArrayList<>();
-    allScans.add(allMerged);
+    allScans.add(pseudoMs2);
     mergedPerTreeNode.forEach(allScans::addAll);
 
     if (postMergingScanFilter.isFilter()) {

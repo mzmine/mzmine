@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util.scans.merging;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
@@ -76,5 +78,13 @@ public record SpectraMergingResultsNode(boolean acrossSamples,
       }
     }
     return map;
+  }
+
+  /**
+   * @return the ALL_ENERGIES scan merged across energies or a SINGLE_ENERGY scan if there was only
+   * one energy
+   */
+  public @NotNull Scan getAcrossEnergiesOrSingleScan() {
+    return requireNonNullElse(allEnergiesScan, scanByEnergy.values().stream().findFirst().get());
   }
 }
