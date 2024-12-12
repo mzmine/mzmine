@@ -617,8 +617,9 @@ public class FeatureUtils {
   }
 
   /**
-   * Get the absolute/unsigned charge of this row. Checks the row charge first, then the supplied
-   * scan and then the best feature then the annotation, which at times may be wrong charge.
+   * Get the absolute/unsigned charge of this row. Checks the row charge first, then the instrument
+   * detected charge in the most intense fragment scan and then the best feature then the
+   * annotation, which at times may be wrong charge.
    */
   @NotNull
   public static OptionalInt extractBestAbsoluteChargeState(@Nullable FeatureListRow row) {

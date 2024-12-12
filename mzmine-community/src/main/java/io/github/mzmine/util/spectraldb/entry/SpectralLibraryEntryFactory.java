@@ -221,7 +221,7 @@ public class SpectralLibraryEntryFactory {
    *
    * @param storage  optional memory storage to memory map data
    * @param row      row to export
-   * @param scan     scan to export
+   * @param scan     only used for scan metadata - data is provided through dps dataPoints
    * @param dps      data points
    * @param chimeric chimeric result of scan.
    * @return the new spectral library entry
@@ -245,7 +245,8 @@ public class SpectralLibraryEntryFactory {
    *
    * @param storage             optional memory storage to memory map data
    * @param row                 row that was matched
-   * @param msmsScan            scan to export
+   * @param msmsScan            only used for scan metadata - data is provided through dps
+   *                            dataPoints
    * @param match               the match to export
    * @param dps                 data points
    * @param chimeric            chimeric result of msmsScan
@@ -314,15 +315,13 @@ public class SpectralLibraryEntryFactory {
         //
         List<DDAMsMsInfo> precursors = msnInfo.getPrecursors();
         entry.putIfNotNull(DBEntryField.MSN_PRECURSOR_MZS,
-            SpectralLibraryEntryFactory.extractJsonList(precursors, DDAMsMsInfo::getIsolationMz));
+            extractJsonList(precursors, DDAMsMsInfo::getIsolationMz));
         entry.putIfNotNull(DBEntryField.MSN_FRAGMENTATION_METHODS,
-            SpectralLibraryEntryFactory.extractJsonList(precursors,
-                DDAMsMsInfo::getActivationMethod));
-        entry.putIfNotNull(DBEntryField.MSN_ISOLATION_WINDOWS,
-            SpectralLibraryEntryFactory.extractJsonList(precursors, info -> {
-              Range<Double> window = info.getIsolationWindow();
-              return window == null ? null : RangeUtils.rangeLength(window);
-            }));
+            extractJsonList(precursors, DDAMsMsInfo::getActivationMethod));
+        entry.putIfNotNull(DBEntryField.MSN_ISOLATION_WINDOWS, extractJsonList(precursors, info -> {
+          Range<Double> window = info.getIsolationWindow();
+          return window == null ? null : RangeUtils.rangeLength(window);
+        }));
         entry.putIfNotNull(DBEntryField.MS_LEVEL, msnInfo.getMsLevel());
       } else if (msMsInfo != null) {
         entry.putIfNotNull(DBEntryField.FRAGMENTATION_METHOD, msMsInfo.getActivationMethod());
