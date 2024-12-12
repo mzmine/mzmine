@@ -8,6 +8,7 @@ semver {
     properties = "../../mzmine-community/src/main/resources/mzmineversion.properties"
 }
 
+// this variable is set by running .\gradlew publish with the command line argument -Pmziorepo=true
 val pushOnline: Boolean = project.findProperty("mziorepo")?.toString()?.toBoolean() ?: false
 
 
@@ -20,6 +21,8 @@ dependencies {
 }
 
 afterEvaluate {
+    // the repositories must be set in the afterEvaluate block, because the semver plugin will
+    // not be initialised otherwise. The convention plugin version is bound to the mzmine community version.
     publishing {
         repositories {
             if (pushOnline) {

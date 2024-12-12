@@ -50,6 +50,8 @@ semver {
 }
 
 afterEvaluate {
+    // the repositories must be set in the afterEvaluate block, because the semver plugin will
+    // not be initialised otherwise. The version of this library is bound to the mzmine community version.
     publishing {
         publications {
             register<MavenPublication>("publish-javafx-framework") {
