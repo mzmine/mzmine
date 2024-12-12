@@ -31,13 +31,18 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Retain spectra where test(spectrum) returns true
+ * Retain spectra where matches(spectrum) returns true
  */
-public interface ScanSelectionFilter extends Predicate<MassSpectrum> {
+public interface ScanSelectionFilter {
+
+  boolean matches(MassSpectrum spectrum);
+
+  default boolean matchesNot(MassSpectrum spectrum) {
+    return !matches(spectrum);
+  }
 
   /**
    * Combine multiple filters
@@ -47,7 +52,7 @@ public interface ScanSelectionFilter extends Predicate<MassSpectrum> {
   static ScanSelectionFilter matchesAllOf(final @NotNull ScanSelectionFilter... filters) {
     return spectrum -> {
       for (ScanSelectionFilter filter : filters) {
-        if (!filter.test(spectrum)) {
+        if (filter.matchesNot(spectrum)) {
           return false;
         }
       }
@@ -56,7 +61,17 @@ public interface ScanSelectionFilter extends Predicate<MassSpectrum> {
   }
 
   static ScanSelectionFilter all() {
-    return _ -> true;
+    return new ScanSelectionFilter() {
+      @Override
+      public boolean matches(final MassSpectrum __) {
+        return true;
+      }
+
+      @Override
+      public boolean isFilter() {
+        return false;
+      }
+    };
   }
 
   static ScanSelectionFilter none() {
@@ -85,4 +100,7 @@ public interface ScanSelectionFilter extends Predicate<MassSpectrum> {
     return msLevelFilter::accept;
   }
 
+  default boolean isFilter() {
+    return true;
+  }
 }

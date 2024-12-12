@@ -71,6 +71,7 @@ import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.merging.FloatGrouping;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -2023,26 +2024,27 @@ public class ScanUtils {
   }
 
   /**
-   * Split scans into lists for each fragmentation energy. Usually the MSn levels are split before
+   * Split scans into lists for each sample name
+   *
+   * @param scans input list
+   * @return map of sample name to scans
+   */
+  public static Map<String, List<Scan>> splitBySample(final List<Scan> scans) {
+    return scans.stream().collect(
+        Collectors.groupingBy(scan -> requireNonNullElse(getSourceFile(scan), "UNDEFINED_SAMPLE")));
+  }
+
+  /**
+   * Split scans into lists for each fragmentation energy. Scans with undefined energy will be one
+   * group and all scans with multiple energies will be one group. Usually the MSn levels are split
+   * before
    *
    * @param scans input list
    * @return map of fragmention energy to scans
    */
-  public static Map<Float, List<Scan>> splitByFragmentationEnergy(final List<Scan> scans) {
-    return scans.stream().collect(Collectors.groupingBy(ScanUtils::getActivationEnergy));
-  }
-
-
-  /**
-   * @return the collision energy or -1 if null
-   */
-  public static float getActivationEnergy(final MassSpectrum spectrum) {
-    if (spectrum instanceof Scan scan && scan.getMsMsInfo() != null) {
-      return requireNonNullElse(scan.getMsMsInfo().getActivationEnergy(), -1f);
-    } else if (spectrum instanceof MergedMsMsSpectrum merged) {
-      return merged.getCollisionEnergy();
-    }
-    return -1f;
+  public static Map<FloatGrouping, List<Scan>> splitByFragmentationEnergy(final List<Scan> scans) {
+    return scans.stream()
+        .collect(Collectors.groupingBy(scan -> FloatGrouping.of(extractCollisionEnergies(scan))));
   }
 
   /**

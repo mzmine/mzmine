@@ -67,6 +67,7 @@ public interface MergedMassSpectrum extends Scan {
 
   /**
    * The merging type describes the selection of input spectra and on which level it was merged.
+   * Ordered by larger merging factor.
    */
   enum MergingType implements UniqueIdSupplier {
     /**
@@ -78,9 +79,20 @@ public interface MergedMassSpectrum extends Scan {
      */
     SINGLE_BEST_SCAN,
     /**
+     * Merged all {@link MobilityScan}s from a single {@link PasefMsMsInfo} (= single fragmentation
+     * event). This spectrum is created by merging multiple mobility scans, but does not fulfill the
+     * criteria of the other merging types. It is not acquired from multiple MS2 events or multiple
+     * collision energies.
+     */
+    PASEF_SINGLE,
+    /**
      * SAME_ENERGY merged all spectra from the same energy
      */
     SAME_ENERGY,
+    /**
+     * UNDEFINED_ENERGY merged all spectra from undefined energy
+     */
+    UNDEFINED_ENERGY,
     /**
      * SAME_PRECURSOR_IN_MSLEVEL merged all spectra of the same precursor into one spectrum. Usually
      * after merging the individual energies first.
@@ -91,14 +103,7 @@ public interface MergedMassSpectrum extends Scan {
      * merging is usually: 1. merge individual energies 2. merge for each precursor on all MSn
      * levels 3. merge all into one
      */
-    ALL_MSN_TO_PSEUDO_MS2,
-    /**
-     * Merged all {@link MobilityScan}s from a single {@link PasefMsMsInfo} (= single fragmentation
-     * event). This spectrum is created by merging multiple mobility scans, but does not fulfill the
-     * criteria of the other merging types. It is not acquired from multiple MS2 events or multiple
-     * collision energies.
-     */
-    PASEF_SINGLE;
+    ALL_MSN_TO_PSEUDO_MS2;
 
     /**
      * @return merging type from string by unique ID or name, default type if no match
@@ -122,6 +127,7 @@ public interface MergedMassSpectrum extends Scan {
         case SINGLE_SCAN -> "Single scan (other than best)";
         case SINGLE_BEST_SCAN -> "Single best scan";
         case SAME_ENERGY -> "Same energy merged";
+        case UNDEFINED_ENERGY -> "Undefined energy merged";
         case ALL_ENERGIES -> "All energies merged";
         case ALL_MSN_TO_PSEUDO_MS2 -> "MSn to pseudo MS2 merged";
         case PASEF_SINGLE -> "Single PASEF";
@@ -134,6 +140,7 @@ public interface MergedMassSpectrum extends Scan {
         case SINGLE_SCAN -> "single_scan";
         case SINGLE_BEST_SCAN -> "single_best_scan";
         case SAME_ENERGY -> "same_energy";
+        case UNDEFINED_ENERGY -> "undefined_energy";
         case ALL_ENERGIES -> "all_energies";
         case ALL_MSN_TO_PSEUDO_MS2 -> "all_msn_to_pseudo_ms2";
         case PASEF_SINGLE -> "pasef_single";
