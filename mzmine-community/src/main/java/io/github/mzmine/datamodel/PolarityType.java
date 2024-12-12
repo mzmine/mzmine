@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -78,8 +78,8 @@ public enum PolarityType {
     return UNKNOWN;
   }
 
-  public static PolarityType fromInt(int i) {
-    if (i == 0) {
+  public static PolarityType fromInt(@Nullable Integer i) {
+    if (i == null || i == 0) {
       return UNKNOWN;
     } else if (i < 0) {
       return NEGATIVE;
@@ -110,6 +110,13 @@ public enum PolarityType {
   @Override
   public String toString() {
     return asSingleChar();
+  }
+
+  /**
+   * @return true if positive or negative
+   */
+  public static boolean isDefined(@Nullable PolarityType polarity) {
+    return polarity != null && polarity.isDefined();
   }
 
   /**

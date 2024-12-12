@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
@@ -163,7 +164,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
     // metadata
     Map<DBEntryField, Object> map = new EnumMap<>(DBEntryField.class);
     extractAllFields(main, map);
-    return SpectralLibraryEntry.create(library.getStorage(), map, dps);
+    return SpectralLibraryEntryFactory.create(library.getStorage(), map, dps);
   }
 
   public void extractAllFields(JsonObject main, Map<DBEntryField, Object> map) {

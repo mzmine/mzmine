@@ -37,14 +37,12 @@
 package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionJsonWriter;
-import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
+import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
@@ -53,9 +51,10 @@ import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -95,8 +94,8 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
   private final FeatureListRowsFilter filter;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
-  private final OnlineReactionJsonWriter reactionJsonWriter;
   private final IntensityNormalizer normalizer;
+  private final SpectralLibraryEntryFactory entryFactory;
   private int currentIndex = 0;
   // by robin
   private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
@@ -120,7 +119,8 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
             .getEmbeddedParameters() : null;
     merger = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
 
-    reactionJsonWriter = new OnlineReactionJsonWriter(false);
+    entryFactory = new SpectralLibraryEntryFactory(true, true, true, false);
+    entryFactory.setAddOnlineReactivityFlags(true);
   }
 
   @Override
@@ -247,44 +247,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
         continue;
       }
 
-      MassList massList = msmsScan.getMassList();
-
-      if (massList == null) {
-        setErrorMessage("MS2 scan has no mass list. Run Mass detection on all scans");
-        setStatus(TaskStatus.ERROR);
-        throw new IllegalArgumentException(
-            "MS2 scan has no mass list. Run Mass detection on all scans");
-      }
-
-      String rowID = Integer.toString(row.getID());
-      final Float averageRT = row.getAverageRT();
-      double retTimeInSeconds = averageRT == null ? 0d : ((averageRT * 60 * 100.0) / 100.);
-
-      writer.append("BEGIN IONS").append(newLine);
-      writer.append("FEATURE_ID=").append(rowID).write(newLine);
-
-      final Double mz = row.getAverageMZ();
-      if (mz != null) {
-        writer.append("PEPMASS=").append(mzForm.format(mz)).write(newLine);
-      }
-
-      writer.append("SCANS=").append(rowID).write(newLine);
-      writer.append("RTINSECONDS=").append(rtsForm.format(retTimeInSeconds)).write(newLine);
-
-      // write reactions if available
-      List<OnlineReactionMatch> reactions = row.getOnlineReactionMatches();
-      String reactionJson = reactionJsonWriter.createReactivityString(row, reactions);
-      if (reactionJson != null) {
-        writer.append(DBEntryField.ONLINE_REACTIVITY.getMgfID()).append("=").append(reactionJson)
-            .write(newLine);
-      }
-
-      final int charge = FeatureUtils.extractBestAbsoluteChargeState(row, msmsScan);
-      final PolarityType pol = FeatureUtils.extractBestPolarity(row, msmsScan);
-      writer.write(STR."CHARGE=\{charge}\{pol.asSingleChar()}\{newLine}");
-
-      writer.append("MSLEVEL=2").write(newLine);
-
       DataPoint[] dataPoints = null;
       // merge MS/MS spectra
       if (mergeMS2) {
@@ -292,9 +254,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
           MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
           if (spectrum != null) {
             dataPoints = spectrum.data;
-            writer.write("MERGED_STATS=");
-            writer.write(spectrum.getMergeStatsDescription());
-            writer.write(newLine);
           }
         } catch (Exception ex) {
           logger.log(Level.WARNING, "Error during MS2 merge in mgf export: " + ex.getMessage(), ex);
@@ -302,19 +261,28 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
       }
       // nothing after merging or no merging active
       if (dataPoints == null) {
-        dataPoints = massList.getDataPoints();
+        dataPoints = ScanUtils.extractDataPoints(msmsScan, true);
       }
 
-      // normalize intensity
-      dataPoints = normalizer.normalize(dataPoints, true);
-
-      for (DataPoint feature : dataPoints) {
-        writer.append(mzForm.format(feature.getMZ())).append(" ")
-            .append(intensityForm.format(feature.getIntensity())).write(newLine);
+      if (dataPoints == null || dataPoints.length == 0) {
+        continue;
       }
-      //
-      writer.append("END IONS").append(newLine).write(newLine);
-      exportedRows.incrementAndGet();
+
+      SpectralLibraryEntry entry = entryFactory.createUnknown(null, row, msmsScan, dataPoints, null,
+          null);
+
+      if (msmsScan instanceof MergedSpectrum spec) {
+        SiriusExportTask.putMergedSpectrumFieldsIntoEntry(spec, entry);
+      }
+      // requires MS2? or can also be MSn?
+//      entry.putIfNotNull(DBEntryField.MS_LEVEL, 2);
+
+      final var mgfEntry = MGFEntryGenerator.createMGFEntry(entry, normalizer);
+      if (mgfEntry.numSignals() > 0) {
+        writer.write(mgfEntry.spectrum());
+        writer.newLine();
+        exportedRows.incrementAndGet();
+      }
     }
 
     if (exportedRows.get() == 0) {

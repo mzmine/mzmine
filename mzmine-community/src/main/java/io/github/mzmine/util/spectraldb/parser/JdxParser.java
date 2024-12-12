@@ -30,6 +30,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -109,8 +110,8 @@ public class JdxParser extends SpectralDBTextParser {
           if (l.contains("END")) {
             // row with END
             // add entry and reset
-            SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), fields,
-                dps.toArray(new DataPoint[dps.size()]));
+            SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(),
+                fields, dps.toArray(new DataPoint[dps.size()]));
             fields = new EnumMap<>(fields);
             dps.clear();
             addLibraryEntry(entry);

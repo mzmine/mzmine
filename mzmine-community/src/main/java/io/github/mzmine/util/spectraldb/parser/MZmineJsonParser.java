@@ -31,6 +31,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
@@ -175,7 +176,7 @@ public class MZmineJsonParser extends SpectralDBTextParser {
       }
     }
 
-    return SpectralLibraryEntry.create(library.getStorage(), map, dps);
+    return SpectralLibraryEntryFactory.create(library.getStorage(), map, dps);
   }
 
   public static DataPoint[] getDataPointsFromJsonArray(JsonArray data) {

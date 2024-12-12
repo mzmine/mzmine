@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,14 @@
 
 package io.github.mzmine.util;
 
+import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.getTypeValue;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -53,19 +56,25 @@ import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -510,7 +519,7 @@ public class FeatureUtils {
 
   public static boolean isImsFeature(Feature f) {
     return f.getRawDataFile() instanceof IMSRawDataFile
-        && f.getFeatureData() instanceof IonMobilogramTimeSeries;
+           && f.getFeatureData() instanceof IonMobilogramTimeSeries;
   }
 
   /**
@@ -607,62 +616,154 @@ public class FeatureUtils {
     return result;
   }
 
-  public static Integer extractBestAbsoluteChargeState(FeatureListRow row) {
-    return extractBestAbsoluteChargeState(row, row.getMostIntenseFragmentScan());
+  /**
+   * Get the absolute/unsigned charge of this row. Checks the row charge first, then the instrument
+   * detected charge in the most intense fragment scan and then the best feature then the
+   * annotation, which at times may be wrong charge.
+   */
+  @NotNull
+  public static OptionalInt extractBestAbsoluteChargeState(@Nullable FeatureListRow row) {
+    return extractBestAbsoluteChargeState(row,
+        row != null ? row.getMostIntenseFragmentScan() : null);
   }
 
   /**
-   * Get the absolute/unsigned polarity of this row. Checks the row charge first, then the supplied
-   * scan and then the best feature. If the charge is undetermined, the default of 1 is returned.
+   * Get the absolute/unsigned charge of this row. Checks the row charge first, then the supplied
+   * scan and then the best feature then the annotation, which at times may be wrong charge.
    */
-  public static int extractBestAbsoluteChargeState(FeatureListRow row, Scan scan) {
-    final Integer rowCharge = row.getRowCharge();
-    if (rowCharge != null && rowCharge != 0) {
-      return Math.abs(rowCharge);
-    }
-    if (scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
-      final Integer precursorCharge = dda.getPrecursorCharge();
-      if (precursorCharge != null && precursorCharge != 0) {
-        return Math.abs(precursorCharge);
-      }
-    }
-    final Integer featureCharge = row.getBestFeature().getCharge();
-    if (featureCharge != null && featureCharge != 0) {
-      return Math.abs(featureCharge);
-    }
-
-    return 1;
+  @NotNull
+  public static OptionalInt extractBestAbsoluteChargeState(@Nullable FeatureListRow row,
+      @Nullable Scan scan) {
+    var annotation = CompoundAnnotationUtils.getBestFeatureAnnotation(row).orElse(null);
+    return extractBestAbsoluteChargeState(row, scan, annotation);
   }
 
-  public static PolarityType extractBestPolarity(FeatureListRow row) {
+  /**
+   * Get the absolute/unsigned charge of this row. Checks the row charge first, then the supplied
+   * scan and then the best feature then the annotation, which at times may be wrong charge.
+   */
+  @NotNull
+  public static OptionalInt extractBestAbsoluteChargeState(@Nullable FeatureListRow row,
+      @Nullable Scan scan, @Nullable FeatureAnnotation annotation) {
+    return extractBestChargeState(row, scan, annotation).stream().map(Math::abs).findFirst();
+  }
+
+  /**
+   * Get the charge of this row. Checks the row charge first, then the supplied scan and then the
+   * best feature then the annotation, which at times may be wrong charge. This charge state may or
+   * may not be charged. Therefore, use
+   * {@link #extractBestAbsoluteChargeState(FeatureListRow, Scan, FeatureAnnotation)} for abs charge
+   * or {@link #extractBestSignedChargeState(FeatureListRow, MassSpectrum, FeatureAnnotation)} for a
+   * charge that also uses the polarity to determine sign
+   */
+  @NotNull
+  private static OptionalInt extractBestChargeState(@Nullable FeatureListRow row,
+      @Nullable MassSpectrum spec, @Nullable FeatureAnnotation annotation) {
+    final Integer rowCharge = row != null ? row.getRowCharge() : null;
+    if (rowCharge != null && rowCharge != 0) {
+      return OptionalInt.of(rowCharge);
+    }
+    if (spec instanceof Scan scan && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
+      final Integer precursorCharge = dda.getPrecursorCharge();
+      if (precursorCharge != null && precursorCharge != 0) {
+        return OptionalInt.of(precursorCharge);
+      }
+    }
+    final Integer featureCharge = row != null ? row.getBestFeature().getCharge() : null;
+    if (featureCharge != null && featureCharge != 0) {
+      return OptionalInt.of(featureCharge);
+    }
+    // via annotation
+    return CompoundAnnotationUtils.extractAbsCharge(annotation);
+  }
+
+  /**
+   * Extracts the best polarity from the row. Checks the supplied scan first, then the row fragment
+   * scan and then the best feature fragment scan, last checks the annotation (which may sometimes
+   * be wrong polarity, therefore last). Optional.empty if no polarity is found.
+   */
+  public static Optional<PolarityType> extractBestPolarity(@Nullable FeatureListRow row) {
     return extractBestPolarity(row, null);
   }
 
   /**
    * Extracts the best polarity from the row. Checks the supplied scan first, then the row fragment
-   * scan and then the best feature fragment scan. IF no polarity is found, positive
+   * scan and then the best feature fragment scan, last checks the annotation (which may sometimes
+   * be wrong polarity, therefore last). Optional.empty if no polarity is found.
    */
-  public static PolarityType extractBestPolarity(FeatureListRow row, Scan scan) {
-    if (scan != null && scan.getPolarity() != null) {
-      return scan.getPolarity();
-    }
-    if (row.getMostIntenseFragmentScan() != null) {
-      return row.getMostIntenseFragmentScan().getPolarity();
-    }
-    if (row.getBestFeature().getRepresentativeScan() != null) {
-      final PolarityType pol = row.getBestFeature().getRepresentativeScan().getPolarity();
-      if (pol != null) {
-        return pol;
-      }
-    }
-    return PolarityType.POSITIVE;
+  public static Optional<PolarityType> extractBestPolarity(@Nullable FeatureListRow row,
+      @Nullable Scan scan) {
+    var annotation = CompoundAnnotationUtils.getBestFeatureAnnotation(row).orElse(null);
+    return extractBestPolarity(row, scan, annotation);
   }
 
-  public static Integer extractBestSignedChargeState(FeatureListRow row, Scan scan) {
-    final int absCharge = extractBestAbsoluteChargeState(row, scan);
-    final PolarityType pol = extractBestPolarity(row, scan);
+  /**
+   * Extracts the best polarity from the row. Checks the supplied scan first, then the row fragment
+   * scan and then the best feature fragment scan, last checks the annotation (which may sometimes
+   * be wrong polarity, therefore last). Optional.empty if no polarity is found.
+   */
+  public static Optional<PolarityType> extractBestPolarity(@Nullable FeatureListRow row,
+      @Nullable MassSpectrum scan, @Nullable FeatureAnnotation annotation) {
+    PolarityType polarity = scan instanceof Scan s ? s.getPolarity() : null;
+    if (PolarityType.isDefined(polarity)) {
+      return Optional.of(polarity);
+    }
+    if (row != null) {
+      polarity = ScanUtils.getPolarity(row.getMostIntenseFragmentScan());
+      if (PolarityType.isDefined(polarity)) {
+        return Optional.of(polarity);
+      }
 
-    return absCharge * pol.getSign();
+      polarity = ScanUtils.getPolarity(row.getBestFeature().getRepresentativeScan());
+      if (PolarityType.isDefined(polarity)) {
+        return Optional.of(polarity);
+      }
+    }
+
+    if (annotation != null) {
+      polarity = getTypeValue(annotation, PolarityTypeType.class);
+      if (PolarityType.isDefined(polarity)) {
+        return Optional.of(polarity);
+      }
+      Integer charge = getTypeValue(annotation, ChargeType.class);
+      if (charge != null && charge != 0) {
+        return Optional.of(PolarityType.fromInt(charge));
+      }
+    }
+
+    return Optional.empty();
+  }
+
+  /**
+   * Takes into account the charge and polarity to provide charge state.
+   *
+   * @return signed int charge state
+   */
+  @NotNull
+  public static OptionalInt extractBestSignedChargeState(@Nullable FeatureListRow row,
+      @Nullable Scan scan) {
+    var annotation = CompoundAnnotationUtils.getBestFeatureAnnotation(row).orElse(null);
+    return extractBestSignedChargeState(row, scan, annotation);
+  }
+
+  /**
+   * Takes into account the charge and polarity to provide charge state.
+   *
+   * @return signed int charge state
+   */
+  @NotNull
+  public static OptionalInt extractBestSignedChargeState(@Nullable FeatureListRow row,
+      @Nullable MassSpectrum scan, @Nullable FeatureAnnotation annotation) {
+    // just use positive as default here
+    final Optional<PolarityType> pol = extractBestPolarity(row, scan, annotation);
+    return extractBestChargeState(row, scan, annotation).stream().map(charge -> {
+      // apply polarity to abs charge if present - otherwise take signed charge
+      if (pol.isPresent()) {
+        return Math.abs(charge) * pol.get().getSign();
+      } else {
+        return charge;
+      }
+    }).findFirst();
   }
 
   public static List<IonType> extractAllIonTypes(FeatureListRow row) {
@@ -683,5 +784,66 @@ public class FeatureUtils {
         }).toList();
 
     return allIonTypes;
+  }
+
+  /**
+   * Extracts precursor mz from match, row mz, or scan.getPrecursorMz depending which first is
+   * available
+   */
+  @NotNull
+  public static Optional<Double> getPrecursorMz(@Nullable final FeatureAnnotation match,
+      @Nullable final FeatureListRow row, @Nullable final MassSpectrum scan) {
+    if (match != null) {
+      Double mz = match.getPrecursorMZ();
+      if (mz != null) {
+        return Optional.of(mz);
+      }
+    }
+
+    if (row != null) {
+      Double mz = row.getAverageMZ();
+      if (mz != null) {
+        return Optional.of(mz);
+      }
+    }
+
+    if (scan instanceof Scan s) {
+      Double mz = s.getPrecursorMz();
+      if (mz != null) {
+        return Optional.of(mz);
+      }
+    }
+
+    return Optional.empty();
+  }
+
+  /**
+   * Finds the best adduct definition for a match (optional) and a row (optional). If the match is
+   * undefined and only row is searched, all {@link FeatureAnnotation} for this row will be
+   * searched
+   *
+   * @param match first priority if set
+   * @param row   second priority {@link IonIdentity} otherwise the FeatureAnnotations if no match
+   *              is defined as first argument
+   * @return
+   */
+  public static @NotNull Optional<IonType> extractBestIonIdentity(
+      final @Nullable FeatureAnnotation match, final @Nullable FeatureListRow row) {
+    IonType ion = match != null ? match.getAdductType() : null;
+    if (ion != null) {
+      return Optional.of(ion);
+    }
+    if (row != null) {
+      var identity = row.getBestIonIdentity();
+      if (identity != null) {
+        return Optional.ofNullable(identity.getIonType());
+      }
+      // try to get from match - but only if match was not defined
+      if (match == null) {
+        return CompoundAnnotationUtils.streamFeatureAnnotations(row)
+            .map(FeatureAnnotation::getAdductType).filter(Objects::nonNull).findFirst();
+      }
+    }
+    return Optional.empty();
   }
 }
