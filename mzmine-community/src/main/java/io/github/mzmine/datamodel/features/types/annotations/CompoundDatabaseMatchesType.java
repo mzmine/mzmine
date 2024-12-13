@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,7 +39,6 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFi
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
@@ -81,7 +80,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       //
       new PrecursorMZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
       new NeutralMassType(), new RTType(), new CCSType(), new CCSRelativeErrorType(),
-      new DatabaseMatchInfoType(), new IsotopePatternScoreType(), new CommentType());
+      new IsotopePatternScoreType(), new CommentType());
 
   private static final Logger logger = Logger.getLogger(
       CompoundDatabaseMatchesType.class.getName());
