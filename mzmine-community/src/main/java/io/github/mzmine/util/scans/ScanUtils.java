@@ -290,6 +290,7 @@ public class ScanUtils {
    * @return array of data points
    */
   @Deprecated
+  @NotNull
   public static DataPoint[] extractDataPoints(MassSpectrum spectrum) {
     int size = spectrum.getNumberOfDataPoints();
     DataPoint[] result = new DataPoint[size];
@@ -2077,7 +2078,7 @@ public class ScanUtils {
   /**
    * Only use the array when needed. Best way to iterate scan data in a single thread is
    * {@link ScanDataAccess} by {@link EfficientDataAccess}. When sorting of data is needed use
-   * {@link #extractDataPoints(Scan, boolean)} but discouraged for data storage in memory.
+   * {@link #extractDataPoints(MassSpectrum, boolean)} but discouraged for data storage in memory.
    *
    * @param scan        target scan
    * @param useMassList either use mass list or return the input scan
@@ -2093,7 +2094,7 @@ public class ScanUtils {
   /**
    * Only use the array when needed. Best way to iterate scan data in a single thread is
    * {@link ScanDataAccess} by {@link EfficientDataAccess}. When sorting of data is needed use
-   * {@link #extractDataPoints(Scan, boolean)} but discouraged for data storage in memory.
+   * {@link #extractDataPoints(MassSpectrum, boolean)} but discouraged for data storage in memory.
    *
    * @param scan        target scan
    * @param useMassList either use mass list or return the input scan
@@ -2117,7 +2118,8 @@ public class ScanUtils {
    * @throws MissingMassListException users need to run mass detection before on this scan
    */
   @Deprecated
-  public static DataPoint[] extractDataPoints(final Scan scan, final boolean useMassList)
+  @NotNull
+  public static DataPoint[] extractDataPoints(final MassSpectrum scan, final boolean useMassList)
       throws MissingMassListException {
     return extractDataPoints(getMassSpectrum(scan, useMassList));
   }

@@ -91,8 +91,15 @@ public enum DBEntryField {
   // identifier
   CAS, PUBMED, PUBCHEM, GNPS_ID, MONA_ID, CHEMSPIDER,
 
-  // sometimes just ID sometimes feature list name:id
+  /**
+   * row ID, used by GNPS, SIRIUS and other tools to connect results
+   */
   FEATURE_ID,
+
+  /**
+   * feature list name:row ID
+   */
+  FEATURELIST_NAME_FEATURE_ID,
 
   // spectrum specific
   MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
@@ -292,7 +299,7 @@ public enum DBEntryField {
            SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N,
            OTHER_MATCHED_COMPOUNDS_NAMES, //
            MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
-           MSN_ISOLATION_WINDOWS, IMS_TYPE -> StringType.class;
+           MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURELIST_NAME_FEATURE_ID -> StringType.class;
       case CLASSYFIRE_SUPERCLASS -> ClassyFireSuperclassType.class;
       case CLASSYFIRE_CLASS -> ClassyFireClassType.class;
       case CLASSYFIRE_SUBCLASS -> ClassyFireSubclassType.class;
@@ -393,6 +400,7 @@ public enum DBEntryField {
       case OTHER_MATCHED_COMPOUNDS_N -> "other_matched_compounds";
       case OTHER_MATCHED_COMPOUNDS_NAMES -> "other_matched_compounds_names";
       case FEATURE_ID -> "feature_id";
+      case FEATURELIST_NAME_FEATURE_ID -> "featurelist_feature_id";
       case FILENAME -> "raw_file_name";
       case SIRIUS_MERGED_SCANS -> "merged_scans";
       case SIRIUS_MERGED_STATS -> "merged_statistics";
@@ -452,6 +460,7 @@ public enum DBEntryField {
       case OTHER_MATCHED_COMPOUNDS_N -> "other_matched_compounds";
       case OTHER_MATCHED_COMPOUNDS_NAMES -> "other_matched_compounds_names";
       case FEATURE_ID -> "feature_id";
+      case FEATURELIST_NAME_FEATURE_ID -> "featurelist_feature_id";
       case FILENAME -> "file_name";
       case ONLINE_REACTIVITY -> "online_reactivity";
       case FEATURE_MS1_HEIGHT -> "feature_ms1_height";
@@ -515,6 +524,7 @@ public enum DBEntryField {
       case OTHER_MATCHED_COMPOUNDS_N -> "OTHER_MATCHED_COMPOUNDS";
       case OTHER_MATCHED_COMPOUNDS_NAMES -> "OTHER_MATCHED_COMPOUNDS_NAMES";
       case FEATURE_ID -> "FEATURE_ID";
+      case FEATURELIST_NAME_FEATURE_ID -> "FEATURELIST_FEATURE_ID";
       case FILENAME -> "FILENAME";
       case SIRIUS_MERGED_SCANS -> "MERGED_SCANS";
       case SIRIUS_MERGED_STATS -> "MERGED_STATS";
@@ -580,6 +590,7 @@ public enum DBEntryField {
       case OTHER_MATCHED_COMPOUNDS_N -> "OTHER_MATCHED_COMPOUNDS";
       case OTHER_MATCHED_COMPOUNDS_NAMES -> "OTHER_MATCHED_COMPOUNDS_NAMES";
       case FEATURE_ID -> "FEATURE_ID";
+      case FEATURELIST_NAME_FEATURE_ID -> "FEATURELIST_FEATURE_ID";
       case SIRIUS_MERGED_SCANS -> "MERGED_SCANS";
       case SIRIUS_MERGED_STATS -> "MERGED_STATS";
       case ONLINE_REACTIVITY -> "ONLINE_REACTIVITY";
@@ -646,7 +657,7 @@ public enum DBEntryField {
       case QUALITY_CHIMERIC -> "";
       case QUALITY_EXPLAINED_INTENSITY -> "";
       case QUALITY_EXPLAINED_SIGNALS -> "";
-      case FEATURE_ID -> "";
+      case FEATURE_ID, FEATURELIST_NAME_FEATURE_ID -> "";
       case SIRIUS_MERGED_SCANS -> "";
       case UNSPECIFIED -> "";
     };
@@ -715,7 +726,7 @@ public enum DBEntryField {
            PEPTIDE_SEQ, //
            IMS_TYPE, ONLINE_REACTIVITY, CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS,
            CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS,
-           NPCLASSIFIER_PATHWAY -> value.toString();
+           NPCLASSIFIER_PATHWAY, FEATURELIST_NAME_FEATURE_ID -> value.toString();
       case SCAN_NUMBER -> switch (value) {
         // multiple scans can be written as 1,4,6-9
         case List<?> list -> {
@@ -744,7 +755,9 @@ public enum DBEntryField {
         case Number d -> MZmineCore.getConfiguration().getExportFormats().percent(d);
         default -> throw new IllegalArgumentException("Relative height has to be a number");
       };
-      case POLARITY -> PolarityType.NEGATIVE.equals(value) ? "Negative" : "Positive";
+      // SIRIUS 6.0.7 had issues with Polarity and would parse the spectrum without extended metadata like the adduct
+      // Therefore it was changed from Positive to POSITIVE
+      case POLARITY -> PolarityType.NEGATIVE.equals(value) ? "NEGATIVE" : "POSITIVE";
     };
   }
 }
