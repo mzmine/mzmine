@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,41 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package io.github.mzmine.datamodel.utils;
 
-package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
+import org.jetbrains.annotations.NotNull;
 
+public interface UniqueIdSupplier {
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.taskcontrol.Task;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
-
-
-public class ResultWindowFX extends Stage {
-
-  public ResultWindowController controller;
-
-  public ResultWindowFX(FeatureListRow peakListRow, double searchedMass, Task searchTask) {
-
-    try {
-
-      FXMLLoader loader = new FXMLLoader(getClass().getResource("ResultWindow.fxml"));
-      Scene rootScene = loader.load();
-      setScene(rootScene);
-      setMinWidth(700);
-      setMinHeight(550);
-      controller = loader.getController();
-      controller.initValues(peakListRow, searchTask, searchedMass);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-  }
-
-  public void addNewListItem(final CompoundDBAnnotation compound) {
-    controller.addNewListItem(compound);
-  }
+  /**
+   * This value should not change throughout versions
+   *
+   * @return a stable unique ID that may be used in save and load
+   */
+  @NotNull
+  String getUniqueID();
 
 }

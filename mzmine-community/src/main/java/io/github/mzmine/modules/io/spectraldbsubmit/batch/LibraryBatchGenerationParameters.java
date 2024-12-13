@@ -40,6 +40,7 @@ package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -68,7 +69,7 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
   public static final ComboParameter<SpectralLibraryExportFormats> exportFormat = new ComboParameter<>(
       "Export format", "format to export", SpectralLibraryExportFormats.values(),
-      SpectralLibraryExportFormats.json);
+      SpectralLibraryExportFormats.json_mzmine);
 
   public static final ParameterSetParameter<LibraryBatchMetadataParameters> metadata = new ParameterSetParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
@@ -89,9 +90,12 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       "Quality parameters", "Quality parameters for MS/MS spectra to be exported to the library.",
       new LibraryExportQualityParameters());
 
+  public static final AdvancedParametersParameter<AdvancedLibraryBatchGenerationParameters> advanced = new AdvancedParametersParameter<>(
+      new AdvancedLibraryBatchGenerationParameters(), false);
+
   public LibraryBatchGenerationParameters() {
     super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer,
-        mergeMzTolerance, handleChimerics, quality);
+        mergeMzTolerance, handleChimerics, quality, advanced);
   }
 
 

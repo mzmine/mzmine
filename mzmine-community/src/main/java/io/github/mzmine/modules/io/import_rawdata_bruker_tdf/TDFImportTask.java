@@ -40,7 +40,7 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
@@ -253,7 +253,7 @@ public class TDFImportTask extends AbstractTask {
     // collect average spectra for each frame
     List<SimpleFrame> frames = new ArrayList<>();
 
-    final boolean importProfile = MZmineCore.getInstance().isTdfPseudoProfile();
+    final boolean importProfile = ConfigService.isTdfPseudoProfile();
 
     try {
       for (int i = 0; i < numFrames; i++) {
@@ -307,6 +307,7 @@ public class TDFImportTask extends AbstractTask {
     constructMsMsInfo(newMZmineFile, framePrecursorTable);
     assignDiaMsMsInfo(newMZmineFile, diaFrameMsMsWindowTable, diaFrameMsMsInfoTable);
     assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
+    assignTimsAutoMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable);
 
     tdfUtils.close();
 
@@ -544,6 +545,37 @@ public class TDFImportTask extends AbstractTask {
       final DIAImsMsMsInfoImpl diaImsMsMsInfo = new DIAImsMsMsInfoImpl(
           Range.closed(0, frame.getNumberOfMobilityScans() - 1), ce, frame, mzRange);
       frame.getImsMsMsInfos().add(diaImsMsMsInfo);
+    }
+  }
+
+  /**
+   * timsTOF classic only supports auto msms and not pasef.
+   */
+  private void assignTimsAutoMsMsInfo(IMSRawDataFile newMZmineFile, TDFFrameTable frameTable,
+      TDFFrameMsMsInfoTable frameMsMsInfoTable) {
+    List<? extends Frame> frames = newMZmineFile.getFrames();
+
+    final int firstFrameId = (int) frameTable.getFirstFrameNumber();
+
+    for (int i = 0; i < frames.size(); i++) {
+      Frame frame = frames.get(i);
+      final int frameTableIndex = frame.getFrameId() - firstFrameId;
+
+      if (frameTable.getScanModeColumn().get(frameTableIndex).intValue()
+          != BrukerScanMode.AUTO_MSMS.getNum()
+          || frameTable.getMsMsTypeColumn().get(frameTableIndex).intValue() != 2) {
+        continue;
+      }
+
+      final int frameMsMsTableIndex = BinarySearch.binarySearch(frameMsMsInfoTable.getFrameId(),
+          (double) frame.getFrameId(), DefaultTo.MINUS_INSERTION_POINT, Long::doubleValue);
+      if (frameMsMsTableIndex < 0) {
+        continue;
+      }
+
+      final PasefMsMsInfo ddaImsMsMsInfo = frameMsMsInfoTable.getImsAutoMsMsInfo(
+          frameMsMsTableIndex, frame, null);
+      frame.getImsMsMsInfos().add(ddaImsMsMsInfo);
     }
   }
 
