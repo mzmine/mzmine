@@ -54,7 +54,7 @@ import org.apache.commons.io.FileUtils;
 /**
  * Contains static utility methods for workspace related main-menus
  */
-public class WorkspaceMenuHelperImpl extends WorkspaceMenuHelper {
+class WorkspaceMenuHelperImpl extends WorkspaceMenuHelper {
 
   private static final Logger logger = Logger.getLogger(WorkspaceMenuHelperImpl.class.getName());
 

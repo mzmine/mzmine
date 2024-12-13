@@ -85,12 +85,14 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.util.javafx.ModuleMenuItem;
 import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
 import io.mzio.mzmine.gui.workspace.WorkspaceTags;
+import io.mzio.users.service.UserType;
 import java.util.EnumSet;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
+import org.jetbrains.annotations.Nullable;
 
 public final class AcademicWorkspace extends AbstractWorkspace {
 
@@ -201,5 +203,10 @@ public final class AcademicWorkspace extends AbstractWorkspace {
     addModuleMenuItems(menu, "Statistics", StatsDasboardModule.class, VolcanoPlotModule.class,
         PCAModule.class, AnovaModule.class);
     return menu;
+  }
+
+  @Override
+  public boolean isAllowedWithLicense(@Nullable UserType userType) {
+    return EnumSet.of(UserType.PRO, UserType.TRIAL_PRO, UserType.ACADEMIC, UserType.UNVALIDATED).contains(userType);
   }
 }
