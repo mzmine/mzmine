@@ -239,11 +239,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     // if multiple compounds match, they are sorted by score descending
     matches = CompoundAnnotationUtils.getBestMatchesPerCompoundName(matches);
 
-    // TODO this seems duplicated as there is already a stream filter with the same matchesName call?
-    if (matches.stream().noneMatch(match -> msMsQualityChecker.matchesName(match, featureList))) {
-      return;
-    }
-
     // handle chimerics
     final var chimericMap = handleChimericsAndFilterScansIfSelected(row, scans);
 

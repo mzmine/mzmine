@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,13 +26,11 @@
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Package private id type, so that pubchem ids can be read from a csv, but appear in the feature
- * table as the general {@link DatabaseMatchInfoType}.
+ * Package private id type, so that pubchem ids can be read from a csv.
  */
 public class PubChemIdType extends StringType {
 

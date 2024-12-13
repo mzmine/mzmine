@@ -617,8 +617,9 @@ public class FeatureUtils {
   }
 
   /**
-   * Get the absolute/unsigned charge of this row. Checks the row charge first, then the supplied
-   * scan and then the best feature then the annotation, which at times may be wrong charge.
+   * Get the absolute/unsigned charge of this row. Checks the row charge first, then the instrument
+   * detected charge in the most intense fragment scan and then the best feature then the
+   * annotation, which at times may be wrong charge.
    */
   @NotNull
   public static OptionalInt extractBestAbsoluteChargeState(@Nullable FeatureListRow row) {
@@ -649,21 +650,14 @@ public class FeatureUtils {
 
   /**
    * Get the charge of this row. Checks the row charge first, then the supplied scan and then the
-   * best feature then the annotation, which at times may be wrong charge.
+   * best feature then the annotation, which at times may be wrong charge. This charge state may or
+   * may not be charged. Therefore, use
+   * {@link #extractBestAbsoluteChargeState(FeatureListRow, Scan, FeatureAnnotation)} for abs charge
+   * or {@link #extractBestSignedChargeState(FeatureListRow, MassSpectrum, FeatureAnnotation)} for a
+   * charge that also uses the polarity to determine sign
    */
   @NotNull
-  public static OptionalInt extractBestChargeState(@Nullable FeatureListRow row,
-      @Nullable Scan scan) {
-    var annotation = CompoundAnnotationUtils.getBestFeatureAnnotation(row).orElse(null);
-    return extractBestChargeState(row, scan, annotation);
-  }
-
-  /**
-   * Get the charge of this row. Checks the row charge first, then the supplied scan and then the
-   * best feature then the annotation, which at times may be wrong charge.
-   */
-  @NotNull
-  public static OptionalInt extractBestChargeState(@Nullable FeatureListRow row,
+  private static OptionalInt extractBestChargeState(@Nullable FeatureListRow row,
       @Nullable MassSpectrum spec, @Nullable FeatureAnnotation annotation) {
     final Integer rowCharge = row != null ? row.getRowCharge() : null;
     if (rowCharge != null && rowCharge != 0) {
