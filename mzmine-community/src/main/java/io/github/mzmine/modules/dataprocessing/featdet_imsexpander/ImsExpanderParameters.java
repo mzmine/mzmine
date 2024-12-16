@@ -39,6 +39,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.util.Collection;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class ImsExpanderParameters extends SimpleParameterSet {
@@ -60,7 +61,7 @@ public class ImsExpanderParameters extends SimpleParameterSet {
       true);
 
   public static final OptionalParameter<IntegerParameter> mobilogramBinWidth = new OptionalParameter<>(
-      new IntegerParameter("Override default mobility bin witdh (scans)",
+      new IntegerParameter("Override default mobility bin width (scans)",
           "If checked, the default recommended bin width for the raw data file will be overridden with the given value.\n"
               + "The mobility binning width in scans. (high mobility resolutions "
               + "in TIMS might require a higher bin width to achieve a constant ion current for a "
@@ -115,5 +116,13 @@ public class ImsExpanderParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    map.put("Override default mobility bin witdh (scans)", getParameter(ImsExpanderParameters.mobilogramBinWidth));
+    return map;
   }
 }

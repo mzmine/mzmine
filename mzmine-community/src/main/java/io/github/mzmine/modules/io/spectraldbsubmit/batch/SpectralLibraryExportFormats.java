@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,16 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
-public enum SpectralLibraryExportFormats {
-  json, msp, mgf;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
+
+public enum SpectralLibraryExportFormats implements UniqueIdSupplier {
+  json_mzmine, msp, mgf;
 
   @Override
   public String toString() {
     return switch (this) {
-      case json -> "MZmine json (recommended)";
+      case json_mzmine -> "mzmine json (recommended)";
       case msp -> "NIST msp";
       case mgf -> "mgf";
     };
@@ -39,7 +42,17 @@ public enum SpectralLibraryExportFormats {
 
   public String getExtension() {
     return switch (this) {
-      case json -> "json";
+      case json_mzmine -> "json";
+      case msp -> "msp";
+      case mgf -> "mgf";
+    };
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    // do not change these values are used for import export
+    return switch (this) {
+      case json_mzmine -> "MZmine json (recommended)"; // this was the initial name
       case msp -> "msp";
       case mgf -> "mgf";
     };

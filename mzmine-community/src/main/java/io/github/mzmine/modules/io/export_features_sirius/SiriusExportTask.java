@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -44,13 +43,13 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionJsonWriter;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergeMode;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -64,6 +63,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -101,7 +101,8 @@ public class SiriusExportTask extends AbstractTask {
   private final MergeMode mergeMode;
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private final AtomicInteger processedRows = new AtomicInteger(0);
-  private final OnlineReactionJsonWriter reactionJsonWriter;
+  private final IntensityNormalizer normalizer;
+  private final SpectralLibraryEntryFactory entryFactory;
 
 
   protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -120,17 +121,19 @@ public class SiriusExportTask extends AbstractTask {
 
     // new parameters related to ion identity networking and feature grouping
     mzTol = parameters.getValue(SiriusExportParameters.MZ_TOL);
+    normalizer = parameters.getValue(SiriusExportParameters.NORMALIZE);
     excludeMultiCharge = parameters.getValue(SiriusExportParameters.EXCLUDE_MULTICHARGE);
     excludeMultimers = parameters.getValue(SiriusExportParameters.EXCLUDE_MULTIMERS);
     needAnnotation = parameters.getValue(SiriusExportParameters.NEED_ANNOTATION);
     mergeMode = mergeParameters.getValue(MsMsSpectraMergeParameters.MERGE_MODE);
 
-    reactionJsonWriter = new OnlineReactionJsonWriter(false);
-
     totalRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
+
+    entryFactory = new SpectralLibraryEntryFactory(true, true, true, false);
+    entryFactory.setAddOnlineReactivityFlags(true);
   }
 
-  private static void putMergedSpectrumFieldsIntoEntry(MergedSpectrum spectrum,
+  public static void putMergedSpectrumFieldsIntoEntry(MergedSpectrum spectrum,
       SpectralLibraryEntry entry) {
     entry.putIfNotNull(DBEntryField.FILENAME,
         Arrays.stream(spectrum.origins).map(RawDataFile::getName).collect(Collectors.joining(";")));
@@ -138,19 +141,6 @@ public class SiriusExportTask extends AbstractTask {
         Arrays.stream(spectrum.scanIds).mapToObj(Integer::toString)
             .collect(Collectors.joining(",")));
     entry.putIfNotNull(DBEntryField.SIRIUS_MERGED_STATS, spectrum.getMergeStatsDescription());
-  }
-
-  private static void putFeatureFieldsIntoEntry(Feature f, SpectralLibraryEntry entry) {
-    final int charge = FeatureUtils.extractBestAbsoluteChargeState(f.getRow());
-    final PolarityType pol = FeatureUtils.extractBestPolarity(f.getRow());
-
-    entry.putIfNotNull(DBEntryField.FEATURE_ID, f.getRow().getID());
-    // replicate what GNPS does - some tools rely on the scan number to be there
-    // GNPS just uses the FEATURE_ID for this
-    entry.putIfNotNull(DBEntryField.SCAN_NUMBER, f.getRow().getID());
-    entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
-    entry.putIfNotNull(DBEntryField.RT, f.getRT());
-    entry.setCharge(charge, pol);
   }
 
   @Override
@@ -244,20 +234,14 @@ public class SiriusExportTask extends AbstractTask {
     final List<SpectralLibraryEntry> entries = new ArrayList<>();
 
     // export either correlated OR MS1
-    final MassSpectrum correlated = generateCorrelationSpectrum(row, null);
-    if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
-      entries.add(spectrumToEntry(MsType.CORRELATED, correlated, row.getBestFeature()));
-    } else {
-      // export best MS1
-      entries.add(spectrumToEntry(MsType.MS, row.getBestFeature().getRepresentativeScan(),
-          row.getBestFeature()));
+    final SpectralLibraryEntry ms1 = getCorrelatedOrBestMS1Spectrum(row);
+    if (ms1 != null) {
+      entries.add(ms1);
     }
 
     if (mergeEnabled) {
       final List<SpectralLibraryEntry> ms2Entries = getMergedMs2SpectraEntries(mergeMode, row);
-      if (ms2Entries != null) {
-        entries.addAll(ms2Entries);
-      }
+      entries.addAll(ms2Entries);
     } else {
       final List<SpectralLibraryEntry> ms2Entries = row.streamFeatures().flatMap(
               f -> f.getAllMS2FragmentScans().stream().map(s -> spectrumToEntry(MsType.MSMS, s, f)))
@@ -266,33 +250,68 @@ public class SiriusExportTask extends AbstractTask {
     }
 
     if (entries.size() < 2) {
-      // only MS1
+      // only one MS1 scan
       return false;
     }
 
+    int actuallyExported = 0;
     for (SpectralLibraryEntry entry : entries) {
-      final String mgfEntry = MGFEntryGenerator.createMGFEntry(entry);
-      writer.write(mgfEntry);
-      writer.newLine();
+      final var mgfEntry = MGFEntryGenerator.createMGFEntry(entry, normalizer);
+      if (mgfEntry.numSignals() > 0) {
+        writer.write(mgfEntry.spectrum());
+        writer.newLine();
+        actuallyExported++;
+      }
     }
-    return true;
+    return actuallyExported > 0;
+  }
+
+
+  private @Nullable SpectralLibraryEntry getCorrelatedOrBestMS1Spectrum(final FeatureListRow row) {
+    final Feature bestFeature = row.getBestFeature();
+    if (bestFeature == null) {
+      // maybe no MS1 data?
+      logger.warning(
+          "Cannot export MS1 data for this feature list. This maybe due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
+          + FeatureUtils.rowToString(row));
+      return null;
+    }
+
+    final MassSpectrum correlated = generateCorrelationSpectrum(row, null);
+    if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
+      return spectrumToEntry(MsType.CORRELATED, correlated, bestFeature);
+    } else {
+      // export best MS1
+      var ms1Scan = bestFeature.getRepresentativeScan();
+      if (ms1Scan == null) {
+        logger.fine(
+            "Best feature has no representative scan. This may be due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
+            + FeatureUtils.rowToString(row));
+        return null;
+      }
+      return spectrumToEntry(MsType.MS, ms1Scan, bestFeature);
+    }
   }
 
   public SpectralLibraryEntry spectrumToEntry(MsType spectrumType, MassSpectrum spectrum,
       Feature f) {
 
-    // TODO MSAnnotationFlags from old sirius import
-    final SpectralLibraryEntry entry = switch (spectrum) {
-      case MergedSpectrum spec -> SpectralLibraryEntry.create(null, f.getMZ(), spec.data);
-      case Scan scan ->
-          SpectralLibraryEntry.create(null, f.getMZ(), ScanUtils.extractDataPoints(scan, true));
-      case SimpleMassSpectrum spec ->
-          SpectralLibraryEntry.create(null, f.getMZ(), ScanUtils.extractDataPoints(spec));
-      default -> throw new IllegalStateException(
-          "Cannot extract data points from spectrum class " + spectrum.getClass().getName());
-    };
+    final DataPoint[] data;
+    if (spectrum instanceof MergedSpectrum spec) {
+      data = spec.data;
+    } else {
+      data = ScanUtils.extractDataPoints(spectrum, true);
+    }
 
-    putFeatureFieldsIntoEntry(f, entry);
+    // create unknown to not interfer with annotation by sirius by adding to much info
+    final SpectralLibraryEntry entry = entryFactory.createUnknown(null, f.getRow(), spectrum, data,
+        null, null);
+
+    // below here are only SIRIUS specific fields added or overwritten.
+    // all default behavior should go into {@link SpectralLibraryEntryFactory}
+
+    // use feature mz and rt instead of row or scan
+    entryFactory.putFeatureFieldsIntoEntry(entry, f);
     FeatureListRow row = f.getRow();
 
     switch (spectrumType) {
@@ -307,23 +326,8 @@ public class SiriusExportTask extends AbstractTask {
       case MSMS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 2);
     }
 
-    final IonIdentity ionType = row.getBestIonIdentity();
-    if (ionType != null) {
-      entry.putIfNotNull(DBEntryField.ION_TYPE, ionType.getAdduct());
-    }
-
     if (spectrum instanceof MergedSpectrum spec) {
       putMergedSpectrumFieldsIntoEntry(spec, entry);
-    }
-
-    // reactivity only for MS1
-    if (entry.getMsLevel().stream().anyMatch(msLevel -> msLevel == 1)) {
-      String reactivityString = reactionJsonWriter.createReactivityString(row,
-          row.getOnlineReactionMatches());
-
-      if (reactivityString != null) {
-        entry.putIfNotNull(DBEntryField.ONLINE_REACTIVITY, reactivityString);
-      }
     }
 
     return entry;
@@ -523,7 +527,7 @@ public class SiriusExportTask extends AbstractTask {
   }
 
 
-  private enum MsType {
+  public enum MsType {
     /**
      * Describes the original MS1 spectrum
      */

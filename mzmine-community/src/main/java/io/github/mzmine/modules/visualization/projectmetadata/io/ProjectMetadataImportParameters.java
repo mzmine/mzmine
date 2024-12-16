@@ -66,7 +66,7 @@ public class ProjectMetadataImportParameters extends SimpleParameterSet {
   @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
     var map = super.getNameParameterMap();
-    map.put("File names", fileName);
+    map.put("File names", getParameter(fileName));
     return map;
   }
 

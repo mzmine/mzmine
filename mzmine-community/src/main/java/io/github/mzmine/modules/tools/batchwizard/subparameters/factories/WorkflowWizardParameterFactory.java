@@ -33,6 +33,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowImagingW
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowTargetPlateWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -77,7 +78,7 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
   }
 
   @Override
-  public String getUniqueId() {
+  public @NotNull String getUniqueID() {
     return name();
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,32 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.compoundannotations;
+package io.github.mzmine.modules.io.spectraldbsubmit.formats;
 
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
-import org.jetbrains.annotations.Nullable;
-
-public record DatabaseMatchInfo(@Nullable OnlineDatabases onlineDatabase, @Nullable String id,
-                                @Nullable String url) {
-
-  public DatabaseMatchInfo(@Nullable OnlineDatabases onlineDatabase, @Nullable String id) {
-    this(onlineDatabase, id, onlineDatabase != null ? onlineDatabase.getCompoundUrl(id) : null);
-  }
+/**
+ * Formatted spectrum string with number of signals for filtering
+ *
+ * @param numSignals some formatters may reduce the number of signals if the intensity is 0 after
+ *                   formatting
+ */
+public record SpectrumString(String spectrum, int numSignals) {
 
   @Override
   public String toString() {
-    StringBuilder b = new StringBuilder();
-    if (onlineDatabase != null) {
-      b.append(onlineDatabase.getName()).append(" ");
-    } else {
-      b.append("N/A ");
-    }
-
-    if(id != null) {
-      b.append(id);
-    } else {
-      b.append("no id");
-    }
-    return b.toString();
+    return spectrum;
   }
 }

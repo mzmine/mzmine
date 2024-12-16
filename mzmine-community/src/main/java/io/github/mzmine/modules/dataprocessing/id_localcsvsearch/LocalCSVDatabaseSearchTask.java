@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.compoundannotations.DatabaseMatchInfo;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -44,7 +43,6 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFi
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.MolecularClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
@@ -60,7 +58,6 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
@@ -507,8 +504,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIfNotNull(lineMZ, () -> a.put(precursorMz, lineMZ));
     doIfNotNull(neutralMass, () -> a.put(neutralMassType, neutralMass));
     a.putIfNotNull(ionTypeType, IonTypeParser.parse(lineAdduct));
-    doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
-        new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
     a.putIfNotNull(molecularClassType, molecularClass);
     a.putIfNotNull(classyFireSuperclassType, classyFireSuperclass);
     a.putIfNotNull(classyFireClassType, classyFireClass);
