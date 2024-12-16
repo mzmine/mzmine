@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * imaging analysis
  */
-public class WorkflowImaging implements WorkflowWizardParameterFactory {
+public class WorkflowImaging extends WorkflowWizardParameterFactory {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -23,11 +23,5 @@ public class WorkflowImaging implements WorkflowWizardParameterFactory {
   @Override
   public String toString() {
     return "Imaging";
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    return o instanceof WorkflowWizardParameterFactory fac && fac.getUniqueID()
-        .equals(this.getUniqueID());
   }
 }

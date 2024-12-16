@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Nothing special just avoids all MS2 specific steps
  */
-public class WorkflowMs1Only implements WorkflowWizardParameterFactory {
+public class WorkflowMs1Only extends WorkflowWizardParameterFactory {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -25,9 +25,4 @@ public class WorkflowMs1Only implements WorkflowWizardParameterFactory {
     return "MS1 only";
   }
 
-  @Override
-  public boolean equals(Object o) {
-    return o instanceof WorkflowWizardParameterFactory fac && fac.getUniqueID()
-        .equals(this.getUniqueID());
-  }
 }

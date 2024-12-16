@@ -179,15 +179,15 @@ public class BatchWizardTab extends SimpleTab {
         .orElse(IonInterfaceWizardParameterFactory.HPLC);
 
     // apply filters
-    filterComboBox(WizardPart.IMS, ionization.getMatchingImsPresets());
-    filterComboBox(WizardPart.WORKFLOW, ionization.getMatchingWorkflowPresets());
+    filterComboBox(WizardPart.IMS, WizardPartFilter.allow(ionization.getMatchingImsPresets()));
+    filterComboBox(WizardPart.WORKFLOW, WizardPartFilter.allow(ionization.getMatchingWorkflowPresets()));
 
     // check timsTOF and TWIMS TOF only
     var ims = sequenceSteps.get(WizardPart.IMS)
         .map(step -> (IonMobilityWizardParameterFactory) step.getFactory())
         .orElse(IonMobilityWizardParameterFactory.NO_IMS);
 
-    filterComboBox(WizardPart.MS, ims.getMatchingMassSpectrometerPresets());
+    filterComboBox(WizardPart.MS, WizardPartFilter.allow(ims.getMatchingMassSpectrometerPresets()));
   }
 
   /**
@@ -197,10 +197,42 @@ public class BatchWizardTab extends SimpleTab {
    * @param filteredFactories the filtered list of presets
    */
   private void filterComboBox(final WizardPart part, WizardParameterFactory[] filteredFactories) {
-    var filterSet = Set.of(filteredFactories);
+    Set<WizardParameterFactory> filterSet = Set.of(filteredFactories);
 
     List<WizardStepParameters> filteredPresets = ALL_PRESETS.get(part).stream()
         .filter(workflow -> filterSet.contains(workflow.getFactory())).toList();
+
+    ComboBox<WizardStepParameters> combo = combos.get(part);
+    ObservableList<WizardStepParameters> currentPresets = combo.getItems();
+    if (!currentPresets.equals(filteredPresets)) {
+      // need to set new selection to workflow
+      var selected = setItemsToCombo(combo, filteredPresets, false);
+      sequenceSteps.set(part, selected);
+
+      if (part == WizardPart.MS) {
+        var ims = sequenceSteps.get(WizardPart.IMS)
+            .map(step -> (IonMobilityWizardParameterFactory) step.getFactory())
+            .orElse(IonMobilityWizardParameterFactory.NO_IMS);
+        // reduce the parameters for timsTOF to something meaningful
+        // only if the MS parameter for tof are unchanged (if user already selected other inputs, keep
+        MassSpectrometerWizardParameters msParamsForIms = MassSpectrometerWizardParameterFactory.createForIms(
+            ims);
+        if (msParamsForIms != null && selected.hasDefaultParameters()) {
+          ParameterUtils.copyParameters(msParamsForIms, selected);
+        }
+      }
+    }
+  }
+
+  /**
+   * Filter combobox and set new selection
+   *
+   * @param part              the part
+   */
+  private void filterComboBox(final WizardPart part, WizardPartFilter filter) {
+
+    List<WizardStepParameters> filteredPresets = ALL_PRESETS.get(part).stream()
+        .filter(workflow -> filter.accept(workflow.getFactory())).toList();
 
     ComboBox<WizardStepParameters> combo = combos.get(part);
     ObservableList<WizardStepParameters> currentPresets = combo.getItems();

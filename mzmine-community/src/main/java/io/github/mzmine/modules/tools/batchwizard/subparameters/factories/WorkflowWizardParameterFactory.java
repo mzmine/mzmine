@@ -32,8 +32,9 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workfl
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowMs1Only;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -49,19 +50,27 @@ import java.util.List;
  *   }
  * }
  */
-public interface WorkflowWizardParameterFactory extends WizardParameterFactory {
+public abstract class WorkflowWizardParameterFactory implements WizardParameterFactory {
 
-  List<WorkflowWizardParameterFactory> values = new ArrayList<>(
-      List.of(new WorkflowDDA(), new WorkflowDIA(), new WorkflowDeconvolution(),
-          new WorkflowLibraryGeneration(), new WorkflowImaging(), new WorkflowTargetPlate(),
-          new WorkflowMs1Only()));
+  private static final Set<WorkflowWizardParameterFactory> values = new LinkedHashSet<>();
 
-  static WorkflowWizardParameterFactory[] values() {
+  static {
+    values.addAll(List.of(new WorkflowDDA(), new WorkflowDIA(), new WorkflowDeconvolution(),
+        new WorkflowLibraryGeneration(), new WorkflowImaging(), new WorkflowTargetPlate(),
+        new WorkflowMs1Only()));
+  }
+
+  public static WorkflowWizardParameterFactory[] values() {
     return values.toArray(WorkflowWizardParameterFactory[]::new);
   }
 
   @Override
-  default boolean equals(Object o) {
+  public int hashCode() {
+    return getClass().getName().hashCode();
+  }
 
+  @Override
+  public boolean equals(Object o) {
+    return o instanceof WorkflowWizardParameterFactory f && f.getUniqueID().equals(getUniqueID());
   }
 }

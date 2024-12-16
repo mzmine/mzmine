@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Currently only used in GC-EI
  */
-public class WorkflowDeconvolution implements WorkflowWizardParameterFactory {
+public class WorkflowDeconvolution extends WorkflowWizardParameterFactory {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -25,9 +25,4 @@ public class WorkflowDeconvolution implements WorkflowWizardParameterFactory {
     return "Spectral deconvolution";
   }
 
-  @Override
-  public boolean equals(Object o) {
-    return o instanceof WorkflowWizardParameterFactory fac && fac.getUniqueID()
-        .equals(this.getUniqueID());
-  }
 }

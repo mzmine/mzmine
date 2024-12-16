@@ -31,6 +31,12 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcEl
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowImaging;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -154,17 +160,16 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
   public WorkflowWizardParameterFactory[] getMatchingWorkflowPresets() {
     return switch (this) {
       case DIRECT_INFUSION, FLOW_INJECT, GC_CI ->
-          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DDA,
-              WorkflowWizardParameterFactory.LIBRARY_GENERATION};
+          new WorkflowWizardParameterFactory[]{new WorkflowDDA(),
+              new WorkflowLibraryGeneration()};
       case HPLC, UHPLC, HILIC ->
-          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DDA,
-              WorkflowWizardParameterFactory.LIBRARY_GENERATION,
-              WorkflowWizardParameterFactory.DIA};
+          new WorkflowWizardParameterFactory[]{new WorkflowDDA(),
+              new WorkflowLibraryGeneration(),
+              new WorkflowDIA()};
       case GC_EI ->
-          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DECONVOLUTION};
+          new WorkflowWizardParameterFactory[]{new WorkflowDeconvolution()};
       case MALDI, LDI, DESI, SIMS ->
-          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.IMAGING,
-              WorkflowWizardParameterFactory.TARGET_PLATE};
+          new WorkflowWizardParameterFactory[]{new WorkflowImaging(), new WorkflowTargetPlate()};
     };
   }
 }

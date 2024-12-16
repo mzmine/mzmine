@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Options for GNPS, molecular networking, SIRIUS,
  */
-public class WorkflowDDA implements WorkflowWizardParameterFactory {
+public class WorkflowDDA extends WorkflowWizardParameterFactory {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -25,9 +25,4 @@ public class WorkflowDDA implements WorkflowWizardParameterFactory {
     return "DDA";
   }
 
-  @Override
-  public boolean equals(Object o) {
-    return o instanceof WorkflowWizardParameterFactory fac && fac.getUniqueID()
-        .equals(this.getUniqueID());
-  }
 }

@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Target plate analysis
  */
-public class WorkflowTargetPlate implements WorkflowWizardParameterFactory {
+public class WorkflowTargetPlate extends WorkflowWizardParameterFactory {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -25,9 +25,4 @@ public class WorkflowTargetPlate implements WorkflowWizardParameterFactory {
     return "Target plate";
   }
 
-  @Override
-  public boolean equals(Object o) {
-    return o instanceof WorkflowWizardParameterFactory fac && fac.getUniqueID()
-        .equals(this.getUniqueID());
-  }
 }

@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * uses annotations to build spectral libraries
  */
-public class WorkflowLibraryGeneration implements WorkflowWizardParameterFactory {
+public class WorkflowLibraryGeneration extends WorkflowWizardParameterFactory {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -25,9 +25,4 @@ public class WorkflowLibraryGeneration implements WorkflowWizardParameterFactory
     return "Library generation";
   }
 
-  @Override
-  public boolean equals(Object o) {
-    return o instanceof WorkflowWizardParameterFactory fac && fac.getUniqueID()
-        .equals(this.getUniqueID());
-  }
 }
