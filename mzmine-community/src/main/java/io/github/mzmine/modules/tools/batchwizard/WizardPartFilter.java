@@ -7,8 +7,16 @@ import java.util.HashSet;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A filter to restrict wizard workflow selections.
+ */
 public interface WizardPartFilter {
 
+  /**
+   *
+   * @param part The wizard parameter factory to check if it is allowed.
+   * @return true or false
+   */
   boolean accept(@NotNull WizardParameterFactory part);
 
   /**
