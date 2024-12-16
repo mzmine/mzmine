@@ -2,8 +2,12 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workf
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPartFilter;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
+import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilderImagingDda;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import java.util.List;
 import java.util.Map;
@@ -32,5 +36,13 @@ public class WorkflowMs1Only extends WorkflowWizardParameterFactory {
   @Override
   public Map<WizardPart, List<WizardPartFilter>> getStepFilters() {
     return Map.of();
+  }
+
+  @Override
+  public @NotNull WizardBatchBuilder getBatchBuilder(final @NotNull WizardSequence steps) {
+    // throw in case we hit unsupported workflow
+    // those combinations should be filtered out previously though
+    throw new UnsupportedOperationException(
+        "Currently not implemented workflow " + this);
   }
 }

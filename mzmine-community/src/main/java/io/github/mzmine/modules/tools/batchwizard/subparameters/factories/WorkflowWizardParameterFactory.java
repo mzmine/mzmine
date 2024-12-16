@@ -27,6 +27,8 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPartFilter;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
@@ -38,6 +40,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -59,6 +62,10 @@ public abstract class WorkflowWizardParameterFactory implements WizardParameterF
     return values.toArray(WorkflowWizardParameterFactory[]::new);
   }
 
+  public static void addWorkflow(WorkflowWizardParameterFactory workflow) {
+    values.add(workflow);
+  }
+
   @Override
   public final int hashCode() {
     return getUniqueID().hashCode();
@@ -69,13 +76,18 @@ public abstract class WorkflowWizardParameterFactory implements WizardParameterF
     return o instanceof WorkflowWizardParameterFactory f && f.getUniqueID().equals(getUniqueID());
   }
 
-  public static void addWorkflow(WorkflowWizardParameterFactory workflow) {
-    values.add(workflow);
-  }
-
   /**
-   * @return A map that either allows or restricts specific selections in the wizard. If a wizard
-   * part has no values set, all parts are allowed.
+   * @return A map that either allows or restricts specific selections in the wizard. If a
+   * {@link WizardPart} has no values set, all part {@link WizardParameterFactory}s are allowed.
    */
   public abstract Map<WizardPart, List<WizardPartFilter>> getStepFilters();
+
+  /**
+   * Create workflow builder for workflow steps
+   *
+   * @param steps workflow
+   * @return the builder
+   */
+  public abstract @NotNull WizardBatchBuilder getBatchBuilder(@NotNull final WizardSequence steps)
+      throws UnsupportedOperationException;
 }

@@ -11,29 +11,35 @@ public interface WizardPartFilter {
 
   boolean accept(@NotNull WizardParameterFactory part);
 
+  /**
+   *
+   * @param allowed The allowed steps
+   */
   static WizardPartFilter allow(Collection<WizardParameterFactory> allowed) {
     return part -> new HashSet<>(allowed).contains(part);
   }
 
+  /**
+   *
+   * @param allowed The allowed steps
+   */
   static WizardPartFilter allow(WizardParameterFactory... allowed) {
     return allow(Arrays.asList(allowed));
   }
 
-  static WizardPartFilter deny(Collection<WizardParameterFactory> deny) {
-    return part -> !new HashSet<>(deny).contains(part);
+  /**
+   *
+   * @param denied The denied steps
+   */
+  static WizardPartFilter deny(Collection<WizardParameterFactory> denied) {
+    return part -> !new HashSet<>(denied).contains(part);
   }
 
-  static WizardPartFilter deny(WizardParameterFactory... deny) {
-    return deny(Arrays.stream(deny).collect(Collectors.toSet()));
-  }
-
-  static WizardPartFilter deny(@NotNull WizardParameterFactory selection,
-      Collection<WizardParameterFactory> denied) {
-    return part -> selection.equals(part) && deny(denied).accept(part);
-  }
-
-  static WizardPartFilter deny(@NotNull WizardParameterFactory selection,
-      WizardParameterFactory... denied) {
-    return deny(selection, Arrays.asList(denied));
+  /**
+   *
+   * @param denied The denied steps
+   */
+  static WizardPartFilter deny(WizardParameterFactory... denied) {
+    return deny(Arrays.stream(denied).collect(Collectors.toSet()));
   }
 }

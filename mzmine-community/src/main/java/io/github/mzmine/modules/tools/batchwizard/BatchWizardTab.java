@@ -40,7 +40,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
@@ -66,6 +65,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -456,12 +456,18 @@ public class BatchWizardTab extends SimpleTab {
     if (sequenceSteps == null) {
       return;
     }
+    final Optional<WizardStepParameters> workflow = sequenceSteps.get(WORKFLOW);
+    if (workflow.isEmpty()) {
+      DialogLoggerUtil.showErrorDialog("Cannot create batch",
+          "A workflow must be selected to create a batch.");
+      return;
+    }
 
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     try {
-      final BatchQueue q = WizardBatchBuilder.createBatchBuilderForSequence(sequenceSteps)
-          .createQueue();
+      final BatchQueue q = ((WorkflowWizardParameterFactory) workflow.get()
+          .getFactory()).getBatchBuilder(sequenceSteps).createQueue();
       batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
 
       if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {
