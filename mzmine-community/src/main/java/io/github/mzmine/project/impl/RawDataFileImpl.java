@@ -381,7 +381,7 @@ public class RawDataFileImpl implements RawDataFile {
 
   @Override
   public @NotNull ObservableList<Scan> getScans() {
-    return FXCollections.unmodifiableObservableList(scans);
+    return scans;
   }
 
   public void clearScans() {

@@ -304,9 +304,6 @@ public interface RawDataFile {
 
   void addScan(Scan newScan);
 
-  /**
-   * Immutable list of scans.
-   */
   @NotNull ObservableList<Scan> getScans();
 
   default @NotNull Stream<Scan> stream() {
