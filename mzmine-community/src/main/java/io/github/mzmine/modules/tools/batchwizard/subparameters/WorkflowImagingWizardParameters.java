@@ -1,6 +1,6 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 
 public final class WorkflowImagingWizardParameters extends WorkflowWizardParameters {
@@ -12,7 +12,7 @@ public final class WorkflowImagingWizardParameters extends WorkflowWizardParamet
 
 
   public WorkflowImagingWizardParameters() {
-    super(WorkflowWizardParameterFactory.IMAGING,
+    super(new WorkflowDDA(),
         // actual parameters
         CORRELATE_IMAGES);
   }

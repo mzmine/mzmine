@@ -25,77 +25,43 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowImagingWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowTargetPlateWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowImaging;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowMs1Only;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
  * toString method
+ *
+ * All implementations must override their equals method in this manner:
+ *
+ * {@code
+ * @Override
+ *   public boolean equals(Object o) {
+ *     return o instanceof WorkflowWizardParameterFactory fac && fac.getUniqueID()
+ *         .equals(this.getUniqueID());
+ *   }
+ * }
  */
-public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
-  /**
-   * Options for GNPS, molecular networking, SIRIUS,
-   */
-  DDA, DIA,
-  /**
-   * Currently only used in GC-EI; maybe in the future for all ion fragmentation (DIA)
-   */
-  DECONVOLUTION,
-  /**
-   * uses annotations to build spectral libraries
-   */
-  LIBRARY_GENERATION,
-  /**
-   * Nothing special just avoids all MS2 specific steps
-   */
-  MS1_ONLY,
-  /**
-   * imaging analysis
-   */
-  IMAGING,
-  /**
-   * Target plate analysis
-   */
-  TARGET_PLATE;
+public interface WorkflowWizardParameterFactory extends WizardParameterFactory {
 
-  @Override
-  public String toString() {
-    return switch (this) {
-      case DDA, DIA -> super.toString();
-      case MS1_ONLY -> "MS1 only";
-      case DECONVOLUTION -> "Spectral deconvolution";
-      case LIBRARY_GENERATION -> "Library generation";
-      case IMAGING -> "Imaging";
-      case TARGET_PLATE -> "Target plate";
-    };
+  List<WorkflowWizardParameterFactory> values = new ArrayList<>(
+      List.of(new WorkflowDDA(), new WorkflowDIA(), new WorkflowDeconvolution(),
+          new WorkflowLibraryGeneration(), new WorkflowImaging(), new WorkflowTargetPlate(),
+          new WorkflowMs1Only()));
+
+  static WorkflowWizardParameterFactory[] values() {
+    return values.toArray(WorkflowWizardParameterFactory[]::new);
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return name();
-  }
+  default boolean equals(Object o) {
 
-  @Override
-  public WizardStepParameters create() {
-    return switch (this) {
-      // EMPTY parameter set
-      case MS1_ONLY -> new WorkflowWizardParameters(this);
-      // specialized parameters
-      case IMAGING -> new WorkflowImagingWizardParameters(true);
-      case LIBRARY_GENERATION ->
-          new WorkflowLibraryGenerationWizardParameters(null, true, true, false);
-      case DDA -> new WorkflowDdaWizardParameters(true, true, null, true, true, false);
-      case DECONVOLUTION ->
-          new WorkflowGcElectronImpactWizardParameters(8, true, true, null, true, true, false);
-      case DIA -> new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true, false);
-      case TARGET_PLATE -> new WorkflowTargetPlateWizardParameters(false, null);
-    };
   }
 }
