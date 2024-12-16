@@ -15,7 +15,7 @@ public interface WizardPartFilter {
     return part -> new HashSet<>(allowed).contains(part);
   }
 
-  static WizardPartFilter allow(WizardParameterFactory[] allowed) {
+  static WizardPartFilter allow(WizardParameterFactory... allowed) {
     return allow(Arrays.asList(allowed));
   }
 
@@ -23,7 +23,7 @@ public interface WizardPartFilter {
     return part -> !new HashSet<>(deny).contains(part);
   }
 
-  static WizardPartFilter deny(WizardParameterFactory[] deny) {
+  static WizardPartFilter deny(WizardParameterFactory... deny) {
     return deny(Arrays.stream(deny).collect(Collectors.toSet()));
   }
 
@@ -33,7 +33,7 @@ public interface WizardPartFilter {
   }
 
   static WizardPartFilter deny(@NotNull WizardParameterFactory selection,
-      WizardParameterFactory[] denied) {
+      WizardParameterFactory... denied) {
     return deny(selection, Arrays.asList(denied));
   }
 }

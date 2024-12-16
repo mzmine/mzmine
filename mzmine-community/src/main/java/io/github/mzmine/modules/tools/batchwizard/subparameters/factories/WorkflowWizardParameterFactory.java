@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardPartFilter;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
@@ -34,14 +36,14 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workfl
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
  * toString method
- *
+ * <p>
  * All implementations must not override their equals and hash code methods.
- *
  */
 public abstract class WorkflowWizardParameterFactory implements WizardParameterFactory {
 
@@ -66,4 +68,14 @@ public abstract class WorkflowWizardParameterFactory implements WizardParameterF
   public final boolean equals(Object o) {
     return o instanceof WorkflowWizardParameterFactory f && f.getUniqueID().equals(getUniqueID());
   }
+
+  public static void addWorkflow(WorkflowWizardParameterFactory workflow) {
+    values.add(workflow);
+  }
+
+  /**
+   * @return A map that either allows or restricts specific selections in the wizard. If a wizard
+   * part has no values set, all parts are allowed.
+   */
+  public abstract Map<WizardPart, List<WizardPartFilter>> getStepFilters();
 }
