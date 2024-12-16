@@ -40,15 +40,8 @@ import java.util.Set;
  * the defaults should not change the name of enum values. if strings are needed, override the
  * toString method
  *
- * All implementations must override their equals method in this manner:
+ * All implementations must not override their equals and hash code methods.
  *
- * {@code
- * @Override
- *   public boolean equals(Object o) {
- *     return o instanceof WorkflowWizardParameterFactory fac && fac.getUniqueID()
- *         .equals(this.getUniqueID());
- *   }
- * }
  */
 public abstract class WorkflowWizardParameterFactory implements WizardParameterFactory {
 
@@ -65,12 +58,12 @@ public abstract class WorkflowWizardParameterFactory implements WizardParameterF
   }
 
   @Override
-  public int hashCode() {
-    return getClass().getName().hashCode();
+  public final int hashCode() {
+    return getUniqueID().hashCode();
   }
 
   @Override
-  public boolean equals(Object o) {
+  public final boolean equals(Object o) {
     return o instanceof WorkflowWizardParameterFactory f && f.getUniqueID().equals(getUniqueID());
   }
 }
