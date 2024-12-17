@@ -41,8 +41,25 @@ public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> byS
                                     @NotNull List<SpectraMergingResultsNode> acrossSamples,
                                     @Nullable Scan msnPseudoMs2) {
 
+  public SpectraMergingResults(@NotNull final List<SpectraMergingResultsNode> bySample,
+      @Nullable List<SpectraMergingResultsNode> acrossSamples, @Nullable final Scan msnPseudoMs2) {
+    this.bySample = bySample;
+    this.msnPseudoMs2 = msnPseudoMs2;
+
+    // maybe null or empty and then just set the first bySample if the size is only 1
+    // this would mean there was only one sample
+    if (acrossSamples == null || acrossSamples.isEmpty()) {
+      if (bySample.size() == 1) {
+        acrossSamples = bySample;
+      } else {
+        acrossSamples = List.of();
+      }
+    }
+    this.acrossSamples = acrossSamples;
+  }
+
   public SpectraMergingResults(final List<SpectraMergingResultsNode> bySample) {
-    this(bySample, List.of(), null);
+    this(bySample, null, null);
   }
 
   /**
@@ -52,9 +69,10 @@ public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> byS
    * @param acrossSamples
    */
   public SpectraMergingResults(final List<SpectraMergingResultsNode> bySample,
-      final SpectraMergingResultsNode acrossSamples) {
-    this(bySample, acrossSamples == null ? List.of() : List.of(acrossSamples), null);
+      final @Nullable SpectraMergingResultsNode acrossSamples) {
+    this(bySample, acrossSamples == null ? null : List.of(acrossSamples), null);
   }
+
 
   /**
    * Map a single node
@@ -73,7 +91,7 @@ public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> byS
    */
   @NotNull
   public static SpectraMergingResults ofSingleScan(@NotNull Scan scan) {
-    return new SpectraMergingResults(List.of(SpectraMergingResultsNode.ofSingleScan(scan, false)));
+    return new SpectraMergingResults(List.of(SpectraMergingResultsNode.ofSingleScan(scan)));
   }
 
   /**

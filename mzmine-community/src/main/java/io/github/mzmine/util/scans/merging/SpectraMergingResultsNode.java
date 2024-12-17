@@ -34,18 +34,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A node in the MSn or a singular node for an MS2 precursor
  *
- * @param acrossSamples   was merged across scans
  * @param scanByEnergy    map of energy groups to scan
  * @param allEnergiesScan all merged across energies
  */
-public record SpectraMergingResultsNode(boolean acrossSamples,
-                                        @NotNull Map<FloatGrouping, @NotNull Scan> scanByEnergy,
+public record SpectraMergingResultsNode(@NotNull Map<FloatGrouping, @NotNull Scan> scanByEnergy,
                                         @Nullable Scan allEnergiesScan) {
 
   /**
@@ -54,11 +53,10 @@ public record SpectraMergingResultsNode(boolean acrossSamples,
    * @return the map contains one scan, allEnergiesScan is null
    */
   @NotNull
-  public static SpectraMergingResultsNode ofSingleScan(@NotNull Scan scan,
-      final boolean acrossSamples) {
+  public static SpectraMergingResultsNode ofSingleScan(@NotNull Scan scan) {
     Map<FloatGrouping, Scan> scanByEnergy = Map.of(
         FloatGrouping.of(ScanUtils.extractCollisionEnergies(scan)), scan);
-    return new SpectraMergingResultsNode(acrossSamples, scanByEnergy, null);
+    return new SpectraMergingResultsNode(scanByEnergy, null);
   }
 
   /**
@@ -86,5 +84,9 @@ public record SpectraMergingResultsNode(boolean acrossSamples,
    */
   public @NotNull Scan getAcrossEnergiesOrSingleScan() {
     return requireNonNullElse(allEnergiesScan, scanByEnergy.values().stream().findFirst().get());
+  }
+
+  public Stream<Scan> streamScanByEnergy() {
+    return scanByEnergy.values().stream();
   }
 }
