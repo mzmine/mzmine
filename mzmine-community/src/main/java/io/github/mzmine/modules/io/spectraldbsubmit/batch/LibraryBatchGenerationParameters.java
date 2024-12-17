@@ -38,6 +38,8 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
@@ -74,10 +76,10 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
   public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createWithoutScientific();
 
-  public static final OptionalModuleParameter<SpectraMergingParameters> merging = new OptionalModuleParameter<>(
-      "Spectral merging", """
-      If active, spectra will be merged according to the embedded parameters.""",
-      new SpectraMergingParameters());
+  // Use representative scans or MSn tree so that we export each energy and across energies for each MSn precursor
+  // this is specific to library generation
+  public static final SpectraMergeSelectParameter merging = new SpectraMergeSelectParameter(
+      SpectraMergeSelectPresets.REPRESENTATIVE_MSn_TREE);
 
   public static final OptionalModuleParameter<HandleChimericMsMsParameters> handleChimerics = new OptionalModuleParameter<>(
       "Handle chimeric spectra",
@@ -92,8 +94,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       new AdvancedLibraryBatchGenerationParameters(), false);
 
   public LibraryBatchGenerationParameters() {
-    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer,
-        merging, handleChimerics, quality, advanced);
+    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer, merging,
+        handleChimerics, quality, advanced);
   }
 
 

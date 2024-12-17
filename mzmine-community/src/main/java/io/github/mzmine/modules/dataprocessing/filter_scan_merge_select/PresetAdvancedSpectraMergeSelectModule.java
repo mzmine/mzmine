@@ -23,15 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
+package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
+public class PresetAdvancedSpectraMergeSelectModule implements SpectraMergeSelectModule {
 
-  public SelectedRowsSpectralLibrarySearchParameters() {
-    super(new Parameter[]{libraries, spectraMergeSelect, msLevelFilter, mzTolerancePrecursor,
-        removePrecursor, mzTolerance, minMatch, similarityFunction, advanced});
+  @Override
+  public @NotNull String getName() {
+    return "Spectra merging (advanced presets)";
   }
 
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return PresetAdvancedSpectraMergeSelectParameters.class;
+  }
 }

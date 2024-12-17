@@ -100,6 +100,11 @@ public class ComboParameter<ValueType> implements
     choices.addAll(newChoices);
   }
 
+  public void setChoices(ValueType[] newChoices, ValueType active) {
+    setChoices(newChoices);
+    setValue(active);
+  }
+
   @Override
   public ComboParameter<ValueType> cloneParameter() {
     ComboParameter<ValueType> copy = new ComboParameter<ValueType>(name, description, choices);

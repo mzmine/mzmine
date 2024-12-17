@@ -2042,7 +2042,8 @@ public class ScanUtils {
    * @param scans input list
    * @return map of fragmention energy to scans
    */
-  public static Map<FloatGrouping, List<Scan>> splitByFragmentationEnergy(final List<Scan> scans) {
+  public static Map<FloatGrouping, List<Scan>> splitByFragmentationEnergy(
+      final Collection<Scan> scans) {
     return scans.stream()
         .collect(Collectors.groupingBy(scan -> FloatGrouping.of(extractCollisionEnergies(scan))));
   }

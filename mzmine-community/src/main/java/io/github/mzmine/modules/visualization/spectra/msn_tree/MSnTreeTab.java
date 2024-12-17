@@ -44,6 +44,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
@@ -54,14 +55,11 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.La
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.scans.FragmentScanSelection;
-import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
-import io.github.mzmine.util.scans.merging.SampleHandling;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 import it.unimi.dsi.fastutil.doubles.Double2DoubleOpenHashMap;
 import java.awt.Color;
@@ -571,10 +569,12 @@ public class MSnTreeTab extends SimpleTab {
     final MZTolerance mzTol = treeParameters.getValue(MSnTreeVisualizerParameters.mzTol);
     var root = any.getRoot();
     // only get the merged spectrum on each level
-    var merger = new SpectraMerger(SampleHandling.ACROSS_SAMPLES, mzTol,
-        IntensityMergingType.MAXIMUM, IncludeInputSpectra.NONE);
-    FragmentScanSelection selection = new FragmentScanSelection(merger, false,
-        MsLevelFilter.ALL_LEVELS);
+
+    var scanTypes = List.of(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES,
+        MergedSpectraFinalSelectionTypes.ACROSS_ENERGIES,
+        MergedSpectraFinalSelectionTypes.MSN_TREE);
+    var merger = new SpectraMerger(scanTypes, mzTol, IntensityMergingType.MAXIMUM);
+    FragmentScanSelection selection = new FragmentScanSelection(null, merger, scanTypes);
     List<Scan> mergedSpectra = selection.getAllFragmentSpectra(root);
 
     // MS2 has two spectra - the merged MS2 and the spectrum of all MSn merged into it

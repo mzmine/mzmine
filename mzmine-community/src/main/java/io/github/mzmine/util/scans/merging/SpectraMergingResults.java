@@ -30,9 +30,41 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Merging results for one MS2 precursor or one MSn tree
+ *
+ * @param bySample      one MS2 node per sample or one MSn node per sample and MSn tree node
+ * @param acrossSamples one node for an MS2 precursor or one for every MSn tree node
+ * @param msnPseudoMs2  a spectrum merged all MSn to a pseudo MS2 - only for MSn data
+ */
 public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> bySample,
-                                    @Nullable SpectraMergingResultsNode acrossSamples,
+                                    @NotNull List<SpectraMergingResultsNode> acrossSamples,
                                     @Nullable Scan msnPseudoMs2) {
+
+  public SpectraMergingResults(final List<SpectraMergingResultsNode> bySample) {
+    this(bySample, List.of(), null);
+  }
+
+  /**
+   * Constructor for MS2 data
+   *
+   * @param bySample
+   * @param acrossSamples
+   */
+  public SpectraMergingResults(final List<SpectraMergingResultsNode> bySample,
+      final SpectraMergingResultsNode acrossSamples) {
+    this(bySample, acrossSamples == null ? List.of() : List.of(acrossSamples), null);
+  }
+
+  /**
+   * Map a single node
+   *
+   * @return the map contains one scan, allEnergiesScan is null
+   */
+  @NotNull
+  public static SpectraMergingResults ofSingleNode(@NotNull SpectraMergingResultsNode node) {
+    return new SpectraMergingResults(List.of(node));
+  }
 
   /**
    * Map a single scan to its collision energy group
@@ -41,8 +73,7 @@ public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> byS
    */
   @NotNull
   public static SpectraMergingResults ofSingleScan(@NotNull Scan scan) {
-    return new SpectraMergingResults(List.of(SpectraMergingResultsNode.ofSingleScan(scan, false)),
-        null, null);
+    return new SpectraMergingResults(List.of(SpectraMergingResultsNode.ofSingleScan(scan, false)));
   }
 
   /**
@@ -52,6 +83,6 @@ public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> byS
    */
   @NotNull
   public static SpectraMergingResults ofEmpty() {
-    return new SpectraMergingResults(List.of(), null, null);
+    return new SpectraMergingResults(List.of());
   }
 }

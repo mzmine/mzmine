@@ -67,7 +67,7 @@ public record SpectraMergingResultsNode(boolean acrossSamples,
    * @param nodes results for each MSn or MS2 node
    * @return mapping of energy group to list of scans extracted from all nodes
    */
-  public static @NotNull Map<FloatGrouping, @NotNull List<Scan>> collectScanByEnergy(
+  public static @NotNull Map<FloatGrouping, @NotNull List<Scan>> groupScansByEnergy(
       List<SpectraMergingResultsNode> nodes) {
     Map<FloatGrouping, List<Scan>> map = new HashMap<>();
 

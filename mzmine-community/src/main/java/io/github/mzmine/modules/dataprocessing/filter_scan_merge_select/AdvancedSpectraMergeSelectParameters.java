@@ -23,24 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.spectraldbsubmit.batch;
+package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypesParameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
-import io.github.mzmine.util.scans.merging.SampleHandling;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
-public class SpectraMergingParameters extends SimpleParameterSet {
 
-  public static final ComboParameter<SampleHandling> mergeAcrossSamples = new ComboParameter<>(
-      "Merge spectra", """
-      Either merge within each sample (intra sample) or merge across all samples.""",
-      SampleHandling.values(), SampleHandling.ACROSS_SAMPLES);
+public class AdvancedSpectraMergeSelectParameters extends SimpleParameterSet {
+
+  public static final MergedSpectraFinalSelectionTypesParameter finalScanSelection = new MergedSpectraFinalSelectionTypesParameter(
+      MergedSpectraFinalSelectionTypes.values(),
+      List.of(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES,
+          MergedSpectraFinalSelectionTypes.ACROSS_ENERGIES));
+
   public static final ComboParameter<IntensityMergingType> intensityMergeType = new ComboParameter<>(
       "Intensity merge mode", """
                                   Defines the way intensity values are merged:
@@ -52,27 +57,37 @@ public class SpectraMergingParameters extends SimpleParameterSet {
   public static final MZToleranceParameter mergeMzTolerance = new MZToleranceParameter(
       "m/z tolerance", "The tolerance used to group signals during merging of spectra", 0.008, 25);
 
-//  public static final PercentParameter signalCountFilter = new PercentParameter(
-//      "Signal detections (%)",
-//      "A signal is removed from the merged spectrum if it was detected in <X% of the total source scans.",
-//      0.2, 0d, 1d);
+//  public static final AbsoluteAndRelativeIntParameter signalCountFilter = new AbsoluteAndRelativeIntParameter(
+//      "Signal count filter",
+//      "A signal is removed from the merged spectrum if it was detected in <X% or <N of the total source scans. If signals are present in all scans they are always retained, even if N is greater than the number of source scans. This is only applied on a per fragmentation energy level.",
+//      null, new AbsoluteAndRelativeInt(1, 0.2f));
 
-  public SpectraMergingParameters() {
-    super(mergeMzTolerance, mergeAcrossSamples, intensityMergeType);
+  public AdvancedSpectraMergeSelectParameters() {
+    super(finalScanSelection, mergeMzTolerance, intensityMergeType);
   }
 
-  public void setAll(final SampleHandling sampleHandling, final MZTolerance mzTol,
+  public static ParameterSet createSourceScanParams(
+      final List<MergedSpectraFinalSelectionTypes> scanSelection) {
+    // mz tol and other merging specific values cannot be null but need to be set
+    // will not be used when only source scans are selected
+    return createParams(scanSelection, MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA,
+        IntensityMergingType.MAXIMUM);
+  }
+
+  public static ParameterSet createParams(
+      final List<MergedSpectraFinalSelectionTypes> scanSelection, final MZTolerance mzTol,
       final IntensityMergingType intensityMerging) {
-    setParameter(mergeMzTolerance, mzTol);
-    setParameter(mergeAcrossSamples, sampleHandling);
-    setParameter(intensityMergeType, intensityMerging);
+    var params = new AdvancedSpectraMergeSelectParameters().cloneParameterSet();
+    params.setParameter(mergeMzTolerance, mzTol);
+    params.setParameter(finalScanSelection, scanSelection);
+    params.setParameter(intensityMergeType, intensityMerging);
+    return params;
   }
 
-
-  public SpectraMerger create() {
-    SampleHandling sampleHandling = getValue(mergeAcrossSamples);
+  public SpectraMerger createMerger() {
+    var scanSelection = getValue(finalScanSelection);
     MZTolerance mzTol = getValue(mergeMzTolerance);
     var intensityMerging = getValue(intensityMergeType);
-    return new SpectraMerger(sampleHandling, mzTol, intensityMerging);
+    return new SpectraMerger(scanSelection, mzTol, intensityMerging);
   }
 }

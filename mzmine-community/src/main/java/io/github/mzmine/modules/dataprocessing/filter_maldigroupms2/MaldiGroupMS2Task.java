@@ -43,17 +43,15 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.scans.FragmentScanSelection;
-import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
-import io.github.mzmine.util.scans.merging.SampleHandling;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -247,10 +245,12 @@ public class MaldiGroupMS2Task extends AbstractTask {
 
     if (!msmsSpectra.isEmpty()) {
       if (combineTimsMS2) {
-        var merger = new SpectraMerger(SampleHandling.SAME_SAMPLE, SpectraMerging.pasefMS2MergeTol,
-            IntensityMergingType.SUMMED, IncludeInputSpectra.ALL);
-        final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(merger,
-            MsLevelFilter.ALL_LEVELS, getMemoryMapStorage());
+        var scanTypes = List.of(MergedSpectraFinalSelectionTypes.EACH_SAMPLE,
+            MergedSpectraFinalSelectionTypes.EACH_ENERGY);
+        var merger = new SpectraMerger(scanTypes, SpectraMerging.pasefMS2MergeTol,
+            IntensityMergingType.SUMMED);
+        final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(
+            getMemoryMapStorage(), merger, scanTypes);
         var spectra = fragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
         feature.setAllMS2FragmentScans(spectra, false);
       } else {

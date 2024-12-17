@@ -23,15 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
+package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.modules.MZmineModule;
 
-public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
+public interface SpectraMergeSelectModule extends MZmineModule {
 
-  public SelectedRowsSpectralLibrarySearchParameters() {
-    super(new Parameter[]{libraries, spectraMergeSelect, msLevelFilter, mzTolerancePrecursor,
-        removePrecursor, mzTolerance, minMatch, similarityFunction, advanced});
-  }
 
 }

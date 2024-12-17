@@ -30,9 +30,9 @@ import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,24 +75,21 @@ public class SpectraMerger {
   private final @NotNull SampleHandling sampleHandling;
   private final @NotNull MZTolerance mzTol;
   private final @NotNull IntensityMergingType intensityMerging;
-  private final @NotNull FragmentScanSelection.IncludeInputSpectra inputSpectra;
   private @Nullable MemoryMapStorage storage;
 
   /**
-   * @param sampleHandling
+   * @param finalScanSelection
    * @param mzTol
    * @param intensityMerging
-   * @param inputSpectra     keep input spectra in the final list or only use representative
-   *                         spectra
    */
-  public SpectraMerger(final @NotNull SampleHandling sampleHandling,
-      final @NotNull MZTolerance mzTol, final @NotNull IntensityMergingType intensityMerging,
-      final @NotNull FragmentScanSelection.IncludeInputSpectra inputSpectra) {
+  public SpectraMerger(final List<MergedSpectraFinalSelectionTypes> finalScanSelection,
+      final @NotNull MZTolerance mzTol, final @NotNull IntensityMergingType intensityMerging) {
 
-    this.sampleHandling = sampleHandling;
+    this.sampleHandling =
+        finalScanSelection.contains(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES)
+            ? SampleHandling.ACROSS_SAMPLES : SampleHandling.SAME_SAMPLE;
     this.mzTol = mzTol;
     this.intensityMerging = intensityMerging;
-    this.inputSpectra = inputSpectra;
   }
 
 
@@ -115,27 +113,20 @@ public class SpectraMerger {
       return SpectraMergingResults.ofSingleScan(scans.getFirst());
     }
     boolean hasMSn = scans.stream().anyMatch(s -> s.getMSLevel() > 2);
-    // result
-    List<SpectraMergingResultsNode> mergedBySample = new ArrayList<>(scans.size());
-
-    // always split by sample and merge for each individually, then maybe merge across samples if selected
-    final Map<String, List<Scan>> bySamples = ScanUtils.splitBySample(scans);
-
-    for (final Entry<String, List<Scan>> group : bySamples.entrySet()) {
-      List<Scan> sampleScans = group.getValue();
-      // get merged or best single scans on different MSn levels, and energies
-      if (hasMSn) {
-        mergedBySample.addAll(computeAllMergedOrBestFromMSn(sampleScans, false));
-      } else {
-        mergedBySample.add(mergeByFragmentationEnergy(sampleScans, true, false));
-      }
+    if (hasMSn) {
+      return getAllFragmentSpectraMSn(scans);
     }
+
+    // merge by sample first
+    List<SpectraMergingResultsNode> mergedBySample = mergeBySample(scans,
+        sampleScans -> mergeByFragmentationEnergy(sampleScans, true, false));
 
     // merge across samples using the list of spectra obtained from all samples
     SpectraMergingResultsNode mergedAcrossSamples = null;
-    if (sampleHandling == SampleHandling.ACROSS_SAMPLES && bySamples.size() > 1) {
+    if (sampleHandling == SampleHandling.ACROSS_SAMPLES && mergedBySample.size() > 1) {
+      // TODO maybe not needed - could just filter the duplicates at the end
       // collect all the scans with the same energy across samples
-      var byEnergyAcrossSamples = SpectraMergingResultsNode.collectScanByEnergy(mergedBySample);
+      var byEnergyAcrossSamples = SpectraMergingResultsNode.groupScansByEnergy(mergedBySample);
       // remove those with only one scan - this means only present in one sample and those are already represented
       byEnergyAcrossSamples.entrySet().removeIf(entry -> entry.getValue().size() <= 1);
 
@@ -146,8 +137,45 @@ public class SpectraMerger {
       }
     }
 
-    return new SpectraMergingResults(mergedBySample, mergedAcrossSamples, null);
+    return new SpectraMergingResults(mergedBySample, mergedAcrossSamples);
   }
+
+  private SpectraMergingResults getAllFragmentSpectraMSn(final List<Scan> scans) {
+    // merge by samples first - List of samples with List of nodes = MSn precursor node
+    List<List<SpectraMergingResultsNode>> sampleMsnTrees = mergeBySample(scans,
+        sampleScans -> computeAllMergedOrBestFromMSn(sampleScans, false));
+
+    int nSamples = sampleMsnTrees.size();
+
+    var mergedBySample = sampleMsnTrees.stream().flatMap(Collection::stream).toList();
+    var representativeScans = mergedBySample.stream()
+        .map(SpectraMergingResultsNode::getAcrossEnergiesOrSingleScan).toList();
+
+    // merge all to pseudo MS2
+    Scan pseudoMs2 = null;
+    if (sampleHandling == SampleHandling.ACROSS_SAMPLES && nSamples > 1) {
+      pseudoMs2 = mergeSpectra(representativeScans, MergingType.ALL_MSN_TO_PSEUDO_MS2);
+    }
+
+    // merge MSn trees across samples
+    var mergedAcrossSamples = computeAllMergedOrBestFromMSn(representativeScans, true);
+
+    return new SpectraMergingResults(mergedBySample, mergedAcrossSamples, pseudoMs2);
+  }
+
+  private <T> List<T> mergeBySample(List<Scan> scans, Function<List<Scan>, T> bySampleFunction) {
+    List<T> results = new ArrayList<>();
+    // always split by sample and merge for each individually, then maybe merge across samples if selected
+    final Map<String, List<Scan>> bySamples = ScanUtils.splitBySample(scans);
+
+    for (final Entry<String, List<Scan>> group : bySamples.entrySet()) {
+      List<Scan> sampleScans = group.getValue();
+      // get merged or best single scans on different MSn levels, and energies
+      results.add(bySampleFunction.apply(sampleScans));
+    }
+    return results;
+  }
+
 
   private List<SpectraMergingResultsNode> computeAllMergedOrBestFromMSn(final List<Scan> scans,
       final boolean isAcrossSamples) {
@@ -164,42 +192,19 @@ public class SpectraMerger {
     PrecursorIonTree tree = msnTrees.stream()
         .max(Comparator.comparingInt(PrecursorIonTree::countPrecursor)).orElse(null);
 
-    return tree == null ? List.of() : getAllFragmentSpectra(tree, isAcrossSamples);
+    return tree == null ? List.of()
+        : computeAllMergedOrBestFromMSn(tree.getRoot(), isAcrossSamples);
   }
 
   @NotNull
-  public List<SpectraMergingResultsNode> getAllFragmentSpectra(final PrecursorIonTree tree,
-      final boolean isAcrossSamples) {
-    return getAllFragmentSpectra(tree.getRoot(), isAcrossSamples);
-  }
-
-  @NotNull
-  public List<SpectraMergingResultsNode> getAllFragmentSpectra(final PrecursorIonTreeNode root,
-      final boolean isAcrossSamples) {
+  public List<SpectraMergingResultsNode> computeAllMergedOrBestFromMSn(
+      final PrecursorIonTreeNode root, final boolean isAcrossSamples) {
     // merge each MSn node by energy and across energies
     List<SpectraMergingResultsNode> mergedPerTreeNode = root.streamWholeTree()
         .map(PrecursorIonTreeNode::getFragmentScans)
         .map(scans -> mergeByFragmentationEnergy(scans, true, isAcrossSamples)).toList();
 
-    // merge all to pseudo MS2
-    List<Scan> representativeMergedScans = mergedPerTreeNode.stream()
-        .map(SpectraMergingResultsNode::getAcrossEnergiesOrSingleScan).toList();
-
-    Scan pseudoMs2 = null;
-    if (representativeMergedScans.size() > 1) {
-      pseudoMs2 = mergeSpectra(representativeMergedScans, MergingType.ALL_MSN_TO_PSEUDO_MS2);
-    }
-
-    // TODO how to return this result - extra class?
-
-    List<Scan> allScans = new ArrayList<>();
-    allScans.add(pseudoMs2);
-    mergedPerTreeNode.forEach(allScans::addAll);
-
-    if (postMergingScanFilter.isFilter()) {
-      allScans.removeIf(postMergingScanFilter::matchesNot);
-    }
-    return allScans;
+    return mergedPerTreeNode;
   }
 
   /**
@@ -327,10 +332,6 @@ public class SpectraMerger {
 
   public boolean isMergeAcrossEnergies() {
     return true;
-  }
-
-  public @NotNull FragmentScanSelection.IncludeInputSpectra getInputSpectra() {
-    return inputSpectra;
   }
 
   public @Nullable MemoryMapStorage getStorage() {

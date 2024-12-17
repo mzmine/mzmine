@@ -44,8 +44,8 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementProcessor;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -55,12 +55,9 @@ import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.FragmentScanSelection;
-import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
-import io.github.mzmine.util.scans.merging.SampleHandling;
-import io.github.mzmine.util.scans.merging.ScanSelectionFilter;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -137,10 +134,11 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
         GroupMS2Parameters.minRequiredSignals, 0);
 
     // only used for tims, keeping input spectra is important for later merging.
-    var merger = new SpectraMerger(SampleHandling.SAME_SAMPLE, SpectraMerging.pasefMS2MergeTol,
-        IntensityMergingType.MAXIMUM, IncludeInputSpectra.ALL);
-    timsFragmentScanSelection = new FragmentScanSelection(merger,
-        ScanSelectionFilter.filterMsLevel(MsLevelFilter.ALL_LEVELS), timsScanStorage);
+    var scanTypes = List.of(MergedSpectraFinalSelectionTypes.EACH_SAMPLE,
+        MergedSpectraFinalSelectionTypes.EACH_ENERGY);
+    var merger = new SpectraMerger(scanTypes, SpectraMerging.pasefMS2MergeTol,
+        IntensityMergingType.MAXIMUM);
+    timsFragmentScanSelection = new FragmentScanSelection(timsScanStorage, merger, scanTypes);
 
     this.list = list;
     processedRows = 0;
