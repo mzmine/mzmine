@@ -29,11 +29,13 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectModuleOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresetsParameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ArrayUtils;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -85,6 +87,24 @@ public class SpectraMergeSelectParameter extends
     embedded.setParameter(PresetSimpleSpectraMergeSelectParameters.mergeMzTolerance, mzTolScans);
   }
 
+  /**
+   * Used in clone paramer
+   */
+  private SpectraMergeSelectParameter(final String name, final String description,
+      final SpectraMergeSelectModuleOptions selectedValue,
+      final EnumMap<SpectraMergeSelectModuleOptions, ParameterSet> parameters) {
+    super(name, description, selectedValue, parameters);
+  }
+
+  @Override
+  public SpectraMergeSelectParameter cloneParameter() {
+    EnumMap<SpectraMergeSelectModuleOptions, ParameterSet> copy = new EnumMap<>(parametersMap);
+    for (final SpectraMergeSelectModuleOptions key : copy.keySet()) {
+      var cloneParam = copy.get(key).cloneParameterSet();
+      copy.put(key, cloneParam);
+    }
+    return new SpectraMergeSelectParameter(getName(), getDescription(), getValue(), copy);
+  }
 
   /**
    * Applies many defaults for modules.

@@ -57,4 +57,10 @@ public class MergedSpectraFinalSelectionTypesParameter extends
     }
     return super.checkValue(errorMessages);
   }
+
+  @Override
+  public MergedSpectraFinalSelectionTypesParameter cloneParameter() {
+    return new MergedSpectraFinalSelectionTypesParameter(getName(), getDescription(),
+        getChoices().toArray(MergedSpectraFinalSelectionTypes[]::new), getValue());
+  }
 }

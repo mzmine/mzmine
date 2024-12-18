@@ -146,7 +146,8 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
       }
       case SOURCE_SCANS -> {
         var value = params.getValue(SourceSpectraSelectParameters.sourceSelectionTypes);
-        yield AdvancedSpectraMergeSelectParameters.createSourceScanParams(List.of(value));
+        yield AdvancedSpectraMergeSelectParameters.createSourceScanParams(
+            List.of(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES, value));
       }
       case ADVANCED -> params;
     };

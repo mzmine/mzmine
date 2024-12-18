@@ -45,12 +45,6 @@ public class SpectraMergeSelectPresetsParameter extends ComboParameter<SpectraMe
 
   public SpectraMergeSelectPresetsParameter(@Nullable String additionalDescriptionLine,
       final SpectraMergeSelectPresets[] choices, final SpectraMergeSelectPresets defaultValue) {
-    this(DEFAULT_NAME, additionalDescriptionLine, choices, defaultValue);
-  }
-
-  public SpectraMergeSelectPresetsParameter(final String name,
-      @Nullable String additionalDescriptionLine, final SpectraMergeSelectPresets[] choices,
-      final SpectraMergeSelectPresets defaultValue) {
     if (additionalDescriptionLine == null) {
       additionalDescriptionLine = "";
     }
@@ -62,7 +56,17 @@ public class SpectraMergeSelectPresetsParameter extends ComboParameter<SpectraMe
         %s \
         Across/each energy refers to fragmentation energies if they are read from the raw data files - all scans of unknown energy are grouped together.
         %s""".formatted(additionalDescriptionLine, optionDescription);
+    this(DEFAULT_NAME, description, choices, defaultValue);
+  }
+
+  public SpectraMergeSelectPresetsParameter(final String name, final String description,
+      final SpectraMergeSelectPresets[] choices, final SpectraMergeSelectPresets defaultValue) {
     super(name, description, choices, defaultValue);
   }
 
+  @Override
+  public SpectraMergeSelectPresetsParameter cloneParameter() {
+    return new SpectraMergeSelectPresetsParameter(getName(), getDescription(),
+        getChoices().toArray(SpectraMergeSelectPresets[]::new), getValue());
+  }
 }
