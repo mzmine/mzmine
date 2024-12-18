@@ -223,7 +223,7 @@ public class ParameterSetupPane extends BorderPane {
     }
 
     setMinWidth(300.0);
-    setMinHeight(100);
+    setMinHeight(20);
   }
 
   /**

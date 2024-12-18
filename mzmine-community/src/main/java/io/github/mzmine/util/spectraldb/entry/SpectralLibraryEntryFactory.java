@@ -475,16 +475,24 @@ public class SpectralLibraryEntryFactory {
   }
 
   /**
-   * Put experimental results from feature to entry
+   * Put experimental results from feature to entry. Prefer feature over row
    */
-  public void putFeatureFieldsIntoEntry(@NotNull SpectralLibraryEntry entry, @Nullable Feature f) {
-    if (f == null || !addExperimentalResults) {
+  public void putFeatureFieldsIntoEntry(@NotNull SpectralLibraryEntry entry,
+      final @Nullable FeatureListRow row, @Nullable Feature f) {
+    if (!addExperimentalResults) {
       return;
     }
 
-    entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
-    entry.putIfNotNull(DBEntryField.RT, f.getRT());
-    entry.putIfNotNull(DBEntryField.CCS, f.getCCS());
+    if (row != null) {
+      entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, row.getAverageMZ());
+      entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
+      entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
+    }
+    if (f != null) {
+      entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
+      entry.putIfNotNull(DBEntryField.RT, f.getRT());
+      entry.putIfNotNull(DBEntryField.CCS, f.getCCS());
+    }
   }
 
   public void setAddOnlineReactivityFlags(final boolean addOnlineReactivityFlags) {

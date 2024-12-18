@@ -79,12 +79,24 @@ public class SpectraMergeSelectParameter extends
     return new Builder().createParameters();
   }
 
+  public static SpectraMergeSelectParameter createSiriusExportAllDefault() {
+    return new Builder().includeAdvanced(true).useExportAllSourceScans().createParameters();
+  }
+
   public void setSimplePreset(final SpectraMergeSelectPresets preset,
       final MZTolerance mzTolScans) {
     setValue(SpectraMergeSelectModuleOptions.SIMPLE_MERGED);
     var embedded = getEmbeddedParameters();
     embedded.setParameter(PresetSimpleSpectraMergeSelectParameters.preset, preset);
     embedded.setParameter(PresetSimpleSpectraMergeSelectParameters.mergeMzTolerance, mzTolScans);
+  }
+
+  public void setUseSourceScans(final boolean useAllScans) {
+    setValue(SpectraMergeSelectModuleOptions.SOURCE_SCANS);
+    var embedded = getEmbeddedParameters();
+    var selection = useAllScans ? MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS
+        : MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN;
+    embedded.setParameter(SourceSpectraSelectParameters.sourceSelectionTypes, selection);
   }
 
   /**
@@ -118,11 +130,16 @@ public class SpectraMergeSelectParameter extends
     private SpectraMergeSelectPresets @NotNull [] presetOptions = SpectraMergeSelectPresets.defaultNoMSnTrees();
     private @Nullable SpectraMergeSelectPresets preset = SpectraMergeSelectPresets.REPRESENTATIVE_SCANS;
     private boolean includeAllSourceScans = false;
+    private boolean useExportAllSourceScans = false;
     // use optional to define that options should not be filtered but used as is
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private @NotNull Optional<Boolean> includeAdvanced = Optional.of(false);
 
     public SpectraMergeSelectParameter createParameters() {
+      if (useExportAllSourceScans) {
+        useExportAllSourceScans(); // make sure to set all related fields
+      }
+
       includeAdvanced.ifPresent(advanced -> {
         var alreadyContains = ArrayUtils.contains(SpectraMergeSelectModuleOptions.ADVANCED,
             options);
@@ -150,12 +167,18 @@ public class SpectraMergeSelectParameter extends
       }
 
       // limit choice of all source scans - the default parameter shows this option so we only need to remove it
-      if (!includeAllSourceScans) {
-        var embedded = param.getEmbeddedParameters(SpectraMergeSelectModuleOptions.SOURCE_SCANS);
-        if (embedded != null) {
+      var embedded = param.getEmbeddedParameters(SpectraMergeSelectModuleOptions.SOURCE_SCANS);
+      if (embedded != null) {
+        if (!includeAllSourceScans) {
           var singleBest = MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN;
           embedded.getParameter(SourceSpectraSelectParameters.sourceSelectionTypes)
               .setChoices(new MergedSpectraFinalSelectionTypes[]{singleBest}, singleBest);
+        } else if (useExportAllSourceScans) {
+          embedded.getParameter(SourceSpectraSelectParameters.sourceSelectionTypes).setChoices(
+              new MergedSpectraFinalSelectionTypes[]{
+                  MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN,
+                  MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS},
+              MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS);
         }
       }
 
@@ -216,6 +239,13 @@ public class SpectraMergeSelectParameter extends
 
     public Builder includeAllSourceScans(final boolean includeAllSourceScans) {
       this.includeAllSourceScans = includeAllSourceScans;
+      return this;
+    }
+
+    public Builder useExportAllSourceScans() {
+      active(SpectraMergeSelectModuleOptions.SOURCE_SCANS);
+      includeAllSourceScans(true);
+      this.useExportAllSourceScans = true;
       return this;
     }
 
