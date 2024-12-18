@@ -394,7 +394,7 @@ public abstract class AbstractWorkspace implements Workspace {
       final UserType userType =
           CurrentUserService.getUser() != null ? CurrentUserService.getUser().getUserType()
               : UserType.ACADEMIC;
-      for (Workspace workspace : helper.getWorkspaces().values()) {
+      for (Workspace workspace : WorkspaceMenuHelper.getWorkspaces().values()) {
         if (!workspace.isAllowedWithLicense(userType)) {
           continue;
         }
