@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -41,6 +43,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GroupMS2Parameters extends SimpleParameterSet {
 
@@ -91,7 +94,8 @@ public class GroupMS2Parameters extends SimpleParameterSet {
       but can retain actual fragment ion signals at low intensities (if they were detected more than this number).
       Default value: 2. Typical values: 1-4, the higher, the less likely noise signals are, but also removes real ion signals if set too high.
       To reproduce behavior of mzmine <=4.4, use 1.
-      Note: The signal occurrence is checked on a per-frame basis (before merging CEs and across CEs).""", 2, 1, Integer.MAX_VALUE);
+      Note: The signal occurrence is checked on a per-frame basis (before merging CEs and across CEs).""",
+      2, 1, Integer.MAX_VALUE);
 
   public static final AdvancedParametersParameter<GroupMs2AdvancedParameters> advancedParameters = new AdvancedParametersParameter<>(
       new GroupMs2AdvancedParameters(), false);
@@ -100,7 +104,7 @@ public class GroupMS2Parameters extends SimpleParameterSet {
     super(new Parameter[]{PEAK_LISTS, mzTol, rtFilter, minimumRelativeFeatureHeight,
             minRequiredSignals, limitMobilityByFeature,
             // TIMS specific
-            combineTimsMsMs, minImsRawSignals, advancedParameters},
+            minImsRawSignals, combineTimsMsMs, advancedParameters},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
   }
 
@@ -112,5 +116,20 @@ public class GroupMS2Parameters extends SimpleParameterSet {
   @Override
   public int getVersion() {
     return 3;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 3 -> """
+          In mzmine version >= 4.4.3, the IMS-related MS2 grouping parameters %s and %s were moved \
+          into an advanced parameter set (see drop down) and disabled by default.
+          Additionally, the parameter %s was added as a more sophisticated option to improve \
+          the quality of DDA-IMS-MS2 spectra.
+          """.formatted(inQuotes(GroupMs2AdvancedParameters.outputNoiseLevel.getName()),
+          inQuotes(GroupMs2AdvancedParameters.outputNoiseLevelRelative.getName()),
+          inQuotes(GroupMS2Parameters.minImsRawSignals.getName()));
+      default -> null;
+    };
   }
 }
