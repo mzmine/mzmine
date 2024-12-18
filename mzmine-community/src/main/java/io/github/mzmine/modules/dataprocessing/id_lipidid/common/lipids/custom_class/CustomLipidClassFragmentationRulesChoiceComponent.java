@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class;
+
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -53,7 +55,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -114,7 +115,7 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
       }
     });
 
-    importButton.setTooltip(new Tooltip("Import custom lipid fragmentation rule from json file"));
+    importButton.setTooltip(newTooltip("Import custom lipid fragmentation rule from json file"));
     importButton.setOnAction(e -> {
 
       // Create the chooser if necessary.
@@ -145,7 +146,7 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
 
     });
 
-    exportButton.setTooltip(new Tooltip("Export Lipid Fragmentatio Rules to a JSON file"));
+    exportButton.setTooltip(newTooltip("Export Lipid Fragmentatio Rules to a JSON file"));
     exportButton.setOnAction(e -> {
       FileChooser chooser = new FileChooser();
       chooser.setTitle("Select Lipid Fragmentation Rules file");
@@ -169,14 +170,14 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
 
     });
 
-    removeButton.setTooltip(new Tooltip("Remove selected Custom Lipid Classes"));
+    removeButton.setTooltip(newTooltip("Remove selected Custom Lipid Classes"));
     removeButton.setOnAction(e -> {
       ObservableList<LipidFragmentationRule> selectedItems = checkList.getSelectionModel()
           .getSelectedItems();
       checkList.getItems().removeAll(selectedItems);
     });
 
-    clearButton.setTooltip(new Tooltip("Remove all Lipid Fragmentation Rules"));
+    clearButton.setTooltip(newTooltip("Remove all Lipid Fragmentation Rules"));
     clearButton.setOnAction(e -> {
       checkList.getItems().clear();
     });

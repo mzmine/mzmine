@@ -25,6 +25,8 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
+
 import io.github.mzmine.javafx.components.animations.FxFlashingAnimation;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.IconCodeSupplier;
@@ -37,7 +39,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Tooltip;
 import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -120,7 +121,7 @@ public class FxIconButtonBuilder<T extends ButtonBase> {
 
   public FxIconButtonBuilder<T> tooltip(String tooltip) {
     if (tooltip != null) {
-      button.setTooltip(new Tooltip(tooltip));
+      button.setTooltip(newTooltip(tooltip));
     }
     return this;
   }

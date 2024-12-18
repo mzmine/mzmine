@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -43,7 +44,6 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import org.jetbrains.annotations.Nullable;
@@ -67,20 +67,21 @@ public class FeatureSelectionComponent extends BorderPane {
 
     addButton = new Button("Add");
     addButton.setOnAction(e -> {
-      final IntRangeParameter idParameter =
-          new IntRangeParameter("ID", "Range of included peak IDs", false, null);
+      final IntRangeParameter idParameter = new IntRangeParameter("ID",
+          "Range of included peak IDs", false, null);
       final MZRangeParameter mzParameter = new MZRangeParameter(false);
       final RTRangeParameter rtParameter = new RTRangeParameter(false);
       final StringParameter nameParameter = new StringParameter("Name", "Peak identity name", "",
           false);
       SimpleParameterSet paramSet = new SimpleParameterSet(
-          new Parameter[] {idParameter, mzParameter, rtParameter, nameParameter});
+          new Parameter[]{idParameter, mzParameter, rtParameter, nameParameter});
       ExitCode exitCode = paramSet.showSetupDialog(true);
       if (exitCode == ExitCode.OK) {
         Range<Integer> idRange = paramSet.getParameter(idParameter).getValue();
         Range<Double> mzRange = paramSet.getParameter(mzParameter).getValue();
         // TODO: FloatRangeParameter
-        Range<Float> rtRange = RangeUtils.toFloatRange(paramSet.getParameter(rtParameter).getValue());
+        Range<Float> rtRange = RangeUtils.toFloatRange(
+            paramSet.getParameter(rtParameter).getValue());
         String name = paramSet.getParameter(nameParameter).getValue();
         FeatureSelection ps = new FeatureSelection(idRange, mzRange, rtRange, name);
         selection.add(ps);
@@ -141,7 +142,7 @@ public class FeatureSelectionComponent extends BorderPane {
   }
 
   public void setToolTipText(String toolTip) {
-    selectionList.setTooltip(new Tooltip(toolTip));
+    selectionList.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
 }

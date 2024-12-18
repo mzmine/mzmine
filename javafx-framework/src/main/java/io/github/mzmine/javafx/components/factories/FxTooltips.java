@@ -23,22 +23,41 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.spectraldbsubmit.batch;
+package io.github.mzmine.javafx.components.factories;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import javafx.scene.Node;
+import javafx.scene.control.Tooltip;
+import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class AdvancedLibraryBatchGenerationParameters extends SimpleParameterSet {
+public class FxTooltips {
 
-  public static BooleanParameter compactUSI = new BooleanParameter(
-      "Compact USI (limited compatibility)", """
-      Universal Spectrum Identifier allow traceability to the source scans in a format: mzspec:DATASET:DATAFILE:SCAN_NUMBER. \
-      The regular format allows for a single (optional) scan number. If this parameter is checked, \
-      one USI is generated per source file with scan numbers as ranges, e.g., 1-5,9 for all scans from \
-      1 to 5 and 9. This reduces the file size.
-      Many tools do not parse this USI format.""", false);
-
-  public AdvancedLibraryBatchGenerationParameters() {
-    super(compactUSI);
+  public static @NotNull Tooltip newTooltip(@Nullable String text) {
+    return newTooltip(text, Duration.seconds(30));
   }
+
+  public static @NotNull Tooltip newTooltip(@Nullable String text, @Nullable Duration duration) {
+    final Tooltip tooltip = new Tooltip(text);
+    tooltip.setWrapText(true);
+    tooltip.setMaxWidth(1000);
+    tooltip.setShowDuration(duration);
+    return tooltip;
+  }
+
+  public static @NotNull Tooltip install(@NotNull Tooltip tooltip, Node... nodes) {
+    for (final Node node : nodes) {
+      Tooltip.install(node, tooltip);
+    }
+    return tooltip;
+  }
+
+  public static @NotNull Tooltip uninstall(@NotNull Tooltip tooltip, Node... nodes) {
+    for (final Node node : nodes) {
+      Tooltip.uninstall(node, tooltip);
+    }
+    return tooltip;
+  }
+
+
 }

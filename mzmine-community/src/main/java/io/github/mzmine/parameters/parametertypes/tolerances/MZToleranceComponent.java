@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.main.MZmineCore;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -78,7 +79,7 @@ public class MZToleranceComponent extends FlowPane {
   }
 
   public void setToolTipText(String toolTip) {
-    mzToleranceField.setTooltip(new Tooltip(toolTip));
+    mzToleranceField.setTooltip(FxTooltips.newTooltip(toolTip));
     ppmToleranceField.setTooltip(new Tooltip(toolTip));
   }
 

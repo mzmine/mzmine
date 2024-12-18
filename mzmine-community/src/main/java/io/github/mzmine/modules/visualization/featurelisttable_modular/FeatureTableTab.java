@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import java.io.IOException;
 import java.util.Collection;
@@ -38,7 +39,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -81,7 +81,7 @@ public class FeatureTableTab extends MZmineTab {
 
     Image SELECTION_ICON = FxIconUtil.loadImageFromResources("icons/propertiesicon.png");
     Button selectColumnsButton = new Button(null, new ImageView(SELECTION_ICON));
-    selectColumnsButton.setTooltip(new Tooltip("Select columns to show/hide"));
+    selectColumnsButton.setTooltip(FxTooltips.newTooltip("Select columns to show/hide"));
     selectColumnsButton.setOnAction(e -> controller.miParametersOnAction(null));
 
     toolBar.getItems().addAll(selectColumnsButton);
