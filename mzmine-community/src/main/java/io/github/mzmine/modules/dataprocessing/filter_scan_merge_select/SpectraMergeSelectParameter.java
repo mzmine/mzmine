@@ -33,6 +33,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -43,6 +45,17 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * This parameter controls the merging and selection of fragment scans through the
+ * {@link FragmentScanSelection} and {@link SpectraMerger}.
+ * <p>
+ * Either setup through presets: {@link PresetSimpleSpectraMergeSelectParameters}
+ * {@link PresetAdvancedSpectraMergeSelectParameters}
+ * <p>
+ * Or select source scans without merging: {@link SourceSpectraSelectParameters}
+ * <p>
+ * Or advanced parameters for full control in {@link AdvancedSpectraMergeSelectParameters}
+ */
 public class SpectraMergeSelectParameter extends
     ModuleOptionsEnumComboParameter<SpectraMergeSelectModuleOptions> {
 
@@ -83,6 +96,9 @@ public class SpectraMergeSelectParameter extends
     return new Builder().includeAdvanced(true).useExportAllSourceScans().createParameters();
   }
 
+  /**
+   * Useful methods to set specific simple presets in the wizard or other locations
+   */
   public void setSimplePreset(final SpectraMergeSelectPresets preset,
       final MZTolerance mzTolScans) {
     setValue(SpectraMergeSelectModuleOptions.SIMPLE_MERGED);
@@ -91,10 +107,15 @@ public class SpectraMergeSelectParameter extends
     embedded.setParameter(PresetSimpleSpectraMergeSelectParameters.mergeMzTolerance, mzTolScans);
   }
 
-  public void setUseSourceScans(final boolean useAllScans) {
+  /**
+   * Set all parameters so that source scans are used - either best or all scans.
+   *
+   * @param useAllScansOrBest true use all scans false use best
+   */
+  public void setUseSourceScans(final boolean useAllScansOrBest) {
     setValue(SpectraMergeSelectModuleOptions.SOURCE_SCANS);
     var embedded = getEmbeddedParameters();
-    var selection = useAllScans ? MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS
+    var selection = useAllScansOrBest ? MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS
         : MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN;
     embedded.setParameter(SourceSpectraSelectParameters.sourceSelectionTypes, selection);
   }
@@ -119,7 +140,9 @@ public class SpectraMergeSelectParameter extends
   }
 
   /**
-   * Applies many defaults for modules.
+   * This builder comes with some defaults often used but allows configuration of this parameter for
+   * different modules. Checkout the factory methods
+   * {@link SpectraMergeSelectParameter#createSiriusExportAllDefault()} and others.
    */
   public static final class Builder {
 

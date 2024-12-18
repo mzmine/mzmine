@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.AdvancedSpectraMergeSelectModule;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetAdvancedSpectraMergeSelectModule;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetSimpleSpectraMergeSelectModule;
 import java.util.ArrayList;
@@ -35,6 +36,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * These presets are used by different merging and select modules:
  * {@link PresetAdvancedSpectraMergeSelectModule} and {@link PresetSimpleSpectraMergeSelectModule}
+ * <p>
+ * They are shortcuts to setting up the advanced {@link AdvancedSpectraMergeSelectModule} with
+ * predefined target spectra.
  */
 public enum SpectraMergeSelectPresets implements UniqueIdSupplier {
   SINGLE_MERGED_SCAN, REPRESENTATIVE_SCANS, MSn_TREE, REPRESENTATIVE_MSn_TREE;

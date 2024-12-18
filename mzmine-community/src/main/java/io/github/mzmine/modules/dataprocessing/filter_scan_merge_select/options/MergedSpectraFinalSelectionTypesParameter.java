@@ -52,10 +52,12 @@ public class MergedSpectraFinalSelectionTypesParameter extends
   @Override
   public boolean checkValue(final Collection<String> errorMessages) {
     var types = getValue();
+    var result = super.checkValue(errorMessages);
     if (!MergedSpectraFinalSelectionTypes.isValidSelection(types)) {
       errorMessages.add(MergedSpectraFinalSelectionTypes.getAdvancedValidDescription());
+      return false;
     }
-    return super.checkValue(errorMessages);
+    return result;
   }
 
   @Override

@@ -26,7 +26,14 @@
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.merging.SpectraMerger;
 
+/**
+ * Advanced settings should give all options that are available to merging and selecting fragment
+ * scans. All the other preset based setups currently generate advanced parameters and the
+ * {@link FragmentScanSelection} and {@link SpectraMerger} are setup from this parameter set
+ */
 public interface SpectraMergeSelectModule extends MZmineModule {
 
 

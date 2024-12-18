@@ -26,9 +26,16 @@
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.merging.SpectraMerger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Advanced settings should give all options that are available to merging and selecting fragment
+ * scans. All the other preset based setups currently generate advanced parameters and the
+ * {@link FragmentScanSelection} and {@link SpectraMerger} are setup from this parameter set
+ */
 public class AdvancedSpectraMergeSelectModule implements SpectraMergeSelectModule {
 
   @Override

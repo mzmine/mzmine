@@ -124,7 +124,7 @@ public interface MergedMassSpectrum extends Scan {
     @Override
     public String toString() {
       return switch (this) {
-        case SINGLE_SCAN -> "Single scan (other than best)";
+        case SINGLE_SCAN -> "Single scan";
         case SINGLE_BEST_SCAN -> "Single best scan";
         case SAME_ENERGY -> "Same energy merged";
         case UNDEFINED_ENERGY -> "Undefined energy merged";
