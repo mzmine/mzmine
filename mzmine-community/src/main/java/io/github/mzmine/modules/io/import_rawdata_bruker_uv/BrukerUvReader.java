@@ -27,9 +27,11 @@ package io.github.mzmine.modules.io.import_rawdata_bruker_uv;
 
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TFloatArrayList;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
@@ -43,14 +45,15 @@ import io.github.mzmine.datamodel.otherdetectors.WavelengthSpectrum;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.io.File;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.lang.foreign.ValueLayout.OfDouble;
 import java.lang.foreign.ValueLayout.OfFloat;
 import java.nio.ByteOrder;
-import java.nio.DoubleBuffer;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -225,7 +228,7 @@ public class BrukerUvReader implements AutoCloseable {
         final String unit = entry.getKey();
 
         final OtherDataFileImpl otherDataFile = new OtherDataFileImpl(msFile);
-        otherDataFile.setDescription(unit +  "_" + entry.getValue().getFirst().instrument());
+        otherDataFile.setDescription(unit + "_" + entry.getValue().getFirst().instrument());
         final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherDataFile);
         timeSeriesData.setChromatogramType(type);
 
@@ -316,12 +319,37 @@ public class BrukerUvReader implements AutoCloseable {
               (timesList.getQuick(i) + offset) / 60); // convert to minutes and apply offset
         }
 
-        return new SimpleOtherTimeSeries(storage,
-            ConversionUtils.convertDoublesToFloats(timesList.toArray()),
-            ConversionUtils.convertFloatsToDoubles(intensitiesList.toArray()), trace.description(),
+        final List<DataPoint> dps = dropDuplicateRtDataPoints(trace, intensitiesList, timesList);
+
+        return new SimpleOtherTimeSeries(storage, ConversionUtils.convertDoublesToFloats(
+            dps.stream().mapToDouble(DataPoint::getMZ).toArray()),
+            dps.stream().mapToDouble(DataPoint::getIntensity).toArray(), trace.description(),
             otherTimeSeriesData);
       }
     }
+  }
+
+  /**
+   * Apparently it is not guaranteed that data points are unique or sorted. So we do that here.
+   */
+  private @NotNull List<DataPoint> dropDuplicateRtDataPoints(Trace trace,
+      TFloatArrayList intensitiesList, TDoubleArrayList timesList) {
+    List<DataPoint> dps = new ArrayList<>();
+    for (int i = 0; i < intensitiesList.size(); i++) {
+      final SimpleDataPoint dp = new SimpleDataPoint(timesList.get(i), intensitiesList.get(i));
+      dps.add(dp);
+    }
+
+    // intermediate filtering to remove duplicates from traces. Why is this even necessary?
+    dps.sort(DataPointSorter.DEFAULT_MZ_ASCENDING);
+    final int before = dps.size();
+    CollectionUtils.dropDuplicatesRetainOrder(dps);
+    if (before != dps.size()) {
+      logger.info(
+          "%s - dropped %d duplicate values from chromatogram trace %d".formatted(folder.getName(),
+              dps.size(), trace.id()));
+    }
+    return dps;
   }
 
   public List<OtherDataFile> loadSpectra(MemoryMapStorage storage, RawDataFile msFile)
