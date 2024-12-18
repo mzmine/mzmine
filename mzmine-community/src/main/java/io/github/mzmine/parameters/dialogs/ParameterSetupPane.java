@@ -222,8 +222,9 @@ public class ParameterSetupPane extends BorderPane {
       mainPane.setTop(pane);
     }
 
+    // do not set min height - this works badly with {@link ModuleOptionsEnumComponent}
+    // which then does not scale well or when too small crunches multiple components above each other
     setMinWidth(300.0);
-    setMinHeight(20);
   }
 
   /**
