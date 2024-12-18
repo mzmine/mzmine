@@ -341,14 +341,18 @@ public class SpectralLibraryEntryFactory {
 
     addUniversalSpectrumIdentifiers(entry, spec);
 
+    final MergingType mergingType;
     if (spec instanceof MergedMassSpectrum merged) {
       entry.putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
       entry.putIfNotNull(DBEntryField.SCAN_NUMBER,
           ScanUtils.extractScanNumbers(merged).boxed().toList());
-      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getMergingType());
+      mergingType = merged.getMergingType();
     } else {
-      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, MergingType.SINGLE_BEST_SCAN);
+      mergingType = MergingType.SINGLE_SCAN;
       entry.putIfNotNull(DBEntryField.SCAN_NUMBER, ScanUtils.extractScanNumber(spec));
+    }
+    if (mergingType != null) {
+      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, mergingType.getUniqueID());
     }
   }
 
