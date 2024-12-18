@@ -319,7 +319,9 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultWizardMenu() {
     final Menu menu = new Menu("mzwizard");
-    addModuleMenuItem(menu, BatchWizardModule.class, KeyCode.W, KeyCombination.SHORTCUT_DOWN);
+    addMenuItem(menu, "Processing wizard",
+        () -> MZmineCore.getModuleInstance(BatchWizardModule.class).showTab(), KeyCode.W,
+        KeyCombination.SHORTCUT_DOWN);
     return menu;
   }
 
