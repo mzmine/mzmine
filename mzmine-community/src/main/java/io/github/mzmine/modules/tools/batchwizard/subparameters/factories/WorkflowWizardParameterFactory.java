@@ -72,7 +72,7 @@ public abstract class WorkflowWizardParameterFactory implements WizardParameterF
    * @return A map that either allows or restricts specific selections in the wizard. If a
    * {@link WizardPart} has no values set, all part {@link WizardParameterFactory}s are allowed.
    */
-  public abstract Map<WizardPart, List<WizardPartFilter>> getStepFilters();
+  public abstract Map<WizardPart, WizardPartFilter> getStepFilters();
 
   /**
    * Create workflow builder for workflow steps

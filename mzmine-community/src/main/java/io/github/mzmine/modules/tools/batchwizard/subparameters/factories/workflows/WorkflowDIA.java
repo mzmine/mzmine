@@ -36,10 +36,10 @@ public class WorkflowDIA extends WorkflowWizardParameterFactory {
   }
 
   @Override
-  public Map<WizardPart, List<WizardPartFilter>> getStepFilters() {
-    return Map.of(WizardPart.ION_INTERFACE, List.of(WizardPartFilter.allow(
+  public Map<WizardPart, WizardPartFilter> getStepFilters() {
+    return Map.of(WizardPart.ION_INTERFACE, WizardPartFilter.allow(
         List.of(IonInterfaceWizardParameterFactory.HPLC, IonInterfaceWizardParameterFactory.UHPLC,
-            IonInterfaceWizardParameterFactory.HILIC))));
+            IonInterfaceWizardParameterFactory.HILIC)));
   }
 
   @Override

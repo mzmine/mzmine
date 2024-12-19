@@ -10,7 +10,6 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowImagingW
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.mzio.users.user.MZmineUser;
-import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,11 +35,11 @@ public class WorkflowImaging extends WorkflowWizardParameterFactory {
   }
 
   @Override
-  public Map<WizardPart, List<WizardPartFilter>> getStepFilters() {
-    return Map.of(WizardPart.ION_INTERFACE, List.of(
+  public Map<WizardPart, WizardPartFilter> getStepFilters() {
+    return Map.of(WizardPart.ION_INTERFACE,
         WizardPartFilter.allow(IonInterfaceWizardParameterFactory.MALDI,
             IonInterfaceWizardParameterFactory.LDI, IonInterfaceWizardParameterFactory.DESI,
-            IonInterfaceWizardParameterFactory.SIMS)));
+            IonInterfaceWizardParameterFactory.SIMS));
   }
 
   @Override
@@ -50,7 +49,8 @@ public class WorkflowImaging extends WorkflowWizardParameterFactory {
 
     return switch (ionInterface.group()) {
       case SPATIAL_IMAGING -> new WizardBatchBuilderImagingDda(steps);
-      case CHROMATOGRAPHY_HARD, CHROMATOGRAPHY_SOFT, DIRECT_AND_FLOW -> throw new UnsupportedWorkflowException(steps);
+      case CHROMATOGRAPHY_HARD, CHROMATOGRAPHY_SOFT, DIRECT_AND_FLOW ->
+          throw new UnsupportedWorkflowException(steps);
     };
   }
 

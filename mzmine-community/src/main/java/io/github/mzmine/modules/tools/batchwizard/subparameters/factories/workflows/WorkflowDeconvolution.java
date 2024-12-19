@@ -36,9 +36,9 @@ public class WorkflowDeconvolution extends WorkflowWizardParameterFactory {
   }
 
   @Override
-  public Map<WizardPart, List<WizardPartFilter>> getStepFilters() {
+  public Map<WizardPart, WizardPartFilter> getStepFilters() {
     return Map.of(WizardPart.ION_INTERFACE,
-        List.of(WizardPartFilter.allow(List.of(IonInterfaceWizardParameterFactory.GC_EI))));
+        WizardPartFilter.allow(List.of(IonInterfaceWizardParameterFactory.GC_EI)));
   }
 
   @Override
@@ -48,7 +48,8 @@ public class WorkflowDeconvolution extends WorkflowWizardParameterFactory {
 
     return switch (ionInterface.group()) {
       case CHROMATOGRAPHY_HARD -> new WizardBatchBuilderGcEiDeconvolution(steps);
-      case CHROMATOGRAPHY_SOFT, DIRECT_AND_FLOW, SPATIAL_IMAGING -> throw new UnsupportedWorkflowException(steps);
+      case CHROMATOGRAPHY_SOFT, DIRECT_AND_FLOW, SPATIAL_IMAGING ->
+          throw new UnsupportedWorkflowException(steps);
     };
   }
 

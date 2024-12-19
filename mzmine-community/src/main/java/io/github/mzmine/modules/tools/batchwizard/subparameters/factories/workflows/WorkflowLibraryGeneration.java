@@ -6,7 +6,6 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPartFilter;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilderFlowInjectLibraryGen;
-import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilderImagingDda;
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilderLcLibraryGen;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
@@ -45,12 +44,12 @@ public class WorkflowLibraryGeneration extends WorkflowWizardParameterFactory {
   }
 
   @Override
-  public Map<WizardPart, List<WizardPartFilter>> getStepFilters() {
-    return Map.of(WizardPart.ION_INTERFACE, List.of(WizardPartFilter.allow(
+  public Map<WizardPart, WizardPartFilter> getStepFilters() {
+    return Map.of(WizardPart.ION_INTERFACE, WizardPartFilter.allow(
         List.of(IonInterfaceWizardParameterFactory.DIRECT_INFUSION,
             IonInterfaceWizardParameterFactory.FLOW_INJECT,
             IonInterfaceWizardParameterFactory.GC_CI, IonInterfaceWizardParameterFactory.HPLC,
-            IonInterfaceWizardParameterFactory.UHPLC, IonInterfaceWizardParameterFactory.HILIC))));
+            IonInterfaceWizardParameterFactory.UHPLC, IonInterfaceWizardParameterFactory.HILIC)));
   }
 
   @Override

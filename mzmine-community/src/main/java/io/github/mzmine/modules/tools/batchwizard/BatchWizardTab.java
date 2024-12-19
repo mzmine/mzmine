@@ -194,16 +194,10 @@ public class BatchWizardTab extends SimpleTab {
     final List<WizardStepParameters> availableWorkflows = new ArrayList<>();
     ALL_PRESETS.get(WizardPart.WORKFLOW).forEach(workflow -> {
       final WorkflowWizardParameterFactory workflowFactory = (WorkflowWizardParameterFactory) workflow.getFactory();
-      final Map<WizardPart, List<WizardPartFilter>> workflowStepFilters = workflowFactory.getStepFilters();
-      workflowStepFilters.forEach((step, filters) -> {
-        sequenceSteps.get(step).map(
-                stepParam -> filters.stream().anyMatch(filter -> filter.accept(stepParam.getFactory())))
-            .ifPresent(allowed -> {
-              if (allowed) {
-                availableWorkflows.add(workflow);
-              }
-            });
-      });
+      final Map<WizardPart, WizardPartFilter> workflowStepFilters = workflowFactory.getStepFilters();
+      workflowStepFilters.forEach((step, filter) -> sequenceSteps.get(step)
+          .filter(stepParam -> filter.accept(stepParam.getFactory()))
+          .ifPresent(_ -> availableWorkflows.add(workflow)));
     });
     var selected = setItemsToCombo(combos.get(WORKFLOW), availableWorkflows, false);
     sequenceSteps.set(WORKFLOW, selected); // set the updated sequence

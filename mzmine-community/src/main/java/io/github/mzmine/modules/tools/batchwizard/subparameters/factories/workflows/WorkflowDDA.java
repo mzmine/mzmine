@@ -14,7 +14,6 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Workfl
 import io.mzio.users.user.MZmineUser;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,12 +38,12 @@ public class WorkflowDDA extends WorkflowWizardParameterFactory {
   }
 
   @Override
-  public Map<WizardPart, List<WizardPartFilter>> getStepFilters() {
-    return Map.of(WizardPart.ION_INTERFACE, List.of(WizardPartFilter.allow(
+  public Map<WizardPart, WizardPartFilter> getStepFilters() {
+    return Map.of(WizardPart.ION_INTERFACE, WizardPartFilter.allow(
         List.of(IonInterfaceWizardParameterFactory.DIRECT_INFUSION,
             IonInterfaceWizardParameterFactory.FLOW_INJECT,
             IonInterfaceWizardParameterFactory.GC_CI, IonInterfaceWizardParameterFactory.HPLC,
-            IonInterfaceWizardParameterFactory.UHPLC, IonInterfaceWizardParameterFactory.HILIC))));
+            IonInterfaceWizardParameterFactory.UHPLC, IonInterfaceWizardParameterFactory.HILIC)));
   }
 
   @Override
