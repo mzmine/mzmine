@@ -62,6 +62,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import org.apache.commons.lang3.ArrayUtils;
@@ -231,10 +232,16 @@ public class DataTypeUtils {
       final Object value = row.get((DataType<?>) allowedType);
       // if the annotation is a list we have to check if the list is not empty
       if (value != null && (!(value instanceof Collection<?> collection)
-                            || !collection.isEmpty())) {
+          || !collection.isEmpty())) {
         return allowedType;
       }
     }
     return defaultType;
+  }
+
+  public static <T extends ModularDataModel> void copyAllBut(T source, T dst,
+      Set<DataType<?>> excluded) {
+    source.getMap().entrySet().stream().filter(e -> !excluded.contains(e.getKey()))
+        .forEach(e -> dst.set(e.getKey(), e.getValue()));
   }
 }
