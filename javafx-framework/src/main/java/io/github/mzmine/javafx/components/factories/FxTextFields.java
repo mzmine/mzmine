@@ -121,15 +121,20 @@ public class FxTextFields {
 
   /**
    * Wait for updates by user and then commit the value. Otherwise TextFormatter will wait for user
-   * to commit the value or change focus to another control.
+   * to commit the value or change focus to another control. After formatting the value might change
+   * but the caret will stay at the same index. Maybe in the future put it between the same
+   * characters?
    *
    * @return the input TextFormatter for convenience
    */
   public static <T> TextFormatter<T> attachDelayedTextFormatter(final TextField textField,
       final TextFormatter<T> textFormatter) {
     textField.setTextFormatter(textFormatter);
-    PropertyUtils.onChangeDelayedSubscription(textField::commitValue,
-        PropertyUtils.DEFAULT_TEXT_FIELD_DELAY, textField.textProperty());
+    PropertyUtils.onChangeDelayedSubscription(() -> {
+      int caretPosition = textField.getCaretPosition();
+      textField.commitValue();
+      textField.positionCaret(Math.min(caretPosition, textField.getLength()));
+    }, PropertyUtils.DEFAULT_TEXT_FIELD_DELAY, textField.textProperty());
     return textFormatter;
   }
 }
