@@ -10,9 +10,11 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowTargetPlateWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.mzio.users.user.MZmineUser;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Target plate analysis
@@ -55,5 +57,10 @@ public class WorkflowTargetPlate extends WorkflowWizardParameterFactory {
       case SPATIAL_IMAGING -> new WizardBatchBuilderTargetPlate(steps);
       case CHROMATOGRAPHY_HARD, CHROMATOGRAPHY_SOFT, DIRECT_AND_FLOW -> throw unsupportedException;
     };
+  }
+
+  @Override
+  public boolean isAvailableWithLicense(@Nullable MZmineUser user) {
+    return true;
   }
 }

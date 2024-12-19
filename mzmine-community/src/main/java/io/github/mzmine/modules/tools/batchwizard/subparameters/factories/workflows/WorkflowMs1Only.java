@@ -9,9 +9,11 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.mzio.users.user.MZmineUser;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Nothing special just avoids all MS2 specific steps
@@ -44,5 +46,10 @@ public class WorkflowMs1Only extends WorkflowWizardParameterFactory {
     // those combinations should be filtered out previously though
     throw new UnsupportedOperationException(
         "Currently not implemented workflow " + this);
+  }
+
+  @Override
+  public boolean isAvailableWithLicense(@Nullable MZmineUser user) {
+    return true;
   }
 }

@@ -14,11 +14,13 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.mzio.users.user.MZmineUser;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * uses annotations to build spectral libraries
@@ -84,5 +86,10 @@ public class WorkflowLibraryGeneration extends WorkflowWizardParameterFactory {
       case DIRECT_AND_FLOW -> new WizardBatchBuilderFlowInjectLibraryGen(steps);
       case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING -> throw unsupportedException;
     };
+  }
+
+  @Override
+  public boolean isAvailableWithLicense(@Nullable MZmineUser user) {
+    return true;
   }
 }

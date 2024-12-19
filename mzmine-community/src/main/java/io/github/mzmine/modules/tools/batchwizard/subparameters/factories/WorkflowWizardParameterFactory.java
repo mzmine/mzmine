@@ -36,11 +36,14 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workfl
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowMs1Only;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
+import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -59,7 +62,9 @@ public abstract class WorkflowWizardParameterFactory implements WizardParameterF
   }
 
   public static WorkflowWizardParameterFactory[] values() {
-    return values.toArray(WorkflowWizardParameterFactory[]::new);
+    return values.stream()
+        .filter(workflow -> workflow.isAvailableWithLicense(CurrentUserService.getUser()))
+        .toArray(WorkflowWizardParameterFactory[]::new);
   }
 
   public static void addWorkflow(WorkflowWizardParameterFactory workflow) {
@@ -90,4 +95,6 @@ public abstract class WorkflowWizardParameterFactory implements WizardParameterF
    */
   public abstract @NotNull WizardBatchBuilder getBatchBuilder(@NotNull final WizardSequence steps)
       throws UnsupportedOperationException;
+
+  public abstract boolean isAvailableWithLicense(@Nullable MZmineUser user);
 }

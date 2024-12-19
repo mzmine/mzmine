@@ -9,9 +9,11 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.mzio.users.user.MZmineUser;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Options for GNPS, molecular networking, SIRIUS,
@@ -53,5 +55,10 @@ public class WorkflowDIA extends WorkflowWizardParameterFactory {
       case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDIA(steps);
       case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING, DIRECT_AND_FLOW -> throw unsupportedException;
     };
+  }
+
+  @Override
+  public boolean isAvailableWithLicense(@Nullable MZmineUser user) {
+    return true;
   }
 }
