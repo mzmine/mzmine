@@ -25,77 +25,69 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowImagingWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowTargetPlateWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.WizardPartFilter;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WizardWorkflows;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowImaging;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowMs1Only;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
+import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
  * toString method
+ * <p>
+ * All implementations must not override their equals and hash code methods.
  */
-public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
-  /**
-   * Options for GNPS, molecular networking, SIRIUS,
-   */
-  DDA, DIA,
-  /**
-   * Currently only used in GC-EI; maybe in the future for all ion fragmentation (DIA)
-   */
-  DECONVOLUTION,
-  /**
-   * uses annotations to build spectral libraries
-   */
-  LIBRARY_GENERATION,
-  /**
-   * Nothing special just avoids all MS2 specific steps
-   */
-  MS1_ONLY,
-  /**
-   * imaging analysis
-   */
-  IMAGING,
-  /**
-   * Target plate analysis
-   */
-  TARGET_PLATE;
+public abstract class WorkflowWizardParameterFactory implements WizardParameterFactory {
 
-  @Override
-  public String toString() {
-    return switch (this) {
-      case DDA, DIA -> super.toString();
-      case MS1_ONLY -> "MS1 only";
-      case DECONVOLUTION -> "Spectral deconvolution";
-      case LIBRARY_GENERATION -> "Library generation";
-      case IMAGING -> "Imaging";
-      case TARGET_PLATE -> "Target plate";
-    };
+  public static WorkflowWizardParameterFactory[] values() {
+    return WizardWorkflows.values();
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return name();
+  public final int hashCode() {
+    return getUniqueID().hashCode();
   }
 
   @Override
-  public WizardStepParameters create() {
-    return switch (this) {
-      // EMPTY parameter set
-      case MS1_ONLY -> new WorkflowWizardParameters(this);
-      // specialized parameters
-      case IMAGING -> new WorkflowImagingWizardParameters(true);
-      case LIBRARY_GENERATION ->
-          new WorkflowLibraryGenerationWizardParameters(null, true, true, false);
-      case DDA -> new WorkflowDdaWizardParameters(true, true, null, true, true, false);
-      case DECONVOLUTION ->
-          new WorkflowGcElectronImpactWizardParameters(8, true, true, null, true, true, false);
-      case DIA -> new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true, false);
-      case TARGET_PLATE -> new WorkflowTargetPlateWizardParameters(false, null);
-    };
+  public final boolean equals(Object o) {
+    return o instanceof WorkflowWizardParameterFactory f && f.getUniqueID().equals(getUniqueID());
   }
+
+  /**
+   * @return A map that either allows or restricts specific selections in the wizard. If a
+   * {@link WizardPart} has no values set, all part {@link WizardParameterFactory}s are allowed.
+   */
+  public abstract Map<WizardPart, WizardPartFilter> getStepFilters();
+
+  /**
+   * Create workflow builder for workflow steps
+   *
+   * @param steps workflow
+   * @return the builder
+   */
+  public abstract @NotNull WizardBatchBuilder getBatchBuilder(@NotNull final WizardSequence steps)
+      throws UnsupportedOperationException;
+
+  /**
+   * Check if this workflow is available with the license and should be displayed in the current
+   * wizard.
+   * Todo for the future: might be confusing to enable a workspace and have all possible
+   *  workflows here. Maybe rename and limit to possible with licence and workspace in the future
+   */
+  public abstract boolean isAvailableWithLicense(@Nullable MZmineUser user);
 }

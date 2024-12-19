@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
@@ -42,7 +42,7 @@ public final class WorkflowTargetPlateWizardParameters extends WorkflowWizardPar
           """, List.of(ExtensionFilters.CSV), FileSelectionType.OPEN), false);
 
   public WorkflowTargetPlateWizardParameters() {
-    super(WorkflowWizardParameterFactory.TARGET_PLATE, spotNamesFile);
+    super(new WorkflowTargetPlate(), spotNamesFile);
   }
 
   public WorkflowTargetPlateWizardParameters(boolean enableSpotFileName, File spotFileName) {

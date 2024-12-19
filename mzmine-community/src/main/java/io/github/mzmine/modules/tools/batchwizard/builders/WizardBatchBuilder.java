@@ -36,6 +36,13 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizard
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowImaging;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowMs1Only;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -63,70 +70,6 @@ public abstract class WizardBatchBuilder {
 
   protected WizardBatchBuilder(WizardSequence steps) {
     this.steps = steps;
-  }
-
-  /**
-   * Create workflow builder for workflow steps
-   *
-   * @param steps workflow
-   * @return the builder
-   */
-  public static WizardBatchBuilder createBatchBuilderForSequence(final WizardSequence steps) {
-    // workflow is always set
-    Optional<WizardStepParameters> preset = steps.get(WizardPart.WORKFLOW);
-    var workflowPreset = (WorkflowWizardParameterFactory) preset.get().getFactory();
-    var ionInterface = (IonInterfaceWizardParameterFactory) steps.get(WizardPart.ION_INTERFACE)
-        .get().getFactory();
-
-    // throw in case we hit unsupported workflow
-    // those combinations should be filtered out previously though
-    var unsupportedException = new UnsupportedOperationException(
-        "Currently not implemented workflow " + workflowPreset);
-
-    return switch (workflowPreset) {
-      case DDA -> switch (ionInterface.group()) {
-        case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDDA(steps);
-        case DIRECT_AND_FLOW -> new WizardBatchBuilderFlowInjectDDA(steps);
-        case SPATIAL_IMAGING -> new WizardBatchBuilderImagingDda(steps);
-        case CHROMATOGRAPHY_HARD -> throw unsupportedException;
-      };
-      case DIA -> switch (ionInterface.group()) {
-        case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDIA(steps);
-        default -> throw unsupportedException;
-      };
-      // only used for GC EI
-      case DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
-      case IMAGING -> new WizardBatchBuilderImagingDda(steps);
-      case LIBRARY_GENERATION -> {
-        // requires annotation!
-        var annotation = steps.get(WizardPart.ANNOTATION);
-        var params = getOptionalParameters(annotation, AnnotationWizardParameters.localCsvSearch);
-        boolean useAnnotation = params.active();
-        boolean sampleFilterValid = !params.value().getEmbeddedParameterValueIfSelectedOrElse(
-            AnnotationLocalCSVDatabaseSearchParameters.filterSamplesColumn, "").isBlank();
-        File file = params.value().getValue(LocalCSVDatabaseSearchParameters.dataBaseFile);
-        if (sampleFilterValid) {
-          logger.warning(
-              "Tt is recommended to specify a column to filter annotations for specific samples that contain the compound.");
-        }
-        if (!useAnnotation || file == null || file.toString().isBlank()) {
-          throw new IllegalArgumentException("""
-              Configure local CSV database annotation!
-              The library generation workflow requires the local CSV database search active under \
-              Annotation, a valid file, and it is recommended to specify a column to filter annotations \
-              for specific samples that contain the compound.""");
-        }
-
-        yield switch (ionInterface.group()) {
-          case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcLibraryGen(steps);
-          case DIRECT_AND_FLOW -> new WizardBatchBuilderFlowInjectLibraryGen(steps);
-          case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING -> throw unsupportedException;
-        };
-      }
-      case MS1_ONLY -> throw new UnsupportedOperationException(
-          "Currently not implemented workflow " + workflowPreset);
-      case TARGET_PLATE -> new WizardBatchBuilderTargetPlate(steps);
-    };
   }
 
   /**
