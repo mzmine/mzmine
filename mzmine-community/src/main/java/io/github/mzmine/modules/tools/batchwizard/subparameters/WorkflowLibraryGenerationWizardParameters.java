@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
@@ -58,7 +58,7 @@ public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWiz
 
 
   public WorkflowLibraryGenerationWizardParameters() {
-    super(WorkflowWizardParameterFactory.LIBRARY_GENERATION,
+    super(new WorkflowLibraryGeneration(),
         // actual parameters
         metadata, exportPath, exportGnps, exportSirius, applySpectralNetworking);
   }

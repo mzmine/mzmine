@@ -146,25 +146,4 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
     };
   }
 
-  /**
-   * Not all combinations work.
-   *
-   * @return supported combinations
-   */
-  public WorkflowWizardParameterFactory[] getMatchingWorkflowPresets() {
-    return switch (this) {
-      case DIRECT_INFUSION, FLOW_INJECT, GC_CI ->
-          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DDA,
-              WorkflowWizardParameterFactory.LIBRARY_GENERATION};
-      case HPLC, UHPLC, HILIC ->
-          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DDA,
-              WorkflowWizardParameterFactory.LIBRARY_GENERATION,
-              WorkflowWizardParameterFactory.DIA};
-      case GC_EI ->
-          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DECONVOLUTION};
-      case MALDI, LDI, DESI, SIMS ->
-          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.IMAGING,
-              WorkflowWizardParameterFactory.TARGET_PLATE};
-    };
-  }
 }
