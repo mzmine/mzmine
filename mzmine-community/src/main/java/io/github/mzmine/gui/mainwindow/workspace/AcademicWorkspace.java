@@ -85,7 +85,6 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.util.javafx.ModuleMenuItem;
 import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
 import io.mzio.mzmine.gui.workspace.WorkspaceTags;
-import io.mzio.users.service.UserType;
 import io.mzio.users.user.MZmineUser;
 import java.util.EnumSet;
 import javafx.scene.control.Menu;
@@ -210,10 +209,6 @@ public final class AcademicWorkspace extends AbstractWorkspace {
 
   @Override
   public boolean isAllowedWithLicense(@Nullable MZmineUser user) {
-    if (user == null || !user.isValid()) {
-      return false;
-    }
-    return EnumSet.of(UserType.PRO, UserType.TRIAL_PRO, UserType.ACADEMIC, UserType.UNVALIDATED)
-        .contains(user.getUserType());
+    return true;
   }
 }
