@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,8 +47,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class TwoDVisualizerModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "2D visualizer";
-  private static final String MODULE_DESCRIPTION = "2D visualizer."; // TODO
+  private static final String MODULE_NAME = "2D plot";
+  private static final String MODULE_DESCRIPTION = "2D plot shows retention time, m/z, intensity as plot.";
 
   @Override
   public @NotNull String getName() {

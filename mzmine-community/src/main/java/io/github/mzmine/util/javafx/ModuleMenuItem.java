@@ -40,6 +40,10 @@ public class ModuleMenuItem extends MenuItem {
 
   private final Class<? extends MZmineRunnableModule> moduleClass;
 
+  public ModuleMenuItem(@NotNull Class<? extends MZmineRunnableModule> moduleClass) {
+    this(moduleClass, null);
+  }
+  
   public ModuleMenuItem(@NotNull Class<? extends MZmineRunnableModule> moduleClass,
       @Nullable KeyCodeCombination accelerator) {
     super(getText(moduleClass));
