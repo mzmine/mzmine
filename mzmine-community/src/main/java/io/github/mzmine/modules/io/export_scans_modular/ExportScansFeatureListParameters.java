@@ -23,28 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*
- * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
- * Lab (University of California, San Diego).
- *
- * It is freely available under the GNU GPL licence of MZmine2.
- *
- * For any questions or concerns, please refer to:
- * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- *
- * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
- */
-
-package io.github.mzmine.modules.io.spectraldbsubmit.batch;
+package io.github.mzmine.modules.io.export_scans_modular;
 
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryExportQualityParameters;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.SpectralLibraryExportFormats;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
@@ -52,12 +41,10 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExport
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
- */
-public class LibraryBatchGenerationParameters extends SimpleParameterSet {
+public class ExportScansFeatureListParameters extends SimpleParameterSet {
 
   public static final MsLevelFilterParameter postMergingMsLevelFilter = new MsLevelFilterParameter(
       new Options[]{Options.MS2, Options.MSn}, new MsLevelFilter(Options.MSn));
@@ -65,7 +52,7 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
   public static final FileNameSuffixExportParameter file = new FileNameSuffixExportParameter(
-      "Export file", "Local library file", "batch_library");
+      "Export file", "Local scans file", "scans");
 
   public static final ComboParameter<SpectralLibraryExportFormats> exportFormat = new ComboParameter<>(
       "Export format", "format to export", SpectralLibraryExportFormats.values(),
@@ -76,10 +63,10 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
   public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createWithoutScientific();
 
-  // Use representative scans or MSn tree so that we export each energy and across energies for each MSn precursor
-  // this is specific to library generation
-  public static final SpectraMergeSelectParameter merging = new SpectraMergeSelectParameter(
-      SpectraMergeSelectPresets.REPRESENTATIVE_MSn_TREE);
+  public static final OptionalParameter<MZToleranceParameter> mergeMzTolerance = new OptionalParameter<>(
+      new MZToleranceParameter("m/z tolerance (merging)",
+          "If selected, spectra from different collision energies will be merged.\n"
+          + "The tolerance used to group signals during merging of spectra", 0.008, 25));
 
   public static final OptionalModuleParameter<HandleChimericMsMsParameters> handleChimerics = new OptionalModuleParameter<>(
       "Handle chimeric spectra",
@@ -90,12 +77,16 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       "Quality parameters", "Quality parameters for MS/MS spectra to be exported to the library.",
       new LibraryExportQualityParameters());
 
-  public static final AdvancedParametersParameter<AdvancedLibraryBatchGenerationParameters> advanced = new AdvancedParametersParameter<>(
-      new AdvancedLibraryBatchGenerationParameters(), false);
+  /*
+   * additional requirements:
+   * Export MS1
+   * Select Merge levels to export
+   * Per sample merging
+   */
 
-  public LibraryBatchGenerationParameters() {
-    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer, merging,
-        handleChimerics, quality, advanced);
+  public ExportScansFeatureListParameters() {
+    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer,
+        mergeMzTolerance, handleChimerics, quality);
   }
 
 

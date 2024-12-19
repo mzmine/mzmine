@@ -23,15 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
+package io.github.mzmine.util.scans.merging;
 
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
 
-public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
+public enum SampleHandling implements UniqueIdSupplier {
+  SAME_SAMPLE, ACROSS_SAMPLES;
 
-  public SelectedRowsSpectralLibrarySearchParameters() {
-    super(new Parameter[]{libraries, spectraMergeSelect, msLevelFilter, mzTolerancePrecursor,
-        removePrecursor, mzTolerance, minMatch, similarityFunction, advanced});
+  @Override
+  public String toString() {
+    return switch (this) {
+      case SAME_SAMPLE -> "Same sample";
+      case ACROSS_SAMPLES -> "Across samples";
+    };
   }
 
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case SAME_SAMPLE -> "same_sample";
+      case ACROSS_SAMPLES -> "across_samples";
+    };
+  }
 }
