@@ -138,7 +138,6 @@ import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
 import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.UsersViewState;
-import io.mzio.users.service.UserType;
 import io.mzio.users.user.CurrentUserService;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -422,11 +421,8 @@ public abstract class AbstractWorkspace implements Workspace {
       menu.getItems().clear();
 
       ToggleGroup grp = new ToggleGroup();
-      final UserType userType =
-          CurrentUserService.getUser() != null ? CurrentUserService.getUser().getUserType()
-              : UserType.ACADEMIC;
       for (Workspace workspace : WorkspaceMenuHelper.getWorkspaces().values()) {
-        if (!workspace.isAllowedWithLicense(userType)) {
+        if (!workspace.isAllowedWithLicense(CurrentUserService.getUser())) {
           continue;
         }
 

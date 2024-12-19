@@ -86,6 +86,7 @@ import io.github.mzmine.util.javafx.ModuleMenuItem;
 import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
 import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import io.mzio.users.service.UserType;
+import io.mzio.users.user.MZmineUser;
 import java.util.EnumSet;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -208,8 +209,11 @@ public final class AcademicWorkspace extends AbstractWorkspace {
   }
 
   @Override
-  public boolean isAllowedWithLicense(@Nullable UserType userType) {
+  public boolean isAllowedWithLicense(@Nullable MZmineUser user) {
+    if (user == null || !user.isValid()) {
+      return false;
+    }
     return EnumSet.of(UserType.PRO, UserType.TRIAL_PRO, UserType.ACADEMIC, UserType.UNVALIDATED)
-        .contains(userType);
+        .contains(user.getUserType());
   }
 }
