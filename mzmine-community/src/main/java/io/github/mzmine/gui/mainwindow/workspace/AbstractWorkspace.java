@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2024 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.gui.mainwindow.workspace;
 
 import static io.github.mzmine.util.javafx.FxMenuUtil.addMenuItem;
@@ -24,7 +49,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_maldispotfeaturedetection.MaldiSpotFeatureDetectionModule;
-import io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
@@ -32,6 +56,7 @@ import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.A
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.CalcEcmsPotentialModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule;
@@ -81,6 +106,7 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSched
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
+import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
@@ -100,6 +126,7 @@ import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesM
 import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 import io.github.mzmine.util.javafx.FxMenuUtil;
@@ -211,7 +238,7 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultImsMsSubMenu() {
     return addModuleMenuItems("LC-IMS-MS", ModularADAPChromatogramBuilderModule.class,
-        ImsExpanderModule.class, ModularADAPChromatogramBuilderModule.class);
+        ImsExpanderModule.class);
   }
 
   protected Menu buildDefaultImagingSubMenu() {
@@ -220,8 +247,9 @@ public abstract class AbstractWorkspace implements Workspace {
   }
 
   protected Menu buildDefaultMsnSubMenu() {
-    return addModuleMenuItems("MSn", MsnTreeFeatureDetectionModule.class,
-        MsnFeatureDetectionModule.class);
+    return addModuleMenuItems("MSn", MsnTreeFeatureDetectionModule.class
+        // , MsnFeatureDetectionModule.class   remove
+    );
   }
 
   protected Menu buildDefaultResolvingSubMenu() {
@@ -249,10 +277,10 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultFeatureGroupingSubMenu() {
     final Menu groupingMenu = addModuleMenuItems("Feature grouping", CorrelateGroupingModule.class,
-        IonNetworkingModule.class, AddIonNetworkingModule.class, IonNetworkRefinementModule.class,
-        IonNetRelationsModule.class, FormulaPredictionIonNetworkModule.class,
-        CreateAvgNetworkFormulasModule.class, IonNetworkMSMSCheckModule.class,
-        ClearIonIdentitiesModule.class);
+        IonNetworkingModule.class, MainSpectralNetworkingModule.class, AddIonNetworkingModule.class,
+        IonNetworkRefinementModule.class, IonNetRelationsModule.class,
+        FormulaPredictionIonNetworkModule.class, CreateAvgNetworkFormulasModule.class,
+        IonNetworkMSMSCheckModule.class, ClearIonIdentitiesModule.class);
     groupingMenu.getItems().add(new SeparatorMenuItem());
     addModuleMenuItems(groupingMenu, OnlineLcReactivityModule.class, AnnotateIsomersModule.class);
     groupingMenu.getItems().addAll(new SeparatorMenuItem(),
@@ -278,7 +306,9 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Visualization");
 
     final Menu rawDataVis = FxMenuUtil.addModuleMenuItems(menu, "Raw data",
-        RawDataOverviewModule.class, IMSRawDataOverviewModule.class, ImageVisualizerModule.class);
+        RawDataOverviewModule.class, IMSRawDataOverviewModule.class, ImageVisualizerModule.class,
+        SpectraVisualizerModule.class, FrameVisualizerModule.class);
+
     addSeparator(rawDataVis);
     addModuleMenuItems(rawDataVis, ChromatogramVisualizerModule.class, TwoDVisualizerModule.class,
         Fx3DVisualizerModule.class, MsMsVisualizerModule.class,
@@ -297,9 +327,10 @@ public abstract class AbstractWorkspace implements Workspace {
     addModuleMenuItems(featureVis, KendrickMassPlotModule.class, VanKrevelenDiagramModule.class,
         MassvoltammogramFromFeatureListModule.class);
     addSeparator(featureVis);
-    addModuleMenuItems(featureVis, EquivalentCarbonNumberModule.class,
+    addModuleMenuItems(featureVis, "Lipids", EquivalentCarbonNumberModule.class,
         LipidAnnotationSummaryModule.class);
-
+    // end of feature visualization
+    // back to main visualization menu
     addModuleMenuItems(menu, MSnTreeVisualizerModule.class);
 
     return menu;
@@ -350,12 +381,10 @@ public abstract class AbstractWorkspace implements Workspace {
 
     addSeparator(menu);
 
-    addMenuItem(menu, "Open landing page",
-        () -> MZmineCore.getDesktop().addTab(new MZmineIntroductionTab()));
     addMenuItem(menu, "Support", () -> MZmineCore.getDesktop()
         .openWebPage("https://mzmine.github.io/mzmine_documentation/troubleshooting.html"));
     addMenuItem(menu, "Report an issue",
-        () -> MZmineCore.getDesktop().openWebPage("http://mzmine.github.io/support.html"));
+        () -> MZmineCore.getDesktop().openWebPage("https://github.com/mzmine/mzmine/issues"));
     addMenuItem(menu, "Show log file", getWorkspaceMenuHelper()::handleShowLogFile);
 
     addSeparator(menu);
@@ -374,8 +403,8 @@ public abstract class AbstractWorkspace implements Workspace {
     addMenuItem(menu, "Manage users", () -> FxThread.runLater(UsersTab::showTab), KeyCode.U,
         KeyCombination.SHORTCUT_DOWN); // why fx thread?
     addMenuItem(menu, "Sign in / Sign up", () -> UsersTab.showTab(UsersViewState.LOGIN));
-    addMenuItem(menu, "Remove user", () -> addMenuItem(menu, "Remove user",
-        () -> UserAuthStore.removeUserFile(CurrentUserService.getUser())));
+    addMenuItem(menu, "Remove user",
+        () -> UserAuthStore.removeUserFile(CurrentUserService.getUser()));
     addMenuItem(menu, "Open users directory", getWorkspaceMenuHelper()::openUsersDirectory);
     addMenuItem(menu, "Manage user online",
         () -> DesktopService.getDesktop().openWebPage(MzioMZmineLinks.USER_CONSOLE.getUrl()));

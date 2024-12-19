@@ -164,8 +164,10 @@ public final class AcademicWorkspace extends AbstractWorkspace {
     final Menu menu = new Menu("Feature detection");
     menu.getItems()
         .addAll(buildDefaultLcMsSubMenu(), buildDefaultGcMsSubMenu(), buildDefaultImsMsSubMenu(),
-            buildDefaultImagingSubMenu(), new SeparatorMenuItem(),
-            new ModuleMenuItem(SmoothingModule.class, null), buildDefaultResolvingSubMenu());
+            buildDefaultImagingSubMenu(), buildDefaultMsnSubMenu(), new SeparatorMenuItem(),
+            new ModuleMenuItem(SmoothingModule.class),
+            new ModuleMenuItem(ChromatogramBlankSubtractionModule.class),
+            buildDefaultResolvingSubMenu());
 
     return menu;
   }
@@ -207,6 +209,7 @@ public final class AcademicWorkspace extends AbstractWorkspace {
 
   @Override
   public boolean isAllowedWithLicense(@Nullable UserType userType) {
-    return EnumSet.of(UserType.PRO, UserType.TRIAL_PRO, UserType.ACADEMIC, UserType.UNVALIDATED).contains(userType);
+    return EnumSet.of(UserType.PRO, UserType.TRIAL_PRO, UserType.ACADEMIC, UserType.UNVALIDATED)
+        .contains(userType);
   }
 }
