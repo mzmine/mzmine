@@ -43,16 +43,12 @@ public class WorkflowDeconvolution extends WorkflowWizardParameterFactory {
 
   @Override
   public @NotNull WizardBatchBuilder getBatchBuilder(final @NotNull WizardSequence steps) {
-    // throw in case we hit unsupported workflow
-    // those combinations should be filtered out previously though
-    var unsupportedException = new UnsupportedOperationException(
-        "Currently not implemented workflow " + this);
     var ionInterface = (IonInterfaceWizardParameterFactory) steps.get(WizardPart.ION_INTERFACE)
         .get().getFactory();
 
     return switch (ionInterface.group()) {
       case CHROMATOGRAPHY_HARD -> new WizardBatchBuilderGcEiDeconvolution(steps);
-      case CHROMATOGRAPHY_SOFT, DIRECT_AND_FLOW, SPATIAL_IMAGING -> throw unsupportedException;
+      case CHROMATOGRAPHY_SOFT, DIRECT_AND_FLOW, SPATIAL_IMAGING -> throw new UnsupportedWorkflowException(steps);
     };
   }
 

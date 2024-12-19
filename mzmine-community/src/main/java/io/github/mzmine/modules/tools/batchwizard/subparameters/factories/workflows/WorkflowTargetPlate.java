@@ -46,16 +46,12 @@ public class WorkflowTargetPlate extends WorkflowWizardParameterFactory {
 
   @Override
   public @NotNull WizardBatchBuilder getBatchBuilder(final @NotNull WizardSequence steps) {
-    // throw in case we hit unsupported workflow
-    // those combinations should be filtered out previously though
-    var unsupportedException = new UnsupportedOperationException(
-        "Currently not implemented workflow " + this);
     var ionInterface = (IonInterfaceWizardParameterFactory) steps.get(WizardPart.ION_INTERFACE)
         .get().getFactory();
 
     return switch (ionInterface.group()) {
       case SPATIAL_IMAGING -> new WizardBatchBuilderTargetPlate(steps);
-      case CHROMATOGRAPHY_HARD, CHROMATOGRAPHY_SOFT, DIRECT_AND_FLOW -> throw unsupportedException;
+      case CHROMATOGRAPHY_HARD, CHROMATOGRAPHY_SOFT, DIRECT_AND_FLOW -> throw new UnsupportedWorkflowException(steps);
     };
   }
 

@@ -13,22 +13,14 @@ import org.jetbrains.annotations.NotNull;
 public interface WizardPartFilter {
 
   /**
-   *
-   * @param part The wizard parameter factory to check if it is allowed.
-   * @return true or false
-   */
-  boolean accept(@NotNull WizardParameterFactory part);
-
-  /**
-   *
    * @param allowed The allowed steps
    */
   static WizardPartFilter allow(Collection<WizardParameterFactory> allowed) {
-    return part -> new HashSet<>(allowed).contains(part);
+    final HashSet<WizardParameterFactory> set = new HashSet<>(allowed);
+    return set::contains;
   }
 
   /**
-   *
    * @param allowed The allowed steps
    */
   static WizardPartFilter allow(WizardParameterFactory... allowed) {
@@ -36,18 +28,27 @@ public interface WizardPartFilter {
   }
 
   /**
-   *
    * @param denied The denied steps
    */
   static WizardPartFilter deny(Collection<WizardParameterFactory> denied) {
-    return part -> !new HashSet<>(denied).contains(part);
+    final HashSet<WizardParameterFactory> set = new HashSet<>(denied);
+    return part -> !set.contains(part);
   }
 
   /**
-   *
    * @param denied The denied steps
    */
   static WizardPartFilter deny(WizardParameterFactory... denied) {
     return deny(Arrays.stream(denied).collect(Collectors.toSet()));
   }
+
+  static WizardPartFilter combine(WizardPartFilter... filters) {
+    return part -> Arrays.stream(filters).allMatch(filter -> filter.accept(part));
+  }
+
+  /**
+   * @param part The wizard parameter factory to check if it is allowed.
+   * @return true or false
+   */
+  boolean accept(@NotNull WizardParameterFactory part);
 }

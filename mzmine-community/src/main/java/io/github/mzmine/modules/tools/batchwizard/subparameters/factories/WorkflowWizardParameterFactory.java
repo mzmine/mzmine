@@ -29,6 +29,7 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardPartFilter;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WizardWorkflows;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
@@ -53,22 +54,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class WorkflowWizardParameterFactory implements WizardParameterFactory {
 
-  private static final Set<WorkflowWizardParameterFactory> values = new LinkedHashSet<>();
-
-  static {
-    values.addAll(List.of(new WorkflowDDA(), new WorkflowDIA(), new WorkflowDeconvolution(),
-        new WorkflowLibraryGeneration(), new WorkflowImaging(), new WorkflowTargetPlate(),
-        new WorkflowMs1Only()));
-  }
-
   public static WorkflowWizardParameterFactory[] values() {
-    return values.stream()
-        .filter(workflow -> workflow.isAvailableWithLicense(CurrentUserService.getUser()))
-        .toArray(WorkflowWizardParameterFactory[]::new);
-  }
-
-  public static void addWorkflow(WorkflowWizardParameterFactory workflow) {
-    values.add(workflow);
+    return WizardWorkflows.values();
   }
 
   @Override
@@ -96,5 +83,11 @@ public abstract class WorkflowWizardParameterFactory implements WizardParameterF
   public abstract @NotNull WizardBatchBuilder getBatchBuilder(@NotNull final WizardSequence steps)
       throws UnsupportedOperationException;
 
+  /**
+   * Check if this workflow is available with the license and should be displayed in the current
+   * wizard.
+   * Todo for the future: might be confusing to enable a workspace and have all possible
+   *  workflows here. Maybe rename and limit to possible with licence and workspace in the future
+   */
   public abstract boolean isAvailableWithLicense(@Nullable MZmineUser user);
 }

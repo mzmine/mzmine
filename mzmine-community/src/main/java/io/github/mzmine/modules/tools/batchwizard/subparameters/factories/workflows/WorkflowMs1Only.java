@@ -42,10 +42,7 @@ public class WorkflowMs1Only extends WorkflowWizardParameterFactory {
 
   @Override
   public @NotNull WizardBatchBuilder getBatchBuilder(final @NotNull WizardSequence steps) {
-    // throw in case we hit unsupported workflow
-    // those combinations should be filtered out previously though
-    throw new UnsupportedOperationException(
-        "Currently not implemented workflow " + this);
+    throw new UnsupportedWorkflowException(steps);
   }
 
   @Override
