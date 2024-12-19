@@ -23,15 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
+package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.merging.SpectraMerger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
+/**
+ * Advanced settings should give all options that are available to merging and selecting fragment
+ * scans. All the other preset based setups currently generate advanced parameters and the
+ * {@link FragmentScanSelection} and {@link SpectraMerger} are setup from this parameter set
+ */
+public class AdvancedSpectraMergeSelectModule implements SpectraMergeSelectModule {
 
-  public SelectedRowsSpectralLibrarySearchParameters() {
-    super(new Parameter[]{libraries, spectraMergeSelect, msLevelFilter, mzTolerancePrecursor,
-        removePrecursor, mzTolerance, minMatch, similarityFunction, advanced});
+  @Override
+  public @NotNull String getName() {
+    return "Spectra merging (advanced)";
   }
 
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return AdvancedSpectraMergeSelectParameters.class;
+  }
 }

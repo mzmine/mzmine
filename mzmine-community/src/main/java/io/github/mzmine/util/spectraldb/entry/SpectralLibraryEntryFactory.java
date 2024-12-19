@@ -341,14 +341,18 @@ public class SpectralLibraryEntryFactory {
 
     addUniversalSpectrumIdentifiers(entry, spec);
 
+    final MergingType mergingType;
     if (spec instanceof MergedMassSpectrum merged) {
       entry.putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
       entry.putIfNotNull(DBEntryField.SCAN_NUMBER,
           ScanUtils.extractScanNumbers(merged).boxed().toList());
-      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, merged.getMergingType());
+      mergingType = merged.getMergingType();
     } else {
-      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, MergingType.SINGLE_BEST_SCAN);
+      mergingType = MergingType.SINGLE_SCAN;
       entry.putIfNotNull(DBEntryField.SCAN_NUMBER, ScanUtils.extractScanNumber(spec));
+    }
+    if (mergingType != null) {
+      entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, mergingType.getUniqueID());
     }
   }
 
@@ -475,16 +479,24 @@ public class SpectralLibraryEntryFactory {
   }
 
   /**
-   * Put experimental results from feature to entry
+   * Put experimental results from feature to entry. Prefer feature over row
    */
-  public void putFeatureFieldsIntoEntry(@NotNull SpectralLibraryEntry entry, @Nullable Feature f) {
-    if (f == null || !addExperimentalResults) {
+  public void putFeatureFieldsIntoEntry(@NotNull SpectralLibraryEntry entry,
+      final @Nullable FeatureListRow row, @Nullable Feature f) {
+    if (!addExperimentalResults) {
       return;
     }
 
-    entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
-    entry.putIfNotNull(DBEntryField.RT, f.getRT());
-    entry.putIfNotNull(DBEntryField.CCS, f.getCCS());
+    if (row != null) {
+      entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, row.getAverageMZ());
+      entry.putIfNotNull(DBEntryField.RT, row.getAverageRT());
+      entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
+    }
+    if (f != null) {
+      entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
+      entry.putIfNotNull(DBEntryField.RT, f.getRT());
+      entry.putIfNotNull(DBEntryField.CCS, f.getCCS());
+    }
   }
 
   public void setAddOnlineReactivityFlags(final boolean addOnlineReactivityFlags) {

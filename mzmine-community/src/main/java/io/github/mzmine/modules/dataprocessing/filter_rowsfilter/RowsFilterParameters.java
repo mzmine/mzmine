@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -69,8 +69,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<Isotope13CFilterParameters> ISOTOPE_FILTER_13C = new OptionalModuleParameter<>(
       "Validate 13C isotope pattern",
       "Searches for an +1 13C signal (considering possible charge states) \n"
-          + "within estimated range of carbon atoms. Optionally: Detect and filter rows \n"
-          + "that are 13C isotopes by searching for preceding -1 signal.",
+      + "within estimated range of carbon atoms. Optionally: Detect and filter rows \n"
+      + "that are 13C isotopes by searching for preceding -1 signal.",
       new Isotope13CFilterParameters(), false);
 
   public static final BooleanParameter removeRedundantRows = new BooleanParameter(

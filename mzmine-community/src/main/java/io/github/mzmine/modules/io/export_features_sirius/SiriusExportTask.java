@@ -44,10 +44,7 @@ import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
-import io.github.mzmine.modules.tools.msmsspectramerge.MergeMode;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -58,8 +55,8 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -89,20 +86,17 @@ public class SiriusExportTask extends AbstractTask {
   private final ParameterSet parameters;
   private final ModularFeatureList[] featureLists;
   private final File fileName;
-  private final boolean mergeEnabled;
-  private final MsMsSpectraMergeParameters mergeParameters;
-  private final double minimumRelativeNumberOfScans;
   private final MZTolerance mzTol;
   private final Boolean excludeMultiCharge;
   private final Boolean excludeMultimers;
   private final Boolean needAnnotation;
   private final int totalRows;
   private final NumberFormats format = MZmineCore.getConfiguration().getExportFormats();
-  private final MergeMode mergeMode;
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private final AtomicInteger processedRows = new AtomicInteger(0);
   private final IntensityNormalizer normalizer;
   private final SpectralLibraryEntryFactory entryFactory;
+  private final FragmentScanSelection scanMergeSelect;
 
 
   protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -112,12 +106,11 @@ public class SiriusExportTask extends AbstractTask {
     this.featureLists = parameters.getValue(SiriusExportParameters.FEATURE_LISTS)
         .getMatchingFeatureLists();
     this.fileName = parameters.getValue(SiriusExportParameters.FILENAME);
-    this.mergeEnabled = parameters.getValue(SiriusExportParameters.MERGE_PARAMETER);
-    this.mergeParameters = parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER)
-        .getEmbeddedParameters();
+    var mergeSelect = parameters.getParameter(SiriusExportParameters.spectraMergeSelect)
+        .getValueWithParameters();
 
-    minimumRelativeNumberOfScans = mergeEnabled ? mergeParameters.getParameter(
-        MsMsSpectraMergeParameters.REL_SIGNAL_COUNT_PARAMETER).getValue() : 0d;
+    this.scanMergeSelect = mergeSelect.value()
+        .createFragmentScanSelection(getMemoryMapStorage(), mergeSelect.parameters());
 
     // new parameters related to ion identity networking and feature grouping
     mzTol = parameters.getValue(SiriusExportParameters.MZ_TOL);
@@ -125,7 +118,6 @@ public class SiriusExportTask extends AbstractTask {
     excludeMultiCharge = parameters.getValue(SiriusExportParameters.EXCLUDE_MULTICHARGE);
     excludeMultimers = parameters.getValue(SiriusExportParameters.EXCLUDE_MULTIMERS);
     needAnnotation = parameters.getValue(SiriusExportParameters.NEED_ANNOTATION);
-    mergeMode = mergeParameters.getValue(MsMsSpectraMergeParameters.MERGE_MODE);
 
     totalRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
 
@@ -239,14 +231,9 @@ public class SiriusExportTask extends AbstractTask {
       entries.add(ms1);
     }
 
-    if (mergeEnabled) {
-      final List<SpectralLibraryEntry> ms2Entries = getMergedMs2SpectraEntries(mergeMode, row);
-      entries.addAll(ms2Entries);
-    } else {
-      final List<SpectralLibraryEntry> ms2Entries = row.streamFeatures().flatMap(
-              f -> f.getAllMS2FragmentScans().stream().map(s -> spectrumToEntry(MsType.MSMS, s, f)))
-          .toList();
-      entries.addAll(ms2Entries);
+    // merge and select scans - transform into merged spectra
+    for (final Scan scan : scanMergeSelect.getAllFragmentSpectra(row)) {
+      entries.add(spectrumToEntry(MsType.MSMS, scan, row, null));
     }
 
     if (entries.size() < 2) {
@@ -279,7 +266,7 @@ public class SiriusExportTask extends AbstractTask {
 
     final MassSpectrum correlated = generateCorrelationSpectrum(row, null);
     if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
-      return spectrumToEntry(MsType.CORRELATED, correlated, bestFeature);
+      return spectrumToEntry(MsType.CORRELATED, correlated, bestFeature.getRow(), bestFeature);
     } else {
       // export best MS1
       var ms1Scan = bestFeature.getRepresentativeScan();
@@ -289,12 +276,12 @@ public class SiriusExportTask extends AbstractTask {
             + FeatureUtils.rowToString(row));
         return null;
       }
-      return spectrumToEntry(MsType.MS, ms1Scan, bestFeature);
+      return spectrumToEntry(MsType.MS, ms1Scan, bestFeature.getRow(), bestFeature);
     }
   }
 
   public SpectralLibraryEntry spectrumToEntry(MsType spectrumType, MassSpectrum spectrum,
-      Feature f) {
+      final @Nullable FeatureListRow row, final @Nullable Feature f) {
 
     final DataPoint[] data;
     if (spectrum instanceof MergedSpectrum spec) {
@@ -304,26 +291,32 @@ public class SiriusExportTask extends AbstractTask {
     }
 
     // create unknown to not interfer with annotation by sirius by adding to much info
-    final SpectralLibraryEntry entry = entryFactory.createUnknown(null, f.getRow(), spectrum, data,
-        null, null);
+    final SpectralLibraryEntry entry = entryFactory.createUnknown(null, row, spectrum, data, null,
+        null);
 
     // below here are only SIRIUS specific fields added or overwritten.
     // all default behavior should go into {@link SpectralLibraryEntryFactory}
 
     // use feature mz and rt instead of row or scan
-    entryFactory.putFeatureFieldsIntoEntry(entry, f);
-    FeatureListRow row = f.getRow();
+    entryFactory.putFeatureFieldsIntoEntry(entry, row, f);
 
     switch (spectrumType) {
       case CORRELATED -> {
         entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
         entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, "CORRELATED MS");
-        entry.putIfNotNull(DBEntryField.FILENAME,
-            row.getFeatures().stream().map(Feature::getRawDataFile).filter(Objects::nonNull)
-                .map(RawDataFile::getName).collect(Collectors.joining(";")));
+
+        if (row != null) {
+          entry.putIfNotNull(DBEntryField.FILENAME,
+              row.getFeatures().stream().map(Feature::getRawDataFile).filter(Objects::nonNull)
+                  .map(RawDataFile::getName).collect(Collectors.joining(";")));
+        } else if (f != null && f.getRawDataFile() != null) {
+          entry.putIfNotNull(DBEntryField.FILENAME, f.getRawDataFile().getName());
+        } else {
+          entry.putIfNotNull(DBEntryField.FILENAME, ScanUtils.getSourceFile(spectrum));
+        }
       }
       case MS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
-      case MSMS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 2);
+//      case MSMS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 2); // already set through scan - MSn trees are also marked as MSMS here
     }
 
     if (spectrum instanceof MergedSpectrum spec) {
@@ -331,67 +324,6 @@ public class SiriusExportTask extends AbstractTask {
     }
 
     return entry;
-  }
-
-  private List<SpectralLibraryEntry> getMergedMs2SpectraEntries(MergeMode mergeMode,
-      FeatureListRow row) {
-
-    List<SpectralLibraryEntry> entries = new ArrayList<>();
-    final MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(
-        MsMsSpectraMergeModule.class);
-
-    switch (mergeMode) {
-      case SAME_SAMPLE -> {
-        for (Feature f : row.getFeatures()) {
-          final Scan bestMS2 = f.getMostIntenseFragmentScan();
-          if (bestMS2 == null) {
-            continue;
-          }
-          if (bestMS2.getMassList() == null) {
-            throw new MissingMassListException(bestMS2);
-          }
-          if (bestMS2.getMassList().getNumberOfDataPoints() <= 0) {
-            continue;
-          }
-
-          MergedSpectrum spectrum = merger.mergeFromSameSample(mergeParameters, f)
-              .filterByRelativeNumberOfScans(minimumRelativeNumberOfScans);
-          entries.add(spectrumToEntry(MsType.MSMS, spectrum, f));
-        }
-      }
-
-      case CONSECUTIVE_SCANS -> {
-        for (Feature f : row.getFeatures()) {
-          final Scan bestMS2 = f.getMostIntenseFragmentScan();
-          if (bestMS2 == null) {
-            continue;
-          }
-          if (bestMS2.getMassList() == null) {
-            throw new MissingMassListException(bestMS2);
-          }
-          if (bestMS2.getMassList().getNumberOfDataPoints() <= 0) {
-            continue;
-          }
-
-          final List<MergedSpectrum> mergedSpectra = merger.mergeConsecutiveScans(mergeParameters,
-              f);
-          for (MergedSpectrum spectrum : mergedSpectra) {
-            entries.add(spectrumToEntry(MsType.MSMS,
-                spectrum.filterByRelativeNumberOfScans(minimumRelativeNumberOfScans), f));
-          }
-        }
-      }
-
-      case ACROSS_SAMPLES -> {
-        // merge everything into one
-        MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row)
-            .filterByRelativeNumberOfScans(minimumRelativeNumberOfScans);
-        entries.add(spectrumToEntry(MsType.MSMS, spectrum, row.getBestFeature()));
-      }
-    }
-
-    entries.removeIf(e -> e.getNumberOfDataPoints() == 0);
-    return entries;
   }
 
   private boolean checkFeatureCriteria(final FeatureListRow row) {

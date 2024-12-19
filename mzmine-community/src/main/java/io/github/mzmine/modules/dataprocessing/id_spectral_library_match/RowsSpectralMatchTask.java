@@ -37,7 +37,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
-import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters.ScanMatchingSelection;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
@@ -51,9 +50,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.FragmentScanSelection;
-import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanAlignment;
-import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
@@ -69,7 +66,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class RowsSpectralMatchTask extends AbstractTask {
 
@@ -90,8 +86,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
   protected final MZTolerance mzToleranceSpectra;
   protected final MZTolerance mzTolerancePrecursor;
   // scan merging and ms levels
-  // null when single scan is matched
-  private final @Nullable ScanMatchingSelection scanMatchingSelection;
   private final MsLevelFilter msLevelFilter;
   private final AtomicInteger errorCounter = new AtomicInteger(0);
   private final int totalRows;
@@ -122,7 +116,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
     mzToleranceSpectra = parameters.getValue(SpectralLibrarySearchParameters.mzTolerance);
 
-    scanMatchingSelection = null;
     msLevelFilter = MsLevelFilter.of(scan.getMSLevel());
 
     // use precursor mz provided by user
@@ -162,9 +155,12 @@ public class RowsSpectralMatchTask extends AbstractTask {
               .getEmbeddedParameter().getValue()) : null;
     }
 
-    // not used for single spectrum
-    fragmentScanSelection = new FragmentScanSelection(mzToleranceSpectra, true,
-        IncludeInputSpectra.ALL, IntensityMergingType.MAXIMUM, msLevelFilter);
+    // parameter for scan selection and merging
+    var mergeSelect = parameters.getParameter(SpectralLibrarySearchParameters.spectraMergeSelect)
+        .getValueWithParameters();
+
+    fragmentScanSelection = mergeSelect.value()
+        .createFragmentScanSelection(getMemoryMapStorage(), mergeSelect.parameters());
 
     totalRows = 1;
   }
@@ -183,16 +179,17 @@ public class RowsSpectralMatchTask extends AbstractTask {
     simFunction = SpectralSimilarityFunctions.createOption(simfuncParams);
     removePrecursor = parameters.getValue(SpectralLibrarySearchParameters.removePrecursor);
 
-    scanMatchingSelection = parameters.getValue(
-        SpectralLibrarySearchParameters.scanMatchingSelection);
+    // parameter for scan selection and merging
+    var mergeSelect = parameters.getParameter(SpectralLibrarySearchParameters.spectraMergeSelect)
+        .getValueWithParameters();
 
-    msLevelFilter = scanMatchingSelection.getMsLevelFilter();
-    if (!msLevelFilter.isMs1Only()) {
-      mzTolerancePrecursor = parameters.getValue(
-          SpectralLibrarySearchParameters.mzTolerancePrecursor);
-    } else {
-      mzTolerancePrecursor = null;
-    }
+    fragmentScanSelection = mergeSelect.value()
+        .createFragmentScanSelection(getMemoryMapStorage(), mergeSelect.parameters());
+
+    msLevelFilter = parameters.getValue(SpectralLibrarySearchParameters.msLevelFilter);
+
+    mzTolerancePrecursor = parameters.getValue(
+        SpectralLibrarySearchParameters.mzTolerancePrecursor);
 
     var useAdvanced = parameters.getValue(SpectralLibrarySearchParameters.advanced);
     if (useAdvanced) {
@@ -218,11 +215,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
           advanced.getParameter(AdvancedSpectralLibrarySearchParameters.ccsTolerance)
               .getEmbeddedParameter().getValue()) : null;
     }
-
-    var includeInputScans =
-        scanMatchingSelection.isAll() ? IncludeInputSpectra.ALL : IncludeInputSpectra.NONE;
-    fragmentScanSelection = new FragmentScanSelection(mzToleranceSpectra, true, includeInputScans,
-        IntensityMergingType.MAXIMUM, msLevelFilter);
 
     totalRows = rows.size();
   }

@@ -44,7 +44,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -53,7 +53,6 @@ import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParame
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizerOptions;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
@@ -65,10 +64,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class SiriusExportParameters extends SimpleParameterSet {
 
-  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
-      "Merge MS/MS",
-      "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.",
-      new MsMsSpectraMergeParameters(), true);
+  public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createSiriusExportAllDefault();
 
   // SIRIUS is compatible with scientific format and this format better captures all numbers
   public static final IntensityNormalizerComboParameter NORMALIZE = new IntensityNormalizerComboParameter(
@@ -100,7 +96,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
   );
 
   public SiriusExportParameters() {
-    super(FEATURE_LISTS, FILENAME, NORMALIZE, MERGE_PARAMETER, MZ_TOL, NEED_ANNOTATION,
+    super(FEATURE_LISTS, FILENAME, NORMALIZE, spectraMergeSelect, MZ_TOL, NEED_ANNOTATION,
         EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS);
   }
 
@@ -152,7 +148,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
     return switch (version) {
       case 2 -> """
           Up to mzmine version ≤ 4.4.3 the intensities were exported normalized to the highest signal as 100%. \
-          mzmine versions > 4.4.3 add options to control normalization. The default changed to original intensities exported in scientific notation (e.g., 1.05E5).""";
+          mzmine versions > 4.4.3 add options to control normalization. The default changed to original intensities exported in scientific notation (e.g., 1.05E5).
+          Selection and merging of fragmentation spectra was also harmonized throughout various modules.""";
       default -> null;
     };
   }

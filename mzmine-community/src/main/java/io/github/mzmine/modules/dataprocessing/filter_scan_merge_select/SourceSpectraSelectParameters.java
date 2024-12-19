@@ -23,15 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
+package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 
-public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
+public class SourceSpectraSelectParameters extends SimpleParameterSet {
 
-  public SelectedRowsSpectralLibrarySearchParameters() {
-    super(new Parameter[]{libraries, spectraMergeSelect, msLevelFilter, mzTolerancePrecursor,
-        removePrecursor, mzTolerance, minMatch, similarityFunction, advanced});
+  public static ComboParameter<MergedSpectraFinalSelectionTypes> sourceSelectionTypes = new ComboParameter<>(
+      "Scan selection", "", new MergedSpectraFinalSelectionTypes[]{
+      MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN,
+      MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS},
+      MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN);
+
+  public SourceSpectraSelectParameters() {
+    super(sourceSelectionTypes);
   }
 
 }
