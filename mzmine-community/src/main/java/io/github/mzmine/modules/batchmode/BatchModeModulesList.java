@@ -105,6 +105,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formul
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations.IonNetRelationsModule;
+import io.github.mzmine.modules.dataprocessing.id_ion_type.IonTypeAnalysisModule;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
@@ -327,6 +328,7 @@ public class BatchModeModulesList {
            */
           ClearFeatureAnnotationsModule.class, //
           LinearNormalizerModule.class, //
+          IonTypeAnalysisModule.class, //
           RTCorrectionModule.class, //
           StandardCompoundNormalizerModule.class, //
 
