@@ -142,7 +142,7 @@ public class OtherDataTest {
   }
 
   @Test
-  void textMrmLoadSave() {
+  void testMrmLoadSave() {
 
     final List<Scan> scans = IonTimeSeriesTest.makeSomeScans(file, 10);
     scans.forEach(file::addScan);

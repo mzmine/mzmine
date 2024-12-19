@@ -74,7 +74,7 @@ public class FeatureResolverTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(FeatureResolverTask.class.getName());
 
   // These types will not be copied to a new feature
-  private final Set<DataType<?>> excludedTypes = DataTypes.getInstances().stream()
+  private final Set<DataType<?>> featureCopyExcludedTypes = DataTypes.getInstances().stream()
       .<DataType<?>>mapMulti((t, c) -> {
         switch (t) {
           case AnnotationType _, FragmentScanNumbersType _, FeatureDataType _, MsMsInfoType _ -> {
@@ -234,7 +234,7 @@ public class FeatureResolverTask extends AbstractTask {
             peakId++);
         final ModularFeature f = new ModularFeature(resolvedFeatureList,
             originalFeature.getRawDataFile(), originalFeature.getFeatureStatus());
-        DataTypeUtils.copyAllBut(originalFeature, f, excludedTypes);
+        DataTypeUtils.copyAllBut(originalFeature, f, featureCopyExcludedTypes);
 
         f.set(FeatureDataType.class, resolved);
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
