@@ -49,18 +49,18 @@ Taken from https://docs.jabref.org/advanced/custom-themes
     -jr-yellow: #b5b021;
     -jr-orange: #b77620;
 
-    -jr-base: #141824;
+    -jr-base: #202020;
 
-    -jr-background-alt: #151924;
+    -jr-background-alt: #242424;
     -jr-menu-background: -jr-base;
     -jr-toolbar: -jr-menu-background;
-    -jr-sidepane-background: #212330;
+    -jr-sidepane-background: #303030;
     -jr-search-background: #2c2e3b;
 
     -jr-sidepane-header-background: -jr-background-alt;
     -jr-group-hits-bg: -jr-background-alt;
     -jr-group-hits-fg: -fx-light-text-color;
-    -fx-control-inner-background: #272b38;
+    -fx-control-inner-background: #303030;
 
     -fx-control-inner-background-alt: -fx-control-inner-background;
 
@@ -69,7 +69,7 @@ Taken from https://docs.jabref.org/advanced/custom-themes
     -fx-mid-text-color: white;
 /*  -fx-light-text-color: #9aa3af;*/
     -fx-light-text-color: white;
-    -jr-separator: #333744;
+    -jr-separator: #444444;
     -fx-outer-border: #424758;
 
     -jr-icon: -fx-light-text-color;
@@ -97,7 +97,7 @@ Taken from https://docs.jabref.org/advanced/custom-themes
 }
 
 #previewBody {
-    background-color: #272b38; /* -fx-control-inner-background*/
+    background-color: #382b38; /* -fx-control-inner-background*/
     color: white;
 }
 
