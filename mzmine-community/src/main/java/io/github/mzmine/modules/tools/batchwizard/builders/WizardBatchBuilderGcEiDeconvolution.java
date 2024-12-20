@@ -40,10 +40,10 @@ import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.S
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
-import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters.ScanMatchingSelection;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitParameters;
@@ -59,6 +59,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectr
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
@@ -252,8 +253,13 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     param.setParameter(SpectralLibrarySearchParameters.peakLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(SpectralLibrarySearchParameters.libraries, new SpectralLibrarySelection());
-    param.setParameter(SpectralLibrarySearchParameters.scanMatchingSelection,
-        ScanMatchingSelection.MS1);
+
+    // merging and selection to representative scan
+    param.getParameter(SpectralLibrarySearchParameters.spectraMergeSelect)
+        .setSimplePreset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, mzTolScans);
+
+    param.setParameter(SpectralLibrarySearchParameters.msLevelFilter, MsLevelFilter.of(1));
+
     param.setParameter(SpectralLibrarySearchParameters.mzTolerancePrecursor,
         new MZTolerance(mzTolScans.getMzTolerance(), mzTolScans.getPpmTolerance()));
     param.setParameter(SpectralLibrarySearchParameters.mzTolerance,
