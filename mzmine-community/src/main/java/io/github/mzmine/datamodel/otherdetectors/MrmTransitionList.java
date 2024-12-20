@@ -1,8 +1,10 @@
 package io.github.mzmine.datamodel.otherdetectors;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -166,7 +168,12 @@ public final class MrmTransitionList {
     quantifier = newQuantifier;
 
     if (feature != null) {
-      feature.set(FeatureDataType.class, quantifier.chromatogram());
+      // the mrm transition list is not resolved, so get the correct sub series here.
+      final Range<Float> rtRange = feature.getRawDataPointsRTRange();
+      final IonTimeSeries<? extends Scan> chromatogram = quantifier.chromatogram();
+      feature.set(FeatureDataType.class, chromatogram.subSeries(
+          ((ModularFeatureList) feature.getFeatureList()).getMemoryMapStorage(),
+          rtRange.lowerEndpoint().floatValue(), rtRange.upperEndpoint().floatValue()));
       // important note: the m/zs in all transitions are the mzs of the precursor mass
       FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
     }
