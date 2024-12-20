@@ -49,10 +49,12 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanAlignment;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
@@ -281,8 +283,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
     // combine libraries
     final List<SpectralLibraryEntry> entries;
     try {
-      entries = parameters.getValue(SpectralLibrarySearchParameters.libraries)
-          .getMatchingLibraryEntriesAndCheckAvailability();
+      entries = getSortedSpectralLibraryEntries();
       if (isCanceled()) {
         return;
       }
@@ -331,6 +332,20 @@ public class RowsSpectralMatchTask extends AbstractTask {
     }
   }
 
+  private @NotNull List<SpectralLibraryEntry> getSortedSpectralLibraryEntries() {
+    final List<SpectralLibraryEntry> entries = parameters.getValue(
+        SpectralLibrarySearchParameters.libraries).getMatchingLibraryEntriesAndCheckAvailability();
+    final boolean isMs2 = !msLevelFilter.isMs1Only();
+    return entries.stream()
+        // remove scans without precursor mz if its MS2
+        // MS1 scans should also not have precursor mz but maybe it is set - it will just not be used
+        // so for MS1 just keep all scans
+        .filter(entry -> !(isMs2 && entry.getPrecursorMZ() == null))
+        .filter(entry -> entry.getNumberOfDataPoints() >= minMatch)
+        .sorted(Comparator.nullsLast(Comparator.comparing(SpectralLibraryEntry::getPrecursorMZ)))
+        .toList();
+  }
+
   /**
    * Match row against all entries, add matches, sort them by score
    *
@@ -339,6 +354,12 @@ public class RowsSpectralMatchTask extends AbstractTask {
    */
   public void matchScan(List<SpectralLibraryEntry> entries, Scan scan) {
     try {
+      // filter entries first if not MS1
+      entries = binaryFindCandidateEntries(entries, ScanUtils.getPrecursorMz(scan));
+      if (entries.isEmpty()) {
+        return;
+      }
+
       // get mass list and perform deisotoping if active
       DataPoint[] masses = getDataPoints(scan, scan.getPrecursorMz());
 
@@ -405,6 +426,12 @@ public class RowsSpectralMatchTask extends AbstractTask {
    */
   public int matchRowToLibraries(List<SpectralLibraryEntry> entries, FeatureListRow row) {
     try {
+      // filter entries first if not MS1
+      entries = binaryFindCandidateEntries(entries, row.getAverageMZ());
+      if (entries.isEmpty()) {
+        return 0;
+      }
+
       // All MS2 or only best MS2 scan
       // best MS1 scan
       // check for MS1 or MSMS scan
@@ -413,6 +440,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
         return 0;
       }
 
+      // prepare data
       List<DataPoint[]> rowMassLists = new ArrayList<>();
       for (Scan scan : scans) {
         // get mass list and perform deisotoping if active
@@ -472,6 +500,29 @@ public class RowsSpectralMatchTask extends AbstractTask {
       errorCounter.getAndIncrement();
     }
     return 0;
+  }
+
+  /**
+   * Does no filtering in MS1 but for all other filters by precursor mz using binary search.
+   *
+   * @param entries         original entries will not be changed
+   * @param scanPrecursorMZ if null returns the initial entries - otherwise used as filter if not
+   *                        MS1
+   * @return either filtered sublist or the original list if no filters applicable
+   */
+  private List<SpectralLibraryEntry> binaryFindCandidateEntries(List<SpectralLibraryEntry> entries,
+      @Nullable final Double scanPrecursorMZ) {
+    if (scanPrecursorMZ == null) {
+      return entries;
+    }
+    if (!msLevelFilter.isMs1Only()) {
+      var indexRange = BinarySearch.indexRange(
+          mzTolerancePrecursor.getToleranceRange(scanPrecursorMZ), entries,
+          SpectralLibraryEntry::getPrecursorMZ);
+      // filter
+      entries = indexRange.sublist(entries);
+    }
+    return entries;
   }
 
   /**
