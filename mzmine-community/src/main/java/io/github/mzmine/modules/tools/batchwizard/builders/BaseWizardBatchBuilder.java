@@ -360,7 +360,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param));
   }
 
-  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final WizardSequence steps) {
+  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final WizardSequence steps,
+      final MZTolerance mzTolScans) {
     // DDA workflow parameters
     var params = steps.get(WizardPart.WORKFLOW);
     OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
@@ -371,16 +372,16 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     boolean exportAnnotationGraphics = getValue(params,
         WorkflowDdaWizardParameters.exportAnnotationGraphics);
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
-        exportAnnotationGraphics);
+        exportAnnotationGraphics, mzTolScans);
   }
 
   // export for DDA
   protected static void makeAndAddDdaExportSteps(final BatchQueue q, final boolean isExportActive,
       final File exportPath, final boolean exportGnps, final boolean exportSirius,
-      final boolean exportAnnotationGraphics) {
+      final boolean exportAnnotationGraphics, final MZTolerance mzTolScans) {
     if (isExportActive && exportPath != null) {
       if (exportGnps) {
-        makeAndAddIimnGnpsExportStep(q, exportPath);
+        makeAndAddIimnGnpsExportStep(q, exportPath, mzTolScans);
       }
       if (exportSirius) {
         makeAndAddSiriusExportStep(q, exportPath);
@@ -425,7 +426,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         MZmineCore.getModuleInstance(ExportAllIdsGraphicalModule.class), param));
   }
 
-  protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath) {
+  protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath,
+      final MZTolerance mzTolScans) {
     final ParameterSet param = new GnpsFbmnExportAndSubmitParameters().cloneParameterSet();
 
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
@@ -433,7 +435,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER, false);
+    param.getParameter(GnpsFbmnExportAndSubmitParameters.spectraMergeSelect)
+        .setSimplePreset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, mzTolScans);
+    
     param.setParameter(GnpsFbmnExportAndSubmitParameters.NORMALIZER,
         IntensityNormalizer.createDefault());
     param.setParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT, false);

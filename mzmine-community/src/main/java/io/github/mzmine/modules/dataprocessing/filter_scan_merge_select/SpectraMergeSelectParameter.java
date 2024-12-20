@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.util.Arrays;
@@ -100,6 +101,15 @@ public class SpectraMergeSelectParameter extends
   }
 
   /**
+   * GNPS allows single scan per row so also limit the options to either single merged or single
+   * best input scan
+   */
+  public static SpectraMergeSelectParameter createGnpsSingleScanDefault() {
+    return new Builder().limitToSingleScan().preset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN)
+        .createParameters();
+  }
+
+  /**
    * Full choice of configuration with a simple preset preselected in
    * {@link PresetSimpleSpectraMergeSelectParameters}
    */
@@ -152,6 +162,18 @@ public class SpectraMergeSelectParameter extends
       copy.put(key, cloneParam);
     }
     return new SpectraMergeSelectParameter(getName(), getDescription(), getValue(), copy);
+  }
+
+  /**
+   * Creates the merger and filters needed in fragment scan selection
+   *
+   * @return a fragment scan selection either merging scans or just selecting source scans
+   */
+  @NotNull
+  public FragmentScanSelection createFragmentScanSelection(
+      final @Nullable MemoryMapStorage storage) {
+    var value = getValue();
+    return value.createFragmentScanSelection(storage, getEmbeddedParameters(value));
   }
 
   /**
@@ -264,6 +286,9 @@ public class SpectraMergeSelectParameter extends
 
     public Builder presetOptions(final SpectraMergeSelectPresets @NotNull [] presetOptions) {
       this.presetOptions = presetOptions;
+      if (!ArrayUtils.contains(preset, presetOptions)) {
+        preset = presetOptions[0];
+      }
       return this;
     }
 
@@ -286,6 +311,14 @@ public class SpectraMergeSelectParameter extends
 
     public Builder includeAdvanced(final @Nullable Boolean includeAdvanced) {
       this.includeAdvanced = Optional.ofNullable(includeAdvanced);
+      return this;
+    }
+
+    public Builder limitToSingleScan() {
+      includeAllSourceScans(false);
+      presetOptions(new SpectraMergeSelectPresets[]{SpectraMergeSelectPresets.SINGLE_MERGED_SCAN});
+      preset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN);
+      includeAdvanced(false);
       return this;
     }
   }

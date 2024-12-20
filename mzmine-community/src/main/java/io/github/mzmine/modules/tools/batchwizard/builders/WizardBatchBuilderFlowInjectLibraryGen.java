@@ -106,7 +106,7 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
     makeAndAddLibrarySearchStep(q, true);
 
     // export
-    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius, false);
+    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius, false, mzTolScans);
 
     // convert library to feature list
     makeAndAddLibraryToFeatureListStep(q);

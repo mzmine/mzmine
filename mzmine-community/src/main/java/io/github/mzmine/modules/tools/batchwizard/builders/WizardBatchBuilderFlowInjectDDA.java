@@ -97,7 +97,7 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     }
 
     // export
-    makeAndAddDdaExportSteps(q, steps);
+    makeAndAddDdaExportSteps(q, steps, mzTolScans);
     return q;
   }
 

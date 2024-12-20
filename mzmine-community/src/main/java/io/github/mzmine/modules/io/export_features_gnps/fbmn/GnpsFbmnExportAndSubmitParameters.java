@@ -44,7 +44,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -63,6 +63,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
+  public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createGnpsSingleScanDefault();
+
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
   public static final OptionalModuleParameter<GnpsFbmnSubmitParameters> SUBMIT = new OptionalModuleParameter<>(
       "Submit to GNPS", "Directly submits a GNPS job", new GnpsFbmnSubmitParameters());
@@ -72,10 +74,6 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
       FeatureListRowsFilter.values(), FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
   public static final BooleanParameter OPEN_FOLDER = new BooleanParameter("Open folder",
       "Opens the export folder", false);
-  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
-      "Merge MS/MS (experimental)",
-      "Merge high-quality MS/MS instead of exporting just the most intense one.",
-      new MsMsSpectraMergeParameters(), true);
 
   // scientific format untested on GNPS FBMN
   public static final IntensityNormalizerComboParameter NORMALIZER = IntensityNormalizerComboParameter.createWithoutScientific();
@@ -99,7 +97,7 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
 
   public GnpsFbmnExportAndSubmitParameters() {
-    super(new Parameter[]{FEATURE_LISTS, FILENAME, FILTER, MERGE_PARAMETER, NORMALIZER,
+    super(new Parameter[]{FEATURE_LISTS, FILENAME, FILTER, spectraMergeSelect, NORMALIZER,
             FEATURE_INTENSITY, CSV_TYPE, SUBMIT, OPEN_FOLDER},
         "https://mzmine.github.io/mzmine_documentation/module_docs/GNPS_export/gnps_export.html");
   }

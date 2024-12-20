@@ -40,18 +40,16 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
@@ -60,9 +58,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.text.DecimalFormat;
 import java.text.MessageFormat;
-import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,22 +84,13 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
   private final FeatureList[] featureLists;
   private final File fileName;
   private final String plNamePattern = "{}";
-  private final MsMsSpectraMergeModule merger;
-  private final MsMsSpectraMergeParameters mergeParameters;
-  private final boolean mergeMS2;
   private final FeatureListRowsFilter filter;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private final IntensityNormalizer normalizer;
   private final SpectralLibraryEntryFactory entryFactory;
+  private final @NotNull FragmentScanSelection scanMergeSelect;
   private int currentIndex = 0;
-  // by robin
-  private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-  private NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
-  // seconds
-  private NumberFormat rtsForm = new DecimalFormat("0.###");
-  // correlation
-  private NumberFormat corrForm = new DecimalFormat("0.0000");
 
   GnpsFbmnMgfExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -113,11 +100,8 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
     normalizer = parameters.getValue(GnpsFbmnExportAndSubmitParameters.NORMALIZER);
     this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     this.filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
-    mergeMS2 = parameters.getValue(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER);
-    mergeParameters =
-        mergeMS2 ? parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
-            .getEmbeddedParameters() : null;
-    merger = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
+    scanMergeSelect = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.spectraMergeSelect)
+        .createFragmentScanSelection(getMemoryMapStorage());
 
     entryFactory = new SpectralLibraryEntryFactory(true, true, true, false);
     entryFactory.setAddOnlineReactivityFlags(true);
@@ -239,30 +223,17 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
         continue;
       }
 
-      // Get the MS/MS scan number
-      Scan msmsScan = row.getMostIntenseFragmentScan();
-      if (msmsScan == null) {
+      // Get the MS/MS scan
+      var selectedScan = scanMergeSelect.getAllFragmentSpectra(row).stream().findFirst();
+      if (selectedScan.isEmpty()) {
         noMS2Counter++;
         // with IIMN, filter also accepts feature without MS2
         continue;
       }
+      Scan msmsScan = selectedScan.get();
 
       DataPoint[] dataPoints = null;
-      // merge MS/MS spectra
-      if (mergeMS2) {
-        try {
-          MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
-          if (spectrum != null) {
-            dataPoints = spectrum.data;
-          }
-        } catch (Exception ex) {
-          logger.log(Level.WARNING, "Error during MS2 merge in mgf export: " + ex.getMessage(), ex);
-        }
-      }
-      // nothing after merging or no merging active
-      if (dataPoints == null) {
-        dataPoints = ScanUtils.extractDataPoints(msmsScan, true);
-      }
+      dataPoints = ScanUtils.extractDataPoints(msmsScan, true);
 
       if (dataPoints == null || dataPoints.length == 0) {
         continue;
