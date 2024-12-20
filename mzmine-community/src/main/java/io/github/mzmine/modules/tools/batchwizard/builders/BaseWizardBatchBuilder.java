@@ -73,8 +73,8 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilte
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetSimpleSpectraMergeSelectParameters;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SourceSpectraSelectParameters.SourceOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectModuleOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
@@ -457,7 +457,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     // going back into scans so rather use scan mz tol
     param.getParameter(SiriusExportParameters.spectraMergeSelect)
-        .setUseSourceScans(SourceOptions.ALL_SOURCE_SCANS);
+        .setUseSourceScans(SelectOptions.ALL_INPUT_SCANS);
     param.setParameter(SiriusExportParameters.NORMALIZE, IntensityNormalizer.createScientific());
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTICHARGE, false);
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTIMERS, false);
@@ -1092,7 +1092,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         hasTims ? massDetectorOption.getMsnNoiseLevel() * 2 : null, hasTims ? 0.01 : null);
 
     groupMs2Params.setParameter(GroupMS2Parameters.advancedParameters, false);
-    groupMs2Params.getParameter(GroupMS2Parameters.advancedParameters).setEmbeddedParameters(advanced);
+    groupMs2Params.getParameter(GroupMS2Parameters.advancedParameters)
+        .setEmbeddedParameters(advanced);
 
     // retention time
     // rt tolerance is +- while FWHM is the width. still the MS2 might be triggered very early

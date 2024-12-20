@@ -35,14 +35,14 @@ import org.jetbrains.annotations.NotNull;
  * Option to simply select all or most intense source scan instead of spectral merging in
  * {@link SpectraMergeSelectModule} and {@link SpectraMergeSelectParameter}
  */
-public class SourceSpectraSelectParameters extends SimpleParameterSet {
+public class InputSpectraSelectParameters extends SimpleParameterSet {
 
   /**
    * Create enum to make it easier to setup. Also had some instance where the full set of
    * {@link MergedSpectraFinalSelectionTypes} would end up as options in the parameters
    */
-  public enum SourceOptions implements UniqueIdSupplier {
-    SINGLE_MOST_INTENSE_SOURCE_SCAN, ALL_SOURCE_SCANS;
+  public enum SelectOptions implements UniqueIdSupplier {
+    SINGLE_MOST_INTENSE_INPUT_SCAN, ALL_INPUT_SCANS;
 
     @Override
     public @NotNull String getUniqueID() {
@@ -56,18 +56,18 @@ public class SourceSpectraSelectParameters extends SimpleParameterSet {
 
     public @NotNull MergedSpectraFinalSelectionTypes toFinalSelectionTypes() {
       return switch (this) {
-        case ALL_SOURCE_SCANS -> MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS;
-        case SINGLE_MOST_INTENSE_SOURCE_SCAN ->
-            MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN;
+        case ALL_INPUT_SCANS -> MergedSpectraFinalSelectionTypes.ALL_INPUT_SCANS;
+        case SINGLE_MOST_INTENSE_INPUT_SCAN ->
+            MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_INPUT_SCAN;
       };
     }
   }
 
-  public static ComboParameter<SourceSpectraSelectParameters.SourceOptions> sourceSelectionTypes = new ComboParameter<>(
-      "Scan selection", "Select the source scans without merging", SourceOptions.values(),
-      SourceOptions.SINGLE_MOST_INTENSE_SOURCE_SCAN);
+  public static ComboParameter<SelectOptions> sourceSelectionTypes = new ComboParameter<>(
+      "Scan selection", "Select the source scans without merging", SelectOptions.values(),
+      SelectOptions.SINGLE_MOST_INTENSE_INPUT_SCAN);
 
-  public SourceSpectraSelectParameters() {
+  public InputSpectraSelectParameters() {
     super(sourceSelectionTypes);
   }
 

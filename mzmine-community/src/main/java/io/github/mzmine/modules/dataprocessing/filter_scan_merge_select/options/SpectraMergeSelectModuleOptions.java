@@ -28,12 +28,12 @@ package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.AdvancedSpectraMergeSelectModule;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.AdvancedSpectraMergeSelectParameters;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectModule;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetAdvancedSpectraMergeSelectModule;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetAdvancedSpectraMergeSelectParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetSimpleSpectraMergeSelectModule;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetSimpleSpectraMergeSelectParameters;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SourceSpectraSelectModule;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SourceSpectraSelectParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -61,7 +61,7 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
     return switch (this) {
       case SIMPLE_MERGED -> PresetSimpleSpectraMergeSelectModule.class;
       case PRESET_MERGED -> PresetAdvancedSpectraMergeSelectModule.class;
-      case SOURCE_SCANS -> SourceSpectraSelectModule.class;
+      case SOURCE_SCANS -> InputSpectraSelectModule.class;
       case ADVANCED -> AdvancedSpectraMergeSelectModule.class;
     };
   }
@@ -145,7 +145,7 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
       }
       case SOURCE_SCANS -> {
         MergedSpectraFinalSelectionTypes value = params.getValue(
-            SourceSpectraSelectParameters.sourceSelectionTypes).toFinalSelectionTypes();
+            InputSpectraSelectParameters.sourceSelectionTypes).toFinalSelectionTypes();
         yield AdvancedSpectraMergeSelectParameters.createSourceScanParams(
             List.of(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES, value));
       }

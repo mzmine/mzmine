@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SourceSpectraSelectParameters.SourceOptions;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectModuleOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresetsParameter;
@@ -54,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  * Either setup through presets: {@link PresetSimpleSpectraMergeSelectParameters}
  * {@link PresetAdvancedSpectraMergeSelectParameters}
  * <p>
- * Or select source scans without merging: {@link SourceSpectraSelectParameters}
+ * Or select source scans without merging: {@link InputSpectraSelectParameters}
  * <p>
  * Or advanced parameters for full control in {@link AdvancedSpectraMergeSelectParameters}
  */
@@ -129,10 +129,10 @@ public class SpectraMergeSelectParameter extends
    *
    * @param option use all scans or use best
    */
-  public void setUseSourceScans(final SourceOptions option) {
+  public void setUseSourceScans(final SelectOptions option) {
     setValue(SpectraMergeSelectModuleOptions.SOURCE_SCANS);
     var embedded = getEmbeddedParameters();
-    embedded.setParameter(SourceSpectraSelectParameters.sourceSelectionTypes, option);
+    embedded.setParameter(InputSpectraSelectParameters.sourceSelectionTypes, option);
   }
 
   /**
@@ -208,12 +208,12 @@ public class SpectraMergeSelectParameter extends
       var embedded = param.getEmbeddedParameters(SpectraMergeSelectModuleOptions.SOURCE_SCANS);
       if (embedded != null) {
         if (!includeAllSourceScans) {
-          var singleBest = SourceOptions.SINGLE_MOST_INTENSE_SOURCE_SCAN;
-          embedded.getParameter(SourceSpectraSelectParameters.sourceSelectionTypes)
-              .setChoices(new SourceOptions[]{singleBest}, singleBest);
+          var singleBest = SelectOptions.SINGLE_MOST_INTENSE_INPUT_SCAN;
+          embedded.getParameter(InputSpectraSelectParameters.sourceSelectionTypes)
+              .setChoices(new SelectOptions[]{singleBest}, singleBest);
         } else if (useExportAllSourceScans) {
-          embedded.getParameter(SourceSpectraSelectParameters.sourceSelectionTypes)
-              .setChoices(SourceOptions.values(), SourceOptions.ALL_SOURCE_SCANS);
+          embedded.getParameter(InputSpectraSelectParameters.sourceSelectionTypes)
+              .setChoices(SelectOptions.values(), SelectOptions.ALL_INPUT_SCANS);
         }
       }
 

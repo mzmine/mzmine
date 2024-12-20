@@ -29,7 +29,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SourceSpectraSelectModule implements SpectraMergeSelectModule {
+public class InputSpectraSelectModule implements SpectraMergeSelectModule {
 
   @Override
   public @NotNull String getName() {
@@ -38,6 +38,6 @@ public class SourceSpectraSelectModule implements SpectraMergeSelectModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return SourceSpectraSelectParameters.class;
+    return InputSpectraSelectParameters.class;
   }
 }

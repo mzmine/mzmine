@@ -51,8 +51,8 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
   // MSn
   MSN_TREE, MSN_PSEUDO_MS2,
 
-  // source
-  SINGLE_MOST_INTENSE_SOURCE_SCAN, ALL_SOURCE_SCANS;
+  // input source scans
+  SINGLE_MOST_INTENSE_INPUT_SCAN, ALL_INPUT_SCANS;
 
   public static boolean isValidSelection(MergedSpectraFinalSelectionTypes[] types) {
     return isValidSelection(EnumSet.copyOf(List.of(types)));
@@ -60,8 +60,8 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
 
   public static boolean isValidSelection(Collection<MergedSpectraFinalSelectionTypes> types) {
     return types != null && !types.isEmpty() &&
-           // all source scans is a valid choice
-           (types.contains(ALL_SOURCE_SCANS)
+           // all input source scans is a valid choice
+           (types.contains(ALL_INPUT_SCANS)
             // or at least one of samples and one of energies options combined
             || ((types.contains(ACROSS_SAMPLES) || types.contains(EACH_SAMPLE)) && (
                types.contains(ACROSS_ENERGIES) || types.contains(EACH_ENERGY))));
@@ -72,7 +72,7 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
         When merging and selecting fragmentation spectra in advanced mode, make sure to select at
         least one combination of SAMPLE and ENERGY handling like %s with %s to have a valid selection.
         Another valid choice would be %s. All other options can be added to expand the number of selected scans.""".formatted(
-        ACROSS_SAMPLES, ACROSS_ENERGIES, ALL_SOURCE_SCANS);
+        ACROSS_SAMPLES, ACROSS_ENERGIES, ALL_INPUT_SCANS);
   }
 
   @Override
@@ -84,8 +84,8 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
       case EACH_ENERGY -> "Each energy";
       case MSN_TREE -> "MSn tree";
       case MSN_PSEUDO_MS2 -> "MSn to pseudo MS2";
-      case SINGLE_MOST_INTENSE_SOURCE_SCAN -> "Single most intense source scan";
-      case ALL_SOURCE_SCANS -> "All source scans";
+      case SINGLE_MOST_INTENSE_INPUT_SCAN -> "Single most intense scan";
+      case ALL_INPUT_SCANS -> "All scans";
     };
   }
 
@@ -98,8 +98,8 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
       case EACH_ENERGY -> "each_energy";
       case MSN_TREE -> "msn_trees";
       case MSN_PSEUDO_MS2 -> "msn_pseudo_ms2";
-      case SINGLE_MOST_INTENSE_SOURCE_SCAN -> "most_intense_source_scan";
-      case ALL_SOURCE_SCANS -> "all_source_scans";
+      case SINGLE_MOST_INTENSE_INPUT_SCAN -> "most_intense_input_scan";
+      case ALL_INPUT_SCANS -> "all_input_scans";
     };
   }
 }

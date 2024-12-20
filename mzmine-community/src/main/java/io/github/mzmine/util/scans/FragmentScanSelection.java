@@ -67,7 +67,7 @@ import org.jetbrains.annotations.Nullable;
  *   - MSn tree: merged across samples & energies
  *   - Representative MSn tree: merged across samples & energies, each energy
  *   - Single most intense scan (no merging, MS level?)
- *   - All source scans (MS level?)
+ *   - All input scans (MS level?)
  *   - Advanced
  *
  * Future ideas for integration and parameters:
@@ -163,9 +163,9 @@ public final class FragmentScanSelection {
   }
 
   private void addSourceScans(List<Scan> source, final Set<Scan> result) {
-    boolean addAll = finalScanSelection.contains(MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS);
+    boolean addAll = finalScanSelection.contains(MergedSpectraFinalSelectionTypes.ALL_INPUT_SCANS);
     boolean addBest = finalScanSelection.contains(
-        MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN);
+        MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_INPUT_SCAN);
     if (!includeMSn && (addAll || addBest)) {
       // remove MSn scans from input
       source = source.stream().filter(scan -> scan.getMSLevel() < 3).toList();
