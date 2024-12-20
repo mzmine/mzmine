@@ -384,6 +384,15 @@ public class RawDataFileImpl implements RawDataFile {
     return scans;
   }
 
+  public void clearScans() {
+    scans.clear();
+    maxRawDataPoints = -1;
+    dataMaxTIC.clear();
+    dataMaxBasePeakIntensity.clear();
+    dataMZRange.clear();
+    dataRTRange.clear();
+  }
+
   @NotNull
   @Override
   public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
