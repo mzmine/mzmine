@@ -137,8 +137,9 @@ public class SpectraMerger {
         // they will be added as the representative scan across all samples
         // this is important for the final selection later
 
-        logger.finest("Merging scans from %d different energy groups across samples".formatted(
-            byEnergyAcrossSamples.size()));
+        // optional logs for tests
+//          logger.finest("Merging scans from %d different energy groups across samples".formatted(
+//              byEnergyAcrossSamples.size()));
         mergedAcrossSamples = mergeByFragmentationEnergy(byEnergyAcrossSamples, true);
       } else if (mergedBySample.size() == 1) {
         mergedAcrossSamples = mergedBySample.getFirst();

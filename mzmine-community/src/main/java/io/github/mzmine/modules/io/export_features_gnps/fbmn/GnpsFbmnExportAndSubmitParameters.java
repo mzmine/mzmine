@@ -60,6 +60,7 @@ import java.util.List;
 import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
@@ -130,7 +131,17 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
   }
 
   @Override
+  public @Nullable String getVersionMessage(final int version) {
+    return switch (version) {
+      case 3 -> """
+          From mzmine version > 4.4.3 the scan selection and merging has been harmonized across modules.
+          Please check and configure the %s parameter.""".formatted(spectraMergeSelect.getName());
+      default -> null;
+    };
+  }
+
+  @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 }

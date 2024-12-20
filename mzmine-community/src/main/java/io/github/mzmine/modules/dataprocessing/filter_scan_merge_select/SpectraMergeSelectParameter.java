@@ -124,6 +124,17 @@ public class SpectraMergeSelectParameter extends
   }
 
   /**
+   * Use single merged scan across samples as default to reduce processing speed.
+   * {@link SpectraMergeSelectPresets#REPRESENTATIVE_SCANS} may be good as well but this will slow
+   * down the networking and make it even more complex to look at.
+   * <p>
+   * Currently no MSn, no advanced setup - too many scans as option.
+   */
+  public static SpectraMergeSelectParameter createMolecularNetworkingDefault() {
+    return new Builder().preset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN).createParameters();
+  }
+
+  /**
    * Useful methods to set specific simple presets in the wizard or other locations
    */
   public void setSimplePreset(final SpectraMergeSelectPresets preset,
