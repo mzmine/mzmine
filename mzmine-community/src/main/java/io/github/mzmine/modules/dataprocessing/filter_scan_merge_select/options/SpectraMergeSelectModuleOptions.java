@@ -96,12 +96,12 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
   /**
    * Creates the merger and filters needed in fragment scan selection
    *
-   * @param storage
-   * @return
+   * @return a fragment scan selection either merging scans or just selecting source scans
    */
+  @NotNull
   public FragmentScanSelection createFragmentScanSelection(final @Nullable MemoryMapStorage storage,
       @NotNull ParameterSet params) {
-    params = createAdvancedFragmentScanSelection(params);
+    params = createAdvancedSpectraMergeSelectParameters(params);
 
     List<MergedSpectraFinalSelectionTypes> finalScanSelection = params.getValue(
         AdvancedSpectraMergeSelectParameters.finalScanSelection);
@@ -124,11 +124,10 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
 
   /**
    * translate into advanced parameters for to build selection and merger
-   *
-   * @param params
-   * @return
    */
-  public ParameterSet createAdvancedFragmentScanSelection(final @NotNull ParameterSet params) {
+  @NotNull
+  public ParameterSet createAdvancedSpectraMergeSelectParameters(
+      final @NotNull ParameterSet params) {
     return switch (this) {
       case SIMPLE_MERGED -> {
         var preset = params.getValue(PresetSimpleSpectraMergeSelectParameters.preset);

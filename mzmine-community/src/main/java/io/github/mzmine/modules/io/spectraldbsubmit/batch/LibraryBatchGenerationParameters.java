@@ -78,7 +78,7 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
   // Use representative scans or MSn tree so that we export each energy and across energies for each MSn precursor
   // this is specific to library generation
-  public static final SpectraMergeSelectParameter merging = new SpectraMergeSelectParameter(
+  public static final SpectraMergeSelectParameter merging = SpectraMergeSelectParameter.createFullSetupWithSimplePreset(
       SpectraMergeSelectPresets.REPRESENTATIVE_MSn_TREE);
 
   public static final OptionalModuleParameter<HandleChimericMsMsParameters> handleChimerics = new OptionalModuleParameter<>(

@@ -48,6 +48,7 @@ import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
@@ -138,7 +139,18 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   }
 
   @Override
+  public @Nullable String getVersionMessage(final int version) {
+    return switch (version) {
+      case 3 -> """
+          mzmine version > 4.4.3 harmonized the fragment scan selection and merging throughout various modules.
+          Ensure to configure the %s parameter to control which scans are matched.""".formatted(
+          spectraMergeSelect.getName());
+      default -> null;
+    };
+  }
+
+  @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 }

@@ -245,8 +245,9 @@ public class MaldiGroupMS2Task extends AbstractTask {
 
     if (!msmsSpectra.isEmpty()) {
       if (combineTimsMS2) {
-        var scanTypes = List.of(MergedSpectraFinalSelectionTypes.EACH_SAMPLE,
-            MergedSpectraFinalSelectionTypes.EACH_ENERGY);
+        var scanTypes = List.of(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES,
+            MergedSpectraFinalSelectionTypes.EACH_ENERGY,
+            MergedSpectraFinalSelectionTypes.ACROSS_ENERGIES);
         var merger = new SpectraMerger(scanTypes, SpectraMerging.pasefMS2MergeTol,
             IntensityMergingType.SUMMED);
         final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(

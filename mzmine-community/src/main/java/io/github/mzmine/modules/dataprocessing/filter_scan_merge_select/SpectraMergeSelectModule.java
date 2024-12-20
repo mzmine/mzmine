@@ -30,9 +30,18 @@ import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 
 /**
- * Advanced settings should give all options that are available to merging and selecting fragment
- * scans. All the other preset based setups currently generate advanced parameters and the
- * {@link FragmentScanSelection} and {@link SpectraMerger} are setup from this parameter set
+ * These modules provide options to select and merge fragmentation mass spectra. The
+ * {@link SpectraMergeSelectParameter} is the parameter to setup everything.
+ * <p>
+ * There are simple preset based setups in {@link PresetSimpleSpectraMergeSelectParameters} and
+ * {@link PresetAdvancedSpectraMergeSelectParameters} for simple merging setup of commonly used
+ * combinations. The {@link SourceSpectraSelectParameters} allows selecting all or the most intense
+ * source spectra without merging. The {@link AdvancedSpectraMergeSelectParameters} allow the full
+ * setup of merging and source spectra selection but is quite complex. Therefore, some modules may
+ * choose to hide this option or even some of the simpler presets.
+ * <p>
+ * Finally, the actual selection and merging are done by {@link FragmentScanSelection} and
+ * {@link SpectraMerger}.
  */
 public interface SpectraMergeSelectModule extends MZmineModule {
 

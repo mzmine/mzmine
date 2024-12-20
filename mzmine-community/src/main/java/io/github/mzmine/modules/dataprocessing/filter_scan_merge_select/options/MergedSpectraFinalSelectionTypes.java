@@ -69,8 +69,8 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
 
   public static String getAdvancedValidDescription() {
     return """
-        When merging and selecting fragmentation spectra in advanced mode, make sure to select at \
-        least one combination of SAMPLE and ENERGY handling like %s with %s to have a valid selection. \
+        When merging and selecting fragmentation spectra in advanced mode, make sure to select at
+        least one combination of SAMPLE and ENERGY handling like %s with %s to have a valid selection.
         Another valid choice would be %s. All other options can be added to expand the number of selected scans.""".formatted(
         ACROSS_SAMPLES, ACROSS_ENERGIES, ALL_SOURCE_SCANS);
   }

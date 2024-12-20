@@ -49,6 +49,8 @@ import org.jetbrains.annotations.Nullable;
  * This parameter controls the merging and selection of fragment scans through the
  * {@link FragmentScanSelection} and {@link SpectraMerger}.
  * <p>
+ * Use the factory methods or the {@link Builder} for setup of this parameter to limit options.
+ * <p>
  * Either setup through presets: {@link PresetSimpleSpectraMergeSelectParameters}
  * {@link PresetAdvancedSpectraMergeSelectParameters}
  * <p>
@@ -62,38 +64,53 @@ public class SpectraMergeSelectParameter extends
   public static final String DEFAULT_NAME = "Merge & select fragment scans";
   public static final String DEFAULT_DESCRIPTION = "Setup spectral merging and the selection of the final list of fragment scans. There are options for simple preset based setup or the advanced options.";
 
-  public SpectraMergeSelectParameter() {
-    this(SpectraMergeSelectModuleOptions.SIMPLE_MERGED);
-  }
-
-  public SpectraMergeSelectParameter(final @NotNull SpectraMergeSelectModuleOptions defaultValue) {
+  protected SpectraMergeSelectParameter(
+      final @NotNull SpectraMergeSelectModuleOptions defaultValue) {
     this(SpectraMergeSelectModuleOptions.values(), defaultValue);
   }
 
-  public SpectraMergeSelectParameter(final @NotNull SpectraMergeSelectModuleOptions[] options,
+  protected SpectraMergeSelectParameter(final @NotNull SpectraMergeSelectModuleOptions[] options,
       final @NotNull SpectraMergeSelectModuleOptions defaultValue) {
     this(DEFAULT_NAME, DEFAULT_DESCRIPTION, options, defaultValue);
   }
 
-  public SpectraMergeSelectParameter(final String name, final String description,
+  protected SpectraMergeSelectParameter(final String name, final String description,
       final SpectraMergeSelectModuleOptions[] options,
       final SpectraMergeSelectModuleOptions active) {
     super(name, description, options, active);
   }
 
 
-  public SpectraMergeSelectParameter(final SpectraMergeSelectPresets simplePreset) {
-    this(SpectraMergeSelectModuleOptions.SIMPLE_MERGED);
-    getEmbeddedParameters().setParameter(PresetSimpleSpectraMergeSelectParameters.preset,
-        simplePreset);
-  }
-
+  /**
+   * No MSn for now - need to implement first - default selection should be representative scans so
+   * each energy and across energy
+   */
+  @NotNull
   public static SpectraMergeSelectParameter createSpectraLibrarySearchDefaultNoMSn() {
-    return new Builder().createParameters();
+    return new Builder().preset(SpectraMergeSelectPresets.REPRESENTATIVE_SCANS).createParameters();
   }
 
+  /**
+   * Options used for SIRIUS export: Advanced options available, no MSn, and use ALL_SOURCE_SCANS
+   * initially
+   */
+  @NotNull
   public static SpectraMergeSelectParameter createSiriusExportAllDefault() {
     return new Builder().includeAdvanced(true).useExportAllSourceScans().createParameters();
+  }
+
+  /**
+   * Full choice of configuration with a simple preset preselected in
+   * {@link PresetSimpleSpectraMergeSelectParameters}
+   */
+  @NotNull
+  public static SpectraMergeSelectParameter createFullSetupWithSimplePreset(
+      final SpectraMergeSelectPresets simplePreset) {
+    // FULL setup
+    var param = new SpectraMergeSelectParameter(SpectraMergeSelectModuleOptions.SIMPLE_MERGED);
+    param.getEmbeddedParameters()
+        .setParameter(PresetSimpleSpectraMergeSelectParameters.preset, simplePreset);
+    return param;
   }
 
   /**

@@ -47,11 +47,9 @@ public class AdvancedSpectraMergeSelectParameters extends SimpleParameterSet {
           MergedSpectraFinalSelectionTypes.ACROSS_ENERGIES));
 
   public static final ComboParameter<IntensityMergingType> intensityMergeType = new ComboParameter<>(
-      "Intensity merge mode", """
-                                  Defines the way intensity values are merged:
-                                  """ + Arrays.stream(IntensityMergingType.values())
-                                  .map(IntensityMergingType::getDescription)
-                                  .collect(Collectors.joining("\n")), IntensityMergingType.values(),
+      "Intensity merge mode", "Defines the way intensity values are merged:\n" + Arrays.stream(
+          IntensityMergingType.values()).map(IntensityMergingType::getDescription)
+      .collect(Collectors.joining("\n")), IntensityMergingType.values(),
       IntensityMergingType.MAXIMUM);
 
   public static final MZToleranceParameter mergeMzTolerance = new MZToleranceParameter(

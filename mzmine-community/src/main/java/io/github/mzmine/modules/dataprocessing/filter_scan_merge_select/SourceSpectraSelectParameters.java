@@ -29,6 +29,10 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 
+/**
+ * Option to simply select all or most intense source scan instead of spectral merging in
+ * {@link SpectraMergeSelectModule} and {@link SpectraMergeSelectParameter}
+ */
 public class SourceSpectraSelectParameters extends SimpleParameterSet {
 
   public static ComboParameter<MergedSpectraFinalSelectionTypes> sourceSelectionTypes = new ComboParameter<>(

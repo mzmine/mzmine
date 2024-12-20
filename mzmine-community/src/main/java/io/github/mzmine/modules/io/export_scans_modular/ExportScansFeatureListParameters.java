@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.io.export_scans_modular;
 
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
+import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryExportQualityParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.SpectralLibraryExportFormats;
@@ -33,7 +35,6 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
@@ -41,7 +42,6 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExport
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import org.jetbrains.annotations.NotNull;
 
 public class ExportScansFeatureListParameters extends SimpleParameterSet {
@@ -52,7 +52,11 @@ public class ExportScansFeatureListParameters extends SimpleParameterSet {
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
   public static final FileNameSuffixExportParameter file = new FileNameSuffixExportParameter(
-      "Export file", "Local scans file", "scans");
+      "Export file", """
+      Local scans file. Use pattern "%s" in the file name to substitute with feature list name.
+      (i.e. "prefix_%s_suffix.mgf" would become "prefix_SourceFeatureListName_suffix.mgf").
+      If the file already exists, it will be overwritten.""".formatted(
+      SiriusExportTask.MULTI_NAME_PATTERN, SiriusExportTask.MULTI_NAME_PATTERN), "scans");
 
   public static final ComboParameter<SpectralLibraryExportFormats> exportFormat = new ComboParameter<>(
       "Export format", "format to export", SpectralLibraryExportFormats.values(),
@@ -63,10 +67,7 @@ public class ExportScansFeatureListParameters extends SimpleParameterSet {
 
   public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createWithoutScientific();
 
-  public static final OptionalParameter<MZToleranceParameter> mergeMzTolerance = new OptionalParameter<>(
-      new MZToleranceParameter("m/z tolerance (merging)",
-          "If selected, spectra from different collision energies will be merged.\n"
-          + "The tolerance used to group signals during merging of spectra", 0.008, 25));
+  public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createSiriusExportAllDefault();
 
   public static final OptionalModuleParameter<HandleChimericMsMsParameters> handleChimerics = new OptionalModuleParameter<>(
       "Handle chimeric spectra",
@@ -83,10 +84,9 @@ public class ExportScansFeatureListParameters extends SimpleParameterSet {
    * Select Merge levels to export
    * Per sample merging
    */
-
   public ExportScansFeatureListParameters() {
     super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer,
-        mergeMzTolerance, handleChimerics, quality);
+        spectraMergeSelect, handleChimerics, quality);
   }
 
 

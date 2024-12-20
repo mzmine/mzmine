@@ -137,13 +137,13 @@ public interface MergedMassSpectrum extends Scan {
     @Override
     public @NotNull String getUniqueID() {
       return switch (this) {
-        case SINGLE_SCAN -> "single_scan";
-        case SINGLE_BEST_SCAN -> "single_best_scan";
-        case SAME_ENERGY -> "same_energy";
-        case UNDEFINED_ENERGY -> "undefined_energy";
-        case ALL_ENERGIES -> "all_energies";
-        case ALL_MSN_TO_PSEUDO_MS2 -> "all_msn_to_pseudo_ms2";
-        case PASEF_SINGLE -> "pasef_single";
+        case SINGLE_SCAN -> "SINGLE_SCAN";
+        case SINGLE_BEST_SCAN -> "SINGLE_BEST_SCAN";
+        case SAME_ENERGY -> "SAME_ENERGY";
+        case UNDEFINED_ENERGY -> "UNDEFINED_ENERGY";
+        case ALL_ENERGIES -> "ALL_ENERGIES";
+        case ALL_MSN_TO_PSEUDO_MS2 -> "ALL_MSN_TO_PSEUDO_MS2";
+        case PASEF_SINGLE -> "PASEF_SINGLE";
       };
     }
   }
