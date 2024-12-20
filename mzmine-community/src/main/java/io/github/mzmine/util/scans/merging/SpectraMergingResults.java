@@ -34,26 +34,33 @@ import org.jetbrains.annotations.Nullable;
  * Merging results for one MS2 precursor or one MSn tree
  *
  * @param bySample      one MS2 node per sample or one MSn node per sample and MSn tree node
- * @param acrossSamples one node for an MS2 precursor or one for every MSn tree node
+ * @param acrossSamples one node for an MS2 precursor or one for every MSn tree node - if merging
+ *                      across samples was off, or only one sample, then bySample is also used as
+ *                      across samples to facilitate downstream selection of scans
  * @param msnPseudoMs2  a spectrum merged all MSn to a pseudo MS2 - only for MSn data
  */
 public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> bySample,
                                     @NotNull List<SpectraMergingResultsNode> acrossSamples,
                                     @Nullable Scan msnPseudoMs2) {
 
+  /**
+   * Merging results for one MS2 precursor or one MSn tree
+   *
+   * @param bySample      one MS2 node per sample or one MSn node per sample and MSn tree node
+   * @param acrossSamples merged across samples results. If null - across samples was off, or only
+   *                      one sample, then bySample is also used as across samples to facilitate
+   *                      downstream selection of scans used instead also as across samples. Final
+   *                      acrossSamples of this object is non-null
+   * @param msnPseudoMs2  a spectrum merged all MSn to a pseudo MS2 - only for MSn data
+   */
   public SpectraMergingResults(@NotNull final List<SpectraMergingResultsNode> bySample,
       @Nullable List<SpectraMergingResultsNode> acrossSamples, @Nullable final Scan msnPseudoMs2) {
     this.bySample = bySample;
     this.msnPseudoMs2 = msnPseudoMs2;
 
-    // maybe null or empty and then just set the first bySample if the size is only 1
-    // this would mean there was only one sample
+    // replace empty across samples with by sample to have representative scans during selection
     if (acrossSamples == null || acrossSamples.isEmpty()) {
-      if (bySample.size() == 1) {
-        acrossSamples = bySample;
-      } else {
-        acrossSamples = List.of();
-      }
+      acrossSamples = bySample;
     }
     this.acrossSamples = acrossSamples;
   }
@@ -64,9 +71,6 @@ public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> byS
 
   /**
    * Constructor for MS2 data
-   *
-   * @param bySample
-   * @param acrossSamples
    */
   public SpectraMergingResults(final List<SpectraMergingResultsNode> bySample,
       final @Nullable SpectraMergingResultsNode acrossSamples) {
