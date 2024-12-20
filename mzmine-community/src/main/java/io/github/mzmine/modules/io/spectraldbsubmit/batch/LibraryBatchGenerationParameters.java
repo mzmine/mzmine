@@ -38,12 +38,13 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
@@ -51,7 +52,6 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExport
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -76,10 +76,10 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
   public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createWithoutScientific();
 
-  public static final OptionalParameter<MZToleranceParameter> mergeMzTolerance = new OptionalParameter<>(
-      new MZToleranceParameter("m/z tolerance (merging)",
-          "If selected, spectra from different collision energies will be merged.\n"
-          + "The tolerance used to group signals during merging of spectra", 0.008, 25));
+  // Use representative scans or MSn tree so that we export each energy and across energies for each MSn precursor
+  // this is specific to library generation
+  public static final SpectraMergeSelectParameter merging = SpectraMergeSelectParameter.createFullSetupWithSimplePreset(
+      SpectraMergeSelectPresets.REPRESENTATIVE_MSn_TREE);
 
   public static final OptionalModuleParameter<HandleChimericMsMsParameters> handleChimerics = new OptionalModuleParameter<>(
       "Handle chimeric spectra",
@@ -94,8 +94,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
       new AdvancedLibraryBatchGenerationParameters(), false);
 
   public LibraryBatchGenerationParameters() {
-    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer,
-        mergeMzTolerance, handleChimerics, quality, advanced);
+    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer, merging,
+        handleChimerics, quality, advanced);
   }
 
 
