@@ -52,7 +52,7 @@ Taken from https://docs.jabref.org/advanced/custom-themes
     -jr-base: #141824;
 
     -jr-background-alt: #151924;
-    -jr-menu-background: #141824;
+    -jr-menu-background: -jr-base;
     -jr-toolbar: -jr-menu-background;
     -jr-sidepane-background: #212330;
     -jr-search-background: #2c2e3b;
