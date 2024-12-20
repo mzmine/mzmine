@@ -25,9 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Option to simply select all or most intense source scan instead of spectral merging in
@@ -35,11 +37,35 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
  */
 public class SourceSpectraSelectParameters extends SimpleParameterSet {
 
-  public static ComboParameter<MergedSpectraFinalSelectionTypes> sourceSelectionTypes = new ComboParameter<>(
-      "Scan selection", "", new MergedSpectraFinalSelectionTypes[]{
-      MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN,
-      MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS},
-      MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN);
+  /**
+   * Create enum to make it easier to setup. Also had some instance where the full set of
+   * {@link MergedSpectraFinalSelectionTypes} would end up as options in the parameters
+   */
+  public enum SourceOptions implements UniqueIdSupplier {
+    SINGLE_MOST_INTENSE_SOURCE_SCAN, ALL_SOURCE_SCANS;
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return toFinalSelectionTypes().getUniqueID();
+    }
+
+    @Override
+    public @NotNull String toString() {
+      return toFinalSelectionTypes().toString();
+    }
+
+    public @NotNull MergedSpectraFinalSelectionTypes toFinalSelectionTypes() {
+      return switch (this) {
+        case ALL_SOURCE_SCANS -> MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS;
+        case SINGLE_MOST_INTENSE_SOURCE_SCAN ->
+            MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN;
+      };
+    }
+  }
+
+  public static ComboParameter<SourceSpectraSelectParameters.SourceOptions> sourceSelectionTypes = new ComboParameter<>(
+      "Scan selection", "Select the source scans without merging", SourceOptions.values(),
+      SourceOptions.SINGLE_MOST_INTENSE_SOURCE_SCAN);
 
   public SourceSpectraSelectParameters() {
     super(sourceSelectionTypes);

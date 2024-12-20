@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SourceSpectraSelectParameters.SourceOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectModuleOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresetsParameter;
@@ -127,14 +127,12 @@ public class SpectraMergeSelectParameter extends
   /**
    * Set all parameters so that source scans are used - either best or all scans.
    *
-   * @param useAllScansOrBest true use all scans false use best
+   * @param option use all scans or use best
    */
-  public void setUseSourceScans(final boolean useAllScansOrBest) {
+  public void setUseSourceScans(final SourceOptions option) {
     setValue(SpectraMergeSelectModuleOptions.SOURCE_SCANS);
     var embedded = getEmbeddedParameters();
-    var selection = useAllScansOrBest ? MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS
-        : MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN;
-    embedded.setParameter(SourceSpectraSelectParameters.sourceSelectionTypes, selection);
+    embedded.setParameter(SourceSpectraSelectParameters.sourceSelectionTypes, option);
   }
 
   /**
@@ -210,15 +208,12 @@ public class SpectraMergeSelectParameter extends
       var embedded = param.getEmbeddedParameters(SpectraMergeSelectModuleOptions.SOURCE_SCANS);
       if (embedded != null) {
         if (!includeAllSourceScans) {
-          var singleBest = MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN;
+          var singleBest = SourceOptions.SINGLE_MOST_INTENSE_SOURCE_SCAN;
           embedded.getParameter(SourceSpectraSelectParameters.sourceSelectionTypes)
-              .setChoices(new MergedSpectraFinalSelectionTypes[]{singleBest}, singleBest);
+              .setChoices(new SourceOptions[]{singleBest}, singleBest);
         } else if (useExportAllSourceScans) {
-          embedded.getParameter(SourceSpectraSelectParameters.sourceSelectionTypes).setChoices(
-              new MergedSpectraFinalSelectionTypes[]{
-                  MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_SOURCE_SCAN,
-                  MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS},
-              MergedSpectraFinalSelectionTypes.ALL_SOURCE_SCANS);
+          embedded.getParameter(SourceSpectraSelectParameters.sourceSelectionTypes)
+              .setChoices(SourceOptions.values(), SourceOptions.ALL_SOURCE_SCANS);
         }
       }
 

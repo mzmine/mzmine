@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.util.maths.CenterFunction;
@@ -71,6 +73,10 @@ public interface MergedMassSpectrum extends Scan {
    */
   enum MergingType implements UniqueIdSupplier {
     /**
+     * First is less specific
+     */
+    UNKNOWN,
+    /**
      * any single scan except for the single best
      */
     SINGLE_SCAN,
@@ -109,21 +115,15 @@ public interface MergedMassSpectrum extends Scan {
      * @return merging type from string by unique ID or name, default type if no match
      */
     public static @NotNull MergingType parseOrElse(final String value,
-        final MergingType defaultType) {
-      if (value == null) {
-        return defaultType;
-      }
-      for (final MergingType type : values()) {
-        if (type.name().equalsIgnoreCase(value) || type.getUniqueID().equalsIgnoreCase(value)) {
-          return type;
-        }
-      }
-      return defaultType;
+        @NotNull final MergingType defaultType) {
+      return requireNonNullElse(UniqueIdSupplier.parseOrElse(value, values(), defaultType),
+          defaultType);
     }
 
     @Override
     public String toString() {
       return switch (this) {
+        case UNKNOWN -> "Unknown merging";
         case SINGLE_SCAN -> "Single scan";
         case SINGLE_BEST_SCAN -> "Single best scan";
         case SAME_ENERGY -> "Same energy merged";
@@ -137,6 +137,7 @@ public interface MergedMassSpectrum extends Scan {
     @Override
     public @NotNull String getUniqueID() {
       return switch (this) {
+        case UNKNOWN -> "UNKNOWN_MERGING";
         case SINGLE_SCAN -> "SINGLE_SCAN";
         case SINGLE_BEST_SCAN -> "SINGLE_BEST_SCAN";
         case SAME_ENERGY -> "SAME_ENERGY";

@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.merging.ScanSelectionFilter;
@@ -49,24 +50,15 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Drives the selection of fragmentation spectra. Based on input spectra (MS2 or MSn) merged spectra
  * are generated.
+ * <p>
+ * See {@link SpectraMergeSelectParameter} for many options with presets or advanced setup
+ *
  * <pre>
- *   Options to choose from:
- *   - merging: Across samples? Across Energies? Same Energy?
+ *   Options to choose from and combined:
+ *   - merging: Across samples, same sample, Across Energies, Same Energy
  *   - MS level: MS1, MS2, MSn, MSn to pseudo MS2
- *   - Intensity merging:
- *   - mz tolerance:
- *
- *   Pre merging filter:
- *   - chimeric? - isolation widow offset - width
- *   - Cosine threshold? (only for same energy)
- *
- *
- *   Post merging data filter:
- *   - signal count filter: how many / % samples detected the same point
- *   -
- *
- *   Final Scan selection:
- *   -
+ *   - Intensity merging
+ *   - mz tolerance
  *
  *   Simple presets:
  *   - Single merged scan: merged across samples and energies
@@ -78,6 +70,13 @@ import org.jetbrains.annotations.Nullable;
  *   - All source scans (MS level?)
  *   - Advanced
  *
+ * Future ideas for integration and parameters:
+ *   Pre merging filter:
+ *   - chimeric? - isolation widow offset - width
+ *   - Cosine threshold? (only for same energy) this could be applied when merging across samples to generate multiple different spectra if they are too different
+ *
+ *   Post merging data filter:
+ *   - signal count filter: how many / % samples detected the same point
  *
  * </pre>
  */

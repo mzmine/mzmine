@@ -573,6 +573,11 @@ public class SpectraMerging {
       this.label = label;
     }
 
+    public static IntensityMergingType parseOrElse(final String value,
+        @Nullable final IntensityMergingType defaultValue) {
+      return UniqueIdSupplier.parseOrElse(value, values(), defaultValue);
+    }
+
     @Override
     public String toString() {
       return this.label;
@@ -589,9 +594,9 @@ public class SpectraMerging {
     @Override
     public @NotNull String getUniqueID() {
       return switch (this) {
-        case SUMMED -> "summed";
-        case MAXIMUM -> "max";
-        case AVERAGE -> "average";
+        case SUMMED -> "SUMMED";
+        case MAXIMUM -> "MAXIMUM";
+        case AVERAGE -> "AVERAGE";
       };
     }
   }
