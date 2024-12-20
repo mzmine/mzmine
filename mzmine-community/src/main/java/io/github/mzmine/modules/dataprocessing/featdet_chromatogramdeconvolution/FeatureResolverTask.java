@@ -50,6 +50,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingAlgorithm;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -238,7 +239,7 @@ public class FeatureResolverTask extends AbstractTask {
 
         f.set(FeatureDataType.class, resolved);
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
-        handleMrmTraces(f);
+//        handleMrmTraces(f);
 
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);
@@ -259,6 +260,17 @@ public class FeatureResolverTask extends AbstractTask {
     newPeakList = resolvedFeatureList;
   }
 
+  /**
+   * Currently unused. Only the main trace in the {@link FeatureDataType} is resolved, so
+   * reintegration is possible later from the {@link MrmTransitionList} without having to re-process
+   * everything. Smoothing
+   * {@link
+   * io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingTask#handleMrmTraces(ModularFeature,
+   * SmoothingAlgorithm)} and Baseline correction and
+   * {@link
+   * io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionTask#handleMrmFeature(Feature)}
+   * is applied to all {@link MrmTransitionList} though.
+   */
   private void handleMrmTraces(ModularFeature f) {
     final MrmTransitionList mrmTransitions = f.get(MrmTransitionListType.class);
     if (mrmTransitions == null) {

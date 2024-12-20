@@ -19,7 +19,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.math.io.files.DataFile;
 
 /**
- * @param chromatogram The individidual transitions. Important note: the masses in the
+ * @param chromatogram The individual transitions. Important note: the masses in the
  *                     {@link IonTimeSeries} must be the q1 mass.
  */
 public record MrmTransition(double q1mass, double q3mass,

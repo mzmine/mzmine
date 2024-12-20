@@ -75,6 +75,51 @@ public final class MrmTransitionList {
     this.quantifier = quantifier;
   }
 
+  public static MrmTransitionList loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
+      RawDataFile file) throws XMLStreamException {
+    if (!reader.isStartElement() || !XML_ELEMENT.equals(reader.getLocalName())) {
+      throw new RuntimeException("Wrong element");
+    }
+
+    final double q1Mass = Double.parseDouble(
+        reader.getAttributeValue(null, MrmTransition.XML_ATTRIBUTE_MRM_Q1_MASS));
+    final double q3 = Double.parseDouble(
+        reader.getAttributeValue(null, XML_ATTRIBUTE_QUANTIFIER_MASS));
+    final int numTransitions = Integer.parseInt(
+        reader.getAttributeValue(null, CONST.XML_NUM_VALUES_ATTR));
+    final List<MrmTransition> transitions = new ArrayList<>();
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      if (reader.getLocalName().equals(MrmTransition.XML_ELEMENT)) {
+        final MrmTransition transition = MrmTransition.loadFromXML(reader, flist, file);
+        transitions.add(transition);
+      }
+    }
+
+    if (numTransitions != transitions.size()) {
+      throw new IllegalStateException(
+          "Number of saved transitions (%d) does not match number of loaded transitions (%d)".formatted(
+              numTransitions, transitions.size()));
+    }
+
+    final Optional<MrmTransition> quantifier = transitions.stream()
+        .filter(t -> Double.compare(t.q3mass(), q3) == 0).findFirst();
+
+    if (quantifier.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Quantifier (%.2f) not found among loaded transitions (%s)".formatted(q3,
+              transitions.toString()));
+    }
+
+    return new MrmTransitionList(q1Mass, transitions, quantifier.get());
+  }
+
   public double q1mass() {
     return q1mass;
   }
@@ -134,7 +179,8 @@ public final class MrmTransitionList {
     return transitions.stream().mapToDouble(MrmTransition::q3mass).toArray();
   }
 
-  public void saveToXML(XMLStreamWriter writer, List<? extends Scan> allScansOfFile) throws XMLStreamException {
+  public void saveToXML(XMLStreamWriter writer, List<? extends Scan> allScansOfFile)
+      throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
     writer.writeAttribute(MrmTransition.XML_ATTRIBUTE_MRM_Q1_MASS, Double.toString(q1mass()));
     writer.writeAttribute(XML_ATTRIBUTE_QUANTIFIER_MASS, Double.toString(quantifier().q3mass()));
@@ -146,51 +192,6 @@ public final class MrmTransitionList {
 
     // XML_ELEMENT
     writer.writeEndElement();
-  }
-
-  public static MrmTransitionList loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
-      RawDataFile file) throws XMLStreamException {
-    if (!reader.isStartElement() || !XML_ELEMENT.equals(reader.getLocalName())) {
-      throw new RuntimeException("Wrong element");
-    }
-
-    final double q1Mass = Double.parseDouble(
-        reader.getAttributeValue(null, MrmTransition.XML_ATTRIBUTE_MRM_Q1_MASS));
-    final double q3 = Double.parseDouble(
-        reader.getAttributeValue(null, XML_ATTRIBUTE_QUANTIFIER_MASS));
-    final int numTransitions = Integer.parseInt(
-        reader.getAttributeValue(null, CONST.XML_NUM_VALUES_ATTR));
-    final List<MrmTransition> transitions = new ArrayList<>();
-
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(XML_ELEMENT))) {
-      reader.next();
-      if (!reader.isStartElement()) {
-        continue;
-      }
-
-      if (reader.getLocalName().equals(MrmTransition.XML_ELEMENT)) {
-        final MrmTransition transition = MrmTransition.loadFromXML(reader, flist, file);
-        transitions.add(transition);
-      }
-    }
-
-    if (numTransitions != transitions.size()) {
-      throw new IllegalStateException(
-          "Number of saved transitions (%d) does not match number of loaded transitions (%d)".formatted(
-              numTransitions, transitions.size()));
-    }
-
-    final Optional<MrmTransition> quantifier = transitions.stream()
-        .filter(t -> Double.compare(t.q3mass(), q3) == 0).findFirst();
-
-    if (quantifier.isEmpty()) {
-      throw new IllegalArgumentException(
-          "Quantifier (%.2f) not found among loaded transitions (%s)".formatted(q3,
-              transitions.toString()));
-    }
-
-    return new MrmTransitionList(q1Mass, transitions, quantifier.get());
   }
 
   @Override
