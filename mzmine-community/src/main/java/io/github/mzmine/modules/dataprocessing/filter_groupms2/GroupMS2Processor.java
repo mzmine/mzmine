@@ -142,7 +142,8 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
 
     // only used for tims, keeping input spectra is important for later merging.
     var scanTypes = List.of(MergedSpectraFinalSelectionTypes.EACH_SAMPLE,
-        MergedSpectraFinalSelectionTypes.EACH_ENERGY);
+        MergedSpectraFinalSelectionTypes.EACH_ENERGY,
+        MergedSpectraFinalSelectionTypes.ALL_INPUT_SCANS);
     var merger = new SpectraMerger(scanTypes, SpectraMerging.pasefMS2MergeTol,
         IntensityMergingType.MAXIMUM);
     timsFragmentScanSelection = new FragmentScanSelection(timsScanStorage, merger, scanTypes);
@@ -344,8 +345,9 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
     for (PasefMsMsInfo info : eligibleMsMsInfos) {
       Range<Float> mobilityLimits = lockToFeatureMobilityRange && feature.getMobilityRange() != null
           ? feature.getMobilityRange() : null;
-      MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
-          timsScanStorage, mobilityLimits, minMs2IntensityAbs, minMs2IntensityRel, minImsDetections);
+      MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
+          SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED, timsScanStorage,
+          mobilityLimits, minMs2IntensityAbs, minMs2IntensityRel, minImsDetections);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }
