@@ -22,17 +22,17 @@ import org.math.io.files.DataFile;
  * @param chromatogram The individidual transitions. Important note: the masses in the
  *                     {@link IonTimeSeries} must be the q1 mass.
  */
-public record MrmTransition<T extends Scan>(double q1mass, double q3mass,
-                                            IonTimeSeries<T> chromatogram) {
+public record MrmTransition(double q1mass, double q3mass,
+                                            IonTimeSeries<? extends Scan> chromatogram) {
 
   public static final String XML_ATTRIBUTE_MRM_Q1_MASS = "q1mass";
   public static final String XML_ATTRIBUTE_MRM_Q3_MASS = "q3mass";
   public static final String XML_ELEMENT = "mrmtransition";
 
-  public MrmTransition(double q1mass, double q3mass, IonTimeSeries<T> chromatogram) {
+  public MrmTransition(double q1mass, double q3mass, IonTimeSeries<? extends Scan> chromatogram) {
     this.q1mass = q1mass;
     this.q3mass = q3mass;
-    this.chromatogram = chromatogram;
+    this.chromatogram = (IonTimeSeries<Scan>) chromatogram;
 
     checkChromatogramMasses(q1mass, chromatogram);
   }
@@ -61,18 +61,18 @@ public record MrmTransition<T extends Scan>(double q1mass, double q3mass,
     return Double.compare(q1mass, other.q1mass) == 0 && Double.compare(q3mass, other.q3mass) == 0;
   }
 
-  public void saveToXML(XMLStreamWriter writer, List<T> allScansOfDataFile)
+  public void saveToXML(XMLStreamWriter writer, List<? extends Scan> allScansOfDataFile)
       throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
     writer.writeAttribute(XML_ATTRIBUTE_MRM_Q1_MASS, String.valueOf(q1mass));
     writer.writeAttribute(XML_ATTRIBUTE_MRM_Q3_MASS, String.valueOf(q3mass));
-    chromatogram.saveValueToXML(writer, allScansOfDataFile);
+    chromatogram.saveValueToXML(writer, (List)allScansOfDataFile);
 
     // XML_ELEMENT
     writer.writeEndElement();
   }
 
-  public static MrmTransition<?> loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
+  public static MrmTransition loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
       RawDataFile file) throws XMLStreamException {
     if (!reader.isStartElement() || !XML_ELEMENT.equals(reader.getLocalName())) {
       throw new RuntimeException("Wrong element");
@@ -112,6 +112,6 @@ public record MrmTransition<T extends Scan>(double q1mass, double q3mass,
       throw new RuntimeException("No chromatogram found while parsing MrmTransition");
     }
 
-    return new MrmTransition<>(q1Mass, q3Mass, chromatogram);
+    return new MrmTransition(q1Mass, q3Mass, chromatogram);
   }
 }

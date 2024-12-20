@@ -122,10 +122,10 @@ public class BaselineCorrectionTask extends AbstractSimpleTask {
 
   private void handleMrmFeature(Feature feature) {
     final ModularFeature f = (ModularFeature) feature;
-    if (f.get(MrmTransitionListType.class) instanceof MrmTransitionList<?> transitions) {
+    if (f.get(MrmTransitionListType.class) instanceof MrmTransitionList transitions) {
       final List<? extends Scan> allScans = newFlist.getSeletedScans(f.getRawDataFile());
-      final List<MrmTransition<?>> correctedTransitions = new ArrayList<>();
-      for (MrmTransition<?> transition : transitions.transitions()) {
+      final List<MrmTransition> correctedTransitions = new ArrayList<>();
+      for (MrmTransition transition : transitions.transitions()) {
         // todo this may be optimised by an MrmDataAccess, similar to the feature data access,
         //  if this limits performance
         // remap so we get the same behaviour

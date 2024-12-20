@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
  * Groups several {@link MrmTransition}s in the
  * {@link io.github.mzmine.datamodel.features.ModularDataModel} for {@link ModularFeature}s.
  */
-public final class MrmTransitionList<T extends Scan> {
+public final class MrmTransitionList {
 
   public static final String XML_ELEMENT = "mrmtransitionlist";
   private static final String XML_ATTRIBUTE_QUANTIFIER_MASS = "quantifiermz";
@@ -34,7 +34,7 @@ public final class MrmTransitionList<T extends Scan> {
    * Immutable list of the transitions. cannot be modified. Sorted by ascending q3 mass.
    */
   @NotNull
-  private final List<@NotNull MrmTransition<T>> transitions;
+  private final List<@NotNull MrmTransition> transitions;
 
   /**
    * The quantifier transition. Not necessarily the
@@ -42,7 +42,7 @@ public final class MrmTransitionList<T extends Scan> {
    * {@link ModularFeature#getFeatureData()} of this feature after project loading.
    */
   @NotNull
-  private MrmTransition<T> quantifier;
+  private MrmTransition quantifier;
 
   /**
    * @param transitions The transitions of this transition list. The
@@ -50,8 +50,8 @@ public final class MrmTransitionList<T extends Scan> {
    *                    intense {@link MrmTransition#chromatogram()}. All transitions must have the
    *                    same q1 mass.
    */
-  public MrmTransitionList(@NotNull final List<@NotNull MrmTransition<T>> transitions) {
-    final Optional<@NotNull MrmTransition<T>> max = transitions.stream()
+  public MrmTransitionList(@NotNull final List<@NotNull MrmTransition> transitions) {
+    final Optional<@NotNull MrmTransition> max = transitions.stream()
         .max(Comparator.comparingDouble(mrm -> FeatureDataUtils.getHeight(mrm.chromatogram())));
     final double q1Mass = transitions.getFirst().q1mass();
 
@@ -63,8 +63,8 @@ public final class MrmTransitionList<T extends Scan> {
    * @param transitions All transitions must have the same q1 mass.
    * @param quantifier  The quantifier of this transition list.
    */
-  public MrmTransitionList(double q1mass, @NotNull List<MrmTransition<T>> transitions,
-      @NotNull MrmTransition<T> quantifier) {
+  public MrmTransitionList(double q1mass, @NotNull List<MrmTransition> transitions,
+      @NotNull MrmTransition quantifier) {
     if (transitions.stream().anyMatch(t -> Double.compare(t.q1mass(), q1mass) != 0)) {
       throw new IllegalArgumentException("Transition list contains different Q1 masses");
     }
@@ -83,17 +83,17 @@ public final class MrmTransitionList<T extends Scan> {
    * An immutable copy of this transitions, sorted by ascending q3 mass.
    */
   @NotNull
-  public List<@NotNull MrmTransition<T>> transitions() {
+  public List<@NotNull MrmTransition> transitions() {
     return List.copyOf(transitions);
   }
 
   @NotNull
-  public MrmTransition<T> transition(int index) {
+  public MrmTransition transition(int index) {
     return transitions.get(index);
   }
 
   @NotNull
-  public MrmTransition<T> quantifier() {
+  public MrmTransition quantifier() {
     return quantifier;
   }
 
@@ -106,7 +106,7 @@ public final class MrmTransitionList<T extends Scan> {
    * @param feature       The feature to which this transition belongs. If not null, the feature is
    *                      updated.
    */
-  public void setQuantifier(@NotNull MrmTransition<?> newQuantifier,
+  public void setQuantifier(@NotNull MrmTransition newQuantifier,
       @Nullable final ModularFeature feature) {
     if (!transitions.contains(newQuantifier)) {
       throw new IllegalArgumentException(
@@ -118,7 +118,7 @@ public final class MrmTransitionList<T extends Scan> {
       throw new IllegalArgumentException("The given feature goes not contain this mrm transition.");
     }
 
-    quantifier = (MrmTransition<T>) newQuantifier;
+    quantifier = newQuantifier;
 
     if (feature != null) {
       feature.set(FeatureDataType.class, quantifier.chromatogram());
@@ -134,13 +134,13 @@ public final class MrmTransitionList<T extends Scan> {
     return transitions.stream().mapToDouble(MrmTransition::q3mass).toArray();
   }
 
-  public void saveToXML(XMLStreamWriter writer, List<T> allScansOfFile) throws XMLStreamException {
+  public void saveToXML(XMLStreamWriter writer, List<? extends Scan> allScansOfFile) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
     writer.writeAttribute(MrmTransition.XML_ATTRIBUTE_MRM_Q1_MASS, Double.toString(q1mass()));
     writer.writeAttribute(XML_ATTRIBUTE_QUANTIFIER_MASS, Double.toString(quantifier().q3mass()));
     writer.writeAttribute(CONST.XML_NUM_VALUES_ATTR, Integer.toString(transitions.size()));
 
-    for (@NotNull MrmTransition<T> t : transitions) {
+    for (@NotNull MrmTransition t : transitions) {
       t.saveToXML(writer, allScansOfFile);
     }
 
@@ -148,7 +148,7 @@ public final class MrmTransitionList<T extends Scan> {
     writer.writeEndElement();
   }
 
-  public static MrmTransitionList<?> loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
+  public static MrmTransitionList loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
       RawDataFile file) throws XMLStreamException {
     if (!reader.isStartElement() || !XML_ELEMENT.equals(reader.getLocalName())) {
       throw new RuntimeException("Wrong element");
@@ -160,7 +160,7 @@ public final class MrmTransitionList<T extends Scan> {
         reader.getAttributeValue(null, XML_ATTRIBUTE_QUANTIFIER_MASS));
     final int numTransitions = Integer.parseInt(
         reader.getAttributeValue(null, CONST.XML_NUM_VALUES_ATTR));
-    final List<MrmTransition<?>> transitions = new ArrayList<>();
+    final List<MrmTransition> transitions = new ArrayList<>();
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(XML_ELEMENT))) {
@@ -170,7 +170,7 @@ public final class MrmTransitionList<T extends Scan> {
       }
 
       if (reader.getLocalName().equals(MrmTransition.XML_ELEMENT)) {
-        final MrmTransition<?> transition = MrmTransition.loadFromXML(reader, flist, file);
+        final MrmTransition transition = MrmTransition.loadFromXML(reader, flist, file);
         transitions.add(transition);
       }
     }
@@ -181,7 +181,7 @@ public final class MrmTransitionList<T extends Scan> {
               numTransitions, transitions.size()));
     }
 
-    final Optional<MrmTransition<?>> quantifier = transitions.stream()
+    final Optional<MrmTransition> quantifier = transitions.stream()
         .filter(t -> Double.compare(t.q3mass(), q3) == 0).findFirst();
 
     if (quantifier.isEmpty()) {
@@ -198,7 +198,7 @@ public final class MrmTransitionList<T extends Scan> {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof MrmTransitionList<?> that)) {
+    if (!(o instanceof MrmTransitionList that)) {
       return false;
     }
 

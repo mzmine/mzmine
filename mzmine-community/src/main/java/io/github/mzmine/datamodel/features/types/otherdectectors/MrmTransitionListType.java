@@ -19,7 +19,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MrmTransitionListType extends DataType<MrmTransitionList<? extends Scan>> {
+public class MrmTransitionListType extends DataType<MrmTransitionList> {
 
   public MrmTransitionListType() {
     super();
@@ -36,13 +36,13 @@ public class MrmTransitionListType extends DataType<MrmTransitionList<? extends 
   }
 
   @Override
-  public Property<MrmTransitionList<? extends Scan>> createProperty() {
+  public Property<MrmTransitionList> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
   @Override
-  public Class<MrmTransitionList<? extends Scan>> getValueClass() {
-    return (Class) MrmTransitionList.class;
+  public Class<MrmTransitionList> getValueClass() {
+    return MrmTransitionList.class;
   }
 
   @Override
