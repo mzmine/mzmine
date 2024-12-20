@@ -1194,7 +1194,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     switch (algorithm) {
       case MODIFIED_COSINE -> {
-        ModifiedCosineSpectralNetworkingParameters.setAll(param, mzTolScans, true, 500d, 4, 0.7,
+        ModifiedCosineSpectralNetworkingParameters.setAll(param, true, true, 500d, 4, 0.7,
             mzTolScans, SpectralSignalFilter.DEFAULT);
       }
       case COSINE_NO_PRECURSOR -> {
