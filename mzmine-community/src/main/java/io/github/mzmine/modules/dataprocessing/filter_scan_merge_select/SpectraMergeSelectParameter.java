@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectOptions;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectModuleOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresetsParameter;
@@ -36,9 +37,11 @@ import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -81,6 +84,24 @@ public class SpectraMergeSelectParameter extends
     super(name, description, options, active);
   }
 
+  /**
+   * Used in clone parameter
+   */
+  private SpectraMergeSelectParameter(final String name, final String description,
+      final SpectraMergeSelectModuleOptions selectedValue,
+      final EnumMap<SpectraMergeSelectModuleOptions, ParameterSet> parameters) {
+    super(name, description, selectedValue, parameters);
+  }
+
+  @Override
+  public SpectraMergeSelectParameter cloneParameter() {
+    EnumMap<SpectraMergeSelectModuleOptions, ParameterSet> copy = new EnumMap<>(parametersMap);
+    for (final SpectraMergeSelectModuleOptions key : copy.keySet()) {
+      var cloneParam = copy.get(key).cloneParameterSet();
+      copy.put(key, cloneParam);
+    }
+    return new SpectraMergeSelectParameter(getName(), getDescription(), getValue(), copy);
+  }
 
   /**
    * No MSn for now - need to implement first - default selection should be representative scans so
@@ -135,6 +156,19 @@ public class SpectraMergeSelectParameter extends
   }
 
   /**
+   * Single merged scan in each sample and across all samples
+   */
+  public static SpectraMergeSelectParameter createEachSampleAcrossEnergies() {
+    return new Builder().preset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN)
+        .active(SpectraMergeSelectModuleOptions.PRESET_MERGED).includeAllSourceScans(true)
+        .presetAlsoEachSample(true).createParameters();
+  }
+
+  public static SpectraMergeSelectParameter createLipidSearchAllSpectraDefault() {
+    return new Builder().useExportAllSourceScans().createParameters();
+  }
+
+  /**
    * Useful methods to set specific simple presets in the wizard or other locations
    */
   public void setSimplePreset(final SpectraMergeSelectPresets preset,
@@ -154,25 +188,6 @@ public class SpectraMergeSelectParameter extends
     setValue(SpectraMergeSelectModuleOptions.SOURCE_SCANS);
     var embedded = getEmbeddedParameters();
     embedded.setParameter(InputSpectraSelectParameters.sourceSelectionTypes, option);
-  }
-
-  /**
-   * Used in clone paramer
-   */
-  private SpectraMergeSelectParameter(final String name, final String description,
-      final SpectraMergeSelectModuleOptions selectedValue,
-      final EnumMap<SpectraMergeSelectModuleOptions, ParameterSet> parameters) {
-    super(name, description, selectedValue, parameters);
-  }
-
-  @Override
-  public SpectraMergeSelectParameter cloneParameter() {
-    EnumMap<SpectraMergeSelectModuleOptions, ParameterSet> copy = new EnumMap<>(parametersMap);
-    for (final SpectraMergeSelectModuleOptions key : copy.keySet()) {
-      var cloneParam = copy.get(key).cloneParameterSet();
-      copy.put(key, cloneParam);
-    }
-    return new SpectraMergeSelectParameter(getName(), getDescription(), getValue(), copy);
   }
 
   /**
@@ -205,6 +220,10 @@ public class SpectraMergeSelectParameter extends
     // use optional to define that options should not be filtered but used as is
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private @NotNull Optional<Boolean> includeAdvanced = Optional.of(false);
+
+    // advanced preset {@link PresetAdvancedSpectraMergeSelectParameters}
+    private boolean presetAlsoEachSample = false;
+
 
     public SpectraMergeSelectParameter createParameters() {
       if (useExportAllSourceScans) {
@@ -248,6 +267,19 @@ public class SpectraMergeSelectParameter extends
           embedded.getParameter(InputSpectraSelectParameters.sourceSelectionTypes)
               .setChoices(SelectOptions.values(), SelectOptions.ALL_INPUT_SCANS);
         }
+      }
+
+      // advanced preset also use for each sample? otherwise only across samples
+      var presetAdvanced = param.getEmbeddedParameters(
+          SpectraMergeSelectModuleOptions.PRESET_MERGED);
+      if (presetAdvanced != null) {
+        List<MergedSpectraFinalSelectionTypes> sampleHandling = new ArrayList<>();
+        sampleHandling.add(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES);
+        if (presetAlsoEachSample) {
+          sampleHandling.add(MergedSpectraFinalSelectionTypes.EACH_SAMPLE);
+        }
+        presetAdvanced.setParameter(PresetAdvancedSpectraMergeSelectParameters.sampleHandling,
+            sampleHandling);
       }
 
       return param;
@@ -330,6 +362,11 @@ public class SpectraMergeSelectParameter extends
       presetOptions(new SpectraMergeSelectPresets[]{SpectraMergeSelectPresets.SINGLE_MERGED_SCAN});
       preset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN);
       includeAdvanced(false);
+      return this;
+    }
+
+    public Builder presetAlsoEachSample(final boolean presetAlsoEachSample) {
+      this.presetAlsoEachSample = presetAlsoEachSample;
       return this;
     }
   }

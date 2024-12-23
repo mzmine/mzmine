@@ -25,18 +25,29 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresetsParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
 public class PresetAdvancedSpectraMergeSelectParameters extends SimpleParameterSet {
 
   public static final SpectraMergeSelectPresetsParameter preset = new SpectraMergeSelectPresetsParameter();
+
+  public static final CheckComboParameter<MergedSpectraFinalSelectionTypes> sampleHandling = new CheckComboParameter<>(
+      "Merge", """
+      Merge spectra across all samples (default) and / or for each sample.
+      If both options are included then spectra will be merged for each sample and across all samples.""",
+      List.of(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES,
+          MergedSpectraFinalSelectionTypes.EACH_SAMPLE),
+      List.of(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES), true);
 
   public static final ComboParameter<IntensityMergingType> intensityMergeType = new ComboParameter<>(
       "Intensity merge mode", """
@@ -56,7 +67,7 @@ public class PresetAdvancedSpectraMergeSelectParameters extends SimpleParameterS
 //      null, new AbsoluteAndRelativeInt(1, 0.2f));
 
   public PresetAdvancedSpectraMergeSelectParameters() {
-    super(preset, mergeMzTolerance, intensityMergeType);
+    super(preset, mergeMzTolerance, sampleHandling, intensityMergeType);
   }
 
 }

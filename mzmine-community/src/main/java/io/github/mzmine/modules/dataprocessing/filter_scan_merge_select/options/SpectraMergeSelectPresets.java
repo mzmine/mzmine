@@ -73,10 +73,15 @@ public enum SpectraMergeSelectPresets implements UniqueIdSupplier {
     return "%s (%s)".formatted(this, description);
   }
 
+  /**
+   * The {@link MergedSpectraFinalSelectionTypes} that define the final selection of scans. This
+   * method adds scan types based on presets. Sample handling like
+   * {@link MergedSpectraFinalSelectionTypes#ACROSS_SAMPLES} and
+   * {@link MergedSpectraFinalSelectionTypes#EACH_SAMPLE} need to be added to make this a complete
+   * selection.
+   */
   public List<MergedSpectraFinalSelectionTypes> listIncludedScanTypes() {
     List<MergedSpectraFinalSelectionTypes> types = new ArrayList<>();
-    types.add(
-        MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES); // always merge across samples in simple
     types.add(MergedSpectraFinalSelectionTypes.ACROSS_ENERGIES); // always across energies
     types.add(MergedSpectraFinalSelectionTypes.MSN_PSEUDO_MS2); // MSn -> pseudo MS2, only MSn data
     // this would now result in one scan merge across samples and energies - all other dropped

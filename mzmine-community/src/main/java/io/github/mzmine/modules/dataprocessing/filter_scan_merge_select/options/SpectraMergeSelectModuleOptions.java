@@ -40,6 +40,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -132,16 +133,26 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
       case SIMPLE_MERGED -> {
         var preset = params.getValue(PresetSimpleSpectraMergeSelectParameters.preset);
         var mzTol = params.getValue(PresetSimpleSpectraMergeSelectParameters.mergeMzTolerance);
-        yield AdvancedSpectraMergeSelectParameters.createParams(preset.listIncludedScanTypes(),
-            mzTol, IntensityMergingType.MAXIMUM);
+        // create preset based selection and add across samples (simple always across)
+        var finalSelection = new ArrayList<>(preset.listIncludedScanTypes());
+        finalSelection.add(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES);
+        yield AdvancedSpectraMergeSelectParameters.createParams(finalSelection, mzTol,
+            IntensityMergingType.MAXIMUM);
       }
       case PRESET_MERGED -> {
         var preset = params.getValue(PresetAdvancedSpectraMergeSelectParameters.preset);
         var mzTol = params.getValue(PresetAdvancedSpectraMergeSelectParameters.mergeMzTolerance);
         var intensityMergingType = params.getValue(
             PresetAdvancedSpectraMergeSelectParameters.intensityMergeType);
-        yield AdvancedSpectraMergeSelectParameters.createParams(preset.listIncludedScanTypes(),
-            mzTol, intensityMergingType);
+        // create preset based selection and add sample handling by extra parameter
+        var finalSelection = new ArrayList<>(preset.listIncludedScanTypes());
+        // advanced may merge across samples and/or for each sample
+        var sampleHandling = params.getValue(
+            PresetAdvancedSpectraMergeSelectParameters.sampleHandling);
+        finalSelection.addAll(sampleHandling);
+
+        yield AdvancedSpectraMergeSelectParameters.createParams(finalSelection, mzTol,
+            intensityMergingType);
       }
       case SOURCE_SCANS -> {
         MergedSpectraFinalSelectionTypes value = params.getValue(
