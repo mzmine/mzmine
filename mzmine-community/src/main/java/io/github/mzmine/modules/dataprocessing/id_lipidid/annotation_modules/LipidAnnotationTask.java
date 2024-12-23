@@ -76,7 +76,7 @@ public class LipidAnnotationTask extends AbstractTask {
   private final int minDoubleBonds;
   private final Boolean onlySearchForEvenChains;
   private final MZTolerance mzTolerance;
-  private MZTolerance mzToleranceMS2;
+  private final MZTolerance mzToleranceMS2;
   private final Boolean searchForMSMSFragments;
   private final Boolean keepUnconfirmedAnnotations;
   private double minMsMsScore;
@@ -122,10 +122,10 @@ public class LipidAnnotationTask extends AbstractTask {
               LipidAnnotationMSMSParameters.spectraMergeSelect)
           .createFragmentScanSelection(getMemoryMapStorage());
     } else {
-      this.mzToleranceMS2 = MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA;
-      this.keepUnconfirmedAnnotations = true;
+      this.mzToleranceMS2 = MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA; // should not be used but still set
+      this.keepUnconfirmedAnnotations = true; // keep old default
       scanMergeSelect = FragmentScanSelection.createAllInputFragmentScansSelect(
-          getMemoryMapStorage());
+          getMemoryMapStorage()); // all input scans was and is the default
     }
     this.selectedCustomLipidClasses = null;
     if (parameters.getParameter(LipidAnnotationParameters.customLipidClasses).getValue()) {
