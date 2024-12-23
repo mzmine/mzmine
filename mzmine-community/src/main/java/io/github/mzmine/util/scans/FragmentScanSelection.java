@@ -115,6 +115,12 @@ public final class FragmentScanSelection {
     this(storage, merger, finalScanSelection, ScanSelectionFilter.all());
   }
 
+  public static FragmentScanSelection createAllInputFragmentScansSelect(
+      final @Nullable MemoryMapStorage storage) {
+    return new FragmentScanSelection(storage, null,
+        List.of(MergedSpectraFinalSelectionTypes.ALL_INPUT_SCANS));
+  }
+
 
   public List<Scan> getAllFragmentSpectra(final FeatureListRow row) {
     return getAllFragmentSpectra(row.getAllFragmentScans());

@@ -1324,12 +1324,14 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new LipidAnnotationChainParameters());
     param.setParameter(LipidAnnotationParameters.mzTolerance, mzTolInterSample);
     param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, true);
-    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-        .setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
-    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-        .setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
-    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-        .setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
+    var ms2Param = param.getParameter(LipidAnnotationParameters.searchForMSMSFragments)
+        .getEmbeddedParameters();
+    // all input scans as default to avoid to many chimeric merged spectra in lipids
+    ms2Param.getParameter(LipidAnnotationMSMSParameters.spectraMergeSelect)
+        .setUseSourceScans(SelectOptions.ALL_INPUT_SCANS);
+    ms2Param.setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
+    ms2Param.setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
+    ms2Param.setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
     param.setParameter(LipidAnnotationParameters.advanced, false);
     var advanced = param.getEmbeddedParameterValue(LipidAnnotationParameters.advanced);
     advanced.setParameter(AdvancedLipidAnnotationParameters.IONS_TO_IGNORE,
