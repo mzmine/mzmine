@@ -26,15 +26,19 @@
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresetsParameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 
 public class PresetAdvancedSpectraMergeSelectParameters extends SimpleParameterSet {
@@ -68,6 +72,28 @@ public class PresetAdvancedSpectraMergeSelectParameters extends SimpleParameterS
 
   public PresetAdvancedSpectraMergeSelectParameters() {
     super(preset, mergeMzTolerance, sampleHandling, intensityMergeType);
+  }
+
+  /**
+   * Set all values in the parameter set
+   *
+   * @param params usually an instance of this {@link PresetAdvancedSpectraMergeSelectParameters}
+   */
+  public static void setAll(final @NotNull ParameterSet params, SpectraMergeSelectPresets preset,
+      MZTolerance mzTol, List<MergedSpectraFinalSelectionTypes> sampleHandling,
+      IntensityMergingType intensityMergingType) {
+    for (final MergedSpectraFinalSelectionTypes handling : sampleHandling) {
+      if (!handling.isSampleDefinition()) {
+        throw new IllegalArgumentException(
+            "Sample handling list should only contain values to define each or all samples");
+      }
+    }
+
+    params.setParameter(PresetAdvancedSpectraMergeSelectParameters.preset, preset);
+    params.setParameter(PresetAdvancedSpectraMergeSelectParameters.mergeMzTolerance, mzTol);
+    params.setParameter(PresetAdvancedSpectraMergeSelectParameters.sampleHandling, sampleHandling);
+    params.setParameter(PresetAdvancedSpectraMergeSelectParameters.intensityMergeType,
+        intensityMergingType);
   }
 
 }

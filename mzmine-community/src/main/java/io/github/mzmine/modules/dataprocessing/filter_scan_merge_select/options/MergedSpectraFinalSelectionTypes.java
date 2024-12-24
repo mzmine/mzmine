@@ -102,4 +102,12 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
       case ALL_INPUT_SCANS -> "all_input_scans";
     };
   }
+
+  public boolean isSampleDefinition() {
+    return switch (this) {
+      case ACROSS_SAMPLES, EACH_SAMPLE -> true;
+      case EACH_ENERGY, ACROSS_ENERGIES, ALL_INPUT_SCANS, MSN_TREE, MSN_PSEUDO_MS2,
+           SINGLE_MOST_INTENSE_INPUT_SCAN -> false;
+    };
+  }
 }
