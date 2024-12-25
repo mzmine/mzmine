@@ -335,15 +335,15 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private @NotNull List<SpectralLibraryEntry> getSortedSpectralLibraryEntries() {
     final List<SpectralLibraryEntry> entries = parameters.getValue(
         SpectralLibrarySearchParameters.libraries).getMatchingLibraryEntriesAndCheckAvailability();
-    final boolean isMs2 = !msLevelFilter.isMs1Only();
-    return entries.stream()
-        // remove scans without precursor mz if its MS2
-        // MS1 scans should also not have precursor mz but maybe it is set - it will just not be used
-        // so for MS1 just keep all scans
-        .filter(entry -> !(isMs2 && entry.getPrecursorMZ() == null))
-        .filter(entry -> entry.getNumberOfDataPoints() >= minMatch)
-        .sorted(Comparator.nullsLast(Comparator.comparing(SpectralLibraryEntry::getPrecursorMZ)))
-        .toList();
+    var stream = entries.stream().filter(entry -> entry.getNumberOfDataPoints() >= minMatch);
+
+    if (msLevelFilter.isFragmentationNoMS1()) {
+      // remove scans without precursor mz if its MS2
+      // sort by mz for binary search
+      stream = stream.filter(entry -> entry.getPrecursorMZ() != null)
+          .sorted(Comparator.comparing(SpectralLibraryEntry::getPrecursorMZ));
+    }
+    return stream.toList();
   }
 
   /**
@@ -354,7 +354,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
    */
   public void matchScan(List<SpectralLibraryEntry> entries, Scan scan) {
     try {
-      // filter entries first if not MS1
+      // filter entries first if MS2
+      // MS1 is never filtered because of missing precursor mz
       entries = binaryFindCandidateEntries(entries, ScanUtils.getPrecursorMz(scan));
       if (entries.isEmpty()) {
         return;
@@ -512,16 +513,14 @@ public class RowsSpectralMatchTask extends AbstractTask {
    */
   private List<SpectralLibraryEntry> binaryFindCandidateEntries(List<SpectralLibraryEntry> entries,
       @Nullable final Double scanPrecursorMZ) {
-    if (scanPrecursorMZ == null) {
+    if (scanPrecursorMZ == null || msLevelFilter.isMs1Only()) {
       return entries;
     }
-    if (!msLevelFilter.isMs1Only()) {
-      var indexRange = BinarySearch.indexRange(
-          mzTolerancePrecursor.getToleranceRange(scanPrecursorMZ), entries,
-          SpectralLibraryEntry::getPrecursorMZ);
-      // filter
-      entries = indexRange.sublist(entries);
-    }
+    var indexRange = BinarySearch.indexRange(
+        mzTolerancePrecursor.getToleranceRange(scanPrecursorMZ), entries,
+        SpectralLibraryEntry::getPrecursorMZ);
+    // filter
+    entries = indexRange.sublist(entries);
     return entries;
   }
 
@@ -543,38 +542,41 @@ public class RowsSpectralMatchTask extends AbstractTask {
    */
   private SpectralSimilarity matchSpectrum(Float rowRT, double rowMZ, Float rowCCS,
       DataPoint[] rowMassList, SpectralLibraryEntry ident) {
-    // retention time
-    // MS level 1 or check precursorMZ
-    if (checkRT(rowRT, ident) && (msLevelFilter.isMs1Only() || checkPrecursorMZ(rowMZ, ident))
-        && checkCCS(rowCCS, ident)) {
-      DataPoint[] library = ident.getDataPoints();
-      if (removeIsotopes) {
-        library = removeIsotopes(library);
-      }
-
-      // crop the spectra to their overlapping mz range
-      // helpful when comparing spectra, acquired with different
-      // fragmentation energy
-      DataPoint[] query = rowMassList;
-      if (cropSpectraToOverlap) {
-        DataPoint[][] cropped = ScanAlignment.cropToOverlap(mzToleranceSpectra, library, query,
-            ident.getPrecursorMZ(), rowMZ);
-        library = cropped[0];
-        query = cropped[1];
-      }
-
-      // remove precursor signals
-      if (!msLevelFilter.isMs1Only() && removePrecursor && ident.getPrecursorMZ() != null) {
-        // precursor mz from library entry for signal filtering
-        double precursorMZ = ident.getPrecursorMZ();
-        // remove from both spectra
-        library = removePrecursor(library, precursorMZ);
-      }
-
-      // check spectra similarity
-      return createSimilarity(library, query);
+    // prefilters
+    if (!checkRT(rowRT, ident) // retention time optional
+        // mz only for MS2 not for MS1
+        || (msLevelFilter.isFragmentationNoMS1() && !checkPrecursorMZ(rowMZ, ident))
+        // CCS/ion mobility optional
+        || !checkCCS(rowCCS, ident)) {
+      return null;
     }
-    return null;
+    // prefilters matched - score spectrum
+    DataPoint[] library = ident.getDataPoints();
+    if (removeIsotopes) {
+      library = removeIsotopes(library);
+    }
+
+    // crop the spectra to their overlapping mz range
+    // helpful when comparing spectra, acquired with different
+    // fragmentation energy
+    DataPoint[] query = rowMassList;
+    if (cropSpectraToOverlap) {
+      DataPoint[][] cropped = ScanAlignment.cropToOverlap(mzToleranceSpectra, library, query,
+          ident.getPrecursorMZ(), rowMZ);
+      library = cropped[0];
+      query = cropped[1];
+    }
+
+    // remove precursor signals
+    if (!msLevelFilter.isMs1Only() && removePrecursor && ident.getPrecursorMZ() != null) {
+      // precursor mz from library entry for signal filtering
+      double precursorMZ = ident.getPrecursorMZ();
+      // remove from both spectra
+      library = removePrecursor(library, precursorMZ);
+    }
+
+    // check spectra similarity
+    return createSimilarity(library, query);
   }
 
   private boolean checkCCS(Float rowCCS, SpectralLibraryEntry ident) {

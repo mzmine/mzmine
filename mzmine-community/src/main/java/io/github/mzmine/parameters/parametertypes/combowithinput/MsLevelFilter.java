@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -100,12 +100,20 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
    * @return true if scan matches filter
    */
   public boolean accept(Scan scan) {
+    return accept(scan.getMSLevel());
+  }
+
+  /**
+   * @param msLevel tested level
+   * @return true if ms level matches filter
+   */
+  public boolean accept(int msLevel) {
     return switch (filter) {
       case ALL -> true;
-      case MS1 -> scan.getMSLevel() == 1;
-      case MS2 -> scan.getMSLevel() == 2;
-      case MSn -> scan.getMSLevel() > 1;
-      case SPECIFIC_LEVEL -> scan.getMSLevel() == specificLevel;
+      case MS1 -> msLevel == 1;
+      case MS2 -> msLevel == 2;
+      case MSn -> msLevel > 1;
+      case SPECIFIC_LEVEL -> msLevel == specificLevel;
     };
   }
 
@@ -115,6 +123,14 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
    */
   public boolean notMatch(Scan scan) {
     return !accept(scan);
+  }
+
+  /**
+   * @param msLevel tested level
+   * @return false if ms level matches filter
+   */
+  public boolean notMatch(int msLevel) {
+    return !accept(msLevel);
   }
 
   /**
@@ -144,6 +160,15 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
 
   public boolean isMs1Only() {
     return isSingleMsLevel(1);
+  }
+
+  /**
+   * Same like notMatch(1)
+   *
+   * @return true if MS1 is excluded so if only MS2 or MSn are selected. False if MS1 is included
+   */
+  public boolean isFragmentationNoMS1() {
+    return notMatch(1);
   }
 
   public boolean isMs2Only() {
