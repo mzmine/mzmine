@@ -187,8 +187,9 @@ public class LipidAnnotationUtils {
       LipidCategories lipidCategory, final FragmentScanSelection scanMergeSelect) {
     Set<MatchedLipid> matchedLipids = new HashSet<>();
     LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
-    if (!row.getAllFragmentScans().isEmpty() || keepUnconfirmedAnnotations) {
-      List<Scan> msmsScans = row.getAllFragmentScans();
+    List<Scan> msmsScans = scanMergeSelect.getAllFragmentSpectra(row);
+
+    if (!msmsScans.isEmpty() || keepUnconfirmedAnnotations) {
       for (Scan msmsScan : msmsScans) {
         Set<MatchedLipid> matchedLipidsInScan = new HashSet<>();
         if (msmsScan.getMassList() == null) {
