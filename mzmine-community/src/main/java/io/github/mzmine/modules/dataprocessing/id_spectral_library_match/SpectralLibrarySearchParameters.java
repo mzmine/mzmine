@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithInputComponent;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -60,7 +61,8 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
   public static final SpectralLibrarySelectionParameter libraries = new SpectralLibrarySelectionParameter();
 
-  public static final MsLevelFilterParameter msLevelFilter = new MsLevelFilterParameter();
+  public static final MsLevelFilterParameter msLevelFilter = new MsLevelFilterParameter(
+      new Options[]{Options.MS1, Options.MS2}, new MsLevelFilter(Options.MS2));
 
   public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createSpectraLibrarySearchDefaultNoMSn();
 

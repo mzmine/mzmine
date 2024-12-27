@@ -1242,7 +1242,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.getParameter(SpectralLibrarySearchParameters.spectraMergeSelect)
         .setSimplePreset(SpectraMergeSelectPresets.REPRESENTATIVE_SCANS, mzTolScans);
 
-    param.setParameter(SpectralLibrarySearchParameters.msLevelFilter, MsLevelFilter.ALL_LEVELS);
+    param.setParameter(SpectralLibrarySearchParameters.msLevelFilter, MsLevelFilter.of(2));
 
     param.setParameter(SpectralLibrarySearchParameters.mzTolerancePrecursor,
         new MZTolerance(0.01, 20));
