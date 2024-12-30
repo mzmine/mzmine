@@ -29,11 +29,12 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor.NoPrecursorCosineSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams.DreaMSNetworkingModule;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 
 public enum SpectralNetworkingOptions implements ModuleOptionsEnum {
 
-  MODIFIED_COSINE, MS2_DEEPSCORE, COSINE_NO_PRECURSOR;
+  MODIFIED_COSINE, MS2_DEEPSCORE, COSINE_NO_PRECURSOR, DREAMS;
 
   @Override
   public String toString() {
@@ -46,6 +47,7 @@ public enum SpectralNetworkingOptions implements ModuleOptionsEnum {
       case MS2_DEEPSCORE -> MS2DeepscoreNetworkingModule.NAME;
       case MODIFIED_COSINE -> ModifiedCosineSpectralNetworkingModule.NAME;
       case COSINE_NO_PRECURSOR -> NoPrecursorCosineSpectralNetworkingModule.NAME;
+      case DREAMS -> DreaMSNetworkingModule.NAME;
     };
   }
 
@@ -56,6 +58,7 @@ public enum SpectralNetworkingOptions implements ModuleOptionsEnum {
       case MODIFIED_COSINE -> ModifiedCosineSpectralNetworkingModule.class;
       case MS2_DEEPSCORE -> MS2DeepscoreNetworkingModule.class;
       case COSINE_NO_PRECURSOR -> NoPrecursorCosineSpectralNetworkingModule.class;
+      case DREAMS -> DreaMSNetworkingModule.class;
     };
   }
 
