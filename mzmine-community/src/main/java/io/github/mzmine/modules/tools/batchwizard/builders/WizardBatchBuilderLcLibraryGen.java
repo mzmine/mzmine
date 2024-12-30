@@ -53,6 +53,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
   private final Boolean rtSmoothing;
   private final LibraryBatchMetadataParameters libGenMetadata;
   private final Boolean applySpectralNetworking;
+  private final Boolean exportUnknownScansFile;
 
   public WizardBatchBuilderLcLibraryGen(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -79,6 +80,8 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
     exportPath = getValue(params, WorkflowLibraryGenerationWizardParameters.exportPath);
     exportGnps = getValue(params, WorkflowLibraryGenerationWizardParameters.exportGnps);
     exportSirius = getValue(params, WorkflowLibraryGenerationWizardParameters.exportSirius);
+    exportUnknownScansFile = getValue(params,
+        WorkflowLibraryGenerationWizardParameters.exportUnknownScansFile);
     libGenMetadata = getOptionalParameters(params,
         WorkflowLibraryGenerationWizardParameters.metadata).value();
   }
@@ -121,6 +124,11 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
 
     // match against own library
     makeAndAddLibrarySearchStep(q, true);
+
+    // export all unannotated scans - after alignment to merge duplicates
+    if (exportUnknownScansFile) {
+      makeAndAddExportScansStep(q, exportPath, libGenMetadata, true, "_unknown_scans");
+    }
 
     // export
     makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius, false, mzTolScans);

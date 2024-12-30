@@ -119,6 +119,9 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters;
 import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
 import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportParameters;
+import io.github.mzmine.modules.io.export_scans_modular.AdvancedExportScansFeatureParameters;
+import io.github.mzmine.modules.io.export_scans_modular.ExportScansFeatureMainParameters;
+import io.github.mzmine.modules.io.export_scans_modular.ExportScansFeatureModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -735,6 +738,25 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   /**
    * Batch generation of library spectra
    */
+  protected void makeAndAddExportScansStep(final BatchQueue q, final File exportPath,
+      final LibraryBatchMetadataParameters libGenMetadata, final boolean skipAnnotatedFeatures,
+      final String fileSuffix) {
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(ExportScansFeatureModule.class).cloneParameterSet();
+
+    MZTolerance isolationToleranceForInstrument = getIsolationToleranceForInstrument(steps);
+
+    ExportScansFeatureMainParameters.setAll(param, exportPath, libGenMetadata, mzTolScans,
+        isolationToleranceForInstrument, skipAnnotatedFeatures, false, fileSuffix);
+
+    q.add(
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ExportScansFeatureModule.class),
+            param));
+  }
+
+  /**
+   * Batch generation of library spectra
+   */
   protected void makeAndAddBatchLibraryGeneration(final BatchQueue q, final File exportPath,
       final LibraryBatchMetadataParameters libGenMetadata) {
     final ParameterSet param = MZmineCore.getConfiguration()
@@ -782,6 +804,12 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // metadata is user defined
     param.getParameter(LibraryBatchGenerationParameters.metadata)
         .setEmbeddedParameters(libGenMetadata);
+
+    // advanced
+    param.setParameter(ExportScansFeatureMainParameters.advanced, true);
+    var advanced = param.getParameter(ExportScansFeatureMainParameters.advanced)
+        .getEmbeddedParameters();
+    advanced.setParameter(AdvancedExportScansFeatureParameters.compactUSI, true);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(LibraryBatchGenerationModule.class), param));

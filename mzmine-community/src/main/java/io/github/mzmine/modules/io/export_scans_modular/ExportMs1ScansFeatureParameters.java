@@ -34,7 +34,7 @@ public class ExportMs1ScansFeatureParameters extends SimpleParameterSet {
   public static final ComboParameter<Ms1ScanSelection> ms1Selection = new ComboParameter<>(
       "Scan selection",
       "MS1 scan or correlated MS1 scan of signals from modules like isotope finder, metaCorrelate, and others.",
-      Ms1ScanSelection.values(), Ms1ScanSelection.CORRELATED);
+      Ms1ScanSelection.values(), Ms1ScanSelection.MS1_AND_CORRELATED);
 
   public static final BooleanParameter separateMs1File = new BooleanParameter(
       "MS1 in separate file",

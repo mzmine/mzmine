@@ -52,6 +52,7 @@ import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.WriterOptions;
 import io.github.mzmine.util.scans.FragmentScanSelection;
@@ -91,6 +92,7 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
   private final boolean separateMs1File;
   private final Ms1ScanSelection ms1Selection;
   private final boolean ms1RequiresFragmentScan;
+  private final boolean skipAnnotatedFeatures;
   private double minimumPrecursorPurity;
   private MZTolerance chimericsIsolationMzTol;
   private MZTolerance chimericsMainIonMzTol;
@@ -120,6 +122,8 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
         ExportScansFeatureMainParameters.metadata).getEmbeddedParameters();
     metadataMap = meta.asMap();
 
+    skipAnnotatedFeatures = parameters.getValue(
+        ExportScansFeatureMainParameters.skipAnnotatedFeatures);
     normalizer = parameters.getValue(ExportScansFeatureMainParameters.normalizer);
 
     exportMs1 = parameters.getValue(ExportScansFeatureMainParameters.exportMs1);
@@ -291,6 +295,10 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
    */
   protected boolean checkPreConditions(final FeatureListRow row) {
     // option to overwrite this method to control which row is processed
+    if (skipAnnotatedFeatures && CompoundAnnotationUtils.streamFeatureAnnotations(row).findFirst()
+        .isEmpty()) {
+      return false;
+    }
     return true;
   }
 
