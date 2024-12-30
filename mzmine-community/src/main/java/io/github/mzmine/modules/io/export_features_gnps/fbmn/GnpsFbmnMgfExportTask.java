@@ -42,7 +42,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
-import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -67,7 +66,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -83,7 +81,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
   //
   private final FeatureList[] featureLists;
   private final File fileName;
-  private final String plNamePattern = "{}";
   private final FeatureListRowsFilter filter;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
@@ -120,8 +117,15 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    // Shall export several files?
-    boolean substitute = fileName.getPath().contains(plNamePattern);
+    if (featureLists.length > 1 && !SiriusExportTask.hasDefaultSubstitutionPattern(fileName)) {
+      // error that multiple feature lists are selected and no filename pattern defined
+      error("""
+          Multiple feature lists (%d) were selected for molecular networking (GNPS) export, /
+          but the filename misses the file name pattern "%s" to insert each feature list name.
+          Either select a single feature list or use the name pattern.""".formatted(
+          featureLists.length, SiriusExportTask.MULTI_NAME_PATTERN));
+      return;
+    }
 
     // Process feature lists
     for (FeatureList featureList : featureLists) {
@@ -138,16 +142,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
       currentIndex++;
 
       // Filename
-      File curFile = fileName;
-      if (substitute) {
-        // Cleanup from illegal filename characters
-        String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
-        // Substitute
-        String newFilename = fileName.getPath()
-            .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
-        curFile = new File(newFilename);
-      }
-      curFile = FileAndPathUtil.getRealFilePath(curFile, "mgf");
+      final File curFile = SiriusExportTask.getFileForFeatureList(featureList, fileName, "mgf");
 
       if (!FileAndPathUtil.createDirectory(curFile.getParentFile())) {
         setErrorMessage("Could not create directories for file " + curFile + " for writing.");
@@ -169,12 +164,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
 
       // check that nothing has changed during processing
       checkConcurrentModification(featureList, rows, numRows, numFeatures, numMS2, numFiltered);
-
-      // If feature list substitution pattern wasn't found,
-      // treat one feature list only
-      if (!substitute) {
-        break;
-      }
     }
 
     if (getStatus() == TaskStatus.PROCESSING) {
@@ -213,7 +202,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
 
   private long export(FeatureList featureList, List<FeatureListRow> rows, BufferedWriter writer)
       throws IOException {
-    final String newLine = System.lineSeparator();
 
     int noMS2Counter = 0;
     // count exported
@@ -239,12 +227,9 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
         continue;
       }
 
-      SpectralLibraryEntry entry = entryFactory.createUnknown(null, row, msmsScan, dataPoints, null,
-          null);
+      SpectralLibraryEntry entry = entryFactory.createUnknown(null, row, null, msmsScan, dataPoints,
+          null, null);
 
-      if (msmsScan instanceof MergedSpectrum spec) {
-        SiriusExportTask.putMergedSpectrumFieldsIntoEntry(spec, entry);
-      }
       // requires MS2? or can also be MSn?
 //      entry.putIfNotNull(DBEntryField.MS_LEVEL, 2);
 

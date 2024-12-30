@@ -36,10 +36,10 @@ import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ExportScansFeatureListModule extends SingleTaskFeatureListsModule {
+public class ExportScansFeatureModule extends SingleTaskFeatureListsModule {
 
-  public ExportScansFeatureListModule() {
-    super("Export scans (feature list)", ExportScansFeatureListParameters.class,
+  public ExportScansFeatureModule() {
+    super("Export scans (feature list)", ExportScansFeatureMainParameters.class,
         MZmineModuleCategory.FEATURELISTEXPORT, """
             Export scans like MS1 or fragmentation scans for feature lists. This module supports various \
             output formats and options to control merging and scan selection. This can be useful to export \
@@ -50,7 +50,7 @@ public class ExportScansFeatureListModule extends SingleTaskFeatureListsModule {
   public @NotNull Task createTask(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
       final @Nullable MemoryMapStorage storage, final @NotNull FeatureList[] featureList) {
-    return new ExportScansFeatureListTask(storage, moduleCallDate, parameters, this.getClass(),
+    return new ExportScansFeatureTask(storage, moduleCallDate, parameters, this.getClass(),
         featureList);
   }
 }

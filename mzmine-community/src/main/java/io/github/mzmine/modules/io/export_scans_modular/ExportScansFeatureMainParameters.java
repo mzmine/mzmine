@@ -25,29 +25,22 @@
 
 package io.github.mzmine.modules.io.export_scans_modular;
 
-import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
-import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryExportQualityParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.SpectralLibraryExportFormats;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 import org.jetbrains.annotations.NotNull;
 
-public class ExportScansFeatureListParameters extends SimpleParameterSet {
-
-  public static final MsLevelFilterParameter postMergingMsLevelFilter = new MsLevelFilterParameter(
-      new Options[]{Options.MS2, Options.MSn}, new MsLevelFilter(Options.MSn));
+public class ExportScansFeatureMainParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
@@ -55,7 +48,8 @@ public class ExportScansFeatureListParameters extends SimpleParameterSet {
       "Export file", """
       Local scans file. Use pattern "%s" in the file name to substitute with feature list name.
       (i.e. "prefix_%s_suffix.mgf" would become "prefix_SourceFeatureListName_suffix.mgf").
-      If the file already exists, it will be overwritten.""".formatted(
+      If the file already exists, it will be overwritten.
+      Filename without this pattern means all selected feature lists are exported to the same file.""".formatted(
       SiriusExportTask.MULTI_NAME_PATTERN, SiriusExportTask.MULTI_NAME_PATTERN), "scans");
 
   public static final ComboParameter<SpectralLibraryExportFormats> exportFormat = new ComboParameter<>(
@@ -65,28 +59,26 @@ public class ExportScansFeatureListParameters extends SimpleParameterSet {
   public static final ParameterSetParameter<LibraryBatchMetadataParameters> metadata = new ParameterSetParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
-  public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createWithoutScientific();
+  public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createDefaultScientific();
 
-  public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createSiriusExportAllDefault();
+  public static final AdvancedParametersParameter<AdvancedExportScansFeatureParameters> advanced = new AdvancedParametersParameter<>(
+      new AdvancedExportScansFeatureParameters(), true);
 
-  public static final OptionalModuleParameter<HandleChimericMsMsParameters> handleChimerics = new OptionalModuleParameter<>(
-      "Handle chimeric spectra",
-      "Options to identify and handle chimeric spectra with multiple MS1 signals in the precusor ion selection",
-      new HandleChimericMsMsParameters(), true);
+  public static final OptionalModuleParameter<ExportMs1ScansFeatureParameters> exportMs1 = new OptionalModuleParameter<>(
+      "Export MS1", "Option to also export MS1 scans.", new ExportMs1ScansFeatureParameters());
 
-  public static final ParameterSetParameter<LibraryExportQualityParameters> quality = new ParameterSetParameter<>(
-      "Quality parameters", "Quality parameters for MS/MS spectra to be exported to the library.",
-      new LibraryExportQualityParameters());
+  public static final SubModuleParameter<ExportFragmentScansFeatureParameters> exportFragmentScans = new SubModuleParameter<>(
+      "Export fragment scans", "Control the selection, merging, and export of fragment scans.",
+      new ExportFragmentScansFeatureParameters());
+
 
   /*
    * additional requirements:
    * Export MS1
-   * Select Merge levels to export
-   * Per sample merging
    */
-  public ExportScansFeatureListParameters() {
-    super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer,
-        spectraMergeSelect, handleChimerics, quality);
+  public ExportScansFeatureMainParameters() {
+    super(flists, file, exportFormat, metadata, exportMs1, exportFragmentScans, normalizer,
+        advanced);
   }
 
 

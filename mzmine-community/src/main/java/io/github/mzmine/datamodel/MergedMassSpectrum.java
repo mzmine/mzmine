@@ -85,6 +85,11 @@ public interface MergedMassSpectrum extends Scan {
      */
     SINGLE_BEST_SCAN,
     /**
+     * MS1 spectrum of correlated signals like isotopes, adducts, and other signals with same
+     * retention time or shape
+     */
+    CORRELATED_MS1,
+    /**
      * Merged all {@link MobilityScan}s from a single {@link PasefMsMsInfo} (= single fragmentation
      * event). This spectrum is created by merging multiple mobility scans, but does not fulfill the
      * criteria of the other merging types. It is not acquired from multiple MS2 events or multiple
@@ -130,6 +135,7 @@ public interface MergedMassSpectrum extends Scan {
         case UNDEFINED_ENERGY -> "Undefined energy merged";
         case ALL_ENERGIES -> "All energies merged";
         case ALL_MSN_TO_PSEUDO_MS2 -> "MSn to pseudo MS2 merged";
+        case CORRELATED_MS1 -> "CORRELATED MS"; // required by SIRIUS?
         case PASEF_SINGLE -> "Single PASEF";
       };
     }
@@ -144,6 +150,7 @@ public interface MergedMassSpectrum extends Scan {
         case UNDEFINED_ENERGY -> "UNDEFINED_ENERGY";
         case ALL_ENERGIES -> "ALL_ENERGIES";
         case ALL_MSN_TO_PSEUDO_MS2 -> "ALL_MSN_TO_PSEUDO_MS2";
+        case CORRELATED_MS1 -> "CORRELATED_MS";
         case PASEF_SINGLE -> "PASEF_SINGLE";
       };
     }
