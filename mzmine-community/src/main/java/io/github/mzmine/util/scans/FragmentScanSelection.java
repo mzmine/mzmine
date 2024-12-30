@@ -32,10 +32,12 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.scans.merging.ScanSelectionFilter;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 import io.github.mzmine.util.scans.merging.SpectraMergingResults;
 import io.github.mzmine.util.scans.merging.SpectraMergingResultsNode;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
@@ -131,11 +133,11 @@ public final class FragmentScanSelection {
    * ...
    *
    * @param scans prefiltered list of scans
-   * @return list of merged and single scans
+   * @return modifiable list of merged and single scans
    */
   public @NotNull List<Scan> getAllFragmentSpectra(final List<Scan> scans) {
     if (scans.size() <= 1) {
-      return scans;
+      return new ArrayList<>(scans);
     }
 
     // use set for uniqueness and linked for insertion order
@@ -165,7 +167,8 @@ public final class FragmentScanSelection {
     addSourceScans(scans, result);
 
     // set already filters duplicates
-    return result.stream().filter(Objects::nonNull).filter(postMergingScanFilter::matches).toList();
+    return result.stream().filter(Objects::nonNull).filter(postMergingScanFilter::matches)
+        .collect(CollectionUtils.toArrayList());
   }
 
   private void addSourceScans(List<Scan> source, final Set<Scan> result) {
