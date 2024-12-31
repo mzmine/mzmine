@@ -108,14 +108,29 @@ public class ExportScansFeatureMainParameters extends SimpleParameterSet {
         exportMs1, exportFragmentScans, normalizer, advanced);
   }
 
+  /**
+   * Adds some default settings apart from the arguments
+   *
+   * @param param                           the parameter set to be changed in place
+   * @param exportPath                      base file path and name
+   * @param fileSuffix                      file suffix to define what kind of scans are exported
+   *                                        like unknown_scans
+   * @param libGenMetadata                  metadata for instrument etc
+   * @param mzTolScans                      for merging and for handling of chimerics
+   * @param isolationToleranceForInstrument wider isolation window
+   * @param skipAnnotatedFeatures           useful if annotated features were already exported by
+   *                                        batch library generation module
+   * @param exportMs1                       option to export MS1 as well
+   */
   public static void setAll(final ParameterSet param, final File exportPath,
-      final LibraryBatchMetadataParameters libGenMetadata, final MZTolerance mzTolScans,
-      final MZTolerance isolationToleranceForInstrument, final boolean skipAnnotatedFeatures,
-      final boolean exportMs1, final String fileSuffix) {
+      final String fileSuffix, final LibraryBatchMetadataParameters libGenMetadata,
+      final MZTolerance mzTolScans, final MZTolerance isolationToleranceForInstrument,
+      final boolean skipAnnotatedFeatures, final boolean exportMs1) {
+
     var exportFormat = SpectralLibraryExportFormats.json_mzmine;
-    File fileName = FileAndPathUtil.eraseFormat(exportPath);
-    fileName = new File(fileName.getParentFile(),
-        fileName.getName() + fileSuffix + exportFormat.getExtension());
+
+    File fileName = FileAndPathUtil.getRealFilePathWithSuffix(exportPath, fileSuffix,
+        exportFormat.getExtension());
 
     param.setParameter(ExportScansFeatureMainParameters.file, fileName);
 

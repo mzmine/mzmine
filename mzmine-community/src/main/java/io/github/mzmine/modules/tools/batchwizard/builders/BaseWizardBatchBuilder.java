@@ -74,8 +74,6 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoic
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectOptions;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetSimpleSpectraMergeSelectParameters;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectModuleOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderParameters;
@@ -746,8 +744,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     MZTolerance isolationToleranceForInstrument = getIsolationToleranceForInstrument(steps);
 
-    ExportScansFeatureMainParameters.setAll(param, exportPath, libGenMetadata, mzTolScans,
-        isolationToleranceForInstrument, skipAnnotatedFeatures, false, fileSuffix);
+    ExportScansFeatureMainParameters.setAll(param, exportPath, fileSuffix, libGenMetadata,
+        mzTolScans, isolationToleranceForInstrument, skipAnnotatedFeatures, false);
 
     q.add(
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ExportScansFeatureModule.class),
@@ -771,10 +769,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
 
     // set merging
-    var mergingParameters = PresetSimpleSpectraMergeSelectParameters.create(
-        SpectraMergeSelectPresets.getDefault(), mzTolScans);
     param.getParameter(LibraryBatchGenerationParameters.merging)
-        .setValue(SpectraMergeSelectModuleOptions.SIMPLE_MERGED, mergingParameters);
+        .setSimplePreset(SpectraMergeSelectPresets.REPRESENTATIVE_MSn_TREE, mzTolScans);
 
     param.setParameter(LibraryBatchGenerationParameters.exportFormat, exportFormat);
     param.setParameter(LibraryBatchGenerationParameters.normalizer,
