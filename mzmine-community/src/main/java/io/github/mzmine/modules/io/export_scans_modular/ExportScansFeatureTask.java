@@ -48,6 +48,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.WrongParameterConfigException;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -105,6 +106,7 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
   // status
   public AtomicInteger exported = new AtomicInteger(0);
   private String description = "";
+  private @Nullable ProjectMetadataToLibraryEntryMapper projectMetadataMapper = null;
 
   protected ExportScansFeatureTask(final @Nullable MemoryMapStorage storage,
       final @NotNull Instant moduleCallDate, @NotNull final ParameterSet parameters,
@@ -183,6 +185,14 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
+    try {
+      // mapper for sample wide project metadata
+      initProjectMetadataMapper();
+    } catch (WrongParameterConfigException e) {
+      error(e.getMessage(), e);
+      return;
+    }
+
     totalItems = Arrays.stream(featureLists).mapToLong(FeatureList::getNumberOfRows).sum();
 
     final boolean separateFiles = outFile.getName().contains(SiriusExportTask.MULTI_NAME_PATTERN);
@@ -197,6 +207,16 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
       // export all in a single file
       exportFeatureLists(featureLists, outFile);
     }
+  }
+
+  private void initProjectMetadataMapper() throws WrongParameterConfigException {
+    var mapperParam = parameters.getParameter(
+        ExportScansFeatureMainParameters.projectMetadataMapper);
+    final boolean useProjectMetadata = mapperParam.getValue();
+    if (!useProjectMetadata) {
+      return;
+    }
+    projectMetadataMapper = mapperParam.getEmbeddedParameters().createMapper();
   }
 
   protected void exportFeatureLists(final FeatureList[] featureLists, final File outFile) {
@@ -390,6 +410,11 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
 
       SpectralLibraryEntry entry = entryFactory.createUnknown(getMemoryMapStorage(), row, null,
           scan, dps, chimeric, metadataMap);
+
+      if (projectMetadataMapper != null) {
+        projectMetadataMapper.addMetadataToEntry(entry, scan);
+      }
+
       entries.add(entry);
     }
     return entries;

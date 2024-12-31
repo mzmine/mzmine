@@ -806,8 +806,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         .setEmbeddedParameters(libGenMetadata);
 
     // advanced
-    param.setParameter(ExportScansFeatureMainParameters.advanced, true);
-    var advanced = param.getParameter(ExportScansFeatureMainParameters.advanced)
+    param.setParameter(LibraryBatchGenerationParameters.advanced, true);
+    var advanced = param.getParameter(LibraryBatchGenerationParameters.advanced)
         .getEmbeddedParameters();
     advanced.setParameter(AdvancedExportScansFeatureParameters.compactUSI, true);
 

@@ -34,6 +34,7 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.SpectralLibraryExportFormats;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -73,6 +74,13 @@ public class ExportScansFeatureMainParameters extends SimpleParameterSet {
   public static final ParameterSetParameter<LibraryBatchMetadataParameters> metadata = new ParameterSetParameter<>(
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
+  public static final OptionalModuleParameter<ProjectMetadataToLibraryMapperParameters> projectMetadataMapper = new OptionalModuleParameter<>(
+      "Sample wide metadata", """
+      Transfer sample wide metadata from the project metadata table columns to all entries of those samples.
+      Allows to define 'compound names' and 'descriptions' via project metadata.
+      This allows to measure blank samples and describe their specific properties to create libraries of spectra from blanks
+      , without knowing the compound identity.""", new ProjectMetadataToLibraryMapperParameters());
+
   public static final BooleanParameter skipAnnotatedFeatures = new BooleanParameter(
       "Skip annotated features", """
       Skip annotated features. This is useful if they are already exported with the
@@ -96,8 +104,8 @@ public class ExportScansFeatureMainParameters extends SimpleParameterSet {
    * Export MS1
    */
   public ExportScansFeatureMainParameters() {
-    super(flists, file, exportFormat, metadata, skipAnnotatedFeatures, exportMs1,
-        exportFragmentScans, normalizer, advanced);
+    super(flists, file, exportFormat, metadata, projectMetadataMapper, skipAnnotatedFeatures,
+        exportMs1, exportFragmentScans, normalizer, advanced);
   }
 
   public static void setAll(final ParameterSet param, final File exportPath,
@@ -118,6 +126,10 @@ public class ExportScansFeatureMainParameters extends SimpleParameterSet {
         skipAnnotatedFeatures);
     param.setParameter(ExportScansFeatureMainParameters.normalizer,
         IntensityNormalizer.createScientific());
+
+    // metadata is user defined
+    param.getParameter(ExportScansFeatureMainParameters.metadata)
+        .setEmbeddedParameters((LibraryBatchMetadataParameters) libGenMetadata.cloneParameterSet());
 
     // MS1
     {
@@ -145,7 +157,7 @@ public class ExportScansFeatureMainParameters extends SimpleParameterSet {
 
       // chimerics
       ms2Params.setParameter(ExportFragmentScansFeatureParameters.handleChimerics, true);
-      var chimerics = param.getParameter(ExportFragmentScansFeatureParameters.handleChimerics)
+      var chimerics = ms2Params.getParameter(ExportFragmentScansFeatureParameters.handleChimerics)
           .getEmbeddedParameters();
       chimerics.setParameter(HandleChimericMsMsParameters.option, ChimericMsOption.FLAG);
       chimerics.setParameter(HandleChimericMsMsParameters.mainMassWindow, mzTolScans);
@@ -155,15 +167,27 @@ public class ExportScansFeatureMainParameters extends SimpleParameterSet {
       chimerics.setParameter(HandleChimericMsMsParameters.minimumPrecursorPurity, 0.75);
     }
 
-    // metadata is user defined
-    param.getParameter(ExportScansFeatureMainParameters.metadata)
-        .setEmbeddedParameters((LibraryBatchMetadataParameters) libGenMetadata.cloneParameterSet());
+    // project sample wide metadata
+    {
+      // active if skipping annotated features this means that we are exporting blanks or similar
+      param.setParameter(ExportScansFeatureMainParameters.projectMetadataMapper,
+          skipAnnotatedFeatures);
+      var projectMetaParams = param.getParameter(
+          ExportScansFeatureMainParameters.projectMetadataMapper).getEmbeddedParameters();
+      projectMetaParams.setParameter(
+          ProjectMetadataToLibraryMapperParameters.compoundNameFromSampleMetadata, true,
+          MetadataColumn.FILENAME_HEADER); // use file name as compound name for now
+      projectMetaParams.setParameter(
+          ProjectMetadataToLibraryMapperParameters.descriptionFromSampleMetadata, false, "");
+    }
 
     // advanced
-    param.setParameter(ExportScansFeatureMainParameters.advanced, true);
-    var advanced = param.getParameter(ExportScansFeatureMainParameters.advanced)
-        .getEmbeddedParameters();
-    advanced.setParameter(AdvancedExportScansFeatureParameters.compactUSI, true);
+    {
+      param.setParameter(ExportScansFeatureMainParameters.advanced, true);
+      var advanced = param.getParameter(ExportScansFeatureMainParameters.advanced)
+          .getEmbeddedParameters();
+      advanced.setParameter(AdvancedExportScansFeatureParameters.compactUSI, true);
+    }
   }
 
 

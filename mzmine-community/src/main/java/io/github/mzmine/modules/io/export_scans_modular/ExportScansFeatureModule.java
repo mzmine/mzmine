@@ -38,8 +38,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class ExportScansFeatureModule extends SingleTaskFeatureListsModule {
 
+  public static final String MODULE_NAME = "Export scans (feature list)";
+
   public ExportScansFeatureModule() {
-    super("Export scans (feature list)", ExportScansFeatureMainParameters.class,
+    super(MODULE_NAME, ExportScansFeatureMainParameters.class,
         MZmineModuleCategory.FEATURELISTEXPORT, """
             Export scans like MS1 or fragmentation scans for feature lists. This module supports various \
             output formats and options to control merging and scan selection. This can be useful to export \

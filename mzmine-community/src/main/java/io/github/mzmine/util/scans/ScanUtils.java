@@ -144,6 +144,17 @@ public class ScanUtils {
   }
 
   /**
+   * Source file of scan is defined of other MassSpectra may be undefined and return null
+   */
+  @Nullable
+  public static RawDataFile getDataFile(@NotNull MassSpectrum scan) {
+    return switch (scan) {
+      case Scan s -> s.getDataFile();
+      default -> null;
+    };
+  }
+
+  /**
    * Common utility method to be used as Scan.toString() method in various Scan implementations
    *
    * @param scan Scan to be converted to String

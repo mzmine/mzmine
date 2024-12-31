@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,16 +41,26 @@ public class MetadataGroupingParameter extends StringParameter {
   }
 
   public MetadataGroupingParameter(final String name, final String description,
+      final String defaultValue) {
+    this(name, description, defaultValue, AvailableTypes.values());
+  }
+
+  public MetadataGroupingParameter(final String name, final String description,
       @NotNull AvailableTypes... types) {
+    this(name, description, "", types);
+  }
+
+  public MetadataGroupingParameter(final String name, final String description,
+      final String defaultValue, @NotNull AvailableTypes... types) {
     // extract columnName titles from metadata
-    super(name, description);
+    super(name, description, defaultValue);
     this.types = List.of(types);
   }
 
   public MetadataGroupingParameter() {
     this("Metadata grouping",
         "Group based on metadata columnName. Open sample metadata from the 'Project' menu, "
-            + "\nadd metadata, and open this dialog again.");
+        + "\nadd metadata, and open this dialog again.");
   }
 
   @Override

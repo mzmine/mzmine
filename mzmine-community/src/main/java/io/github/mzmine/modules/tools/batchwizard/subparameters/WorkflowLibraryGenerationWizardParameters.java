@@ -35,7 +35,7 @@ import java.io.File;
 public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWizardParameters {
 
   public static final BooleanParameter exportUnknownScansFile = new BooleanParameter(
-      "Export 'unknowns' file",
+      "Export scans file for 'unknowns'",
       "Library generation only exports scans of annotated features. This option exports another file for unannotated features.",
       false);
 
