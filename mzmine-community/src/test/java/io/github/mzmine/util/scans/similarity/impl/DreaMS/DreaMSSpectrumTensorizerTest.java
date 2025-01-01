@@ -33,13 +33,10 @@ import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.scans.ScanUtils;
-import io.github.mzmine.util.scans.similarity.impl.ms2deepscore.MS2DeepscoreSettings;
-import io.github.mzmine.util.scans.similarity.impl.ms2deepscore.MS2DeepscoreSpectrumTensorizer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 
 class DreaMSSpectrumTensorizerTest {
 
