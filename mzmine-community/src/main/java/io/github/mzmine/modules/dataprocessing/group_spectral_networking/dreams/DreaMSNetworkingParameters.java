@@ -65,6 +65,12 @@ public class DreaMSNetworkingParameters extends SimpleParameterSet {
             "The file location of the DreaMS model, click download to download the model.",
             List.of(ExtensionFilters.PT), AssetGroup.DREAMS);
 
+    public static final IntegerParameter batchSize = new IntegerParameter("Batch size",
+            "A number of mass spectra to process in a single forward pass through the DreaMS model when " +
+                    "computing embeddings. Lowering this number reduces the likelihood of memory errors but slows " +
+                    "down the computation.",
+            32, true, 1, null);
+
 
     public DreaMSNetworkingParameters() {
         /*
@@ -72,7 +78,7 @@ public class DreaMSNetworkingParameters extends SimpleParameterSet {
          */
         super(
                 "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
-                dreaMSModelFile, minScore, numNeighbors);
+                dreaMSModelFile, minScore, numNeighbors, batchSize);
     }
 
     /**

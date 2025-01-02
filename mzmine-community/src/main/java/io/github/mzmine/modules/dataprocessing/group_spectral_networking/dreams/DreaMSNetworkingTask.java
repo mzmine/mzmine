@@ -62,6 +62,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
     private final @NotNull FeatureList[] featureLists;
     private final double minScore;
     private final int numNeighbors;
+    private final int batchSize;
     private final File dreamsModelFile;
     private final File dreamsSettingsFile;
     private String description;
@@ -83,6 +84,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
         // Get parameter values for easier use
         minScore = subParams.getValue(DreaMSNetworkingParameters.minScore);
         numNeighbors = subParams.getValue(DreaMSNetworkingParameters.numNeighbors);
+        batchSize = subParams.getValue(DreaMSNetworkingParameters.batchSize);
         dreamsModelFile = subParams.getValue(
                 DreaMSNetworkingParameters.dreaMSModelFile);
         // same folder - same name
@@ -97,7 +99,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
         // init model
         description = "Loading model";
         // auto close model after use
-        try (var model = new DreaMSModel(dreamsModelFile, dreamsSettingsFile)) {
+        try (var model = new DreaMSModel(dreamsModelFile, dreamsSettingsFile, batchSize)) {
             description = "Calculating DreaMS similarity";
             // estimate work load - like how many elements to process
             totalItems = Arrays.stream(featureLists).mapToLong(FeatureList::getNumberOfRows).sum();
