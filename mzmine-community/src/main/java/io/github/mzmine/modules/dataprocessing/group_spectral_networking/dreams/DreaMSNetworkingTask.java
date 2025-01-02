@@ -140,7 +140,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
         R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows,
                 similarityMatrix);
         R2RNetworkingMaps rowMaps = featureList.getRowMaps();
-        rowMaps.addAllRowsRelationships(relationsMap, Type.MS2Deepscore);
+        rowMaps.addAllRowsRelationships(relationsMap, Type.DREAMS);
         // stats are currently only available for modified cosine
 //    addNetworkStatisticsToRows(featureList, rowMaps);
     }
@@ -154,7 +154,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
                     float similarityScore = similarityMatrix[i][j];
                     if (similarityScore > minScore) {
                         var r2r = new R2RSimpleSimilarity(featureListRow.get(i), featureListRow.get(j),
-                                Type.MS2Deepscore, similarityScore);
+                                Type.DREAMS, similarityScore);
                         relationsMap.add(featureListRow.get(i), featureListRow.get(j), r2r);
                     }
                 }
