@@ -143,7 +143,14 @@ public interface ParameterSet extends ParameterContainer {
     return getParameter(parameter).getEmbeddedParameters();
   }
 
-  void loadValuesFromXML(Element element);
+  /**
+   * @return a Map of parameter name to parameters that were actually loaded from XML - parameters
+   * missing from this set were not in the loaded from XML. Key is the name of the current parameter
+   * otherwise the retrieval is hard because the static instances of parameters are not the actually
+   * loaded instances in this parameterset (usually {@link #cloneParameterSet()} is called at some
+   * point).
+   */
+  Map<String, Parameter<?>> loadValuesFromXML(Element element);
 
   void saveValuesToXML(Element element);
 
@@ -167,13 +174,12 @@ public interface ParameterSet extends ParameterContainer {
    */
   default Map<String, Parameter<?>> getNameParameterMap() {
     var parameters = getParameters();
-    Map<String, Parameter<?>> nameParameterMap = new HashMap<>(parameters.length);
+    Map<String, Parameter<?>> nameParameterMap = HashMap.newHashMap(parameters.length);
     for (final Parameter<?> p : parameters) {
       nameParameterMap.put(p.getName(), p);
     }
     return nameParameterMap;
   }
-
 
   /**
    * check all parameters. Also {@link FeatureListsParameter} and {@link RawDataFilesParameter}.

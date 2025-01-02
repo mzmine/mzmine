@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithInputComponent;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
@@ -45,12 +46,15 @@ import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumCo
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
+import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
+@SuppressWarnings("deprecation")
 public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
@@ -87,6 +91,20 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
       "Similarity", "Algorithm to calculate similarity and filter matches",
       SpectralSimilarityFunctions.WEIGHTED_COSINE);
 
+  // outdated ex parameters that were replaced but still need to be loaded from old batch files
+  // better not static so that they are not shown for this class
+  // private final so that they are used internally, only during load
+  private final ComboParameter<LegacyScanMatchingSelection> scanMatchingSelection = new ComboParameter<>(
+      "Scans for matching", """
+      Choose the MS level and experimental scans to match against the library. MS1 for GC-EI-MS data,
+      MERGED: will merge all fragment scans, creating one merged spectrum for each fragmentation energy,
+              and one consensus spectrum merged from those different energies.
+      ALL: will use all available raw fragment scans + the ones from merging.
+      MS2: limits the final list to MS2 scans
+      MS2 (merged): and a scan were all MSn scans are merged into one 'pseudo' MS2 scan
+      MSn: defines all fragment scans of MS level 2 and higher
+          """, LegacyScanMatchingSelection.values(), LegacyScanMatchingSelection.MERGED_MSN);
+
   public SpectralLibrarySearchParameters() {
     super(new Parameter[]{libraries, peakLists, spectraMergeSelect, msLevelFilter,
             mzTolerancePrecursor, mzTolerance, removePrecursor, minMatch, similarityFunction, advanced},
@@ -96,7 +114,7 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   /**
    * for SelectedRowsParameters
    */
-  protected SpectralLibrarySearchParameters(Parameter[] parameters) {
+  protected SpectralLibrarySearchParameters(Parameter<?>... parameters) {
     super(parameters);
   }
 
@@ -138,6 +156,32 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> loadValuesFromXML(final Element xmlElement) {
+    var changedParameters = super.loadValuesFromXML(xmlElement);
+    if (changedParameters.containsKey(scanMatchingSelection.getName())) {
+      // old batch with scan selection loaded - apply parameters to new parameters that replaced it
+      // legacy parameter need to retrieve value directly because getValue would throw exception
+      final LegacyScanMatchingSelection selection = scanMatchingSelection.getValue();
+      var msLevel = selection == LegacyScanMatchingSelection.MS1 ? Options.MS1 : Options.MS2;
+      setParameter(msLevelFilter, new MsLevelFilter(msLevel));
+    }
+    if (changedParameters.containsKey(mzTolerance.getName())) {
+      // use spectral mz tolerance as merging tolerance
+      getParameter(spectraMergeSelect).setMzTolerance(getValue(mzTolerance));
+    }
+    return null;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var nameParameterMap = super.getNameParameterMap();
+    // add removed legacy parameters here so that they are loaded from xml
+    // those parameters need to be handled in the {@link #loadValuesFromXML} method
+    nameParameterMap.put(scanMatchingSelection.getName(), scanMatchingSelection);
+    return nameParameterMap;
   }
 
   @Override

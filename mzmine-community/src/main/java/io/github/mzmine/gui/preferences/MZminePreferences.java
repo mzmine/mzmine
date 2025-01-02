@@ -35,6 +35,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.download.AssetGroup;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -228,8 +229,7 @@ public class MZminePreferences extends SimpleParameterSet {
       "Apply peak picking (recommended)", """
       Apply vendor peak picking during import of native vendor files with MSConvert.
       Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
-      Peak picking is only """,
-      true);
+      Peak picking is only """, true);
 
   public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
       "Thermo data import", """
@@ -465,7 +465,7 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   @Override
-  public void loadValuesFromXML(Element xmlElement) {
+  public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
     super.loadValuesFromXML(xmlElement);
     updateSystemProxySettings();
     updateGuiFormat();
@@ -476,6 +476,7 @@ public class MZminePreferences extends SimpleParameterSet {
     if (StringUtils.hasValue(username)) {
       UsersController.getInstance().setCurrentUserByName(username);
     }
+    return null;
   }
 
   private void updateSystemProxySettings() {
