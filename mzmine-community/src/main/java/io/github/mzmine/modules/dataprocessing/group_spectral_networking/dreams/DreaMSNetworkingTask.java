@@ -53,13 +53,15 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static io.github.mzmine.util.collections.CollectionUtils.argsort;
+
 
 public class DreaMSNetworkingTask extends AbstractFeatureListTask {
 
     private static final Logger logger = Logger.getLogger(DreaMSNetworkingTask.class.getName());
     private final @NotNull FeatureList[] featureLists;
-    private final int minSignals;
     private final double minScore;
+    private final int numNeighbors;
     private final File dreamsModelFile;
     private final File dreamsSettingsFile;
     private String description;
@@ -79,8 +81,8 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
 
         this.featureLists = featureLists;
         // Get parameter values for easier use
-        minSignals = subParams.getValue(DreaMSNetworkingParameters.minSignals);
         minScore = subParams.getValue(DreaMSNetworkingParameters.minScore);
+        numNeighbors = subParams.getValue(DreaMSNetworkingParameters.numNeighbors);
         dreamsModelFile = subParams.getValue(
                 DreaMSNetworkingParameters.dreaMSModelFile);
         // same folder - same name
@@ -109,6 +111,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
     }
 
     private void processFeatureList(FeatureList featureList, DreaMSModel model) {
+        description = "Calculate DreaMS similarity";
         List<Scan> scanList = new ArrayList<>();
         List<FeatureListRow> featureListRows = new ArrayList<>();
 
@@ -121,28 +124,29 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
                 throw new MissingMassListException(scan);
             }
 
-            if (scan.getMassList().getNumberOfDataPoints() >= minSignals) {
-                // add scan here because the model needs precursor mz and scan polarity
-                // later it will extract mass list again for signals
-                scanList.add(scan);
-                featureListRows.add(row);
-            }
+            scanList.add(scan);
+            featureListRows.add(row);
         }
 
+        // Predict the matrix of pairwise DreaMS similarities
         float[][] similarityMatrix;
         try {
             similarityMatrix = model.predictMatrixSymmetric(scanList);
         } catch (TranslateException e) {
             throw new RuntimeException(e);
         }
-        description = "Calculate DreaMS similarity";
-//    Convert the similarity matrix to a R2RMap
+
+        // Choose numNeighbors nearest neighbors for each spectrum
+        similarityMatrix = toKNNMatrix(similarityMatrix, numNeighbors);
+
+        // Convert the similarity matrix to a R2RMap
         R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows,
                 similarityMatrix);
         R2RNetworkingMaps rowMaps = featureList.getRowMaps();
         rowMaps.addAllRowsRelationships(relationsMap, Type.DREAMS);
+
         // stats are currently only available for modified cosine
-//    addNetworkStatisticsToRows(featureList, rowMaps);
+        // addNetworkStatisticsToRows(featureList, rowMaps);
     }
 
     public R2RMap<R2RSimpleSimilarity> convertMatrixToR2RMap(List<FeatureListRow> featureListRow,
@@ -171,6 +175,35 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
     @Override
     protected @NotNull List<FeatureList> getProcessedFeatureLists() {
         return List.of(featureLists);
+    }
+
+    public static float[][] toKNNMatrix(float[][] matrix, int k) {
+
+        // Create a new matrix to store the result
+        int n = matrix.length;
+        float[][] knnMatrix = new float[n][n];
+
+        // Iterate through each row
+        for (int i = 0; i < n; i++) {
+            // Get the indices sorted by values in descending order
+            int[] sortedIndices = argsort(matrix[i]);
+
+            // Retain the k largest non-diagonal elements
+            int count = 0;
+            for (int j = 0; j < n && count < k; j++) {
+                int col = sortedIndices[j];
+                if (col != i) { // Exclude the diagonal
+                    knnMatrix[i][col] = matrix[i][col];
+                    knnMatrix[col][i] = matrix[i][col]; // Enforce symmetry
+                    count++;
+                }
+            }
+
+            // Retain the diagonal as it is
+            knnMatrix[i][i] = matrix[i][i];
+        }
+
+        return knnMatrix;
     }
 
 }

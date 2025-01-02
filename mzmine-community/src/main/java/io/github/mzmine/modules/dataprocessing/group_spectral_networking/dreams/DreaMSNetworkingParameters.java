@@ -53,14 +53,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DreaMSNetworkingParameters extends SimpleParameterSet {
 
-//    TODO: update parameters for k-NN networking
-
-    public static final IntegerParameter minSignals = new IntegerParameter("Minimum signals",
-            "The minimum number of fragments for using a spectrum (minimum = 3, default = 4)", 4, 3,
-            null);
-
     public static final PercentParameter minScore = new PercentParameter("Min similarity",
-            "The minimum similarity score to store the DreaMS prediction", 0.9, 0.0, 1.0);
+            "The minimum similarity score to store the DreaMS prediction", 0.75, 0.0, 1.0);
+
+    public static final IntegerParameter numNeighbors = new IntegerParameter("Num. neighbors",
+            "The number of nearest neighbors to display for each node in the network. If left empty, all edges will be displayed.",
+            3, false);
 
     public static final FileNameWithDownloadParameter dreaMSModelFile = new FileNameWithDownloadParameter(
             "DreaMS model",
@@ -74,7 +72,7 @@ public class DreaMSNetworkingParameters extends SimpleParameterSet {
          */
         super(
                 "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
-                dreaMSModelFile, minSignals, minScore);
+                dreaMSModelFile, minScore, numNeighbors);
     }
 
     /**
