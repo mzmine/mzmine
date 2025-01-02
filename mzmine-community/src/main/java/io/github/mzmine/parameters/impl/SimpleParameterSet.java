@@ -143,6 +143,7 @@ public class SimpleParameterSet implements ParameterSet {
         }
       }
     }
+    handleLoadedParameters(loadedParameters);
     return loadedParameters;
   }
 

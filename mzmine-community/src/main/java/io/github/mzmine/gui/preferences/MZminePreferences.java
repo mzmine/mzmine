@@ -74,7 +74,6 @@ import javafx.collections.FXCollections;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
 
 public class MZminePreferences extends SimpleParameterSet {
 
@@ -465,8 +464,7 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   @Override
-  public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
-    super.loadValuesFromXML(xmlElement);
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
     updateSystemProxySettings();
     updateGuiFormat();
     darkModeProperty.set(getValue(MZminePreferences.theme).isDark());
@@ -476,7 +474,6 @@ public class MZminePreferences extends SimpleParameterSet {
     if (StringUtils.hasValue(username)) {
       UsersController.getInstance().setCurrentUserByName(username);
     }
-    return null;
   }
 
   private void updateSystemProxySettings() {

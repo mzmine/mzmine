@@ -52,7 +52,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
 
 @SuppressWarnings("deprecation")
 public class SpectralLibrarySearchParameters extends SimpleParameterSet {
@@ -159,20 +158,18 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   }
 
   @Override
-  public Map<String, Parameter<?>> loadValuesFromXML(final Element xmlElement) {
-    var changedParameters = super.loadValuesFromXML(xmlElement);
-    if (changedParameters.containsKey(scanMatchingSelection.getName())) {
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+    if (loadedParams.containsKey(scanMatchingSelection.getName())) {
       // old batch with scan selection loaded - apply parameters to new parameters that replaced it
       // legacy parameter need to retrieve value directly because getValue would throw exception
       final LegacyScanMatchingSelection selection = scanMatchingSelection.getValue();
       var msLevel = selection == LegacyScanMatchingSelection.MS1 ? Options.MS1 : Options.MS2;
       setParameter(msLevelFilter, new MsLevelFilter(msLevel));
     }
-    if (changedParameters.containsKey(mzTolerance.getName())) {
+    if (loadedParams.containsKey(mzTolerance.getName())) {
       // use spectral mz tolerance as merging tolerance
       getParameter(spectraMergeSelect).setMzTolerance(getValue(mzTolerance));
     }
-    return null;
   }
 
   @Override

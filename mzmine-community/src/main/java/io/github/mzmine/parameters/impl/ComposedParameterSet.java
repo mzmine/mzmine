@@ -66,8 +66,12 @@ public abstract class ComposedParameterSet implements ParameterSet {
 
   @Override
   public Map<String, Parameter<?>> loadValuesFromXML(final Element element) {
-    getParamSet().loadValuesFromXML(element);
-    return null;
+    return getParamSet().loadValuesFromXML(element);
+  }
+
+  @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+    getParamSet().handleLoadedParameters(loadedParams);
   }
 
   @Override
