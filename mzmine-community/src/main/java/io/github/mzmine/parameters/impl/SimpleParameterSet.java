@@ -82,12 +82,14 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   public SimpleParameterSet(String onlineHelpUrl, Parameter<?>... parameters) {
-    this.helpUrl = onlineHelpUrl;
-    this.parameters = parameters;
+    this(parameters, onlineHelpUrl);
   }
 
   public SimpleParameterSet(Parameter<?>[] parameters, String onlineHelpUrl) {
-    this.parameters = parameters;
+    // clone parameters here so that there is never a use of the static parameters that are
+    // usually used to construct parameters and to find parameters by their name
+    this.parameters = Arrays.stream(parameters).map(Parameter::cloneParameter)
+        .toArray(Parameter[]::new);
     this.helpUrl = onlineHelpUrl;
   }
 
