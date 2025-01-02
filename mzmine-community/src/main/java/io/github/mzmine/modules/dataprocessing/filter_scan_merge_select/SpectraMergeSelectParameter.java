@@ -33,6 +33,7 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.FragmentScanSelection;
@@ -200,6 +201,18 @@ public class SpectraMergeSelectParameter extends
       final @Nullable MemoryMapStorage storage) {
     var value = getValue();
     return value.createFragmentScanSelection(storage, getEmbeddedParameters(value));
+  }
+
+  /**
+   * Set all mz tolerances for merging in all embedded parameter sets
+   *
+   * @param mzTol the new value
+   */
+  public void setMzTolerance(final MZTolerance mzTol) {
+    for (final ParameterSet params : parametersMap.values()) {
+      params.streamForClass(MZToleranceParameter.class)
+          .forEach(mzTolParam -> mzTolParam.setValue(mzTol));
+    }
   }
 
   /**
