@@ -160,6 +160,18 @@ public class FeatureDataUtils {
   }
 
   /**
+   * Caclualtes the highest point of the intensity series. Usually, this method is not needed
+   * because {@link #getIntensityRange(IntensitySeries)} returns more information.
+   */
+  public static float getHeight(IntensitySeries series) {
+    final Range<Float> range = getIntensityRange(series);
+    if (range == null) {
+      return 0f;
+    }
+    return range.upperEndpoint();
+  }
+
+  /**
    * @param series The series. Ascending or descending mobility.
    * @return The mobility range. Null if no range can be specified.
    */
