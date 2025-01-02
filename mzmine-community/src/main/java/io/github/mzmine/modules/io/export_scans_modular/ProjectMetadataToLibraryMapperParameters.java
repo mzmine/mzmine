@@ -35,14 +35,14 @@ import io.github.mzmine.project.ProjectService;
 public class ProjectMetadataToLibraryMapperParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<MetadataGroupingParameter> compoundNameFromSampleMetadata = new OptionalParameter<>(
-      new MetadataGroupingParameter("Sample metadata as compound name", """
+      new MetadataGroupingParameter("Compound name from metadata column", """
           A metadata column title. Uses project sample metadata as compound names. Use the project metadata to define names in a column.
           This way a sample may be defined as a blank of a specific type. Then all spectra are exported with this name to link to potential contamination sources. 
           This is useful when exporting unknown spectra from blanks with a name like 'well plates from XY company'""",
           MetadataColumn.FILENAME_HEADER));
 
   public static final OptionalParameter<MetadataGroupingParameter> descriptionFromSampleMetadata = new OptionalParameter<>(
-      new MetadataGroupingParameter("Sample metadata as description", """
+      new MetadataGroupingParameter("Description from metadata column", """
           A metadata column title. Uses project sample metadata as entry description. Use the project metadata to define the description entered in a column.
           This way a sample may be defined as a blank of a specific type. Then all spectra are exported with this description to link to potential contamination sources. 
           This is useful when exporting unknown spectra from blanks with a description like 'well plates from XY company'"""));

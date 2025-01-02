@@ -26,12 +26,12 @@
 package io.github.mzmine.parameters.parametertypes.metadata;
 
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.StringValueParameter;
 import java.util.List;
-import javafx.scene.control.TextField;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class MetadataGroupingParameter extends StringParameter {
+public class MetadataGroupingParameter extends StringValueParameter<MetadataGroupingComponent> {
 
   private final List<AvailableTypes> types;
 
@@ -64,7 +64,25 @@ public class MetadataGroupingParameter extends StringParameter {
   }
 
   @Override
-  public TextField createEditingComponent() {
+  public MetadataGroupingComponent createEditingComponent() {
     return new MetadataGroupingComponent(types);
+  }
+
+  @Override
+  public void setValueFromComponent(final MetadataGroupingComponent comp) {
+    setValue(comp.getValue());
+  }
+
+  @Override
+  public void setValueToComponent(final MetadataGroupingComponent comp,
+      @Nullable final String newValue) {
+    comp.setValue(newValue);
+  }
+
+  @Override
+  public MetadataGroupingParameter cloneParameter() {
+    MetadataGroupingParameter copy = new MetadataGroupingParameter(name, description, getValue(),
+        types.toArray(AvailableTypes[]::new));
+    return copy;
   }
 }
