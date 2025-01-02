@@ -26,7 +26,6 @@
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.util.scans.ScanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -103,7 +102,14 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
    */
   public boolean accept(MassSpectrum scan) {
     int msLevel = ScanUtils.getMsLevel(scan).orElse(0);
+    return accept(msLevel);
+  }
 
+  /**
+   * @param msLevel tested level
+   * @return true if ms level matches filter
+   */
+  public boolean accept(int msLevel) {
     return switch (filter) {
       case ALL -> true;
       case MS1 -> msLevel == 1;
@@ -117,8 +123,16 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
    * @param scan the tested scan
    * @return true if scan does not match filter
    */
-  public boolean notMatch(Scan scan) {
+  public boolean notMatch(MassSpectrum scan) {
     return !accept(scan);
+  }
+
+  /**
+   * @param msLevel tested level
+   * @return false if ms level matches filter
+   */
+  public boolean notMatch(int msLevel) {
+    return !accept(msLevel);
   }
 
   /**
@@ -148,6 +162,15 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
 
   public boolean isMs1Only() {
     return isSingleMsLevel(1);
+  }
+
+  /**
+   * Same like notMatch(1)
+   *
+   * @return true if MS1 is excluded so if only MS2 or MSn are selected. False if MS1 is included
+   */
+  public boolean isFragmentationNoMS1() {
+    return notMatch(1);
   }
 
   public boolean isMs2Only() {
