@@ -316,7 +316,7 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
   protected boolean checkPreConditions(final FeatureListRow row) {
     // option to overwrite this method to control which row is processed
     if (skipAnnotatedFeatures && CompoundAnnotationUtils.streamFeatureAnnotations(row).findFirst()
-        .isEmpty()) {
+        .isPresent()) {
       return false;
     }
     return true;
