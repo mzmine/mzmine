@@ -33,7 +33,7 @@ public class InputSpectraSelectModule implements SpectraMergeSelectModule {
 
   @Override
   public @NotNull String getName() {
-    return "Source spectra selection";
+    return "Input spectra selection";
   }
 
   @Override

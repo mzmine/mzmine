@@ -36,8 +36,8 @@ import io.github.mzmine.util.scans.merging.SpectraMerger;
  * There are simple preset based setups in {@link PresetSimpleSpectraMergeSelectParameters} and
  * {@link PresetAdvancedSpectraMergeSelectParameters} for simple merging setup of commonly used
  * combinations. The {@link InputSpectraSelectParameters} allows selecting all or the most intense
- * source spectra without merging. The {@link AdvancedSpectraMergeSelectParameters} allow the full
- * setup of merging and source spectra selection but is quite complex. Therefore, some modules may
+ * input spectra without merging. The {@link AdvancedSpectraMergeSelectParameters} allow the full
+ * setup of merging and input spectra selection but is quite complex. Therefore, some modules may
  * choose to hide this option or even some of the simpler presets.
  * <p>
  * Finally, the actual selection and merging are done by {@link FragmentScanSelection} and

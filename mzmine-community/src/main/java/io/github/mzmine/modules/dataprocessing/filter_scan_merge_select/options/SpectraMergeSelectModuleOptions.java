@@ -50,10 +50,10 @@ import org.jetbrains.annotations.Nullable;
  */
 public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineModule> {
 
-  SIMPLE_MERGED, PRESET_MERGED, SOURCE_SCANS, ADVANCED;
+  SIMPLE_MERGED, PRESET_MERGED, INPUT_SCANS, ADVANCED;
 
   public static SpectraMergeSelectModuleOptions[] defaultValuesNoAdvanced() {
-    return new SpectraMergeSelectModuleOptions[]{SIMPLE_MERGED, PRESET_MERGED, SOURCE_SCANS};
+    return new SpectraMergeSelectModuleOptions[]{SIMPLE_MERGED, PRESET_MERGED, INPUT_SCANS};
   }
 
 
@@ -62,7 +62,7 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
     return switch (this) {
       case SIMPLE_MERGED -> PresetSimpleSpectraMergeSelectModule.class;
       case PRESET_MERGED -> PresetAdvancedSpectraMergeSelectModule.class;
-      case SOURCE_SCANS -> InputSpectraSelectModule.class;
+      case INPUT_SCANS -> InputSpectraSelectModule.class;
       case ADVANCED -> AdvancedSpectraMergeSelectModule.class;
     };
   }
@@ -72,7 +72,7 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
     return switch (this) {
       case SIMPLE_MERGED -> "Merged (simple)";
       case PRESET_MERGED -> "Merged (preset)";
-      case SOURCE_SCANS -> "Source scans";
+      case INPUT_SCANS -> "Input scans";
       case ADVANCED -> "Advanced";
     };
   }
@@ -80,7 +80,7 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
   public boolean usesPreset() {
     return switch (this) {
       case SIMPLE_MERGED, PRESET_MERGED -> true;
-      case SOURCE_SCANS, ADVANCED -> false;
+      case INPUT_SCANS, ADVANCED -> false;
     };
   }
 
@@ -89,7 +89,7 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
     return switch (this) {
       case SIMPLE_MERGED -> "simple_merged";
       case PRESET_MERGED -> "preset_merged";
-      case SOURCE_SCANS -> "source_scans";
+      case INPUT_SCANS -> "input_scans";
       case ADVANCED -> "advanced";
     };
   }
@@ -97,7 +97,7 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
   /**
    * Creates the merger and filters needed in fragment scan selection
    *
-   * @return a fragment scan selection either merging scans or just selecting source scans
+   * @return a fragment scan selection either merging scans or just selecting input scans
    */
   @NotNull
   public FragmentScanSelection createFragmentScanSelection(final @Nullable MemoryMapStorage storage,
@@ -108,7 +108,7 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
         AdvancedSpectraMergeSelectParameters.finalScanSelection);
 
     @Nullable SpectraMerger merger;
-    if (this == SOURCE_SCANS) {
+    if (this == INPUT_SCANS) {
       merger = null;
     } else {
       // merging active
@@ -154,10 +154,10 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
         yield AdvancedSpectraMergeSelectParameters.createParams(finalSelection, mzTol,
             intensityMergingType);
       }
-      case SOURCE_SCANS -> {
+      case INPUT_SCANS -> {
         MergedSpectraFinalSelectionTypes value = params.getValue(
-            InputSpectraSelectParameters.sourceSelectionTypes).toFinalSelectionTypes();
-        yield AdvancedSpectraMergeSelectParameters.createSourceScanParams(
+            InputSpectraSelectParameters.inputSelectionType).toFinalSelectionTypes();
+        yield AdvancedSpectraMergeSelectParameters.createInputScanParams(
             List.of(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES, value));
       }
       case ADVANCED -> params;

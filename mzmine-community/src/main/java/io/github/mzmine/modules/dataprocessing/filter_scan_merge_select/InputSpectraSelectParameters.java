@@ -32,7 +32,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Option to simply select all or most intense source scan instead of spectral merging in
+ * Option to simply select all or most intense input scan instead of spectral merging in
  * {@link SpectraMergeSelectModule} and {@link SpectraMergeSelectParameter}
  */
 public class InputSpectraSelectParameters extends SimpleParameterSet {
@@ -63,12 +63,12 @@ public class InputSpectraSelectParameters extends SimpleParameterSet {
     }
   }
 
-  public static ComboParameter<SelectOptions> sourceSelectionTypes = new ComboParameter<>(
-      "Scan selection", "Select the source scans without merging", SelectOptions.values(),
+  public static ComboParameter<SelectOptions> inputSelectionType = new ComboParameter<>(
+      "Scan selection", "Select input scans without merging", SelectOptions.values(),
       SelectOptions.SINGLE_MOST_INTENSE_INPUT_SCAN);
 
   public InputSpectraSelectParameters() {
-    super(sourceSelectionTypes);
+    super(inputSelectionType);
   }
 
 }

@@ -109,7 +109,7 @@ public class ExportScansFeatureMainParameters extends SimpleParameterSet {
   }
 
   /**
-   * Adds some default settings apart from the arguments
+   * Adds some default settings apart from the arguments. USI are always set to compact.
    *
    * @param param                           the parameter set to be changed in place
    * @param exportPath                      base file path and name

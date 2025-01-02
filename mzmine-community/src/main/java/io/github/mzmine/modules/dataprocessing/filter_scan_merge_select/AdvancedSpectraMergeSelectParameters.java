@@ -64,10 +64,10 @@ public class AdvancedSpectraMergeSelectParameters extends SimpleParameterSet {
     super(finalScanSelection, mergeMzTolerance, intensityMergeType);
   }
 
-  public static ParameterSet createSourceScanParams(
+  public static ParameterSet createInputScanParams(
       final List<MergedSpectraFinalSelectionTypes> scanSelection) {
     // mz tol and other merging specific values cannot be null but need to be set
-    // will not be used when only source scans are selected
+    // will not be used when only input scans are selected
     return createParams(scanSelection, MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA,
         IntensityMergingType.MAXIMUM);
   }

@@ -462,7 +462,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     // going back into scans so rather use scan mz tol
     param.getParameter(SiriusExportParameters.spectraMergeSelect)
-        .setUseSourceScans(SelectOptions.ALL_INPUT_SCANS);
+        .setUseInputScans(SelectOptions.ALL_INPUT_SCANS);
     param.setParameter(SiriusExportParameters.NORMALIZE, IntensityNormalizer.createScientific());
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTICHARGE, false);
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTIMERS, false);
@@ -1352,7 +1352,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         .getEmbeddedParameters();
     // all input scans as default to avoid to many chimeric merged spectra in lipids
     ms2Param.getParameter(LipidAnnotationMSMSParameters.spectraMergeSelect)
-        .setUseSourceScans(SelectOptions.ALL_INPUT_SCANS);
+        .setUseInputScans(SelectOptions.ALL_INPUT_SCANS);
     ms2Param.setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
     ms2Param.setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
     ms2Param.setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
