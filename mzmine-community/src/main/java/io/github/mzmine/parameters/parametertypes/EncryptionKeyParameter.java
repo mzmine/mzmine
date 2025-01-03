@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,16 +24,15 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
-import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.StringCrypter;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Logger;
+import org.w3c.dom.Element;
 
 public class EncryptionKeyParameter implements Parameter<StringCrypter> {
+
   private StringCrypter value;
 
   @Override
@@ -60,26 +59,30 @@ public class EncryptionKeyParameter implements Parameter<StringCrypter> {
   public void loadValueFromXML(Element xmlElement) {
     try {
       final String nuVal = xmlElement.getTextContent();
-      if (nuVal == null || nuVal.isEmpty())
+      if (nuVal == null || nuVal.isEmpty()) {
         return;
+      }
       value = new StringCrypter(nuVal);
     } catch (IOException e) {
       Logger.getLogger(this.getClass().getName()).warning("Could not load Encryption key! "
-          + "Encrypted parameters in the config file might not be decryptable.");
+                                                          + "Encrypted parameters in the config file might not be decryptable.");
     }
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     xmlElement.setTextContent(value.toString());
   }
 
   @Override
   public Parameter<StringCrypter> cloneParameter() {
     EncryptionKeyParameter newP = new EncryptionKeyParameter();
-    newP.setValue(new StringCrypter(value.toBytes()));
+    if (this.value != null) {
+      newP.setValue(new StringCrypter(value.toBytes()));
+    }
     return newP;
   }
 

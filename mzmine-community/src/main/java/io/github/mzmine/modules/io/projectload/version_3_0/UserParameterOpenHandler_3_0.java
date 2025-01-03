@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,8 +44,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class UserParameterOpenHandler_3_0 extends DefaultHandler
-    implements UserParameterOpenHandler {
+public class UserParameterOpenHandler_3_0 extends DefaultHandler implements
+    UserParameterOpenHandler {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -93,8 +93,9 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
    */
   @Override
   public double getProgress() {
-    if (totalParams == 0)
+    if (totalParams == 0) {
       return 0;
+    }
     return (double) parsedParams / totalParams;
   }
 
@@ -110,25 +111,21 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
   public void startElement(String namespaceURI, String lName, String qName, Attributes attrs)
       throws SAXException {
 
-    if (canceled)
+    if (canceled) {
       throw new SAXException("Parsing canceled");
+    }
 
     // <PARAMETERS>
-    if (qName.equals(
-        UserParameterElementName_3_0.PARAMETERS.getElementName())) {
-      String count = attrs.getValue(
-          UserParameterElementName_3_0.COUNT.getElementName());
+    if (qName.equals(UserParameterElementName_3_0.PARAMETERS.getElementName())) {
+      String count = attrs.getValue(UserParameterElementName_3_0.COUNT.getElementName());
       totalParams = Integer.parseInt(count);
     }
 
     // <PARAMETER>
-    if (qName.equals(
-        UserParameterElementName_3_0.PARAMETER.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0.PARAMETER.getElementName())) {
 
-      String name = attrs.getValue(
-          UserParameterElementName_3_0.NAME.getElementName());
-      String type = attrs.getValue(
-          UserParameterElementName_3_0.TYPE.getElementName());
+      String name = attrs.getValue(UserParameterElementName_3_0.NAME.getElementName());
+      String type = attrs.getValue(UserParameterElementName_3_0.TYPE.getElementName());
 
       if (type.equals(DoubleParameter.class.getSimpleName())) {
         currentParameter = new DoubleParameter(name, null);
@@ -148,10 +145,8 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
     }
 
     // <VALUE>
-    if (qName.equals(
-        UserParameterElementName_3_0.VALUE.getElementName())) {
-      currentDataFileID = attrs.getValue(
-          UserParameterElementName_3_0.DATA_FILE.getElementName());
+    if (qName.equals(UserParameterElementName_3_0.VALUE.getElementName())) {
+      currentDataFileID = attrs.getValue(UserParameterElementName_3_0.DATA_FILE.getElementName());
     }
 
   }
@@ -163,32 +158,31 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
   @SuppressWarnings("unchecked")
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
 
-    if (canceled)
+    if (canceled) {
       throw new SAXException("Parsing canceled");
+    }
 
     // <OPTION>
-    if (qName.equals(
-        UserParameterElementName_3_0.OPTION.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0.OPTION.getElementName())) {
       String optionValue = getTextOfElement();
       currentOptions.add(optionValue);
     }
 
     // <VALUE>
-    if (qName.equals(
-        UserParameterElementName_3_0.VALUE.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0.VALUE.getElementName())) {
       RawDataFile currentDataFile = dataFilesIDMap.get(currentDataFileID);
       String valueString = getTextOfElement();
       Object value;
       if (currentParameter instanceof DoubleParameter) {
         value = Double.valueOf(valueString);
-      } else
+      } else {
         value = valueString;
+      }
       currentValues.put(currentDataFile, value);
     }
 
     // <PARAMETER>
-    if (qName.equals(
-        UserParameterElementName_3_0.PARAMETER.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0.PARAMETER.getElementName())) {
       if (currentParameter instanceof ComboParameter) {
         String newChoices[] = currentOptions.toArray(new String[0]);
         ((ComboParameter<String>) currentParameter).setChoices(newChoices);

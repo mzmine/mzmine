@@ -55,6 +55,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidAnnotationR
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.scans.FragmentScanSelection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -146,7 +147,7 @@ public class LipidAnnotationUtils {
   public static void findPossibleLipid(LipidIon lipidIon, FeatureListRow row,
       ParameterSet parameters, MZTolerance mzTolerance, MZTolerance mzToleranceMS2,
       boolean searchForMSMSFragments, double minMsMsScore, boolean keepUnconfirmedAnnotations,
-      LipidCategories lipidCategory) {
+      LipidCategories lipidCategory, final FragmentScanSelection scanMergeSelect) {
     Set<MatchedLipid> possibleRowAnnotations = new HashSet<>();
 
     if (Objects.requireNonNull(row.getBestFeature().getRepresentativeScan()).getPolarity()
@@ -161,7 +162,7 @@ public class LipidAnnotationUtils {
           possibleRowAnnotations.addAll(
               searchMsmsFragments(row, lipidIon.ionizationType(), lipidIon.lipidAnnotation(),
                   parameters, mzToleranceMS2, minMsMsScore, keepUnconfirmedAnnotations,
-                  lipidCategory));
+                  lipidCategory, scanMergeSelect));
         } else {
 
           // make MS1 annotation
@@ -183,11 +184,12 @@ public class LipidAnnotationUtils {
   private static Set<MatchedLipid> searchMsmsFragments(FeatureListRow row,
       IonizationType ionization, ILipidAnnotation lipid, ParameterSet parameters,
       MZTolerance mzToleranceMS2, double minMsMsScore, boolean keepUnconfirmedAnnotations,
-      LipidCategories lipidCategory) {
+      LipidCategories lipidCategory, final FragmentScanSelection scanMergeSelect) {
     Set<MatchedLipid> matchedLipids = new HashSet<>();
     LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
-    if (!row.getAllFragmentScans().isEmpty() || keepUnconfirmedAnnotations) {
-      List<Scan> msmsScans = row.getAllFragmentScans();
+    List<Scan> msmsScans = scanMergeSelect.getAllFragmentSpectra(row);
+
+    if (!msmsScans.isEmpty() || keepUnconfirmedAnnotations) {
       for (Scan msmsScan : msmsScans) {
         Set<MatchedLipid> matchedLipidsInScan = new HashSet<>();
         if (msmsScan.getMassList() == null) {

@@ -90,6 +90,14 @@ public class IntensityNormalizerComboParameter implements
     return new IntensityNormalizerComboParameter(false, false);
   }
 
+  /**
+   * Default scientific format selected
+   */
+  @NotNull
+  public static IntensityNormalizerComboParameter createDefaultScientific() {
+    return new IntensityNormalizerComboParameter(true, true);
+  }
+
 
   @Override
   public String getDescription() {

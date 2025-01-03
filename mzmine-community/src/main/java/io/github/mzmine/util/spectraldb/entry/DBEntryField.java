@@ -58,6 +58,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.RelativeHeightType;
+import io.github.mzmine.datamodel.features.types.numbers.TotalSamplesType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
@@ -107,7 +108,7 @@ public enum DBEntryField {
   FEATURE_MS1_HEIGHT(Float.class), FEATURE_MS1_REL_HEIGHT(Float.class),
 
   //
-  MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
+  MERGED_SPEC_TYPE, MERGED_N_SAMPLES, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
 
   // MS2
   COLLISION_ENERGY(FloatArrayList.class), FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
@@ -300,6 +301,7 @@ public enum DBEntryField {
            OTHER_MATCHED_COMPOUNDS_NAMES, //
            MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
            MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURELIST_NAME_FEATURE_ID -> StringType.class;
+      case MERGED_N_SAMPLES -> TotalSamplesType.class;
       case CLASSYFIRE_SUPERCLASS -> ClassyFireSuperclassType.class;
       case CLASSYFIRE_CLASS -> ClassyFireClassType.class;
       case CLASSYFIRE_SUBCLASS -> ClassyFireSubclassType.class;
@@ -347,6 +349,7 @@ public enum DBEntryField {
       case FEATURE_MS1_HEIGHT -> "feature_ms1_height";
       case FEATURE_MS1_REL_HEIGHT -> "feature_ms1_relative_height";
       case MERGED_SPEC_TYPE -> "merge_type";
+      case MERGED_N_SAMPLES -> "merged_across_n_samples";
       case ACQUISITION -> "acquisition";
       case SOFTWARE -> "softwaresource";
       case PEPTIDE_SEQ -> "peptide_sequence";
@@ -421,6 +424,7 @@ public enum DBEntryField {
           this.name().toLowerCase();
       case SCAN_NUMBER -> "scan_number";
       case MERGED_SPEC_TYPE -> "merge_type";
+      case MERGED_N_SAMPLES -> "merged_across_n_samples";
       case ENTRY_ID -> "DB#";
       case COLLISION_ENERGY -> "Collision_energy";
       case COMMENT -> "Comments";
@@ -483,6 +487,7 @@ public enum DBEntryField {
       case RT -> "RTINSECONDS";
       case SCAN_NUMBER -> "SCANS";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
+      case MERGED_N_SAMPLES -> "MERGED_ACROSS_N_SAMPLES";
       case ENTRY_ID -> "SPECTRUMID";
       case CHARGE -> "CHARGE";
       case COMMENT -> "COMMENT";
@@ -573,6 +578,7 @@ public enum DBEntryField {
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
+      case MERGED_N_SAMPLES -> "merged_across_n_samples";
       case NUM_PEAKS -> "Num peaks";
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
@@ -605,7 +611,8 @@ public enum DBEntryField {
     return switch (this) {
       case SIRIUS_MERGED_STATS, ONLINE_REACTIVITY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT,
            CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
-           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY -> "";
+           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, MERGED_N_SAMPLES ->
+          "";
       case SCAN_NUMBER -> "";
       case MERGED_SPEC_TYPE -> "";
       case ENTRY_ID -> "";
@@ -726,7 +733,7 @@ public enum DBEntryField {
            PEPTIDE_SEQ, //
            IMS_TYPE, ONLINE_REACTIVITY, CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS,
            CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS,
-           NPCLASSIFIER_PATHWAY, FEATURELIST_NAME_FEATURE_ID -> value.toString();
+           NPCLASSIFIER_PATHWAY, FEATURELIST_NAME_FEATURE_ID, MERGED_N_SAMPLES -> value.toString();
       case SCAN_NUMBER -> switch (value) {
         // multiple scans can be written as 1,4,6-9
         case List<?> list -> {

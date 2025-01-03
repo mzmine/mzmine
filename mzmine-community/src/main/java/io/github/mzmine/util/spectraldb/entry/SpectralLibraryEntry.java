@@ -134,6 +134,10 @@ public interface SpectralLibraryEntry extends MassList {
     };
   }
 
+  default Optional<String> getAsString(DBEntryField field) {
+    return getField(field).map(Object::toString);
+  }
+
   default Optional<Double> getAsDouble(DBEntryField field) {
     try {
       return getField(field).map(this::toDouble);
@@ -180,4 +184,5 @@ public interface SpectralLibraryEntry extends MassList {
    * @return the structure parsed from smiles or inchi
    */
   MolecularStructure getStructure();
+
 }

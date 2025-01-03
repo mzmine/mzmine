@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,8 +40,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public class FeatureSelectionParameter
-    implements UserParameter<List<FeatureSelection>, FeatureSelectionComponent> {
+public class FeatureSelectionParameter implements
+    UserParameter<List<FeatureSelection>, FeatureSelectionComponent> {
 
   private final String name, description;
   private List<FeatureSelection> value;
@@ -50,7 +50,8 @@ public class FeatureSelectionParameter
     this("Peaks", "Select peaks that should be included.", null);
   }
 
-  public FeatureSelectionParameter(String name, String description, List<FeatureSelection> defaultValue) {
+  public FeatureSelectionParameter(String name, String description,
+      List<FeatureSelection> defaultValue) {
     this.name = name;
     this.description = description;
     this.value = defaultValue;
@@ -68,8 +69,8 @@ public class FeatureSelectionParameter
 
   @Override
   public FeatureSelectionParameter cloneParameter() {
-    FeatureSelectionParameter copy =
-        new FeatureSelectionParameter(name, description, Lists.newArrayList(value));
+    FeatureSelectionParameter copy = new FeatureSelectionParameter(name, description,
+        value != null ? Lists.newArrayList(value) : null);
     return copy;
   }
 
@@ -112,8 +113,9 @@ public class FeatureSelectionParameter
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
 
     for (FeatureSelection ps : value) {
@@ -138,7 +140,8 @@ public class FeatureSelectionParameter
   }
 
   @Override
-  public void setValueToComponent(FeatureSelectionComponent component, @Nullable List<FeatureSelection> newValue) {
+  public void setValueToComponent(FeatureSelectionComponent component,
+      @Nullable List<FeatureSelection> newValue) {
     component.setValue(newValue);
   }
 
@@ -160,7 +163,8 @@ public class FeatureSelectionParameter
   public FeatureListRow[] getMatchingRows(FeatureList featureList) {
 
     final List<FeatureListRow> matchingRows = new ArrayList<>();
-    rows: for (FeatureListRow row : featureList.getRows()) {
+    rows:
+    for (FeatureListRow row : featureList.getRows()) {
       for (FeatureSelection ps : value) {
         if (ps.checkPeakListRow(row)) {
           matchingRows.add(row);

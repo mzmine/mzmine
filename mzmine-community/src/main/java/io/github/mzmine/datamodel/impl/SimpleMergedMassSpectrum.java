@@ -245,8 +245,9 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleMergedMassSpectrum.XML_SCAN_TYPE);
 
     writer.writeAttribute(CONST.XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
-    writer.writeAttribute(CONST.XML_MERGE_TYPE_ATTR, getMergingType().name());
-    writer.writeAttribute(CONST.XML_INTENSITY_MERGE_TYPE_ATTR, getIntensityMergingType().name());
+    writer.writeAttribute(CONST.XML_MERGE_TYPE_ATTR, getMergingType().getUniqueID());
+    writer.writeAttribute(CONST.XML_INTENSITY_MERGE_TYPE_ATTR,
+        getIntensityMergingType().getUniqueID());
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
 
     writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
@@ -296,10 +297,11 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     }
 
     final int mslevel = Integer.parseInt(reader.getAttributeValue(null, CONST.XML_MSLEVEL_ATTR));
-    final IntensityMergingType type = IntensityMergingType.valueOf(
-        reader.getAttributeValue(null, CONST.XML_INTENSITY_MERGE_TYPE_ATTR));
+    final IntensityMergingType type = IntensityMergingType.parseOrElse(
+        reader.getAttributeValue(null, CONST.XML_INTENSITY_MERGE_TYPE_ATTR), null);
     String mergingType = reader.getAttributeValue(null, CONST.XML_MERGE_TYPE_ATTR);
-    final MergingType mergeSpecType = mergingType == null ? null : MergingType.valueOf(mergingType);
+    final MergingType mergeSpecType =
+        mergingType == null ? null : MergingType.parseOrElse(mergingType, MergingType.UNKNOWN);
     assert file.getName().equals(reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT));
 
     double[] mzs = null;
