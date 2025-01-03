@@ -44,7 +44,10 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
+import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -55,8 +58,10 @@ import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParame
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
+import java.util.Map;
 import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
@@ -96,6 +101,11 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
                   + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
                   + "If the file already exists, it will be overwritten.", extensions, "iimn_fbmn");
 
+  // legacy parameter replaced by other parameter only here for loading of old batches
+  private final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
+      "Merge MS/MS (experimental)",
+      "Merge high-quality MS/MS instead of exporting just the most intense one.",
+      new MsMsSpectraMergeParameters(), true);
 
   public GnpsFbmnExportAndSubmitParameters() {
     super(new Parameter[]{FEATURE_LISTS, FILENAME, FILTER, spectraMergeSelect, NORMALIZER,
@@ -123,6 +133,31 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map = super.getNameParameterMap();
+    map.put(MERGE_PARAMETER.getName(), MERGE_PARAMETER);
+    return map;
+  }
+
+  @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+    if (loadedParams.containsKey(MERGE_PARAMETER.getName())) {
+      boolean merge = MERGE_PARAMETER.getValue();
+      if (!merge) {
+        getParameter(spectraMergeSelect).setUseInputScans(
+            SelectOptions.SINGLE_MOST_INTENSE_INPUT_SCAN);
+      } else {
+        final var mergeParams = MERGE_PARAMETER.getEmbeddedParameters();
+        MZTolerance mzTol = mergeParams.getValue(MsMsSpectraMergeParameters.MASS_ACCURACY);
+        // one merged scan
+        getParameter(spectraMergeSelect).setSimplePreset(
+            SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, mzTol);
+      }
+    }
   }
 
   @Override

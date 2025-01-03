@@ -44,7 +44,13 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectOptions;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
+import io.github.mzmine.modules.tools.msmsspectramerge.MergeMode;
+import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -53,10 +59,15 @@ import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParame
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizerOptions;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
+import io.github.mzmine.util.scans.merging.SampleHandling;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
@@ -95,6 +106,13 @@ public class SiriusExportParameters extends SimpleParameterSet {
       extensions, "sirius" // suffix
   );
 
+
+  // legacy parameters that were replaced are private
+  private final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
+      "Merge MS/MS",
+      "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.",
+      new MsMsSpectraMergeParameters(), true);
+
   public SiriusExportParameters() {
     super(FEATURE_LISTS, FILENAME, NORMALIZE, spectraMergeSelect, MZ_TOL, NEED_ANNOTATION,
         EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS);
@@ -132,6 +150,43 @@ public class SiriusExportParameters extends SimpleParameterSet {
 
     return superCheck;
   }
+
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map = super.getNameParameterMap();
+    map.put(MERGE_PARAMETER.getName(), MERGE_PARAMETER);
+    return map;
+  }
+
+  @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+    if (loadedParams.containsKey(MERGE_PARAMETER.getName())) {
+      boolean merge = MERGE_PARAMETER.getValue();
+      if (!merge) {
+        getParameter(spectraMergeSelect).setUseInputScans(SelectOptions.ALL_INPUT_SCANS);
+      } else {
+        final var mergeParams = MERGE_PARAMETER.getEmbeddedParameters();
+        MZTolerance mzTol = mergeParams.getValue(MsMsSpectraMergeParameters.MASS_ACCURACY);
+        var mode = mergeParams.getValue(MsMsSpectraMergeParameters.MERGE_MODE);
+        var sampleMode = mode == MergeMode.ACROSS_SAMPLES ? SampleHandling.ACROSS_SAMPLES
+            : SampleHandling.SAME_SAMPLE;
+
+        // across samples use simple
+        if (sampleMode == SampleHandling.ACROSS_SAMPLES) {
+          // one merged scan
+          getParameter(spectraMergeSelect).setSimplePreset(
+              SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, mzTol);
+        } else {
+          // one for each sample
+          getParameter(spectraMergeSelect).setAdvancedPreset(
+              SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, mzTol, IntensityMergingType.MAXIMUM,
+              List.of(MergedSpectraFinalSelectionTypes.EACH_SAMPLE));
+        }
+      }
+    }
+  }
+
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {

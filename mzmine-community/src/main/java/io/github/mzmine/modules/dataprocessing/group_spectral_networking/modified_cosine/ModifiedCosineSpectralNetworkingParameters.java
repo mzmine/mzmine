@@ -31,15 +31,18 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraM
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,6 +77,11 @@ public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterS
       SignalFiltersParameters.NAME, SignalFiltersParameters.DESCRIPTION,
       new SignalFiltersParameters());
 
+
+  // legacy parameters that were replaced as private final
+  private final BooleanParameter ONLY_BEST_MS2_SCAN = new BooleanParameter("Only best MS2 scan",
+      "Compares only the best MS2 scan (or all MS2 scans)", true);
+
   public ModifiedCosineSpectralNetworkingParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
@@ -92,6 +100,28 @@ public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterS
     param.setParameter(MIN_COSINE_SIMILARITY, minCosine);
     param.setParameter(MZ_TOLERANCE, mzTol);
     param.getParameter(signalFilters).getEmbeddedParameters().setValue(filter);
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map = super.getNameParameterMap();
+    map.put(ONLY_BEST_MS2_SCAN.getName(), ONLY_BEST_MS2_SCAN);
+    return map;
+  }
+
+  @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+    MZTolerance mzTol = MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA;
+    if (loadedParams.containsKey(MZ_TOLERANCE.getName())) {
+      mzTol = getValue(MZ_TOLERANCE);
+    }
+    if (loadedParams.containsKey(ONLY_BEST_MS2_SCAN.getName())) {
+      boolean onlyBest = ONLY_BEST_MS2_SCAN.getValue();
+
+      var preset = onlyBest ? SpectraMergeSelectPresets.SINGLE_MERGED_SCAN
+          : SpectraMergeSelectPresets.REPRESENTATIVE_SCANS;
+      getParameter(spectraMergeSelect).setSimplePreset(preset, mzTol);
+    }
   }
 
   @Override

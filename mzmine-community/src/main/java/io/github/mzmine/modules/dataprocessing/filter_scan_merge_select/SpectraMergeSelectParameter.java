@@ -37,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -178,6 +179,22 @@ public class SpectraMergeSelectParameter extends
     var embedded = getEmbeddedParameters();
     embedded.setParameter(PresetSimpleSpectraMergeSelectParameters.preset, preset);
     embedded.setParameter(PresetSimpleSpectraMergeSelectParameters.mergeMzTolerance, mzTolScans);
+  }
+
+  /**
+   * Useful methods to set specific advanced presets in the wizard or other locations
+   */
+  public void setAdvancedPreset(final SpectraMergeSelectPresets preset,
+      final MZTolerance mzTolScans, final IntensityMergingType intensityMergingType,
+      final List<MergedSpectraFinalSelectionTypes> sampleHandling) {
+    setValue(SpectraMergeSelectModuleOptions.PRESET_MERGED);
+    var embedded = getEmbeddedParameters();
+    embedded.setParameter(PresetAdvancedSpectraMergeSelectParameters.preset, preset);
+    embedded.setParameter(PresetAdvancedSpectraMergeSelectParameters.mergeMzTolerance, mzTolScans);
+    embedded.setParameter(PresetAdvancedSpectraMergeSelectParameters.intensityMergeType,
+        intensityMergingType);
+    embedded.setParameter(PresetAdvancedSpectraMergeSelectParameters.sampleHandling,
+        sampleHandling);
   }
 
   /**
