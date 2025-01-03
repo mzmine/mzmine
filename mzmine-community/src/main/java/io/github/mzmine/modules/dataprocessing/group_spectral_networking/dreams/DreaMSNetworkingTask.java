@@ -67,7 +67,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
     private final @NotNull FeatureList[] featureLists;
     private int processedItems = 0, totalItems;
     private final double minScore;
-    private final int numNeighbors;
+    private final Integer numNeighbors;
     private final int batchSize;
     private final File dreamsModelFile;
     private final File dreamsSettingsFile;
@@ -175,7 +175,9 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
         }
 
         // Choose numNeighbors nearest neighbors for each spectrum
-        similarityMatrix = toKNNMatrix(similarityMatrix, numNeighbors);
+        if (numNeighbors != null) {
+            similarityMatrix = toKNNMatrix(similarityMatrix, numNeighbors);
+        }
 
         // Convert the similarity matrix to a R2RMap
         R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows,
