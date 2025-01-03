@@ -78,7 +78,7 @@ public interface ModuleOptionsEnum<MODULE extends MZmineModule> {
 
   default ParameterSet getModuleParameters() {
     return ConfigService.getConfiguration().getModuleParameters(getModuleClass())
-        .cloneParameterSet(true);
+        .cloneParameterSet();
   }
 
 }
