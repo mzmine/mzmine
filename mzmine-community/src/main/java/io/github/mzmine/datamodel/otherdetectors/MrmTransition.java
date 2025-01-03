@@ -1,6 +1,5 @@
 package io.github.mzmine.datamodel.otherdetectors;
 
-import com.alanmrace.jimzmlparser.mzml.Run;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -9,14 +8,10 @@ import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactor
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.util.ParsingUtils;
-import io.github.mzmine.util.XMLUtils;
-import java.io.File;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import org.math.io.files.DataFile;
 
 /**
  * @param chromatogram The individual transitions. Important note: the masses in the
