@@ -335,7 +335,7 @@ public class FeatureNetworkGenerator {
     setEdgeWeightQuadraticScore(edge, score);
 
     switch (type) {
-      case MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, MS2Deepscore ->
+      case MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, MS2Deepscore, DREAMS ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
       case FEATURE_SHAPE_CORRELATION ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));

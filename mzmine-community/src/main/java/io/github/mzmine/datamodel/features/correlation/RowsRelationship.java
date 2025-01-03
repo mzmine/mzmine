@@ -154,6 +154,7 @@ public interface RowsRelationship {
      *
      */
     MS2Deepscore,
+    DREAMS,
     /**
      * External or other undefined
      */
@@ -184,6 +185,7 @@ public interface RowsRelationship {
         case MS2_GNPS_COSINE_SIM -> "GNPS mod-cosine";
         case ONLINE_REACTION -> "Online reaction";
         case MS2Deepscore -> "MS2Deepscore";
+        case DREAMS -> "DreaMS";
         case OTHER -> "Other";
       };
     }

@@ -315,4 +315,17 @@ public class CollectionUtils {
     }
     return value;
   }
+
+  public static int[] argsort(float[] array) {
+    Integer[] indices = new Integer[array.length];
+    for (int i = 0; i < array.length; i++) {
+      indices[i] = i; // Initialize with 0, 1, 2, ...
+    }
+
+    // Sort indices based on the values in the original array
+    Arrays.sort(indices, (a, b) -> Float.compare(array[b], array[a]));
+
+    // Convert Integer[] to int[]
+    return Arrays.stream(indices).mapToInt(Integer::intValue).toArray();
+  }
 }
