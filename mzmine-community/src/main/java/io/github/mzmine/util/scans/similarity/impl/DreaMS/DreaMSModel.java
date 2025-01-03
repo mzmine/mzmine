@@ -26,13 +26,11 @@
 package io.github.mzmine.util.scans.similarity.impl.DreaMS;
 
 import ai.djl.MalformedModelException;
-import ai.djl.Model;
 import ai.djl.inference.Predictor;
 import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDArrays;
 import ai.djl.ndarray.NDList;
 import ai.djl.ndarray.NDManager;
-import ai.djl.ndarray.types.Shape;
 import ai.djl.repository.zoo.Criteria;
 import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.repository.zoo.ZooModel;
@@ -51,28 +49,17 @@ import java.util.logging.Logger;
 public class DreaMSModel extends EmbeddingBasedSimilarity implements AutoCloseable {
 
     private static final Logger logger = Logger.getLogger(DreaMSModel.class.getName());
-    private final DreaMSSpectrumTensorizer spectrumTensorizer;
+    public final DreaMSSpectrumTensorizer spectrumTensorizer;
     private final NDManager ndManager;
     private final Predictor<NDList, NDList> predictor;
     private final ZooModel<NDList, NDList> model;
-    private final int batchSize;
 
     public DreaMSModel(File modelFilePath, File settingsFilePath)
             throws ModelNotFoundException, MalformedModelException, IOException {
-        this(modelFilePath.toPath(), settingsFilePath.toPath(), 32);
-    }
-
-    public DreaMSModel(File modelFilePath, File settingsFilePath, int batchSize)
-            throws ModelNotFoundException, MalformedModelException, IOException {
-        this(modelFilePath.toPath(), settingsFilePath.toPath(), batchSize);
+        this(modelFilePath.toPath(), settingsFilePath.toPath());
     }
 
     public DreaMSModel(Path modelFilePath, Path settingsFilePath)
-            throws ModelNotFoundException, MalformedModelException, IOException {
-        this(modelFilePath, settingsFilePath, 32);
-    }
-
-    public DreaMSModel(Path modelFilePath, Path settingsFilePath, int batchSize)
             throws ModelNotFoundException, MalformedModelException, IOException {
         /*
          * Predicts the DreaMS embedding
@@ -88,46 +75,26 @@ public class DreaMSModel extends EmbeddingBasedSimilarity implements AutoCloseab
         this.spectrumTensorizer = new DreaMSSpectrumTensorizer(settings);
         this.ndManager = NDManager.newBaseManager();
         this.predictor = model.newPredictor();
-        this.batchSize = batchSize;
     }
 
     /**
      * Predicts a DreaMS embedding from a tensorized spectrum.
      */
-    public NDArray predictEmbeddingFromTensors(float[][][] tensorizedSpectra)
-            throws TranslateException {
-        int totalSpectra = tensorizedSpectra.length;
+    public NDArray predictEmbeddingFromTensors(float[][][] tensorizedSpectra) throws TranslateException {
 
-        // Create a list to hold all predictions
-        NDList allPredictions = new NDList();
-
-        // Process the tensorizedSpectra in batches
-        for (int start = 0; start < totalSpectra; start += batchSize) {
-            // Determine the end index for the current batch
-            int end = Math.min(start + batchSize, totalSpectra);
-
-            // Create NDList to hold slices (2D arrays) for the current batch
-            NDList batchSlices = new NDList();
-
-            for (int i = start; i < end; i++) {
-                // Create a 2D slice for each spectrum in the batch
-                NDArray slice = ndManager.create(tensorizedSpectra[i]);
-                batchSlices.add(slice);
-            }
-
-            // Stack all 2D slices in the batch to form a 3D NDArray
-            NDArray batchArray = NDArrays.stack(batchSlices);
-
-            // Predict embeddings for the current batch
-            // TODO: add progress bar
-            NDList batchPredictions = predictor.predict(new NDList(batchArray));
-
-            // Add the predictions for the current batch to all predictions
-            allPredictions.addAll(batchPredictions);
+        // Convert 3D float[][][] to 3D NDList
+        NDList tensorizedList = new NDList();
+        for (float[][] spectrum : tensorizedSpectra) {
+            NDArray slice = ndManager.create(spectrum);
+            tensorizedList.add(slice);
         }
+        NDArray tensorizedArray = NDArrays.stack(tensorizedList);
 
-        // Combine all predictions into a single NDArray (stacked along the batch dimension)
-        return NDArrays.concat(allPredictions);
+        // Predict embeddings
+        NDList predictions = predictor.predict(new NDList(tensorizedArray));
+
+        // Assuming the predictor outputs a single NDArray, return it
+        return predictions.singletonOrThrow();
     }
 
     /**

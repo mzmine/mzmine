@@ -26,6 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams;
 
 import ai.djl.MalformedModelException;
+import ai.djl.ndarray.NDArray;
+import ai.djl.ndarray.NDArrays;
+import ai.djl.ndarray.NDList;
 import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.translate.TranslateException;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -49,17 +52,20 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static io.github.mzmine.util.collections.CollectionUtils.argsort;
+import static io.github.mzmine.util.scans.similarity.impl.ms2deepscore.EmbeddingBasedSimilarity.dotProduct;
 
 
 public class DreaMSNetworkingTask extends AbstractFeatureListTask {
 
     private static final Logger logger = Logger.getLogger(DreaMSNetworkingTask.class.getName());
     private final @NotNull FeatureList[] featureLists;
+    private int processedItems = 0, totalItems;
     private final double minScore;
     private final int numNeighbors;
     private final int batchSize;
@@ -91,7 +97,12 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
         dreamsSettingsFile = DreaMSNetworkingParameters.findModelSettingsFile(
                 dreamsModelFile);
 
-        totalItems = Arrays.stream(featureLists).mapToLong(FeatureList::getNumberOfRows).sum();
+        // Get the total number of fragmentation spectra in all feature lists
+        totalItems = (int) Arrays.stream(featureLists)
+                .flatMap(featureList -> featureList.getRows().stream())
+                .map(FeatureListRow::getMostIntenseFragmentScan)
+                .filter(Objects::nonNull)
+                .count();
     }
 
     @Override
@@ -99,10 +110,8 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
         // init model
         description = "Loading model";
         // auto close model after use
-        try (var model = new DreaMSModel(dreamsModelFile, dreamsSettingsFile, batchSize)) {
+        try (var model = new DreaMSModel(dreamsModelFile, dreamsSettingsFile)) {
             description = "Calculating DreaMS similarity";
-            // estimate work load - like how many elements to process
-            totalItems = Arrays.stream(featureLists).mapToLong(FeatureList::getNumberOfRows).sum();
             // each feature list
             for (FeatureList featureList : featureLists) {
                 processFeatureList(featureList, model);
@@ -113,7 +122,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
     }
 
     private void processFeatureList(FeatureList featureList, DreaMSModel model) {
-        description = "Calculate DreaMS similarity";
+        description = "Calculating DreaMS similarities";
         List<Scan> scanList = new ArrayList<>();
         List<FeatureListRow> featureListRows = new ArrayList<>();
 
@@ -133,7 +142,34 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
         // Predict the matrix of pairwise DreaMS similarities
         float[][] similarityMatrix;
         try {
-            similarityMatrix = model.predictMatrixSymmetric(scanList);
+            // Pre-process mass spectra
+            float[][][] tensorizedSpectra = model.spectrumTensorizer.tensorizeSpectra(scanList);
+
+            // Process the tensorizedSpectra in batches
+            int totalSpectra = tensorizedSpectra.length;
+            NDList allPredictions = new NDList();
+
+            for (int start = 0; start < totalSpectra; start += batchSize) {
+                // Determine the end index for the current batch
+                int end = Math.min(start + batchSize, totalSpectra);
+
+                // Extract the batch as a 3D slice
+                float[][][] batchSlices = new float[end - start][][];
+                System.arraycopy(tensorizedSpectra, start, batchSlices, 0, end - start);
+
+                // Predict embeddings for the current batch
+                processedItems += end - start;
+                NDArray batchPredictions = model.predictEmbeddingFromTensors(batchSlices);
+
+                // Add the predictions for the current batch to all predictions
+                allPredictions.add(batchPredictions);
+            }
+
+            // Combine all predictions into a single NDArray (stacked along the batch dimension)
+            NDArray embeddings = NDArrays.concat(allPredictions);
+
+            // Compute DreaMS similarities
+            similarityMatrix = dotProduct(embeddings, embeddings);
         } catch (TranslateException e) {
             throw new RuntimeException(e);
         }
@@ -167,6 +203,16 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
             }
         }
         return relationsMap;
+    }
+
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+        if (totalItems == 0)
+            return 0;
+        else
+            return (double) processedItems / totalItems;
     }
 
     @Override
