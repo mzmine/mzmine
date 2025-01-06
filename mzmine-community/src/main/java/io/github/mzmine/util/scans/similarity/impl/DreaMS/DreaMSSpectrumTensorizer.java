@@ -74,7 +74,7 @@ public class DreaMSSpectrumTensorizer {
   public float[][] tensorizeFragments(@NotNull MassSpectrum spectrum, @NotNull Double precMz) {
 
     int nHighestPeaks = settings.nHighestPeaks();
-    double precIntensity = settings.precIntensity();
+    double precIntensity = settings.precIntensity(); // Is always constant (1.1 by default; not that precMz is not)
 
     // Initialize the result array with nHighestPeaks + 1 rows and 2 columns
     float[][] result = new float[nHighestPeaks + 1][2];
