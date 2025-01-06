@@ -49,7 +49,7 @@ import java.util.logging.Logger;
 public class DreaMSModel extends EmbeddingBasedSimilarity implements AutoCloseable {
 
     private static final Logger logger = Logger.getLogger(DreaMSModel.class.getName());
-    public final DreaMSSpectrumTensorizer spectrumTensorizer;
+    private final DreaMSSpectrumTensorizer spectrumTensorizer;
     private final NDManager ndManager;
     private final Predictor<NDList, NDList> predictor;
     private final ZooModel<NDList, NDList> model;
@@ -123,5 +123,9 @@ public class DreaMSModel extends EmbeddingBasedSimilarity implements AutoCloseab
         } catch (Exception ex) {
             logger.log(Level.WARNING, "Could not close model: " + ex.getMessage(), ex);
         }
+    }
+
+    public DreaMSSpectrumTensorizer getSpectrumTensorizer() {
+        return spectrumTensorizer;
     }
 }

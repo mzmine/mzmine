@@ -143,7 +143,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
         float[][] similarityMatrix;
         try {
             // Pre-process mass spectra
-            float[][][] tensorizedSpectra = model.spectrumTensorizer.tensorizeSpectra(scanList);
+            float[][][] tensorizedSpectra = model.getSpectrumTensorizer().tensorizeSpectra(scanList);
 
             // Process the tensorizedSpectra in batches
             int totalSpectra = tensorizedSpectra.length;
