@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
@@ -56,7 +57,7 @@ public class IntegrationPlotModel {
       State.NOT_INTEGRATING);
   private final ObjectProperty<@Nullable ValueMarker> currentStartMarker = new SimpleObjectProperty<>();
   private final ObjectProperty<@Nullable ValueMarker> currentEndMarker = new SimpleObjectProperty<>();
-  private final ListProperty<IntensityTimeSeries> additionalTimeSeries = new SimpleListProperty<>(
+  private final ListProperty<IntensityTimeSeriesToXYProvider> additionalDataProviders = new SimpleListProperty<IntensityTimeSeriesToXYProvider>(
       FXCollections.observableArrayList());
   private final ListProperty<ColoredXYDataset> additionalTimeSeriesDatasets = new SimpleListProperty<>();
 
@@ -184,16 +185,16 @@ public class IntegrationPlotModel {
     this.state.set(state);
   }
 
-  public ObservableList<IntensityTimeSeries> getAdditionalTimeSeries() {
-    return additionalTimeSeries.get();
+  public ObservableList<IntensityTimeSeriesToXYProvider> getAdditionalDataProviders() {
+    return additionalDataProviders.get();
   }
 
-  public ListProperty<IntensityTimeSeries> additionalTimeSeriesProperty() {
-    return additionalTimeSeries;
+  public ListProperty<IntensityTimeSeriesToXYProvider> additionalDataProvidersProperty() {
+    return additionalDataProviders;
   }
 
-  public void setAdditionalTimeSeries(List<IntensityTimeSeries> series) {
-    this.additionalTimeSeries.setAll(series);
+  public void setAdditionalDataProviders(List<IntensityTimeSeriesToXYProvider> series) {
+    this.additionalDataProviders.setAll(series);
   }
 
   public ObservableList<ColoredXYDataset> getAdditionalTimeSeriesDatasets() {

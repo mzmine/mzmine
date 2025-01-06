@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
@@ -45,7 +46,7 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
       this::onSetLeftPressed, this::onSetRightPressed, this::onFinishPressed, this::onAbortPressed,
       this::onEditPressed);
 
-  protected IntegrationPlotController() {
+  public IntegrationPlotController() {
     super(new IntegrationPlotModel());
 
     model.currentIntegrationValidProperty().bind(Bindings.createBooleanBinding(
@@ -62,7 +63,7 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
             ConfigService.getDefaultColorPalette().getNegativeColorAWT(), new BasicStroke(2f))
             : null));
 
-    model.additionalTimeSeriesProperty()
+    model.additionalDataProvidersProperty()
         .subscribe(_ -> onTaskThread(new UpdateAdditionalDatasetsTask(model)));
   }
 
@@ -153,5 +154,9 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
   public ListProperty<IntensityTimeSeries> integratedFeaturesProperty() {
     return model.integratedFeaturesProperty();
+  }
+
+  public void setAdditionalFeatures(List<IntensityTimeSeriesToXYProvider> additionalFeatures) {
+    model.setAdditionalDataProviders(additionalFeatures);
   }
 }
