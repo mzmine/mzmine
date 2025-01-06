@@ -53,9 +53,24 @@ public class DreaMSSpectrumTensorizer {
   }
 
   /**
-   * Tensorizes a mass spectrum. TODO: docstring
+   * Converts a mass spectrum into a matrix of size (n + 1) x 2. Each row represents a pair of m/z and
+   * intensity values of a signal present in the spectrum (hence 2 columns). The matrix consists of:
+   *
+   * 1. An artificial signal in the first row representing the precursor ion.
+   *    - Its m/z value is set to the MS1 isolated precursor m/z provided as `precMz`.
+   *    - Its intensity is constant and set to 1.1 to distinguish it from other n signals.
+   *
+   * 2. The remaining rows correspond to the n most intense peaks from the spectrum.
+   *    - n = `DreaMSSettings.nHighestPeaks`.
+   *    - The intensities of these peaks are normalized by dividing each by the maximum intensity
+   *      of the n most intense peaks (i.e., relative intensities).
+   *    - The m/z values left unchanged.
+   *
+   * @param spectrum the mass spectrum to be tensorized. Must not be null.
+   * @param precMz the precursor m/z value of the mass spectrum. Must not be null.
+   * @return a float matrix of size (n + 1) x 2, where the first column represents m/z values and
+   *         the second column represents normalized intensities.
    */
-
   public float[][] tensorizeFragments(@NotNull MassSpectrum spectrum, @NotNull Double precMz) {
 
     int nHighestPeaks = settings.nHighestPeaks();
@@ -103,9 +118,11 @@ public class DreaMSSpectrumTensorizer {
   }
 
   /**
-   * Only works on scans or {@link SpectralLibraryEntry} with precursor mz.
-   *
-   * @return A float[][][] where each spectrum is represented as (nHighestPeaks + 1, 2).
+   * Tensorizes a list of mass spectra. Only works on scans or {@link SpectralLibraryEntry} with precursor mz.
+   * @param scans the mass spectra to be tensorized. Must not be null.
+   * @return an array of float matrices of size num. signals x 2, where the first column of each matrix represents m/z
+   *         values and the second column represents normalized intensities.
+   *         See {@link #tensorizeFragments(MassSpectrum, Double)} for the details.
    */
   public float[][][] tensorizeSpectra(@NotNull List<? extends MassSpectrum> scans) {
     int originalSize = scans.size();
