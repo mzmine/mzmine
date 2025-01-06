@@ -69,6 +69,12 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
     if (intensityValues.length != rtValues.length) {
       throw new IllegalArgumentException("Intensities and RT values must have the same length");
     }
+    for (int i = 0; i < rtValues.length - 1; i++) {
+      if (rtValues[i + 1] < rtValues[i]) {
+        throw new IllegalArgumentException("Chromatogram not sorted in retention time");
+      }
+    }
+
     this.timeSeriesData = timeSeriesData;
     intensityBuffer = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
     timeBuffer = StorageUtils.storeValuesToFloatBuffer(storage, rtValues);
