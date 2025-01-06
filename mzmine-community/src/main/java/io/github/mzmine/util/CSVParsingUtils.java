@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriterBuilder;
@@ -58,6 +60,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.SimpleStringProperty;
@@ -300,6 +304,88 @@ public class CSVParsingUtils {
 
       return readData(reader, separator);
     }
+  }
+
+  public static List<String[]> readDataAutoSeparator(final File file)
+      throws IOException, CsvException {
+    final String sep = autoDetermineSeparator(file);
+
+    try (var reader = Files.newBufferedReader(file.toPath())) {
+      // some users/programs save csv files with an encoding prefix in the first few bytes. This
+      // prefix is equal to the char code \uFEFF and means that the file is utf-8 encoded. However,
+      // most UTF-8 files don't come with this prefix (=BOM, byte order marker). If it is there,
+      // we want to skip it, otherwise the first csv field may be mis-recognised as a string with a
+      // different encoding.
+      // see: https://stackoverflow.com/questions/4897876/reading-utf-8-bom-marker
+      reader.mark(1);
+      final char[] possibleBom = new char[1];
+      final int read = reader.read(possibleBom);
+      if (read == 1 && possibleBom[0] != '\uFEFF') {
+        reader.reset(); // no BOM found, don't skip
+      }
+
+      return readData(reader, sep);
+    }
+  }
+
+  /**
+   * Attempts to automatically determine the file separator of a tabular text file by the first two
+   * lines.
+   * <p></p>
+   * Fallback criteria:
+   * <p></p>
+   * .tsv or .txt files -> \t
+   * <p></p>
+   * .csv -> ,
+   *
+   * @return The determined separator.
+   */
+  public static @NotNull String autoDetermineSeparator(@NotNull File file) {
+    String bestSeparator = null;
+
+    try (var reader = Files.newBufferedReader(file.toPath())) {
+      // make sure we can read the full first line and reset to here afterwards
+      final String header = reader.readLine();
+      final String line1 = reader.readLine();
+
+      final List<String> possibleSeparators = List.of("\t", ",", ";");
+
+      // the split line must have more than one entry to auto-determine,
+      // bc otherwise we may think we found the separator, but we just have an array of length 1.
+      // in that case, we default to the most likely option from the file ending
+      int maxCols = 1;
+
+      for (int i = 0; i < possibleSeparators.size(); i++) {
+        final String[] splitHeader = header.split(possibleSeparators.get(i));
+        final String[] splitLine = line1.split(possibleSeparators.get(i));
+        // first and second line must be the same length if we auto-determine the separator
+        if (splitHeader.length != splitLine.length) {
+          logger.finest(
+              "Line length mismatch for separator %s. header %d, first line %d in file %s.".formatted(
+                  inQuotes(possibleSeparators.get(i)), splitHeader.length, splitLine.length,
+                  file.getName()));
+          continue;
+        }
+
+        if (splitHeader.length > maxCols) {
+          maxCols = splitHeader.length;
+          bestSeparator = possibleSeparators.get(i);
+        }
+      }
+    } catch (IOException | NullPointerException e) {
+      // this may happen if the file has less than two lines.
+      logger.log(Level.FINE,
+          "Cannot auto determine file separator for %s. File may be empty or has less than two lines. Falling back to default.".formatted(
+              file));
+    }
+
+    // the default file ending for excel export to tab-separated is .txt, so we catch here if the
+    // user did not rename.
+    bestSeparator = Objects.requireNonNullElse(bestSeparator,
+        file.getName().endsWith(".tsv") || file.getName().endsWith(".txt") ? "\t" : ",");
+    logger.finest("Automatically determined separator for file %s to be %s".formatted(file,
+        bestSeparator.equals("\t") ? "tab" : bestSeparator));
+    return bestSeparator;
   }
 
   /**
