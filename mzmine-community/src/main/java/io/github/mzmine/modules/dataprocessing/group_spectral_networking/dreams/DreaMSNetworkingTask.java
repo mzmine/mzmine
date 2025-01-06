@@ -57,6 +57,7 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask.convertMatrixToR2RMap;
 import static io.github.mzmine.util.collections.CollectionUtils.argsort;
 import static io.github.mzmine.util.scans.similarity.impl.ms2deepscore.EmbeddingBasedSimilarity.dotProduct;
 
@@ -180,31 +181,13 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
         }
 
         // Convert the similarity matrix to a R2RMap
-        R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows,
-                similarityMatrix);
+        R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows, similarityMatrix, minScore,
+                Type.DREAMS);
         R2RNetworkingMaps rowMaps = featureList.getRowMaps();
         rowMaps.addAllRowsRelationships(relationsMap, Type.DREAMS);
 
         // stats are currently only available for modified cosine
         // addNetworkStatisticsToRows(featureList, rowMaps);
-    }
-
-    public R2RMap<R2RSimpleSimilarity> convertMatrixToR2RMap(List<FeatureListRow> featureListRow,
-                                                             float[][] similarityMatrix) {
-        final R2RMap<R2RSimpleSimilarity> relationsMap = new R2RMap<>();
-        for (int i = 0; i < featureListRow.size(); i++) {
-            for (int j = 0; j < featureListRow.size(); j++) {
-                if (i != j) {
-                    float similarityScore = similarityMatrix[i][j];
-                    if (similarityScore > minScore) {
-                        var r2r = new R2RSimpleSimilarity(featureListRow.get(i), featureListRow.get(j),
-                                Type.DREAMS, similarityScore);
-                        relationsMap.add(featureListRow.get(i), featureListRow.get(j), r2r);
-                    }
-                }
-            }
-        }
-        return relationsMap;
     }
 
     /**
