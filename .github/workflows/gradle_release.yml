@@ -42,5 +42,3 @@ jobs:
           prerelease: true
           title: "Release build"
           files: build/*/*
-
-

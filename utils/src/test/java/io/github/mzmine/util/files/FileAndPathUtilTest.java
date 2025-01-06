@@ -54,6 +54,7 @@ class FileAndPathUtilTest {
 
     logger.info("Testing existing file");
     Path tmp = Path.of("D:\\mzminetemp2\\test.tmp");
+    tmp.toFile().getParentFile().mkdirs();
     try (var writer = Files.newBufferedWriter(tmp, StandardCharsets.UTF_8,
         WriterOptions.REPLACE.toOpenOption())) {
 
@@ -74,7 +75,7 @@ class FileAndPathUtilTest {
 
   @Test
   void memoryMapSparseTempFile() throws IOException, InterruptedException {
-    try (final var arena = Arena.ofAuto()) {
+    try (final var arena = Arena.ofConfined()) {
       var mapped = FileAndPathUtil.memoryMapSparseTempFile("test", ".tmp", tempDir, arena,
           1L << 20);
       SegmentAllocator alloc = SegmentAllocator.slicingAllocator(mapped);

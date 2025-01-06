@@ -72,7 +72,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
   private final Integer minCorrelatedPoints;
   private final Boolean exportAnnotationGraphics;
 
-  protected WizardBatchBuilderLcDIA(WizardSequence steps) {
+  public WizardBatchBuilderLcDIA(WizardSequence steps) {
     super(steps);
 
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.ION_INTERFACE);
