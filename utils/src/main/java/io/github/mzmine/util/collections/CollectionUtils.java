@@ -316,7 +316,7 @@ public class CollectionUtils {
     return value;
   }
 
-  public static int[] argsort(float[] array) {
+  public static int[] argsortReversed(float[] array) {
     Integer[] indices = new Integer[array.length];
     for (int i = 0; i < array.length; i++) {
       indices[i] = i; // Initialize with 0, 1, 2, ...

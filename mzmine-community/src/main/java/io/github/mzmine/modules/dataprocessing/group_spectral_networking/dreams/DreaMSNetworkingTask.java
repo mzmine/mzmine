@@ -58,7 +58,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask.convertMatrixToR2RMap;
-import static io.github.mzmine.util.collections.CollectionUtils.argsort;
+import static io.github.mzmine.util.collections.CollectionUtils.argsortReversed;
 import static io.github.mzmine.util.scans.similarity.impl.ms2deepscore.EmbeddingBasedSimilarity.dotProduct;
 
 
@@ -219,7 +219,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
         // Iterate through each row
         for (int i = 0; i < n; i++) {
             // Get the indices sorted by values in descending order
-            int[] sortedIndices = argsort(matrix[i]);
+            int[] sortedIndices = argsortReversed(matrix[i]);
 
             // Retain the k largest non-diagonal elements
             int count = 0;
