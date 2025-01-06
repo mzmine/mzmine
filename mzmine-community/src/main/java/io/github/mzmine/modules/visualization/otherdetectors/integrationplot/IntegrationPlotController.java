@@ -61,6 +61,9 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
         value != null ? new ValueMarker(model.getCurrentEndTime(),
             ConfigService.getDefaultColorPalette().getNegativeColorAWT(), new BasicStroke(2f))
             : null));
+
+    model.additionalTimeSeriesProperty()
+        .subscribe(_ -> onTaskThread(new UpdateAdditionalDatasetsTask(model)));
   }
 
   @Override

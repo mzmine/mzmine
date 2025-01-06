@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
@@ -151,6 +152,13 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
     });
   }
 
+  public void removeDatasets(List<? extends XYDataset> datasets) {
+    final SimpleXYChart<PlotXYDataProvider> chart = model.getChart();
+    chart.applyWithNotifyChanges(false, () -> {
+      datasets.forEach(this::removeDataset);
+    });
+  }
+
   public ObjectProperty<@Nullable PlotCursorPosition> cursorPositionProperty() {
     return model.cursorPositionProperty();
   }
@@ -202,5 +210,9 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
 
   public void setRangeAxisStickyZero(boolean stickyZero) {
     model.getChart().setStickyZeroRangeAxis(stickyZero);
+  }
+
+  public void applyWithNotifyChanges(@NotNull final Runnable r) {
+    model.getChart().applyWithNotifyChanges(false, r);
   }
 }

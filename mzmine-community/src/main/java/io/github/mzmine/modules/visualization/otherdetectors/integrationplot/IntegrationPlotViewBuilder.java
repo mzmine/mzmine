@@ -106,6 +106,8 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
       }
     });
 
+    model.additionalTimeSeriesDatasetsProperty().subscribe(this::updateAdditionalDatasets);
+
     addFeatureListeners(chromPlot);
 
     chromPlot.cursorPositionProperty().addListener((_, _, pos) -> {
@@ -258,5 +260,18 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
         model.stateProperty(), model.currentStartTimeProperty(), model.currentEndTimeProperty()));
 
     return buttonBar;
+  }
+
+  private void updateAdditionalDatasets(List<ColoredXYDataset> oldDs,
+      List<ColoredXYDataset> newDs) {
+    if (newDs.isEmpty() && oldDs.isEmpty()) {
+      return;
+    }
+    model.getChromatogramPlot().applyWithNotifyChanges(() -> {
+      model.getChromatogramPlot().removeDatasets(oldDs);
+      model.getChromatogramPlot().addDatasets(
+          newDs.stream().map(ds -> new DatasetAndRenderer(ds, new ColoredXYLineRenderer()))
+              .toList());
+    });
   }
 }

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
@@ -55,6 +56,9 @@ public class IntegrationPlotModel {
       State.NOT_INTEGRATING);
   private final ObjectProperty<@Nullable ValueMarker> currentStartMarker = new SimpleObjectProperty<>();
   private final ObjectProperty<@Nullable ValueMarker> currentEndMarker = new SimpleObjectProperty<>();
+  private final ListProperty<IntensityTimeSeries> additionalTimeSeries = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+  private final ListProperty<ColoredXYDataset> additionalTimeSeriesDatasets = new SimpleListProperty<>();
 
   public ChromatogramPlotController getChromatogramPlot() {
     return chromatogramPlot.get();
@@ -178,5 +182,29 @@ public class IntegrationPlotModel {
 
   public void setState(@NotNull State state) {
     this.state.set(state);
+  }
+
+  public ObservableList<IntensityTimeSeries> getAdditionalTimeSeries() {
+    return additionalTimeSeries.get();
+  }
+
+  public ListProperty<IntensityTimeSeries> additionalTimeSeriesProperty() {
+    return additionalTimeSeries;
+  }
+
+  public void setAdditionalTimeSeries(List<IntensityTimeSeries> series) {
+    this.additionalTimeSeries.setAll(series);
+  }
+
+  public ObservableList<ColoredXYDataset> getAdditionalTimeSeriesDatasets() {
+    return additionalTimeSeriesDatasets.get();
+  }
+
+  public ListProperty<ColoredXYDataset> additionalTimeSeriesDatasetsProperty() {
+    return additionalTimeSeriesDatasets;
+  }
+
+  public void setAdditionalTimeSeriesDatasets(List<ColoredXYDataset> additionalTimeSeriesDatasets) {
+    this.additionalTimeSeriesDatasets.setAll(additionalTimeSeriesDatasets);
   }
 }

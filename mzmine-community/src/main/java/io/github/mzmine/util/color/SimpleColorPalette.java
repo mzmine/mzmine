@@ -344,7 +344,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   @Override
   public int hashCode() {
     return super.hashCode() + name.hashCode() + getPositiveColor().hashCode()
-           + getNeutralColor().hashCode() + getNegativeColor().hashCode();
+        + getNeutralColor().hashCode() + getNegativeColor().hashCode();
   }
 
   @Override
@@ -367,7 +367,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   @Override
   public String toString() {
     return getName() + " " + super.toString() + " pos " + getPositiveColor().toString() + " neg "
-           + getNegativeColor();
+        + getNegativeColor();
   }
 
   public void loadFromXML(Element xmlElement) {
@@ -510,5 +510,14 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public void resetColorCounter() {
     setColorCounter(0);
+  }
+
+  /**
+   * Converts the given color to an fx color using {@link FxColorUtil#awtColorToFX(java.awt.Color)}
+   * and then searches using {@link List#indexOf(Object)}
+   */
+  public int indexOfAwt(java.awt.Color clr) {
+    final Color fxColor = FxColorUtil.awtColorToFX(clr);
+    return super.indexOf(fxColor);
   }
 }
