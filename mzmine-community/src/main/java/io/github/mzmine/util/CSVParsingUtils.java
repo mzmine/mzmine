@@ -337,6 +337,7 @@ public class CSVParsingUtils {
    */
   public static @Nullable Character autoDetermineSeparator(@NotNull File file) {
     Character bestSeparator = null;
+    int maxCols = 1;
 
     final List<Character> possibleSeparators = List.of('\t', ',', ';');
     for (Character sep : possibleSeparators) {
@@ -345,9 +346,7 @@ public class CSVParsingUtils {
         // the split line must have more than one entry to auto-determine,
         // bc otherwise we may think we found the separator, but we just have an array of length 1.
         // in that case, we default to the most likely option from the file ending
-        int maxCols = 1;
 
-        reader.mark(Integer.MAX_VALUE);
         try (CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(
             new RFC4180ParserBuilder().withSeparator(sep).build()).build()) {
 
