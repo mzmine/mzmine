@@ -31,9 +31,11 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.Intens
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -60,6 +62,8 @@ public class IntegrationPlotModel {
   private final ListProperty<IntensityTimeSeriesToXYProvider> additionalDataProviders = new SimpleListProperty<IntensityTimeSeriesToXYProvider>(
       FXCollections.observableArrayList());
   private final ListProperty<ColoredXYDataset> additionalTimeSeriesDatasets = new SimpleListProperty<>();
+  private final IntegerProperty maxIntegratedFeatures = new SimpleIntegerProperty(
+      Integer.MAX_VALUE);
 
   public ChromatogramPlotController getChromatogramPlot() {
     return chromatogramPlot.get();
@@ -207,5 +211,17 @@ public class IntegrationPlotModel {
 
   public void setAdditionalTimeSeriesDatasets(List<ColoredXYDataset> additionalTimeSeriesDatasets) {
     this.additionalTimeSeriesDatasets.setAll(additionalTimeSeriesDatasets);
+  }
+
+  public int getMaxIntegratedFeatures() {
+    return maxIntegratedFeatures.get();
+  }
+
+  public IntegerProperty maxIntegratedFeaturesProperty() {
+    return maxIntegratedFeatures;
+  }
+
+  public void setMaxIntegratedFeatures(int maxIntegratedFeatures) {
+    this.maxIntegratedFeatures.set(maxIntegratedFeatures);
   }
 }

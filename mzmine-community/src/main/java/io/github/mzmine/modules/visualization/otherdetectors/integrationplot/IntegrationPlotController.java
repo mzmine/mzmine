@@ -30,12 +30,15 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.Intens
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.visualization.dash_integration.FeatureDataEntry;
 import java.awt.BasicStroke;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ListProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.plot.ValueMarker;
 
 public class IntegrationPlotController extends FxController<IntegrationPlotModel> {
@@ -92,9 +95,17 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
       final IntensityTimeSeries integrated = currentTimeSeries.subSeries(
           currentTimeSeries.getStorage(), start.floatValue(), end.floatValue());
 
-      model.addIntegratedFeature(integrated);
+      final int maxIntegratedFeatures = model.getMaxIntegratedFeatures();
+      if (model.getIntegratedFeatures().size() + 1 > maxIntegratedFeatures) {
+        // if there are more than the allowed integrated features, remove the first one.
+        final List<IntensityTimeSeries> list = new ArrayList<>(model.getIntegratedFeatures());
+        list.removeFirst();
+        list.add(integrated);
+        model.setIntegratedFeatures(list);
+      } else {
+        model.addIntegratedFeature(integrated);
+      }
       model.setSelectedFeature(integrated);
-
     }
     clearIntegration();
   }
@@ -158,5 +169,21 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
   public void setAdditionalFeatures(List<IntensityTimeSeriesToXYProvider> additionalFeatures) {
     model.setAdditionalDataProviders(additionalFeatures);
+  }
+
+  public void clear() {
+    setOtherTimeSeries(null);
+    setIntegratedFeatures(null);
+  }
+
+  public void setFeatureDataEntry(@Nullable FeatureDataEntry featureDataEntry) {
+    if (featureDataEntry == null) {
+      clear();
+      return;
+    }
+    setOtherTimeSeries(featureDataEntry.chromatogram());
+    setIntegratedFeatures(
+        featureDataEntry.feature() != null ? List.of(featureDataEntry.feature()) : null);
+    setAdditionalFeatures(featureDataEntry.additionalData());
   }
 }

@@ -11,13 +11,16 @@ import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
+import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,10 +37,10 @@ public class IntegrationDashboardModel {
   private final ObjectProperty<@NotNull MetadataColumn<?>> rawFileSortingColumn = new SimpleObjectProperty<>(
       ProjectService.getMetadata().getSampleTypeColumn());
   private final BooleanProperty syncReIntegration = new SimpleBooleanProperty(false);
-  private ListProperty<FeatureDataEntry> featureDataEntries = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
   private final ObjectProperty<@NotNull MZTolerance> integrationTolerance = new SimpleObjectProperty<>(
       new MZTolerance(0.005, 10));
+  private final MapProperty<RawDataFile, FeatureDataEntry> featureDataEntries = new SimpleMapProperty<>(
+      FXCollections.observableHashMap());
 
   public int getGridSizeX() {
     return gridSizeX.get();
@@ -135,27 +138,23 @@ public class IntegrationDashboardModel {
     return syncReIntegration;
   }
 
-  public ObservableList<FeatureDataEntry> getFeatureDataEntries() {
-    return featureDataEntries.get();
-  }
-
-  public void setFeatureDataEntries(List<FeatureDataEntry> featureDataEntries) {
-    this.featureDataEntries.setAll(featureDataEntries);
-  }
-
-  public ListProperty<FeatureDataEntry> featureDataEntriesProperty() {
-    return featureDataEntries;
-  }
-
   public @NotNull MZTolerance getIntegrationTolerance() {
     return integrationTolerance.get();
+  }
+
+  public void setIntegrationTolerance(@NotNull MZTolerance integrationTolerance) {
+    this.integrationTolerance.set(integrationTolerance);
   }
 
   public ObjectProperty<@NotNull MZTolerance> integrationToleranceProperty() {
     return integrationTolerance;
   }
 
-  public void setIntegrationTolerance(@NotNull MZTolerance integrationTolerance) {
-    this.integrationTolerance.set(integrationTolerance);
+  public ObservableMap<RawDataFile, FeatureDataEntry> getFeatureDataEntries() {
+    return featureDataEntries.get();
+  }
+
+  public MapProperty<RawDataFile, FeatureDataEntry> featureDataEntriesProperty() {
+    return featureDataEntries;
   }
 }

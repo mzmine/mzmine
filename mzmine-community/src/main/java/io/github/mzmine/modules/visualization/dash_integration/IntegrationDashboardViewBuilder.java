@@ -5,6 +5,8 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.IntegrationPlotController;
 import io.github.mzmine.util.FeatureTableFXUtil;
+import java.util.HashMap;
+import java.util.Map;
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
@@ -39,14 +41,17 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     return null;
   }
 
-  private GridPane updatePlots() {
+  private GridPane buildPlots() {
 
     int columnIndex = 0;
     int rowIndex = 0;
     final GridPane grid = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
 
+    final Map<RawDataFile, IntegrationPlotController> filePlotCache = new HashMap<>();
+
     for (RawDataFile file : model.getSortedFiles()) {
       final BorderPane pane = new BorderPane();
+      filePlotCache.computeIfAbsent(file, f -> new IntegrationPlotController());
       IntegrationPlotController integrationPlot = new IntegrationPlotController();
       final Region view = integrationPlot.buildView();
       pane.setCenter(view);
@@ -56,8 +61,8 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
         rowIndex++;
       }
 
-
+      final FeatureDataEntry entry = model.featureDataEntriesProperty().get(file);
+      integrationPlot.setFeatureDataEntry(entry);
     }
-
   }
 }
