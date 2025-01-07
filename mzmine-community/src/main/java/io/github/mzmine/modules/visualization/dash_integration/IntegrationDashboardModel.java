@@ -5,6 +5,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
@@ -35,112 +36,126 @@ public class IntegrationDashboardModel {
   private final BooleanProperty syncReIntegration = new SimpleBooleanProperty(false);
   private ListProperty<FeatureDataEntry> featureDataEntries = new SimpleListProperty<>(
       FXCollections.observableArrayList());
+  private final ObjectProperty<@NotNull MZTolerance> integrationTolerance = new SimpleObjectProperty<>(
+      new MZTolerance(0.005, 10));
 
   public int getGridSizeX() {
     return gridSizeX.get();
-  }
-
-  public IntegerProperty gridSizeXProperty() {
-    return gridSizeX;
   }
 
   public void setGridSizeX(int gridSizeX) {
     this.gridSizeX.set(gridSizeX);
   }
 
-  public int getGridSizeY() {
-    return gridSizeY.get();
+  public IntegerProperty gridSizeXProperty() {
+    return gridSizeX;
   }
 
-  public IntegerProperty gridSizeYProperty() {
-    return gridSizeY;
+  public int getGridSizeY() {
+    return gridSizeY.get();
   }
 
   public void setGridSizeY(int gridSizeY) {
     this.gridSizeY.set(gridSizeY);
   }
 
-  public @NotNull ModularFeatureList getFeatureList() {
-    return featureList.get();
+  public IntegerProperty gridSizeYProperty() {
+    return gridSizeY;
   }
 
-  public ObjectProperty<@NotNull ModularFeatureList> featureListProperty() {
-    return featureList;
+  public @NotNull ModularFeatureList getFeatureList() {
+    return featureList.get();
   }
 
   public void setFeatureList(@NotNull ModularFeatureList flist) {
     this.featureList.set(flist);
   }
 
-  public @NotNull FeatureTableFX getFeatureTableFx() {
-    return featureTableFx.get();
+  public ObjectProperty<@NotNull ModularFeatureList> featureListProperty() {
+    return featureList;
   }
 
-  public ObjectProperty<@NotNull FeatureTableFX> featureTableFxProperty() {
-    return featureTableFx;
+  public @NotNull FeatureTableFX getFeatureTableFx() {
+    return featureTableFx.get();
   }
 
   public void setFeatureTableFx(@NotNull FeatureTableFX featureTableFx) {
     this.featureTableFx.set(featureTableFx);
   }
 
-  public @Nullable FeatureListRow getRow() {
-    return row.get();
+  public ObjectProperty<@NotNull FeatureTableFX> featureTableFxProperty() {
+    return featureTableFx;
   }
 
-  public ObjectProperty<@Nullable FeatureListRow> rowProperty() {
-    return row;
+  public @Nullable FeatureListRow getRow() {
+    return row.get();
   }
 
   public void setRow(@Nullable FeatureListRow row) {
     this.row.set(row);
   }
 
-  public ObservableList<RawDataFile> getSortedFiles() {
-    return sortedFiles.get();
+  public ObjectProperty<@Nullable FeatureListRow> rowProperty() {
+    return row;
   }
 
-  public ListProperty<RawDataFile> sortedFilesProperty() {
-    return sortedFiles;
+  public ObservableList<RawDataFile> getSortedFiles() {
+    return sortedFiles.get();
   }
 
   public void setSortedFiles(List<RawDataFile> sortedFiles) {
     this.sortedFiles.setAll(sortedFiles);
   }
 
-  public @NotNull MetadataColumn<?> getRawFileSortingColumn() {
-    return rawFileSortingColumn.get();
+  public ListProperty<RawDataFile> sortedFilesProperty() {
+    return sortedFiles;
   }
 
-  public ObjectProperty<@NotNull MetadataColumn<?>> rawFileSortingColumnProperty() {
-    return rawFileSortingColumn;
+  public @NotNull MetadataColumn<?> getRawFileSortingColumn() {
+    return rawFileSortingColumn.get();
   }
 
   public void setRawFileSortingColumn(@NotNull MetadataColumn<?> rawFileSortingColumn) {
     this.rawFileSortingColumn.set(rawFileSortingColumn);
   }
 
-  public boolean isSyncReIntegration() {
-    return syncReIntegration.get();
+  public ObjectProperty<@NotNull MetadataColumn<?>> rawFileSortingColumnProperty() {
+    return rawFileSortingColumn;
   }
 
-  public BooleanProperty syncReIntegrationProperty() {
-    return syncReIntegration;
+  public boolean isSyncReIntegration() {
+    return syncReIntegration.get();
   }
 
   public void setSyncReIntegration(boolean syncReIntegration) {
     this.syncReIntegration.set(syncReIntegration);
   }
 
+  public BooleanProperty syncReIntegrationProperty() {
+    return syncReIntegration;
+  }
+
   public ObservableList<FeatureDataEntry> getFeatureDataEntries() {
     return featureDataEntries.get();
+  }
+
+  public void setFeatureDataEntries(List<FeatureDataEntry> featureDataEntries) {
+    this.featureDataEntries.setAll(featureDataEntries);
   }
 
   public ListProperty<FeatureDataEntry> featureDataEntriesProperty() {
     return featureDataEntries;
   }
 
-  public void setFeatureDataEntries(List<FeatureDataEntry> featureDataEntries) {
-    this.featureDataEntries.setAll(featureDataEntries);
+  public @NotNull MZTolerance getIntegrationTolerance() {
+    return integrationTolerance.get();
+  }
+
+  public ObjectProperty<@NotNull MZTolerance> integrationToleranceProperty() {
+    return integrationTolerance;
+  }
+
+  public void setIntegrationTolerance(@NotNull MZTolerance integrationTolerance) {
+    this.integrationTolerance.set(integrationTolerance);
   }
 }

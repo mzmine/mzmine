@@ -9,12 +9,13 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * @param file           The raw data file
- * @param feature        the integrated feature as shown in the feature table
+ * @param feature        the integrated feature as shown in the feature table. Null if the feature
+ *                       was not detected.
  * @param chromatogram   the chromatogram within 2x the rt range of the row
- * @param additionalData additional chromatograms, e.g. from mrm traces.
+ * @param additionalData additional chromatograms, e.g. from mrm traces. May be empty
  */
 public record FeatureDataEntry(@NotNull RawDataFile file, @Nullable IntensityTimeSeries feature,
                                @NotNull IntensityTimeSeries chromatogram,
-                               List<IntensityTimeSeriesToXYProvider> additionalData) {
+                               @NotNull List<IntensityTimeSeriesToXYProvider> additionalData) {
 
 }

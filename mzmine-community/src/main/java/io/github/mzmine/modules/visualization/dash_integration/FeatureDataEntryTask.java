@@ -14,6 +14,7 @@ import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
@@ -48,13 +49,15 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
 
     final Range<Float> rtRange = row.get(RTRangeType.class);
     final Range<Float> extendedRtRange = RangeUtils.rangeAround(row.getAverageRT(),
-        RangeUtils.rangeLength(rtRange) * 2);
+        RangeUtils.rangeLength(rtRange) * 3);
     final SimpleColorPalette colors = ConfigService.getDefaultColorPalette();
+    final MZTolerance integrationTolerance = model.getIntegrationTolerance();
 
     for (RawDataFile file : files) {
       final @Nullable ModularFeature feature = (ModularFeature) row.getFeature(file);
       final Range<Double> mzRange =
-          feature == null ? row.getMZRange() : feature.getRawDataPointsMZRange();
+          feature == null ? integrationTolerance.getToleranceRange(row.getAverageMZ())
+              : feature.getRawDataPointsMZRange();
 
       final IonTimeSeries<Scan> chromatogram = IonTimeSeriesUtils.extractIonTimeSeries(file,
           (List<Scan>) flist.getSeletedScans(file), mzRange, extendedRtRange,
