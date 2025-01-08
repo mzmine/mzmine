@@ -27,7 +27,10 @@ package util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.io.CSVUtils;
+import java.io.File;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,5 +44,26 @@ public class CSVUtilsTest {
     assertEquals("\"test, with comma\"", CSVUtils.escape("test, with comma", ","));
     assertEquals("\"\"\"test\"\" with quotes\"", CSVUtils.escape("\"test\" with quotes", ","));
     assertEquals("\"test\twith tab\"", CSVUtils.escape("test\twith tab", "\t"));
+  }
+
+  @Test
+  void testAutoSeparator() {
+    Assertions.assertEquals(',', CSVParsingUtils.autoDetermineSeparator(
+        new File(getClass().getClassLoader().getResource("csv/comma-separated.txt").getFile())));
+
+    Assertions.assertEquals('\t', CSVParsingUtils.autoDetermineSeparator(
+        new File(getClass().getClassLoader().getResource("csv/tab-separated.txt").getFile())));
+
+    Assertions.assertEquals(',', CSVParsingUtils.autoDetermineSeparatorDefaultFallback(new File(
+        getClass().getClassLoader().getResource("csv/comma-separated-fallback.csv").getFile())));
+
+    Assertions.assertEquals('\t', CSVParsingUtils.autoDetermineSeparatorDefaultFallback(new File(
+        getClass().getClassLoader().getResource("csv/tab-separated-fallback.tsv").getFile())));
+
+    Assertions.assertEquals('\t', CSVParsingUtils.autoDetermineSeparatorDefaultFallback(new File(
+        getClass().getClassLoader().getResource("csv/tab-separated-fallback.txt").getFile())));
+
+    Assertions.assertEquals('\t', CSVParsingUtils.autoDetermineSeparatorDefaultFallback(
+        new File(getClass().getClassLoader().getResource("csv/one-line-only.tsv").getFile())));
   }
 }
