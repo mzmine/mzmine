@@ -146,6 +146,12 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizar
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -381,6 +387,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       final File exportPath, final boolean exportGnps, final boolean exportSirius,
       final boolean exportAnnotationGraphics, final MZTolerance mzTolScans) {
     if (isExportActive && exportPath != null) {
+      makeAndAddProjectMetadataExport(q, exportPath);
+
       if (exportGnps) {
         makeAndAddIimnGnpsExportStep(q, exportPath, mzTolScans);
       }
@@ -425,6 +433,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ExportAllIdsGraphicalModule.class), param));
+  }
+
+  protected static void makeAndAddProjectMetadataExport(final BatchQueue q, final File exportPath) {
+    final ParameterSet param = ProjectMetadataExportParameters.create(exportPath, true,
+        MetadataFileFormat.DEFAULT);
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(ProjectMetadataExportModule.class), param));
   }
 
   protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath,
