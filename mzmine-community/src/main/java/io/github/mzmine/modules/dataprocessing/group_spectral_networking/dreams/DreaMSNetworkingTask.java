@@ -25,6 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams;
 
+import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask.convertMatrixToR2RMap;
+import static io.github.mzmine.util.collections.CollectionUtils.argsortReversed;
+import static io.github.mzmine.util.scans.similarity.impl.ms2deepscore.EmbeddingBasedSimilarity.dotProduct;
+
 import ai.djl.MalformedModelException;
 import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDArrays;
@@ -57,186 +61,179 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask.convertMatrixToR2RMap;
-import static io.github.mzmine.util.collections.CollectionUtils.argsortReversed;
-import static io.github.mzmine.util.scans.similarity.impl.ms2deepscore.EmbeddingBasedSimilarity.dotProduct;
-
 
 public class DreaMSNetworkingTask extends AbstractFeatureListTask {
 
-    private static final Logger logger = Logger.getLogger(DreaMSNetworkingTask.class.getName());
-    private final @NotNull FeatureList[] featureLists;
-    private int processedItems = 0, totalItems;
-    private final double minScore;
-    private final Integer numNeighbors;
-    private final int batchSize;
-    private final File dreamsModelFile;
-    private final File dreamsSettingsFile;
-    private String description;
+  private static final Logger logger = Logger.getLogger(DreaMSNetworkingTask.class.getName());
+  private final @NotNull FeatureList[] featureLists;
+  private int processedItems = 0, totalItems;
+  private final double minScore;
+  private final Integer numNeighbors;
+  private final int batchSize;
+  private final File dreamsModelFile;
+  private final File dreamsSettingsFile;
+  private String description;
 
-    /**
-     * Constructor is used to extract all parameters
-     *
-     * @param featureLists   data source is featureList
-     * @param mainParameters user parameters {@link MainSpectralNetworkingParameters}
-     */
-    public DreaMSNetworkingTask(MZmineProject project, @NotNull FeatureList[] featureLists,
-                                      ParameterSet mainParameters, @Nullable MemoryMapStorage storage,
-                                      @NotNull Instant moduleCallDate, @NotNull Class<? extends MZmineModule> moduleClass) {
-        super(storage, moduleCallDate, mainParameters, moduleClass);
-        var subParams = mainParameters.getEmbeddedParameterValue(
-                MainSpectralNetworkingParameters.algorithms);
+  /**
+   * Constructor is used to extract all parameters
+   *
+   * @param featureLists   data source is featureList
+   * @param mainParameters user parameters {@link MainSpectralNetworkingParameters}
+   */
+  public DreaMSNetworkingTask(MZmineProject project, @NotNull FeatureList[] featureLists,
+      ParameterSet mainParameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, @NotNull Class<? extends MZmineModule> moduleClass) {
+    super(storage, moduleCallDate, mainParameters, moduleClass);
+    var subParams = mainParameters.getEmbeddedParameterValue(
+        MainSpectralNetworkingParameters.algorithms);
 
-        this.featureLists = featureLists;
-        // Get parameter values for easier use
-        minScore = subParams.getValue(DreaMSNetworkingParameters.minScore);
-        numNeighbors = subParams.getValue(DreaMSNetworkingParameters.numNeighbors);
-        batchSize = subParams.getValue(DreaMSNetworkingParameters.batchSize);
-        dreamsModelFile = subParams.getValue(
-                DreaMSNetworkingParameters.dreaMSModelFile);
-        // same folder - same name
-        dreamsSettingsFile = DreaMSNetworkingParameters.findModelSettingsFile(
-                dreamsModelFile);
+    this.featureLists = featureLists;
+    // Get parameter values for easier use
+    minScore = subParams.getValue(DreaMSNetworkingParameters.minScore);
+    numNeighbors = subParams.getValue(DreaMSNetworkingParameters.numNeighbors);
+    batchSize = subParams.getValue(DreaMSNetworkingParameters.batchSize);
+    dreamsModelFile = subParams.getValue(DreaMSNetworkingParameters.dreaMSModelFile);
+    // same folder - same name
+    dreamsSettingsFile = DreaMSNetworkingParameters.findModelSettingsFile(dreamsModelFile);
 
-        // Get the total number of fragmentation spectra in all feature lists
-        totalItems = (int) Arrays.stream(featureLists)
-                .flatMap(featureList -> featureList.getRows().stream())
-                .map(FeatureListRow::getMostIntenseFragmentScan)
-                .filter(Objects::nonNull)
-                .count();
+    // Get the total number of fragmentation spectra in all feature lists
+    totalItems = (int) Arrays.stream(featureLists)
+        .flatMap(featureList -> featureList.getRows().stream())
+        .map(FeatureListRow::getMostIntenseFragmentScan).filter(Objects::nonNull).count();
+  }
+
+  @Override
+  protected void process() {
+    // init model
+    description = "Loading model";
+    // auto close model after use
+    try (var model = new DreaMSModel(dreamsModelFile, dreamsSettingsFile)) {
+      description = "Calculating DreaMS similarity";
+      // each feature list
+      for (FeatureList featureList : featureLists) {
+        processFeatureList(featureList, model);
+      }
+    } catch (ModelNotFoundException | MalformedModelException | IOException e) {
+      error("Error in DreaMS model " + e.getMessage(), e);
+    }
+  }
+
+  private void processFeatureList(FeatureList featureList, DreaMSModel model) {
+    description = "Calculating DreaMS similarities";
+    List<Scan> scanList = new ArrayList<>();
+    List<FeatureListRow> featureListRows = new ArrayList<>();
+
+    for (FeatureListRow row : featureList.getRows()) {
+      Scan scan = row.getMostIntenseFragmentScan();
+      if (scan == null || scan.getPrecursorMz() == null) {
+        continue;
+      }
+      if (scan.getMassList() == null) {
+        throw new MissingMassListException(scan);
+      }
+
+      scanList.add(scan);
+      featureListRows.add(row);
     }
 
-    @Override
-    protected void process() {
-        // init model
-        description = "Loading model";
-        // auto close model after use
-        try (var model = new DreaMSModel(dreamsModelFile, dreamsSettingsFile)) {
-            description = "Calculating DreaMS similarity";
-            // each feature list
-            for (FeatureList featureList : featureLists) {
-                processFeatureList(featureList, model);
-            }
-        } catch (ModelNotFoundException | MalformedModelException | IOException e) {
-            error("Error in DreaMS model " + e.getMessage(), e);
+    // Predict the matrix of pairwise DreaMS similarities
+    float[][] similarityMatrix;
+    try {
+      // Pre-process mass spectra
+      float[][][] tensorizedSpectra = model.getSpectrumTensorizer().tensorizeSpectra(scanList);
+
+      // Process the tensorizedSpectra in batches
+      int totalSpectra = tensorizedSpectra.length;
+      NDList allPredictions = new NDList();
+
+      for (int start = 0; start < totalSpectra; start += batchSize) {
+        // Determine the end index for the current batch
+        int end = Math.min(start + batchSize, totalSpectra);
+
+        // Extract the batch as a 3D slice
+        float[][][] batchSlices = new float[end - start][][];
+        System.arraycopy(tensorizedSpectra, start, batchSlices, 0, end - start);
+
+        // Predict embeddings for the current batch
+        processedItems += end - start;
+        NDArray batchPredictions = model.predictEmbeddingFromTensors(batchSlices);
+
+        // Add the predictions for the current batch to all predictions
+        allPredictions.add(batchPredictions);
+      }
+
+      // Combine all predictions into a single NDArray (stacked along the batch dimension)
+      NDArray embeddings = NDArrays.concat(allPredictions);
+
+      // Compute DreaMS similarities
+      similarityMatrix = dotProduct(embeddings, embeddings);
+    } catch (TranslateException e) {
+      throw new RuntimeException(e);
+    }
+
+    // Choose numNeighbors nearest neighbors for each spectrum
+    if (numNeighbors != null) {
+      similarityMatrix = toKNNMatrix(similarityMatrix, numNeighbors);
+    }
+
+    // Convert the similarity matrix to a R2RMap
+    R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows,
+        similarityMatrix, minScore, Type.DREAMS);
+    R2RNetworkingMaps rowMaps = featureList.getRowMaps();
+    rowMaps.addAllRowsRelationships(relationsMap, Type.DREAMS);
+
+    // stats are currently only available for modified cosine
+    // addNetworkStatisticsToRows(featureList, rowMaps);
+  }
+
+  /**
+   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+   */
+  public double getFinishedPercentage() {
+      if (totalItems == 0) {
+          return 0;
+      } else {
+          return (double) processedItems / totalItems;
+      }
+  }
+
+  @Override
+  public String getTaskDescription() {
+    return description;
+  }
+
+  @Override
+  protected @NotNull List<FeatureList> getProcessedFeatureLists() {
+    return List.of(featureLists);
+  }
+
+  public static float[][] toKNNMatrix(float[][] matrix, int k) {
+
+    // Create a new matrix to store the result
+    int n = matrix.length;
+    float[][] knnMatrix = new float[n][n];
+
+    // Iterate through each row
+    for (int i = 0; i < n; i++) {
+      // Get the indices sorted by values in descending order
+      int[] sortedIndices = argsortReversed(matrix[i]);
+
+      // Retain the k largest non-diagonal elements
+      int count = 0;
+      for (int j = 0; j < n && count < k; j++) {
+        int col = sortedIndices[j];
+        if (col != i) { // Exclude the diagonal
+          knnMatrix[i][col] = matrix[i][col];
+          knnMatrix[col][i] = matrix[i][col]; // Enforce symmetry
+          count++;
         }
+      }
+
+      // Retain the diagonal as it is
+      knnMatrix[i][i] = matrix[i][i];
     }
 
-    private void processFeatureList(FeatureList featureList, DreaMSModel model) {
-        description = "Calculating DreaMS similarities";
-        List<Scan> scanList = new ArrayList<>();
-        List<FeatureListRow> featureListRows = new ArrayList<>();
-
-        for (FeatureListRow row : featureList.getRows()) {
-            Scan scan = row.getMostIntenseFragmentScan();
-            if (scan == null) {
-                continue;
-            }
-            if (scan.getMassList() == null) {
-                throw new MissingMassListException(scan);
-            }
-
-            scanList.add(scan);
-            featureListRows.add(row);
-        }
-
-        // Predict the matrix of pairwise DreaMS similarities
-        float[][] similarityMatrix;
-        try {
-            // Pre-process mass spectra
-            float[][][] tensorizedSpectra = model.getSpectrumTensorizer().tensorizeSpectra(scanList);
-
-            // Process the tensorizedSpectra in batches
-            int totalSpectra = tensorizedSpectra.length;
-            NDList allPredictions = new NDList();
-
-            for (int start = 0; start < totalSpectra; start += batchSize) {
-                // Determine the end index for the current batch
-                int end = Math.min(start + batchSize, totalSpectra);
-
-                // Extract the batch as a 3D slice
-                float[][][] batchSlices = new float[end - start][][];
-                System.arraycopy(tensorizedSpectra, start, batchSlices, 0, end - start);
-
-                // Predict embeddings for the current batch
-                processedItems += end - start;
-                NDArray batchPredictions = model.predictEmbeddingFromTensors(batchSlices);
-
-                // Add the predictions for the current batch to all predictions
-                allPredictions.add(batchPredictions);
-            }
-
-            // Combine all predictions into a single NDArray (stacked along the batch dimension)
-            NDArray embeddings = NDArrays.concat(allPredictions);
-
-            // Compute DreaMS similarities
-            similarityMatrix = dotProduct(embeddings, embeddings);
-        } catch (TranslateException e) {
-            throw new RuntimeException(e);
-        }
-
-        // Choose numNeighbors nearest neighbors for each spectrum
-        if (numNeighbors != null) {
-            similarityMatrix = toKNNMatrix(similarityMatrix, numNeighbors);
-        }
-
-        // Convert the similarity matrix to a R2RMap
-        R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows, similarityMatrix, minScore,
-                Type.DREAMS);
-        R2RNetworkingMaps rowMaps = featureList.getRowMaps();
-        rowMaps.addAllRowsRelationships(relationsMap, Type.DREAMS);
-
-        // stats are currently only available for modified cosine
-        // addNetworkStatisticsToRows(featureList, rowMaps);
-    }
-
-    /**
-     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    public double getFinishedPercentage() {
-        if (totalItems == 0)
-            return 0;
-        else
-            return (double) processedItems / totalItems;
-    }
-
-    @Override
-    public String getTaskDescription() {
-        return description;
-    }
-
-    @Override
-    protected @NotNull List<FeatureList> getProcessedFeatureLists() {
-        return List.of(featureLists);
-    }
-
-    public static float[][] toKNNMatrix(float[][] matrix, int k) {
-
-        // Create a new matrix to store the result
-        int n = matrix.length;
-        float[][] knnMatrix = new float[n][n];
-
-        // Iterate through each row
-        for (int i = 0; i < n; i++) {
-            // Get the indices sorted by values in descending order
-            int[] sortedIndices = argsortReversed(matrix[i]);
-
-            // Retain the k largest non-diagonal elements
-            int count = 0;
-            for (int j = 0; j < n && count < k; j++) {
-                int col = sortedIndices[j];
-                if (col != i) { // Exclude the diagonal
-                    knnMatrix[i][col] = matrix[i][col];
-                    knnMatrix[col][i] = matrix[i][col]; // Enforce symmetry
-                    count++;
-                }
-            }
-
-            // Retain the diagonal as it is
-            knnMatrix[i][i] = matrix[i][i];
-        }
-
-        return knnMatrix;
-    }
+    return knnMatrix;
+  }
 
 }

@@ -26,26 +26,23 @@
 package io.github.mzmine.util.scans.similarity.impl.DreaMS;
 
 
-
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Bins spectra and returns two tensors, one for metadata and one for fragments
  */
 public class DreaMSSpectrumTensorizer {
 
-  private static final Logger logger = Logger.getLogger(
-      DreaMSSpectrumTensorizer.class.getName());
+  private static final Logger logger = Logger.getLogger(DreaMSSpectrumTensorizer.class.getName());
   private final DreaMSSettings settings;
 
   public DreaMSSpectrumTensorizer(DreaMSSettings settings) {
@@ -53,23 +50,23 @@ public class DreaMSSpectrumTensorizer {
   }
 
   /**
-   * Converts a mass spectrum into a matrix of size (n + 1) x 2. Each row represents a pair of m/z and
-   * intensity values of a signal present in the spectrum (hence 2 columns). The matrix consists of:
-   *
-   * 1. An artificial signal in the first row representing the precursor ion.
-   *    - Its m/z value is set to the MS1 isolated precursor m/z provided as `precMz`.
-   *    - Its intensity is constant and set to 1.1 to distinguish it from other n signals.
-   *
-   * 2. The remaining rows correspond to the n most intense peaks from the spectrum.
-   *    - n = `DreaMSSettings.nHighestPeaks`.
-   *    - The intensities of these peaks are normalized by dividing each by the maximum intensity
-   *      of the n most intense peaks (i.e., relative intensities).
-   *    - The m/z values left unchanged.
+   * Converts a mass spectrum into a matrix of size (n + 1) x 2. Each row represents a pair of m/z
+   * and intensity values of a signal present in the spectrum (hence 2 columns). The matrix consists
+   * of:
+   * <p>
+   * 1. An artificial signal in the first row representing the precursor ion. - Its m/z value is set
+   * to the MS1 isolated precursor m/z provided as `precMz`. - Its intensity is constant and set to
+   * 1.1 to distinguish it from other n signals.
+   * <p>
+   * 2. The remaining rows correspond to the n most intense peaks from the spectrum. - n =
+   * `DreaMSSettings.nHighestPeaks`. - The intensities of these peaks are normalized by dividing
+   * each by the maximum intensity of the n most intense peaks (i.e., relative intensities). - The
+   * m/z values left unchanged.
    *
    * @param spectrum the mass spectrum to be tensorized. Must not be null.
-   * @param precMz the precursor m/z value of the mass spectrum. Must not be null.
+   * @param precMz   the precursor m/z value of the mass spectrum. Must not be null.
    * @return a float matrix of size (n + 1) x 2, where the first column represents m/z values and
-   *         the second column represents normalized intensities.
+   * the second column represents normalized intensities.
    */
   public float[][] tensorizeFragments(@NotNull MassSpectrum spectrum, @NotNull Double precMz) {
 
@@ -86,6 +83,9 @@ public class DreaMSSpectrumTensorizer {
     // Collect all peaks into a list of pairs (m/z, intensity)
     List<double[]> peaks = new ArrayList<>();
     int totalPeaks = spectrum.getNumberOfDataPoints();
+    if (totalPeaks == 0) {
+      return result;
+    }
 
     for (int i = 0; i < totalPeaks; i++) {
       double mz = spectrum.getMzValue(i);
@@ -110,7 +110,8 @@ public class DreaMSSpectrumTensorizer {
       double[] peak = topPeaks.get(i);
 
       result[i + 1][0] = (float) peak[0];  // m/z
-      result[i + 1][1] = (float) peak[1] / maxIntensity;  // Intensity (division makes it a relative intensity)
+      result[i + 1][1] =
+          (float) peak[1] / maxIntensity;  // Intensity (division makes it a relative intensity)
     }
 
     // If there are fewer peaks than nHighestPeaks, the remaining rows are already zero-filled
@@ -118,24 +119,24 @@ public class DreaMSSpectrumTensorizer {
   }
 
   /**
-   * Tensorizes a list of mass spectra. Only works on scans or {@link SpectralLibraryEntry} with precursor mz.
+   * Tensorizes a list of mass spectra. Only works on scans or {@link SpectralLibraryEntry} with
+   * precursor mz.
+   *
    * @param scans the mass spectra to be tensorized. Must not be null.
-   * @return an array of float matrices of size num. signals x 2, where the first column of each matrix represents m/z
-   *         values and the second column represents normalized intensities.
-   *         See {@link #tensorizeFragments(MassSpectrum, Double)} for the details.
+   * @return an array of float matrices of size num. signals x 2, where the first column of each
+   * matrix represents m/z values and the second column represents normalized intensities. See
+   * {@link #tensorizeFragments(MassSpectrum, Double)} for the details.
    */
   public float[][][] tensorizeSpectra(@NotNull List<? extends MassSpectrum> scans) {
     int originalSize = scans.size();
 
     // Filter scans to only include those with precursor m/z
-    scans = scans.stream()
-            .filter(scan -> ScanUtils.getPrecursorMz(scan) != null)
-            .toList();
+    scans = scans.stream().filter(scan -> ScanUtils.getPrecursorMz(scan) != null).toList();
 
     if (originalSize > scans.size()) {
       logger.info(
-        "List contained spectra without precursor m/z; those were filtered out. Remaining: %d; Total: %d".formatted(
-          scans.size(), originalSize));
+          "List contained spectra without precursor m/z; those were filtered out. Remaining: %d; Total: %d".formatted(
+              scans.size(), originalSize));
     }
 
     // Initialize the result as a 3D float array
