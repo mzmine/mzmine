@@ -100,6 +100,8 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
   private ChimericMsOption handleChimericsOption;
 
   // writers for MSn >=2 and for MS1 - MS1 might be the same as MSn
+  private String ms1FileNameWithoutExtension;
+  private String msnFileNameWithoutExtension;
   private BufferedWriter msnWriter;
   private BufferedWriter ms1Writer;
 
@@ -223,12 +225,15 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
     try {
       msnWriter = Files.newBufferedWriter(outFile.toPath(), StandardCharsets.UTF_8,
           WriterOptions.REPLACE.toOpenOption());
+      msnFileNameWithoutExtension = FileAndPathUtil.eraseFormat(outFile.getName());
       if (exportMs1 && separateMs1File) {
         final File ms1File = FileAndPathUtil.getRealFilePathWithSuffix(outFile, "_ms1");
         ms1Writer = Files.newBufferedWriter(ms1File.toPath(), StandardCharsets.UTF_8,
             WriterOptions.REPLACE.toOpenOption());
+        ms1FileNameWithoutExtension = FileAndPathUtil.eraseFormat(ms1File.getName());
       } else {
         ms1Writer = msnWriter;
+        ms1FileNameWithoutExtension = msnFileNameWithoutExtension;
       }
 
       for (FeatureList flist : featureLists) {
@@ -299,12 +304,12 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
 
     // export MS1 scans
     for (final SpectralLibraryEntry ms1 : ms1Scans) {
-      exportScan(ms1Writer, ms1);
+      exportScan(ms1Writer, ms1FileNameWithoutExtension, ms1);
     }
 
     // export MS2 scans
     for (final SpectralLibraryEntry msn : fragmentScans) {
-      exportScan(msnWriter, msn);
+      exportScan(msnWriter, msnFileNameWithoutExtension, msn);
     }
   }
 
@@ -364,10 +369,18 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
     return entries;
   }
 
-  private void exportScan(final BufferedWriter writer, final SpectralLibraryEntry msn)
-      throws IOException {
-    ExportScansFeatureTask.exportEntry(writer, msn, format, normalizer);
-    exported.incrementAndGet();
+  private void exportScan(final BufferedWriter writer, final String fileNameWithoutExtension,
+      final SpectralLibraryEntry entry) throws IOException {
+    // specific things that should only happen in library generation - otherwise add to the factory
+    final int entryId = exported.incrementAndGet();
+    entry.putIfNotNull(DBEntryField.ENTRY_ID, entryId);
+
+    entry.putIfNotNull(DBEntryField.USI,
+        ScanUtils.createUSI(entry.getAsString(DBEntryField.DATASET_ID).orElse(null),
+            fileNameWithoutExtension, String.valueOf(entryId)));
+
+    // export
+    ExportScansFeatureTask.exportEntry(writer, entry, format, normalizer);
   }
 
   public SpectralLibraryEntry spectrumToEntry(MassSpectrum spectrum,

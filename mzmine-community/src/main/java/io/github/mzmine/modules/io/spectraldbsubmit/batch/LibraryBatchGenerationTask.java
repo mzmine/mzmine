@@ -62,6 +62,7 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.WriterOptions;
 import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -92,6 +93,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final SpectralLibrary library;
   private final ModularFeatureList[] flists;
   private final File outFile;
+  private final String fileNameWithoutExtension;
   private final SpectralLibraryExportFormats format;
   private final ParameterSet parameters;
   private final Map<DBEntryField, Object> metadataMap;
@@ -118,6 +120,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     String exportFormat = format.getExtension();
     File file = parameters.getValue(LibraryBatchGenerationParameters.file);
     outFile = FileAndPathUtil.getRealFilePath(file, exportFormat);
+
+    fileNameWithoutExtension = FileAndPathUtil.eraseFormat(outFile.getName());
 
     library = new SpectralLibrary(MemoryMapStorage.forMassList(), outFile.getName() + "_batch",
         outFile);
@@ -290,8 +294,16 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
         SpectralLibraryEntry entry = entryFactory.createAnnotated(library.getStorage(), row,
             msmsScan, match, dps, chimeric, score, filteredMatches, metadataMap);
+
+        // specific things that should only happen in library generation - otherwise add to the factory
+        final int entryId = exported.incrementAndGet();
+        entry.putIfNotNull(DBEntryField.ENTRY_ID, entryId);
+
+        entry.putIfNotNull(DBEntryField.USI,
+            ScanUtils.createUSI(entry.getAsString(DBEntryField.DATASET_ID).orElse(null),
+                fileNameWithoutExtension, String.valueOf(entryId)));
+
         ExportScansFeatureTask.exportEntry(writer, entry, format, normalizer);
-        exported.incrementAndGet();
       }
     }
   }
