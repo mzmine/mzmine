@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,11 +29,18 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.MZmineIconUtils;
 import java.text.NumberFormat;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -134,7 +141,8 @@ public class RawDataFileInfoPaneController {
     definitionColumn.setCellValueFactory(
         p -> new SimpleStringProperty(p.getValue().getScanDefinition()));
     massDetectionColumn.setCellValueFactory(
-        p -> p.getValue().getMassList() != null ? new SimpleObjectProperty<>(MZmineIconUtils.getCheckedIcon())
+        p -> p.getValue().getMassList() != null ? new SimpleObjectProperty<>(
+            MZmineIconUtils.getCheckedIcon())
             : new SimpleObjectProperty<>(MZmineIconUtils.getUncheckedIcon()));
 
     TableColumns.setFormattedCellFactory(basePeakColumn, mzFormat);
@@ -172,27 +180,27 @@ public class RawDataFileInfoPaneController {
       int level = rawDataFile.getMSLevels()[i];
       scansMSLevel =
           scansMSLevel + "MS" + level + " level (" + rawDataFile.getScanNumbers(level).size()
-              + ") ";
+          + ") ";
       lblNumScans.setText(scansMSLevel);
     }
 
     String rtRangeMSLevel = "";
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       rtRangeMSLevel = rtRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
-          + MZminePreferences.rtFormat.getValue()
-          .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint()) + "-"
-          + MZminePreferences.rtFormat.getValue()
-          .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint()) + " [min] ";
+                       + MZminePreferences.rtFormat.getValue()
+                           .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint()) + "-"
+                       + MZminePreferences.rtFormat.getValue()
+                           .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint()) + " [min] ";
       lblRtRange.setText(rtRangeMSLevel);
     }
 
     String mzRangeMSLevel = "";
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       mzRangeMSLevel = mzRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
-          + MZminePreferences.mzFormat.getValue()
-          .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint()) + "-"
-          + MZminePreferences.mzFormat.getValue()
-          .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint()) + " ";
+                       + MZminePreferences.mzFormat.getValue()
+                           .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint()) + "-"
+                       + MZminePreferences.mzFormat.getValue()
+                           .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint()) + " ";
       lblMzRange.setText(mzRangeMSLevel);
     }
 
@@ -208,7 +216,7 @@ public class RawDataFileInfoPaneController {
       // it's not the computation that takes long, it's putting the data into the table.
       // This bricks the MZmine window
       logger.info("Number of entries >500 000 for raw data file " + rawDataFile.getName() + " ("
-          + rawDataFile.getNumOfScans() + ")");
+                  + rawDataFile.getNumOfScans() + ")");
       logger.info("Will not compute table data.");
       return;
     }
@@ -254,11 +262,21 @@ public class RawDataFileInfoPaneController {
 
     if (scan instanceof Frame f && !f.getImsMsMsInfos().isEmpty()) {
       // IMS Frames may have multiple precursor m/zs in acquisition modes such as PASEF.
-      return String.join("; ",
-          f.getImsMsMsInfos().stream().map(info -> mzFormat.format(info.getIsolationMz()))
-              .toList());
+      return String.join("; ", exractInfosFromFrame(f.getImsMsMsInfos(), mzFormat));
     }
     final Double precursorMz = scan.getPrecursorMz();
     return precursorMz != null ? mzFormat.format(scan.getPrecursorMz()) : null;
+  }
+
+  private static List<String> exractInfosFromFrame(Collection<IonMobilityMsMsInfo> infos,
+      NumberFormat mzFormat) {
+    return infos.stream().map(info -> {
+      return switch (info) {
+        case PasefMsMsInfo i -> mzFormat.format(i.getIsolationMz());
+        case IonMobilityMsMsInfo i ->
+            mzFormat.format(Objects.requireNonNullElse(i.getIsolationWindow().lowerEndpoint(), -1))
+                + "-" + mzFormat.format(Objects.requireNonNullElse(i.getIsolationWindow().upperEndpoint(), -1));
+      };
+    }).toList();
   }
 }

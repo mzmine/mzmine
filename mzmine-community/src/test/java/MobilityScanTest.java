@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,8 @@ import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.io.IOException;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -71,18 +72,18 @@ public class MobilityScanTest {
     Random rnd = new Random(System.currentTimeMillis());
     double[] numbers = rnd.doubles().limit(10).toArray();
 
-    MemoryMapStorage storage = null; // MemoryMapStorage.create();
+    MemoryMapStorage storage = MemoryMapStorage.create();
 
-    DoubleBuffer stored = null;
+    MemorySegment stored = null;
     stored = StorageUtils.storeValuesToDoubleBuffer(storage, numbers);
 
     for (int i = 0; i < numbers.length; i++) {
-      Assert.assertEquals(numbers[i], stored.get(i), 0E-8);
+      Assert.assertEquals(numbers[i], stored.getAtIndex(ValueLayout.JAVA_DOUBLE, i), 0E-8);
     }
 
     for (int i = 0; i < numbers.length; i++) {
       double[] d = new double[1];
-      stored.get(i, d, 0, 1);
+      StorageUtils.copyToBuffer(d, stored, i, i + 1);
       Assert.assertEquals(numbers[i], d[0], 1E-8);
     }
   }

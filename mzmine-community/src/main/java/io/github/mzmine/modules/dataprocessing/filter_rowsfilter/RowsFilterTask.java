@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -110,7 +110,7 @@ public class RowsFilterTask extends AbstractTask {
   private final Range<Float> rtRange;
   private final Range<Float> fwhmRange;
   private final Isotope13CFilter isotope13CFilter;
-  private final AbsoluteAndRelativeInt minSamples;
+  private AbsoluteAndRelativeInt minSamples;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
   private FeatureList filteredFeatureList;
@@ -246,10 +246,9 @@ public class RowsFilterTask extends AbstractTask {
           logger.info("Finished feature list rows filter");
         }
       } catch (Throwable t) {
-
-        setErrorMessage(t.getMessage());
-        setStatus(TaskStatus.ERROR);
+        error(t.getMessage());
         logger.log(Level.SEVERE, "Feature list row filter error", t);
+        return;
       }
     }
   }
@@ -293,6 +292,23 @@ public class RowsFilterTask extends AbstractTask {
     boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
 
     final int totalSamples = featureList.getRawDataFiles().size();
+    // check if min samples filter is valid
+    if (filterByMinFeatureCount) {
+      int numMinSamples = minSamples.getMaximumValue(totalSamples);
+      if (numMinSamples > totalSamples) {
+        var filterName = RowsFilterParameters.MIN_FEATURE_COUNT.getName();
+        var errorMessage = """
+            The "%s" parameter in the feature list rows filter step requires %d samples, but \
+            the processed feature list %s only contains %d samples. Check the feature list rows \
+            filter and adjust the minimum number of samples. Relative percentages help to scale this parameter automatically from small to large datasets.
+            The current processing step and all following will be cancelled.""".formatted(
+            filterName, numMinSamples, featureList, totalSamples);
+
+        // kill the job this is a misconfiguration that needs to be handled
+        error(errorMessage);
+        return null;
+      }
+    }
 
     // Filter rows.
     totalRows = featureList.getNumberOfRows();

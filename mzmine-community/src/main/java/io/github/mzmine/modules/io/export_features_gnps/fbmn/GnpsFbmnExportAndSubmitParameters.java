@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,15 +37,12 @@
 package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
-import static io.github.mzmine.javafx.components.factories.FxTexts.fbmnPaper;
-import static io.github.mzmine.javafx.components.factories.FxTexts.gnpsPaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
-import static io.github.mzmine.javafx.components.factories.FxTexts.iimnPaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
-import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -54,6 +51,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -78,6 +76,10 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
       "Merge MS/MS (experimental)",
       "Merge high-quality MS/MS instead of exporting just the most intense one.",
       new MsMsSpectraMergeParameters(), true);
+
+  // scientific format untested on GNPS FBMN
+  public static final IntensityNormalizerComboParameter NORMALIZER = IntensityNormalizerComboParameter.createWithoutScientific();
+
   public static final ComboParameter<FeatureTableExportType> CSV_TYPE = new ComboParameter<>(
       "CSV export",
       "Either the new comprehensive export of mzmine or the legacy export from MZmine 2",
@@ -97,8 +99,8 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
 
   public GnpsFbmnExportAndSubmitParameters() {
-    super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, FEATURE_INTENSITY,
-            CSV_TYPE, SUBMIT, OPEN_FOLDER},
+    super(new Parameter[]{FEATURE_LISTS, FILENAME, FILTER, MERGE_PARAMETER, NORMALIZER,
+            FEATURE_INTENSITY, CSV_TYPE, SUBMIT, OPEN_FOLDER},
         "https://mzmine.github.io/mzmine_documentation/module_docs/GNPS_export/gnps_export.html");
   }
 
@@ -114,9 +116,11 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
             "https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/"),
         text("or a "), hyperlinkText("youtube playlist",
             "https://www.youtube.com/watch?v=vFcGG7T_44E&list=PL4L2Xw5k8ITzd9hx5XIP94vFPxj1sSafB&index=4&t=146s"),
-        text("and"), boldText("please cite:\n"), boldText("IIMN paper: "), iimnPaper, linebreak(),
-        boldText("FBMN paper: "), fbmnPaper, linebreak(), boldText("GNPS paper: "), gnpsPaper,
-        linebreak(), boldText("mzmine paper: "), mzminePaper);
+        text("and"), boldText("please cite:\n"), boldText("IIMN paper: "),
+        ArticleReferences.IIMN.hyperlinkText(), linebreak(), boldText("FBMN paper: "),
+        ArticleReferences.FBMN.hyperlinkText(), linebreak(), boldText("GNPS paper: "),
+        ArticleReferences.GNPS.hyperlinkText(), linebreak(), boldText("mzmine paper: "),
+        ArticleReferences.MZMINE3.hyperlinkText());
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();

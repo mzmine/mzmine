@@ -58,11 +58,16 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
       new ExtensionFilter("All files", "*.*") //
   );
   public static final ComboParameter<ProjectSaveOption> option = new ComboParameter<>(
-      "Project type",
-      "Referencing projects point to the original directory of raw data files (with those projects "
-      + "files should not be moved or renamed). Standalone copies the raw data files into the project, "
-      + "creating a large but flexible project that can be shared.", ProjectSaveOption.values(),
-      ProjectSaveOption.REFERENCING);
+      "Project type", """
+      Referencing projects point to the original directory of raw data files as absolute and 
+      relative paths.  Projects can be shared if the raw files are located in exactly the same absolute 
+      path (e.g. starting with C:\\\\...) or the same path relative to the project file (e.g. saving the
+      project in the same folder as the raw files will achieve a portable project - requires mzmine 4.3 or higher). 
+            
+      Standalone copies the raw data files into the project, 
+      creating a larger, but flexible project that can be shared without any additional requirements.""",
+      ProjectSaveOption.values(), ProjectSaveOption.REFERENCING);
+
   public static final FileNameSuffixExportParameter projectFile = new FileNameSuffixExportParameter(
       "Project file", "File name of project to be saved", extensions, null);
   private static final Logger logger = Logger.getLogger(ProjectSaveAsParameters.class.getName());
@@ -80,7 +85,9 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
         boldText("Standalone: "),
         text("Adds the raw data files into a project (large but flexible)"), linebreak(),
         boldText("Referencing: "), text(
-            "The project will point to the current files used. Any rename, move, or remove of a file from their current directory might lead to incompatibility of the project."),
+            "The project will point to the currently used files. Renaming, moving, or removing"
+                + " a file from its current directory might lead to incompatibility of the project. "
+                + "The project will keep absolute and relative (from mzmine 4.4) paths the the raw files."),
         linebreak(), boldText("WARNING: "),
         text("If this is an existing project, it is recommended to save it in the same way."));
 

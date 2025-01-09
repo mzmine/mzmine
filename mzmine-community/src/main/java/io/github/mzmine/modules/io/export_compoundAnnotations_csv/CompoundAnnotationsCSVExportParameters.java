@@ -26,12 +26,14 @@
 package io.github.mzmine.modules.io.export_compoundAnnotations_csv;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
 import javafx.stage.FileChooser;
+import org.jetbrains.annotations.NotNull;
 
 public class CompoundAnnotationsCSVExportParameters extends SimpleParameterSet {
 
@@ -58,4 +60,8 @@ public class CompoundAnnotationsCSVExportParameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/io/feat-list-export.html");
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

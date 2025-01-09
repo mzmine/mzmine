@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,9 +36,12 @@ import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,6 +50,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -199,12 +203,12 @@ public class MZmineProjectImpl implements MZmineProject {
       if (names.contains(name)) {
         if (!MZmineCore.isHeadLessMode()) {
           MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
-              + " because a file with the same name already exists in the project. Please copy "
-              + "the file and rename it, if you want to import it twice.");
+                                                      + " because a file with the same name already exists in the project. Please copy "
+                                                      + "the file and rename it, if you want to import it twice.");
         }
         logger.warning(
             "Cannot add file with an original name that already exists in project. (filename="
-                + newFile.getName() + ")");
+            + newFile.getName() + ")");
         return;
       }
 
@@ -266,7 +270,11 @@ public class MZmineProjectImpl implements MZmineProject {
         featureList.setName(getUniqueName(featureList.getName(), names));
       }
       featureLists.add(featureList);
+      logger.finer(
+          "Added feature list with %d rows named: %s".formatted(featureList.getNumberOfRows(),
+              featureList.getName()));
       fireFeatureListsChangeEvent(List.of(featureList), Type.ADDED);
+
     } finally {
       featureLock.writeLock().unlock();
     }
@@ -306,11 +314,12 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public @Nullable RawDataFile getDataFileByName(@Nullable String name) {
-    if (name == null) {
+    if (StringUtils.isBlank(name)) {
       return null;
     }
     try {
       rawLock.readLock().lock();
+      name = name.trim();
       for (final RawDataFile raw : rawDataFiles) {
         if (name.equalsIgnoreCase(raw.getName()) || name.equalsIgnoreCase(
             FileAndPathUtil.eraseFormat(raw.getName()))) {
@@ -508,4 +517,37 @@ public class MZmineProjectImpl implements MZmineProject {
     }
   }
 
+  public @Nullable Path getRelativePath(@Nullable Path path) {
+    if (path == null) {
+      return null;
+    }
+    final File projectFile = getProjectFile();
+
+    if (projectFile == null) {
+      return null;
+    }
+
+    try {
+      return projectFile.toPath().relativize(path).normalize();
+    } catch (IllegalArgumentException e) {
+      logger.warning(
+          () -> "Cannot relativize path %s to project file %s. Files may be located on a different drive.".formatted(
+              path.toFile().getAbsolutePath(), projectFile.getAbsolutePath()));
+      return null;
+    }
+  }
+
+  @Override
+  public @Nullable File resolveRelativePathToFile(@Nullable String path) {
+    if (path == null || path.isBlank() || getProjectFile() == null) {
+      return null;
+    }
+
+    try {
+      return projectFile.toPath().resolve(path).normalize().toFile();
+    } catch (InvalidPathException e) {
+      logger.log(Level.SEVERE, "Cannot resolve file path relative to project.", e);
+      return null;
+    }
+  }
 }

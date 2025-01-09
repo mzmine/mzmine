@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
@@ -48,7 +49,7 @@ public class SpectralLibrary {
   private final @NotNull String name;
   private final @NotNull File path;
   // spectra
-  private final @NotNull List<SpectralLibraryEntry> entries = new ArrayList<>();
+  private final @NotNull ArrayList<SpectralLibraryEntry> entries = new ArrayList<>(1024);
 
   // internals
   @Nullable
@@ -78,6 +79,14 @@ public class SpectralLibrary {
 
   public void addEntries(Collection<SpectralLibraryEntry> entries) {
     entries.forEach(this::addEntry);
+  }
+
+  public void trim() {
+    entries.trimToSize();
+  }
+
+  public void removeif(Predicate<SpectralLibraryEntry> filter) {
+    entries.removeIf(filter);
   }
 
   @NotNull

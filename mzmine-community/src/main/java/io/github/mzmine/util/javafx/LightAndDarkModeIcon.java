@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.javafx;
 
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.ConfigService;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -45,6 +46,11 @@ public class LightAndDarkModeIcon extends HBox {
   public static LightAndDarkModeIcon mzwizardImage(int maxWidth, int maxHeight) {
     return new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzwizard.png",
         "icons/introductiontab/logos_mzio_mzwizard_light.png", maxWidth, maxHeight);
+  }
+
+  public static LightAndDarkModeIcon mzwizardImageTab(int maxWidth, int maxHeight) {
+    return new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzwizard_lowres.png",
+        "icons/introductiontab/logos_mzio_mzwizard_light_lowres.png", maxWidth, maxHeight);
   }
 
   public LightAndDarkModeIcon(String resourcePathForLightMode, String resourcePathForDarkMode,

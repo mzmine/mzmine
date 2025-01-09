@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -76,6 +77,7 @@ import org.jetbrains.annotations.Nullable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
 @Generated("jsonschema2pojo")
+@Deprecated
 public class MZmineJsonLibraryEntry {
 
   public String softwaresource;
@@ -90,7 +92,7 @@ public class MZmineJsonLibraryEntry {
   public Double rt, ccs;
   public String cas, splash;
   public String formula, smiles, inchi, inchikey, peptideSequence;
-  public Double fragmentationEnergy;
+  public FloatArrayList fragmentationEnergy;
   public String mergedSpectrumType;
   public String fragmentationMethod;
   public String instrumentType, instrument, resolution, ionSource;
@@ -103,6 +105,15 @@ public class MZmineJsonLibraryEntry {
   public SpectralQuality quality;
   public Double purity;
   public Integer numSignals;
+
+  public String classyFireSuperclass;
+  public String classyFireClass;
+  public String classyFireSubclass;
+  public String classyFireParent;
+  public String npClassifierSuperclass;
+  public String npClassifierPathway;
+  public String npClassifierClass;
+
 
   @JsonDeserialize(using = SpectrumDeserializer.class)
   public double[][] signals;
@@ -143,7 +154,15 @@ public class MZmineJsonLibraryEntry {
       case INCHIKEY -> inchikey;
       case SMILES -> smiles;
       case PEPTIDE_SEQ -> peptideSequence;
+      case CLASSYFIRE_SUPERCLASS -> classyFireSuperclass;
+      case CLASSYFIRE_CLASS -> classyFireClass;
+      case CLASSYFIRE_SUBCLASS -> classyFireSubclass;
+      case CLASSYFIRE_PARENT -> classyFireParent;
+      case NPCLASSIFIER_SUPERCLASS -> npClassifierSuperclass;
+      case NPCLASSIFIER_CLASS -> npClassifierClass;
+      case NPCLASSIFIER_PATHWAY -> npClassifierPathway;
       case CAS -> cas;
+
       case MS_LEVEL -> msLevel;
       case RT -> rt;
       case CCS -> ccs;
@@ -194,7 +213,8 @@ public class MZmineJsonLibraryEntry {
       case SIRIUS_MERGED_STATS -> null;
       case OTHER_MATCHED_COMPOUNDS_N -> null;
       case OTHER_MATCHED_COMPOUNDS_NAMES -> null;
-      case FEATURE_ID, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT -> null;
+      case FEATURE_ID, FEATURELIST_NAME_FEATURE_ID, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT ->
+          null;
       case SCAN_NUMBER -> scanNumber;
       case UNSPECIFIED -> null;
     };
@@ -205,6 +225,13 @@ public class MZmineJsonLibraryEntry {
       return;
     }
     switch (field) {
+      case CLASSYFIRE_SUPERCLASS -> classyFireSuperclass = value.toString();
+      case CLASSYFIRE_CLASS -> classyFireClass = value.toString();
+      case CLASSYFIRE_SUBCLASS -> classyFireSubclass = value.toString();
+      case CLASSYFIRE_PARENT -> classyFireParent = value.toString();
+      case NPCLASSIFIER_SUPERCLASS -> npClassifierSuperclass = value.toString();
+      case NPCLASSIFIER_CLASS -> npClassifierClass = value.toString();
+      case NPCLASSIFIER_PATHWAY -> npClassifierPathway = value.toString();
       case ENTRY_ID -> entryId = value.toString();
       case NAME -> compoundName = value.toString();
       case SYNONYMS -> synonyms.addAll((Collection<? extends String>) value);
@@ -223,7 +250,7 @@ public class MZmineJsonLibraryEntry {
       case CCS -> ccs = (double) value;
       case PRECURSOR_MZ -> precursorMz = (double) value;
       case MERGED_SPEC_TYPE -> mergedSpectrumType = value.toString();
-      case COLLISION_ENERGY -> fragmentationEnergy = (double) value;
+      case COLLISION_ENERGY -> fragmentationEnergy = (FloatArrayList) value;
       case FRAGMENTATION_METHOD -> fragmentationMethod = value.toString();
       case ISOLATION_WINDOW -> isolationWindow = (double) value;
       case ACQUISITION -> compoundSource = value.toString();

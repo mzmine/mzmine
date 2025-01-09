@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,12 +35,19 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
@@ -64,9 +71,16 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(),
       new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
       new IonTypeType(), new MolecularStructureType(), new SmilesStructureType(),
-      new InChIStructureType(), new PrecursorMZType(), new MzPpmDifferenceType(),
+      new InChIStructureType(),
+      // classifiers
+      new ClassyFireSuperclassType(), new ClassyFireClassType(), new ClassyFireSubclassType(),
+      new ClassyFireParentType(), new NPClassifierSuperclassType(), new NPClassifierClassType(),
+      new NPClassifierPathwayType(),
+
+      //
+      new PrecursorMZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
       new NeutralMassType(), new RTType(), new CCSType(), new CCSRelativeErrorType(),
-      new DatabaseMatchInfoType(), new IsotopePatternScoreType(), new CommentType());
+      new IsotopePatternScoreType(), new CommentType());
 
   private static final Logger logger = Logger.getLogger(
       CompoundDatabaseMatchesType.class.getName());
@@ -80,8 +94,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType,
-      final CompoundDBAnnotation item) {
+  public <K> @Nullable K map(@NotNull final DataType<K> subType, final CompoundDBAnnotation item) {
     return item.get(subType);
   }
 
@@ -111,7 +124,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
     if (!(value instanceof List<?> list)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
 
     for (Object o : list) {
@@ -127,7 +140,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
-          && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
+        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
       throw new IllegalStateException("Wrong element");
     }
 

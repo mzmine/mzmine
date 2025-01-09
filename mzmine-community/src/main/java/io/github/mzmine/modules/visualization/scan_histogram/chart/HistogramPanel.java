@@ -270,13 +270,22 @@ public class HistogramPanel extends BorderPane {
     this.xLabel = xLabel;
   }
 
+  public void setDomainLabel(final String xLabel) {
+    this.xLabel = xLabel;
+  }
+
+  public void setData(final HistogramData data, final double binWidth) {
+    setData(data, binWidth, false);
+  }
+
   /**
    * set data and update histo
    *
    * @param data
    * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
+   * @param autoZoom reset zoom for both axes
    */
-  public void setData(HistogramData data, double binWidth) {
+  public void setData(HistogramData data, double binWidth, boolean autoZoom) {
     this.data = data;
     if (data != null) {
       if (binWidth > 0) {
@@ -295,7 +304,7 @@ public class HistogramPanel extends BorderPane {
         txtBinWidth.setText(bws);
       }
 
-      updateHistograms();
+      updateHistograms(autoZoom);
 
       contentPanel.requestLayout();
     }
@@ -325,13 +334,13 @@ public class HistogramPanel extends BorderPane {
 
     PauseTransition pause = new PauseTransition(Duration.seconds(1));
     ChangeListener<String> listener = (observable, oldValue, newValue) -> {
-      pause.setOnFinished(event -> HistogramPanel.this.updateHistograms());
+      pause.setOnFinished(event -> HistogramPanel.this.updateHistograms(false));
       pause.playFromStart();
     };
     txtBinShift.textProperty().addListener(listener);
     txtBinWidth.textProperty().addListener(listener);
     cbExcludeSmallerNoise.setOnAction(e -> {
-      pause.setOnFinished(event -> HistogramPanel.this.updateHistograms());
+      pause.setOnFinished(event -> HistogramPanel.this.updateHistograms(false));
       pause.playFromStart();
     });
 
@@ -375,7 +384,7 @@ public class HistogramPanel extends BorderPane {
   /**
    * Create new histograms
    */
-  private void updateHistograms() {
+  private void updateHistograms(boolean autoZoom) {
     if (data != null) {
       double binwidth2 = Double.NaN;
       double binShift2 = Double.NaN;
@@ -403,7 +412,7 @@ public class HistogramPanel extends BorderPane {
                 JFreeChart chart = doInBackground(binShift, binwidth);
                 Platform.runLater(() -> {
                   if (startID == currentUpdateID.get()) {
-                    done(chart);
+                    done(chart, autoZoom);
                     logger.info("Finished histogram update thread " + startID);
                   }
                 });
@@ -440,7 +449,7 @@ public class HistogramPanel extends BorderPane {
     return chart;
   }
 
-  protected void done(JFreeChart chart) {
+  protected void done(JFreeChart chart, final boolean autoZoom) {
     JFreeChart histo;
     try {
       Range x = null, y = null;
@@ -451,10 +460,10 @@ public class HistogramPanel extends BorderPane {
       histo = chart;
 
       if (histo != null) {
-        if (x != null) {
+        if (x != null && !autoZoom) {
           histo.getXYPlot().getDomainAxis().setRange(x);
         }
-        if (y != null) {
+        if (y != null && !autoZoom) {
           histo.getXYPlot().getRangeAxis().setRange(y);
         }
         histo.getLegend().setVisible(true);

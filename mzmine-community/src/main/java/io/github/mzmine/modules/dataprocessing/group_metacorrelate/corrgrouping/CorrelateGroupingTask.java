@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,6 +48,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
 import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter.OverlapResult;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -71,6 +72,7 @@ public class CorrelateGroupingTask extends AbstractTask {
   private final AtomicDouble stageProgress = new AtomicDouble(0);
   private final boolean keepExtendedStats;
   private final int simplifyLargeDatasets;
+  private final OriginalFeatureListOption handleOriginal;
   protected ParameterSet parameters;
   protected MZmineProject project;
   // GENERAL
@@ -178,6 +180,8 @@ public class CorrelateGroupingTask extends AbstractTask {
           .getValue();
     }
 
+    handleOriginal = parameters.getValue(CorrelateGroupingParameters.handleOriginal);
+
     // advanced
     boolean isAdvanced = parameters.getValue(CorrelateGroupingParameters.advanced);
     var advanced = parameters.getEmbeddedParameterValue(CorrelateGroupingParameters.advanced);
@@ -214,9 +218,23 @@ public class CorrelateGroupingTask extends AbstractTask {
         return;
       }
 
+      int totalNumSamples = featureList.getRawDataFiles().size();
+      var minFInSamples = minFFilter.getMinFInSamples();
+      if (minFInSamples != null) {
+        int minSamplesFilter = minFInSamples.getMaximumValue(totalNumSamples);
+        if (minSamplesFilter > totalNumSamples) {
+          error("""
+              Correlation row grouping (metaCorr) has set a minimum number of samples requirement of %d but the feature list only contains %d samples. \
+              Please define a matching filter. Relative filters in percentage help to scale this parameter for small and larger datasets.""".formatted(
+              minSamplesFilter, totalNumSamples));
+          return;
+        }
+      }
+
       // create new feature list for grouping
-      groupedPKL = featureList.createCopy(featureList.getName() + " " + suffix,
-          getMemoryMapStorage(), false);
+      groupedPKL = handleOriginal == OriginalFeatureListOption.PROCESS_IN_PLACE ? featureList
+          : featureList.createCopy(featureList.getName() + " " + suffix, getMemoryMapStorage(),
+              false);
 
       // create correlation map
       // do R2R comparison correlation
@@ -228,6 +246,7 @@ public class CorrelateGroupingTask extends AbstractTask {
       }
       // set correlation map
       var r2rNetworkingMaps = groupedPKL.getRowMaps();
+      r2rNetworkingMaps.removeAllRowRelationships(Type.MS1_FEATURE_CORR);
       r2rNetworkingMaps.addAllRowsRelationships(corrMap, Type.MS1_FEATURE_CORR);
 
       logger.fine("Corr: Starting to group by correlation");
@@ -253,13 +272,13 @@ public class CorrelateGroupingTask extends AbstractTask {
           return;
         }
 
-        // add to project
-        project.addFeatureList(groupedPKL);
-
         // Add task description to peakList.
         groupedPKL.addDescriptionOfAppliedTask(
             new SimpleFeatureListAppliedMethod(CorrelateGroupingModule.class, parameters,
                 getModuleCallDate()));
+
+        // add to project
+        handleOriginal.reflectNewFeatureListToProject(suffix, project, groupedPKL, featureList);
 
         // Done.
         setStatus(TaskStatus.FINISHED);

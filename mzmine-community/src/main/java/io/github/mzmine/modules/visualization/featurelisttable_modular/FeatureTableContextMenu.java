@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,6 +59,8 @@ import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
+import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
+import io.github.mzmine.modules.dataprocessing.id_addmanualcomp.CompoundAnnotationController;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -70,6 +72,7 @@ import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
+import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
@@ -137,8 +140,7 @@ public class FeatureTableContextMenu extends ContextMenu {
   final Menu exportMenu;
 
   private final FeatureTableFX table;
-  @Nullable
-  ModularFeatureListRow selectedRow;
+  @Nullable ModularFeatureListRow selectedRow;
   private Set<DataType<?>> selectedRowTypes;
   private Set<DataType<?>> selectedFeatureTypes;
   private Set<RawDataFile> selectedFiles;
@@ -166,8 +168,15 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem deleteRowsItem = new ConditionalMenuItem("Delete row(s)",
         () -> !selectedRows.isEmpty());
-    deleteRowsItem.setOnAction(
-        e -> selectedRows.forEach(row -> table.getFeatureList().removeRow(row)));
+    deleteRowsItem.setOnAction(_ -> {
+      if (selectedRows.size() == 1) {
+        table.getSelectionModel().clearSelection();
+        DeleteRowsModule.deleteRows(table.getFeatureList(), selectedRows);
+      } else {
+        table.getSelectionModel().clearSelection();
+        DeleteRowsModule.deleteWithConfirmation(table.getFeatureList(), selectedRows);
+      }
+    });
 
     // final MenuItem addNewRowItem;
     final MenuItem manuallyDefineItem = new ConditionalMenuItem("Define manually",
@@ -180,6 +189,12 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void initIdentitiesMenu() {
+
+    final MenuItem annotateManually = new ConditionalMenuItem("Annotate manually",
+        () -> selectedRow != null);
+    annotateManually.setOnAction(
+        _ -> new CompoundAnnotationController(selectedRow, table).showWindow());
+
     final MenuItem openCompoundIdUrl = new ConditionalMenuItem("Open compound ID URL (disabled)",
         () -> false);
 
@@ -220,10 +235,12 @@ public class FeatureTableContextMenu extends ContextMenu {
         selectedRow.set(dt, newList);
         table.refresh();
       });
+
       final MenuItem clearAllAnnotations = new ConditionalMenuItem(
-          "Clear all " + listType.getHeaderString(), () -> selectedRow.get(listType) != null);
+          "Clear all " + listType.getHeaderString(),
+          () -> selectedRows.stream().anyMatch(row -> row.get(listType) != null));
       clearAllAnnotations.setOnAction(e -> {
-        selectedRow.set(listType, null);
+        selectedRows.forEach(r -> r.set(listType, null));
         table.refresh();
       });
       clearAnnotationsMenu.getItems()
@@ -242,8 +259,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     idsMenu.getItems()
-        .addAll(openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem, bioTransformerItem,
-            clearAnnotationsMenu);
+        .addAll(annotateManually, openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem,
+            bioTransformerItem, clearAnnotationsMenu);
   }
 
   /**
@@ -330,6 +347,13 @@ public class FeatureTableContextMenu extends ContextMenu {
     formulaPredictionItem.setOnAction(
         e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
 
+    final MenuItem fragmentDashboardItem = new ConditionalMenuItem(
+        "Open in fragmentation dashboard",
+        () -> selectedRow != null && selectedRow.getMostIntenseFragmentScan() != null);
+    fragmentDashboardItem.setOnAction(e -> {
+      FragDashboardTab.addNewTab(null, selectedRow, null);
+    });
+
     final MenuItem sendToSirius = new ConditionalMenuItem("Send to Sirius",
         () -> !selectedRows.isEmpty());
     sendToSirius.setOnAction(_ -> new Sirius().exportToSiriusUnique(selectedRows));
@@ -340,7 +364,8 @@ public class FeatureTableContextMenu extends ContextMenu {
         _ -> MZmineCore.getModuleInstance(SiriusFingerIdModule.class).run(selectedRows));
 
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
-        formulaPredictionItem, new SeparatorMenuItem(), masstSearch, sendToSirius, runFingerId);
+        formulaPredictionItem, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch,
+        sendToSirius, runFingerId);
   }
 
   private void initShowMenu() {
@@ -500,7 +525,7 @@ public class FeatureTableContextMenu extends ContextMenu {
             && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
     showDiaMirror.setOnAction(e -> showDiaMirror());
 
-    final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
+    final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Spectral mirror (2 rows)",
         () -> selectedRows.size() == 2 && getNumberOfRowsWithFragmentScans(selectedRows) == 2);
     showMSMSMirrorItem.setOnAction(e -> {
       MirrorScanWindowFXML mirrorScanTab = new MirrorScanWindowFXML();
@@ -615,6 +640,9 @@ public class FeatureTableContextMenu extends ContextMenu {
       var ip = selectedFeature.getIsotopePattern();
       return ip != null ? Optional.of(selectedFeature) : Optional.empty();
     }
+    if (selectedRow == null) {
+      return Optional.empty();
+    }
     // get best isotope pattern feature
     return selectedRow.streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
             && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
@@ -723,7 +751,7 @@ public class FeatureTableContextMenu extends ContextMenu {
   private void showPseudoSpectrum() {
     if (selectedFeature != null) {
       PseudoSpectrumVisualizerPane pseudoSpectrumVisualizerPane = new PseudoSpectrumVisualizerPane(
-          selectedFeature);
+          selectedFeature, null);
       SimpleTab simpleTab = new SimpleTab("Pseudo Spectrum of " + selectedFeature.toString(),
           pseudoSpectrumVisualizerPane);
       MZmineCore.getDesktop().addTab(simpleTab);

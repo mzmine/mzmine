@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.compoundannotations.DatabaseMatchInfo;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -40,8 +39,15 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.MolecularClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -51,10 +57,7 @@ import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
@@ -89,30 +92,35 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(LocalCSVDatabaseSearchTask.class.getName());
 
   // all data types that we need
-  private final FormulaType formulaType = (FormulaType) DataTypes.get(FormulaType.class);
-  private final CompoundNameType compoundNameType = (CompoundNameType) DataTypes.get(
-      CompoundNameType.class);
-  private final CommentType commentType = (CommentType) DataTypes.get(CommentType.class);
-  private final PrecursorMZType precursorMz = (PrecursorMZType) DataTypes.get(
-      PrecursorMZType.class);
-
-  private final RTType rtType = (RTType) DataTypes.get(RTType.class);
-  private final MobilityType mobType = (MobilityType) DataTypes.get(MobilityType.class);
-  private final CCSType ccsType = (CCSType) DataTypes.get(CCSType.class);
-  private final SmilesStructureType smilesType = (SmilesStructureType) DataTypes.get(
-      SmilesStructureType.class);
-  private final InChIStructureType inchiType = (InChIStructureType) DataTypes.get(
-      InChIStructureType.class);
-  private final InChIKeyStructureType inchiKeyType = (InChIKeyStructureType) DataTypes.get(
-      InChIKeyStructureType.class);
-  private final IonTypeType adductType = (IonTypeType) DataTypes.get(IonTypeType.class);
-  private final NeutralMassType neutralMassType = (NeutralMassType) DataTypes.get(
-      NeutralMassType.class);
-  private final IonTypeType ionTypeType = (IonTypeType) DataTypes.get(IonTypeType.class);
-  private final PubChemIdType pubchemIdType = (PubChemIdType) DataTypes.get(PubChemIdType.class);
-
-  private final MolecularClassType molecularClassType = (MolecularClassType) DataTypes.get(
-      MolecularClassType.class);
+  private final FormulaType formulaType = DataTypes.get(FormulaType.class);
+  private final CompoundNameType compoundNameType = DataTypes.get(CompoundNameType.class);
+  private final CommentType commentType = DataTypes.get(CommentType.class);
+  private final PrecursorMZType precursorMz = DataTypes.get(PrecursorMZType.class);
+  private final RTType rtType = DataTypes.get(RTType.class);
+  private final MobilityType mobType = DataTypes.get(MobilityType.class);
+  private final CCSType ccsType = DataTypes.get(CCSType.class);
+  private final SmilesStructureType smilesType = DataTypes.get(SmilesStructureType.class);
+  private final InChIStructureType inchiType = DataTypes.get(InChIStructureType.class);
+  private final InChIKeyStructureType inchiKeyType = DataTypes.get(InChIKeyStructureType.class);
+  private final IonTypeType adductType = DataTypes.get(IonTypeType.class);
+  private final NeutralMassType neutralMassType = DataTypes.get(NeutralMassType.class);
+  private final IonTypeType ionTypeType = DataTypes.get(IonTypeType.class);
+  private final PubChemIdType pubchemIdType = DataTypes.get(PubChemIdType.class);
+  private final MolecularClassType molecularClassType = DataTypes.get(MolecularClassType.class);
+  private final ClassyFireSuperclassType classyFireSuperclassType = DataTypes.get(
+      ClassyFireSuperclassType.class);
+  private final ClassyFireClassType classyFireClassType = DataTypes.get(ClassyFireClassType.class);
+  private final ClassyFireSubclassType classyFireSubclassType = DataTypes.get(
+      ClassyFireSubclassType.class);
+  private final ClassyFireParentType classyFireParentType = DataTypes.get(
+      ClassyFireParentType.class);
+  private final NPClassifierSuperclassType npclassyfierSuperclassType = DataTypes.get(
+      NPClassifierSuperclassType.class);
+  private final NPClassifierClassType npclassyfierClassType = DataTypes.get(
+      NPClassifierClassType.class);
+  private final NPClassifierPathwayType npclassyfierPathwayType = DataTypes.get(
+      NPClassifierPathwayType.class);
+  private final DatabaseNameType databaseType = DataTypes.get(DatabaseNameType.class);
 
   // vars
   private final FeatureList[] featureLists;
@@ -239,7 +247,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       // option to read more fields and append to comment as json
       List<ImportType> commentFields = extractCommentFields();
       if (commentFields == null) {
-        setStatus(TaskStatus.ERROR);
+        error("Comment fields not found in CSV annotation");
         return;
       }
 
@@ -413,6 +421,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       final @NotNull List<ImportType> commentFields) {
     final CompoundDBAnnotation baseAnnotation = getCompoundFromLine(values, linesWithIndices,
         commentFields);
+    baseAnnotation.put(databaseType, dataBaseFile.getName());
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
     if (ionNetworkLibrary != null) {
       annotations.addAll(
@@ -464,6 +473,13 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final String inchiKey = entry.get(inchiKeyType);
     final String pubchemId = entry.get(pubchemIdType);
     final String molecularClass = entry.get(molecularClassType);
+    final String classyFireSuperclass = entry.get(classyFireSuperclassType);
+    final String classyFireClass = entry.get(classyFireClassType);
+    final String classyFireSubclass = entry.get(classyFireSubclassType);
+    final String classyFireParent = entry.get(classyFireParentType);
+    final String npclassifierSuperclass = entry.get(npclassyfierSuperclassType);
+    final String npclassifierclass = entry.get(npclassyfierClassType);
+    final String npclassifierPathway = entry.get(npclassyfierPathwayType);
 
     final String lineComment;
     if (!commentFields.isEmpty()) {
@@ -488,9 +504,14 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIfNotNull(lineMZ, () -> a.put(precursorMz, lineMZ));
     doIfNotNull(neutralMass, () -> a.put(neutralMassType, neutralMass));
     a.putIfNotNull(ionTypeType, IonTypeParser.parse(lineAdduct));
-    doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
-        new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
-    doIfNotNull(molecularClass, () -> a.put(molecularClassType, molecularClass));
+    a.putIfNotNull(molecularClassType, molecularClass);
+    a.putIfNotNull(classyFireSuperclassType, classyFireSuperclass);
+    a.putIfNotNull(classyFireClassType, classyFireClass);
+    a.putIfNotNull(classyFireSubclassType, classyFireSubclass);
+    a.putIfNotNull(classyFireParentType, classyFireParent);
+    a.putIfNotNull(npclassyfierSuperclassType, npclassifierSuperclass);
+    a.putIfNotNull(npclassyfierClassType, npclassifierclass);
+    a.putIfNotNull(npclassyfierPathwayType, npclassifierPathway);
     return a;
   }
 

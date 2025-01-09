@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,8 +39,10 @@ import org.jetbrains.annotations.Nullable;
 public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, DoubleMetadataColumn,
     DateMetadataColumn {
 
-  public static final String FILENAME_HEADER = "Filename";
+  public static final String FILENAME_HEADER = "filename";
   public static final String DATE_HEADER = "run_date";
+  // renamed this from sample_type to mz_sample_type because too standard name that may be overwritten by users metadata
+  public static final String SAMPLE_TYPE_HEADER = "mzmine_sample_type";
 
   /**
    * Title (name) of the parameter.

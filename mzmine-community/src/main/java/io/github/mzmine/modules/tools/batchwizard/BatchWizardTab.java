@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,12 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
+import static io.github.mzmine.modules.tools.batchwizard.WizardPart.DATA_IMPORT;
+import static io.github.mzmine.modules.tools.batchwizard.WizardPart.FILTER;
+import static io.github.mzmine.modules.tools.batchwizard.WizardPart.WORKFLOW;
+import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getOrElse;
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -34,21 +40,22 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.javafx.LightAndDarkModeIcon;
 import java.io.File;
 import java.text.MessageFormat;
 import java.time.LocalDate;
@@ -58,7 +65,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.Optional;
 import java.util.logging.Level;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -107,8 +114,8 @@ public class BatchWizardTab extends SimpleTab {
   private HBox schemaPane;
 
   public BatchWizardTab() {
-    super("");
-    setGraphic(LightAndDarkModeIcon.mzwizardImage(200, 18));
+    super("mzwizard");
+//    setGraphic(LightAndDarkModeIcon.mzwizardImageTab(200, 18));
     ALL_PRESETS = WizardStepParameters.createAllPresets();
     localPresetsButton = new LastFilesButton("Local presets", true,
         file -> applyLocalPartialSequence(localPresets.get(file)));
@@ -172,28 +179,39 @@ public class BatchWizardTab extends SimpleTab {
         .orElse(IonInterfaceWizardParameterFactory.HPLC);
 
     // apply filters
-    filterComboBox(WizardPart.IMS, ionization.getMatchingImsPresets());
-    filterComboBox(WizardPart.WORKFLOW, ionization.getMatchingWorkflowPresets());
+    filterComboBox(WizardPart.IMS, WizardPartFilter.allow(ionization.getMatchingImsPresets()));
+    filterWorkflows(sequenceSteps);
 
     // check timsTOF and TWIMS TOF only
-    var ims = sequenceSteps.get(WizardPart.IMS)
+    IonMobilityWizardParameterFactory ims = sequenceSteps.get(WizardPart.IMS)
         .map(step -> (IonMobilityWizardParameterFactory) step.getFactory())
         .orElse(IonMobilityWizardParameterFactory.NO_IMS);
 
-    filterComboBox(WizardPart.MS, ims.getMatchingMassSpectrometerPresets());
+    filterComboBox(WizardPart.MS, WizardPartFilter.allow(ims.getMatchingMassSpectrometerPresets()));
+  }
+
+  private void filterWorkflows(WizardSequence sequenceSteps) {
+    final List<WizardStepParameters> availableWorkflows = new ArrayList<>();
+    ALL_PRESETS.get(WizardPart.WORKFLOW).forEach(workflow -> {
+      final WorkflowWizardParameterFactory workflowFactory = (WorkflowWizardParameterFactory) workflow.getFactory();
+      final Map<WizardPart, WizardPartFilter> workflowStepFilters = workflowFactory.getStepFilters();
+      workflowStepFilters.forEach((step, filter) -> sequenceSteps.get(step)
+          .filter(stepParam -> filter.accept(stepParam.getFactory()))
+          .ifPresent(_ -> availableWorkflows.add(workflow)));
+    });
+    var selected = setItemsToCombo(combos.get(WORKFLOW), availableWorkflows, false);
+    sequenceSteps.set(WORKFLOW, selected); // set the updated sequence
   }
 
   /**
    * Filter combobox and set new selection
    *
-   * @param part              the part
-   * @param filteredFactories the filtered list of presets
+   * @param part the part
    */
-  private void filterComboBox(final WizardPart part, WizardParameterFactory[] filteredFactories) {
-    var filterSet = Set.of(filteredFactories);
+  private void filterComboBox(final WizardPart part, WizardPartFilter filter) {
 
     List<WizardStepParameters> filteredPresets = ALL_PRESETS.get(part).stream()
-        .filter(workflow -> filterSet.contains(workflow.getFactory())).toList();
+        .filter(workflow -> filter.accept(workflow.getFactory())).toList();
 
     ComboBox<WizardStepParameters> combo = combos.get(part);
     ObservableList<WizardStepParameters> currentPresets = combo.getItems();
@@ -432,12 +450,18 @@ public class BatchWizardTab extends SimpleTab {
     if (sequenceSteps == null) {
       return;
     }
+    final Optional<WizardStepParameters> workflow = sequenceSteps.get(WORKFLOW);
+    if (workflow.isEmpty()) {
+      DialogLoggerUtil.showErrorDialog("Cannot create batch",
+          "A workflow must be selected to create a batch.");
+      return;
+    }
 
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     try {
-      final BatchQueue q = WizardBatchBuilder.createBatchBuilderForSequence(sequenceSteps)
-          .createQueue();
+      final BatchQueue q = ((WorkflowWizardParameterFactory) workflow.get()
+          .getFactory()).getBatchBuilder(sequenceSteps).createQueue();
       batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
 
       if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {
@@ -463,7 +487,31 @@ public class BatchWizardTab extends SimpleTab {
       MZmineCore.getDesktop().displayErrorMessage("Please check the parameters.\n" + errorMessages);
       return null;
     }
+
+    // check if samples > min samples filter
+    if (!checkSampleFilterValid()) {
+      return null;
+    }
     return sequenceSteps;
+  }
+
+  /**
+   * @return true if imported samples > min num samples
+   */
+  private boolean checkSampleFilterValid() {
+    int numFiles = getOrElse(sequenceSteps.get(DATA_IMPORT), DataImportWizardParameters.fileNames,
+        new File[0]).length;
+
+    var minSamples = getOrElse(sequenceSteps.get(FILTER), FilterWizardParameters.minNumberOfSamples,
+        new AbsoluteAndRelativeInt(0, 0));
+    if (minSamples.getMaximumValue(numFiles) > numFiles) {
+      // continue? y/n
+      return DialogLoggerUtil.showDialogYesNo("Warning", """
+          The number of %s (Filters tab) does not match the number of imported data files. This will avoid correlation grouping.
+          Continue anyway?""".formatted(
+          inQuotes(FilterWizardParameters.minNumberOfSamples.getName())));
+    }
+    return true;
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,6 +45,9 @@ plugins {
     // https://github.com/ethauvin/semver-gradle
     alias(libs.plugins.semver)
     alias(libs.plugins.licensereport)
+
+    id("maven-publish")
+    id("version-catalog")
 }
 
 // save version to main resources
@@ -53,12 +56,21 @@ plugins {
 // version with -beta is currently not supported by jpackage (maybe windows --app-version)
 // java.lang.IllegalArgumentException: "Version [3.0.0-beta] contains invalid component [0-beta]"
 semver {
-    properties = "src/main/resources/mzmineversion.properties"
+    def versionFile = getLayout().getProjectDirectory().dir("src/main/resources").file("mzmineversion.properties").getAsFile()
+    properties = versionFile.toString()
+}
+
+catalog {
+    versionCatalog {
+        from(files("$rootDir/gradle/libs.versions.toml"))
+    }
 }
 
 // version is now in version.properties
 group = "io.github.mzmine"
 description = "mzmine"
+
+project.ext.appName = "mzmine"
 
 defaultTasks "test", "jpackage", "notarizeApp"
 
@@ -68,7 +80,6 @@ if (OperatingSystem.current().isLinux()) project.ext.osSuffix = "Linux"
 if (OperatingSystem.current().isWindows()) project.ext.osSuffix = "Windows"
 if (OperatingSystem.current().isMacOsX()) {
     project.ext.osSuffix = "macOS"
-    project.ext.appName = "mzmine"
     project.ext.appleID = "ansgar.korf@mzio.io"
 
     getLogger().lifecycle('Checking macOS system variables...')
@@ -95,6 +106,7 @@ if (OperatingSystem.current().isMacOsX()) {
 
     getLogger().info("imageDir " + imageDir)
     getLogger().info("jarsDir " + jarsDir)
+
 }
 println "OS detected as " + project.ext.osSuffix
 
@@ -170,7 +182,9 @@ dependencies {
     implementation(libs.commons.cli)
     implementation(libs.commons.io)
     implementation(libs.commons.lang3)
+    implementation(libs.commons.compress)
     implementation(libs.fastutil)
+    implementation(libs.bundles.djl.pytorch)
     implementation "edu.ucar:netcdf4:4.5.5"
     implementation 'org.jetbrains:annotations:22.0.0'
     implementation 'net.sourceforge.jmol:jmol:14.31.10'
@@ -187,7 +201,6 @@ dependencies {
     implementation(libs.bundles.batik)
     implementation(libs.bundles.okhttp)
     implementation "org.postgresql:postgresql:9.3-1102-jdbc41"
-    implementation "org.rsc.chemspider:chemspider-api:1.0.0"
     implementation "org.freehep:freehep-graphicsio-emf:2.4"
     implementation("eu.hansolo.fx:charts:21.0.7")
     implementation group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
@@ -195,7 +208,7 @@ dependencies {
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
 
 //    implementation "org.du-lab.adap:adap:4.1.10"
-    implementation "org.xerial:sqlite-jdbc:3.40.0.0"
+    implementation 'org.xerial:sqlite-jdbc:3.41.2.2'
 
     implementation 'com.github.librepdf:openpdf:2.0.0'
     implementation "com.miglayout:miglayout:3.7.4"
@@ -224,6 +237,9 @@ dependencies {
     // the defacto standard parser in jackson?
     implementation(libs.woodstox.core)
     implementation(libs.aalto.xml)
+
+    // test only
+    testImplementation(libs.bundles.mzio.test)
 
     // sirius api
     implementation "de.unijena.bioinf.ms:sirius_nightsky_sdk:6.0.1-SNAPSHOT"
@@ -299,11 +315,22 @@ application {
     ]
 }
 
+def EXTERNAL_TOOLS_DESTINATION =
+        !OperatingSystem.current().isMacOsX() ? getLayout().getBuildDirectory().dir("jpackage/mzmine/external_tools").get()
+                : getLayout().getBuildDirectory().dir("jpackage/mzmine.app/Contents/external_tools").get()
+def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools")
+tasks.jpackage.doFirst {
+    copy {
+        from EXTERNAL_TOOLS_SRC
+        into EXTERNAL_TOOLS_DESTINATION
+    }
+}
+
 /*
  * Build the JVM runtime using jlink
  */
 runtime {
-    options = ["--compress=0", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
+    options = ["--compress", "2", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
     modules = ["java.desktop",
                "java.logging",
                "java.net.http",
@@ -333,36 +360,44 @@ runtime {
             imageOptions = ["--icon", "src/main/resources/mzmineIcon.ico",
                             "--add-launcher", "mzmine_console=gradle/win_console_launcher.properties"
             ]
-            installerOptions = ["--win-menu",
-                                "--win-menu-group", "mzmine",
-                                "--win-shortcut",
-                                "--win-dir-chooser",
-                                "--win-upgrade-uuid", "$win_uuid",
-                                "--license-file", "LICENSE.txt"
+            installerOptions = [
+                    "--vendor", "mzio GmbH",
+                    "--win-menu",
+                    "--win-menu-group", appName,
+                    "--win-shortcut",
+                    "--win-dir-chooser",
+                    "--win-upgrade-uuid", "$win_uuid",
+//                  "--license-file", "LICENSE.txt"  not required
             ]
         }
         if (OperatingSystem.current().isMacOsX()) {
-            installerType = "dmg"
+//            installerType = "dmg"
+            skipInstaller = true // no installer for macOS as we are generating it in GitHub action
             // additional options for jpackage
             // only sign if all needed information is present
             if (!macSigning) {
-                imageOptions = ["--icon", "src/main/resources/mzmineIcon.icns"]
-                installerOptions = ["--license-file", "LICENSE.txt"]
+                imageOptions = [
+                        "--vendor", "mzio GmbH",
+                        "--icon", "src/main/resources/mzmineIcon.icns"
+                ]
+//                installerOptions = ["--license-file", "LICENSE.txt"] not required
+                installerOptions = []
             } else {
-                imageOptions = ["--icon", "src/main/resources/mzmineIcon.icns",
-                                "--mac-sign",
-                                "--mac-package-name", appName,
-                                "--mac-package-identifier", "io.github.mzmine.main",
-                                "--mac-signing-key-user-name", developerID,
-                                "--verbose"
+                imageOptions = [
+                        "--icon", "src/main/resources/mzmineIcon.icns",
+                        "--mac-sign",
+                        "--mac-package-name", appName,
+                        "--mac-package-identifier", "io.github.mzmine.main",
+                        "--mac-signing-key-user-name", developerID,
+                        "--verbose"
                 ]
                 installerOptions = [
-                        "--license-file", "LICENSE.txt",
-                        "--mac-sign",
-                        "--mac-signing-key-user-name", developerID,
+//                        "--license-file", "LICENSE.txt", not required
+"--mac-sign",
+"--mac-signing-key-user-name", developerID,
                 ]
             }
-            installerName = "mzmine_macOS_installer"
+            installerName = "mzmine_macOS_installer-academia"
         }
         if (OperatingSystem.current().isLinux()) {
             // leave installer type empty to generate all that match
@@ -370,21 +405,27 @@ runtime {
             // installerType = "deb"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/mzmineIcon.png"]
-            installerOptions = ["--linux-shortcut",
-                                "--linux-menu-group", "mzmine",
-                                "--license-file", "LICENSE.txt",
-                                "--linux-deb-maintainer", "plusik@gmail.com"]
+            installerOptions = [
+                    "--vendor", "mzio GmbH",
+                    "--linux-package-name", appName,
+                    "--linux-shortcut",
+                    "--linux-menu-group", appName,
+//                  "--license-file", "LICENSE.txt", not required
+                    "--linux-deb-maintainer", "plusik@gmail.com"
+            ]
 
             installerName = "mzmine_Linux_installer"
         }
-        imageName = "mzmine"
+        imageName = appName
         jvmArgs = ["-showversion",
-                   "-XX:MaxHeapFreeRatio=100",
-                   "-XX:InitialRAMPercentage=30",
-                   "-XX:MinRAMPercentage=80",
+                   "-XX:MinHeapFreeRatio=50",
+                   "-XX:MaxHeapFreeRatio=75",
+                   "-XX:InitialRAMPercentage=5",
+                   "-XX:MinRAMPercentage=75",
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
                    "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
+                   "-Djava.net.useSystemProxies=true",
                    "--enable-preview",
         ]
     }
@@ -395,7 +436,6 @@ task signApp(dependsOn: jpackage) {
     if (OperatingSystem.current().isMacOsX() && macSigning) {
 
         doLast {
-
             Path entitlementsPth = layout.projectDirectory.dir('gradle/macos.entitlements').asFile.toPath()
             getLogger().info("imageDir " + imageDir)
             getLogger().info("jarsDir " + jarsDir)
@@ -414,41 +454,9 @@ task signApp(dependsOn: jpackage) {
             jarsDir.toFile().listFiles((FilenameFilter) ((d, n) -> n.startsWith('netlib') || n.startsWith('jblas')
                     || n.startsWith('jocl'))).stream().forEach(File::delete)
 
-            getLogger().lifecycle("Signing native ThermoRawFileParser...")
-
-            // Unzip ThermoRawFileParser.zip
-            String mzmineJarName = "mzmine-community-${semver.version}"
-            getLogger().info("tmp mzmine jar unzip to " + "${jarsDir}/${mzmineJarName}/vendorlib/thermo")
-            getLogger().info("check if jar exists " + "${jarsDir.resolve(mzmineJarName).toFile().exists()}")
-            exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
-            exec {
-                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
-                        "ThermoRawFileParser.zip -d ThermoRawFileParser"])
-            }
+            // unzip previously done for internal parser
+//            String mzmineJarName = "mzmine-community-${semver.version}"
 //            exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
-//            exec {
-//                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
-//                        "ThermoRawFileParser.zip -d ThermoRawFileParser"])
-//            }
-
-            // Sign ThermoRawFileParser content
-            for (File f : jarsDir.resolve(mzmineJarName).resolve('vendorlib').resolve('thermo')
-                    .resolve('ThermoRawFileParser').toFile().listFiles()) {
-
-                // ThermoRawFileParserMac is signed by jpackage
-                if (f.toPath().toString().endsWith('ThermoRawFileParserMac')) {
-                    continue
-                }
-                codesign(f.toPath())
-            }
-
-            // Zip ThermoRawFileParser back
-            exec {
-                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo " +
-                        "&& zip -rq ThermoRawFileParser.zip ThermoRawFileParser && rm -rf ThermoRawFileParser"])
-            }
-            exec { commandLine(['sh', '-c', "cd ${jarsDir} && jar cvf ${mzmineJarName}.jar -C ${mzmineJarName}/ ."]) }
-            exec { commandLine(['sh', '-c', "rm -rf ${jarsDir}/${mzmineJarName}"]) }
 
             getLogger().lifecycle("Signing native libraries...")
 
@@ -458,6 +466,7 @@ task signApp(dependsOn: jpackage) {
                 getLogger().lifecycle("Signing native lib '${nativeLib}'")
                 codesign(nativeLib.toAbsolutePath())
             }
+
 
             getLogger().lifecycle("Signing libraires nested in jars...")
 
@@ -488,6 +497,9 @@ task signApp(dependsOn: jpackage) {
                 codesign(jar.toAbsolutePath())
             }
 
+            // delete duplicated libs
+            //jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib").toFile().delete()
+
             // Sign .app directory
             getLogger().lifecycle("Signing .app directory...")
             codesign(imageDir)
@@ -495,7 +507,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().lifecycle("Zipping .app directory...")
             exec {
                 commandLine(['sh', '-c', "cd ${layout.buildDirectory.dir("jpackage").get()} " +
-                        "&& zip -rq mzmine_macOS_portable.zip mzmine.app"])
+                        "&& zip -rq mzmine_macOS_portable_academia.zip mzmine.app"])
             }
         }
     }
@@ -503,7 +515,7 @@ task signApp(dependsOn: jpackage) {
 
 task notarizeApp(dependsOn: signApp) {
 
-    if (OperatingSystem.current().isMacOsX() && macSigning) {
+    if (OperatingSystem.current().isMacOsX() && macSigning && false) {
 
         doLast {
 
@@ -582,7 +594,9 @@ licenseReport {
                 'colt:colt', // https://dst.lbl.gov/ACSSoftware/colt/license.html (CERN license, permissive)
                 'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathPlot', 'com.github.yannrichet:JMathIO', // BSD 2-Clause
                 'net.jcip:jcip-annotations', // Creative Commons Attribution License
-                'io.mzio(.*)']
+                'io.mzio(.*)',
+                'org.openjfx.(.*)',
+    ]
 
     // Don't exclude bom dependencies.
     // If set to true, then all boms will be excluded from the report
@@ -620,3 +634,35 @@ tasks.compileJava.dependsOn(checkLicense, copyLicenseInformationToResources, cop
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
 
+
+// make sure the publish action is run after the semver plugin has been evaluated,
+// otherwise the version will always be 1.0.0
+afterEvaluate {
+    publishing {
+        publications {
+            register("mzmine-community-package", MavenPublication) {
+                from(components["java"])
+                pom {
+                    name = "mzmine-community"
+                    description = "mzmine-community"
+                    artifactId = "mzmine-community"
+                    url = "https://github.com/mzmine/mzmine"
+                    version = semver.version
+                    developers {
+                        developer {
+                            id = "mzmine"
+                            name = "mzmine"
+                        }
+                    }
+                }
+            }
+
+            register("versionCatalog", MavenPublication) {
+                from(components["versionCatalog"])
+                version = semver.version
+                artifactId = 'mzmine-community-version-catalog'
+                // This is important so the published artifact registers as a .toml file, rather than a library
+            }
+        }
+    }
+}

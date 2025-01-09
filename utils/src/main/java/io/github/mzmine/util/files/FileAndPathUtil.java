@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,18 +25,33 @@
 
 package io.github.mzmine.util.files;
 
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.SPARSE;
+import static java.nio.file.StandardOpenOption.WRITE;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -54,7 +69,11 @@ public class FileAndPathUtil {
 
   private static final Logger logger = Logger.getLogger(FileAndPathUtil.class.getName());
   private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
-  private static File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
+
+  // changed on other thread so make volatile
+  // flag to delete temp files as soon as possible
+  private static volatile boolean earlyTempFileCleanup = true;
+  private static volatile File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
 
   /**
    * Count the number of lines in a text file (should be seconds even for large files)
@@ -565,11 +584,17 @@ public class FileAndPathUtil {
     return USER_MZMINE_DIR;
   }
 
+  /**
+   * Directory for external resources
+   */
+  public static File resolveInDownloadResourcesDir(String name) {
+    return new File(resolveInMzmineDir("external_resources"), name);
+  }
+
   @Nullable
   public static File resolveInMzmineDir(String name) {
     return new File(USER_MZMINE_DIR, name);
   }
-
 
   public static File getUniqueFilename(final File parent, final String fileName) {
     final File dir = parent.isDirectory() ? parent : parent.getParentFile();
@@ -684,10 +709,143 @@ public class FileAndPathUtil {
     return tempFile;
   }
 
+  private static final SecureRandom random = new SecureRandom();
+
+  private static Path generateRandomPath(String prefix, String suffix, Path dir) {
+    String s = prefix + Long.toUnsignedString(random.nextLong()) + suffix;
+    return generatePath(s, dir);
+  }
+
+  private static Path generatePath(String filename, Path dir) {
+    Path name = dir.getFileSystem().getPath(filename);
+    // check that filename does not contain parent directory, this would be invalid string
+    if (name.getParent() != null) {
+      throw new IllegalArgumentException("filename is invalid and contains parent directory");
+    }
+    return dir.resolve(name);
+  }
+
+  /**
+   * Sparse files require SPARSE and CREATE_NEW
+   */
+  public static final Set<OpenOption> SPARSE_OPEN_OPTIONS = Set.of(CREATE_NEW, SPARSE, READ, WRITE);
+
+  public static MemorySegment memoryMapSparseTempFile(Arena arena, long size)
+      throws IOException, AccessDeniedException {
+    return memoryMapSparseTempFile("mzmine", ".tmp", getTempDir().toPath(), arena, size);
+  }
+
+  /**
+   * @param prefix of the filename
+   * @param suffix of the filename, usually .tmp
+   * @param dir    temp directory to create file in
+   * @param arena  an arena to manage the {@link MemorySegment}
+   * @param size   The size (in bytes) of the mapped memory backing the memory segment
+   * @return a new {@link MemorySegment} that maps the sparse file
+   * @throws IOException
+   * @throws AccessDeniedException
+   */
+  public static MemorySegment memoryMapSparseTempFile(String prefix, String suffix, Path dir,
+      Arena arena, long size) throws IOException, AccessDeniedException {
+    try (var fc = openTempFileChannel(prefix, suffix, dir)) {
+      // Create a mapped memory segment managed by the arena
+      MemorySegment segment = fc.map(MapMode.READ_WRITE, 0L, size, arena);
+      return segment;
+    }
+  }
+
+  /**
+   * @param prefix of the filename
+   * @param suffix of the filename, usually .tmp
+   * @param dir    temp directory to create file in
+   * @return a new {@link MemorySegment} that maps the sparse file
+   * @throws IOException
+   * @throws AccessDeniedException
+   */
+  public static FileChannel openTempFileChannel(String prefix, String suffix, Path dir)
+      throws IOException, AccessDeniedException {
+
+    // only try to handle a certain number of exceptions.
+
+    int exceptionCounter = 0;
+    // filename first
+    Path f = generatePath(prefix + suffix, dir);
+    // run until successful or exception
+    // even if file does not exist in first check - FileChannel.open is best check for success
+    while (exceptionCounter < 5) {
+      try {
+        var channel = FileChannel.open(f, SPARSE_OPEN_OPTIONS);
+        f.toFile().deleteOnExit();
+        try {
+          // channel keeps file alive and we can still memory map and write, read to memory mapped file
+          // this will cause the file to disappear directly - tmp folder is empty
+          // tested on linux
+          // tested on Windows 11:
+          // space is still taken from the disk of temp directory, but temp directory is empty
+          // GC will remove MemoryMapStorage, Arena, MemorySegment and with this automatically call
+          // munmap and unmap the file finally clearing the space on disk after GC
+          // TODO test on different platforms
+          // TODO macOS
+          // TODO wsl
+          // TODO docker
+          // does not work on exFAT partition like external drive
+          // will work the first time but then fail on FileChannel.open the second time with AccessDeniedException
+          // NTFS works and apple file system as well
+          if (earlyTempFileCleanup) {
+            f.toFile().delete();
+          }
+        } catch (Exception e) {
+          exceptionCounter++;
+        }
+        logger.fine("Open file channel to: " + f.toFile().getAbsolutePath());
+        return channel;
+      } catch (FileAlreadyExistsException e) {
+        // ignore and try next file name
+        exceptionCounter++;
+      } catch (AccessDeniedException e) {
+        exceptionCounter++;
+        // on exFAT file system the FileChannel.open throws AccessDeniedException for existing files
+        // maybe because sparse files are not supported and the direct delete triggers issues
+        // therefore only throw exception if the file does not exist
+        if (!f.toFile().exists()) {
+          // if the file does not exist and we cannot write, we need to actually cancel and throw
+          logger.log(Level.WARNING, //
+              """
+                  Access denied: Please choose a temporary directory with write access in the mzmine preferences. \
+                  No write access in """ + f.toFile().getAbsolutePath() + e.getMessage());
+          throw e;
+        }
+      }
+
+      // try adding random numbers if file already exists
+      f = generateRandomPath(prefix, suffix, dir);
+    }
+
+    throw new IOException(
+        "Cannot create temp file in path %s. Please select a different directory.".formatted(
+            dir.toFile().getAbsolutePath()));
+  }
+
   /**
    * Creates a temp folder in the set mzmine temp directory.
    */
   public static Path createTempDirectory(String name) throws IOException {
     return Files.createTempDirectory(MZMINE_TEMP_DIR.toPath(), name);
   }
+
+  public static Path getWorkingDirectory() {
+    return Paths.get("").toAbsolutePath();
+  }
+
+  /**
+   * strip query parameters from URL with split at ?
+   */
+  public static String getFileNameFromUrl(final String downloadUrl) {
+    return FilenameUtils.getName(downloadUrl).split("\\?")[0];
+  }
+
+  public static void setEarlyTempFileCleanup(final boolean state) {
+    FileAndPathUtil.earlyTempFileCleanup = state;
+  }
+
 }

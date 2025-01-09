@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
@@ -36,7 +35,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilder
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
@@ -70,7 +68,6 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
   private final Boolean enableDeisotoping;
 
   private final Boolean applyImageCorrelataion;
-  private final Boolean applyMedianFilter;
   private final Boolean applyQuantileFilter;
   private final Boolean applyHotspotRemoval;
 
@@ -86,7 +83,6 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     // Imaging workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
     applyImageCorrelataion = getValue(params, WorkflowImagingWizardParameters.CORRELATE_IMAGES);
-    applyMedianFilter = true;
     applyQuantileFilter = true;
     applyHotspotRemoval = true;
   }
@@ -114,39 +110,33 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     makeAndAddAlignmentStep(q);
     makeAndAddRowFilterStep(q);
     if (applyImageCorrelataion) {
-      makeAndAddImageCorrelationSteps(q, minNumberOfPixels, applyMedianFilter, applyQuantileFilter,
+      makeAndAddImageCorrelationSteps(q, minNumberOfPixels, applyQuantileFilter,
           applyHotspotRemoval);
     }
 
     // annotation
     makeAndAddLibrarySearchStep(q, false);
+    makeAndAddLocalCsvDatabaseSearchStep(q, null);
+    makeAndAddLipidAnnotationStep(q);
     return q;
   }
 
   private void makeAndAddImageCorrelationSteps(BatchQueue q, Integer minNumberOfPixels,
-      Boolean applyMedianFilter, Boolean applyQuantileFilter, Boolean applyHotspotRemoval) {
+      Boolean applyQuantileFilter, Boolean applyHotspotRemoval) {
 
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ImageCorrelateGroupingModule.class).cloneParameterSet();
 
     param.setParameter(ImageCorrelateGroupingParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.getParameter(ImageCorrelateGroupingParameters.NOISE_LEVEL).setValue(1E2);
+    param.setParameter(ImageCorrelateGroupingParameters.NOISE_LEVEL, 1d);
     param.setParameter(ImageCorrelateGroupingParameters.MIN_NUMBER_OF_PIXELS, minNumberOfPixels);
-    param.setParameter(ImageCorrelateGroupingParameters.MEDIAN_FILTER_WINDOW, applyMedianFilter);
-    param.getParameter(ImageCorrelateGroupingParameters.MEDIAN_FILTER_WINDOW).getEmbeddedParameter()
-        .setValue(3);
-    param.getParameter(ImageCorrelateGroupingParameters.QUANTILE_THRESHOLD)
-        .setValue(applyQuantileFilter);
-    param.getParameter(ImageCorrelateGroupingParameters.QUANTILE_THRESHOLD).getEmbeddedParameter()
-        .setValue(0.5);
-    param.getParameter(ImageCorrelateGroupingParameters.HOTSPOT_REMOVAL)
-        .setValue(applyHotspotRemoval);
-    param.getParameter(ImageCorrelateGroupingParameters.HOTSPOT_REMOVAL).getEmbeddedParameter()
-        .setValue(0.99);
-    param.getParameter(ImageCorrelateGroupingParameters.MEASURE)
-        .setValue(SimilarityMeasure.PEARSON);
-    param.getParameter(ImageCorrelateGroupingParameters.MIN_R).setValue(0.85);
+    // percentiles are applied after removing 0 intensities so also reduce the default percentile
+    param.setParameter(ImageCorrelateGroupingParameters.QUANTILE_THRESHOLD, applyQuantileFilter,
+        0.05);
+    param.setParameter(ImageCorrelateGroupingParameters.HOTSPOT_REMOVAL, applyHotspotRemoval, 0.99);
+    param.setParameter(ImageCorrelateGroupingParameters.MEASURE, SimilarityMeasure.PEARSON);
+    param.setParameter(ImageCorrelateGroupingParameters.MIN_R, 0.75);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ImageCorrelateGroupingModule.class), param));
@@ -161,14 +151,14 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
           .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
       final AdvancedSpectraImportParameters advancedParam = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
 
-      final MassDetector massDetector = MassDetectors.CENTROID.getDefaultModule();
-      final ParameterSet massDetectorParam = MassDetectors.CENTROID.getParametersCopy();
-      massDetectorParam.setParameter(CentroidMassDetectorParameters.noiseLevel,
-          massDetectorOption.getMs1NoiseLevel());
-      MZmineProcessingStep<MassDetector> massDetectorStep = new MZmineProcessingStepImpl<>(
-          massDetector, massDetectorParam);
+      // set value first and then parameters 
       advancedParam.setParameter(AdvancedSpectraImportParameters.msMassDetection, true,
-          massDetectorStep);
+          MassDetectors.CENTROID);
+      var detectorParams = advancedParam.getParameter(
+              AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
+          .getEmbeddedParameters();
+      detectorParams.setParameter(CentroidMassDetectorParameters.noiseLevel,
+          massDetectorOption.getMs1NoiseLevel());
 
       param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(true);
       param.getParameter(AllSpectralDataImportParameters.advancedImport)
@@ -177,6 +167,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
       param.setParameter(AllSpectralDataImportParameters.metadataFile, metadataFile.active(),
           metadataFile.value());
       param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(libraries);
+      param.setParameter(AllSpectralDataImportParameters.sortAndRecolor, true);
 
       q.add(new MZmineProcessingStepImpl<>(
           MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param));

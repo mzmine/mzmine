@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleS
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
@@ -61,10 +62,12 @@ import java.time.Instant;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class reads mzML 1.0 and 1.1.0 files (http://www.psidev.info/index.php?q=node/257) using the
@@ -72,19 +75,19 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ImzMLImportTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ImzMLImportTask.class.getName());
 
-  private File file;
-  private MZmineProject project;
+  private final File file;
+  private final MZmineProject project;
   private final ScanImportProcessorConfig scanProcessorConfig;
-  private ImagingRawDataFile newMZmineFile;
+  private final ImagingRawDataFile newMZmineFile;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
   private int totalScans = 0, parsedScans;
 
   private int lastScanNumber = 0;
 
-  private Map<String, Integer> scanIdTable = new Hashtable<>();
+  private final Map<String, Integer> scanIdTable = new Hashtable<>();
 
   /*
    * This stack stores at most 20 consecutive scans. This window serves to find possible fragments
@@ -94,13 +97,14 @@ public class ImzMLImportTask extends AbstractTask {
    * scans.
    */
   private static final int PARENT_STACK_SIZE = 20;
-  private LinkedList<SimpleScan> parentStack = new LinkedList<>();
+  private final LinkedList<SimpleScan> parentStack = new LinkedList<>();
 
   public ImzMLImportTask(MZmineProject project, File fileToOpen,
       final @NotNull ScanImportProcessorConfig scanProcessorConfig,
       ImagingRawDataFile newMZmineFile, @NotNull final Class<? extends MZmineModule> module,
-      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // storage in raw data file
+      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate,
+      final @Nullable MemoryMapStorage storage) {
+    super(storage, moduleCallDate); // storage also set in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.scanProcessorConfig = scanProcessorConfig;
@@ -205,6 +209,7 @@ public class ImzMLImportTask extends AbstractTask {
         io.github.mzmine.datamodel.Scan scan = parentStack.removeLast();
         newMZmineFile.addScan(scan);
       }
+      newMZmineFile.getScans().sort(io.github.mzmine.datamodel.Scan::compareTo);
 
       // set settings of image
       newMZmineFile.setImagingParam(new ImagingParameters(imzml));
@@ -213,9 +218,8 @@ public class ImzMLImportTask extends AbstractTask {
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Error parsing mzML: " + ExceptionUtils.exceptionToString(e));
-      e.printStackTrace();
+      logger.log(Level.WARNING, "Error in imzML import: " + e.getMessage(), e);
+      error("Error parsing imzML: " + ExceptionUtils.exceptionToString(e));
       return;
     }
 

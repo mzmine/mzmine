@@ -51,7 +51,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.Recur
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -165,19 +165,16 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   public static int getRecommendedBinWidth(IMSRawDataFile file) {
     // timsTOF data can be empty in the early scans, so we use one from the middle
     final Frame frame = file.getFrame(file.getNumberOfFrames() / 2);
-    switch (frame.getMobilityType()) {
-      case NONE, DRIFT_TUBE, TRAVELING_WAVE, FAIMS -> {
-        return 1;
-      }
+    return switch (frame.getMobilityType()) {
+      case NONE, DRIFT_TUBE, TRAVELING_WAVE, FAIMS, MIXED, OTHER -> 1;
       case TIMS -> {
-        int index = frame.getNumberOfMobilityScans() / 2;
+        final int index = frame.getNumberOfMobilityScans() / 2;
         final double mob1 = frame.getMobilityScan(index).getMobility();
         final double mob2 = frame.getMobilityScan(index + 1).getMobility();
         final double delta = Math.abs(mob1 - mob2);
-        return (int) Math.max(1d, 0.0008 / delta);
+        yield (int) Math.max(1d, 0.0008 / delta) * 2;
       }
-    }
-    return 1;
+    };
   }
 
   @Nullable
@@ -367,14 +364,16 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
     for (int i = 0; i < mobilities.length; i++) {
       if (firstNonZero == -1 && intensities[i] > 0d) {
-        firstNonZero = Math.max(0, i - 1);
+        firstNonZero = i;
       }
       if (intensities[i] > 0d) {
         lastNonZero = i;
       }
     }
-    firstNonZero = Math.max(firstNonZero, 0);
-    lastNonZero = Math.min(lastNonZero + 1, mobilities.length - 1);
+    // first non zero - 1, include one zero.
+    firstNonZero = Math.max(firstNonZero - 1, 0);
+    // last non zero + 2 because Arrays.copyOfRange is exclusive, include one zero.
+    lastNonZero = Math.min(lastNonZero + 2, mobilities.length - 1);
 
     return new SummedIntensityMobilitySeries(storage,
         Arrays.copyOfRange(mobilities, firstNonZero, lastNonZero),
@@ -382,7 +381,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   @Override
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     throw new UnsupportedOperationException(
         "This data access is designed to loop over intensities/mobilities.");
   }

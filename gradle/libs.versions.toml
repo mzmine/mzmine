@@ -1,11 +1,11 @@
 [versions]
-jdk = { strictly = "21" }
-javafx = { strictly = "21.0.1" }
-javafx-plugin = "0.0.13"
+jdk = { strictly = "22" }
+javafx = { strictly = "22.0.1" }
+javafx-plugin = "0.1.0"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
-licenseplugin = "2.6"
-beryx-runtime = "1.12.7"
+licenseplugin = "2.8"
+beryx-runtime = "1.13.1"
 semver = "1.0.4"
 msdk = "0.0.27"
 # update to 2.9? from 2.5
@@ -20,9 +20,10 @@ jmzTabm = "1.0.6"
 jna = '5.12.1'
 junit = '5.10.0'
 mockito = '5.8.0'
-jackson = '2.16.1'
+jackson = '2.18.0'
 ikonli = "12.3.1"
 graphstream = "2.0"
+djl = "0.26.0"
 mzio = "1.0.0"
 
 [libraries]
@@ -34,6 +35,7 @@ mzio-user-client = { module = "io.mzio:user-client", version.ref = "mzio" }
 mzio-mzmine-core = { module = "io.mzio:mzmine-core", version.ref = "mzio" }
 mzio-memory-management = { module = "io.mzio:memory-management", version.ref = "mzio" }
 mzio-global-events = { module = "io.mzio:global-events", version.ref = "mzio" }
+mzio-test-utils = { module = "io.mzio:mzmine-test-utils", version.ref = "mzio" }
 #
 javafx-plugin = { module = "org.openjfx.javafxplugin:org.openjfx.javafxplugin.gradle.plugin", version.ref = "javafx-plugin" }
 # productivity
@@ -64,6 +66,7 @@ poi = { module = "org.apache.poi:poi", version.ref = "poi" }
 poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "poi" }
 jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-datetime = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jackson-dataformat-csv = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-csv", version = "jackson" }
 woodstox-core = "com.fasterxml.woodstox:woodstox-core:6.6.0"
@@ -97,6 +100,9 @@ commons-cli = { group = "commons-cli", name = "commons-cli", version = "1.6.0" }
 commons-math = { group = "org.apache.commons", name = "commons-math", version = "2.2" }
 commons-math3 = { group = "org.apache.commons", name = "commons-math3", version = "3.6.1" }
 commons-lang3 = "org.apache.commons:commons-lang3:3.0"
+commons-compress = "org.apache.commons:commons-compress:1.26.2"
+djl-pytorch-engine = { module = "ai.djl.pytorch:pytorch-engine", version.ref = "djl" }
+djl-api = { module = "ai.djl:api", version.ref = "djl" }
 opencsv = { group = "com.opencsv", name = "opencsv", version = "5.8" }
 
 # testing
@@ -110,8 +116,9 @@ default-convention = ["jetbrains-annotations"]
 javafx-convention = ["controlsfx", "ikonli-javafx", "ikonli-bootstrap", "ikonli-lineawesome"]
 # default productivity
 productivity = ["jetbrains-annotations"]
-
+djl-pytorch = ["djl-api", "djl-pytorch-engine"]
 mzio = ["mzio-memory-management", "mzio-taskcontroller", "mzio-user-client", "mzio-user-management", "mzio-user-management-fx", "mzio-global-events", "mzio-mzmine-core"]
+mzio-test = ["mzio-test-utils"]
 # UI
 ikonli = ["ikonli-bootstrap", "ikonli-javafx", "ikonli-lineawesome"]
 jfreechart = ["jfree-core", "jfree-fx", "jfree-fxgraphics"]
@@ -124,7 +131,7 @@ slf4j = ["slf4j-api", "slf4j-jdk14"]
 poi = ["poi", "poi-ooxml"]
 okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
-jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv"]
+jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime"]
 batik = ["batik-anim", "batik-svggen", "batik-swing"]
 
 

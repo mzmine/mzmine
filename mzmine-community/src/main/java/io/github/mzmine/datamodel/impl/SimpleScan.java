@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.lang.foreign.MemorySegment;
 import java.nio.DoubleBuffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,8 +70,8 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   /**
    * clone scan with new data
    */
-  public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, DoubleBuffer newMzValues,
-      DoubleBuffer newIntensityValues) {
+  public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, MemorySegment newMzValues,
+      MemorySegment newIntensityValues) {
 
     this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
         newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
@@ -110,7 +111,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      @Nullable MsMsInfo msMsInfo, DoubleBuffer mzValues, DoubleBuffer intensityValues,
+      @Nullable MsMsInfo msMsInfo, MemorySegment mzValues, MemorySegment intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange, @Nullable Float injectionTime) {
 

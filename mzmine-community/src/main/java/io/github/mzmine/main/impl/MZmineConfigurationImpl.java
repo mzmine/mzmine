@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,12 +31,14 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransfo
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.gui.preferences.Themes;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.javafx.util.color.Vision;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvert;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
@@ -273,6 +275,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           Element lastProjectsElement = (Element) nodes.item(0);
           lastProjects.loadValueFromXML(lastProjectsElement);
         }
+        // apply preferences to all parts of mzmine
+        preferences.applyConfig();
       }
 
       logger.finest("Loading modules configuration");
@@ -466,6 +470,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
+  public Themes getTheme() {
+    return getPreferences().getValue(MZminePreferences.theme);
+  }
+
+  @Override
   public boolean isDarkMode() {
     Boolean darkMode = preferences.isDarkMode();
     return darkMode != null && darkMode;
@@ -483,5 +492,17 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     final PaintScaleTransform transformation = preferences.getParameter(
         MZminePreferences.imageTransformation).getValue();
     return transformation != null ? transformation : PaintScaleTransform.LINEAR;
+  }
+
+  @Override
+  public File getMsConvertPath() {
+    synchronized (MSConvert.class) {
+      File path = preferences.getValue(MZminePreferences.msConvertPath);
+      if (path == null || !MSConvert.validateMsConvertPath(path)) {
+        path = MSConvert.discoverMsConvertPath();
+        preferences.setParameter(MZminePreferences.msConvertPath, path);
+      }
+      return path;
+    }
   }
 }

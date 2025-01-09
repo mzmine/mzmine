@@ -38,8 +38,8 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
             GroupMS2Parameters.limitMobilityByFeature,
 
             // TIMS specific
-            GroupMS2Parameters.combineTimsMsMs, GroupMS2Parameters.outputNoiseLevel,
-            GroupMS2Parameters.outputNoiseLevelRelative},
+            GroupMS2Parameters.combineTimsMsMs, GroupMS2Parameters.minImsRawSignals,
+            GroupMS2Parameters.advancedParameters},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
   }
 

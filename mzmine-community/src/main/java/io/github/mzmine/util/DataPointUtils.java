@@ -32,6 +32,8 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.collections.BinarySearch;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout.OfDouble;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,9 +109,9 @@ public class DataPointUtils {
    *
    * @return array of [2][] with [mzs, intensities]
    */
-  public static double[][] getDataPointsAsDoubleArray(DoubleBuffer mzValues,
-      DoubleBuffer intensityValues) {
-    assert mzValues.limit() == intensityValues.limit();
+  public static double[][] getDataPointsAsDoubleArray(MemorySegment mzValues,
+      MemorySegment intensityValues) {
+    assert mzValues.byteSize() == intensityValues.byteSize();
     return new double[][]{getDoubleBufferAsArray(mzValues),
         getDoubleBufferAsArray(intensityValues)};
   }
@@ -123,6 +125,14 @@ public class DataPointUtils {
     // set start to 0 to get absolute array not relative to point
     values.get(0, data);
     return data;
+  }
+
+  /**
+   * Used when copying an {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries} and
+   * subclasses. Usually, the data should be accessed directly via the buffer.
+   */
+  public static double[] getDoubleBufferAsArray(MemorySegment values) {
+    return values.toArray(OfDouble.JAVA_DOUBLE);
   }
 
   /**

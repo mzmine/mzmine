@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,6 +61,18 @@ public interface ParameterSet extends ParameterContainer {
    */
   default int getVersion() {
     return 1;
+  }
+
+  /**
+   * Version specific messages that help understand version changes and how to address them / modify
+   * parameters. If upgrading from version 1 to 3 all messages from 2-3 should be joined.
+   *
+   * @param version the version number
+   * @return a message representing the change upgrading to attribute version
+   */
+  @Nullable
+  default String getVersionMessage(int version) {
+    return null;
   }
 
   Parameter<?>[] getParameters();
@@ -142,6 +154,14 @@ public interface ParameterSet extends ParameterContainer {
    * Extend this method to map old parameter names (maybe saved to batch files) to the parameter.
    * Only works if the old and new parameter are of the same type (save and load the parameter
    * values the same way).
+   * <p></p>
+   * Intended usage is: <p></p>
+   * {@code nameParameterMap.put("m/z tolerance", getParameter(mzTolerance));}
+   * <p></p>
+   * <p>
+   * It is important to use {@link ParameterSet#getParameter(Parameter)} instead of directly passing
+   * the static final parameter. Otherwise, new parameter set instances will always use the same
+   * instance of the parameter.
    *
    * @return map of name to parameter
    */
@@ -230,7 +250,8 @@ public interface ParameterSet extends ParameterContainer {
    */
   BooleanProperty parametersChangeProperty();
 
-  @Nullable String getOnlineHelpUrl();
+  @Nullable
+  String getOnlineHelpUrl();
 
   String getModuleNameAttribute();
 
@@ -254,8 +275,8 @@ public interface ParameterSet extends ParameterContainer {
         .anyMatch(name -> Objects.equals(p.getName(), name));
   }
 
-  @SuppressWarnings("unchecked")
   default <V, T extends Parameter<V>> Stream<T> streamForClass(Class<T> parameterClass) {
-    return Arrays.stream(getParameters()).filter(parameterClass::isInstance).map(p -> (T) p);
+    return Arrays.stream(getParameters()).filter(parameterClass::isInstance)
+        .map(parameterClass::cast);
   }
 }

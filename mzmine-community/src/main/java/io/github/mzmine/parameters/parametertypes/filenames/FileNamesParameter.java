@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,14 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.ImmutableList;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -35,6 +40,7 @@ import java.util.Collection;
 import java.util.List;
 import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -44,6 +50,8 @@ import org.w3c.dom.NodeList;
  *
  */
 public class FileNamesParameter implements UserParameter<File[], FileNamesComponent> {
+
+  public static final String XML_RELATIVE_PATH_ATTRIBUTE = "relative_path";
 
   private final String name;
   private final String description;
@@ -60,12 +68,20 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   }
 
   public FileNamesParameter(String name, String description, List<ExtensionFilter> filters,
-      Path defaultDir, File[] defaultFiles) {
+      Path defaultDir, @Nullable File[] defaultFiles) {
     this.name = name;
     this.description = description;
     this.filters = ImmutableList.copyOf(filters);
     this.defaultDir = defaultDir;
-    value = defaultFiles;
+    setValue(defaultFiles);
+  }
+
+  public Path getDefaultDir() {
+    return defaultDir;
+  }
+
+  public List<ExtensionFilter> getFilters() {
+    return filters;
   }
 
   /**
@@ -90,13 +106,14 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   }
 
   @Override
+  @NotNull
   public File[] getValue() {
     return value;
   }
 
   @Override
-  public void setValue(File[] value) {
-    this.value = value;
+  public void setValue(@Nullable File[] value) {
+    this.value = requireNonNullElse(value, new File[0]);
   }
 
   @Override
@@ -120,9 +137,20 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   public void loadValueFromXML(Element xmlElement) {
     NodeList list = xmlElement.getElementsByTagName("file");
     File[] newFiles = new File[list.getLength()];
+    final MZmineProject project = ProjectService.getProject();
+
     for (int i = 0; i < list.getLength(); i++) {
       Element nextElement = (Element) list.item(i);
-      newFiles[i] = new File(nextElement.getTextContent());
+
+      final File absFile = new File(nextElement.getTextContent());
+      final String relPathAttr = nextElement.getAttribute(XML_RELATIVE_PATH_ATTRIBUTE);
+      final File relFile = project.resolveRelativePathToFile(relPathAttr);
+
+      if (!absFile.exists() && (relFile != null && relFile.exists())) {
+        newFiles[i] = relFile;
+      } else {
+        newFiles[i] = absFile;
+      }
     }
     this.value = newFiles;
   }
@@ -133,9 +161,18 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
       return;
     }
     Document parentDocument = xmlElement.getOwnerDocument();
+    final MZmineProject project = ProjectService.getProject();
+
     for (File f : value) {
       Element newElement = parentDocument.createElement("file");
       newElement.setTextContent(f.getPath());
+
+      if (!f.toString().contains(RawDataFileSaveHandler.DATA_FILES_PREFIX)) {
+        final Path relativePath = project.getRelativePath(f.toPath());
+        if (relativePath != null) {
+          newElement.setAttribute(XML_RELATIVE_PATH_ATTRIBUTE, relativePath.toString());
+        }
+      }
       xmlElement.appendChild(newElement);
     }
   }
@@ -165,5 +202,9 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   @Override
   public Priority getComponentVgrowPriority() {
     return Priority.SOMETIMES;
+  }
+
+  public int numFiles() {
+    return value != null ? value.length : 0;
   }
 }

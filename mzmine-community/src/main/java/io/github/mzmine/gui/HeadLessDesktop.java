@@ -156,7 +156,7 @@ public class HeadLessDesktop implements MZmineDesktop {
   }
 
   @Override
-  public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
+  public ButtonType displayConfirmation(final String title, String msg, ButtonType... buttonTypes) {
     throw new UnsupportedOperationException();
   }
 
