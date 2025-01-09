@@ -28,6 +28,8 @@ public class IntegrationDashboardModel {
 
   private final IntegerProperty gridSizeX = new SimpleIntegerProperty(3);
   private final IntegerProperty gridSizeY = new SimpleIntegerProperty(2);
+  private final IntegerProperty girdPaneFileOffset = new SimpleIntegerProperty(0);
+
   private final ObjectProperty<@NotNull ModularFeatureList> featureList = new SimpleObjectProperty<>(
       new ModularFeatureList("flist", null, List.of()));
   private final ObjectProperty<@NotNull FeatureTableFX> featureTableFx = new SimpleObjectProperty<>(
@@ -41,6 +43,7 @@ public class IntegrationDashboardModel {
       new MZTolerance(0.005, 10));
   private final MapProperty<RawDataFile, FeatureDataEntry> featureDataEntries = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
+
 
   public int getGridSizeX() {
     return gridSizeX.get();
@@ -156,5 +159,17 @@ public class IntegrationDashboardModel {
 
   public MapProperty<RawDataFile, FeatureDataEntry> featureDataEntriesProperty() {
     return featureDataEntries;
+  }
+
+  public int getGirdPaneFileOffset() {
+    return girdPaneFileOffset.get();
+  }
+
+  public IntegerProperty girdPaneFileOffsetProperty() {
+    return girdPaneFileOffset;
+  }
+
+  public void setGirdPaneFileOffset(int girdPaneFileOffset) {
+    this.girdPaneFileOffset.set(girdPaneFileOffset);
   }
 }
