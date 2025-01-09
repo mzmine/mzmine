@@ -44,7 +44,8 @@ public record FloatGrouping(@Nullable Float singleValue, @NotNull Type type) {
 
   @NotNull
   public static FloatGrouping of(@NotNull final List<Float> energies) {
-    Type type = switch (energies.size()) {
+    final int distinctValues = (int) energies.stream().distinct().count();
+    Type type = switch (distinctValues) {
       case 0 -> Type.UNDEFINED;
       case 1 -> Type.SINGLE_VALUE;
       default -> Type.MULTIPLE_VALUES;

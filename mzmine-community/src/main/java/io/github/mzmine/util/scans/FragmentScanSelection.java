@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -40,6 +41,7 @@ import io.github.mzmine.util.scans.merging.SpectraMergingResultsNode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +87,7 @@ import org.jetbrains.annotations.Nullable;
 public final class FragmentScanSelection {
 
   private static final Logger logger = Logger.getLogger(FragmentScanSelection.class.getName());
+  private final @NotNull SelectInputScans selectInputScans;
   private final @Nullable SpectraMerger merger;
   private final EnumSet<MergedSpectraFinalSelectionTypes> finalScanSelection;
   // eg ScanSelectionFilter
@@ -93,6 +96,7 @@ public final class FragmentScanSelection {
   private final boolean includeMSn;
 
   /**
+   * @param selectInputScans      input scans in the final scan selection
    * @param merger                performs spectral merging
    * @param postMergingScanFilter Post merging scan filters like
    *                              {@link ScanSelectionFilter#matchesAllOf(ScanSelectionFilter...)}
@@ -101,26 +105,29 @@ public final class FragmentScanSelection {
    *                              mean that either all MSn levels are used or only the pseudo MS2
    *                              scan merged from all is kept when using MS2 only
    */
-  public FragmentScanSelection(@Nullable MemoryMapStorage storage, @Nullable SpectraMerger merger,
+  public FragmentScanSelection(@Nullable MemoryMapStorage storage,
+      final @NotNull SelectInputScans selectInputScans, @Nullable SpectraMerger merger,
       @NotNull final List<MergedSpectraFinalSelectionTypes> finalScanSelection,
       final @NotNull ScanSelectionFilter postMergingScanFilter) {
+    this.selectInputScans = selectInputScans;
     this.merger = merger;
-    this.finalScanSelection = EnumSet.copyOf(finalScanSelection);
+    this.finalScanSelection =
+        finalScanSelection.isEmpty() ? EnumSet.noneOf(MergedSpectraFinalSelectionTypes.class)
+            : EnumSet.copyOf(finalScanSelection);
     this.postMergingScanFilter = postMergingScanFilter;
     this.storage = storage;
     this.includeMSn = finalScanSelection.contains(MergedSpectraFinalSelectionTypes.MSN_TREE);
   }
 
   public FragmentScanSelection(@Nullable final MemoryMapStorage storage,
-      @Nullable final SpectraMerger merger,
+      @NotNull final SelectInputScans selectInputScans, @Nullable final SpectraMerger merger,
       @NotNull final List<MergedSpectraFinalSelectionTypes> finalScanSelection) {
-    this(storage, merger, finalScanSelection, ScanSelectionFilter.all());
+    this(storage, selectInputScans, merger, finalScanSelection, ScanSelectionFilter.all());
   }
 
   public static FragmentScanSelection createAllInputFragmentScansSelect(
       final @Nullable MemoryMapStorage storage) {
-    return new FragmentScanSelection(storage, null,
-        List.of(MergedSpectraFinalSelectionTypes.ALL_INPUT_SCANS));
+    return new FragmentScanSelection(storage, SelectInputScans.ALL_SCANS, null, List.of());
   }
 
 
@@ -172,52 +179,49 @@ public final class FragmentScanSelection {
   }
 
   private void addSourceScans(List<Scan> source, final Set<Scan> result) {
-    boolean addAll = finalScanSelection.contains(MergedSpectraFinalSelectionTypes.ALL_INPUT_SCANS);
-    boolean addBest = finalScanSelection.contains(
-        MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_INPUT_SCAN);
-    if (!includeMSn && (addAll || addBest)) {
+    if (selectInputScans == SelectInputScans.NONE) {
+      return;
+    }
+
+    if (!includeMSn) {
       // remove MSn scans from input
       source = source.stream().filter(scan -> scan.getMSLevel() < 3).toList();
     }
 
-    if (addAll) {
+    if (selectInputScans == SelectInputScans.ALL_SCANS) {
       result.addAll(source);
-    } else if (addBest) {
-      // skip adding best scans if all were already added
-      // skip MSn scans here - too complex
-      addMostIntenseSourceScans(source, result);
+    } else if (selectInputScans == SelectInputScans.MOST_INTENSE_ACROSS_SAMPLES) {
+      // across samples
+      result.addAll(getMostIntenseSourceScanPerEnergyAndMSnPrecursor(source));
+    } else if (selectInputScans == SelectInputScans.MOST_INTENSE_PER_SAMPLE) {
+      // split by sample
+      var bySampleSorted = ScanUtils.splitBySample(source).values().stream()
+          // get best scans for each sample
+          .map(this::getMostIntenseSourceScanPerEnergyAndMSnPrecursor).flatMap(Collection::stream)
+          // sort so that still the best scan across samples is first
+          .sorted(FragmentScanSorter.DEFAULT_TIC).toList();
+
+      result.addAll(bySampleSorted);
     }
   }
 
-  private void addMostIntenseSourceScans(List<Scan> source, final Set<Scan> result) {
+  /**
+   * @param source fragment scans
+   * @return list of scans for every fragmentation energy for each MSn precursor
+   */
+  private List<Scan> getMostIntenseSourceScanPerEnergyAndMSnPrecursor(List<Scan> source) {
+    // check if scan of type was already added by ms level, precursor mzs, collision energies
+    Map<ScanPrecursorEnergyGroupId, Scan> uniqueScans = new HashMap<>();
+
     // sort best scan first
-    source = source.stream().filter(s -> s.getMSLevel() < 3).sorted(FragmentScanSorter.DEFAULT_TIC)
-        .toList();
-
-    if (finalScanSelection.contains(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES)) {
-      // add best overall scan
-      addIfNotNull(result, source.getFirst());
-
-      // add best for each energy
-      if (finalScanSelection.contains(MergedSpectraFinalSelectionTypes.EACH_ENERGY)) {
-        var byEnergy = ScanUtils.splitByFragmentationEnergy(source);
-        byEnergy.values().stream().map(List::getFirst).forEach(result::add);
+    return source.stream().sorted(FragmentScanSorter.DEFAULT_TIC).filter(scan -> {
+      final var id = new ScanPrecursorEnergyGroupId(scan);
+      if (uniqueScans.containsKey(id)) {
+        return false;
       }
-    }
-    // can select both across samples and each sample
-    if (finalScanSelection.contains(MergedSpectraFinalSelectionTypes.EACH_SAMPLE)) {
-      var bySample = ScanUtils.splitBySample(source).values();
-      // sorting allows that first is always the best scan by sample
-      bySample.stream().map(List::getFirst).forEach(result::add);
-
-      // add best for each energy
-      if (finalScanSelection.contains(MergedSpectraFinalSelectionTypes.EACH_ENERGY)) {
-        for (final List<Scan> sampleScans : bySample) {
-          var byEnergy = ScanUtils.splitByFragmentationEnergy(sampleScans);
-          byEnergy.values().stream().map(List::getFirst).forEach(result::add);
-        }
-      }
-    }
+      uniqueScans.put(id, scan);
+      return true;
+    }).toList();
   }
 
   private void extractEnergyScans(final List<SpectraMergingResultsNode> nodes,
@@ -277,10 +281,5 @@ public final class FragmentScanSelection {
   public List<Scan> getAllFragmentSpectra(final PrecursorIonTreeNode root) {
     return getAllFragmentSpectra(root.getAllFragmentScans());
   }
-
-  public enum IncludeInputSpectra {
-    HIGHEST_TIC_PER_ENERGY, ALL, NONE
-  }
-
 
 }

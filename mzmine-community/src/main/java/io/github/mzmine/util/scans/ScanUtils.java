@@ -247,7 +247,7 @@ public class ScanUtils {
     return buf.toString();
   }
 
-  private static Float extractCollisionEnergy(MassSpectrum spectrum) {
+  public static @Nullable Float extractCollisionEnergy(MassSpectrum spectrum) {
     return switch (spectrum) {
       case MobilityScan mob ->
           mob.getMsMsInfo() != null ? mob.getMsMsInfo().getActivationEnergy() : null;
@@ -257,7 +257,7 @@ public class ScanUtils {
         final FloatArrayList list = entry.getOrElse(DBEntryField.COLLISION_ENERGY,
             FloatArrayList.of());
         if (!list.isEmpty()) {
-          yield list.getFirst();
+          yield list.getLast(); // last is the collision energy of the last MSn scan step
         }
         yield null;
       }
@@ -287,7 +287,7 @@ public class ScanUtils {
     return ScanUtils.streamSourceScans(scan, Scan.class).map(s -> {
       if (s.getMsMsInfo() instanceof MSnInfoImpl msn) {
         List<DDAMsMsInfo> precursors = msn.getPrecursors();
-        if (precursors == null) {
+        if (precursors.isEmpty()) {
           return null;
         }
         return precursors.stream().map(DDAMsMsInfo::getActivationEnergy).filter(Objects::nonNull)
@@ -2182,6 +2182,31 @@ public class ScanUtils {
     return intensities;
   }
 
+  /**
+   * For a single spectrum (not merged) this will return a single entry list with all the precursor
+   * mz for this scan. If MS3 this may be something like [[400.1, 222.0]] for the MS2 and MS3
+   * precursor mz.
+   *
+   * @return list for each source scan of merged spectrum or a single entry for a single scan with
+   * all the MSn precursor m/z in MS level selection order 2, 3, 4, ...
+   */
+  @NotNull
+  public static List<List<Double>> getMsnPrecursorMzs(final MassSpectrum scan) {
+    return ScanUtils.streamSourceScans(scan, Scan.class).map(s -> {
+      if (s.getMsMsInfo() instanceof MSnInfoImpl msn) {
+        List<DDAMsMsInfo> precursors = msn.getPrecursors();
+        if (precursors.isEmpty()) {
+          return null;
+        }
+        return precursors.stream().map(DDAMsMsInfo::getIsolationMz).toList();
+      }
+      return null;
+    }).filter(Objects::nonNull).distinct().toList();
+  }
+
+  /**
+   * @return the precursor mz (in the case of MSn the last precursor mz)
+   */
   @Nullable
   public static Double getPrecursorMz(final MassSpectrum scan) {
     return switch (scan) {

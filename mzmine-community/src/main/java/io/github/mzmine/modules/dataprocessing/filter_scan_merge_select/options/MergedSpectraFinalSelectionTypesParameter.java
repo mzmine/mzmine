@@ -32,7 +32,7 @@ import java.util.List;
 public class MergedSpectraFinalSelectionTypesParameter extends
     CheckComboParameter<MergedSpectraFinalSelectionTypes> {
 
-  public static final String DEFAULT_NAME = "Include scan types";
+  public static final String DEFAULT_NAME = "Merging options";
 
   public MergedSpectraFinalSelectionTypesParameter(final MergedSpectraFinalSelectionTypes[] choices,
       final List<MergedSpectraFinalSelectionTypes> defaultValue) {
@@ -53,7 +53,7 @@ public class MergedSpectraFinalSelectionTypesParameter extends
   public boolean checkValue(final Collection<String> errorMessages) {
     var types = getValue();
     var result = super.checkValue(errorMessages);
-    if (!MergedSpectraFinalSelectionTypes.isValidSelection(types)) {
+    if (!MergedSpectraFinalSelectionTypes.isValidSelection(types, true)) {
       errorMessages.add(MergedSpectraFinalSelectionTypes.getAdvancedValidDescription());
       return false;
     }

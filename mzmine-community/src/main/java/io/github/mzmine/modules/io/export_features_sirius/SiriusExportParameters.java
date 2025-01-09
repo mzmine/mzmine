@@ -44,7 +44,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectOptions;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
@@ -164,7 +164,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
     if (loadedParams.containsKey(MERGE_PARAMETER.getName())) {
       boolean merge = MERGE_PARAMETER.getValue();
       if (!merge) {
-        getParameter(spectraMergeSelect).setUseInputScans(SelectOptions.ALL_INPUT_SCANS);
+        getParameter(spectraMergeSelect).setUseInputScans(SelectInputScans.ALL_SCANS);
       } else {
         final var mergeParams = MERGE_PARAMETER.getEmbeddedParameters();
         MZTolerance mzTol = mergeParams.getValue(MsMsSpectraMergeParameters.MASS_ACCURACY);

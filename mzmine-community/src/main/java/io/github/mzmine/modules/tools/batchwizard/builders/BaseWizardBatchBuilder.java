@@ -73,7 +73,7 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilte
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectOptions;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderParameters;
@@ -146,9 +146,6 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizar
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
-import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
-import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
-import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
@@ -477,7 +474,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     // going back into scans so rather use scan mz tol
     param.getParameter(SiriusExportParameters.spectraMergeSelect)
-        .setUseInputScans(SelectOptions.ALL_INPUT_SCANS);
+        .setUseInputScans(SelectInputScans.ALL_SCANS);
     param.setParameter(SiriusExportParameters.NORMALIZE, IntensityNormalizer.createScientific());
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTICHARGE, false);
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTIMERS, false);
@@ -1367,7 +1364,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         .getEmbeddedParameters();
     // all input scans as default to avoid to many chimeric merged spectra in lipids
     ms2Param.getParameter(LipidAnnotationMSMSParameters.spectraMergeSelect)
-        .setUseInputScans(SelectOptions.ALL_INPUT_SCANS);
+        .setUseInputScans(SelectInputScans.ALL_SCANS);
     ms2Param.setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
     ms2Param.setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
     ms2Param.setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);

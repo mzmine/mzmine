@@ -27,8 +27,6 @@ package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,30 +47,45 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
   ACROSS_ENERGIES, EACH_ENERGY,
 
   // MSn
-  MSN_TREE, MSN_PSEUDO_MS2,
+  MSN_TREE, MSN_PSEUDO_MS2;
 
-  // input source scans
-  SINGLE_MOST_INTENSE_INPUT_SCAN, ALL_INPUT_SCANS;
-
-  public static boolean isValidSelection(MergedSpectraFinalSelectionTypes[] types) {
-    return isValidSelection(EnumSet.copyOf(List.of(types)));
+  public static boolean isActive(Collection<MergedSpectraFinalSelectionTypes> types) {
+    return !isEmptySelection(types) &&
+           // at least one of the merging types
+           (types.contains(ACROSS_ENERGIES) || types.contains(EACH_ENERGY) //
+            || types.contains(MSN_TREE) || types.contains(MSN_PSEUDO_MS2));
   }
 
-  public static boolean isValidSelection(Collection<MergedSpectraFinalSelectionTypes> types) {
-    return types != null && !types.isEmpty() &&
-           // all input source scans is a valid choice
-           (types.contains(ALL_INPUT_SCANS)
-            // or at least one of samples and one of energies options combined
-            || ((types.contains(ACROSS_SAMPLES) || types.contains(EACH_SAMPLE)) && (
-               types.contains(ACROSS_ENERGIES) || types.contains(EACH_ENERGY))));
+  public static boolean containsSampleDefinition(
+      Collection<MergedSpectraFinalSelectionTypes> types) {
+    if (types == null) {
+      return false;
+    }
+    return types.stream().anyMatch(MergedSpectraFinalSelectionTypes::isSampleDefinition);
+  }
+
+  public static boolean isEmptySelection(Collection<MergedSpectraFinalSelectionTypes> types) {
+    return types == null || types.isEmpty();
+  }
+
+  /**
+   * @return true if empty and is allowed or if a matching combination was selected
+   */
+  public static boolean isValidSelection(Collection<MergedSpectraFinalSelectionTypes> types,
+      boolean allowEmptySelection) {
+    // valid is if inactive or if active and one of sample option is selected
+    return (allowEmptySelection && isEmptySelection(types))
+           // true selection
+           || (isActive(types) && containsSampleDefinition(types));
   }
 
   public static String getAdvancedValidDescription() {
     return """
         When merging and selecting fragmentation spectra in advanced mode, make sure to select at
         least one combination of SAMPLE and ENERGY handling like %s with %s to have a valid selection.
-        Another valid choice would be %s. All other options can be added to expand the number of selected scans.""".formatted(
-        ACROSS_SAMPLES, ACROSS_ENERGIES, ALL_INPUT_SCANS);
+        Add more options to include more scans in the final selection.
+        MSn types only affect MSn data.
+        Otherwise, merging will be turned off.""".formatted(ACROSS_SAMPLES, ACROSS_ENERGIES);
   }
 
   @Override
@@ -84,8 +97,6 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
       case EACH_ENERGY -> "Each energy";
       case MSN_TREE -> "MSn tree";
       case MSN_PSEUDO_MS2 -> "MSn to pseudo MS2";
-      case SINGLE_MOST_INTENSE_INPUT_SCAN -> "Single most intense scan";
-      case ALL_INPUT_SCANS -> "All scans";
     };
   }
 
@@ -98,16 +109,13 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
       case EACH_ENERGY -> "each_energy";
       case MSN_TREE -> "msn_trees";
       case MSN_PSEUDO_MS2 -> "msn_pseudo_ms2";
-      case SINGLE_MOST_INTENSE_INPUT_SCAN -> "most_intense_input_scan";
-      case ALL_INPUT_SCANS -> "all_input_scans";
     };
   }
 
   public boolean isSampleDefinition() {
     return switch (this) {
       case ACROSS_SAMPLES, EACH_SAMPLE -> true;
-      case EACH_ENERGY, ACROSS_ENERGIES, ALL_INPUT_SCANS, MSN_TREE, MSN_PSEUDO_MS2,
-           SINGLE_MOST_INTENSE_INPUT_SCAN -> false;
+      case EACH_ENERGY, ACROSS_ENERGIES, MSN_TREE, MSN_PSEUDO_MS2 -> false;
     };
   }
 }

@@ -26,9 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,34 +38,43 @@ import org.jetbrains.annotations.NotNull;
 public class InputSpectraSelectParameters extends SimpleParameterSet {
 
   /**
-   * Create enum to make it easier to setup. Also had some instance where the full set of
-   * {@link MergedSpectraFinalSelectionTypes} would end up as options in the parameters
+   * Options to select scans without merging
    */
-  public enum SelectOptions implements UniqueIdSupplier {
-    SINGLE_MOST_INTENSE_INPUT_SCAN, ALL_INPUT_SCANS;
+  public enum SelectInputScans implements UniqueIdSupplier {
+    MOST_INTENSE_ACROSS_SAMPLES, MOST_INTENSE_PER_SAMPLE, ALL_SCANS, NONE;
 
-    @Override
-    public @NotNull String getUniqueID() {
-      return toFinalSelectionTypes().getUniqueID();
+    public static SelectInputScans[] valuesExcludingNone() {
+      return Arrays.stream(values()).filter(v -> v != NONE).toArray(SelectInputScans[]::new);
     }
 
     @Override
     public @NotNull String toString() {
-      return toFinalSelectionTypes().toString();
+      return switch (this) {
+        case MOST_INTENSE_ACROSS_SAMPLES -> "Most intense scan across samples";
+        case MOST_INTENSE_PER_SAMPLE -> "Most intense scan per sample";
+        case ALL_SCANS -> "All scans";
+        case NONE -> "None";
+      };
     }
 
-    public @NotNull MergedSpectraFinalSelectionTypes toFinalSelectionTypes() {
+    @Override
+    public @NotNull String getUniqueID() {
       return switch (this) {
-        case ALL_INPUT_SCANS -> MergedSpectraFinalSelectionTypes.ALL_INPUT_SCANS;
-        case SINGLE_MOST_INTENSE_INPUT_SCAN ->
-            MergedSpectraFinalSelectionTypes.SINGLE_MOST_INTENSE_INPUT_SCAN;
+        case MOST_INTENSE_ACROSS_SAMPLES -> "most_intense_across_samples";
+        case MOST_INTENSE_PER_SAMPLE -> "most_intense_per_sample";
+        case ALL_SCANS -> "all_scans";
+        case NONE -> "none";
       };
+    }
+
+    public boolean isSingleScan() {
+      return this == MOST_INTENSE_ACROSS_SAMPLES;
     }
   }
 
-  public static ComboParameter<SelectOptions> inputSelectionType = new ComboParameter<>(
-      "Scan selection", "Select input scans without merging", SelectOptions.values(),
-      SelectOptions.SINGLE_MOST_INTENSE_INPUT_SCAN);
+  public static ComboParameter<InputSpectraSelectParameters.SelectInputScans> inputSelectionType = new ComboParameter<>(
+      "Select input scans", "Select input scans without merging",
+      SelectInputScans.valuesExcludingNone(), SelectInputScans.MOST_INTENSE_ACROSS_SAMPLES);
 
   public InputSpectraSelectParameters() {
     super(inputSelectionType);

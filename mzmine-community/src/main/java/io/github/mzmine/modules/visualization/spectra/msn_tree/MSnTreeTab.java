@@ -44,6 +44,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
@@ -574,7 +575,8 @@ public class MSnTreeTab extends SimpleTab {
         MergedSpectraFinalSelectionTypes.ACROSS_ENERGIES,
         MergedSpectraFinalSelectionTypes.MSN_TREE);
     var merger = new SpectraMerger(scanTypes, mzTol, IntensityMergingType.MAXIMUM);
-    FragmentScanSelection selection = new FragmentScanSelection(null, merger, scanTypes);
+    FragmentScanSelection selection = new FragmentScanSelection(null, SelectInputScans.NONE, merger,
+        scanTypes);
     List<Scan> mergedSpectra = selection.getAllFragmentSpectra(root);
 
     // MS2 has two spectra - the merged MS2 and the spectrum of all MSn merged into it

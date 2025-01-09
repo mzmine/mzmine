@@ -44,7 +44,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectOptions;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
@@ -102,7 +102,7 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
                   + "If the file already exists, it will be overwritten.", extensions, "iimn_fbmn");
 
   // legacy parameter replaced by other parameter only here for loading of old batches
-  private final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
+  private final OptionalModuleParameter<MsMsSpectraMergeParameters> LEGACY_MERGE_PARAMETER = new OptionalModuleParameter<>(
       "Merge MS/MS (experimental)",
       "Merge high-quality MS/MS instead of exporting just the most intense one.",
       new MsMsSpectraMergeParameters(), true);
@@ -139,19 +139,19 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
   @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
     var map = super.getNameParameterMap();
-    map.put(MERGE_PARAMETER.getName(), MERGE_PARAMETER);
+    map.put(LEGACY_MERGE_PARAMETER.getName(), LEGACY_MERGE_PARAMETER);
     return map;
   }
 
   @Override
   public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
-    if (loadedParams.containsKey(MERGE_PARAMETER.getName())) {
-      boolean merge = MERGE_PARAMETER.getValue();
+    if (loadedParams.containsKey(LEGACY_MERGE_PARAMETER.getName())) {
+      boolean merge = LEGACY_MERGE_PARAMETER.getValue();
       if (!merge) {
         getParameter(spectraMergeSelect).setUseInputScans(
-            SelectOptions.SINGLE_MOST_INTENSE_INPUT_SCAN);
+            SelectInputScans.MOST_INTENSE_ACROSS_SAMPLES);
       } else {
-        final var mergeParams = MERGE_PARAMETER.getEmbeddedParameters();
+        final var mergeParams = LEGACY_MERGE_PARAMETER.getEmbeddedParameters();
         MZTolerance mzTol = mergeParams.getValue(MsMsSpectraMergeParameters.MASS_ACCURACY);
         // one merged scan
         getParameter(spectraMergeSelect).setSimplePreset(

@@ -38,7 +38,7 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectOptions;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.parameters.Parameter;
@@ -145,7 +145,7 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
     if (loadedParams.containsKey(mergeMzTolerance.getName())) {
       boolean merge = mergeMzTolerance.getValue();
       if (!merge) {
-        getParameter(merging).setUseInputScans(SelectOptions.ALL_INPUT_SCANS);
+        getParameter(merging).setUseInputScans(SelectInputScans.ALL_SCANS);
       } else {
         var mzTol = mergeMzTolerance.getEmbeddedParameter().getValue();
 

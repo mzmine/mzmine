@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypesParameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -35,13 +36,23 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 
 public class AdvancedSpectraMergeSelectParameters extends SimpleParameterSet {
 
-  public static final MergedSpectraFinalSelectionTypesParameter finalScanSelection = new MergedSpectraFinalSelectionTypesParameter(
+
+  public static ComboParameter<SelectInputScans> includeInputScans = new ComboParameter<>(
+      "Also include input scans", """
+      Include input scans without merging in the final scan selection. Options:
+      None (only use the merging settings below), single most intense scan, or all fragment scans.
+      This parameter does only affect the final scan selection. The merging always uses all scans available.""",
+      SelectInputScans.values(), SelectInputScans.NONE);
+
+  public static final MergedSpectraFinalSelectionTypesParameter mergingOptions = new MergedSpectraFinalSelectionTypesParameter(
       MergedSpectraFinalSelectionTypes.values(),
       List.of(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES,
           MergedSpectraFinalSelectionTypes.ACROSS_ENERGIES));
@@ -61,29 +72,51 @@ public class AdvancedSpectraMergeSelectParameters extends SimpleParameterSet {
 //      null, new AbsoluteAndRelativeInt(1, 0.2f));
 
   public AdvancedSpectraMergeSelectParameters() {
-    super(finalScanSelection, mergeMzTolerance, intensityMergeType);
+    super(mergingOptions, mergeMzTolerance, intensityMergeType,
+        // input spectra last - otherwise users may think this is the input into the merging
+        includeInputScans);
+  }
+
+  @Override
+  public boolean checkParameterValues(final Collection<String> errorMessages) {
+    var result = super.checkParameterValues(errorMessages);
+    // check that combination is valid - either source scans or merged
+    final List<MergedSpectraFinalSelectionTypes> finalSelection = getValue(mergingOptions);
+    final boolean isNoInputScans = getValue(includeInputScans) == SelectInputScans.NONE;
+    // only requires a valid merge selection if input scans are NONE
+    if (isNoInputScans && !MergedSpectraFinalSelectionTypes.isValidSelection(finalSelection,
+        false)) {
+
+      errorMessages.add(
+          "For fragment scan selection, either choose to include input scans (before merging) or valid merging parameters.");
+      return false;
+    }
+    return result;
   }
 
   public static ParameterSet createInputScanParams(
-      final List<MergedSpectraFinalSelectionTypes> scanSelection) {
+      final @NotNull InputSpectraSelectParameters.SelectInputScans inputScans) {
     // mz tol and other merging specific values cannot be null but need to be set
     // will not be used when only input scans are selected
-    return createParams(scanSelection, MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA,
+    return createParams(inputScans, List.of(), MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA,
         IntensityMergingType.MAXIMUM);
   }
 
   public static ParameterSet createParams(
+      final @NotNull InputSpectraSelectParameters.SelectInputScans inputScans,
       final List<MergedSpectraFinalSelectionTypes> scanSelection, final MZTolerance mzTol,
       final IntensityMergingType intensityMerging) {
     var params = new AdvancedSpectraMergeSelectParameters().cloneParameterSet();
+
+    params.setParameter(includeInputScans, inputScans);
     params.setParameter(mergeMzTolerance, mzTol);
-    params.setParameter(finalScanSelection, scanSelection);
+    params.setParameter(mergingOptions, scanSelection);
     params.setParameter(intensityMergeType, intensityMerging);
     return params;
   }
 
   public SpectraMerger createMerger() {
-    var scanSelection = getValue(finalScanSelection);
+    var scanSelection = getValue(mergingOptions);
     MZTolerance mzTol = getValue(mergeMzTolerance);
     var intensityMerging = getValue(intensityMergeType);
     return new SpectraMerger(scanSelection, mzTol, intensityMerging);

@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementProcessor;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
@@ -142,11 +143,11 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
 
     // only used for tims, keeping input spectra is important for later merging.
     var scanTypes = List.of(MergedSpectraFinalSelectionTypes.EACH_SAMPLE,
-        MergedSpectraFinalSelectionTypes.EACH_ENERGY,
-        MergedSpectraFinalSelectionTypes.ALL_INPUT_SCANS);
+        MergedSpectraFinalSelectionTypes.EACH_ENERGY);
     var merger = new SpectraMerger(scanTypes, SpectraMerging.pasefMS2MergeTol,
         IntensityMergingType.MAXIMUM);
-    timsFragmentScanSelection = new FragmentScanSelection(timsScanStorage, merger, scanTypes);
+    timsFragmentScanSelection = new FragmentScanSelection(timsScanStorage,
+        SelectInputScans.ALL_SCANS, merger, scanTypes);
 
     this.list = list;
     processedRows = 0;

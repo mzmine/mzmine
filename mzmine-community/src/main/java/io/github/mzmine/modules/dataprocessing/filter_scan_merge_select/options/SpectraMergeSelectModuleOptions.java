@@ -30,6 +30,7 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.Advanced
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.AdvancedSpectraMergeSelectParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectModule;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetAdvancedSpectraMergeSelectModule;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetAdvancedSpectraMergeSelectParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetSimpleSpectraMergeSelectModule;
@@ -105,7 +106,9 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
     params = createAdvancedSpectraMergeSelectParameters(params);
 
     List<MergedSpectraFinalSelectionTypes> finalScanSelection = params.getValue(
-        AdvancedSpectraMergeSelectParameters.finalScanSelection);
+        AdvancedSpectraMergeSelectParameters.mergingOptions);
+    SelectInputScans includeInputScans = params.getValue(
+        AdvancedSpectraMergeSelectParameters.includeInputScans);
 
     @Nullable SpectraMerger merger;
     if (this == INPUT_SCANS) {
@@ -120,7 +123,7 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
       merger.setStorage(storage);
     }
 
-    return new FragmentScanSelection(storage, merger, finalScanSelection);
+    return new FragmentScanSelection(storage, includeInputScans, merger, finalScanSelection);
   }
 
   /**
@@ -136,8 +139,8 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
         // create preset based selection and add across samples (simple always across)
         var finalSelection = new ArrayList<>(preset.listIncludedScanTypes());
         finalSelection.add(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES);
-        yield AdvancedSpectraMergeSelectParameters.createParams(finalSelection, mzTol,
-            IntensityMergingType.MAXIMUM);
+        yield AdvancedSpectraMergeSelectParameters.createParams(SelectInputScans.NONE,
+            finalSelection, mzTol, IntensityMergingType.MAXIMUM);
       }
       case PRESET_MERGED -> {
         var preset = params.getValue(PresetAdvancedSpectraMergeSelectParameters.preset);
@@ -151,14 +154,12 @@ public enum SpectraMergeSelectModuleOptions implements ModuleOptionsEnum<MZmineM
             PresetAdvancedSpectraMergeSelectParameters.sampleHandling);
         finalSelection.addAll(sampleHandling);
 
-        yield AdvancedSpectraMergeSelectParameters.createParams(finalSelection, mzTol,
-            intensityMergingType);
+        yield AdvancedSpectraMergeSelectParameters.createParams(SelectInputScans.NONE,
+            finalSelection, mzTol, intensityMergingType);
       }
       case INPUT_SCANS -> {
-        MergedSpectraFinalSelectionTypes value = params.getValue(
-            InputSpectraSelectParameters.inputSelectionType).toFinalSelectionTypes();
-        yield AdvancedSpectraMergeSelectParameters.createInputScanParams(
-            List.of(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES, value));
+        var value = params.getValue(InputSpectraSelectParameters.inputSelectionType);
+        yield AdvancedSpectraMergeSelectParameters.createInputScanParams(value);
       }
       case ADVANCED -> params;
     };

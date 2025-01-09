@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -251,7 +252,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
         var merger = new SpectraMerger(scanTypes, SpectraMerging.pasefMS2MergeTol,
             IntensityMergingType.SUMMED);
         final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(
-            getMemoryMapStorage(), merger, scanTypes);
+            getMemoryMapStorage(), SelectInputScans.NONE, merger, scanTypes);
         var spectra = fragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
         feature.setAllMS2FragmentScans(spectra, false);
       } else {
