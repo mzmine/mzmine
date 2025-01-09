@@ -48,6 +48,7 @@ plugins {
 
     id("maven-publish")
     id("version-catalog")
+    id "com.google.cloud.artifactregistry.gradle-plugin" version("2.2.0")
 }
 
 // save version to main resources
@@ -137,11 +138,7 @@ repositories {
     // maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
 
     maven {
-        url "https://bio.informatik.uni-jena.de/repository/libs-oss"
-        metadataSources {
-            mavenPom()
-            artifact()
-        }
+        url "artifactregistry://europe-west4-maven.pkg.dev/bright-giant/maven-public"
     }
 }
 
@@ -242,8 +239,9 @@ dependencies {
     testImplementation(libs.bundles.mzio.test)
 
     // sirius api
-    implementation "de.unijena.bioinf.ms:sirius_nightsky_sdk:6.0.1-SNAPSHOT"
-    implementation "de.unijena.bioinf.ms:sirius_nightsky_sdk.openapi:6.0.1-SNAPSHOT"
+    dependencies {
+        implementation 'io.sirius-ms:sirius-sdk:6.0.6'
+    }
 }
 
 /*
