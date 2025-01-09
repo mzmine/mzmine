@@ -77,7 +77,8 @@ public class CheckComboParameter<ValueType> implements
       @NotNull List<ValueType> defaultValue, boolean requiresSelection) {
     this.name = name;
     this.description = description;
-    this.choices = FXCollections.observableList(choices);
+    // requires defensive copy of choices otherwise may share choices between clones
+    this.choices = FXCollections.observableArrayList(choices);
     this.value = defaultValue;
     this.requiresSelection = requiresSelection;
   }
