@@ -156,7 +156,8 @@ public class Sirius {
   }
 
   /**
-   * Exports rows to sirius. checks the current project
+   * Exports rows to sirius. checks the current project. Only exports rows that are not already
+   * contained in the sirius project.
    *
    * @param rows The rows to export
    * @return A mapping of mzmine feature id {@link FeatureListRow#getID()} to sirius unique id
