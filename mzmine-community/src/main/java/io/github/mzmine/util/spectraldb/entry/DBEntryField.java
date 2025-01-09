@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureTy
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.PeptideSequenceType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SourceScanUsiType;
 import io.github.mzmine.datamodel.features.types.annotations.SplashType;
 import io.github.mzmine.datamodel.features.types.annotations.UsiType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
@@ -123,7 +124,7 @@ public enum DBEntryField {
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
 
   // Dataset ID is for MassIVE or other repositories
-  DATASET_ID, FILENAME, USI,
+  DATASET_ID, FILENAME, USI, SOURCE_SCAN_USI,
   /**
    * int or a {@code List<Integer>} `
    */
@@ -253,6 +254,7 @@ public enum DBEntryField {
       case RTType _ -> RT;
       case CCSType _ -> CCS;
       case UsiType _ -> USI;
+      case SourceScanUsiType _ -> SOURCE_SCAN_USI;
       case SplashType _ -> SPLASH;
       case HeightType _ -> FEATURE_MS1_HEIGHT;
       case RelativeHeightType _ -> FEATURE_MS1_REL_HEIGHT;
@@ -328,6 +330,7 @@ public enum DBEntryField {
       case CCS -> CCSType.class;
       case DATASET_ID -> DatasetIdType.class;
       case USI -> UsiType.class;
+      case SOURCE_SCAN_USI -> SourceScanUsiType.class;
       case SPLASH -> SplashType.class;
       case ONLINE_REACTIVITY -> OnlineLcReactionMatchType.class;
       // TODO change to real data types instead of strings
@@ -395,6 +398,7 @@ public enum DBEntryField {
       case ISOLATION_WINDOW -> "isolation_window";
       case DATASET_ID -> "dataset_id";
       case USI -> "usi";
+      case SOURCE_SCAN_USI -> "source_scan_usi";
       case QUALITY -> "quality";
       case QUALITY_PRECURSOR_PURITY -> "precursor_purity";
       case QUALITY_CHIMERIC -> "quality_chimeric";
@@ -420,7 +424,7 @@ public enum DBEntryField {
       case CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, ACQUISITION, GNPS_ID,
            MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, MOLWEIGHT, PUBCHEM, PUBMED,
-           PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR ->
+           PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR, SOURCE_SCAN_USI ->
           this.name().toLowerCase();
       case SCAN_NUMBER -> "scan_number";
       case MERGED_SPEC_TYPE -> "merge_type";
@@ -483,7 +487,8 @@ public enum DBEntryField {
       case ACQUISITION, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, GNPS_ID, MONA_ID, CHEMSPIDER,
            PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY,
            CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
-           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY -> name();
+           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI ->
+          name();
       case RT -> "RTINSECONDS";
       case SCAN_NUMBER -> "SCANS";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
@@ -546,7 +551,7 @@ public enum DBEntryField {
       case GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, SOFTWARE,
            COLLISION_ENERGY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, CLASSYFIRE_SUPERCLASS,
            CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS,
-           NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY -> this.name();
+           NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI -> this.name();
       case FILENAME -> "FILENAME";
       case PEPTIDE_SEQ -> "SEQ";
       case NAME -> "COMPOUND_NAME";
@@ -611,8 +616,8 @@ public enum DBEntryField {
     return switch (this) {
       case SIRIUS_MERGED_STATS, ONLINE_REACTIVITY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT,
            CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
-           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, MERGED_N_SAMPLES ->
-          "";
+           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, MERGED_N_SAMPLES,
+           SOURCE_SCAN_USI -> "";
       case SCAN_NUMBER -> "";
       case MERGED_SPEC_TYPE -> "";
       case ENTRY_ID -> "";
@@ -728,7 +733,7 @@ public enum DBEntryField {
            COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
            MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
            MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
-           DATASET_ID, USI, SPLASH, QUALITY_CHIMERIC, //
+           DATASET_ID, USI, SOURCE_SCAN_USI, SPLASH, QUALITY_CHIMERIC, //
            OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY,
            PEPTIDE_SEQ, //
            IMS_TYPE, ONLINE_REACTIVITY, CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS,

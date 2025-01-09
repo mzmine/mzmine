@@ -398,7 +398,7 @@ public class SpectralLibraryEntryFactory {
     } else {
       usis = ScanUtils.extractUSI(scan, datasetID).toList();
     }
-    entry.putIfNotNull(DBEntryField.USI, usis);
+    entry.putIfNotNull(DBEntryField.SOURCE_SCAN_USI, usis);
   }
 
   /**

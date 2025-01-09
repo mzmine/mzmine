@@ -196,6 +196,7 @@ public class MZmineJsonLibraryEntry {
       case DATASET_ID -> datasetId;
       case FILENAME -> null;
       case USI -> usi;
+      case SOURCE_SCAN_USI -> null;
       case SPLASH -> splash;
       case QUALITY -> quality;
       case QUALITY_PRECURSOR_PURITY -> purity;
