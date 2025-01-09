@@ -143,6 +143,100 @@ public class SiriusExportTask extends AbstractTask {
     entry.putIfNotNull(DBEntryField.SIRIUS_MERGED_STATS, spectrum.getMergeStatsDescription());
   }
 
+  /**
+   * Generates a spectrum of all correlated features, such as isotope patterns and adducts assigned
+   * via IIN (+ their isotopes).
+   */
+  @Nullable
+  public static MassSpectrum generateCorrelationSpectrum(@NotNull FeatureListRow row,
+      @Nullable RawDataFile file, MZTolerance mzTol) {
+    file = file != null ? file : row.getBestFeature().getRawDataFile();
+    final List<DataPoint> dps = new ArrayList<>();
+
+    final Feature feature = row.getFeature(file);
+    if (feature == null) {
+      return null;
+    }
+
+    final RowGroup group = row.getGroup();
+    final IonIdentity identity = row.getBestIonIdentity();
+    final IsotopePattern ip = feature.getIsotopePattern();
+
+    if (group == null && identity != null) {
+      throw new IllegalStateException("Cannot have an ion identity without a row group.");
+    }
+
+    if (group == null) {
+      // add isotope pattern of this feature only if we don't have a group, otherwise the isotope
+      // pattern is exported below.
+      addIsotopePattern(feature, dps, ip);
+    }
+
+    if (group != null) {
+      final IonNetwork network = identity != null ? identity.getNetwork() : null;
+      for (final FeatureListRow groupedRow : group.getRows()) {
+        // only write intensities of the same file, otherwise intensities will be distorted
+        final Feature sameFileFeature = groupedRow.getFeature(file);
+        if (sameFileFeature == null
+            || sameFileFeature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+          continue;
+        }
+
+        // this writes the data points of the row we want to export and all grouped rows + their isotope patterns.
+        if (row.equals(groupedRow) || group.isCorrelated(row, groupedRow)) {
+          // if we have an annotation, export the annotation
+          if (network != null && network.get(groupedRow) != null) {
+            dps.add(new AnnotatedDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight(),
+                network.get(groupedRow).getAdduct()));
+          } else {
+            dps.add(new SimpleDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight()));
+          }
+
+          // add isotope pattern of correlated ions. The groupedRow ion has been added previously.
+          addIsotopePattern(sameFileFeature, dps, sameFileFeature.getIsotopePattern());
+        }
+      }
+    }
+
+    dps.sort(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    removeDuplicateDataPoints(dps,
+        mzTol); // remove duplicate isotope peaks (might be correlated features too)
+    final double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(dps);
+    return dps.isEmpty() ? null : new SimpleMassSpectrum(dp[0], dp[1]);
+  }
+
+  /**
+   * Adds the isotopic peaks of this row to the list of data points.
+   */
+  private static void addIsotopePattern(@NotNull Feature feature, @NotNull List<DataPoint> dps,
+      @Nullable IsotopePattern ip) {
+    if (ip != null) {
+      for (int i = 0; i < ip.getNumberOfDataPoints(); i++) {
+        dps.add(new SimpleDataPoint(ip.getMzValue(i), ip.getIntensityValue(i)));
+      }
+    }
+  }
+
+  /**
+   * Removes duplicate data points from the given list. In this case, isotopic features may be among
+   * the correlated ions and thus be added from the isotope pattern of the monoisotopic mass and as
+   * a correlated ion.
+   *
+   * @param sortedDp data points sorted by mz.
+   * @param mzTol    MZ tolerance to filter equal data points.
+   */
+  private static void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance mzTol) {
+    for (int i = sortedDp.size() - 2; i >= 0; i--) {
+      if (mzTol.checkWithinTolerance(sortedDp.get(i).getMZ(), sortedDp.get(i + 1).getMZ())) {
+        if (sortedDp.get(i) instanceof AnnotatedDataPoint) {
+          sortedDp.remove(i + 1);
+        } else {
+          sortedDp.remove(i);
+        }
+      }
+    }
+  }
+
   @Override
   public String getTaskDescription() {
     return "Running sirius export for feature list(s) " + Arrays.stream(featureLists)
@@ -266,18 +360,17 @@ public class SiriusExportTask extends AbstractTask {
     return actuallyExported > 0;
   }
 
-
   private @Nullable SpectralLibraryEntry getCorrelatedOrBestMS1Spectrum(final FeatureListRow row) {
     final Feature bestFeature = row.getBestFeature();
     if (bestFeature == null) {
       // maybe no MS1 data?
       logger.warning(
           "Cannot export MS1 data for this feature list. This maybe due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
-          + FeatureUtils.rowToString(row));
+              + FeatureUtils.rowToString(row));
       return null;
     }
 
-    final MassSpectrum correlated = generateCorrelationSpectrum(row, null);
+    final MassSpectrum correlated = generateCorrelationSpectrum(row, null, mzTol);
     if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
       return spectrumToEntry(MsType.CORRELATED, correlated, bestFeature);
     } else {
@@ -286,7 +379,7 @@ public class SiriusExportTask extends AbstractTask {
       if (ms1Scan == null) {
         logger.fine(
             "Best feature has no representative scan. This may be due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
-            + FeatureUtils.rowToString(row));
+                + FeatureUtils.rowToString(row));
         return null;
       }
       return spectrumToEntry(MsType.MS, ms1Scan, bestFeature);
@@ -303,7 +396,7 @@ public class SiriusExportTask extends AbstractTask {
       data = ScanUtils.extractDataPoints(spectrum, true);
     }
 
-    // create unknown to not interfer with annotation by sirius by adding to much info
+    // create unknown to not interfere with annotation by sirius by adding to much info
     final SpectralLibraryEntry entry = entryFactory.createUnknown(null, f.getRow(), spectrum, data,
         null, null);
 
@@ -412,7 +505,6 @@ public class SiriusExportTask extends AbstractTask {
     return !excludeMultimers || adduct == null || adduct.getIonType().getMolecules() <= 1;
   }
 
-
   @Nullable
   protected File getFileForFeatureList(boolean substitute, FeatureList featureList) {
     File tmpFile = fileName;
@@ -430,100 +522,6 @@ public class SiriusExportTask extends AbstractTask {
       return null;
     }
     return curFile;
-  }
-
-  /**
-   * Generates a spectrum of all correlated features, such as isotope patterns and adducts assigned
-   * via IIN (+ their isotopes).
-   */
-  @Nullable
-  public static MassSpectrum generateCorrelationSpectrum(@NotNull FeatureListRow row,
-      @Nullable RawDataFile file, MZTolerance mzTol) {
-    file = file != null ? file : row.getBestFeature().getRawDataFile();
-    final List<DataPoint> dps = new ArrayList<>();
-
-    final Feature feature = row.getFeature(file);
-    if (feature == null) {
-      return null;
-    }
-
-    final RowGroup group = row.getGroup();
-    final IonIdentity identity = row.getBestIonIdentity();
-    final IsotopePattern ip = feature.getIsotopePattern();
-
-    if (group == null && identity != null) {
-      throw new IllegalStateException("Cannot have an ion identity without a row group.");
-    }
-
-    if (group == null) {
-      // add isotope pattern of this feature only if we don't have a group, otherwise the isotope
-      // pattern is exported below.
-      addIsotopePattern(feature, dps, ip);
-    }
-
-    if (group != null) {
-      final IonNetwork network = identity != null ? identity.getNetwork() : null;
-      for (final FeatureListRow groupedRow : group.getRows()) {
-        // only write intensities of the same file, otherwise intensities will be distorted
-        final Feature sameFileFeature = groupedRow.getFeature(file);
-        if (sameFileFeature == null
-            || sameFileFeature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
-          continue;
-        }
-
-        // this writes the data points of the row we want to export and all grouped rows + their isotope patterns.
-        if (row.equals(groupedRow) || group.isCorrelated(row, groupedRow)) {
-          // if we have an annotation, export the annotation
-          if (network != null && network.get(groupedRow) != null) {
-            dps.add(new AnnotatedDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight(),
-                network.get(groupedRow).getAdduct()));
-          } else {
-            dps.add(new SimpleDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight()));
-          }
-
-          // add isotope pattern of correlated ions. The groupedRow ion has been added previously.
-          addIsotopePattern(sameFileFeature, dps, sameFileFeature.getIsotopePattern());
-        }
-      }
-    }
-
-    dps.sort(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
-    removeDuplicateDataPoints(dps,
-        mzTol); // remove duplicate isotope peaks (might be correlated features too)
-    final double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(dps);
-    return dps.isEmpty() ? null : new SimpleMassSpectrum(dp[0], dp[1]);
-  }
-
-  /**
-   * Adds the isotopic peaks of this row to the list of data points.
-   */
-  private static void addIsotopePattern(@NotNull Feature feature, @NotNull List<DataPoint> dps,
-      @Nullable IsotopePattern ip) {
-    if (ip != null) {
-      for (int i = 0; i < ip.getNumberOfDataPoints(); i++) {
-        dps.add(new SimpleDataPoint(ip.getMzValue(i), ip.getIntensityValue(i)));
-      }
-    }
-  }
-
-  /**
-   * Removes duplicate data points from the given list. In this case, isotopic features may be among
-   * the correlated ions and thus be added from the isotope pattern of the monoisotopic mass and as
-   * a correlated ion.
-   *
-   * @param sortedDp data points sorted by mz.
-   * @param mzTol    MZ tolerance to filter equal data points.
-   */
-  private static void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance mzTol) {
-    for (int i = sortedDp.size() - 2; i >= 0; i--) {
-      if (mzTol.checkWithinTolerance(sortedDp.get(i).getMZ(), sortedDp.get(i + 1).getMZ())) {
-        if (sortedDp.get(i) instanceof AnnotatedDataPoint) {
-          sortedDp.remove(i + 1);
-        } else {
-          sortedDp.remove(i);
-        }
-      }
-    }
   }
 
 
