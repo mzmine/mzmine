@@ -74,7 +74,7 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
         seriesKey = "%s %s".formatted(other.getChromatoogramType(), other.getName());
       } else {
         seriesKey = "%s-%s".formatted(formats.rt(series.getRetentionTime(0)),
-            formats.rt(series.getRetentionTime(series.getNumberOfValues()) - 1));
+            formats.rt(series.getRetentionTime(series.getNumberOfValues() - 1)));
       }
     }
     this.seriesKey = seriesKey;

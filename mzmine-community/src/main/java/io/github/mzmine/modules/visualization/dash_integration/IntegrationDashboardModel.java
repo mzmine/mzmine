@@ -26,16 +26,17 @@ import org.jetbrains.annotations.Nullable;
 
 public class IntegrationDashboardModel {
 
-  private final IntegerProperty gridSizeX = new SimpleIntegerProperty(3);
-  private final IntegerProperty gridSizeY = new SimpleIntegerProperty(2);
-  private final IntegerProperty girdPaneFileOffset = new SimpleIntegerProperty(0);
+  private final IntegerProperty gridNumColumns = new SimpleIntegerProperty(3);
+  private final IntegerProperty gridNumRows = new SimpleIntegerProperty(2);
+  private final IntegerProperty gridPaneFileOffset = new SimpleIntegerProperty(0);
 
   private final ObjectProperty<@NotNull ModularFeatureList> featureList = new SimpleObjectProperty<>(
       new ModularFeatureList("flist", null, List.of()));
   private final ObjectProperty<@NotNull FeatureTableFX> featureTableFx = new SimpleObjectProperty<>(
       new FeatureTableFX());
   private final ObjectProperty<@Nullable FeatureListRow> row = new SimpleObjectProperty<>();
-  private final ListProperty<RawDataFile> sortedFiles = new SimpleListProperty<>();
+  private final ListProperty<RawDataFile> sortedFiles = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
   private final ObjectProperty<@NotNull MetadataColumn<?>> rawFileSortingColumn = new SimpleObjectProperty<>(
       ProjectService.getMetadata().getSampleTypeColumn());
   private final BooleanProperty syncReIntegration = new SimpleBooleanProperty(false);
@@ -45,28 +46,28 @@ public class IntegrationDashboardModel {
       FXCollections.observableHashMap());
 
 
-  public int getGridSizeX() {
-    return gridSizeX.get();
+  public int getGridNumColumns() {
+    return gridNumColumns.get();
   }
 
-  public void setGridSizeX(int gridSizeX) {
-    this.gridSizeX.set(gridSizeX);
+  public void setGridNumColumns(int gridNumColumns) {
+    this.gridNumColumns.set(gridNumColumns);
   }
 
-  public IntegerProperty gridSizeXProperty() {
-    return gridSizeX;
+  public IntegerProperty gridNumColumnsProperty() {
+    return gridNumColumns;
   }
 
-  public int getGridSizeY() {
-    return gridSizeY.get();
+  public int getGridNumRows() {
+    return gridNumRows.get();
   }
 
-  public void setGridSizeY(int gridSizeY) {
-    this.gridSizeY.set(gridSizeY);
+  public void setGridNumRows(int gridNumRows) {
+    this.gridNumRows.set(gridNumRows);
   }
 
-  public IntegerProperty gridSizeYProperty() {
-    return gridSizeY;
+  public IntegerProperty gridNumRowsProperty() {
+    return gridNumRows;
   }
 
   public @NotNull ModularFeatureList getFeatureList() {
@@ -161,15 +162,15 @@ public class IntegrationDashboardModel {
     return featureDataEntries;
   }
 
-  public int getGirdPaneFileOffset() {
-    return girdPaneFileOffset.get();
+  public int getGridPaneFileOffset() {
+    return gridPaneFileOffset.get();
   }
 
-  public IntegerProperty girdPaneFileOffsetProperty() {
-    return girdPaneFileOffset;
+  public IntegerProperty gridPaneFileOffsetProperty() {
+    return gridPaneFileOffset;
   }
 
-  public void setGirdPaneFileOffset(int girdPaneFileOffset) {
-    this.girdPaneFileOffset.set(girdPaneFileOffset);
+  public void setGridPaneFileOffset(int gridPaneFileOffset) {
+    this.gridPaneFileOffset.set(gridPaneFileOffset);
   }
 }

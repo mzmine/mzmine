@@ -20,6 +20,7 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +83,8 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
 
   @Override
   protected void updateGuiModel() {
-    model.setFeatureDataEntries(entries);
+    model.featureDataEntriesProperty()
+        .putAll(entries.stream().collect(Collectors.toMap(FeatureDataEntry::file, e -> e)));
   }
 
   @Override

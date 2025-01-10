@@ -1,23 +1,41 @@
 package io.github.mzmine.modules.visualization.dash_integration;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.IntegrationPlotController;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FeatureTableFXUtil;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
+import javafx.util.StringConverter;
 
 public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDashboardModel> {
+
+  private static final Logger logger = Logger.getLogger(
+      IntegrationDashboardViewBuilder.class.getName());
 
   protected IntegrationDashboardViewBuilder(IntegrationDashboardModel model) {
     super(model);
@@ -29,7 +47,7 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     BorderPane mainBorder = new BorderPane();
     BorderPane ftableControlsPane = new BorderPane();
     BorderPane gridWrapper = new BorderPane();
-    final SplitPane mainSplit = new SplitPane(ftableControlsPane, gridWrapper);
+    final SplitPane mainSplit = new SplitPane(gridWrapper, ftableControlsPane);
     mainBorder.setCenter(mainSplit);
     mainSplit.setOrientation(Orientation.HORIZONTAL);
     mainSplit.setDividerPositions(0.7);
@@ -42,34 +60,68 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
       }
     });
 
-    return null;
+    ftableControlsPane.setCenter(model.getFeatureTableFx());
+
+    gridWrapper.setTop(
+        FxLayout.newHBox(buildGridPageControls(), buildMetadataColSelectionForSorting()));
+    gridWrapper.setCenter(buildPlots());
+
+    return mainBorder;
   }
 
   private GridPane buildPlots() {
 
+    final GridPane grid = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
+    final Map<RawDataFile, Region> filePlotCache = new HashMap<>();
+
+    updatePlotLayout(grid, filePlotCache);
+
+    // update layout on change to the number of cols/rows. Update on change to data is covered in updatePlotLayout
+    PropertyUtils.onChange(() -> updatePlotLayout(grid, filePlotCache),
+        model.gridNumColumnsProperty(), model.gridNumRowsProperty(),
+        model.gridPaneFileOffsetProperty(), model.sortedFilesProperty());
+
+    model.gridNumRowsProperty().addListener((_, _, row) -> {
+      logger.finest("echo");
+      updatePlotLayout(grid, filePlotCache);
+    });
+    model.gridNumColumnsProperty().addListener((_, _, row) -> {
+      logger.finest("echo");
+      updatePlotLayout(grid, filePlotCache);
+    });
+
+    return grid;
+  }
+
+  private void updatePlotLayout(GridPane grid, Map<RawDataFile, Region> filePlotCache) {
+    // make sure all our plots are not visible before updating
+    grid.getChildren().clear();
     int columnIndex = 0;
     int rowIndex = 0;
-    final GridPane grid = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
 
-    final Map<RawDataFile, IntegrationPlotController> filePlotCache = new HashMap<>();
     final ObservableList<RawDataFile> sortedFiles = model.getSortedFiles();
+    final int pageSize = model.getGridNumColumns() * model.getGridNumRows();
+    final int startOffset = model.getGridPaneFileOffset();
 
-    for (int i = 0; i < sortedFiles.size(); i++) {
+    for (int i = startOffset; i < startOffset + pageSize && i < sortedFiles.size(); i++) {
       final RawDataFile file = sortedFiles.get(i);
-      final BorderPane pane = new BorderPane();
-      final IntegrationPlotController integrationPlot = filePlotCache.computeIfAbsent(file,
-          f -> new IntegrationPlotController());
-      final Region view = integrationPlot.buildView();
-      pane.setCenter(view);
-      grid.add(pane, columnIndex++, rowIndex);
-      if (columnIndex >= model.getGridSizeX()) {
+      final Region integrationPlot = filePlotCache.computeIfAbsent(file, f -> {
+        final IntegrationPlotController plot = new IntegrationPlotController();
+        // auto update on change of the feature data entry. must be subscribed in here because we don't want to subscribe multiple times
+        model.featureDataEntriesProperty()
+            .addListener((MapChangeListener<RawDataFile, FeatureDataEntry>) change -> {
+              if (change.getKey() == file) {
+                plot.setFeatureDataEntry(change.getValueAdded());
+              }
+            });
+        return plot.buildView();
+      });
+
+      grid.add(integrationPlot, columnIndex++, rowIndex);
+      if (columnIndex >= model.getGridNumColumns()) {
         columnIndex = 0;
         rowIndex++;
       }
-
-      // auto update on change of the feature data entry
-      model.featureDataEntriesProperty()
-          .subscribe(map -> integrationPlot.setFeatureDataEntry(map.get(file)));
     }
   }
 
@@ -77,7 +129,74 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     final Label lblCols = FxLabels.newLabel("Columns");
     final Label lblRows = FxLabels.newLabel("Rows");
 
-    Spinner<Integer> spCols = new Spinner<>(1, 10, model.getGridSizeX());
-    Spinner<Integer> spRows = new Spinner<>(1, 10, model.getGridSizeY());
+    final Spinner<Integer> spCols = new Spinner<>(1, 10, model.getGridNumColumns());
+    final Spinner<Integer> spRows = new Spinner<>(1, 10, model.getGridNumRows());
+
+    model.gridNumColumnsProperty().asObject()
+        .bindBidirectional(spCols.getValueFactory().valueProperty());
+
+    model.gridNumRowsProperty().asObject()
+        .bindBidirectional(spRows.getValueFactory().valueProperty());
+
+    spCols.getValueFactory().valueProperty().addListener((_, _, c) -> {
+      logger.finest(c.toString());
+    });
+    spRows.getValueFactory().valueProperty().addListener((_, _, r) -> {
+      logger.finest(r.toString());
+    });
+
+    final Button previousPage = FxButtons.createButton(null, FxIcons.ARROW_LEFT, "Previous page",
+        () -> {
+          final int currentOffset = model.getGridPaneFileOffset();
+          model.setGridPaneFileOffset(
+              Math.max(0, currentOffset - (model.getGridNumRows() * model.getGridNumColumns())));
+        });
+    final Button nextPage = FxButtons.createButton(null, FxIcons.ARROW_RIGHT, "Next page", () -> {
+      final int currentOffset = model.getGridPaneFileOffset();
+      model.setGridPaneFileOffset(Math.min(Math.max(model.sortedFilesProperty().size() - 1, 0),
+          currentOffset + (model.getGridNumRows() * model.getGridNumColumns())));
+    });
+
+    final Label lblPage = FxLabels.newLabel("Page 1/1");
+    PropertyUtils.onChange(() -> lblPage.setText("Page %d/%d".formatted(
+            // current page
+            model.getGridPaneFileOffset() / (model.getGridNumRows() * model.getGridNumColumns()) + 1,
+            // total pages
+            model.getSortedFiles().size() / (model.getGridNumRows() * model.getGridNumColumns()) + 1)),
+        model.getSortedFiles(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
+        model.gridPaneFileOffsetProperty());
+
+    final Label lblEntries = FxLabels.newLabel("Entries 0 - 0");
+    PropertyUtils.onChange(() -> {
+          lblEntries.setText("Entries %d - %d".formatted(model.getGridPaneFileOffset() + 1,
+              model.getGridPaneFileOffset() + model.getGridNumRows() * model.getGridNumColumns() + 1));
+        }, model.getSortedFiles(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
+        model.gridPaneFileOffsetProperty());
+
+    return FxLayout.newHBox(Pos.CENTER, lblCols, spCols, lblRows, spRows,
+        new Separator(Orientation.VERTICAL), previousPage, lblEntries, lblPage, nextPage);
+  }
+
+  private Region buildMetadataColSelectionForSorting() {
+    final List<MetadataColumn<?>> columns = ProjectService.getMetadata().getColumns().stream()
+        .sorted(Comparator.comparing(MetadataColumn::getTitle)).toList();
+
+    final Label lblSortBy = FxLabels.newLabel("Sort files by:");
+    ComboBox<MetadataColumn<?>> cmbMetadataCol = new ComboBox<>(
+        FXCollections.observableArrayList(columns));
+    cmbMetadataCol.setConverter(new StringConverter<>() {
+      @Override
+      public String toString(MetadataColumn<?> object) {
+        return object != null ? object.getTitle() : "";
+      }
+
+      @Override
+      public MetadataColumn<?> fromString(String string) {
+        return null;
+      }
+    });
+    cmbMetadataCol.valueProperty().bindBidirectional(model.rawFileSortingColumnProperty());
+
+    return FxLayout.newHBox(lblSortBy, cmbMetadataCol);
   }
 }
