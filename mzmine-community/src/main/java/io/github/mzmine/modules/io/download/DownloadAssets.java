@@ -71,8 +71,13 @@ public class DownloadAssets {
 
       // models
       ofZenodo(AssetGroup.MS2DEEPSCORE, "12628368").version("ms2deepscore-latest")
-          .mainFileName("ms2deepscore_model_java.pt").create()
-      //
+          .mainFileName("ms2deepscore_model_java.pt").create(),
+
+      ofURL(AssetGroup.DREAMS,
+              "https://huggingface.co/roman-bushuiev/DreaMS/resolve/main/DreaMS_embedding_model_torchscript.zip")
+              .requiresUnzip(true)
+              .mainFileName("DreaMS_embedding_model_torchscript.pt")
+            .create()
   ));
 
   public static List<DownloadAsset> forAssetGroup(final AssetCategory group) {

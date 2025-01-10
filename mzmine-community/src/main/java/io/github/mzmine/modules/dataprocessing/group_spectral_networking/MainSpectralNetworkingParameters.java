@@ -68,7 +68,9 @@ public class MainSpectralNetworkingParameters extends SimpleParameterSet {
         text("When applying Ion Identity Molecular Networking (IIMN) please cite:"), linebreak(),
         ArticleReferences.IIMN.hyperlinkText(), linebreak(),
         text("When using MS2Deepscore please cite:"), linebreak(),
-        ArticleReferences.MS2DEEPSCORE.hyperlinkText());
+        ArticleReferences.MS2DEEPSCORE.hyperlinkText(), linebreak(),
+        text("When using DreaMS please cite:"), linebreak(),
+        ArticleReferences.DREAMS.hyperlinkText());
 
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
