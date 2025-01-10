@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithDownloadParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -53,17 +54,17 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DreaMSNetworkingParameters extends SimpleParameterSet {
 
-    public static final PercentParameter minScore = new PercentParameter("Min similarity",
-            "The minimum similarity score to store the DreaMS prediction", 0.75, 0.0, 1.0);
-
-    public static final IntegerParameter numNeighbors = new IntegerParameter("Num. neighbors",
-            "The number of nearest neighbors to display for each node in the network. If left empty, all edges will be displayed.",
-            3, false);
-
     public static final FileNameWithDownloadParameter dreaMSModelFile = new FileNameWithDownloadParameter(
             "DreaMS model",
             "The file location of the DreaMS model, click download to download the model.",
             List.of(ExtensionFilters.PT), AssetGroup.DREAMS);
+
+    public static final PercentParameter minScore = new PercentParameter("Min similarity",
+            "The minimum similarity score to store the DreaMS prediction", 0.75, 0.0, 1.0);
+
+    public static final OptionalModuleParameter<DreaMSNetworkingKNNParameter> kNN = new OptionalModuleParameter<>(
+            "k-NN parameters", "Additional parameters constraining the network to have a k-nearest neighbors " +
+            "(k-NN) graph structure.", new DreaMSNetworkingKNNParameter(), false);
 
     public static final IntegerParameter batchSize = new IntegerParameter("Batch size",
             "A number of mass spectra to process in a single forward pass through the DreaMS model when " +
@@ -78,7 +79,7 @@ public class DreaMSNetworkingParameters extends SimpleParameterSet {
          */
         super(
                 "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
-                dreaMSModelFile, minScore, numNeighbors, batchSize);
+                dreaMSModelFile, minScore, kNN, batchSize);
     }
 
     /**

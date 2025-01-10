@@ -69,6 +69,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
   private int processedItems = 0, totalItems;
   private final double minScore;
   private final Integer numNeighbors;
+  private final double minScoreNeighbors;
   private final int batchSize;
   private final File dreamsModelFile;
   private final File dreamsSettingsFile;
@@ -88,9 +89,17 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
         MainSpectralNetworkingParameters.algorithms);
 
     this.featureLists = featureLists;
-    // Get parameter values for easier use
+    // Get parameter values
     minScore = subParams.getValue(DreaMSNetworkingParameters.minScore);
-    numNeighbors = subParams.getValue(DreaMSNetworkingParameters.numNeighbors);
+    if (subParams.getValue(DreaMSNetworkingParameters.kNN)) {
+      numNeighbors = subParams.getEmbeddedParameterValue(DreaMSNetworkingParameters.kNN)
+              .getValue(DreaMSNetworkingKNNParameter.numNeighbors);
+      minScoreNeighbors = subParams.getEmbeddedParameterValue(DreaMSNetworkingParameters.kNN)
+              .getValue(DreaMSNetworkingKNNParameter.minScoreNeighbors);
+    } else {
+      minScoreNeighbors = 0;
+      numNeighbors = null;
+    }
     batchSize = subParams.getValue(DreaMSNetworkingParameters.batchSize);
     dreamsModelFile = subParams.getValue(DreaMSNetworkingParameters.dreaMSModelFile);
     // same folder - same name
@@ -171,14 +180,14 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
       throw new RuntimeException(e);
     }
 
-    // Choose numNeighbors nearest neighbors for each spectrum
+    // Choose numNeighbors nearest neighbors for each spectrum and retain all similarities above minScore
     if (numNeighbors != null) {
-      similarityMatrix = toKNNMatrix(similarityMatrix, numNeighbors);
+      similarityMatrix = toKNNMatrix(similarityMatrix, numNeighbors, minScore);
     }
 
     // Convert the similarity matrix to a R2RMap
     R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows,
-        similarityMatrix, minScore, Type.DREAMS);
+        similarityMatrix, numNeighbors != null ? minScoreNeighbors : minScore, Type.DREAMS);
     R2RNetworkingMaps rowMaps = featureList.getRowMaps();
     rowMaps.addAllRowsRelationships(relationsMap, Type.DREAMS);
 
@@ -207,8 +216,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
     return List.of(featureLists);
   }
 
-  public static float[][] toKNNMatrix(float[][] matrix, int k) {
-
+  public static float[][] toKNNMatrix(float[][] matrix, int k, double retainElementsAbove) {
     // Create a new matrix to store the result
     int n = matrix.length;
     float[][] knnMatrix = new float[n][n];
@@ -218,11 +226,16 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
       // Get the indices sorted by values in descending order
       int[] sortedIndices = argsortReversed(matrix[i]);
 
-      // Retain the k largest non-diagonal elements
+      // Retain the k largest non-diagonal elements and any element above retainElementsAbove
       int count = 0;
-      for (int j = 0; j < n && count < k; j++) {
+      for (int j = 0; j < n; j++) {
         int col = sortedIndices[j];
-        if (col != i) { // Exclude the diagonal
+
+        if (count >= k && matrix[i][col] <= retainElementsAbove) {
+          break;
+        }
+
+        if (col != i) { // Skip the diagonal
           knnMatrix[i][col] = matrix[i][col];
           knnMatrix[col][i] = matrix[i][col]; // Enforce symmetry
           count++;
