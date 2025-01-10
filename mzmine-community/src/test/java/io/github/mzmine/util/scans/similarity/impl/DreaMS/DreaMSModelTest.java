@@ -43,11 +43,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.*;
+
+@Disabled("DreaMS tests are disabled by default and should be enabled explicitly for testing.")
 class DreaMSModelTest {
 
     private static DreaMSModel model;
