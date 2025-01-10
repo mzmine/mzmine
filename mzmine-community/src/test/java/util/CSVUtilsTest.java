@@ -48,22 +48,22 @@ public class CSVUtilsTest {
 
   @Test
   void testAutoSeparator() {
-    Assertions.assertEquals(",", CSVParsingUtils.autoDetermineSeparator(
+    Assertions.assertEquals(',', CSVParsingUtils.autoDetermineSeparator(
         new File(getClass().getClassLoader().getResource("csv/comma-separated.txt").getFile())));
 
-    Assertions.assertEquals("\t", CSVParsingUtils.autoDetermineSeparator(
+    Assertions.assertEquals('\t', CSVParsingUtils.autoDetermineSeparator(
         new File(getClass().getClassLoader().getResource("csv/tab-separated.txt").getFile())));
 
-    Assertions.assertEquals(",", CSVParsingUtils.autoDetermineSeparator(new File(
+    Assertions.assertEquals(',', CSVParsingUtils.autoDetermineSeparatorDefaultFallback(new File(
         getClass().getClassLoader().getResource("csv/comma-separated-fallback.csv").getFile())));
 
-    Assertions.assertEquals("\t", CSVParsingUtils.autoDetermineSeparator(new File(
+    Assertions.assertEquals('\t', CSVParsingUtils.autoDetermineSeparatorDefaultFallback(new File(
         getClass().getClassLoader().getResource("csv/tab-separated-fallback.tsv").getFile())));
 
-    Assertions.assertEquals("\t", CSVParsingUtils.autoDetermineSeparator(new File(
+    Assertions.assertEquals('\t', CSVParsingUtils.autoDetermineSeparatorDefaultFallback(new File(
         getClass().getClassLoader().getResource("csv/tab-separated-fallback.txt").getFile())));
 
-    Assertions.assertEquals("\t", CSVParsingUtils.autoDetermineSeparator(
+    Assertions.assertEquals('\t', CSVParsingUtils.autoDetermineSeparatorDefaultFallback(
         new File(getClass().getClassLoader().getResource("csv/one-line-only.tsv").getFile())));
   }
 }
