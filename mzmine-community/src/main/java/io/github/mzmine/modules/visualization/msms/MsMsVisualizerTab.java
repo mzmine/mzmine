@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,8 +29,9 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.parameters.ParameterSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -47,7 +48,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -71,8 +71,8 @@ public class MsMsVisualizerTab extends MZmineTab {
   private final MsMsChart chart;
   private RawDataFile dataFile;
 
-  private static final Image POINTS_ICON =
-      FxIconUtil.loadImageFromResources("icons/pointsicon.png");
+  private static final Image POINTS_ICON = FxIconUtil.loadImageFromResources(
+      "icons/pointsicon.png");
 
   private static final Image Z_ASC_ICON = FxIconUtil.loadImageFromResources(
       "icons/msms_points_asc.png");
@@ -144,27 +144,31 @@ public class MsMsVisualizerTab extends MZmineTab {
     toolBar.setOrientation(Orientation.VERTICAL);
 
     Button highlightButton = new Button(null, new ImageView(POINTS_ICON));
-    highlightButton.setTooltip(new Tooltip("Highlight points with specific X and Y values"));
+    highlightButton.setTooltip(
+        FxTooltips.newTooltip("Highlight points with specific X and Y values"));
     highlightButton.setOnAction(event -> highlightPointsOnAction());
 
     Button sortZValuesAscButton = new Button(null, new ImageView(Z_ASC_ICON));
-    sortZValuesAscButton.setTooltip(new Tooltip("Sort points by Z axis in ascending order"));
+    sortZValuesAscButton.setTooltip(
+        FxTooltips.newTooltip("Sort points by Z axis in ascending order"));
     sortZValuesAscButton.setOnAction(event -> chart.sortZValues(SortOrder.ASCENDING));
 
     Button sortZValuesDescButton = new Button(null, new ImageView(Z_DESC_ICON));
-    sortZValuesDescButton.setTooltip(new Tooltip("Sort points by Z axis in descending order"));
+    sortZValuesDescButton.setTooltip(
+        FxTooltips.newTooltip("Sort points by Z axis in descending order"));
     sortZValuesDescButton.setOnAction(event -> chart.sortZValues(SortOrder.DESCENDING));
 
-    toolBar.getItems().addAll(highlightButton, new Separator(Orientation.VERTICAL),
-        sortZValuesAscButton, sortZValuesDescButton);
+    toolBar.getItems()
+        .addAll(highlightButton, new Separator(Orientation.VERTICAL), sortZValuesAscButton,
+            sortZValuesDescButton);
 
     borderPane.setRight(toolBar);
   }
 
   /**
    * Creates new popup stage with input fields for 2 ranges, calls
-   * {@link MsMsChart#highlightPoints(MsMsXYAxisType, Range, MsMsXYAxisType, Range)}
-   * if the ranges are valid and the Apply button or Enter key are pressed.
+   * {@link MsMsChart#highlightPoints(MsMsXYAxisType, Range, MsMsXYAxisType, Range)} if the ranges
+   * are valid and the Apply button or Enter key are pressed.
    */
   private void highlightPointsOnAction() {
 
@@ -216,10 +220,12 @@ public class MsMsVisualizerTab extends MZmineTab {
     maxField2.setStyle("-fx-text-box-border: #d01ff2; -fx-focus-color: #d01ff2");
 
     // Add elements to the main VBox
-    hbox1.getChildren().addAll(combo1, new Text(" "), minField1, new Text(" - "), maxField1,
-        new Text(" "), clearBtn1);
-    hbox2.getChildren().addAll(combo2, new Text(" "), minField2, new Text(" - "), maxField2,
-        new Text(" "), clearBtn2);
+    hbox1.getChildren()
+        .addAll(combo1, new Text(" "), minField1, new Text(" - "), maxField1, new Text(" "),
+            clearBtn1);
+    hbox2.getChildren()
+        .addAll(combo2, new Text(" "), minField2, new Text(" - "), maxField2, new Text(" "),
+            clearBtn2);
     VBox box = new VBox(5);
     box.setAlignment(Pos.CENTER);
     box.setPadding(new Insets(10, 10, 10, 10));
@@ -325,8 +331,7 @@ public class MsMsVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 }

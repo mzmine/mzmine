@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,18 +24,17 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 
 /**
  * Parameter for center measure: median, avg, weighted avg
- *
  */
 public class CenterMeasureComponent extends FlowPane {
 
@@ -60,10 +59,9 @@ public class CenterMeasureComponent extends FlowPane {
   }
 
   /**
-   *
    * @param choices
    * @param avgTransform
-   * @param selected selected center measure
+   * @param selected     selected center measure
    * @param selWeighting selected weighting
    */
   public CenterMeasureComponent(CenterMeasure choices[], Weighting[] avgTransform,
@@ -91,21 +89,22 @@ public class CenterMeasureComponent extends FlowPane {
   }
 
   private void checkWeightingComponentsVisibility() {
-    boolean visible =
-        comboCenterMeasure.getSelectionModel().getSelectedItem().equals(CenterMeasure.AVG);
+    boolean visible = comboCenterMeasure.getSelectionModel().getSelectedItem()
+        .equals(CenterMeasure.AVG);
     comboTransform.setVisible(visible);
     labelTrans.setVisible(visible);
   }
 
   public void setToolTipText(String toolTip) {
-    comboCenterMeasure.setTooltip(new Tooltip(toolTip));
+    comboCenterMeasure.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
   public CenterFunction getSelectedFunction() {
     CenterMeasure measure = comboCenterMeasure.getSelectionModel().getSelectedItem();
     Weighting trans = Weighting.NONE;
-    if (comboTransform != null && comboTransform.isVisible())
+    if (comboTransform != null && comboTransform.isVisible()) {
       trans = comboTransform.getSelectionModel().getSelectedItem();
+    }
     return new CenterFunction(measure, trans);
   }
 
@@ -120,13 +119,14 @@ public class CenterMeasureComponent extends FlowPane {
    */
 
   public void setSelectedItem(CenterFunction newValue) {
-    if(newValue==null) {
+    if (newValue == null) {
       comboCenterMeasure.getSelectionModel().clearSelection();
       comboTransform.getSelectionModel().clearSelection();
       return;
     }
     comboCenterMeasure.getSelectionModel().select(newValue.getMeasure());
-    if (comboTransform != null)
+    if (comboTransform != null) {
       comboTransform.getSelectionModel().select(newValue.getWeightTransform());
+    }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.spectra.matchedlipid;
 
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -39,7 +40,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -78,8 +78,10 @@ public class LipidAnnotationMatchPaneOld extends GridPane {
     lipidSpectrumPlot = new LipidSpectrumPlot(matchedLipid, true, RunOption.THIS_THREAD);
 
     // put into main
-    ColumnConstraints ccSpectrum = new ColumnConstraints(400, -1, Region.USE_COMPUTED_SIZE, Priority.ALWAYS, HPos.CENTER, true);
-    ColumnConstraints ccMetadata = new ColumnConstraints(META_WIDTH + 30, META_WIDTH + 30, Region.USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, false);
+    ColumnConstraints ccSpectrum = new ColumnConstraints(400, -1, Region.USE_COMPUTED_SIZE,
+        Priority.ALWAYS, HPos.CENTER, true);
+    ColumnConstraints ccMetadata = new ColumnConstraints(META_WIDTH + 30, META_WIDTH + 30,
+        Region.USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, false);
 
     add(pnTitle, 0, 0, 2, 1);
     add(lipidSpectrumPlot, 0, 1);
@@ -94,14 +96,16 @@ public class LipidAnnotationMatchPaneOld extends GridPane {
     // create Top panel
     double msMsScore = matchedLipid.getMsMsScore() * 100;
     Color gradientCol = FxColorUtil.awtColorToFX(
-        ColorScaleUtil.getColor(FxColorUtil.fxColorToAWT(MIN_MSMS_SCORE_COLOR), FxColorUtil.fxColorToAWT(MAX_MSMS_SCORE_COLOR), MIN_MSMS_SCORE_COLOR_VALUE,
+        ColorScaleUtil.getColor(FxColorUtil.fxColorToAWT(MIN_MSMS_SCORE_COLOR),
+            FxColorUtil.fxColorToAWT(MAX_MSMS_SCORE_COLOR), MIN_MSMS_SCORE_COLOR_VALUE,
             MAX_MSMS_SCORE_COLOR_VALUE, msMsScore));
 
     Label lblMatchedLipid = createLabel(matchedLipid.getLipidAnnotation().getAnnotation(),
         "white-larger-label");
 
-    String simScoreTooltip = "Explained intensity [%] of all signals in MS/MS spectrum: " + MSMS_SCORE_FORM.format(
-        msMsScore);
+    String simScoreTooltip =
+        "Explained intensity [%] of all signals in MS/MS spectrum: " + MSMS_SCORE_FORM.format(
+            msMsScore);
     Label lblScore = createLabel(MSMS_SCORE_FORM.format(msMsScore), simScoreTooltip,
         "white-score-label");
 
@@ -136,7 +140,7 @@ public class LipidAnnotationMatchPaneOld extends GridPane {
     Label lbl = new Label(label);
     lbl.getStyleClass().add(styleClass);
     if (tooltip != null) {
-      lbl.setTooltip(new Tooltip(tooltip));
+      lbl.setTooltip(FxTooltips.newTooltip(tooltip));
     }
     return lbl;
   }
@@ -182,23 +186,28 @@ public class LipidAnnotationMatchPaneOld extends GridPane {
     panelOther.getChildren().addAll(formula);
 
     Label ion = new Label("Ion notation: " + matchedLipid.getIonizationType().getAdductName() + " "
-        + MZmineCore.getConfiguration().getMZFormat().format(FormulaUtils.calculateMzRatio(
-        FormulaUtils.ionizeFormula(MolecularFormulaManipulator.getString(
-            matchedLipid.getLipidAnnotation().getMolecularFormula()), matchedLipid.getIonizationType()))));
+                          + MZmineCore.getConfiguration().getMZFormat().format(
+        FormulaUtils.calculateMzRatio(FormulaUtils.ionizeFormula(
+            MolecularFormulaManipulator.getString(
+                matchedLipid.getLipidAnnotation().getMolecularFormula()),
+            matchedLipid.getIonizationType()))));
     ion.setWrapText(true);
     panelOther.getChildren().addAll(ion);
 
-    Label lipidClass = new Label("Lipid class: " + matchedLipid.getLipidAnnotation().getLipidClass().getName());
+    Label lipidClass = new Label(
+        "Lipid class: " + matchedLipid.getLipidAnnotation().getLipidClass().getName());
     lipidClass.setWrapText(true);
     panelOther.getChildren().addAll(lipidClass);
 
     Label lipidMainClass = new Label(
-        "Lipid main class: " + matchedLipid.getLipidAnnotation().getLipidClass().getMainClass().getName());
+        "Lipid main class: " + matchedLipid.getLipidAnnotation().getLipidClass().getMainClass()
+            .getName());
     lipidMainClass.setWrapText(true);
     panelOther.getChildren().addAll(lipidMainClass);
 
     Label lipidCategory = new Label(
-        "Lipid category: " + matchedLipid.getLipidAnnotation().getLipidClass().getMainClass().getLipidCategory().getName());
+        "Lipid category: " + matchedLipid.getLipidAnnotation().getLipidClass().getMainClass()
+            .getLipidCategory().getName());
     lipidCategory.setWrapText(true);
     panelOther.getChildren().addAll(lipidCategory);
 
@@ -210,13 +219,16 @@ public class LipidAnnotationMatchPaneOld extends GridPane {
     panelOther.getChildren().addAll(rawDataTitle);
 
     if (!matchedLipid.getMatchedFragments().isEmpty()) {
-      LipidFragment lipidFragment = matchedLipid.getMatchedFragments().stream().findFirst().orElse(null);
+      LipidFragment lipidFragment = matchedLipid.getMatchedFragments().stream().findFirst()
+          .orElse(null);
       if (lipidFragment != null) {
-        Label rawFile = new Label("Raw data file: " + lipidFragment.getMsMsScan().getDataFile().getName());
+        Label rawFile = new Label(
+            "Raw data file: " + lipidFragment.getMsMsScan().getDataFile().getName());
         rawFile.setWrapText(true);
         panelOther.getChildren().addAll(rawFile);
 
-        Label matchedScan = new Label("Matched Scan number: " + lipidFragment.getMsMsScan().getScanNumber());
+        Label matchedScan = new Label(
+            "Matched Scan number: " + lipidFragment.getMsMsScan().getScanNumber());
         matchedScan.setWrapText(true);
         panelOther.getChildren().addAll(matchedScan);
       }

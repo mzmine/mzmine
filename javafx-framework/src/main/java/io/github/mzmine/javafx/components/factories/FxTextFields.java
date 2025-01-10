@@ -25,6 +25,8 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
+
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import javafx.beans.property.Property;
@@ -35,7 +37,6 @@ import javafx.geometry.Insets;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +63,7 @@ public class FxTextFields {
       field.setPromptText(prompt);
     }
     if (tooltip != null) {
-      field.setTooltip(new Tooltip(tooltip));
+      field.setTooltip(newTooltip(tooltip));
     }
     if (columnCount == null) {
       field.setPrefColumnCount(columnCount);

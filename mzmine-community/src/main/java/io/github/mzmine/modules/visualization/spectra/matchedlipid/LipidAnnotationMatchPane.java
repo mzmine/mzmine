@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,12 +31,13 @@ import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.framework.fx.features.AbstractFeatureListRowsPane;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.javafx.util.color.ColorScaleUtil;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -46,7 +47,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -206,7 +206,7 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
       Label lbl = new Label(label);
       lbl.getStyleClass().add(styleClass);
       if (tooltip != null) {
-        lbl.setTooltip(new Tooltip(tooltip));
+        lbl.setTooltip(FxTooltips.newTooltip(tooltip));
       }
       return lbl;
     }
@@ -253,7 +253,7 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
 
       Label ion = new Label(
           "Ion notation: " + matchedLipid.getIonizationType().getAdductName() + " "
-              + MZmineCore.getConfiguration().getMZFormat().format(FormulaUtils.calculateMzRatio(
+          + MZmineCore.getConfiguration().getMZFormat().format(FormulaUtils.calculateMzRatio(
               FormulaUtils.ionizeFormula(MolecularFormulaManipulator.getString(
                       matchedLipid.getLipidAnnotation().getMolecularFormula()),
                   matchedLipid.getIonizationType()))));
