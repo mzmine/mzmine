@@ -8,12 +8,10 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
@@ -39,7 +37,8 @@ public class IntegrationDashboardModel {
       FXCollections.observableArrayList());
   private final ObjectProperty<@NotNull MetadataColumn<?>> rawFileSortingColumn = new SimpleObjectProperty<>(
       ProjectService.getMetadata().getSampleTypeColumn());
-  private final BooleanProperty syncReIntegration = new SimpleBooleanProperty(false);
+  private final ObjectProperty<IntegrationTransfer> syncReIntegration = new SimpleObjectProperty<>(
+      IntegrationTransfer.NONE);
   private final ObjectProperty<@NotNull MZTolerance> integrationTolerance = new SimpleObjectProperty<>(
       new MZTolerance(0.005, 10));
   private final MapProperty<RawDataFile, FeatureDataEntry> featureDataEntries = new SimpleMapProperty<>(
@@ -130,15 +129,11 @@ public class IntegrationDashboardModel {
     return rawFileSortingColumn;
   }
 
-  public boolean isSyncReIntegration() {
+  public IntegrationTransfer getSyncReIntegration() {
     return syncReIntegration.get();
   }
 
-  public void setSyncReIntegration(boolean syncReIntegration) {
-    this.syncReIntegration.set(syncReIntegration);
-  }
-
-  public BooleanProperty syncReIntegrationProperty() {
+  public ObjectProperty<IntegrationTransfer> syncReIntegrationProperty() {
     return syncReIntegration;
   }
 
@@ -166,11 +161,11 @@ public class IntegrationDashboardModel {
     return gridPaneFileOffset.get();
   }
 
-  public IntegerProperty gridPaneFileOffsetProperty() {
-    return gridPaneFileOffset;
-  }
-
   public void setGridPaneFileOffset(int gridPaneFileOffset) {
     this.gridPaneFileOffset.set(gridPaneFileOffset);
+  }
+
+  public IntegerProperty gridPaneFileOffsetProperty() {
+    return gridPaneFileOffset;
   }
 }

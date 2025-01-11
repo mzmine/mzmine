@@ -64,6 +64,8 @@ public class IntegrationPlotModel {
   private final ListProperty<ColoredXYDataset> additionalTimeSeriesDatasets = new SimpleListProperty<>();
   private final IntegerProperty maxIntegratedFeatures = new SimpleIntegerProperty(
       Integer.MAX_VALUE);
+  private ListProperty<FeatureIntegratedListener> integrationListeners = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
 
   public ChromatogramPlotController getChromatogramPlot() {
     return chromatogramPlot.get();
@@ -117,12 +119,12 @@ public class IntegrationPlotModel {
     return integratedFeatures.get();
   }
 
-  public ListProperty<IntensityTimeSeries> integratedFeaturesProperty() {
-    return integratedFeatures;
-  }
-
   public void setIntegratedFeatures(List<IntensityTimeSeries> integratedFeatures) {
     this.integratedFeatures.setAll(integratedFeatures);
+  }
+
+  public ListProperty<IntensityTimeSeries> integratedFeaturesProperty() {
+    return integratedFeatures;
   }
 
   public void addIntegratedFeature(IntensityTimeSeries integratedFeatures) {
@@ -181,47 +183,63 @@ public class IntegrationPlotModel {
     return state.get();
   }
 
-  public ObjectProperty<@NotNull State> stateProperty() {
-    return state;
-  }
-
   public void setState(@NotNull State state) {
     this.state.set(state);
+  }
+
+  public ObjectProperty<@NotNull State> stateProperty() {
+    return state;
   }
 
   public ObservableList<IntensityTimeSeriesToXYProvider> getAdditionalDataProviders() {
     return additionalDataProviders.get();
   }
 
-  public ListProperty<IntensityTimeSeriesToXYProvider> additionalDataProvidersProperty() {
-    return additionalDataProviders;
-  }
-
   public void setAdditionalDataProviders(List<IntensityTimeSeriesToXYProvider> series) {
     this.additionalDataProviders.setAll(series);
+  }
+
+  public ListProperty<IntensityTimeSeriesToXYProvider> additionalDataProvidersProperty() {
+    return additionalDataProviders;
   }
 
   public ObservableList<ColoredXYDataset> getAdditionalTimeSeriesDatasets() {
     return additionalTimeSeriesDatasets.get();
   }
 
-  public ListProperty<ColoredXYDataset> additionalTimeSeriesDatasetsProperty() {
-    return additionalTimeSeriesDatasets;
-  }
-
   public void setAdditionalTimeSeriesDatasets(List<ColoredXYDataset> additionalTimeSeriesDatasets) {
     this.additionalTimeSeriesDatasets.setAll(additionalTimeSeriesDatasets);
+  }
+
+  public ListProperty<ColoredXYDataset> additionalTimeSeriesDatasetsProperty() {
+    return additionalTimeSeriesDatasets;
   }
 
   public int getMaxIntegratedFeatures() {
     return maxIntegratedFeatures.get();
   }
 
+  public void setMaxIntegratedFeatures(int maxIntegratedFeatures) {
+    this.maxIntegratedFeatures.set(maxIntegratedFeatures);
+  }
+
   public IntegerProperty maxIntegratedFeaturesProperty() {
     return maxIntegratedFeatures;
   }
 
-  public void setMaxIntegratedFeatures(int maxIntegratedFeatures) {
-    this.maxIntegratedFeatures.set(maxIntegratedFeatures);
+  ObservableList<FeatureIntegratedListener> getIntegrationListeners() {
+    return integrationListeners.get();
+  }
+
+  ListProperty<FeatureIntegratedListener> integrationListenersProperty() {
+    return integrationListeners;
+  }
+
+  public void addIntegrationListener(FeatureIntegratedListener integrationListener) {
+    this.integrationListeners.add(integrationListener);
+  }
+
+  public void removeIntegrationListener(FeatureIntegratedListener integrationListener) {
+    this.integrationListeners.remove(integrationListener);
   }
 }

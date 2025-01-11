@@ -1,21 +1,31 @@
 package io.github.mzmine.modules.visualization.dash_integration;
 
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.FeatureIntegratedListener.EventType;
 import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.IntegrationPlotController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FeatureTableFXUtil;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -27,8 +37,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.util.StringConverter;
 
@@ -61,9 +73,12 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     });
 
     ftableControlsPane.setCenter(model.getFeatureTableFx());
+    ftableControlsPane.setBottom(
+        FxLayout.newVBox(buildIntegrationTransfer(), buildMetadataColSelectionForSorting()));
 
-    gridWrapper.setTop(
-        FxLayout.newHBox(buildGridPageControls(), buildMetadataColSelectionForSorting()));
+    final HBox pageControls = FxLayout.newHBox(buildGridPageControls());
+    gridWrapper.setTop(pageControls);
+    BorderPane.setAlignment(pageControls, Pos.CENTER);
     gridWrapper.setCenter(buildPlots());
 
     return mainBorder;
@@ -103,10 +118,13 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     final int pageSize = model.getGridNumColumns() * model.getGridNumRows();
     final int startOffset = model.getGridPaneFileOffset();
 
+    final Map<RawDataFile, IntegrationPlotController> controllerMap = new HashMap<>();
+
     for (int i = startOffset; i < startOffset + pageSize && i < sortedFiles.size(); i++) {
       final RawDataFile file = sortedFiles.get(i);
       final Region integrationPlot = filePlotCache.computeIfAbsent(file, f -> {
-        final IntegrationPlotController plot = new IntegrationPlotController();
+        final IntegrationPlotController plot = controllerMap.computeIfAbsent(f,
+            f -> new IntegrationPlotController());
         // auto update on change of the feature data entry. must be subscribed in here because we don't want to subscribe multiple times
         model.featureDataEntriesProperty()
             .addListener((MapChangeListener<RawDataFile, FeatureDataEntry>) change -> {
@@ -114,7 +132,36 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
                 plot.setFeatureDataEntry(change.getValueAdded());
               }
             });
-        return plot.buildView();
+        // need to set manually, using a subscription does not work for some reason.
+        final Region region = plot.buildView();
+        region.visibleProperty()
+            .subscribe(_ -> plot.setFeatureDataEntry(model.getFeatureDataEntries().get(file)));
+
+        plot.addIntegrationListener((eventType, newFeature, newIntegrationRange) -> {
+          if (eventType == EventType.EXTERNAL_CHANGE
+              && model.getSyncReIntegration() != IntegrationTransfer.NONE) {
+            final IntegrationPlotController otherPlot = controllerMap.get(file);
+            if (otherPlot != null) {
+              otherPlot.integrateExternally(newIntegrationRange);
+            }
+          }
+
+          final FeatureListRow r = model.getRow();
+          if (r == null) {
+            return;
+          }
+          if (newFeature instanceof IonTimeSeries<?> its) {
+            final ModularFeature currentFeature = (ModularFeature) r.getFeature(file);
+            if (currentFeature == null) {
+              r.addFeature(file,
+                  new ModularFeature(model.getFeatureList(), file, its, FeatureStatus.MANUAL));
+            } else {
+              currentFeature.set(FeatureDataType.class, its);
+              FeatureDataUtils.recalculateIonSeriesDependingTypes(currentFeature);
+            }
+          }
+        });
+        return region;
       });
 
       grid.add(integrationPlot, columnIndex++, rowIndex);
@@ -168,8 +215,9 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
 
     final Label lblEntries = FxLabels.newLabel("Entries 0 - 0");
     PropertyUtils.onChange(() -> {
-          lblEntries.setText("Entries %d - %d".formatted(model.getGridPaneFileOffset() + 1,
-              model.getGridPaneFileOffset() + model.getGridNumRows() * model.getGridNumColumns() + 1));
+          lblEntries.setText("Entries %d - %d".formatted(model.getGridPaneFileOffset() + 1, Math.max(
+              model.getGridPaneFileOffset() + model.getGridNumRows() * model.getGridNumColumns() + 1,
+              model.getSortedFiles().size())));
         }, model.getSortedFiles(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
         model.gridPaneFileOffsetProperty());
 
@@ -198,5 +246,19 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     cmbMetadataCol.valueProperty().bindBidirectional(model.rawFileSortingColumnProperty());
 
     return FxLayout.newHBox(lblSortBy, cmbMetadataCol);
+  }
+
+  private Region buildIntegrationTransfer() {
+    final ComboComponent<IntegrationTransfer> component = new ComboComponent<>(
+        FXCollections.observableArrayList(IntegrationTransfer.values()));
+
+    component.setValue(model.getSyncReIntegration());
+    component.valueProperty().bindBidirectional(model.syncReIntegrationProperty());
+    final Label lblSync = FxLabels.newLabel("Synchronize integration");
+    final Tooltip tooltip = new Tooltip(
+        Arrays.stream(IntegrationTransfer.values()).map(IntegrationTransfer::getToolTip)
+            .collect(Collectors.joining("\n")));
+    lblSync.setTooltip(tooltip);
+    return FxLayout.newHBox(lblSync, component);
   }
 }

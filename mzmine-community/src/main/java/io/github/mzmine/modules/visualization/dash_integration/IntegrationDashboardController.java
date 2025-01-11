@@ -26,6 +26,11 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
           .toList());
     });
 
+    model.rawFileSortingColumnProperty().subscribe(col -> model.setSortedFiles(
+        model.getFeatureList().getRawDataFiles().stream().sorted(Comparator.comparing(
+            file -> Objects.requireNonNullElse(ProjectService.getMetadata().getValue(col, file), "")
+                .toString())).toList()));
+
     // the offset may never be larger than the number of files
     model.sortedFilesProperty().subscribe(files -> model.setGridPaneFileOffset(
         Math.max(Math.min(model.getGridPaneFileOffset(), files.size() - 1), 0)));

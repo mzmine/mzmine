@@ -25,12 +25,14 @@
 
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.dash_integration.FeatureDataEntry;
+import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.FeatureIntegratedListener.EventType;
 import java.awt.BasicStroke;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +86,16 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   }
 
   void onFinishPressed() {
-    assert model.isCurrentIntegrationValid();
+    integrateFeature(EventType.INTERNAL_CHANGE);
+  }
+
+  void integrateFeature(EventType eventType) {
+    if (!model.isCurrentIntegrationValid()) {
+      if (eventType == EventType.EXTERNAL_CHANGE) {
+        clearIntegration();
+      }
+      return;
+    }
 
     final Double start = model.getCurrentStartTime();
     final Double end = model.getCurrentEndTime();
@@ -96,7 +107,7 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
           currentTimeSeries.getStorage(), start.floatValue(), end.floatValue());
 
       final int maxIntegratedFeatures = model.getMaxIntegratedFeatures();
-      if (model.getIntegratedFeatures().size() + 1 > maxIntegratedFeatures) {
+      if (model.getIntegratedFeatures().size() + 1 < maxIntegratedFeatures) {
         // if there are more than the allowed integrated features, remove the first one.
         final List<IntensityTimeSeries> list = new ArrayList<>(model.getIntegratedFeatures());
         list.removeFirst();
@@ -105,7 +116,10 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
       } else {
         model.addIntegratedFeature(integrated);
       }
+
       model.setSelectedFeature(integrated);
+      model.getIntegrationListeners().forEach(
+          l -> l.accept(eventType, integrated, Range.closed(start.floatValue(), end.floatValue())));
     }
     clearIntegration();
   }
@@ -114,7 +128,6 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     logger.finest("Abort integration pressed");
     clearIntegration();
   }
-
 
   private void clearIntegration() {
     logger.finest("Clearing integration");
@@ -185,5 +198,19 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     setIntegratedFeatures(
         featureDataEntry.feature() != null ? List.of(featureDataEntry.feature()) : null);
     setAdditionalFeatures(featureDataEntry.additionalData());
+  }
+
+  public void addIntegrationListener(@NotNull FeatureIntegratedListener listener) {
+    model.getIntegrationListeners().add(listener);
+  }
+
+  public void removeIntegrationListener(@NotNull FeatureIntegratedListener listener) {
+    model.getIntegrationListeners().remove(listener);
+  }
+
+  public void integrateExternally(@Nullable Range<Float> newIntegrationRange) {
+    model.setCurrentStartTime(newIntegrationRange.lowerEndpoint().doubleValue());
+    model.setCurrentEndTime(newIntegrationRange.upperEndpoint().doubleValue());
+    integrateFeature(EventType.EXTERNAL_CHANGE);
   }
 }
