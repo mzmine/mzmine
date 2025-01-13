@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -90,8 +91,16 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
 
     final GridPane grid = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
     final Map<RawDataFile, RegionController> filePlotCache = new HashMap<>();
-
     updatePlotLayout(grid, filePlotCache);
+
+    // pregenerate all plots once, so all are taken into account when integrating
+    model.featureListProperty().subscribe(newFlist -> {
+      filePlotCache.clear();
+      if (newFlist != null) {
+        // remove old plots, add new ones in case the feature list changes
+        newFlist.getRawDataFiles().forEach(f -> getPlotForFile(filePlotCache, f));
+      }
+    });
 
     // update layout on change to the number of cols/rows.
     // Update on change to data is covered in updatePlotLayout
@@ -116,14 +125,6 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     grid.getChildren().clear();
     int columnIndex = 0;
     int rowIndex = 0;
-
-    model.featureListProperty().subscribe(newFlist -> {
-      filePlotCache.clear();
-      if (newFlist != null) {
-        // remove old plots, add new ones
-        newFlist.getRawDataFiles().forEach(f -> getPlotForFile(filePlotCache, f));
-      }
-    });
 
     final ObservableList<RawDataFile> sortedFiles = model.getSortedFiles();
     final int gridNumColumns = model.getGridNumColumns();
@@ -213,10 +214,19 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     final Spinner<Integer> spCols = new Spinner<>(1, 10, model.getGridNumColumns());
     final Spinner<Integer> spRows = new Spinner<>(1, 10, model.getGridNumRows());
 
-    spCols.getValueFactory().valueProperty()
-        .bindBidirectional(model.gridNumColumnsProperty().asObject());
+//    spCols.getValueFactory().valueProperty()
+//        .bindBidirectional(model.gridNumColumnsProperty().asObject());
+    // binding in this fashion did not work, somehow it stopped updating after a few changes.
+    // maybe the asObject() was gc'ed at some point.
+
+    spCols.getValueFactory().valueProperty().addListener(
+        (_, _, i) -> model.setGridNumColumns(i != null ? i : model.getGridNumColumns()));
+    model.gridNumColumnsProperty()
+        .addListener((_, _, i) -> spCols.getValueFactory().setValue(i.intValue()));
     spRows.getValueFactory().valueProperty()
-        .bindBidirectional(model.gridNumRowsProperty().asObject());
+        .addListener((_, _, i) -> model.setGridNumRows(i != null ? i : model.getGridNumRows()));
+    model.gridNumRowsProperty()
+        .addListener((_, _, i) -> spRows.getValueFactory().setValue(i.intValue()));
 
     spCols.getValueFactory().valueProperty().addListener((_, _, c) -> {
       logger.finest(c.toString());
@@ -248,7 +258,7 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
 
     final Label lblEntries = FxLabels.newLabel("Entries 0 - 0");
     PropertyUtils.onChange(() -> {
-          lblEntries.setText("Entries %d - %d".formatted(model.getGridPaneFileOffset() + 1, Math.max(
+          lblEntries.setText("Entries %d - %d".formatted(model.getGridPaneFileOffset() + 1, Math.min(
               model.getGridPaneFileOffset() + model.getGridNumRows() * model.getGridNumColumns() + 1,
               model.getSortedFiles().size())));
         }, model.getSortedFiles(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
