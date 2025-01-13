@@ -63,6 +63,10 @@ public enum IntegrationTransfer implements UniqueIdSupplier {
   }
 
   boolean appliesTo(FeatureListRow r, RawDataFile f, IntegrationPlotController c) {
-    if ()
+    return switch (this) {
+      case ALL -> true;
+      case NONE -> false;
+      case ONLY_MISSING -> r.getFeature(f) == null || c.getIntegratedFeatures().isEmpty();
+    };
   }
 }

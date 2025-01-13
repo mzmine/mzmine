@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -102,12 +103,11 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     logger.finest("Finish feature pressed. %.2f-%.2f".formatted(start, end));
     if (start != null && end != null) {
       final IntensityTimeSeries currentTimeSeries = model.getCurrentTimeSeries();
-
       final IntensityTimeSeries integrated = currentTimeSeries.subSeries(
           currentTimeSeries.getStorage(), start.floatValue(), end.floatValue());
 
       final int maxIntegratedFeatures = model.getMaxIntegratedFeatures();
-      if (model.getIntegratedFeatures().size() + 1 < maxIntegratedFeatures) {
+      if (model.getIntegratedFeatures().size() + 1 > maxIntegratedFeatures) {
         // if there are more than the allowed integrated features, remove the first one.
         final List<IntensityTimeSeries> list = new ArrayList<>(model.getIntegratedFeatures());
         list.removeFirst();
@@ -163,6 +163,7 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   /**
    * A copy of the current features.
    */
+  @NotNull
   public List<IntensityTimeSeries> getIntegratedFeatures() {
     return List.copyOf(model.getIntegratedFeatures());
   }
@@ -212,5 +213,9 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     model.setCurrentStartTime(newIntegrationRange.lowerEndpoint().doubleValue());
     model.setCurrentEndTime(newIntegrationRange.upperEndpoint().doubleValue());
     integrateFeature(EventType.EXTERNAL_CHANGE);
+  }
+
+  public void setChartGroup(ChartGroup group) {
+    model.getChromatogramPlot().setChartGroup(group);
   }
 }

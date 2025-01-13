@@ -13,6 +13,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.FeatureIntegratedListener;
 import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.FeatureIntegratedListener.EventType;
 import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.IntegrationPlotController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -43,6 +44,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.util.StringConverter;
+import org.jetbrains.annotations.NotNull;
 
 public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDashboardModel> {
 
@@ -87,11 +89,12 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
   private GridPane buildPlots() {
 
     final GridPane grid = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
-    final Map<RawDataFile, Region> filePlotCache = new HashMap<>();
+    final Map<RawDataFile, RegionController> filePlotCache = new HashMap<>();
 
     updatePlotLayout(grid, filePlotCache);
 
-    // update layout on change to the number of cols/rows. Update on change to data is covered in updatePlotLayout
+    // update layout on change to the number of cols/rows.
+    // Update on change to data is covered in updatePlotLayout
     PropertyUtils.onChange(() -> updatePlotLayout(grid, filePlotCache),
         model.gridNumColumnsProperty(), model.gridNumRowsProperty(),
         model.gridPaneFileOffsetProperty(), model.sortedFilesProperty());
@@ -108,68 +111,99 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     return grid;
   }
 
-  private void updatePlotLayout(GridPane grid, Map<RawDataFile, Region> filePlotCache) {
+  private void updatePlotLayout(GridPane grid, Map<RawDataFile, RegionController> filePlotCache) {
     // make sure all our plots are not visible before updating
     grid.getChildren().clear();
     int columnIndex = 0;
     int rowIndex = 0;
 
+    model.featureListProperty().subscribe(newFlist -> {
+      filePlotCache.clear();
+      if (newFlist != null) {
+        // remove old plots, add new ones
+        newFlist.getRawDataFiles().forEach(f -> getPlotForFile(filePlotCache, f));
+      }
+    });
+
     final ObservableList<RawDataFile> sortedFiles = model.getSortedFiles();
-    final int pageSize = model.getGridNumColumns() * model.getGridNumRows();
+    final int gridNumColumns = model.getGridNumColumns();
+    final int gridNumRows = model.getGridNumRows();
+    final int pageSize = gridNumColumns * gridNumRows;
     final int startOffset = model.getGridPaneFileOffset();
 
-    final Map<RawDataFile, IntegrationPlotController> controllerMap = new HashMap<>();
+    grid.getRowConstraints().setAll(FxLayout.newFillHeightRows(gridNumRows));
+    grid.getColumnConstraints().setAll(FxLayout.newFillWidthColumns(gridNumColumns));
+//    final ChartGroup chartGroup = new ChartGroup(true, true, true, false);
 
     for (int i = startOffset; i < startOffset + pageSize && i < sortedFiles.size(); i++) {
-      final RawDataFile file = sortedFiles.get(i);
-      final Region integrationPlot = filePlotCache.computeIfAbsent(file, f -> {
-        final IntegrationPlotController plot = controllerMap.computeIfAbsent(f,
-            f -> new IntegrationPlotController());
-        // auto update on change of the feature data entry. must be subscribed in here because we don't want to subscribe multiple times
-        model.featureDataEntriesProperty()
-            .addListener((MapChangeListener<RawDataFile, FeatureDataEntry>) change -> {
-              if (change.getKey() == file) {
-                plot.setFeatureDataEntry(change.getValueAdded());
-              }
-            });
-        // need to set manually, using a subscription does not work for some reason.
-        final Region region = plot.buildView();
-        region.visibleProperty()
-            .subscribe(_ -> plot.setFeatureDataEntry(model.getFeatureDataEntries().get(file)));
-
-        plot.addIntegrationListener((eventType, newFeature, newIntegrationRange) -> {
-          if (eventType == EventType.EXTERNAL_CHANGE
-              && model.getSyncReIntegration() != IntegrationTransfer.NONE) {
-            final IntegrationPlotController otherPlot = controllerMap.get(file);
-            if (otherPlot != null) {
-              otherPlot.integrateExternally(newIntegrationRange);
-            }
-          }
-
-          final FeatureListRow r = model.getRow();
-          if (r == null) {
-            return;
-          }
-          if (newFeature instanceof IonTimeSeries<?> its) {
-            final ModularFeature currentFeature = (ModularFeature) r.getFeature(file);
-            if (currentFeature == null) {
-              r.addFeature(file,
-                  new ModularFeature(model.getFeatureList(), file, its, FeatureStatus.MANUAL));
-            } else {
-              currentFeature.set(FeatureDataType.class, its);
-              FeatureDataUtils.recalculateIonSeriesDependingTypes(currentFeature);
-            }
-          }
-        });
-        return region;
-      });
+      final Region integrationPlot = getPlotForFile(filePlotCache, sortedFiles.get(i));
 
       grid.add(integrationPlot, columnIndex++, rowIndex);
-      if (columnIndex >= model.getGridNumColumns()) {
+      if (columnIndex >= gridNumColumns) {
         columnIndex = 0;
         rowIndex++;
       }
     }
+  }
+
+  private @NotNull Region getPlotForFile(final Map<RawDataFile, RegionController> filePlotCache,
+      RawDataFile file) {
+    return filePlotCache.computeIfAbsent(file, f -> {
+      final IntegrationPlotController plot = new IntegrationPlotController();
+//        plot.setChartGroup(chartGroup);
+      // auto update on change of the feature data entry. must be subscribed in here because we don't want to subscribe multiple times
+      model.featureDataEntriesProperty()
+          .addListener((MapChangeListener<RawDataFile, FeatureDataEntry>) change -> {
+            if (change.getKey() == file) {
+              plot.setFeatureDataEntry(change.getValueAdded());
+            }
+          });
+
+      final Region region = plot.buildView();
+      // need to set manually, using a subscription does not work for some reason.
+      region.visibleProperty()
+          .subscribe(_ -> plot.setFeatureDataEntry(model.getFeatureDataEntries().get(file)));
+
+      plot.addIntegrationListener(newIntegrationListener(filePlotCache, file));
+      return new RegionController(plot, region);
+    }).region();
+  }
+
+  private @NotNull FeatureIntegratedListener newIntegrationListener(
+      Map<RawDataFile, RegionController> controllerMap, RawDataFile file) {
+    return (eventType, newFeatureTimeSeries, newIntegrationRange) -> {
+      final IntegrationTransfer syncSetting = model.getSyncReIntegration();
+      final FeatureListRow row = model.getRow();
+      if (row == null) {
+        return;
+      }
+
+      // pass integration to other plots if applicable
+      if (eventType == EventType.INTERNAL_CHANGE && syncSetting != IntegrationTransfer.NONE) {
+        for (RawDataFile otherFile : model.getSortedFiles()) {
+          final RegionController rc = controllerMap.get(otherFile);
+          if (rc != null && rc.controller() != null && syncSetting.appliesTo(row, otherFile,
+              rc.controller())) {
+            logger.finest(
+                () -> "Transferring manual integration from file %s to file %s. (%s)".formatted(
+                    file.getName(), otherFile.getName(), syncSetting.toString()));
+            rc.controller().integrateExternally(newIntegrationRange);
+          }
+        }
+      }
+
+      // reflect integration in row of this plot.
+      if (newFeatureTimeSeries instanceof IonTimeSeries<?> its) {
+        final ModularFeature currentFeature = (ModularFeature) row.getFeature(file);
+        if (currentFeature == null) {
+          row.addFeature(file,
+              new ModularFeature(model.getFeatureList(), file, its, FeatureStatus.MANUAL));
+        } else {
+          currentFeature.set(FeatureDataType.class, its);
+          FeatureDataUtils.recalculateIonSeriesDependingTypes(currentFeature);
+        }
+      }
+    };
   }
 
   private Region buildGridPageControls() {
@@ -179,11 +213,10 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     final Spinner<Integer> spCols = new Spinner<>(1, 10, model.getGridNumColumns());
     final Spinner<Integer> spRows = new Spinner<>(1, 10, model.getGridNumRows());
 
-    model.gridNumColumnsProperty().asObject()
-        .bindBidirectional(spCols.getValueFactory().valueProperty());
-
-    model.gridNumRowsProperty().asObject()
-        .bindBidirectional(spRows.getValueFactory().valueProperty());
+    spCols.getValueFactory().valueProperty()
+        .bindBidirectional(model.gridNumColumnsProperty().asObject());
+    spRows.getValueFactory().valueProperty()
+        .bindBidirectional(model.gridNumRowsProperty().asObject());
 
     spCols.getValueFactory().valueProperty().addListener((_, _, c) -> {
       logger.finest(c.toString());
