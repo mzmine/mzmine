@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class LibraryBatchGenerationModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Batch spectral library generation";
+  public static final String MODULE_NAME = "Batch spectral library generation";
   private static final String MODULE_DESCRIPTION = "Uses metadata sheet to generate spectral library";
 
   @Override

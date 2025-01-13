@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,7 +51,8 @@ public class ParameterSetParameter<SUB extends ParameterSet> implements
   public ParameterSetParameter(String name, String description, SUB parameters) {
     this.name = name;
     this.description = description;
-    this.value = parameters;
+    // requires cloning to avoid usage of static parameters
+    this.value = (SUB) parameters.cloneParameterSet();
   }
 
   public SUB getValue() {
@@ -84,7 +85,8 @@ public class ParameterSetParameter<SUB extends ParameterSet> implements
   }
 
   @Override
-  public void setValueToComponent(final OptionalModuleComponent component, final @Nullable SUB parameters) {
+  public void setValueToComponent(final OptionalModuleComponent component,
+      final @Nullable SUB parameters) {
     component.setParameterValuesToComponents();
   }
 

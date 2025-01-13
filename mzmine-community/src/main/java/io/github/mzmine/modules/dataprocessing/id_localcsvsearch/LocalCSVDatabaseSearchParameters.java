@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -103,11 +103,11 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Use adducts",
       "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
       EmbeddedComponentOptions.VIEW_IN_WINDOW,
-      (IonLibraryParameterSet) new IonLibraryParameterSet().cloneParameterSet());
+      (IonLibraryParameterSet) new IonLibraryParameterSet());
   public static final OptionalModuleParameter<IsotopePatternMatcherParameters> isotopePatternMatcher = new OptionalModuleParameter<>(
       "Use isotope matcher",
       "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
-      (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters().cloneParameterSet());
+      (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters());
 
   public static final List<ImportType> importTypes = List.of(
       new ImportType(true, "neutral_mass", new NeutralMassType()),

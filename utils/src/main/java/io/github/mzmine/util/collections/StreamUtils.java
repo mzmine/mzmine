@@ -26,10 +26,19 @@
 package io.github.mzmine.util.collections;
 
 import it.unimi.dsi.fastutil.Pair;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -153,5 +162,42 @@ public class StreamUtils {
       processor.accept(pair);
       return 1L;
     }).sum();
+  }
+
+  /**
+   * Similar but different to: {@link Collectors#joining(CharSequence, CharSequence, CharSequence)}
+   * This method will return empty String if stream was empty. The original returns the prefix +
+   * suffix. This method can handle any object input and calls object.toString, whereas original
+   * method requires strings.
+   */
+  public static Collector<Object, ?, String> joining(final CharSequence delimiter,
+      final CharSequence prefix, final CharSequence suffix) {
+    return new CollectorImpl<>(() -> {
+      var joiner = new StringJoiner(delimiter, prefix, suffix);
+      return joiner.setEmptyValue(""); // return empty if nothing added
+    }, (stringJoiner, newElement) -> stringJoiner.add(Objects.toString(newElement)),
+        StringJoiner::merge, StringJoiner::toString, Collections.emptySet());
+  }
+
+  record CollectorImpl<T, A, R>(Supplier<A> supplier, BiConsumer<A, T> accumulator,
+                                BinaryOperator<A> combiner, Function<A, R> finisher,
+                                Set<Characteristics> characteristics) implements
+      Collector<T, A, R> {
+
+    CollectorImpl(Supplier<A> supplier, BiConsumer<A, T> accumulator, BinaryOperator<A> combiner,
+        Set<Characteristics> characteristics) {
+      this(supplier, accumulator, combiner, castingIdentity(), characteristics);
+    }
+  }
+
+  /**
+   * Casting types without check
+   *
+   * @param <I> input type
+   * @param <R> result type
+   */
+  @SuppressWarnings("unchecked")
+  public static <I, R> Function<I, R> castingIdentity() {
+    return i -> (R) i;
   }
 }

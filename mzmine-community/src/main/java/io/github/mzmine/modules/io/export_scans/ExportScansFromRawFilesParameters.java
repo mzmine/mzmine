@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,8 +40,8 @@ public class ExportScansFromRawFilesParameters extends SimpleParameterSet {
   public static final FileNameSuffixExportParameter file = new FileNameSuffixExportParameter("File",
       "file destination", "rawscans");
   public static final ComboParameter<ScanFormats> formats = new ComboParameter<>("Format",
-      "Export formats. mgf: MASCOT, SIRIUS;  txt: plain text;  mzML: Open standard",
-      ScanFormats.values(), ScanFormats.mgf);
+      "Export formats. mgf: MASCOT, SIRIUS;  txt: plain text", ScanFormats.values(),
+      ScanFormats.mgf);
   public static final BooleanParameter export_masslist = new BooleanParameter(
       "Export centroid mass list", "Exports the centroid mass list instead of raw data", true);
 

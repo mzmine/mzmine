@@ -25,9 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public enum MatchedLipidStatus {
+public enum MatchedLipidStatus implements UniqueIdSupplier {
 
   /**
    * confirmed by MS2 fragmentation rules
@@ -66,6 +69,25 @@ public enum MatchedLipidStatus {
     return switch (this) {
       case MATCHED, SPECIES_DERIVED_FROM_MOLECULAR_SPECIES -> true;
       case UNCONFIRMED -> false;
+    };
+  }
+
+  public static MatchedLipidStatus parseOrElse(@Nullable String str,
+      MatchedLipidStatus defaultStatus) {
+    // this is the old name, so we handle it specifically
+    if (Objects.equals(str, "ESTIMATED")) {
+      return SPECIES_DERIVED_FROM_MOLECULAR_SPECIES;
+    }
+
+    return UniqueIdSupplier.parseOrElse(str, values(), defaultStatus);
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case MATCHED -> "MATCHED";
+      case UNCONFIRMED -> "UNCONFIRMED";
+      case SPECIES_DERIVED_FROM_MOLECULAR_SPECIES -> "SPECIES_DERIVED_FROM_MOLECULAR_SPECIES";
     };
   }
 }

@@ -138,6 +138,7 @@ import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportMo
 import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
+import io.github.mzmine.modules.io.export_scans_modular.ExportScansFeatureModule;
 import io.github.mzmine.modules.io.import_feature_networks.ImportFeatureNetworksSimpleModule;
 import io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
@@ -397,6 +398,7 @@ public class BatchModeModulesList {
           LibraryAnalysisCSVExportModule.class, //
           LibraryBatchGenerationModule.class, //
           GNPSLibraryBatchExportModule.class, //
+          ExportScansFeatureModule.class, //
           FeatureMLExportModularModule.class, //
           MsMsQualityExportModule.class, //
           ExportAllIdsGraphicalModule.class, //
@@ -414,7 +416,6 @@ public class BatchModeModulesList {
           TimsTOFMaldiAcquisitionModule.class, //
           SimsefImagingSchedulerModule.class //
       ));
-
 
   // must be modifiable so we can add more modules for mzminepro
   /**

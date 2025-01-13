@@ -143,7 +143,29 @@ public interface ParameterSet extends ParameterContainer {
     return getParameter(parameter).getEmbeddedParameters();
   }
 
-  void loadValuesFromXML(Element element);
+  /**
+   * This method loads parameters from xml and uses the names and old names in
+   * {@link #getNameParameterMap()}. After loading the method {@link #handleLoadedParameters(Map)}
+   * is called with the actually loaded parameters.
+   *
+   * @return a Map of parameter name to parameters that were actually loaded from XML - parameters
+   * missing from this set were not in the loaded from XML. Key is the name of the current parameter
+   * otherwise the retrieval is hard because the static instances of parameters are not the actually
+   * loaded instances in this parameterset (usually {@link #cloneParameterSet()} is called at some
+   * point).
+   */
+  Map<String, Parameter<?>> loadValuesFromXML(Element element);
+
+  /**
+   * This method is called after successfully loading parameters (e.g., from xml). This allows to
+   * load old legacy parameters and map their values to new parameters or load parameters and apply
+   * their value also to other parameters that were added later.
+   *
+   * @param loadedParams map of parameter name to actually loaded parameters
+   */
+  default void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
+  }
+
 
   void saveValuesToXML(Element element);
 
@@ -167,13 +189,12 @@ public interface ParameterSet extends ParameterContainer {
    */
   default Map<String, Parameter<?>> getNameParameterMap() {
     var parameters = getParameters();
-    Map<String, Parameter<?>> nameParameterMap = new HashMap<>(parameters.length);
+    Map<String, Parameter<?>> nameParameterMap = HashMap.newHashMap(parameters.length);
     for (final Parameter<?> p : parameters) {
       nameParameterMap.put(p.getName(), p);
     }
     return nameParameterMap;
   }
-
 
   /**
    * check all parameters. Also {@link FeatureListsParameter} and {@link RawDataFilesParameter}.

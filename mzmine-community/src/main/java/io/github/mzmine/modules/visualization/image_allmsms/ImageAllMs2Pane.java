@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,7 +51,9 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.util.ImagingUtils;
 import io.github.mzmine.util.IonMobilityUtils.MobilogramType;
+import io.github.mzmine.util.collections.StreamUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -215,10 +217,11 @@ public class ImageAllMs2Pane extends BorderPane {
 
     // have all spectra in the same range so they are easier to compare
     final double minMz = feature.getAllMS2FragmentScans().stream().map(Scan::getDataPointMZRange)
-        .filter(Objects::nonNull).mapToDouble(Range::lowerEndpoint).min().orElse(0) * 0.8;
+                             .filter(Objects::nonNull).mapToDouble(Range::lowerEndpoint).min()
+                             .orElse(0) * 0.8;
     final double maxMz = feature.getAllMS2FragmentScans().stream().map(Scan::getDataPointMZRange)
-        .filter(Objects::nonNull).mapToDouble(Range::upperEndpoint).max()
-        .orElse(feature.getMZ() + 20d) * 1.2;
+                             .filter(Objects::nonNull).mapToDouble(Range::upperEndpoint).max()
+                             .orElse(feature.getMZ() + 20d) * 1.2;
 
     final ChartGroup ms2Group = new ChartGroup(false, false, true, false);
     // add spectra sorted by collision energy
@@ -237,9 +240,13 @@ public class ImageAllMs2Pane extends BorderPane {
             infoMap.size() == 1 ? infoMap.keySet().stream().findFirst().get().spotName()
                 : "%d spots".formatted(infoMap.size());
 
-        spectrumPlot.setTitle(
-            "MS2 of " + format.mz(msms.getPrecursorMz()) + " at " + spotstr + ", CE: "
-                + msms.getMsMsInfo().getActivationEnergy(), "");
+        // energies as CE: [30, 50]
+        String energies = ScanUtils.extractCollisionEnergies(msms).stream().filter(Objects::nonNull)
+            .sorted().collect(StreamUtils.joining(", ", ", CE: [", "]"));
+
+        var title = "MS2 of m/z %s at %s%s".formatted(format.mz(msms.getPrecursorMz()), spotstr,
+            energies);
+        spectrumPlot.setTitle(title, "");
       }
       spectrumPlot.setMinHeight(250);
       spectrumPlot.setLabelColorMatch(true);

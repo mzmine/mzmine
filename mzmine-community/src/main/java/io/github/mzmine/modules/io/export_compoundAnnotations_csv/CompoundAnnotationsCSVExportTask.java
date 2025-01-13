@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.UsiType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -49,6 +50,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CSVUtils;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -169,8 +172,8 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
       var columns = Stream.of(IDType.class, CompoundNameType.class, IonTypeType.class,
               ScoreType.class, PrecursorMZType.class, MobilityType.class, CCSType.class, RTType.class,
               FormulaType.class, SmilesStructureType.class, InChIStructureType.class,
-              InChIKeyStructureType.class, MethodType.class).map(c -> DataTypes.get((Class) c))
-          .toList();
+              InChIKeyStructureType.class, MethodType.class, UsiType.class)
+          .map(c -> DataTypes.get((Class) c)).toList();
 
       // Create a header string by joining the unique IDs of the DataTypes with commas
       var header = columns.stream().map(DataType::getUniqueID).collect(Collectors.joining(","));
@@ -204,9 +207,13 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
             String inchi = annotation.getInChI();
             String inchikey = annotation.getInChIKey();
             String formula = annotation.getFormula();
+            String usi = null;
+            if (annotation instanceof SpectralDBAnnotation spec) {
+              usi = spec.getEntry().getAsString(DBEntryField.USI).orElse("");
+            }
 
             String result = Stream.of(rowId, compoundName, adductType, scoreType, precursorMZ,
-                    mobility, getCCS, getRT, formula, smiles, inchi, inchikey, method)
+                    mobility, getCCS, getRT, formula, smiles, inchi, inchikey, method, usi)
                 .map(o -> (o == null) ? "" : CSVUtils.escape(o.toString(), fieldSeparator))
                 .collect(Collectors.joining(","));
 
