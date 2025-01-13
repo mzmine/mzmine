@@ -196,7 +196,6 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
   }
 
   public void setTitle(String title) {
-    // todo apply chart theme
     model.setTitle(title);
   }
 

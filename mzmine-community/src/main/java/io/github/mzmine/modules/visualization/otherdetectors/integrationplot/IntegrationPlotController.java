@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ListProperty;
+import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.plot.ValueMarker;
@@ -71,6 +72,8 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
     model.additionalDataProvidersProperty()
         .subscribe(_ -> onTaskThread(new UpdateAdditionalDatasetsTask(model)));
+
+    model.getChromatogramPlot().title().bindBidirectional(model.titleProperty());
   }
 
   @Override
@@ -207,6 +210,18 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
   public void removeIntegrationListener(@NotNull FeatureIntegratedListener listener) {
     model.getIntegrationListeners().remove(listener);
+  }
+
+  public StringProperty titleProperty() {
+    return model.titleProperty();
+  }
+
+  public void setTitle(String title) {
+    model.setTitle(title);
+  }
+
+  public String getTitle() {
+    return model.getTitle();
   }
 
   public void integrateExternally(@Nullable Range<Float> newIntegrationRange) {

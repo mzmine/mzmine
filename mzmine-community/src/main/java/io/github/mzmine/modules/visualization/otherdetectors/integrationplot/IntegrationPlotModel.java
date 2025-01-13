@@ -38,6 +38,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -64,8 +66,9 @@ public class IntegrationPlotModel {
   private final ListProperty<ColoredXYDataset> additionalTimeSeriesDatasets = new SimpleListProperty<>();
   private final IntegerProperty maxIntegratedFeatures = new SimpleIntegerProperty(
       Integer.MAX_VALUE);
-  private ListProperty<FeatureIntegratedListener> integrationListeners = new SimpleListProperty<>(
+  private final ListProperty<FeatureIntegratedListener> integrationListeners = new SimpleListProperty<>(
       FXCollections.observableArrayList());
+  private final StringProperty title = new SimpleStringProperty();
 
   public ChromatogramPlotController getChromatogramPlot() {
     return chromatogramPlot.get();
@@ -241,5 +244,17 @@ public class IntegrationPlotModel {
 
   public void removeIntegrationListener(FeatureIntegratedListener integrationListener) {
     this.integrationListeners.remove(integrationListener);
+  }
+
+  public String getTitle() {
+    return title.get();
+  }
+
+  public StringProperty titleProperty() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title.set(title);
   }
 }

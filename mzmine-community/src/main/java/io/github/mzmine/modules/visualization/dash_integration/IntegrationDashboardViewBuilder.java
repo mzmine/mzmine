@@ -156,6 +156,7 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
       model.featureDataEntriesProperty()
           .addListener((MapChangeListener<RawDataFile, FeatureDataEntry>) change -> {
             if (change.getKey() == file) {
+              plot.setTitle(file.getName());
               plot.setFeatureDataEntry(change.getValueAdded());
             }
           });
