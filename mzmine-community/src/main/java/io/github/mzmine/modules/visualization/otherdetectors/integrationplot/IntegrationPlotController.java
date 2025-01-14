@@ -233,4 +233,16 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   public void setChartGroup(ChartGroup group) {
     model.getChromatogramPlot().setChartGroup(group);
   }
+
+  public void setMaxIntegratedFeatures(int max) {
+    model.setMaxIntegratedFeatures(max);
+  }
+
+  public int getMaxIntegratedFeatures() {
+    return model.getMaxIntegratedFeatures();
+  }
+
+  public void setRangeAxisStickyZero(boolean rangeStickyZero) {
+    model.getChromatogramPlot().setRangeAxisStickyZero(rangeStickyZero);
+  }
 }

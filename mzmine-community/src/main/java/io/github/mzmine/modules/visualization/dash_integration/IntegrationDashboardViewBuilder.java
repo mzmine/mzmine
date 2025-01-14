@@ -149,8 +149,10 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
 
   private @NotNull Region getPlotForFile(final Map<RawDataFile, RegionController> filePlotCache,
       RawDataFile file) {
-    return filePlotCache.computeIfAbsent(file, f -> {
+    return filePlotCache.computeIfAbsent(file, _ -> {
       final IntegrationPlotController plot = new IntegrationPlotController();
+      plot.setMaxIntegratedFeatures(1);
+      plot.setRangeAxisStickyZero(true);
 //        plot.setChartGroup(chartGroup);
       // auto update on change of the feature data entry. must be subscribed in here because we don't want to subscribe multiple times
       model.featureDataEntriesProperty()
@@ -166,13 +168,14 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
       region.visibleProperty()
           .subscribe(_ -> plot.setFeatureDataEntry(model.getFeatureDataEntries().get(file)));
 
-      plot.addIntegrationListener(newIntegrationListener(filePlotCache, file));
+      plot.addIntegrationListener(newIntegrationListener(plot, filePlotCache, file));
       return new RegionController(plot, region);
     }).region();
   }
 
   private @NotNull FeatureIntegratedListener newIntegrationListener(
-      Map<RawDataFile, RegionController> controllerMap, RawDataFile file) {
+      final IntegrationPlotController plot, Map<RawDataFile, RegionController> controllerMap,
+      RawDataFile file) {
     return (eventType, newFeatureTimeSeries, newIntegrationRange) -> {
       final IntegrationTransfer syncSetting = model.getSyncReIntegration();
       final FeatureListRow row = model.getRow();
@@ -184,8 +187,8 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
       if (eventType == EventType.INTERNAL_CHANGE && syncSetting != IntegrationTransfer.NONE) {
         for (RawDataFile otherFile : model.getSortedFiles()) {
           final RegionController rc = controllerMap.get(otherFile);
-          if (rc != null && rc.controller() != null && syncSetting.appliesTo(row, otherFile,
-              rc.controller())) {
+          if (rc != null && rc.controller() != null && plot != rc.controller()
+              && syncSetting.appliesTo(row, otherFile, rc.controller())) {
             logger.finest(
                 () -> "Transferring manual integration from file %s to file %s. (%s)".formatted(
                     file.getName(), otherFile.getName(), syncSetting.toString()));
@@ -204,6 +207,13 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
           currentFeature.set(FeatureDataType.class, its);
           FeatureDataUtils.recalculateIonSeriesDependingTypes(currentFeature);
         }
+      }
+      // reflect change in gui
+      final FeatureDataEntry oldEntry = model.featureDataEntriesProperty().get(file);
+      if (oldEntry != null) { // should always be the case
+        model.featureDataEntriesProperty().put(file,
+            new FeatureDataEntry(file, newFeatureTimeSeries, oldEntry.chromatogram(),
+                oldEntry.additionalData()));
       }
     };
   }
