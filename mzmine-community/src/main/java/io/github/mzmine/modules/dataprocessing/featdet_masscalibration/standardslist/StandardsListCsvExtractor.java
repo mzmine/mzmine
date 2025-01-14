@@ -78,8 +78,8 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
       return new StandardsList(this.extractedData);
     }
     this.extractedData = new ArrayList<>();
-
     final List<String[]> lines = CSVParsingUtils.readDataAutoSeparator(new File(filename));
+
     for (String[] lineValues : lines) {
       try {
         String retentionTimeString = lineValues[retentionTimeColumn];

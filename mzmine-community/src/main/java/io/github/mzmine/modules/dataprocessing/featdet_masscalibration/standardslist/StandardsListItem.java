@@ -46,6 +46,12 @@ public class StandardsListItem {
     this.mzRatio = FormulaUtils.calculateMzRatio(molecularFormula);
   }
 
+  // for universal calibrants list items
+  public StandardsListItem(double mzRatio) {
+    this.retentionTime = -1;
+    this.mzRatio = mzRatio;
+  }
+
   public StandardsListItem(String formula, float rt, Double mzRatio) {
     this.molecularFormula = formula;
     this.retentionTime = rt;
@@ -54,12 +60,6 @@ public class StandardsListItem {
     } else {
       this.mzRatio = FormulaUtils.calculateMzRatio(molecularFormula);
     }
-  }
-
-  // for universal calibrants list items
-  public StandardsListItem(double mzRatio) {
-    this.retentionTime = -1;
-    this.mzRatio = mzRatio;
   }
 
   @Override
