@@ -26,8 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
 
 import com.opencsv.exceptions.CsvException;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.util.CSVParsingUtils;
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +44,6 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
   protected static final int retentionTimeColumn = 0;
   protected static final int ionFormulaColumn = 1;
   protected static final int nameColumn = 2;
-  protected static final int mzColumn = 3;
 
   protected Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -77,18 +74,16 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
       logger.fine("Using cached list");
       return new StandardsList(this.extractedData);
     }
-    this.extractedData = new ArrayList<>();
+    this.extractedData = new ArrayList<StandardsListItem>();
 
-    final List<String[]> lines = CSVParsingUtils.readDataAutoSeparator(new File(filename));
+    List<String[]> lines = CSVParsingUtils.readData(new File(filename), ";");
     for (String[] lineValues : lines) {
       try {
         String retentionTimeString = lineValues[retentionTimeColumn];
         String molecularFormula = lineValues[ionFormulaColumn];
         String name = nameColumn < lineValues.length ? lineValues[nameColumn] : null;
-        String mzStr = mzColumn < lineValues.length ? lineValues[mzColumn] : null;
         float retentionTime = (float) Double.parseDouble(retentionTimeString);
-        Double mz = mzStr != null ? Double.parseDouble(mzStr) : null;
-        StandardsListItem calibrant = new StandardsListItem(molecularFormula, retentionTime, mz);
+        StandardsListItem calibrant = new StandardsListItem(molecularFormula, retentionTime);
         if (name != null && name.trim().isEmpty() == false) {
           calibrant.setName(name);
         }
