@@ -26,8 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
 
 import com.opencsv.exceptions.CsvException;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.util.CSVParsingUtils;
 import java.io.File;
 import java.io.IOException;
