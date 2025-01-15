@@ -80,7 +80,7 @@ public class ChargeType extends IntegerType {
             }
           }
         }
-        Integer maxCharge = 0;
+        Integer maxCharge = null; // default is null
         Integer maxCount = 0;
         for (var entry : max.entrySet()) {
           if (entry.getValue() > maxCount) {
