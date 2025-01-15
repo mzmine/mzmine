@@ -99,6 +99,10 @@ public class MassDetectionParameters extends SimpleParameterSet {
       return false;
     }
 
+    if (skipRawDataAndFeatureListParameters) {
+      return superCheck;
+    }
+
     // check files
     RawDataFile[] selectedFiles = getParameter(dataFiles).getValue().getMatchingRawDataFiles();
     getParameter(dataFiles).getValue().resetSelection(); // reset selection after evaluation.
