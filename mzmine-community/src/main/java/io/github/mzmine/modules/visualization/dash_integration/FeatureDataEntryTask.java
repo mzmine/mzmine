@@ -1,13 +1,19 @@
 package io.github.mzmine.modules.visualization.dash_integration;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
+import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
@@ -19,6 +25,7 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -60,9 +67,22 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
           feature == null ? integrationTolerance.getToleranceRange(row.getAverageMZ())
               : feature.getRawDataPointsMZRange();
 
-      final IonTimeSeries<Scan> chromatogram = IonTimeSeriesUtils.extractIonTimeSeries(file,
-          (List<Scan>) flist.getSeletedScans(file), mzRange, extendedRtRange,
-          model.getFeatureList().getMemoryMapStorage());
+      final IonTimeSeries<? extends Scan> chromatogram;
+      if (file instanceof IMSRawDataFile ims && (feature == null
+          || feature.get(MobilityType.class) != null)) {
+        final int previousBinningWith = Optional.of(
+                BinningMobilogramDataAccess.getPreviousBinningWith(flist, ims.getMobilityType()))
+            .orElse(1);
+        chromatogram = IonTimeSeriesUtils.extractIonMobilogramTimeSeries(
+            new MobilityScanDataAccess(ims, MobilityScanDataType.MASS_LIST,
+                (List<Frame>) flist.getSeletedScans(file)), mzRange, extendedRtRange,
+            row.getMobilityRange(), flist.getMemoryMapStorage(),
+            new BinningMobilogramDataAccess(ims, previousBinningWith));
+      } else {
+        chromatogram = IonTimeSeriesUtils.extractIonTimeSeries(file,
+            (List<Scan>) flist.getSeletedScans(file), mzRange, extendedRtRange,
+            model.getFeatureList().getMemoryMapStorage());
+      }
 
       final List<IntensityTimeSeriesToXYProvider> additionalData;
       if (feature != null && feature.get(MrmTransitionListType.class) != null) {
