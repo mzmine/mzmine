@@ -134,7 +134,7 @@ public class ComboParameter<ValueType> implements
       return;
     }
     for (ValueType option : choices) {
-      if ((value instanceof UniqueIdSupplier uis && uis.getUniqueID().equals(elementString))
+      if ((option instanceof UniqueIdSupplier uis && uis.getUniqueID().equals(elementString))
           || option.toString().equals(elementString)) {
         value = option;
         return;
