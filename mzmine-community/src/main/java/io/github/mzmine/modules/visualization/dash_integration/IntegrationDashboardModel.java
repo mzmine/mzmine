@@ -4,6 +4,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
@@ -12,6 +13,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
@@ -30,8 +32,10 @@ public class IntegrationDashboardModel {
 
   private final ObjectProperty<@NotNull ModularFeatureList> featureList = new SimpleObjectProperty<>(
       new ModularFeatureList("flist", null, List.of()));
-  private final ObjectProperty<@NotNull FeatureTableFX> featureTableFx = new SimpleObjectProperty<>(
-      new FeatureTableFX());
+  private final ObjectProperty<@NotNull FeatureTableTab> featureTableTab = new ReadOnlyObjectWrapper<>(
+      new FeatureTableTab(featureList.get()));
+  private final ObjectProperty<@NotNull FeatureTableFX> featureTableFx = new ReadOnlyObjectWrapper<>(
+      featureTableTab.get().getFeatureTable());
   private final ObjectProperty<@Nullable FeatureListRow> row = new SimpleObjectProperty<>();
   private final ListProperty<RawDataFile> sortedFiles = new SimpleListProperty<>(
       FXCollections.observableArrayList());
@@ -167,5 +171,13 @@ public class IntegrationDashboardModel {
 
   public IntegerProperty gridPaneFileOffsetProperty() {
     return gridPaneFileOffset;
+  }
+
+  public @NotNull FeatureTableTab getFeatureTableTab() {
+    return featureTableTab.get();
+  }
+
+  public ObjectProperty<@NotNull FeatureTableTab> featureTableTabProperty() {
+    return featureTableTab;
   }
 }

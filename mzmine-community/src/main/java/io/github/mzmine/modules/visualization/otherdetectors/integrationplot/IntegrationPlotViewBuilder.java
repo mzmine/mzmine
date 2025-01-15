@@ -237,15 +237,21 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
   }
 
   private FlowPane createButtonBar() {
-    Button setLeftBoundary = FxButtons.createButton("Set left", FxIcons.ARROW_LEFT,
+    final String strSetLeft = "Set left";
+    final String strSetRight = "Set right";
+    final String strFinishFeature = "Finish feature";
+    final String strAbortFeature = "Abort feature";
+    final String strEditFeature = "Edit feature";
+
+    final Button setLeftBoundary = FxButtons.createButton(strSetLeft, FxIcons.ARROW_LEFT,
         "Set the left boundary of a feature (CTRL + left click).", onSetLeftPressed);
-    Button setRightBoundary = FxButtons.createButton("Set right", FxIcons.ARROW_RIGHT,
+    final Button setRightBoundary = FxButtons.createButton(strSetRight, FxIcons.ARROW_RIGHT,
         "Set the right boundary of a feature. (CTRL + SHIFT + left click)", onSetRightPressed);
-    Button finish = FxButtons.createButton("Finish feature", FxIcons.CHECK_CIRCLE,
+    final Button finish = FxButtons.createButton(strFinishFeature, FxIcons.CHECK_CIRCLE,
         "Finish current integration and save the feature.", onFinishPressed);
-    Button abortFeature = FxButtons.createButton("Abort feature", FxIcons.CANCEL,
+    final Button abortFeature = FxButtons.createButton(strAbortFeature, FxIcons.CANCEL,
         "Abort integration of the selected feature", onAbortPressed);
-    Button editSelected = FxButtons.createButton("Edit feature", FxIcons.EDIT,
+    final Button editSelected = FxButtons.createButton(strEditFeature, FxIcons.EDIT,
         "Edit the selected feature", onEditPressed);
     final FlowPane buttonBar = FxLayout.newFlowPane(setLeftBoundary, setRightBoundary, finish,
         abortFeature, editSelected);
@@ -258,6 +264,15 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     abortFeature.disableProperty().bind(Bindings.createBooleanBinding(
         () -> model.getCurrentStartTime() == null && model.getCurrentEndTime() == null,
         model.stateProperty(), model.currentStartTimeProperty(), model.currentEndTimeProperty()));
+
+    // a text less option is useful for the integration dashboard
+    model.useTextlessButtonsProperty().subscribe(textLess -> {
+      setLeftBoundary.setText(textLess ? null : strSetLeft);
+      setRightBoundary.setText(textLess ? null : strSetRight);
+      finish.setText(textLess ? null : strFinishFeature);
+      abortFeature.setText(textLess ? null : strAbortFeature);
+      editSelected.setText(textLess ? null : strEditFeature);
+    });
 
     return buttonBar;
   }

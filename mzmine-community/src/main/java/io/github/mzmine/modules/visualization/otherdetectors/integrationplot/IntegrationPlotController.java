@@ -245,4 +245,8 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   public void setRangeAxisStickyZero(boolean rangeStickyZero) {
     model.getChromatogramPlot().setRangeAxisStickyZero(rangeStickyZero);
   }
+
+  public void setTextLessButtons(boolean textLessButtons) {
+    model.setUseTextlessButtons(textLessButtons);
+  }
 }

@@ -69,6 +69,7 @@ public class IntegrationPlotModel {
   private final ListProperty<FeatureIntegratedListener> integrationListeners = new SimpleListProperty<>(
       FXCollections.observableArrayList());
   private final StringProperty title = new SimpleStringProperty();
+  private final BooleanProperty useTextlessButtons = new SimpleBooleanProperty(false);
 
   public ChromatogramPlotController getChromatogramPlot() {
     return chromatogramPlot.get();
@@ -256,5 +257,17 @@ public class IntegrationPlotModel {
 
   public void setTitle(String title) {
     this.title.set(title);
+  }
+
+  public boolean isUseTextlessButtons() {
+    return useTextlessButtons.get();
+  }
+
+  public BooleanProperty useTextlessButtonsProperty() {
+    return useTextlessButtons;
+  }
+
+  public void setUseTextlessButtons(boolean useTextlessButtons) {
+    this.useTextlessButtons.set(useTextlessButtons);
   }
 }

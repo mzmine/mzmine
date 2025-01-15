@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -75,7 +74,9 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
       }
     });
 
-    ftableControlsPane.setCenter(model.getFeatureTableFx());
+    final BorderPane ftable = model.getFeatureTableTab().getMainPane();
+    ftable.setRight(null);
+    ftableControlsPane.setCenter(ftable);
     ftableControlsPane.setBottom(
         FxLayout.newVBox(buildIntegrationTransfer(), buildMetadataColSelectionForSorting()));
 
@@ -151,8 +152,8 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
       RawDataFile file) {
     return filePlotCache.computeIfAbsent(file, _ -> {
       final IntegrationPlotController plot = new IntegrationPlotController();
+      plot.setTextLessButtons(true);
       plot.setMaxIntegratedFeatures(1);
-      plot.setRangeAxisStickyZero(true);
 //        plot.setChartGroup(chartGroup);
       // auto update on change of the feature data entry. must be subscribed in here because we don't want to subscribe multiple times
       model.featureDataEntriesProperty()
@@ -165,8 +166,11 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
 
       final Region region = plot.buildView();
       // need to set manually, using a subscription does not work for some reason.
-      region.visibleProperty()
-          .subscribe(_ -> plot.setFeatureDataEntry(model.getFeatureDataEntries().get(file)));
+      region.visibleProperty().subscribe(_ -> {
+        // setting once at the beginning leads to the change not being applied properly
+        plot.setRangeAxisStickyZero(true);
+        plot.setFeatureDataEntry(model.getFeatureDataEntries().get(file));
+      });
 
       plot.addIntegrationListener(newIntegrationListener(plot, filePlotCache, file));
       return new RegionController(plot, region);
@@ -261,7 +265,8 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     final Label lblPage = FxLabels.newLabel("Page 1/1");
     PropertyUtils.onChange(() -> lblPage.setText("Page %d/%d".formatted(
             // current page
-            model.getGridPaneFileOffset() / (model.getGridNumRows() * model.getGridNumColumns()) + 1,
+            (int) ((model.getGridPaneFileOffset() + 1) / (double) (model.getGridNumRows()
+                * model.getGridNumColumns()) + 1),
             // total pages
             model.getSortedFiles().size() / (model.getGridNumRows() * model.getGridNumColumns()) + 1)),
         model.getSortedFiles(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
