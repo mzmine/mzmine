@@ -62,11 +62,11 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
         model.currentStartTimeProperty(), model.currentEndTimeProperty()));
 
     model.currentStartTimeProperty().addListener((_, _, value) -> model.setCurrentStartMarker(
-        value != null ? new ValueMarker(model.getCurrentStartTime(),
+        value != null ? new ValueMarker(value,
             ConfigService.getDefaultColorPalette().getPositiveColorAWT(), new BasicStroke(2f))
             : null));
     model.currentEndTimeProperty().addListener((_, _, value) -> model.setCurrentEndMarker(
-        value != null ? new ValueMarker(model.getCurrentEndTime(),
+        value != null ? new ValueMarker(value,
             ConfigService.getDefaultColorPalette().getNegativeColorAWT(), new BasicStroke(2f))
             : null));
 
