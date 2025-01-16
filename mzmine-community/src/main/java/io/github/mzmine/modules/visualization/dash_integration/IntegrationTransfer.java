@@ -45,11 +45,14 @@ public enum IntegrationTransfer implements UniqueIdSupplier {
   public String getToolTip() {
     return switch (this) {
       case ALL ->
-          "Transfers a single re-integration to to all other files, overriding current integrations.";
+          "%s: Transfers a single re-integration to to all other files, overriding current integrations.".formatted(
+              this.toString());
       case ONLY_MISSING ->
-          "Transfers a reintegration to all files in which no feature was detected.";
+          "%s: Transfers a reintegration to all files in which no feature was detected.".formatted(
+              this.toString());
       case NONE ->
-          "Does not transfer re-integration across files. All files must be re-integrated manually.";
+          "%s: Does not transfer re-integration across files. All files must be re-integrated manually.".formatted(
+              this.toString());
     };
   }
 

@@ -62,9 +62,10 @@ public class IntegrationPlotModel {
       State.NOT_INTEGRATING);
   private final ObjectProperty<@Nullable ValueMarker> currentStartMarker = new SimpleObjectProperty<>();
   private final ObjectProperty<@Nullable ValueMarker> currentEndMarker = new SimpleObjectProperty<>();
-  private final ListProperty<IntensityTimeSeriesToXYProvider> additionalDataProviders = new SimpleListProperty<IntensityTimeSeriesToXYProvider>(
+  private final ListProperty<IntensityTimeSeriesToXYProvider> additionalDataProviders = new SimpleListProperty<>(
       FXCollections.observableArrayList());
-  private final ListProperty<ColoredXYDataset> additionalTimeSeriesDatasets = new SimpleListProperty<>();
+  private final ListProperty<ColoredXYDataset> additionalTimeSeriesDatasets = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
   private final IntegerProperty maxIntegratedFeatures = new SimpleIntegerProperty(
       Integer.MAX_VALUE);
   private final ListProperty<FeatureIntegratedListener> integrationListeners = new SimpleListProperty<>(

@@ -218,6 +218,8 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
           currentFeature.set(FeatureDataType.class, its);
           FeatureDataUtils.recalculateIonSeriesDependingTypes(currentFeature);
         }
+      } else if (newFeatureTimeSeries == null) {
+        row.removeFeature(file);
       }
       // reflect change in gui
       final FeatureDataEntry oldEntry = model.featureDataEntriesProperty().get(file);
@@ -275,7 +277,8 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
             (int) ((model.getGridPaneFileOffset() + 1) / (double) (model.getGridNumRows()
                 * model.getGridNumColumns()) + 1),
             // total pages
-            model.getSortedFiles().size() / (model.getGridNumRows() * model.getGridNumColumns()) + 1)),
+            (model.getSortedFiles().size() - 1) / (model.getGridNumRows() * model.getGridNumColumns())
+                + 1)),
         model.getSortedFiles(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
         model.gridPaneFileOffsetProperty());
 

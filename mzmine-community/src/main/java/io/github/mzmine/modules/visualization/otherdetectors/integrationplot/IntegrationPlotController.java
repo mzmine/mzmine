@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
@@ -107,8 +108,9 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     final Double end = model.getCurrentEndTime();
     logger.finest("Finish feature pressed. %.2f-%.2f".formatted(start, end));
     if (start != null && end != null) {
+
       final IntensityTimeSeries currentTimeSeries = model.getCurrentTimeSeries();
-      final IntensityTimeSeries integrated;
+      @Nullable IntensityTimeSeries integrated;
       if (currentTimeSeries instanceof IonMobilogramTimeSeries imts) {
         integrated = imts.subSeries(currentTimeSeries.getStorage(), start.floatValue(),
             end.floatValue(), model.getBinningMobilogramDataAccess());
@@ -116,21 +118,25 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
         integrated = currentTimeSeries.subSeries(currentTimeSeries.getStorage(), start.floatValue(),
             end.floatValue());
       }
+      if (FeatureDataUtils.calculateArea(integrated) <= 0) {
+        integrated = null;
+      }
 
       final int maxIntegratedFeatures = model.getMaxIntegratedFeatures();
-      if (model.getIntegratedFeatures().size() + 1 > maxIntegratedFeatures) {
+      if (model.getIntegratedFeatures().size() + 1 > maxIntegratedFeatures && integrated != null) {
         // if there are more than the allowed integrated features, remove the first one.
         final List<IntensityTimeSeries> list = new ArrayList<>(model.getIntegratedFeatures());
         list.removeFirst();
         list.add(integrated);
         model.setIntegratedFeatures(list);
-      } else {
+      } else if (integrated != null) {
         model.addIntegratedFeature(integrated);
       }
 
       model.setSelectedFeature(integrated);
-      model.getIntegrationListeners().forEach(
-          l -> l.accept(eventType, integrated, Range.closed(start.floatValue(), end.floatValue())));
+      final @Nullable IntensityTimeSeries finalIntegrated = integrated;
+      model.getIntegrationListeners().forEach(l -> l.accept(eventType, finalIntegrated,
+          Range.closed(start.floatValue(), end.floatValue())));
     }
     clearIntegration();
   }

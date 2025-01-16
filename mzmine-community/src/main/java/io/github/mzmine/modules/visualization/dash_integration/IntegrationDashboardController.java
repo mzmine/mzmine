@@ -72,10 +72,7 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
 
   public <S extends Scan, T extends IonTimeSeries<S>> Function<@NotNull T, @NotNull T> extractPostProcessingMethod(
       ModularFeatureList flist) {
-    // currently deactivated
-    return t -> t;
-
-    /*final SmoothingAlgorithm smoother = extractSmoother(flist);
+    final SmoothingAlgorithm smoother = extractSmoother(flist);
     // todo: baseline corrector needs the full chromatogram, only a subset is computed in the dashboard
     final BaselineCorrector corrector = null;
 //    final BaselineCorrector corrector = extractBaselineCorrector(flist);
@@ -97,7 +94,7 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
         blCorrected = smoothedRt;
       }
       return blCorrected;
-    };*/
+    };
   }
 
   private static SmoothingAlgorithm extractSmoother(ModularFeatureList flist) {
