@@ -25,7 +25,6 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -67,24 +66,8 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
           feature == null ? integrationTolerance.getToleranceRange(row.getAverageMZ())
               : feature.getRawDataPointsMZRange();
 
-      final IonTimeSeries<? extends Scan> chromatogram;
-      if (file instanceof IMSRawDataFile ims && (feature == null
-          || feature.get(MobilityType.class) != null)) {
-        final int previousBinningWith = Optional.ofNullable(
-                BinningMobilogramDataAccess.getPreviousBinningWith(flist, ims.getMobilityType()))
-            .orElse(1);
-        var chrom = IonTimeSeriesUtils.extractIonMobilogramTimeSeries(
-            new MobilityScanDataAccess(ims, MobilityScanDataType.MASS_LIST,
-                (List<Frame>) flist.getSeletedScans(file)), mzRange, extendedRtRange,
-            row.getMobilityRange(), flist.getMemoryMapStorage(),
-            new BinningMobilogramDataAccess(ims, previousBinningWith));
-        chromatogram = (IonTimeSeries<? extends Scan>) model.getPostProcessingMethod().apply(chrom);
-      } else {
-        var chrom = IonTimeSeriesUtils.extractIonTimeSeries(file,
-            (List<Scan>) flist.getSeletedScans(file), mzRange, extendedRtRange,
-            model.getFeatureList().getMemoryMapStorage());
-        chromatogram = (IonTimeSeries<? extends Scan>) model.getPostProcessingMethod().apply(chrom);
-      }
+      final IonTimeSeries<? extends Scan> chromatogram = extractChromatogram(file, feature, flist,
+          mzRange, extendedRtRange, row);
 
       final List<IntensityTimeSeriesToXYProvider> additionalData;
       if (feature != null && feature.get(MrmTransitionListType.class) != null) {
@@ -101,6 +84,29 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
           chromatogram, additionalData));
       processed++;
     }
+  }
+
+  private IonTimeSeries<? extends Scan> extractChromatogram(RawDataFile file,
+      @Nullable ModularFeature feature, @NotNull ModularFeatureList flist, Range<Double> mzRange,
+      Range<Float> extendedRtRange, FeatureListRow row) {
+    final IonTimeSeries<? extends Scan> chromatogram;
+    if (file instanceof IMSRawDataFile ims && (feature == null
+        || feature.get(MobilityType.class) != null)) {
+      final int previousBinningWith = BinningMobilogramDataAccess.getPreviousBinningWith(flist,
+          ims.getMobilityType());
+      var chrom = IonTimeSeriesUtils.extractIonMobilogramTimeSeries(
+          new MobilityScanDataAccess(ims, MobilityScanDataType.MASS_LIST,
+              (List<Frame>) flist.getSeletedScans(file)), mzRange, extendedRtRange,
+          row.getMobilityRange(), flist.getMemoryMapStorage(),
+          new BinningMobilogramDataAccess(ims, previousBinningWith));
+      chromatogram = (IonTimeSeries<? extends Scan>) model.getPostProcessingMethod().apply(chrom);
+    } else {
+      var chrom = IonTimeSeriesUtils.extractIonTimeSeries(file,
+          (List<Scan>) flist.getSeletedScans(file), mzRange, extendedRtRange,
+          model.getFeatureList().getMemoryMapStorage());
+      chromatogram = (IonTimeSeries<? extends Scan>) model.getPostProcessingMethod().apply(chrom);
+    }
+    return chromatogram;
   }
 
   @Override
