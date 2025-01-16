@@ -85,7 +85,7 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
             FxCheckBox.newCheckBox("Apply latest smoothing step to chromatograms",
                 model.applyPostProcessingProperty())));
 
-    final HBox pageControls = FxLayout.newHBox(buildGridPageControls());
+    final HBox pageControls = FxLayout.newHBox(Pos.CENTER, buildGridPageControls());
     gridWrapper.setTop(pageControls);
     BorderPane.setAlignment(pageControls, Pos.CENTER);
     gridWrapper.setCenter(buildPlots());
