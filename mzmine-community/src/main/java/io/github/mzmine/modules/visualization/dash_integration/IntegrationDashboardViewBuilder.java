@@ -270,8 +270,9 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
         });
     final Button nextPage = FxButtons.createButton(null, FxIcons.ARROW_RIGHT, "Next page", () -> {
       final int currentOffset = model.getGridPaneFileOffset();
+      final int step = model.getGridNumRows() * model.getGridNumColumns();
       model.setGridPaneFileOffset(Math.min(Math.max(model.sortedFilesProperty().size() - 1, 0),
-          currentOffset + (model.getGridNumRows() * model.getGridNumColumns())));
+          currentOffset + step));
     });
 
     final Label lblPage = FxLabels.newLabel("Page 1/1");
@@ -280,14 +281,14 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
             (int) ((model.getGridPaneFileOffset() + 1) / (double) (model.getGridNumRows()
                 * model.getGridNumColumns()) + 1),
             // total pages
-            (model.getSortedFiles().size() - 1) / (model.getGridNumRows() * model.getGridNumColumns())
+            (model.getSortedFiles().size()) / (model.getGridNumRows() * model.getGridNumColumns())
                 + 1)), model.getSortedFiles(), model.gridNumRowsProperty(),
         model.gridNumColumnsProperty(), model.gridPaneFileOffsetProperty());
 
     final Label lblEntries = FxLabels.newLabel("Entries 0 - 0");
     PropertyUtils.onChange(() -> {
           lblEntries.setText("Entries %d - %d".formatted(model.getGridPaneFileOffset() + 1, Math.min(
-              model.getGridPaneFileOffset() + model.getGridNumRows() * model.getGridNumColumns() + 1,
+              model.getGridPaneFileOffset() + model.getGridNumRows() * model.getGridNumColumns(),
               model.getSortedFiles().size())));
         }, model.getSortedFiles(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
         model.gridPaneFileOffsetProperty());
