@@ -16,8 +16,10 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -47,6 +49,7 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
     final @NotNull ModularFeatureList flist = model.getFeatureList();
     final List<RawDataFile> files = List.copyOf(model.getSortedFiles());
     final FeatureListRow row = model.getRow();
+    final NumberFormats formats = ConfigService.getGuiFormats();
 
     total = files.size();
 
@@ -73,9 +76,11 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
       if (feature != null && feature.get(MrmTransitionListType.class) != null) {
         final MrmTransitionList mrms = feature.get(MrmTransitionListType.class);
         AtomicInteger clr = new AtomicInteger(0);
-        additionalData = mrms.transitions().stream()
-            .map(t -> new IntensityTimeSeriesToXYProvider(t, colors.getAWT(clr.getAndIncrement())))
-            .toList();
+        additionalData = mrms.transitions().stream().map(t -> new IntensityTimeSeriesToXYProvider(
+            t.chromatogram()
+                .subSeries(null, extendedRtRange.lowerEndpoint(), extendedRtRange.upperEndpoint()),
+            colors.getAWT(clr.getAndIncrement()),
+            "%s -> %s".formatted(formats.mz(t.q1mass()), formats.mz(t.q3mass())))).toList();
       } else {
         additionalData = List.of();
       }
@@ -90,6 +95,17 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
       @Nullable ModularFeature feature, @NotNull ModularFeatureList flist, Range<Double> mzRange,
       Range<Float> extendedRtRange, FeatureListRow row) {
     final IonTimeSeries<? extends Scan> chromatogram;
+
+    if (feature != null && feature.get(MrmTransitionListType.class) != null) {
+      final MrmTransitionList mrms = feature.get(MrmTransitionListType.class);
+      final MrmTransition quant = mrms.quantifier();
+      return quant.chromatogram().subSeries(null, extendedRtRange.lowerEndpoint().floatValue(),
+          extendedRtRange.upperEndpoint().floatValue());
+    }
+    if (flist.hasFeatureType(MrmTransitionListType.class)) {
+      return IonTimeSeries.EMPTY;
+    }
+
     if (file instanceof IMSRawDataFile ims && (feature == null
         || feature.get(MobilityType.class) != null)) {
       final int previousBinningWith = BinningMobilogramDataAccess.getPreviousBinningWith(flist,
