@@ -26,7 +26,9 @@
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import io.github.mzmine.javafx.mvci.FxController;
@@ -106,8 +108,14 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     logger.finest("Finish feature pressed. %.2f-%.2f".formatted(start, end));
     if (start != null && end != null) {
       final IntensityTimeSeries currentTimeSeries = model.getCurrentTimeSeries();
-      final IntensityTimeSeries integrated = currentTimeSeries.subSeries(
-          currentTimeSeries.getStorage(), start.floatValue(), end.floatValue());
+      final IntensityTimeSeries integrated;
+      if (currentTimeSeries instanceof IonMobilogramTimeSeries imts) {
+        integrated = imts.subSeries(currentTimeSeries.getStorage(), start.floatValue(),
+            end.floatValue(), model.getBinningMobilogramDataAccess());
+      } else {
+        integrated = currentTimeSeries.subSeries(currentTimeSeries.getStorage(), start.floatValue(),
+            end.floatValue());
+      }
 
       final int maxIntegratedFeatures = model.getMaxIntegratedFeatures();
       if (model.getIntegratedFeatures().size() + 1 > maxIntegratedFeatures) {
@@ -216,12 +224,12 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     return model.titleProperty();
   }
 
-  public void setTitle(String title) {
-    model.setTitle(title);
-  }
-
   public String getTitle() {
     return model.getTitle();
+  }
+
+  public void setTitle(String title) {
+    model.setTitle(title);
   }
 
   public void integrateExternally(@Nullable Range<Float> newIntegrationRange) {
@@ -234,12 +242,12 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     model.getChromatogramPlot().setChartGroup(group);
   }
 
-  public void setMaxIntegratedFeatures(int max) {
-    model.setMaxIntegratedFeatures(max);
-  }
-
   public int getMaxIntegratedFeatures() {
     return model.getMaxIntegratedFeatures();
+  }
+
+  public void setMaxIntegratedFeatures(int max) {
+    model.setMaxIntegratedFeatures(max);
   }
 
   public void setRangeAxisStickyZero(boolean rangeStickyZero) {
@@ -248,5 +256,9 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
   public void setTextLessButtons(boolean textLessButtons) {
     model.setUseTextlessButtons(textLessButtons);
+  }
+
+  public void setBinningMobilogramDataAccess(@Nullable BinningMobilogramDataAccess dataAccess) {
+    model.setBinningMobilogramDataAccess(dataAccess);
   }
 }

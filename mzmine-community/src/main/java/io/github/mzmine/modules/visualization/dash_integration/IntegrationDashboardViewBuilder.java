@@ -1,7 +1,9 @@
 package io.github.mzmine.modules.visualization.dash_integration;
 
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -154,6 +156,11 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
       final IntegrationPlotController plot = new IntegrationPlotController();
       plot.setTextLessButtons(true);
       plot.setMaxIntegratedFeatures(1);
+      if (file instanceof IMSRawDataFile ims) {
+        plot.setBinningMobilogramDataAccess(new BinningMobilogramDataAccess(ims,
+            BinningMobilogramDataAccess.getPreviousBinningWith(model.getFeatureList(),
+                ims.getMobilityType())));
+      }
 //        plot.setChartGroup(chartGroup);
       // auto update on change of the feature data entry. must be subscribed in here because we don't want to subscribe multiple times
       model.featureDataEntriesProperty()

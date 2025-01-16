@@ -1,13 +1,32 @@
 package io.github.mzmine.modules.visualization.dash_integration;
 
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectors;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.FeatureSmoothingOptions;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingAlgorithm;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.loess.LoessSmoothingParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.project.ProjectService;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +43,8 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
       model.setSortedFiles(flist.getRawDataFiles().stream().sorted(Comparator.comparing(
               file -> Objects.requireNonNullElse(metadata.getValue(sortingCol, file), "").toString()))
           .toList());
+
+      model.postProcessingMethodProperty().set(extractPostProcessingMethod(flist));
     });
 
     model.rawFileSortingColumnProperty().subscribe(col -> model.setSortedFiles(
@@ -47,5 +68,66 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
       return;
     }
     model.setFeatureList(flist);
+  }
+
+  public <S extends Scan, T extends IonTimeSeries<S>> Function<@NotNull T, @NotNull T> extractPostProcessingMethod(
+      ModularFeatureList flist) {
+    // currently deactivated
+    return t -> t;
+
+    /*final SmoothingAlgorithm smoother = extractSmoother(flist);
+    // todo: baseline corrector needs the full chromatogram, only a subset is computed in the dashboard
+    final BaselineCorrector corrector = null;
+//    final BaselineCorrector corrector = extractBaselineCorrector(flist);
+
+    return its -> {
+
+      final T smoothedRt;
+      if (smoother != null) {
+        final @Nullable double[] rtSmoothedIntensities = smoother.smoothRt(its);
+        smoothedRt = (T) its.copyAndReplace(flist.getMemoryMapStorage(), rtSmoothedIntensities);
+      } else {
+        smoothedRt = its;
+      }
+
+      final T blCorrected;
+      if (corrector != null) {
+        blCorrected = corrector.correctBaseline(smoothedRt);
+      } else {
+        blCorrected = smoothedRt;
+      }
+      return blCorrected;
+    };*/
+  }
+
+  private static SmoothingAlgorithm extractSmoother(ModularFeatureList flist) {
+    final List<ParameterSet> smoothingParams = ParameterUtils.getModuleCalls(
+            flist.getAppliedMethods(), SmoothingModule.class).stream()
+        .map(FeatureListAppliedMethod::getParameters).toList();
+    for (ParameterSet ps : smoothingParams) {
+      // find the smoothing step that smoothed RT
+      final ModuleOptionsEnumComboParameter<FeatureSmoothingOptions> smoothingParam = ps.getParameter(
+          SmoothingParameters.smoothingAlgorithm);
+      OptionalParameter<IntegerParameter> rtSmoothing = smoothingParam.getEmbeddedParameters()
+          .getParameter(LoessSmoothingParameters.rtSmoothing);
+      if (!rtSmoothing.getValue()) {
+        continue;
+      }
+      return FeatureSmoothingOptions.createSmoother(ps);
+    }
+    return null;
+  }
+
+  private static @Nullable BaselineCorrector extractBaselineCorrector(ModularFeatureList flist) {
+    final FeatureListAppliedMethod blMethod = ParameterUtils.getLatestModuleCall(
+        flist.getAppliedMethods(), BaselineCorrectionModule.class);
+    BaselineCorrector corrector = null;
+    if (blMethod != null) {
+      final BaselineCorrectors correctorParam = blMethod.getParameters()
+          .getParameter(BaselineCorrectionParameters.correctionAlgorithm).getValue();
+      corrector = correctorParam.getModuleInstance()
+          .newInstance(blMethod.getParameters(), flist.getMemoryMapStorage(), flist);
+    }
+    return corrector;
   }
 }

@@ -9,11 +9,14 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
+import java.util.function.Function;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
@@ -47,7 +50,9 @@ public class IntegrationDashboardModel {
       new MZTolerance(0.005, 10));
   private final MapProperty<RawDataFile, FeatureDataEntry> featureDataEntries = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
-
+  private final ObjectProperty<@NotNull Function> postProcessingMethod = new SimpleObjectProperty<>(
+      t -> t);
+  private final BooleanProperty applyPostProcessing = new SimpleBooleanProperty(false);
 
   public int getGridNumColumns() {
     return gridNumColumns.get();
@@ -179,5 +184,25 @@ public class IntegrationDashboardModel {
 
   public ObjectProperty<@NotNull FeatureTableTab> featureTableTabProperty() {
     return featureTableTab;
+  }
+
+  public @NotNull Function getPostProcessingMethod() {
+    return postProcessingMethod.get();
+  }
+
+  public ObjectProperty<@NotNull Function> postProcessingMethodProperty() {
+    return postProcessingMethod;
+  }
+
+  public boolean isApplyPostProcessing() {
+    return applyPostProcessing.get();
+  }
+
+  public BooleanProperty applyPostProcessingProperty() {
+    return applyPostProcessing;
+  }
+
+  public void setApplyPostProcessing(boolean applyPostProcessing) {
+    this.applyPostProcessing.set(applyPostProcessing);
   }
 }

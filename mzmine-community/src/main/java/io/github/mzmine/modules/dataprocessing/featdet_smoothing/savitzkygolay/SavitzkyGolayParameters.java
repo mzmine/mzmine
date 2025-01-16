@@ -32,13 +32,16 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 
 public class SavitzkyGolayParameters extends SimpleParameterSet {
 
+  public static final String rtSmoothingName = "Retention time smoothing";
+  public static final String mobilitySmoothingName = "Mobility smoothing";
+
   public static final OptionalParameter<ComboParameter<Integer>> rtSmoothing = new OptionalParameter<>(
-      new ComboParameter<Integer>("Retention time smoothing",
+      new ComboParameter<Integer>(rtSmoothingName,
           "Enables intensity smoothing along the rt axis.",
           new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5), false);
 
   public static final OptionalParameter<ComboParameter<Integer>> mobilitySmoothing = new OptionalParameter<>(
-      new ComboParameter<Integer>("Mobility smoothing",
+      new ComboParameter<Integer>(mobilitySmoothingName,
           "Enables intensity smoothing of the summed mobilogram.",
           new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5), false);
 

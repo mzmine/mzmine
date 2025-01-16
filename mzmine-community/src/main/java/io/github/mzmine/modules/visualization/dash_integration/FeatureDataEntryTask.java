@@ -70,18 +70,20 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
       final IonTimeSeries<? extends Scan> chromatogram;
       if (file instanceof IMSRawDataFile ims && (feature == null
           || feature.get(MobilityType.class) != null)) {
-        final int previousBinningWith = Optional.of(
+        final int previousBinningWith = Optional.ofNullable(
                 BinningMobilogramDataAccess.getPreviousBinningWith(flist, ims.getMobilityType()))
             .orElse(1);
-        chromatogram = IonTimeSeriesUtils.extractIonMobilogramTimeSeries(
+        var chrom = IonTimeSeriesUtils.extractIonMobilogramTimeSeries(
             new MobilityScanDataAccess(ims, MobilityScanDataType.MASS_LIST,
                 (List<Frame>) flist.getSeletedScans(file)), mzRange, extendedRtRange,
             row.getMobilityRange(), flist.getMemoryMapStorage(),
             new BinningMobilogramDataAccess(ims, previousBinningWith));
+        chromatogram = (IonTimeSeries<? extends Scan>) model.getPostProcessingMethod().apply(chrom);
       } else {
-        chromatogram = IonTimeSeriesUtils.extractIonTimeSeries(file,
+        var chrom = IonTimeSeriesUtils.extractIonTimeSeries(file,
             (List<Scan>) flist.getSeletedScans(file), mzRange, extendedRtRange,
             model.getFeatureList().getMemoryMapStorage());
+        chromatogram = (IonTimeSeries<? extends Scan>) model.getPostProcessingMethod().apply(chrom);
       }
 
       final List<IntensityTimeSeriesToXYProvider> additionalData;

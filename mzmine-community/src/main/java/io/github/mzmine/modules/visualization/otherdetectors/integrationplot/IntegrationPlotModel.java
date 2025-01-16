@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
@@ -70,6 +71,8 @@ public class IntegrationPlotModel {
       FXCollections.observableArrayList());
   private final StringProperty title = new SimpleStringProperty();
   private final BooleanProperty useTextlessButtons = new SimpleBooleanProperty(false);
+  private final ObjectProperty<@Nullable BinningMobilogramDataAccess> binningMobilogramDataAccess = new SimpleObjectProperty<>(
+      null);
 
   public ChromatogramPlotController getChromatogramPlot() {
     return chromatogramPlot.get();
@@ -251,23 +254,36 @@ public class IntegrationPlotModel {
     return title.get();
   }
 
-  public StringProperty titleProperty() {
-    return title;
-  }
-
   public void setTitle(String title) {
     this.title.set(title);
+  }
+
+  public StringProperty titleProperty() {
+    return title;
   }
 
   public boolean isUseTextlessButtons() {
     return useTextlessButtons.get();
   }
 
+  public void setUseTextlessButtons(boolean useTextlessButtons) {
+    this.useTextlessButtons.set(useTextlessButtons);
+  }
+
   public BooleanProperty useTextlessButtonsProperty() {
     return useTextlessButtons;
   }
 
-  public void setUseTextlessButtons(boolean useTextlessButtons) {
-    this.useTextlessButtons.set(useTextlessButtons);
+  public @Nullable BinningMobilogramDataAccess getBinningMobilogramDataAccess() {
+    return binningMobilogramDataAccess.get();
+  }
+
+  public void setBinningMobilogramDataAccess(
+      @Nullable BinningMobilogramDataAccess binningMobilogramDataAccess) {
+    this.binningMobilogramDataAccess.set(binningMobilogramDataAccess);
+  }
+
+  public ObjectProperty<@Nullable BinningMobilogramDataAccess> binningMobilogramDataAccessProperty() {
+    return binningMobilogramDataAccess;
   }
 }
