@@ -746,7 +746,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   @Override
   public FeatureList[] getSelectedPeakLists() {
-    return getSelectedFeatureLists().toArray(new FeatureList[0]);
+    return getSelectedFeatureLists().stream().distinct().toArray(FeatureList[]::new);
   }
 
   @Override

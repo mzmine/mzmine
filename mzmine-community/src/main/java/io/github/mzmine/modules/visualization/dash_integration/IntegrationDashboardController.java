@@ -6,6 +6,7 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
@@ -55,46 +56,8 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
     // the offset may never be larger than the number of files
     model.sortedFilesProperty().subscribe(files -> model.setGridPaneFileOffset(
         Math.max(Math.min(model.getGridPaneFileOffset(), files.size() - 1), 0)));
-    model.rowProperty().addListener((_, _, _) -> onTaskThread(new FeatureDataEntryTask(model)));
-  }
-
-  @Override
-  protected @NotNull FxViewBuilder<IntegrationDashboardModel> getViewBuilder() {
-    return new IntegrationDashboardViewBuilder(model);
-  }
-
-  public void setFeatureList(@Nullable ModularFeatureList flist) {
-    if (flist == null) {
-      return;
-    }
-    model.setFeatureList(flist);
-  }
-
-  public <S extends Scan, T extends IonTimeSeries<S>> Function<@NotNull T, @NotNull T> extractPostProcessingMethod(
-      ModularFeatureList flist) {
-    final SmoothingAlgorithm smoother = extractSmoother(flist);
-    // todo: baseline corrector needs the full chromatogram, only a subset is computed in the dashboard
-    final BaselineCorrector corrector = null;
-//    final BaselineCorrector corrector = extractBaselineCorrector(flist);
-
-    return its -> {
-
-      final T smoothedRt;
-      if (smoother != null) {
-        final @Nullable double[] rtSmoothedIntensities = smoother.smoothRt(its);
-        smoothedRt = (T) its.copyAndReplace(flist.getMemoryMapStorage(), rtSmoothedIntensities);
-      } else {
-        smoothedRt = its;
-      }
-
-      final T blCorrected;
-      if (corrector != null) {
-        blCorrected = corrector.correctBaseline(smoothedRt);
-      } else {
-        blCorrected = smoothedRt;
-      }
-      return blCorrected;
-    };
+    PropertyUtils.onChange(() -> onTaskThread(new FeatureDataEntryTask(model)), model.rowProperty(),
+        model.applyPostProcessingProperty());
   }
 
   private static SmoothingAlgorithm extractSmoother(ModularFeatureList flist) {
@@ -126,5 +89,47 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
           .newInstance(blMethod.getParameters(), flist.getMemoryMapStorage(), flist);
     }
     return corrector;
+  }
+
+  @Override
+  protected @NotNull FxViewBuilder<IntegrationDashboardModel> getViewBuilder() {
+    return new IntegrationDashboardViewBuilder(model);
+  }
+
+  public void setFeatureList(@Nullable ModularFeatureList flist) {
+    if (flist == null) {
+      return;
+    }
+    model.setFeatureList(flist);
+  }
+
+  public <S extends Scan, T extends IonTimeSeries<S>> Function<@NotNull T, @NotNull T> extractPostProcessingMethod(
+      ModularFeatureList flist) {
+    final SmoothingAlgorithm smoother = extractSmoother(flist);
+    // todo: baseline corrector needs the full chromatogram, only a subset is computed in the dashboard
+    final BaselineCorrector corrector = null;
+//    final BaselineCorrector corrector = extractBaselineCorrector(flist);
+
+    return its -> {
+      if (!model.isApplyPostProcessing()) {
+        return its;
+      }
+
+      final T smoothedRt;
+      if (smoother != null) {
+        final @Nullable double[] rtSmoothedIntensities = smoother.smoothRt(its);
+        smoothedRt = (T) its.copyAndReplace(flist.getMemoryMapStorage(), rtSmoothedIntensities);
+      } else {
+        smoothedRt = its;
+      }
+
+      final T blCorrected;
+      if (corrector != null) {
+        blCorrected = corrector.correctBaseline(smoothedRt);
+      } else {
+        blCorrected = smoothedRt;
+      }
+      return blCorrected;
+    };
   }
 }

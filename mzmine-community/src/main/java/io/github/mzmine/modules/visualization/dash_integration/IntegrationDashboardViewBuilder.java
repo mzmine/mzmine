@@ -10,6 +10,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxCheckBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -80,7 +81,9 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     ftable.setRight(null);
     ftableControlsPane.setCenter(ftable);
     ftableControlsPane.setBottom(
-        FxLayout.newVBox(buildIntegrationTransfer(), buildMetadataColSelectionForSorting()));
+        FxLayout.newVBox(buildIntegrationTransfer(), buildMetadataColSelectionForSorting(),
+            FxCheckBox.newCheckBox("Apply latest smoothing step to chromatograms",
+                model.applyPostProcessingProperty())));
 
     final HBox pageControls = FxLayout.newHBox(buildGridPageControls());
     gridWrapper.setTop(pageControls);
@@ -278,9 +281,8 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
                 * model.getGridNumColumns()) + 1),
             // total pages
             (model.getSortedFiles().size() - 1) / (model.getGridNumRows() * model.getGridNumColumns())
-                + 1)),
-        model.getSortedFiles(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
-        model.gridPaneFileOffsetProperty());
+                + 1)), model.getSortedFiles(), model.gridNumRowsProperty(),
+        model.gridNumColumnsProperty(), model.gridPaneFileOffsetProperty());
 
     final Label lblEntries = FxLabels.newLabel("Entries 0 - 0");
     PropertyUtils.onChange(() -> {
