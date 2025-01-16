@@ -63,7 +63,7 @@ public class DreaMSNetworkingParameters extends SimpleParameterSet {
             "The minimum similarity score to store the DreaMS prediction", 0.75, 0.0, 1.0);
 
     public static final OptionalModuleParameter<DreaMSNetworkingKNNParameter> kNN = new OptionalModuleParameter<>(
-            "k-NN parameters", "Additional parameters constraining the network to have a k-nearest neighbors " +
+            "k-nearest neighbors", "Additional parameters constraining the network to have a k-nearest neighbors " +
             "(k-NN) graph structure.", new DreaMSNetworkingKNNParameter(), false);
 
     public static final IntegerParameter batchSize = new IntegerParameter("Batch size",
