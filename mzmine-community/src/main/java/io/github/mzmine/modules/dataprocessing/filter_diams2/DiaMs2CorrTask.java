@@ -364,7 +364,7 @@ public class DiaMs2CorrTask extends AbstractTask {
       List<IonTimeSeries<?>> eligibleEics, double[] ms1Rts, double[] ms1Intensities) {
     DoubleArrayList ms2Mzs = new DoubleArrayList();
     DoubleArrayList ms2Intensities = new DoubleArrayList();
-    DoubleArrayList ces = new DoubleArrayList();
+    DoubleArrayList collisionEnergies = new DoubleArrayList();
     MergedMassSpectrum mergedMobilityScan = null; // lazy initialization
     ActivationMethod activationMethod = ActivationMethod.UNKNOWN;
 
@@ -375,9 +375,8 @@ public class DiaMs2CorrTask extends AbstractTask {
         continue;
       }
       if (activationMethod == ActivationMethod.UNKNOWN) {
-        activationMethod = subSeries.getSpectra().stream().map(Scan::getMsMsInfo)
-            .filter(Objects::nonNull).map(MsMsInfo::getActivationMethod).findFirst()
-            .orElse(ActivationMethod.UNKNOWN);
+        activationMethod = ScanUtils.streamMsMsInfos(subSeries.getSpectra())
+            .map(MsMsInfo::getActivationMethod).findFirst().orElse(ActivationMethod.UNKNOWN);
       }
       final double[] rts = new double[subSeries.getNumberOfValues()];
       for (int i = 0; i < subSeries.getNumberOfValues(); i++) {
@@ -425,9 +424,9 @@ public class DiaMs2CorrTask extends AbstractTask {
 
       ms2Mzs.add(mz);
       ms2Intensities.add(maxIntensity);
-      subSeries.getSpectra().stream().map(Scan::getMsMsInfo).filter(Objects::nonNull)
-          .map(MsMsInfo::getActivationEnergy).filter(Objects::nonNull)
-          .mapToDouble(Float::doubleValue).average().ifPresent(ces::add);
+      ScanUtils.streamMsMsInfos(subSeries.getSpectra()).map(MsMsInfo::getActivationEnergy)
+          .filter(Objects::nonNull).mapToDouble(Float::doubleValue).average()
+          .ifPresent(collisionEnergies::add);
     }
 
     if (ms2Mzs.isEmpty()) {
@@ -435,7 +434,8 @@ public class DiaMs2CorrTask extends AbstractTask {
     }
 
     final DDAMsMsInfo info = new DDAMsMsInfoImpl(feature.getMZ(), feature.getCharge(),
-        ces.isEmpty() ? null : (float) ces.doubleStream().average().getAsDouble(), null, null, 2,
+        collisionEnergies.isEmpty() ? null
+            : (float) collisionEnergies.doubleStream().average().getAsDouble(), null, null, 2,
         activationMethod, null);
 
     return new SimplePseudoSpectrum(feature.getRawDataFile(),
