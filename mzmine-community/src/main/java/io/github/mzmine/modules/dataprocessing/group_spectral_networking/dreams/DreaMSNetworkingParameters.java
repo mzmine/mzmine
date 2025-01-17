@@ -64,7 +64,7 @@ public class DreaMSNetworkingParameters extends SimpleParameterSet {
 
     public static final OptionalModuleParameter<DreaMSNetworkingKNNParameter> kNN = new OptionalModuleParameter<>(
             "k-nearest neighbors", "Additional parameters constraining the network to have a k-nearest neighbors " +
-            "(k-NN) graph structure.", new DreaMSNetworkingKNNParameter(), false);
+            "(k-NN) graph structure.", new DreaMSNetworkingKNNParameter(), true);
 
     public static final IntegerParameter batchSize = new IntegerParameter("Batch size",
             "A number of mass spectra to process in a single forward pass through the DreaMS model when " +
