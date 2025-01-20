@@ -43,7 +43,7 @@ public class ImportTypeComponent extends BorderPane {
     super();
 
     table.setEditable(true);
-    table.setMinHeight(200);
+    setMaxHeight(400);
 
     final TableColumn<ImportType, Boolean> importColumn = new TableColumn<>("Import");
     importColumn.setCellFactory(column -> new CheckBoxTableCell());
