@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.tools.siriusapi.modules.fingerid;
 
-import de.unijena.bioinf.ms.nightsky.sdk.model.Job;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -39,6 +38,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureUtils;
+import io.sirius.ms.sdk.model.Job;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,12 +62,17 @@ public class SiriusFingerIdModule extends AbstractProcessingModule {
         .getMatchingFeatureLists()[0];
 
     final List<FeatureListRow> rows = FeatureUtils.idStringToRows(flist, idStr);
-    final Sirius sirius = new Sirius();
-    final Job job = sirius.runFingerId(rows);
+    final JobWaiterTask jobWaiterTask;
+    try (Sirius sirius = new Sirius()) {
+      final Job job = sirius.runFingerId(rows);
 
-
-    final JobWaiterTask jobWaiterTask = new JobWaiterTask(this.getClass(), moduleCallDate,
-        parameters, () -> sirius.api().jobs().getJob(sirius.getProject().getProjectId(), job.getId(), List.of()), () -> sirius.importResultsForRows(rows));
+      jobWaiterTask = new JobWaiterTask(this.getClass(), moduleCallDate, parameters,
+          () -> sirius.api().jobs()
+              .getJob(sirius.getProject().getProjectId(), job.getId(), List.of()),
+          () -> sirius.importResultsForRows(rows));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
 
     tasks.add(jobWaiterTask);
     return ExitCode.OK;

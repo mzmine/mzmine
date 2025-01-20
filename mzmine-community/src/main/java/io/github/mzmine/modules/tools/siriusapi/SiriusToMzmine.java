@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.tools.siriusapi;
 
-import de.unijena.bioinf.ms.nightsky.sdk.model.StructureCandidateFormula;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
@@ -42,6 +41,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
+import io.sirius.ms.sdk.model.StructureCandidateFormula;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 

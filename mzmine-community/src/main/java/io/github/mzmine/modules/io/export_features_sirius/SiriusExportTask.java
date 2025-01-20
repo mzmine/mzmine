@@ -105,7 +105,7 @@ public class SiriusExportTask extends AbstractTask {
   private final SpectralLibraryEntryFactory entryFactory;
 
 
-  protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
 
     this.parameters = parameters;

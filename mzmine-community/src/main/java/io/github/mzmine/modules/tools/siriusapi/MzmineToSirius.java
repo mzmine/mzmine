@@ -27,11 +27,6 @@ package io.github.mzmine.modules.tools.siriusapi;
 
 import com.opencsv.CSVWriterBuilder;
 import com.opencsv.ICSVWriter;
-import de.unijena.bioinf.ms.nightsky.sdk.api.SearchableDatabasesApi;
-import de.unijena.bioinf.ms.nightsky.sdk.model.BasicSpectrum;
-import de.unijena.bioinf.ms.nightsky.sdk.model.FeatureImport;
-import de.unijena.bioinf.ms.nightsky.sdk.model.SearchableDatabase;
-import de.unijena.bioinf.ms.nightsky.sdk.model.SimplePeak;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
@@ -45,6 +40,11 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.SpectraMerging;
+import io.sirius.ms.sdk.api.SearchableDatabasesApi;
+import io.sirius.ms.sdk.model.BasicSpectrum;
+import io.sirius.ms.sdk.model.FeatureImport;
+import io.sirius.ms.sdk.model.SearchableDatabase;
+import io.sirius.ms.sdk.model.SimplePeak;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -71,7 +71,8 @@ public class MzmineToSirius {
     f.setExternalFeatureId(String.valueOf(row.getID()));
     f.setName(String.valueOf(row.getID()));
     f.setIonMass(row.getAverageMZ());
-    f.setCharge(FeatureUtils.extractBestSignedChargeState(row, row.getMostIntenseFragmentScan()));
+    f.setCharge(
+        FeatureUtils.extractBestSignedChargeState(row, row.getMostIntenseFragmentScan()).orElse(1));
 
     final IonIdentity adduct = row.getBestIonIdentity();
     if (adduct != null) {
@@ -145,8 +146,7 @@ public class MzmineToSirius {
   }
 
   public static SearchableDatabase toCustomDatabase(
-      final @NotNull List<CompoundDBAnnotation> compounds) {
-    Sirius sirius = new Sirius();
+      final @NotNull List<CompoundDBAnnotation> compounds, @NotNull Sirius sirius) {
 
     final Map<String, CompoundDBAnnotation> uniqueCompounds = compounds.stream()
         .filter(a -> a.getSmiles() != null)

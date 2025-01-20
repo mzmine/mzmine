@@ -25,14 +25,14 @@
 
 package io.github.mzmine.modules.tools.siriusapi;
 
-import de.unijena.bioinf.ms.nightsky.sdk.model.Job;
-import de.unijena.bioinf.ms.nightsky.sdk.model.JobProgress.StateEnum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
+import io.sirius.ms.sdk.model.Job;
+import io.sirius.ms.sdk.model.JobProgress.StateEnum;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
