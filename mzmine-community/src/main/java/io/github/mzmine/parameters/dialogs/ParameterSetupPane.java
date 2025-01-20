@@ -463,6 +463,10 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
       listview.getItems().addListener((ListChangeListener) change -> parametersChanged());
     } else if (node instanceof ModuleOptionsEnumComponent<?> options) {
       options.addSubParameterChangedListener(this::parametersChanged);
+    } else if (node instanceof EmbeddedParameterComponentProvider prov) {
+      for (final Node child : prov.getComponents()) {
+        addListenersToNode(child);
+      }
     } else if (node instanceof Region panelComp) {
       for (final Node child : panelComp.getChildrenUnmodifiable()) {
         addListenersToNode(child);
