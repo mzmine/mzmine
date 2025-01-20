@@ -189,6 +189,19 @@ public class BatchWizardTab extends SimpleTab {
         .orElse(IonMobilityWizardParameterFactory.NO_IMS);
 
     filterComboBox(WizardPart.MS, WizardPartFilter.allow(ims.getMatchingMassSpectrometerPresets()));
+
+    // after import or applying a partial sequence (changing multiple steps at once) it is important to select the correct item
+    ensureComboBoxSelection();
+  }
+
+  private void ensureComboBoxSelection() {
+    // select the correct options
+    for (var preset : sequenceSteps) {
+      ComboBox<WizardStepParameters> combo = combos.get(preset.getPart());
+      if (combo != null) {
+        combo.getSelectionModel().select(preset);
+      }
+    }
   }
 
   private void filterWorkflows(WizardSequence sequenceSteps) {
@@ -199,7 +212,7 @@ public class BatchWizardTab extends SimpleTab {
           }
           return false;
         }).toList();
-    var selected = setItemsToCombo(combos.get(WORKFLOW), availableWorkflows, false);
+    var selected = setItemsToCombo(WORKFLOW, availableWorkflows, false);
     sequenceSteps.set(WORKFLOW, selected); // set the updated sequence
   }
 
@@ -217,7 +230,7 @@ public class BatchWizardTab extends SimpleTab {
     ObservableList<WizardStepParameters> currentPresets = combo.getItems();
     if (!currentPresets.equals(filteredPresets)) {
       // need to set new selection to workflow
-      var selected = setItemsToCombo(combo, filteredPresets, false);
+      var selected = setItemsToCombo(part, filteredPresets, false);
       sequenceSteps.set(part, selected);
 
       if (part == WizardPart.MS) {
@@ -235,16 +248,17 @@ public class BatchWizardTab extends SimpleTab {
     }
   }
 
-  private WizardStepParameters setItemsToCombo(final ComboBox<WizardStepParameters> combo,
+  private WizardStepParameters setItemsToCombo(final WizardPart part,
       final List<WizardStepParameters> newItems, boolean notifyListeners) {
+    final ComboBox<WizardStepParameters> combo = combos.get(part);
+
     boolean oldNotify = listenersActive;
     setListenersActive(notifyListeners);
     // keep selection or select first element if not available
     SingleSelectionModel<WizardStepParameters> selection = combo.getSelectionModel();
-    WizardStepParameters oldSelected = selection.getSelectedItem();
     // set new items
     combo.setItems(FXCollections.observableList(newItems));
-    selection.select(oldSelected);
+    sequenceSteps.get(part).ifPresentOrElse(selection::select, selection::clearSelection);
     if (selection.getSelectedIndex() < 0) {
       selection.selectFirst();
     }
@@ -394,6 +408,9 @@ public class BatchWizardTab extends SimpleTab {
   private void applyPartialSequence(final WizardSequence partialSequence) {
     setListenersActive(false);
 
+    // keep old parameters before applying sequence
+    updateAllParametersFromUi();
+
     // partialSequence might contain other instances of the presets (after loading)
     // need to apply all parameter changes to ALL_PRESETS
     WizardSequence correctPartialSequence = new WizardSequence();
@@ -409,15 +426,11 @@ public class BatchWizardTab extends SimpleTab {
     // keep current as default parameters
     sequenceSteps.apply(correctPartialSequence);
 
-    for (var preset : sequenceSteps) {
-      ComboBox<WizardStepParameters> combo = combos.get(preset.getPart());
-      if (combo != null) {
-        combo.getSelectionModel().select(preset);
-      }
-    }
-    setListenersActive(true);
-
+    // apply preset filters so that combos show the correct options
     createParameterPanes();
+
+    // now activate listeners again. Should be after changing the sequence and createParameterPanes
+    setListenersActive(true);
   }
 
   /**
