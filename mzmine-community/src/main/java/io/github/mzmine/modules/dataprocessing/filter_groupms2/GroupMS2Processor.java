@@ -258,7 +258,7 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
    * @return true if matches all criteria
    */
   private boolean filterScan(Scan scan, ModularFeature feature) {
-    if (scan.getPolarity() != feature.getRepresentativeScan().getPolarity()) {
+    if (scan.getPolarity() != feature.getRepresentativePolarity()) {
       return false;
     }
     // minimum signals
