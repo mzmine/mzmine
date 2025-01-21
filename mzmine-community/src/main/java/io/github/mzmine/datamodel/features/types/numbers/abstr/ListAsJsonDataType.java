@@ -23,26 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ListAsJsonDataType;
+import io.github.mzmine.util.io.JsonUtils;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Universal spectrum identifier for all source spectra of this spectrum. Simple scan has one and
- * merged spectrum multiple.
- */
-public class SourceScanUsiType extends ListAsJsonDataType<String> {
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Source USI";
-  }
+public abstract class ListAsJsonDataType<T> extends ListDataType<T> {
 
   @NotNull
   @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "source_scan_usi";
+  public String getFormattedString(List<T> list, boolean export) {
+    return list == null ? "" : JsonUtils.writeStringOrEmpty(list);
   }
+
 }

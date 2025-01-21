@@ -69,7 +69,7 @@ public class MetadataGroupingComponent extends FlowPane implements
 
     text = new TextField();
 
-    var icon = FxIconUtil.newIconButton(FxIcons.METADATA,
+    var icon = FxIconUtil.newIconButton(FxIcons.METADATA_TABLE,
         "Open project metadata. (Import data files and metadata to then modify project metadata)",
         () -> {
           MZmineCore.getDesktop().addTab(new ProjectMetadataTab());

@@ -67,7 +67,9 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.collections.IndexRange;
+import io.github.mzmine.util.io.JsonUtils;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -124,7 +126,7 @@ public enum DBEntryField {
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
 
   // Dataset ID is for MassIVE or other repositories
-  DATASET_ID, FILENAME, USI, SOURCE_SCAN_USI,
+  DATASET_ID, FILENAME, USI, SOURCE_SCAN_USI(List.class),
   /**
    * int or a {@code List<Integer>} `
    */
@@ -720,6 +722,12 @@ public enum DBEntryField {
       final float[] floats = ParsingUtils.stringToFloatArray(replaced, ",");
       return new FloatArrayList(floats);
     }
+    // TODO currently we can only parse this as list of strings - should be either json list or java object list
+    // FloatArrayList IntArrayList and other specialized classes help to load numbers
+    else if (getObjectClass().equals(List.class) && content != null) {
+      List<String> list = JsonUtils.readValueOrThrow(content);
+      return list;
+    }
     return content;
   }
 
@@ -738,7 +746,15 @@ public enum DBEntryField {
            PEPTIDE_SEQ, //
            IMS_TYPE, ONLINE_REACTIVITY, CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS,
            CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS,
-           NPCLASSIFIER_PATHWAY, FEATURELIST_NAME_FEATURE_ID, MERGED_N_SAMPLES -> value.toString();
+           NPCLASSIFIER_PATHWAY, FEATURELIST_NAME_FEATURE_ID, MERGED_N_SAMPLES -> {
+
+        // format lists and arrays as json so that they can easily be parsed
+        if (value instanceof Collection<?> || value.getClass().isArray()) {
+          yield JsonUtils.writeStringOrEmpty(value);
+        }
+
+        yield value.toString();
+      }
       case SCAN_NUMBER -> switch (value) {
         // multiple scans can be written as 1,4,6-9
         case List<?> list -> {
