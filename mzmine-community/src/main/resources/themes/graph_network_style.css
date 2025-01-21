@@ -33,7 +33,7 @@ edge.COSINE {
 edge.DreaMS {
   size-mode: dyn-size;
   fill-mode: dyn-plain;
-  fill-color: #e22247, #e24660, #e2687c, #e28A98;
+  fill-color: #e28A98, #e2687c, #e24660, #e22247;
 }
 edge.MS2Deepscore {
   size-mode: dyn-size;
