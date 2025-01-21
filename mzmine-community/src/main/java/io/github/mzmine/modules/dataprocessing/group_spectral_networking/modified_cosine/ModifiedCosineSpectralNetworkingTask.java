@@ -463,6 +463,7 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
     SpectralSimilarity best = null;
 
     // TODO think about ways to match the same energies against each other
+    // Maybe in a +- 15 energy range
     // currently this just matches all scans against all scans and takes the best score
     for (final FilteredRowData a : scans1) {
       for (final FilteredRowData b : scans2) {

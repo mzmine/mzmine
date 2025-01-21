@@ -86,8 +86,6 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   public SimpleParameterSet(Parameter<?>[] parameters, String onlineHelpUrl) {
-    // clone parameters here so that there is never a use of the static parameters that are
-    // usually used to construct parameters and to find parameters by their name
     this.parameters = parameters;
     this.helpUrl = onlineHelpUrl;
   }
