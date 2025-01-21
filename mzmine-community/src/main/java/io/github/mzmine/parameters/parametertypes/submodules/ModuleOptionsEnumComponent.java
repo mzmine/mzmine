@@ -108,6 +108,11 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
       if (onSubParametersChanged != null) {
         onSubParametersChanged.run();
       }
+
+      var parent = getParent();
+      if (parent != null) {
+        parent.layout();
+      }
     });
 
     paramHolder.setBottom(new Separator(Orientation.HORIZONTAL));

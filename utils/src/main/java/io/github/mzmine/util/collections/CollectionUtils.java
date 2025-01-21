@@ -37,7 +37,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Collection API related utilities
@@ -314,5 +317,9 @@ public class CollectionUtils {
       value.addAll(list);
     }
     return value;
+  }
+
+  public static @NotNull <T> Collector<T, ?, ArrayList<T>> toArrayList() {
+    return Collectors.toCollection(ArrayList::new);
   }
 }

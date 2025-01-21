@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,7 +43,7 @@ import org.w3c.dom.NodeList;
 
 /**
  * @author akshaj This class represents the parameter Features in the parameter setup dialog of the
- *         Fx3DVisualizer.
+ * Fx3DVisualizer.
  */
 public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesComponent> {
 
@@ -100,8 +100,9 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
                   if (dataFile.getName().equals(
                       docElement.getElementsByTagName("rawdatafile_name").item(0).getNodeValue())) {
                     Feature feature = peakList.getFeature(rownum, dataFile);
-                    if (feature != null)
+                    if (feature != null) {
                       newValues.add(feature);
+                    }
                   }
                 }
               }
@@ -120,8 +121,9 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
    */
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
 
     for (Feature item : value) {
@@ -178,7 +180,9 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   @Override
   public FeaturesParameter cloneParameter() {
     FeaturesParameter copy = new FeaturesParameter();
-    copy.value = new ArrayList<Feature>(value);
+    if (value != null) {
+      copy.value = new ArrayList<Feature>(value);
+    }
     return copy;
   }
 

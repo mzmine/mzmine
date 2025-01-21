@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.utils;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface UniqueIdSupplier {
 
@@ -37,4 +38,24 @@ public interface UniqueIdSupplier {
   @NotNull
   String getUniqueID();
 
+  /**
+   * parsing by enum.name and unique ID ignore case
+   *
+   * @param toParse      value to parse
+   * @param values       all values
+   * @param defaultValue the default value to return if not found or input is null
+   */
+  @Nullable
+  static <T extends Enum<?> & UniqueIdSupplier> T parseOrElse(@Nullable String toParse,
+      @NotNull T[] values, @Nullable T defaultValue) {
+    if (toParse == null) {
+      return defaultValue;
+    }
+    for (final T type : values) {
+      if (type.name().equalsIgnoreCase(toParse) || type.getUniqueID().equalsIgnoreCase(toParse)) {
+        return type;
+      }
+    }
+    return defaultValue;
+  }
 }

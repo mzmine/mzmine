@@ -50,6 +50,8 @@ import io.github.mzmine.datamodel.impl.SimpleMergedMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -77,11 +79,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods to merge multiple spectra. Data points are sorted by intensity and grouped,
- * similar to ADAP chromatogram building
- * {@link
- * io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask}.
- * Merging of data points from the same spectrum is prevented by indexing the data points prior to
- * sorting.
+ * similar to ADAP chromatogram building {@link ModularADAPChromatogramBuilderTask}. Merging of data
+ * points from the same spectrum is prevented by indexing the data points prior to sorting.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -315,7 +314,8 @@ public class SpectraMerging {
 
     List<MobilityScan> mobilityScans = frame.getMobilityScans().stream().filter(
         ms -> spectraNumbers.contains(ms.getMobilityScanNumber()) && (mobilityRange == null
-            || mobilityRange.contains((float) ms.getMobility()))).collect(Collectors.toList());
+                                                                      || mobilityRange.contains(
+            (float) ms.getMobility()))).collect(Collectors.toList());
 
     if (mobilityScans.isEmpty()) {
       return null;
@@ -564,7 +564,7 @@ public class SpectraMerging {
     return frame;
   }
 
-  public enum IntensityMergingType {
+  public enum IntensityMergingType implements UniqueIdSupplier {
     SUMMED("Summed"), MAXIMUM("Maximum value"), AVERAGE("Average value");
 
     private final String label;
@@ -573,9 +573,31 @@ public class SpectraMerging {
       this.label = label;
     }
 
+    public static IntensityMergingType parseOrElse(final String value,
+        @Nullable final IntensityMergingType defaultValue) {
+      return UniqueIdSupplier.parseOrElse(value, values(), defaultValue);
+    }
+
     @Override
     public String toString() {
       return this.label;
+    }
+
+    public String getDescription() {
+      return label + switch (this) {
+        case SUMMED, AVERAGE ->
+            " decreases the impact of random noise signals that are only present in some scans, however, it may over represent intense signals, because smaller signals may fall under the noise level in some scans, especially when acquiring scans with different fragmentation energies.";
+        case MAXIMUM -> " retains the general amplitude of spectral data.";
+      };
+    }
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case SUMMED -> "SUMMED";
+        case MAXIMUM -> "MAXIMUM";
+        case AVERAGE -> "AVERAGE";
+      };
     }
   }
 }

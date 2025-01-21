@@ -25,8 +25,9 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
+import io.github.mzmine.util.scans.ScanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,8 +100,9 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
    * @param scan the tested scan
    * @return true if scan matches filter
    */
-  public boolean accept(Scan scan) {
-    return accept(scan.getMSLevel());
+  public boolean accept(MassSpectrum scan) {
+    int msLevel = ScanUtils.getMsLevel(scan).orElse(0);
+    return accept(msLevel);
   }
 
   /**
@@ -121,7 +123,7 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
    * @param scan the tested scan
    * @return true if scan does not match filter
    */
-  public boolean notMatch(Scan scan) {
+  public boolean notMatch(MassSpectrum scan) {
     return !accept(scan);
   }
 

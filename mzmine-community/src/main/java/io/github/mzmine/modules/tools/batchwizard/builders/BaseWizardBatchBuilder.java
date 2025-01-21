@@ -73,6 +73,8 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilte
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
@@ -99,7 +101,6 @@ import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabas
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
-import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters.ScanMatchingSelection;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
@@ -116,6 +117,9 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters;
 import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
 import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportParameters;
+import io.github.mzmine.modules.io.export_scans_modular.AdvancedExportScansFeatureParameters;
+import io.github.mzmine.modules.io.export_scans_modular.ExportScansFeatureMainParameters;
+import io.github.mzmine.modules.io.export_scans_modular.ExportScansFeatureModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -360,7 +364,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param));
   }
 
-  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final WizardSequence steps) {
+  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final WizardSequence steps,
+      final MZTolerance mzTolScans) {
     // DDA workflow parameters
     var params = steps.get(WizardPart.WORKFLOW);
     OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
@@ -371,18 +376,18 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     boolean exportAnnotationGraphics = getValue(params,
         WorkflowDdaWizardParameters.exportAnnotationGraphics);
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
-        exportAnnotationGraphics);
+        exportAnnotationGraphics, mzTolScans);
   }
 
   // export for DDA
   protected static void makeAndAddDdaExportSteps(final BatchQueue q, final boolean isExportActive,
       final File exportPath, final boolean exportGnps, final boolean exportSirius,
-      final boolean exportAnnotationGraphics) {
+      final boolean exportAnnotationGraphics, final MZTolerance mzTolScans) {
     if (isExportActive && exportPath != null) {
       makeAndAddProjectMetadataExport(q, exportPath);
 
       if (exportGnps) {
-        makeAndAddIimnGnpsExportStep(q, exportPath);
+        makeAndAddIimnGnpsExportStep(q, exportPath, mzTolScans);
       }
       if (exportSirius) {
         makeAndAddSiriusExportStep(q, exportPath);
@@ -434,7 +439,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         MZmineCore.getModuleInstance(ProjectMetadataExportModule.class), param));
   }
 
-  protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath) {
+  protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath,
+      final MZTolerance mzTolScans) {
     final ParameterSet param = new GnpsFbmnExportAndSubmitParameters().cloneParameterSet();
 
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
@@ -442,7 +448,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER, false);
+    param.getParameter(GnpsFbmnExportAndSubmitParameters.spectraMergeSelect)
+        .setSimplePreset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, mzTolScans);
+
     param.setParameter(GnpsFbmnExportAndSubmitParameters.NORMALIZER,
         IntensityNormalizer.createDefault());
     param.setParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT, false);
@@ -465,7 +473,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(SiriusExportParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     // going back into scans so rather use scan mz tol
-    param.setParameter(SiriusExportParameters.MERGE_PARAMETER, false);
+    param.getParameter(SiriusExportParameters.spectraMergeSelect)
+        .setUseInputScans(SelectInputScans.ALL_SCANS);
     param.setParameter(SiriusExportParameters.NORMALIZE, IntensityNormalizer.createScientific());
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTICHARGE, false);
     param.setParameter(SiriusExportParameters.EXCLUDE_MULTIMERS, false);
@@ -739,6 +748,25 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   /**
    * Batch generation of library spectra
    */
+  protected void makeAndAddExportScansStep(final BatchQueue q, final File exportPath,
+      final LibraryBatchMetadataParameters libGenMetadata, final boolean skipAnnotatedFeatures,
+      final String fileSuffix) {
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(ExportScansFeatureModule.class).cloneParameterSet();
+
+    MZTolerance isolationToleranceForInstrument = getIsolationToleranceForInstrument(steps);
+
+    ExportScansFeatureMainParameters.setAll(param, exportPath, fileSuffix, libGenMetadata,
+        mzTolScans, isolationToleranceForInstrument, skipAnnotatedFeatures, false);
+
+    q.add(
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ExportScansFeatureModule.class),
+            param));
+  }
+
+  /**
+   * Batch generation of library spectra
+   */
   protected void makeAndAddBatchLibraryGeneration(final BatchQueue q, final File exportPath,
       final LibraryBatchMetadataParameters libGenMetadata) {
     final ParameterSet param = MZmineCore.getConfiguration()
@@ -751,7 +779,11 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     param.setParameter(LibraryBatchGenerationParameters.flists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(LibraryBatchGenerationParameters.mergeMzTolerance, true, mzTolScans);
+
+    // set merging
+    param.getParameter(LibraryBatchGenerationParameters.merging)
+        .setSimplePreset(SpectraMergeSelectPresets.REPRESENTATIVE_MSn_TREE, mzTolScans);
+
     param.setParameter(LibraryBatchGenerationParameters.exportFormat, exportFormat);
     param.setParameter(LibraryBatchGenerationParameters.normalizer,
         IntensityNormalizer.createDefault());
@@ -780,6 +812,12 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // metadata is user defined
     param.getParameter(LibraryBatchGenerationParameters.metadata)
         .setEmbeddedParameters(libGenMetadata);
+
+    // advanced
+    param.setParameter(LibraryBatchGenerationParameters.advanced, true);
+    var advanced = param.getParameter(LibraryBatchGenerationParameters.advanced)
+        .getEmbeddedParameters();
+    advanced.setParameter(AdvancedExportScansFeatureParameters.compactUSI, true);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(LibraryBatchGenerationModule.class), param));
@@ -1192,7 +1230,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     switch (algorithm) {
       case MODIFIED_COSINE -> {
-        ModifiedCosineSpectralNetworkingParameters.setAll(param, true, true, 500d, 4, 0.7,
+        ModifiedCosineSpectralNetworkingParameters.setAll(param, mzTolScans, true, 500d, 4, 0.7,
             mzTolScans, SpectralSignalFilter.DEFAULT);
       }
       case COSINE_NO_PRECURSOR -> {
@@ -1235,8 +1273,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(SpectralLibrarySearchParameters.peakLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(SpectralLibrarySearchParameters.libraries, new SpectralLibrarySelection());
-    param.setParameter(SpectralLibrarySearchParameters.scanMatchingSelection,
-        ScanMatchingSelection.MERGED_MSN);
+
+    // merging and selection to representative scan
+    param.getParameter(SpectralLibrarySearchParameters.spectraMergeSelect)
+        .setSimplePreset(SpectraMergeSelectPresets.REPRESENTATIVE_SCANS, mzTolScans);
+
+    param.setParameter(SpectralLibrarySearchParameters.msLevelFilter, MsLevelFilter.of(2));
+
     param.setParameter(SpectralLibrarySearchParameters.mzTolerancePrecursor,
         new MZTolerance(0.01, 20));
     param.setParameter(SpectralLibrarySearchParameters.mzTolerance, new MZTolerance(0.01, 20));
@@ -1316,12 +1359,14 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new LipidAnnotationChainParameters());
     param.setParameter(LipidAnnotationParameters.mzTolerance, mzTolInterSample);
     param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, true);
-    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-        .setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
-    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-        .setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
-    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-        .setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
+    var ms2Param = param.getParameter(LipidAnnotationParameters.searchForMSMSFragments)
+        .getEmbeddedParameters();
+    // all input scans as default to avoid to many chimeric merged spectra in lipids
+    ms2Param.getParameter(LipidAnnotationMSMSParameters.spectraMergeSelect)
+        .setUseInputScans(SelectInputScans.ALL_SCANS);
+    ms2Param.setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
+    ms2Param.setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
+    ms2Param.setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
     param.setParameter(LipidAnnotationParameters.advanced, false);
     var advanced = param.getEmbeddedParameterValue(LipidAnnotationParameters.advanced);
     advanced.setParameter(AdvancedLipidAnnotationParameters.IONS_TO_IGNORE,
