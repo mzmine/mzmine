@@ -81,6 +81,7 @@ public class SpectraMerger {
   private final @NotNull SampleHandling sampleHandling;
   private final @NotNull MZTolerance mzTol;
   private final @NotNull IntensityMergingType intensityMerging;
+  private final boolean excludeMSnScans;
   private @Nullable MemoryMapStorage storage;
 
   /**
@@ -94,6 +95,8 @@ public class SpectraMerger {
     this.sampleHandling =
         finalScanSelection.contains(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES)
             ? SampleHandling.ACROSS_SAMPLES : SampleHandling.SAME_SAMPLE;
+    this.excludeMSnScans = finalScanSelection.stream()
+        .noneMatch(MergedSpectraFinalSelectionTypes::isRequireMSn);
     this.mzTol = mzTol;
     this.intensityMerging = intensityMerging;
   }
@@ -111,16 +114,26 @@ public class SpectraMerger {
    * @return list of merged and single scans
    */
   @NotNull
-  public SpectraMergingResults getAllFragmentSpectra(final List<Scan> scans) {
+  public SpectraMergingResults getAllFragmentSpectra(List<Scan> scans) {
+    if (scans == null) {
+      return SpectraMergingResults.ofEmpty();
+    }
+    if (excludeMSnScans) {
+      scans = scans.stream().filter(s -> s.getMSLevel() <= 2).toList();
+    }
     if (scans.isEmpty()) {
       return SpectraMergingResults.ofEmpty();
     }
     if (scans.size() == 1) {
       return SpectraMergingResults.ofSingleScan(scans.getFirst());
     }
-    boolean hasMSn = scans.stream().anyMatch(s -> s.getMSLevel() > 2);
-    if (hasMSn) {
-      return getAllFragmentSpectraMSn(scans);
+
+    if (!excludeMSnScans) {
+      // skip if MSn were already filtered out - otherwise check for MSn and merge trees
+      boolean hasMSn = scans.stream().anyMatch(s -> s.getMSLevel() > 2);
+      if (hasMSn) {
+        return getAllFragmentSpectraMSn(scans);
+      }
     }
 
     // merge by sample first

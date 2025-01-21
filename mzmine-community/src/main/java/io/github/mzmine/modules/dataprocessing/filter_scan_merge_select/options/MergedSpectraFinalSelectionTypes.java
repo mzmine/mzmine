@@ -118,4 +118,11 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
       case EACH_ENERGY, ACROSS_ENERGIES, MSN_TREE, MSN_PSEUDO_MS2 -> false;
     };
   }
+
+  public boolean isRequireMSn() {
+    return switch (this) {
+      case MSN_TREE, MSN_PSEUDO_MS2 -> true;
+      case ACROSS_SAMPLES, EACH_SAMPLE, ACROSS_ENERGIES, EACH_ENERGY -> false;
+    };
+  }
 }
