@@ -23,47 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.submodules;
+package io.github.mzmine.parameters;
 
-import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
-import io.github.mzmine.parameters.ParameterComponent;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import javafx.scene.Node;
-import javafx.scene.layout.BorderPane;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Basis for parameter components with sub parameters
- *
- * @param <ValueType> value of parameter
- */
-public abstract class EmbeddedParametersComponent<ValueType> extends BorderPane implements
-    ParameterComponent<ValueType>, EmbeddedParameterComponentProvider {
+public interface EmbeddedParameterComponentProvider {
 
-  protected ParameterSetupPane paramPane;
-
-  public EmbeddedParametersComponent(final ParameterSet parameters) {
-    paramPane = new ParameterSetupPane(true, parameters, false, false, null, true, false);
+  /**
+   * @return a collection of components or empty list if not available
+   */
+  @NotNull
+  default Collection<Node> getComponents() {
+    var components = getParametersAndComponents();
+    return components == null ? List.of() : components.values();
   }
 
-  public void setParameterValuesToComponents() {
-    paramPane.setParameterValuesToComponents();
-  }
-
-  public ParameterSet getEmbeddedParameters() {
-    return paramPane.updateParameterSetFromComponents();
-  }
-
-  public ParameterSet updateParametersFromComponent() {
-    return getEmbeddedParameters();
-  }
-
-
-  @Override
-  public @Nullable Map<String, Node> getParametersAndComponents() {
-    return paramPane != null ? paramPane.getParametersAndComponents() : null;
-  }
+  /**
+   * Provides a map of parameter name to components like used in {@link ParameterSetupPane}.
+   *
+   * @return map of embedded parameters and components or null
+   */
+  @Nullable
+  Map<String, Node> getParametersAndComponents();
 
 }
