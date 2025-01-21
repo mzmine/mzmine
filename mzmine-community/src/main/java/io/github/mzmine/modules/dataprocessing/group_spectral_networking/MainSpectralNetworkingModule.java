@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor.NoPrecursorCosineSpectralNetworkingTask;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams.DreaMSNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
@@ -83,6 +84,9 @@ public class MainSpectralNetworkingModule extends AbstractProcessingModule {
       // one task for all
       case MS2_DEEPSCORE -> List.of(
           new MS2DeepscoreNetworkingTask(project, featureLists, parameters, null, moduleCallDate,
+              this.getClass()));
+      case DREAMS -> List.of(
+          new DreaMSNetworkingTask(project, featureLists, parameters, null, moduleCallDate,
               this.getClass()));
     };
   }

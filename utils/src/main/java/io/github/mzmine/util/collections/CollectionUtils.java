@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -317,6 +318,11 @@ public class CollectionUtils {
       value.addAll(list);
     }
     return value;
+  }
+
+  public static int[] argsortReversed(float[] array) {
+    return IntStream.range(0, array.length).boxed()
+        .sorted((a, b) -> Float.compare(array[b], array[a])).mapToInt(Integer::intValue).toArray();
   }
 
   public static @NotNull <T> Collector<T, ?, ArrayList<T>> toArrayList() {
