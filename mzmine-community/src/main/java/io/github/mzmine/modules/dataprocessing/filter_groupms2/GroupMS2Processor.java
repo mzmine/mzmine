@@ -258,6 +258,9 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
    * @return true if matches all criteria
    */
   private boolean filterScan(Scan scan, ModularFeature feature) {
+    if (scan.getPolarity() != feature.getRepresentativePolarity()) {
+      return false;
+    }
     // minimum signals
     if (minimumSignals > 0) {
       MassList massList = scan.getMassList();
@@ -313,7 +316,8 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
 
     final List<? extends PasefMsMsInfo> eligibleMsMsInfos = infos.stream()
         .<PasefMsMsInfo>mapMulti((imsMsMsInfo, c) -> {
-          if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getIsolationMz())) {
+          if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getIsolationMz()) && rtFilter.accept(
+              feature, imsMsMsInfo.getMsMsFrame().getRetentionTime())) {
             final Frame frame = (Frame) imsMsMsInfo.getMsMsScan();
             // if we have a mobility (=processed by IMS workflow), we can check for the correct range during assignment.
             if (mobility != null) {
@@ -336,14 +340,15 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
     if (eligibleMsMsInfos.isEmpty()) {
       return List.of();
     }
-    feature.set(MsMsInfoType.class, (List<MsMsInfo>) (List<? extends MsMsInfo>)eligibleMsMsInfos);
+    feature.set(MsMsInfoType.class, (List<MsMsInfo>) (List<? extends MsMsInfo>) eligibleMsMsInfos);
 
     List<Scan> msmsSpectra = new ArrayList<>();
     for (PasefMsMsInfo info : eligibleMsMsInfos) {
       Range<Float> mobilityLimits = lockToFeatureMobilityRange && feature.getMobilityRange() != null
           ? feature.getMobilityRange() : null;
-      MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
-          timsScanStorage, mobilityLimits, minMs2IntensityAbs, minMs2IntensityRel, minImsDetections);
+      MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
+          SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED, timsScanStorage,
+          mobilityLimits, minMs2IntensityAbs, minMs2IntensityRel, minImsDetections);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }
