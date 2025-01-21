@@ -36,6 +36,7 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -137,7 +138,8 @@ public final class MZmineCore {
   private static void addUserRequiredListener() {
     // add event listener
     EventService.subscribe(mzEvent -> {
-      if (mzEvent instanceof AuthRequiredEvent) {
+      if (mzEvent instanceof AuthRequiredEvent authEvent) {
+        DialogLoggerUtil.showMessageDialog("Invalid user", authEvent.message());
         if (DesktopService.isGUI()) {
           getDesktop().addTab(UsersTab.showTab());
         } else {
