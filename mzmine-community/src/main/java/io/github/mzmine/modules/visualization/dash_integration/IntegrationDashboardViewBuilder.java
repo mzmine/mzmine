@@ -87,6 +87,7 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
 
     final HBox pageControls = FxLayout.newHBox(Pos.CENTER, buildGridPageControls());
     gridWrapper.setTop(pageControls);
+    pageControls.setMinHeight(Region.USE_PREF_SIZE);
     BorderPane.setAlignment(pageControls, Pos.CENTER);
     gridWrapper.setCenter(buildPlots());
 

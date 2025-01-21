@@ -261,6 +261,12 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
         Bindings.createBooleanBinding(() -> model.getSelectedFeature() == null,
             model.selectedFeatureProperty()));
 
+    model.stateProperty().subscribe(state -> {
+      if (state == State.SETTING_LEFT) {
+        setLeftBoundary.requestFocus();
+      }
+    });
+
     abortFeature.disableProperty().bind(Bindings.createBooleanBinding(
         () -> model.getCurrentStartTime() == null && model.getCurrentEndTime() == null,
         model.stateProperty(), model.currentStartTimeProperty(), model.currentEndTimeProperty()));

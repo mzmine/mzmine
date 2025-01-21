@@ -3,6 +3,7 @@ package io.github.mzmine.modules.visualization.dash_integration;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
@@ -64,6 +65,11 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
     final MZTolerance integrationTolerance = model.getIntegrationTolerance();
 
     for (RawDataFile file : files) {
+      if (file instanceof ImagingRawDataFile) {
+        processed++;
+        continue;
+      }
+
       final @Nullable ModularFeature feature = (ModularFeature) row.getFeature(file);
       final Range<Double> mzRange =
           feature == null ? integrationTolerance.getToleranceRange(row.getAverageMZ())
