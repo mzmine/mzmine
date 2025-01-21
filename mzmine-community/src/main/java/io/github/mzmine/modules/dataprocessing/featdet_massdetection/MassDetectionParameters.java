@@ -82,8 +82,10 @@ public class MassDetectionParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    final boolean superCheck = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
     // Check the selected mass detector
     MassDetectors detector = getValue(massDetector);
 
@@ -95,6 +97,10 @@ public class MassDetectionParameters extends SimpleParameterSet {
       errorMessages.add("Spectral denormalization is currently only supported by the "
                         + "Factor of the lowest mass detector; selected: " + detector);
       return false;
+    }
+
+    if (skipRawDataAndFeatureListParameters) {
+      return superCheck;
     }
 
     // check files

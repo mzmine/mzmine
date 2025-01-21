@@ -119,6 +119,7 @@ import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramF
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule;
+import io.github.mzmine.modules.visualization.otherdetectors.multidetector.MultidetectorVisualizerModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
@@ -319,6 +320,8 @@ public abstract class AbstractWorkspace implements Workspace {
     addSeparator(rawDataVis);
     addModuleMenuItems(rawDataVis, RawDataSummaryModule.class, ScanHistogramModule.class,
         InjectTimeAnalysisModule.class);
+    addSeparator(rawDataVis);
+    addModuleMenuItems(rawDataVis, MultidetectorVisualizerModule.class);
 
     final Menu featureVis = addModuleMenuItems(menu, "Feature list",
         FeatureNetworkOverviewModule.class, CorrelatedFeaturesMzHistogramModule.class,

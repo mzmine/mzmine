@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -74,10 +74,13 @@ public class ChargeType extends IntegerType {
         for (ModularDataModel model : models) {
           if (model != null) {
             Integer charge = model.get(this);
-            max.merge(charge, 1, Integer::sum);
+            if (charge != null) {
+              // only count non-null
+              max.merge(charge, 1, Integer::sum);
+            }
           }
         }
-        Integer maxCharge = 0;
+        Integer maxCharge = null; // default is null
         Integer maxCount = 0;
         for (var entry : max.entrySet()) {
           if (entry.getValue() > maxCount) {

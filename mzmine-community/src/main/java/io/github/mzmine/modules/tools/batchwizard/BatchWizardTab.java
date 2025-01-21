@@ -47,6 +47,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizard
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
@@ -191,14 +192,13 @@ public class BatchWizardTab extends SimpleTab {
   }
 
   private void filterWorkflows(WizardSequence sequenceSteps) {
-    final List<WizardStepParameters> availableWorkflows = new ArrayList<>();
-    ALL_PRESETS.get(WizardPart.WORKFLOW).forEach(workflow -> {
-      final WorkflowWizardParameterFactory workflowFactory = (WorkflowWizardParameterFactory) workflow.getFactory();
-      final Map<WizardPart, WizardPartFilter> workflowStepFilters = workflowFactory.getStepFilters();
-      workflowStepFilters.forEach((step, filter) -> sequenceSteps.get(step)
-          .filter(stepParam -> filter.accept(stepParam.getFactory()))
-          .ifPresent(_ -> availableWorkflows.add(workflow)));
-    });
+    final List<WizardStepParameters> availableWorkflows = ALL_PRESETS.get(WizardPart.WORKFLOW)
+        .stream().filter(workflow -> {
+          if (workflow instanceof WorkflowWizardParameters workflowParams) {
+            return workflowParams.isApplicableToSteps(sequenceSteps);
+          }
+          return false;
+        }).toList();
     var selected = setItemsToCombo(combos.get(WORKFLOW), availableWorkflows, false);
     sequenceSteps.set(WORKFLOW, selected); // set the updated sequence
   }

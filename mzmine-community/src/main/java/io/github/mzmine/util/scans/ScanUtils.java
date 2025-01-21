@@ -56,6 +56,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.CachedMobilityScan;
 import io.github.mzmine.gui.preferences.UnitFormat;
@@ -624,7 +625,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-                                                                       - leftNeighbourBinIndex);
+              - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -2517,6 +2518,18 @@ public class ScanUtils {
 
 
   /**
+   * @return A stream of all MsMsInfos in the given collection of scans. IMS frames will return all
+   * isolations if there are multiple. This stream will not contain null entries and may be empty.
+   */
+  public static Stream<MsMsInfo> streamMsMsInfos(@Nullable Collection<? extends Scan> scans) {
+    if (scans == null) {
+      return Stream.empty();
+    }
+    return scans.stream().flatMap(s -> s instanceof Frame f ? f.getImsMsMsInfos().stream()
+        : Stream.ofNullable(s.getMsMsInfo())).filter(Objects::nonNull);
+  }
+
+  /**
    * Binning modes
    */
   public enum BinningType {
@@ -2542,4 +2555,6 @@ public class ScanUtils {
       return this.intMode;
     }
   }
+
+
 }

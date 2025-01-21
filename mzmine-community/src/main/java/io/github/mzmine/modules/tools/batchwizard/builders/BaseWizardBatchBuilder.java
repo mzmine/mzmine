@@ -239,7 +239,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   private @NotNull String csvFilterSamplesColumn = "";
   private MassOptions csvMassOptions;
   private List<ImportType> csvColumns;
-  private File csvLibraryFile;
+  protected File csvLibraryFile;
 
   protected BaseWizardBatchBuilder(final WizardSequence steps) {
     super(steps);
@@ -1307,7 +1307,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         MZmineCore.getModuleInstance(SpectralLibrarySearchModule.class), param);
     q.add(step);
   }
-
 
   protected void makeAndAddLocalCsvDatabaseSearchStep(final BatchQueue q,
       final @Nullable RTTolerance rtTol) {

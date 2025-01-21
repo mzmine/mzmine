@@ -116,7 +116,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
     makeAndAddBatchLibraryGeneration(q, exportPath, libGenMetadata);
 
     // join after the generation but just concat all lists together
-    makeAndAddJoinAlignmentStep(q, null);
+    makeAndAddJoinAlignmentStep(q, interSampleRtTol);
 
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q);
