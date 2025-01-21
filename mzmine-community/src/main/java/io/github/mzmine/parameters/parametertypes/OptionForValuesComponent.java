@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.util.maths.MathOperator;
 import java.text.NumberFormat;
 import java.util.logging.Level;
@@ -35,7 +36,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.converter.NumberStringConverter;
 import org.jetbrains.annotations.Nullable;
@@ -123,13 +123,13 @@ public class OptionForValuesComponent extends HBox {
   }
 
   public void setToolTipText(String toolTip) {
-    comboOption.setTooltip(new Tooltip(toolTip));
-    txtValue.setTooltip(new Tooltip(toolTip));
+    comboOption.setTooltip(FxTooltips.newTooltip(toolTip));
+    txtValue.setTooltip(FxTooltips.newTooltip(toolTip));
     if (comboOperator != null) {
-      comboOperator.setTooltip(new Tooltip(toolTip));
+      comboOperator.setTooltip(FxTooltips.newTooltip(toolTip));
     }
     if (txtOperator != null) {
-      txtOperator.setTooltip(new Tooltip(toolTip));
+      txtOperator.setTooltip(FxTooltips.newTooltip(toolTip));
     }
   }
 

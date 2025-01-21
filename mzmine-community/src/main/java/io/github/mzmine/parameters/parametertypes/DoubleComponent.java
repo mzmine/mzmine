@@ -25,6 +25,7 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.javafx.components.factories.FxTextFields;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.javafx.components.formatters.FormatDoubleStringConverter;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import java.text.NumberFormat;
@@ -32,7 +33,6 @@ import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +69,7 @@ public class DoubleComponent extends FlowPane implements ValuePropertyComponent<
   }
 
   public void setToolTipText(String toolTip) {
-    textField.setTooltip(new Tooltip(toolTip));
+    textField.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
   private boolean checkBounds(final double number) {

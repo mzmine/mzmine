@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 import com.google.common.collect.ImmutableList;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.io.download.DownloadAsset;
 import io.github.mzmine.modules.io.download.DownloadAssetButton;
@@ -47,7 +48,6 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
@@ -207,7 +207,7 @@ public class FileNamesComponent extends BorderPane {
     btnFromDirectory.setMinWidth(USE_COMPUTED_SIZE);
     btnFromDirectory.setPrefWidth(USE_COMPUTED_SIZE);
     btnFromDirectory.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-    btnFromDirectory.setTooltip(new Tooltip("All files in folder (sub folders)"));
+    btnFromDirectory.setTooltip(FxTooltips.newTooltip("All files in folder (sub folders)"));
     btns.add(btnFromDirectory);
     btnFromDirectory.setOnAction(e -> {
       // Create chooser.
@@ -264,7 +264,7 @@ public class FileNamesComponent extends BorderPane {
   }
 
   public void setToolTipText(String toolTip) {
-    txtFilename.setTooltip(new Tooltip(toolTip));
+    txtFilename.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
   private void initDragDropped() {

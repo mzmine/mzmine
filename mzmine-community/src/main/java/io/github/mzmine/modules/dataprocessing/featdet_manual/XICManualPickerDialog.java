@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,9 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
@@ -42,8 +45,6 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.Stroke;
@@ -59,7 +60,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
@@ -148,14 +148,14 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     endImage.setFitHeight(30);
 
     setLower = new Button(null, startImage);
-    setLower.setTooltip(new Tooltip("Set the lower integration boundary."));
+    setLower.setTooltip(FxTooltips.newTooltip("Set the lower integration boundary."));
     setLower.setOnAction(e -> {
       nextBorder = NextBorder.LOWER;
       setButtonBackground();
     });
 
     setUpper = new Button(null, endImage);
-    setUpper.setTooltip(new Tooltip("Set the upper integration boundary."));
+    setUpper.setTooltip(FxTooltips.newTooltip("Set the upper integration boundary."));
     setUpper.setOnAction(e -> {
       nextBorder = NextBorder.UPPER;
       setButtonBackground();

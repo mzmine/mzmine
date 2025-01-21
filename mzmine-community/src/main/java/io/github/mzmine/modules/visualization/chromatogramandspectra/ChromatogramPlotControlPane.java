@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
+
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.PolarityType;
@@ -73,9 +75,9 @@ public class ChromatogramPlotControlPane extends VBox {
 //    setAlignment(Pos.CENTER);
     cbXIC = new CheckBox("Show XIC");
     btnUpdateXIC = new Button("Update chromatogram(s)");
-    btnUpdateXIC.setTooltip(new Tooltip("Applies the current m/z range to the TIC/XIC plot."));
+    btnUpdateXIC.setTooltip(newTooltip("Applies the current m/z range to the TIC/XIC plot."));
     btnParam = new Button("Setup");
-    btnParam.setTooltip(new Tooltip("Setup parameters"));
+    btnParam.setTooltip(newTooltip("Setup parameters"));
     btnParam.setOnAction(event -> showChromParameterSetup());
     mzRangeNode = new MZRangeComponent();
 
@@ -97,7 +99,7 @@ public class ChromatogramPlotControlPane extends VBox {
     polarityCombo.getSelectionModel().selectedItemProperty()
         .subscribe((_, polarity) -> setScanPolarityFilterToParameters(polarity));
 
-    Tooltip.install(polarityCombo, new Tooltip("Scan polarity filter"));
+    Tooltip.install(polarityCombo, newTooltip("Scan polarity filter"));
 
     HBox controlsWrap = new HBox(5, cbXIC, btnUpdateXIC, btnParam, polarityCombo);
     controlsWrap.setAlignment(Pos.CENTER);

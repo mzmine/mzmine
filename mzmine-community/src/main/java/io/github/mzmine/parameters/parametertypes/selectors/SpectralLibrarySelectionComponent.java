@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -36,7 +37,6 @@ import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 
 public class SpectralLibrarySelectionComponent extends GridPane {
@@ -101,7 +101,7 @@ public class SpectralLibrarySelectionComponent extends GridPane {
   }
 
   public void setToolTipText(String toolTip) {
-    typeCombo.setTooltip(new Tooltip(toolTip));
+    typeCombo.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
   private void updateNumFiles() {

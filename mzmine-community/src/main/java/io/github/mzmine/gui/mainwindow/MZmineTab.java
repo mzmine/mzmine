@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.MZmineWindow;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.main.MZmineCore;
 import java.util.Collection;
 import java.util.logging.Logger;
@@ -39,7 +40,6 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
-import javafx.scene.control.Tooltip;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -67,7 +67,7 @@ public abstract class MZmineTab extends Tab {
     super(title);
 
     cbUpdateOnSelection = new CheckBox("");
-    cbUpdateOnSelection.setTooltip(new Tooltip(
+    cbUpdateOnSelection.setTooltip(FxTooltips.newTooltip(
         "If selected this tab is updated according to the current selection of raw files or feature lists."));
     cbUpdateOnSelection.setSelected(defaultBindingState);
 
@@ -165,7 +165,7 @@ public abstract class MZmineTab extends Tab {
       wi.setOnAction(e -> {
         if (window.getNumberOfTabs() >= MZmineGUI.MAX_TABS) {
           logger.info("Maximum number of tabs in " + window.getTitle()
-              + " window reached or tab cannot be moved. Cannot move tab to main window.");
+                      + " window reached or tab cannot be moved. Cannot move tab to main window.");
           e.consume();
           return;
         }

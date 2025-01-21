@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims;
 
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
@@ -48,7 +50,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -59,8 +60,8 @@ import org.jetbrains.annotations.Nullable;
 public class IMSRawDataOverviewControlPanel extends GridPane {
 
   public static final String TOOLTIP_MOBILITYSCAN_NL = "Noise level for mobility scan processing.\n"
-      + "Greatly impacts performance of this overview.\n Influences mobilogram, ion trace building "
-      + "and the frame overview heatmap.";
+                                                       + "Greatly impacts performance of this overview.\n Influences mobilogram, ion trace building "
+                                                       + "and the frame overview heatmap.";
 
   public static final String TOOLTIP_FRAME_NL =
       "Noise level for frame processing. Influences EIC" + " building and frame chart.";
@@ -75,7 +76,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
       "Retention time range around the selected m/z to " + "build EICs and ion traces.";
 
   public static final String TOOLTIP_BINWIDTH = "Bin width in for mobility dimension to build "
-      + "mobilograms.\nAutomatically set to a multiple of the actual acquisition step size.";
+                                                + "mobilograms.\nAutomatically set to a multiple of the actual acquisition step size.";
 
 
   private final IMSRawDataOverviewPane pane;
@@ -133,27 +134,27 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     setVgap(5);
     getColumnConstraints().addAll(new ColumnConstraints(150), new ColumnConstraints());
     Label lblMobilityScanNoiseLevel = new Label("Mobility scan noise level");
-    lblMobilityScanNoiseLevel.setTooltip(new Tooltip(TOOLTIP_MOBILITYSCAN_NL));
+    lblMobilityScanNoiseLevel.setTooltip(newTooltip(TOOLTIP_MOBILITYSCAN_NL));
     add(lblMobilityScanNoiseLevel, 0, 0);
     add(mobilityScanNoiseLevelComponent, 1, 0);
     Label lblFrameNoiseLevel = new Label("Frame noise level");
-    lblFrameNoiseLevel.setTooltip(new Tooltip(TOOLTIP_FRAME_NL));
+    lblFrameNoiseLevel.setTooltip(newTooltip(TOOLTIP_FRAME_NL));
     add(lblFrameNoiseLevel, 0, 1);
     add(frameNoiseLevelComponent, 1, 1);
     Label lblMzTol = new Label("m/z tolerance");
-    lblMzTol.setTooltip(new Tooltip(TOOLTIP_MZTOL));
+    lblMzTol.setTooltip(newTooltip(TOOLTIP_MZTOL));
     add(lblMzTol, 0, 2);
     add(mzToleranceComponent, 1, 2);
     Label lblScanSel = new Label("Scan selection");
-    lblScanSel.setTooltip(new Tooltip(TOOLTIP_SCANSEL));
+    lblScanSel.setTooltip(newTooltip(TOOLTIP_SCANSEL));
     add(lblScanSel, 0, 3);
     add(scanSelectionComponent, 1, 3);
     Label lblRtRange = new Label("Retention time width");
-    lblRtRange.setTooltip(new Tooltip(TOOLTIP_RTRANGE));
+    lblRtRange.setTooltip(newTooltip(TOOLTIP_RTRANGE));
     add(lblRtRange, 0, 4);
     add(rtWidthComponent, 1, 4);
     Label lblBinWidth = new Label("Mobilogram bin width (abs)");
-    lblBinWidth.setTooltip(new Tooltip(TOOLTIP_BINWIDTH));
+    lblBinWidth.setTooltip(newTooltip(TOOLTIP_BINWIDTH));
     add(lblBinWidth, 0, 5);
     add(binWidthComponent, 1, 5);
 

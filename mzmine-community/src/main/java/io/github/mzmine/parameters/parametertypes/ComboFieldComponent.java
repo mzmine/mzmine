@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 
 public class ComboFieldComponent<E extends Enum<?>> extends HBox {
@@ -69,7 +69,7 @@ public class ComboFieldComponent<E extends Enum<?>> extends HBox {
   }
 
   public void setToolTipText(String toolTip) {
-    inputField.setTooltip(new Tooltip(toolTip));
+    inputField.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
 }

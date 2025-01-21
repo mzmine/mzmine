@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.ParameterSet;
@@ -35,7 +36,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import org.jetbrains.annotations.NotNull;
@@ -128,7 +128,7 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
   }
 
   public void setToolTipText(String toolTip) {
-    checkBox.setTooltip(new Tooltip(toolTip));
+    checkBox.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
   public CheckBox getCheckbox() {

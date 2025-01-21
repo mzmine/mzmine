@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims;
+
+import static io.github.mzmine.javafx.components.factories.FxTooltips.newTooltip;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
@@ -185,21 +187,21 @@ public class IMSRawDataOverviewPane extends BorderPane {
     massDetectionPane.setPadding(new Insets(5, 5, 5, 5));
     massDetectionScanIcon = new FontIcon();
     Label massDetectionScanLabel = new Label("Masses detected in all mobility scans");
-    massDetectionScanLabel.setTooltip(new Tooltip(
+    massDetectionScanLabel.setTooltip(newTooltip(
         "Indication if the mass detection was " + "performed successfully in all mobility scans"));
     massDetectionPane.add(massDetectionScanIcon, 1, 1);
     massDetectionPane.add(massDetectionScanLabel, 0, 1);
 
     massDetectionFrameIcon = new FontIcon();
     Label massDetectionFrameLabel = new Label("Masses detected in selected frame");
-    massDetectionFrameLabel.setTooltip(new Tooltip(
+    massDetectionFrameLabel.setTooltip(newTooltip(
         "Indication if the mass detection was " + "performed successfully in the selected frame"));
     massDetectionPane.add(massDetectionFrameIcon, 1, 2);
     massDetectionPane.add(massDetectionFrameLabel, 0, 2);
     final Label binWidthDesc = new Label("Default mobility bin width:");
-    Tooltip.install(binWidthDesc, new Tooltip(
+    Tooltip.install(binWidthDesc, newTooltip(
         "The automatically determined bin width for this dataset. Optimising this manually and setting it in the\n"
-            + "IMS expander step may improve processing results."));
+        + "IMS expander step may improve processing results."));
     massDetectionPane.add(binWidthDesc, 0, 3);
     massDetectionPane.add(this.binWidthLabel, 1, 3);
     chartPanel.add(massDetectionPane, 0, 0);

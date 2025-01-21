@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,31 +26,31 @@
 package io.github.mzmine.modules.dataanalysis.bubbleplots;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogFX;
-import javafx.application.Platform;
-import org.jfree.data.xy.AbstractXYZDataset;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
-import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogFX;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import org.jfree.data.xy.AbstractXYZDataset;
 
 
 public class RTMZAnalyzerWindow extends Stage {
 
   private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
-  private static final Image colorbarIcon =
-      FxIconUtil.loadImageFromResources("icons/colorbaricon.png");
+  private static final Image colorbarIcon = FxIconUtil.loadImageFromResources(
+      "icons/colorbaricon.png");
 
   private final Scene mainScene;
   private final BorderPane mainPane;
@@ -76,9 +76,9 @@ public class RTMZAnalyzerWindow extends Stage {
     toolbar = new ToolBar();
     toolbar.setOrientation(Orientation.VERTICAL);
     Button axesButton = new Button(null, new ImageView(axesIcon));
-    axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
+    axesButton.setTooltip(FxTooltips.newTooltip("Setup ranges for axes"));
     Button colorButton = new Button(null, new ImageView(colorbarIcon));
-    colorButton.setTooltip(new Tooltip("Setup color palette"));
+    colorButton.setTooltip(FxTooltips.newTooltip("Setup color palette"));
     toolbar.getItems().addAll(axesButton, colorButton);
     mainPane.setRight(toolbar);
 
@@ -91,19 +91,20 @@ public class RTMZAnalyzerWindow extends Stage {
     });
 
     colorButton.setOnAction(e -> {
-        Platform.runLater(new Runnable() {
-          @Override
-          public void run() {
-            InterpolatingLookupPaintScaleSetupDialogFX colorDialog =
-                    new InterpolatingLookupPaintScaleSetupDialogFX(plot.getPaintScale());
-            colorDialog.showAndWait();
+      Platform.runLater(new Runnable() {
+        @Override
+        public void run() {
+          InterpolatingLookupPaintScaleSetupDialogFX colorDialog = new InterpolatingLookupPaintScaleSetupDialogFX(
+              plot.getPaintScale());
+          colorDialog.showAndWait();
 
-            if (colorDialog.getExitCode() == ExitCode.OK)
-              plot.setPaintScale(colorDialog.getPaintScale());
+          if (colorDialog.getExitCode() == ExitCode.OK) {
+            plot.setPaintScale(colorDialog.getPaintScale());
           }
-        });
-
+        }
       });
+
+    });
 
     String title = featureList.getName();
     title = title.concat(" : ");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
-import static io.github.mzmine.javafx.components.factories.FxTexts.*;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -33,7 +33,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -65,7 +65,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -229,7 +228,7 @@ public class SpectralMatchPanelFX extends GridPane {
     Label lbl = new Label(label);
     lbl.getStyleClass().add(styleClass);
     if (tooltip != null) {
-      lbl.setTooltip(new Tooltip(tooltip));
+      lbl.setTooltip(FxTooltips.newTooltip(tooltip));
     }
     return lbl;
   }

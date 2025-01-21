@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.submodules;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.FullColumnComponent;
@@ -44,7 +45,6 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Separator;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import org.jetbrains.annotations.Nullable;
@@ -145,7 +145,7 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
   }
 
   public void setToolTipText(String toolTip) {
-    combo.setTooltip(new Tooltip(toolTip));
+    combo.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
   public void setParameterValuesToComponents() {

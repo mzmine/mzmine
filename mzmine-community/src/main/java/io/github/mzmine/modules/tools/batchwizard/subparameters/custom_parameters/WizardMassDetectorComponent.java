@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import java.text.DecimalFormat;
@@ -32,7 +33,6 @@ import java.text.NumberFormat;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -120,8 +120,8 @@ public class WizardMassDetectorComponent extends
 
 
   public void setToolTipText(String toolTip) {
-    txtMsn.setTooltip(new Tooltip(toolTip));
-    txtMs1.setTooltip(new Tooltip(toolTip));
+    txtMsn.setTooltip(FxTooltips.newTooltip(toolTip));
+    txtMs1.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
 }

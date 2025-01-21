@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,9 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.javafx.components.factories.FxTooltips;
 import io.github.mzmine.parameters.ParameterSet;
 import javafx.scene.control.Button;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 
 
@@ -49,7 +49,7 @@ public class SubModuleComponent extends FlowPane {
   }
 
   public void setToolTipText(String toolTip) {
-    setButton.setTooltip(new Tooltip(toolTip));
+    setButton.setTooltip(FxTooltips.newTooltip(toolTip));
   }
 
 }
