@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.dialogs;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.Parameter;
@@ -36,8 +37,11 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -74,6 +78,7 @@ public class EmptyParameterSetupDialogBase extends Stage {
   protected ParameterSet parameterSet;
   // this value is incremented after a sub parmaeterset was expanded
   protected int widthExpandedBySubParameters;
+  protected DoubleProperty maxExtraHeightExpanded = new SimpleDoubleProperty(0);
   protected DoubleProperty maxExtraWidthExpanded = new SimpleDoubleProperty(0);
 
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters) {
@@ -171,20 +176,24 @@ public class EmptyParameterSetupDialogBase extends Stage {
   }
 
   private void addSizeChangeListeners(final Map<String, Node> parametersAndComponents) {
-    parametersAndComponents.values().forEach(node -> {
-      if (node instanceof EstimatedComponentHeightProvider sizePropertyProvider) {
-        sizePropertyProvider.estimatedHeightProperty()
-            .addListener((observable, oldHeight, newHeight) -> {
-              double heightDiff = newHeight.doubleValue() - oldHeight.doubleValue();
-              // just an estimate to increase height of dialog
-              setHeight(Math.min(calcMaxHeight(), getHeight() + heightDiff));
-            });
-      }
+    final var heightProperties = streamComponents(parametersAndComponents.values()) //
+        .filter(EstimatedComponentHeightProvider.class::isInstance)
+        .map(EstimatedComponentHeightProvider.class::cast)
+        .map(EstimatedComponentHeightProvider::estimatedHeightProperty)
+        .toArray(DoubleProperty[]::new);
+
+    // sum of extra heights
+    maxExtraHeightExpanded.bind(Bindings.createDoubleBinding(
+        (() -> Arrays.stream(heightProperties).mapToDouble(DoubleProperty::get).sum()),
+        heightProperties));
+    maxExtraHeightExpanded.addListener((_, oldValue, newValue) -> {
+      double diff = newValue.doubleValue() - oldValue.doubleValue();
+      setHeight(Math.min(calcMaxHeight(), getHeight() + diff));
     });
 
     // bind extra width to MAX of all widths
-    var widthProperties = parametersAndComponents.values().stream()
-        .filter(n -> n instanceof EstimatedComponentWidthProvider)
+    final var widthProperties = streamComponents(parametersAndComponents.values()).filter(
+            n -> n instanceof EstimatedComponentWidthProvider)
         .map(n -> ((EstimatedComponentWidthProvider) n).estimatedWidthProperty())
         .toArray(DoubleProperty[]::new);
     maxExtraWidthExpanded.bind(Bindings.createDoubleBinding(
@@ -194,6 +203,19 @@ public class EmptyParameterSetupDialogBase extends Stage {
       double widthDiff = newValue.doubleValue() - oldValue.doubleValue();
       setWidth(Math.min(calcMaxWidth(), getWidth() + widthDiff));
     });
+  }
+
+  private static Stream<Node> streamComponents(final Collection<Node> nodes) {
+    return nodes.stream().mapMulti(EmptyParameterSetupDialogBase::streamComponents);
+  }
+
+  private static void streamComponents(final Node node, final Consumer<Node> nodeConsumer) {
+    nodeConsumer.accept(node);
+    if (node instanceof EmbeddedParameterComponentProvider component) {
+      component.getComponents().forEach(child -> {
+        streamComponents(child, nodeConsumer);
+      });
+    }
   }
 
   @Override

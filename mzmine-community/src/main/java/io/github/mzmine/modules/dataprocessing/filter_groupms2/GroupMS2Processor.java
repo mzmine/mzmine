@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,8 +44,9 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementProcessor;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -55,10 +56,10 @@ import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.FragmentScanSelection;
-import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
+import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -141,9 +142,12 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
         GroupMS2Parameters.minRequiredSignals, 0);
 
     // only used for tims, keeping input spectra is important for later merging.
-    timsFragmentScanSelection = new FragmentScanSelection(SpectraMerging.pasefMS2MergeTol, true,
-        IncludeInputSpectra.ALL, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS,
-        timsScanStorage);
+    var scanTypes = List.of(MergedSpectraFinalSelectionTypes.EACH_SAMPLE,
+        MergedSpectraFinalSelectionTypes.EACH_ENERGY);
+    var merger = new SpectraMerger(scanTypes, SpectraMerging.pasefMS2MergeTol,
+        IntensityMergingType.MAXIMUM);
+    timsFragmentScanSelection = new FragmentScanSelection(timsScanStorage,
+        SelectInputScans.ALL_SCANS, merger, scanTypes);
 
     this.list = list;
     processedRows = 0;
@@ -258,6 +262,9 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
    * @return true if matches all criteria
    */
   private boolean filterScan(Scan scan, ModularFeature feature) {
+    if (scan.getPolarity() != feature.getRepresentativePolarity()) {
+      return false;
+    }
     // minimum signals
     if (minimumSignals > 0) {
       MassList massList = scan.getMassList();
@@ -278,7 +285,7 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
       precursorMZ = Objects.requireNonNullElse(scan.getPrecursorMz(), 0d);
     }
     return rtFilter.accept(feature, scan.getRetentionTime()) && precursorMZ != 0
-        && mzTol.checkWithinTolerance(feature.getMZ(), precursorMZ);
+           && mzTol.checkWithinTolerance(feature.getMZ(), precursorMZ);
   }
 
 
@@ -313,7 +320,8 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
 
     final List<? extends PasefMsMsInfo> eligibleMsMsInfos = infos.stream()
         .<PasefMsMsInfo>mapMulti((imsMsMsInfo, c) -> {
-          if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getIsolationMz())) {
+          if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getIsolationMz()) && rtFilter.accept(
+              feature, imsMsMsInfo.getMsMsFrame().getRetentionTime())) {
             final Frame frame = (Frame) imsMsMsInfo.getMsMsScan();
             // if we have a mobility (=processed by IMS workflow), we can check for the correct range during assignment.
             if (mobility != null) {
@@ -336,14 +344,15 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
     if (eligibleMsMsInfos.isEmpty()) {
       return List.of();
     }
-    feature.set(MsMsInfoType.class, (List<MsMsInfo>) (List<? extends MsMsInfo>)eligibleMsMsInfos);
+    feature.set(MsMsInfoType.class, (List<MsMsInfo>) (List<? extends MsMsInfo>) eligibleMsMsInfos);
 
     List<Scan> msmsSpectra = new ArrayList<>();
     for (PasefMsMsInfo info : eligibleMsMsInfos) {
       Range<Float> mobilityLimits = lockToFeatureMobilityRange && feature.getMobilityRange() != null
           ? feature.getMobilityRange() : null;
-      MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(info, SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED,
-          timsScanStorage, mobilityLimits, minMs2IntensityAbs, minMs2IntensityRel, minImsDetections);
+      MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
+          SpectraMerging.pasefMS2MergeTol, IntensityMergingType.SUMMED, timsScanStorage,
+          mobilityLimits, minMs2IntensityAbs, minMs2IntensityRel, minImsDetections);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }

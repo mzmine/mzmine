@@ -118,7 +118,7 @@ public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
 
     for (FeatureListRow row : featureList.getRows()) {
       Scan scan = row.getMostIntenseFragmentScan();
-      if (scan == null) {
+      if (scan == null || scan.getPrecursorMz() == null) {
         continue;
       }
       if (scan.getMassList() == null) {

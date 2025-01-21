@@ -43,6 +43,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.ParallelTextWriterTask;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.merging.FloatGrouping;
 import io.github.mzmine.util.scans.similarity.Weights;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleCollection;
@@ -149,7 +150,7 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
         setErrorMessage("Error during intra feature MS2 similarity export " + fileName);
         logger.log(Level.WARNING,
             "Error during compound annotations csv export of feature list: " + featureList.getName()
-                + ": " + e.getMessage(), e);
+            + ": " + e.getMessage(), e);
         if (writerTask != null) {
           writerTask.setWriteFinished();
         }
@@ -187,8 +188,9 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
     }
 
     // split by energy
-    Map<Float, List<Scan>> byFragmentationEnergy =
-        splitByEnergy ? ScanUtils.splitByFragmentationEnergy(scans) : Map.of(0f, scans);
+    Map<FloatGrouping, List<Scan>> byFragmentationEnergy =
+        splitByEnergy ? ScanUtils.splitByFragmentationEnergy(scans)
+            : Map.of(FloatGrouping.ofUndefined(), scans);
 
     double[] similarities = byFragmentationEnergy.values().stream().map(this::processScans)
         .flatMapToDouble(DoubleCollection::doubleStream).toArray();

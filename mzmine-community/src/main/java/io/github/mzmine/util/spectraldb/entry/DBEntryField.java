@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureTy
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.PeptideSequenceType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SourceScanUsiType;
 import io.github.mzmine.datamodel.features.types.annotations.SplashType;
 import io.github.mzmine.datamodel.features.types.annotations.UsiType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
@@ -58,6 +59,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.RelativeHeightType;
+import io.github.mzmine.datamodel.features.types.numbers.TotalSamplesType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
@@ -65,7 +67,9 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.collections.IndexRange;
+import io.github.mzmine.util.io.JsonUtils;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -107,7 +111,7 @@ public enum DBEntryField {
   FEATURE_MS1_HEIGHT(Float.class), FEATURE_MS1_REL_HEIGHT(Float.class),
 
   //
-  MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
+  MERGED_SPEC_TYPE, MERGED_N_SAMPLES, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
 
   // MS2
   COLLISION_ENERGY(FloatArrayList.class), FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
@@ -122,7 +126,7 @@ public enum DBEntryField {
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
 
   // Dataset ID is for MassIVE or other repositories
-  DATASET_ID, FILENAME, USI,
+  DATASET_ID, FILENAME, USI, SOURCE_SCAN_USI(List.class),
   /**
    * int or a {@code List<Integer>} `
    */
@@ -252,6 +256,7 @@ public enum DBEntryField {
       case RTType _ -> RT;
       case CCSType _ -> CCS;
       case UsiType _ -> USI;
+      case SourceScanUsiType _ -> SOURCE_SCAN_USI;
       case SplashType _ -> SPLASH;
       case HeightType _ -> FEATURE_MS1_HEIGHT;
       case RelativeHeightType _ -> FEATURE_MS1_REL_HEIGHT;
@@ -300,6 +305,7 @@ public enum DBEntryField {
            OTHER_MATCHED_COMPOUNDS_NAMES, //
            MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
            MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURELIST_NAME_FEATURE_ID -> StringType.class;
+      case MERGED_N_SAMPLES -> TotalSamplesType.class;
       case CLASSYFIRE_SUPERCLASS -> ClassyFireSuperclassType.class;
       case CLASSYFIRE_CLASS -> ClassyFireClassType.class;
       case CLASSYFIRE_SUBCLASS -> ClassyFireSubclassType.class;
@@ -326,6 +332,7 @@ public enum DBEntryField {
       case CCS -> CCSType.class;
       case DATASET_ID -> DatasetIdType.class;
       case USI -> UsiType.class;
+      case SOURCE_SCAN_USI -> SourceScanUsiType.class;
       case SPLASH -> SplashType.class;
       case ONLINE_REACTIVITY -> OnlineLcReactionMatchType.class;
       // TODO change to real data types instead of strings
@@ -347,6 +354,7 @@ public enum DBEntryField {
       case FEATURE_MS1_HEIGHT -> "feature_ms1_height";
       case FEATURE_MS1_REL_HEIGHT -> "feature_ms1_relative_height";
       case MERGED_SPEC_TYPE -> "merge_type";
+      case MERGED_N_SAMPLES -> "merged_across_n_samples";
       case ACQUISITION -> "acquisition";
       case SOFTWARE -> "softwaresource";
       case PEPTIDE_SEQ -> "peptide_sequence";
@@ -392,6 +400,7 @@ public enum DBEntryField {
       case ISOLATION_WINDOW -> "isolation_window";
       case DATASET_ID -> "dataset_id";
       case USI -> "usi";
+      case SOURCE_SCAN_USI -> "source_scan_usi";
       case QUALITY -> "quality";
       case QUALITY_PRECURSOR_PURITY -> "precursor_purity";
       case QUALITY_CHIMERIC -> "quality_chimeric";
@@ -417,10 +426,11 @@ public enum DBEntryField {
       case CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, ACQUISITION, GNPS_ID,
            MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, MOLWEIGHT, PUBCHEM, PUBMED,
-           PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR ->
+           PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR, SOURCE_SCAN_USI ->
           this.name().toLowerCase();
       case SCAN_NUMBER -> "scan_number";
       case MERGED_SPEC_TYPE -> "merge_type";
+      case MERGED_N_SAMPLES -> "merged_across_n_samples";
       case ENTRY_ID -> "DB#";
       case COLLISION_ENERGY -> "Collision_energy";
       case COMMENT -> "Comments";
@@ -479,10 +489,12 @@ public enum DBEntryField {
       case ACQUISITION, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, GNPS_ID, MONA_ID, CHEMSPIDER,
            PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY,
            CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
-           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY -> name();
+           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI ->
+          name();
       case RT -> "RTINSECONDS";
       case SCAN_NUMBER -> "SCANS";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
+      case MERGED_N_SAMPLES -> "MERGED_ACROSS_N_SAMPLES";
       case ENTRY_ID -> "SPECTRUMID";
       case CHARGE -> "CHARGE";
       case COMMENT -> "COMMENT";
@@ -541,7 +553,7 @@ public enum DBEntryField {
       case GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, SOFTWARE,
            COLLISION_ENERGY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, CLASSYFIRE_SUPERCLASS,
            CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS,
-           NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY -> this.name();
+           NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI -> this.name();
       case FILENAME -> "FILENAME";
       case PEPTIDE_SEQ -> "SEQ";
       case NAME -> "COMPOUND_NAME";
@@ -573,6 +585,7 @@ public enum DBEntryField {
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
+      case MERGED_N_SAMPLES -> "merged_across_n_samples";
       case NUM_PEAKS -> "Num peaks";
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
@@ -605,7 +618,8 @@ public enum DBEntryField {
     return switch (this) {
       case SIRIUS_MERGED_STATS, ONLINE_REACTIVITY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT,
            CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
-           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY -> "";
+           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, MERGED_N_SAMPLES,
+           SOURCE_SCAN_USI -> "";
       case SCAN_NUMBER -> "";
       case MERGED_SPEC_TYPE -> "";
       case ENTRY_ID -> "";
@@ -708,6 +722,12 @@ public enum DBEntryField {
       final float[] floats = ParsingUtils.stringToFloatArray(replaced, ",");
       return new FloatArrayList(floats);
     }
+    // TODO currently we can only parse this as list of strings - should be either json list or java object list
+    // FloatArrayList IntArrayList and other specialized classes help to load numbers
+    else if (getObjectClass().equals(List.class) && content != null) {
+      List<String> list = JsonUtils.readValueOrThrow(content);
+      return list;
+    }
     return content;
   }
 
@@ -721,12 +741,20 @@ public enum DBEntryField {
            COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
            MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
            MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
-           DATASET_ID, USI, SPLASH, QUALITY_CHIMERIC, //
+           DATASET_ID, USI, SOURCE_SCAN_USI, SPLASH, QUALITY_CHIMERIC, //
            OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY,
            PEPTIDE_SEQ, //
            IMS_TYPE, ONLINE_REACTIVITY, CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS,
            CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS,
-           NPCLASSIFIER_PATHWAY, FEATURELIST_NAME_FEATURE_ID -> value.toString();
+           NPCLASSIFIER_PATHWAY, FEATURELIST_NAME_FEATURE_ID, MERGED_N_SAMPLES -> {
+
+        // format lists and arrays as json so that they can easily be parsed
+        if (value instanceof Collection<?> || value.getClass().isArray()) {
+          yield JsonUtils.writeStringOrEmpty(value);
+        }
+
+        yield value.toString();
+      }
       case SCAN_NUMBER -> switch (value) {
         // multiple scans can be written as 1,4,6-9
         case List<?> list -> {

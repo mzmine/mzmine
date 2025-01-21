@@ -3,15 +3,20 @@ package datamodel;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
@@ -131,11 +136,55 @@ public class OtherDataTest {
 
   @Test
   void testMsChromatogramPolarity() {
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new PolarityTypeType(),
-        PolarityType.NEGATIVE);
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new PolarityTypeType(),
-        PolarityType.POSITIVE);
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new PolarityTypeType(),
-        PolarityType.UNKNOWN);
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new PolarityTypeType(), PolarityType.NEGATIVE);
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new PolarityTypeType(), PolarityType.POSITIVE);
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new PolarityTypeType(), PolarityType.UNKNOWN);
+  }
+
+  @Test
+  void testMrmLoadSave() {
+
+    final List<Scan> scans = IonTimeSeriesTest.makeSomeScans(file, 10);
+    scans.forEach(file::addScan);
+    final SimpleIonTimeSeries seriesA = new SimpleIonTimeSeries(null,
+        new double[]{322, 322, 322, 322, 322}, new double[]{1, 2, 5, 3, 4},
+        file.getScans().subList(3, 8));
+
+    final SimpleIonTimeSeries seriesB = new SimpleIonTimeSeries(null,
+        new double[]{322, 322, 322, 322, 322}, new double[]{4, 5, 10, 5, 4},
+        file.getScans().subList(3, 8));
+
+    // other mz
+    final SimpleIonTimeSeries failingSeries = new SimpleIonTimeSeries(null,
+        new double[]{100, 322, 322, 322, 322}, new double[]{4, 5, 10, 5, 4},
+        file.getScans().subList(3, 8));
+
+    final MrmTransition mrmA = new MrmTransition(322, 300, seriesA);
+    final MrmTransition mrmB = new MrmTransition(322, 10, seriesB);
+    Assertions.assertThrows(IllegalArgumentException.class,
+        () -> new MrmTransition(322, 300, failingSeries));
+
+    final MrmTransitionList mrmTransitionList = new MrmTransitionList(List.of(mrmA, mrmB));
+
+    // no loading of feature or file = null
+    Assertions.assertNull(
+        DataTypeTestUtils.saveAndLoad(new MrmTransitionListType(), null, proj, flist,
+            row, null, null));
+    Assertions.assertNull(
+        DataTypeTestUtils.saveAndLoad(new MrmTransitionListType(), mrmTransitionList, proj, flist,
+            row, null, null));
+
+    Assertions.assertEquals(mrmTransitionList,
+        DataTypeTestUtils.saveAndLoad(new MrmTransitionListType(), mrmTransitionList, proj, flist,
+            row, feature, file));
+    Assertions.assertEquals(null,
+        DataTypeTestUtils.saveAndLoad(new MrmTransitionListType(), null, proj, flist,
+            row, feature, file));
+
+    // test setting specific quantifier
+    mrmTransitionList.setQuantifier(mrmA, null);
+    Assertions.assertEquals(mrmTransitionList,
+        DataTypeTestUtils.saveAndLoad(new MrmTransitionListType(), mrmTransitionList, proj, flist,
+            row, feature, file));
   }
 }
