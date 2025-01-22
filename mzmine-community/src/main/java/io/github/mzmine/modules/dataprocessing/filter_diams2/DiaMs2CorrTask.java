@@ -294,8 +294,11 @@ public class DiaMs2CorrTask extends AbstractTask {
       return null;
     }
 
+    final MsMsInfo msMsInfo = correlatedMs2s.stream().map(PseudoSpectrum::getMsMsInfo)
+        .filter(Objects::nonNull).map(MsMsInfo::createCopy).findFirst().orElse(null);
+
     return new SimplePseudoSpectrum(mostIntense.getDataFile(), mostIntense.getMSLevel(),
-        mostIntense.getRetentionTime(), null, mzs.toDoubleArray(), intensities.toDoubleArray(),
+        mostIntense.getRetentionTime(), msMsInfo, mzs.toDoubleArray(), intensities.toDoubleArray(),
         mostIntense.getPolarity(), mostIntense.getScanDefinition(),
         mostIntense.getPseudoSpectrumType());
   }
