@@ -61,6 +61,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import org.controlsfx.control.CheckComboBox;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -450,19 +451,22 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
   protected void addListenersToNode(Node node) {
     if (node instanceof TextField textField) {
       textField.textProperty()
-          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+          .addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof ComboBox<?> comboComp) {
       comboComp.valueProperty()
-          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+          .addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof ChoiceBox) {
       ChoiceBox<?> choiceBox = (ChoiceBox) node;
       choiceBox.valueProperty()
-          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+          .addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof CheckBox checkBox) {
       checkBox.selectedProperty()
-          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+          .addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof ListView listview) {
-      listview.getItems().addListener((ListChangeListener) change -> parametersChanged());
+      listview.getItems().addListener((ListChangeListener) _ -> parametersChanged());
+    } else if (node instanceof CheckComboBox<?> checkCombo) {
+      checkCombo.getCheckModel().getCheckedIndices()
+          .addListener((ListChangeListener<? super Integer>) _ -> parametersChanged());
     } else if (node instanceof ModuleOptionsEnumComponent<?> options) {
       options.addSubParameterChangedListener(this::parametersChanged);
     } else if (node instanceof EmbeddedParameterComponentProvider prov) {

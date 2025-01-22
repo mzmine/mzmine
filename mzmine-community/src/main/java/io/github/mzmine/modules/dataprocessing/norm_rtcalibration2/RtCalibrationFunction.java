@@ -6,14 +6,19 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.jetbrains.annotations.NotNull;
 
 public class RtCalibrationFunction {
 
+  private static final Logger logger = Logger.getLogger(RtCalibrationFunction.class.getName());
+
   private final RawDataFile file;
   private final @NotNull PolynomialSplineFunction loess;
+  private double optimisedBandwidth = 0d;
+  private final int iterations = 3;
 
   public RtCalibrationFunction(FeatureList flist, List<RtStandard> rtSortedStandards,
       double bandwidth) {
@@ -76,35 +81,6 @@ public class RtCalibrationFunction {
     loess = getInterpolatorIteratively(file, bandwidth, thisRtValues, calibratedRtValues);
   }
 
-  private PolynomialSplineFunction getInterpolatorIteratively(@NotNull RawDataFile file,
-      double bandwidth, DoubleArrayList thisRtValues, DoubleArrayList calibratedRtValues) {
-    @NotNull PolynomialSplineFunction loess = null;
-    for (double bw = bandwidth; bw < 1; bw += 0.01) {
-      LoessInterpolator loessInterpolator = new LoessInterpolator(bandwidth, 1);
-      var tempLoess = loessInterpolator.interpolate(thisRtValues.toDoubleArray(),
-          calibratedRtValues.toDoubleArray());
-      boolean fail = false;
-      for (int i = 1; i < file.getNumOfScans(); i++) {
-        if (tempLoess.value(file.getScan(i - 1).getRetentionTime()) >= tempLoess.value(
-            file.getScan(i).getRetentionTime())) {
-          fail = true;
-          break;
-        }
-      }
-      if (!fail) {
-        loess = tempLoess;
-        break;
-      }
-    }
-    if (loess == null) {
-      return new LoessInterpolator(bandwidth, 1).interpolate(thisRtValues.toDoubleArray(),
-          calibratedRtValues.toDoubleArray());
-    }
-
-    return loess;
-  }
-
-
   private static void addFinalRt(@NotNull List<RtStandard> rtSortedStandards,
       Range<Float> fullRtRange, float averageRt, DoubleArrayList thisRtValues,
       DoubleArrayList calibratedRtValues) {
@@ -127,6 +103,37 @@ public class RtCalibrationFunction {
     }
   }
 
+  private PolynomialSplineFunction getInterpolatorIteratively(@NotNull RawDataFile file,
+      double bandwidth, DoubleArrayList thisRtValues, DoubleArrayList calibratedRtValues) {
+    @NotNull PolynomialSplineFunction loess = null;
+    for (double bw = bandwidth; bw < 1; bw += 0.01) {
+      LoessInterpolator loessInterpolator = new LoessInterpolator(bw, iterations);
+      var tempLoess = loessInterpolator.interpolate(thisRtValues.toDoubleArray(),
+          calibratedRtValues.toDoubleArray());
+      boolean fail = false;
+      for (int i = 1; i < file.getNumOfScans(); i++) {
+        if (tempLoess.value(file.getScan(i - 1).getRetentionTime()) >= tempLoess.value(
+            file.getScan(i).getRetentionTime())) {
+          logger.warning(
+              "Cannot find monotonous calibration for file %s with bandwidth %.3f. Increasing by 0.01.".formatted(
+                  file.getName(), bw));
+          fail = true;
+          break;
+        }
+      }
+      if (!fail) {
+        loess = tempLoess;
+        this.optimisedBandwidth = bw;
+        break;
+      }
+    }
+    if (loess == null) {
+      throw new InvalidRtCalibrationParametersException(bandwidth, file, calibratedRtValues.size());
+    }
+
+    return loess;
+  }
+
   public float getCorrectedRtLoess(float originalRt) {
     if (!loess.isValidPoint(originalRt)) {
       return originalRt;
@@ -136,5 +143,9 @@ public class RtCalibrationFunction {
 
   public RawDataFile getRawDataFile() {
     return file;
+  }
+
+  public double getOptimisedBandwidth() {
+    return optimisedBandwidth;
   }
 }

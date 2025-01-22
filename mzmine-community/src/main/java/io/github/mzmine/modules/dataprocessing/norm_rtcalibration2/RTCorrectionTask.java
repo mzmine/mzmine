@@ -70,13 +70,11 @@ class RTCorrectionTask extends AbstractTask {
   private final List<FeatureList> flists;
   private final SampleTypeFilter sampleTypeFilter;
   private final double bandwidth;
-
-  private int processedRows, totalRows;
-
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
   private final double minHeight;
   private final ParameterSet parameters;
+  private int processedRows, totalRows;
 
   public RTCorrectionTask(MZmineProject project, ParameterSet parameters,
       @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
@@ -94,74 +92,6 @@ class RTCorrectionTask extends AbstractTask {
     bandwidth = parameters.getValue(RTCorrectionParameters.correctionBandwidth);
     sampleTypeFilter = new SampleTypeFilter(
         parameters.getParameter(RTCorrectionParameters.sampleTypes).getValue());
-  }
-
-  @Override
-  public double getFinishedPercentage() {
-    if (totalRows == 0) {
-      return 0f;
-    }
-    return (double) processedRows / (double) totalRows;
-  }
-
-  @Override
-  public String getTaskDescription() {
-    return "Retention time normalization of " + flists.size() + " feature lists";
-  }
-
-  @Override
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-    if (flists.size() < 2) {
-      setStatus(TaskStatus.FINISHED);
-    }
-
-    final List<FeatureList> flistsWithMoreThanOneFile = flists.stream()
-        .filter(fl -> fl.getNumberOfRawDataFiles() > 1).toList();
-    if (!flistsWithMoreThanOneFile.isEmpty()) {
-      final RuntimeException ex = new RuntimeException(
-          createMoreThanOneFileMessage(flistsWithMoreThanOneFile));
-      error(ex.getMessage(), ex);
-      return;
-    }
-
-    final List<FeatureList> referenceFlistsByNumRows = flists.stream()
-        .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
-        .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
-    if (referenceFlistsByNumRows.isEmpty()) {
-      final RuntimeException ex = new RuntimeException(
-          createUnsatisfiedSampleFilterMessage(sampleTypeFilter, flists));
-      error(ex.getMessage(), ex);
-      return;
-    }
-
-    final FeatureList baseList = referenceFlistsByNumRows.getFirst();
-    final Map<FeatureList, List<FeatureListRow>> mzSortedRows = new HashMap<>();
-    referenceFlistsByNumRows.forEach(flist -> mzSortedRows.put(flist,
-        flist.stream().sorted(Comparator.comparingDouble(FeatureListRow::getAverageMZ)).toList()));
-
-    final List<RtStandard> goodStandards = findStandards(baseList, referenceFlistsByNumRows,
-        mzSortedRows, mzTolerance, rtTolerance, minHeight);
-    goodStandards.sort(Comparator.comparingDouble(RtStandard::getMedianRt));
-    final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
-        referenceFlistsByNumRows);
-    final List<RtCalibrationFunction> allCalibrations = interpolateMissingCalibrations(
-        referenceFlistsByNumRows, flists, project.getProjectMetadata(), monotonousStandards,
-        bandwidth);
-
-    for (RtCalibrationFunction cali : allCalibrations) {
-      final RawDataFile file = cali.getRawDataFile();
-      for (Scan scan : file.getScans()) {
-        ((SimpleScan) scan).setCorrectedRetentionTime(
-            cali.getCorrectedRtLoess(scan.getRetentionTime()));
-      }
-    }
-
-    for (FeatureList flist : flists) {
-      flist.streamFeatures().forEach(FeatureDataUtils::recalculateIonSeriesDependingTypes);
-    }
-
-    setStatus(TaskStatus.FINISHED);
   }
 
   static @NotNull String createUnsatisfiedSampleFilterMessage(SampleTypeFilter sampleTypeFilter,
@@ -184,6 +114,19 @@ class RTCorrectionTask extends AbstractTask {
     final Map<RawDataFile, RtCalibrationFunction> referenceCalibrations = referenceFlists.stream()
         .map(flist -> new RtCalibrationFunction(flist, monotonousStandards, bandwidth))
         .collect(Collectors.toMap(RtCalibrationFunction::getRawDataFile, cali -> cali));
+
+    // the rt calibration automatically increases the bandwidth if the function is not monotonous
+    final double iterativeBandwidth = referenceCalibrations.values().stream()
+        .mapToDouble(RtCalibrationFunction::getOptimisedBandwidth).max().orElse(bandwidth);
+    if (iterativeBandwidth > bandwidth) {
+      // if the bandwidth had to be increased, re-run all calibrations with the new bandwidth to make them comparable
+      logger.info(
+          "While calibrating on reference files files, the bandwidth had to be increased to create a monotonous calibration. Rerunning with bandwidth %.3f".formatted(
+              iterativeBandwidth));
+      return interpolateMissingCalibrations(referenceFlists, allFeatureLists, metadata,
+          monotonousStandards, iterativeBandwidth);
+    }
+
     final List<RtCalibrationFunction> allCalibrations = new ArrayList<>(
         referenceCalibrations.values());
     // calculate calibrations for other files
@@ -222,6 +165,19 @@ class RTCorrectionTask extends AbstractTask {
           previousCali, previousWeight, nextCali, nextRunWeight, bandwidth);
       allCalibrations.add(newCali);
     }
+
+    // the rt calibration automatically increases the bandwidth if the function is not monotonous
+    final double allCalisIterativeBandwidth = allCalibrations.stream()
+        .mapToDouble(RtCalibrationFunction::getOptimisedBandwidth).max().orElse(bandwidth);
+    if (allCalisIterativeBandwidth > bandwidth) {
+      logger.info(
+          "After transferring calibrations to all files, the bandwidth had to be increased to create a monotonous calibration. Rerunning with bandwidth %.3f".formatted(
+              allCalisIterativeBandwidth));
+      // if the bandwidth had to be increased, re-run all calibrations with the new bandwidth to make them comparable
+      return interpolateMissingCalibrations(referenceFlists, allFeatureLists, metadata,
+          monotonousStandards, allCalisIterativeBandwidth);
+    }
+
     return allCalibrations;
   }
 
@@ -386,5 +342,73 @@ class RTCorrectionTask extends AbstractTask {
     }
 
     return nextRunCali;
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    if (totalRows == 0) {
+      return 0f;
+    }
+    return (double) processedRows / (double) totalRows;
+  }
+
+  @Override
+  public String getTaskDescription() {
+    return "Retention time normalization of " + flists.size() + " feature lists";
+  }
+
+  @Override
+  public void run() {
+    setStatus(TaskStatus.PROCESSING);
+    if (flists.size() < 2) {
+      setStatus(TaskStatus.FINISHED);
+    }
+
+    final List<FeatureList> flistsWithMoreThanOneFile = flists.stream()
+        .filter(fl -> fl.getNumberOfRawDataFiles() > 1).toList();
+    if (!flistsWithMoreThanOneFile.isEmpty()) {
+      final RuntimeException ex = new RuntimeException(
+          createMoreThanOneFileMessage(flistsWithMoreThanOneFile));
+      error(ex.getMessage(), ex);
+      return;
+    }
+
+    final List<FeatureList> referenceFlistsByNumRows = flists.stream()
+        .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
+        .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
+    if (referenceFlistsByNumRows.isEmpty()) {
+      final RuntimeException ex = new RuntimeException(
+          createUnsatisfiedSampleFilterMessage(sampleTypeFilter, flists));
+      error(ex.getMessage(), ex);
+      return;
+    }
+
+    final FeatureList baseList = referenceFlistsByNumRows.getFirst();
+    final Map<FeatureList, List<FeatureListRow>> mzSortedRows = new HashMap<>();
+    referenceFlistsByNumRows.forEach(flist -> mzSortedRows.put(flist,
+        flist.stream().sorted(Comparator.comparingDouble(FeatureListRow::getAverageMZ)).toList()));
+
+    final List<RtStandard> goodStandards = findStandards(baseList, referenceFlistsByNumRows,
+        mzSortedRows, mzTolerance, rtTolerance, minHeight);
+    goodStandards.sort(Comparator.comparingDouble(RtStandard::getMedianRt));
+    final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
+        referenceFlistsByNumRows);
+    final List<RtCalibrationFunction> allCalibrations = interpolateMissingCalibrations(
+        referenceFlistsByNumRows, flists, project.getProjectMetadata(), monotonousStandards,
+        bandwidth);
+
+    for (RtCalibrationFunction cali : allCalibrations) {
+      final RawDataFile file = cali.getRawDataFile();
+      for (Scan scan : file.getScans()) {
+        ((SimpleScan) scan).setCorrectedRetentionTime(
+            cali.getCorrectedRtLoess(scan.getRetentionTime()));
+      }
+    }
+
+    for (FeatureList flist : flists) {
+      flist.streamFeatures().forEach(FeatureDataUtils::recalculateIonSeriesDependingTypes);
+    }
+
+    setStatus(TaskStatus.FINISHED);
   }
 }
