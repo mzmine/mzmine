@@ -187,7 +187,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return isolationWindowMergingProgress * 0.25 + adapTaskProgess * 0.25
-        + (currentRow / (double) numRows) * 0.5d;
+           + (currentRow / (double) numRows) * 0.5d;
   }
 
   @Override
@@ -581,17 +581,23 @@ public class DiaMs2CorrTask extends AbstractTask {
           final double[][] mzIntensities = SpectraMerging.calculatedMergedMzsAndIntensities(
               mobilityScansInWindow.stream().map(MobilityScan::getMassList).toList(), mzTolerance,
               IntensityMergingType.SUMMED, SpectraMerging.DEFAULT_CENTER_FUNCTION, null, null, 2);
+
+          // all scans have the same msmsInfo - therefore ok to use just one of them
           final Optional<IonMobilityMsMsInfo> msMsInfo = mobilityScansInWindow.stream()
               .map(MobilityScan::getMsMsInfo).filter(IonMobilityMsMsInfo.class::isInstance)
-              .map(IonMobilityMsMsInfo.class::cast).findFirst();
+              .map(IonMobilityMsMsInfo.class::cast).findFirst().map(
+                  info -> (IonMobilityMsMsInfo) info.createCopy()); // copy to secure original from changes
+
+          // also set the msmsinfo as the precursorInfos - will be just one representative
+          final Set<IonMobilityMsMsInfo> precursorInfos = msMsInfo.map(Set::of).orElse(null);
 
           final SimpleFrame newFrame = new SimpleFrame(windowFile, scan.getScanNumber(),
               scan.getMSLevel(), scan.getRetentionTime(), mzIntensities[0], mzIntensities[1],
               scan.getSpectrumType(), scan.getPolarity(), scan.getScanDefinition(),
-              scan.getScanningMZRange(), ((Frame) scan).getMobilityType(),
-              msMsInfo.map(Set::of).orElse(null), scan.getInjectionTime());
-          newFrame.setMsMsInfo(msMsInfo.orElse(
-              null)); //set to regular msmsinfo so we can extract for later CE setting
+              scan.getScanningMZRange(), ((Frame) scan).getMobilityType(), precursorInfos,
+              scan.getInjectionTime());
+          //set to regular msmsinfo so we can extract for later CE setting
+          newFrame.setMsMsInfo(msMsInfo.orElse(null));
           newFrame.addMassList(new ScanPointerMassList(newFrame));
           windowFile.addScan(newFrame);
 
