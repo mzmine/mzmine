@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,7 +63,7 @@ public class WizardSequenceIOUtils {
 
   private static final Logger logger = Logger.getLogger(WizardSequenceIOUtils.class.getName());
   private static final String WIZARD_EXTENSION = "mzmwizard";
-  public static final ExtensionFilter FILE_FILTER = new ExtensionFilter("MZmine wizard preset",
+  public static final ExtensionFilter FILE_FILTER = new ExtensionFilter("mzmine wizard preset",
       "*." + WIZARD_EXTENSION);
   private static final String PART_TAG = "wiz_part";
   private static final String ELEMENT_TAG = "wizard";

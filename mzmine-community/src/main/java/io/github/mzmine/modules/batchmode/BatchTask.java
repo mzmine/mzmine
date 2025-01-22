@@ -74,6 +74,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -87,9 +88,10 @@ public class BatchTask extends AbstractTask {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final int totalSteps;
   private final MZmineProject project;
-  private int processedSteps;
   private final boolean useAdvanced;
   private final int datasets;
+  private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
+  private int processedSteps;
   private List<File> subDirectories;
   private List<RawDataFile> createdDataFiles;
   private List<RawDataFile> previousCreatedDataFiles;
@@ -100,7 +102,6 @@ public class BatchTask extends AbstractTask {
   private Boolean createResultsDir;
   private File parentDir;
   private int currentDataset;
-  private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
 
   BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     this(project, parameters, moduleCallDate,
@@ -253,7 +254,7 @@ public class BatchTask extends AbstractTask {
               setStatus(TaskStatus.ERROR);
               setErrorMessage(
                   "Could not set data files in advanced batch mode. Will cancel all jobs. "
-                  + datasetName);
+                      + datasetName);
               return;
             }
           }
@@ -285,6 +286,9 @@ public class BatchTask extends AbstractTask {
       // If we are canceled or ran into error, stop here
       if (getStatus() == TaskStatus.ERROR) {
         errorDataset++;
+        DialogLoggerUtil.showDialog(AlertType.ERROR, "Batch processing error",
+            "An error occurred while processing batch step %d.\n%s".formatted(
+                i % stepsPerDataset + 1, getErrorMessage()), false);
         if (skipOnError && datasets - currentDataset > 0) {
           // skip to next dataset
           logger.info("Error in dataset: " + datasetName + " total error datasets:" + errorDataset);
@@ -375,7 +379,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFiles == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-                          + "Missing parameter value for " + p.getName());
+              + "Missing parameter value for " + p.getName());
           return;
         }
         selectedFiles.setBatchLastFiles(createdFiles);
@@ -394,6 +398,7 @@ public class BatchTask extends AbstractTask {
       setErrorMessage(
           "Invalid parameter settings for module " + method.getName() + ": " + Arrays.toString(
               messages.toArray()));
+      return;
     }
 
     List<Task> currentStepTasks = new ArrayList<>();
@@ -507,7 +512,7 @@ public class BatchTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
             "Wanted to set the last batch files from raw data import but failed because less data files were imported than expected.\n"
-            + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
+                + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
                 createdDataFiles.size()));
       }
     }
@@ -530,7 +535,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFeatureLists == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-                          + "Missing parameter value for " + p.getName());
+              + "Missing parameter value for " + p.getName());
           return false;
         }
         selectedFeatureLists.setBatchLastFeatureLists(createdFlists);

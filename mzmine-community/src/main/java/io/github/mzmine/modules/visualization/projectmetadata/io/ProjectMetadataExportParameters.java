@@ -70,7 +70,7 @@ public class ProjectMetadataExportParameters extends SimpleParameterSet {
       final MetadataFileFormat mFormat) {
     ParameterSet params = new ProjectMetadataExportParameters().cloneParameterSet();
     if (appendSuffix) {
-      params.getParameter(fileName).setValueAppendSuffix(file);
+      params.getParameter(fileName).setValueAppendSuffix(file, null);
     } else {
       params.setParameter(fileName, file);
     }

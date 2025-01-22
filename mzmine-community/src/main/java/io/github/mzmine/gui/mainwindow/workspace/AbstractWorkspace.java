@@ -94,6 +94,7 @@ import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCS
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
 import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
 import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
+import io.github.mzmine.modules.io.export_scans_modular.ExportScansFeatureModule;
 import io.github.mzmine.modules.io.import_feature_networks.ImportFeatureNetworksSimpleModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
@@ -265,14 +266,17 @@ public abstract class AbstractWorkspace implements Workspace {
     addModuleMenuItems(menu, "Graphics", ExportAllIdsGraphicalModule.class);
     addModuleMenuItems(menu, CSVExportModularModule.class, CompoundAnnotationsCSVExportModule.class,
         LegacyCSVExportModule.class, MZTabmExportModule.class, SQLExportModule.class,
-        AdapMspExportModule.class, AdapMgfExportModule.class, GnpsFbmnExportAndSubmitModule.class,
-        GnpsGcExportAndSubmitModule.class, SiriusExportModule.class,
+        // scans
+        ExportScansFeatureModule.class, AdapMspExportModule.class, AdapMgfExportModule.class,
+        GnpsFbmnExportAndSubmitModule.class, GnpsGcExportAndSubmitModule.class,
+        SiriusExportModule.class,
+        //
         ImportFeatureNetworksSimpleModule.class, ExportCorrAnnotationModule.class,
         NetworkGraphMlExportModule.class, FeatureMLExportModularModule.class,
         CcsBaseExportModule.class);
     addModuleMenuItems(menu, "Statistics", VennExportModule.class, MetaboAnalystExportModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryBatchGenerationModule.class,
-        GNPSLibraryBatchExportModule.class);
+        GNPSLibraryBatchExportModule.class, ExportScansFeatureModule.class);
 
     return menu;
   }

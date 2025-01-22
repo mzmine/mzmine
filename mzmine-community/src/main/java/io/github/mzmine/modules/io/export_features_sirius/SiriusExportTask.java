@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -40,26 +41,18 @@ import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
-import io.github.mzmine.modules.tools.msmsspectramerge.MergeMode;
-import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
-import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -73,7 +66,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -89,20 +82,17 @@ public class SiriusExportTask extends AbstractTask {
   private final ParameterSet parameters;
   private final ModularFeatureList[] featureLists;
   private final File fileName;
-  private final boolean mergeEnabled;
-  private final MsMsSpectraMergeParameters mergeParameters;
-  private final double minimumRelativeNumberOfScans;
   private final MZTolerance mzTol;
   private final Boolean excludeMultiCharge;
   private final Boolean excludeMultimers;
   private final Boolean needAnnotation;
   private final int totalRows;
   private final NumberFormats format = MZmineCore.getConfiguration().getExportFormats();
-  private final MergeMode mergeMode;
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private final AtomicInteger processedRows = new AtomicInteger(0);
   private final IntensityNormalizer normalizer;
   private final SpectralLibraryEntryFactory entryFactory;
+  private final FragmentScanSelection scanMergeSelect;
 
 
   protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -112,12 +102,11 @@ public class SiriusExportTask extends AbstractTask {
     this.featureLists = parameters.getValue(SiriusExportParameters.FEATURE_LISTS)
         .getMatchingFeatureLists();
     this.fileName = parameters.getValue(SiriusExportParameters.FILENAME);
-    this.mergeEnabled = parameters.getValue(SiriusExportParameters.MERGE_PARAMETER);
-    this.mergeParameters = parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER)
-        .getEmbeddedParameters();
+    var mergeSelect = parameters.getParameter(SiriusExportParameters.spectraMergeSelect)
+        .getValueWithParameters();
 
-    minimumRelativeNumberOfScans = mergeEnabled ? mergeParameters.getParameter(
-        MsMsSpectraMergeParameters.REL_SIGNAL_COUNT_PARAMETER).getValue() : 0d;
+    this.scanMergeSelect = mergeSelect.value()
+        .createFragmentScanSelection(getMemoryMapStorage(), mergeSelect.parameters());
 
     // new parameters related to ion identity networking and feature grouping
     mzTol = parameters.getValue(SiriusExportParameters.MZ_TOL);
@@ -125,22 +114,11 @@ public class SiriusExportTask extends AbstractTask {
     excludeMultiCharge = parameters.getValue(SiriusExportParameters.EXCLUDE_MULTICHARGE);
     excludeMultimers = parameters.getValue(SiriusExportParameters.EXCLUDE_MULTIMERS);
     needAnnotation = parameters.getValue(SiriusExportParameters.NEED_ANNOTATION);
-    mergeMode = mergeParameters.getValue(MsMsSpectraMergeParameters.MERGE_MODE);
 
     totalRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
 
     entryFactory = new SpectralLibraryEntryFactory(true, true, true, false);
     entryFactory.setAddOnlineReactivityFlags(true);
-  }
-
-  public static void putMergedSpectrumFieldsIntoEntry(MergedSpectrum spectrum,
-      SpectralLibraryEntry entry) {
-    entry.putIfNotNull(DBEntryField.FILENAME,
-        Arrays.stream(spectrum.origins).map(RawDataFile::getName).collect(Collectors.joining(";")));
-    entry.putIfNotNull(DBEntryField.SIRIUS_MERGED_SCANS,
-        Arrays.stream(spectrum.scanIds).mapToObj(Integer::toString)
-            .collect(Collectors.joining(",")));
-    entry.putIfNotNull(DBEntryField.SIRIUS_MERGED_STATS, spectrum.getMergeStatsDescription());
   }
 
   @Override
@@ -158,6 +136,16 @@ public class SiriusExportTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
+    if (featureLists.length > 1 && !SiriusExportTask.hasDefaultSubstitutionPattern(fileName)) {
+      // error that multiple feature lists are selected and no filename pattern defined
+      error("""
+          Multiple feature lists (%d) were selected for Sirius export, /
+          but the filename misses the file name pattern "%s" to insert each feature list name.
+          Either select a single feature list or use the name pattern.""".formatted(
+          featureLists.length, SiriusExportTask.MULTI_NAME_PATTERN));
+      return;
+    }
+
     // Process feature lists
     for (FeatureList featureList : featureLists) {
       if (isCanceled()) {
@@ -165,7 +153,7 @@ public class SiriusExportTask extends AbstractTask {
       }
 
       // Filename
-      final File curFile = getFileForFeatureList(isSubstitute(), featureList);
+      final File curFile = getFileForFeatureList(featureList);
       if (curFile == null) {
         setErrorMessage("Could not create directories for file " + curFile + " for writing.");
         setStatus(TaskStatus.ERROR);
@@ -198,11 +186,6 @@ public class SiriusExportTask extends AbstractTask {
         "Processed " + processedRows.get() + " rows, exported " + exportedRows.get() + " rows.");
 
     setStatus(TaskStatus.FINISHED);
-  }
-
-  protected boolean isSubstitute() {
-    boolean substitute = fileName.getPath().contains(MULTI_NAME_PATTERN);
-    return substitute;
   }
 
   private void exportFeatureList(FeatureList featureList, BufferedWriter writer)
@@ -239,14 +222,9 @@ public class SiriusExportTask extends AbstractTask {
       entries.add(ms1);
     }
 
-    if (mergeEnabled) {
-      final List<SpectralLibraryEntry> ms2Entries = getMergedMs2SpectraEntries(mergeMode, row);
-      entries.addAll(ms2Entries);
-    } else {
-      final List<SpectralLibraryEntry> ms2Entries = row.streamFeatures().flatMap(
-              f -> f.getAllMS2FragmentScans().stream().map(s -> spectrumToEntry(MsType.MSMS, s, f)))
-          .toList();
-      entries.addAll(ms2Entries);
+    // merge and select scans - transform into merged spectra
+    for (final Scan scan : scanMergeSelect.getAllFragmentSpectra(row)) {
+      entries.add(spectrumToEntry(scan, row, null));
     }
 
     if (entries.size() < 2) {
@@ -277,9 +255,10 @@ public class SiriusExportTask extends AbstractTask {
       return null;
     }
 
-    final MassSpectrum correlated = generateCorrelationSpectrum(row, null);
+    final SpectralLibraryEntry correlated = generateCorrelationSpectrum(entryFactory, mzTol, row,
+        null, null);
     if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
-      return spectrumToEntry(MsType.CORRELATED, correlated, bestFeature);
+      return correlated;
     } else {
       // export best MS1
       var ms1Scan = bestFeature.getRepresentativeScan();
@@ -289,109 +268,21 @@ public class SiriusExportTask extends AbstractTask {
             + FeatureUtils.rowToString(row));
         return null;
       }
-      return spectrumToEntry(MsType.MS, ms1Scan, bestFeature);
+      return spectrumToEntry(ms1Scan, row, bestFeature);
     }
   }
 
-  public SpectralLibraryEntry spectrumToEntry(MsType spectrumType, MassSpectrum spectrum,
-      Feature f) {
+  public SpectralLibraryEntry spectrumToEntry(MassSpectrum spectrum,
+      final @Nullable FeatureListRow row, final @Nullable Feature f) {
+    final DataPoint[] data = ScanUtils.extractDataPoints(spectrum, true);
 
-    final DataPoint[] data;
-    if (spectrum instanceof MergedSpectrum spec) {
-      data = spec.data;
-    } else {
-      data = ScanUtils.extractDataPoints(spectrum, true);
-    }
-
-    // create unknown to not interfer with annotation by sirius by adding to much info
-    final SpectralLibraryEntry entry = entryFactory.createUnknown(null, f.getRow(), spectrum, data,
+    // create unknown to not interfere with annotation by sirius by adding to much info
+    final SpectralLibraryEntry entry = entryFactory.createUnknown(null, row, f, spectrum, data,
         null, null);
-
     // below here are only SIRIUS specific fields added or overwritten.
     // all default behavior should go into {@link SpectralLibraryEntryFactory}
 
-    // use feature mz and rt instead of row or scan
-    entryFactory.putFeatureFieldsIntoEntry(entry, f);
-    FeatureListRow row = f.getRow();
-
-    switch (spectrumType) {
-      case CORRELATED -> {
-        entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
-        entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, "CORRELATED MS");
-        entry.putIfNotNull(DBEntryField.FILENAME,
-            row.getFeatures().stream().map(Feature::getRawDataFile).filter(Objects::nonNull)
-                .map(RawDataFile::getName).collect(Collectors.joining(";")));
-      }
-      case MS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
-      case MSMS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 2);
-    }
-
-    if (spectrum instanceof MergedSpectrum spec) {
-      putMergedSpectrumFieldsIntoEntry(spec, entry);
-    }
-
     return entry;
-  }
-
-  private List<SpectralLibraryEntry> getMergedMs2SpectraEntries(MergeMode mergeMode,
-      FeatureListRow row) {
-
-    List<SpectralLibraryEntry> entries = new ArrayList<>();
-    final MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(
-        MsMsSpectraMergeModule.class);
-
-    switch (mergeMode) {
-      case SAME_SAMPLE -> {
-        for (Feature f : row.getFeatures()) {
-          final Scan bestMS2 = f.getMostIntenseFragmentScan();
-          if (bestMS2 == null) {
-            continue;
-          }
-          if (bestMS2.getMassList() == null) {
-            throw new MissingMassListException(bestMS2);
-          }
-          if (bestMS2.getMassList().getNumberOfDataPoints() <= 0) {
-            continue;
-          }
-
-          MergedSpectrum spectrum = merger.mergeFromSameSample(mergeParameters, f)
-              .filterByRelativeNumberOfScans(minimumRelativeNumberOfScans);
-          entries.add(spectrumToEntry(MsType.MSMS, spectrum, f));
-        }
-      }
-
-      case CONSECUTIVE_SCANS -> {
-        for (Feature f : row.getFeatures()) {
-          final Scan bestMS2 = f.getMostIntenseFragmentScan();
-          if (bestMS2 == null) {
-            continue;
-          }
-          if (bestMS2.getMassList() == null) {
-            throw new MissingMassListException(bestMS2);
-          }
-          if (bestMS2.getMassList().getNumberOfDataPoints() <= 0) {
-            continue;
-          }
-
-          final List<MergedSpectrum> mergedSpectra = merger.mergeConsecutiveScans(mergeParameters,
-              f);
-          for (MergedSpectrum spectrum : mergedSpectra) {
-            entries.add(spectrumToEntry(MsType.MSMS,
-                spectrum.filterByRelativeNumberOfScans(minimumRelativeNumberOfScans), f));
-          }
-        }
-      }
-
-      case ACROSS_SAMPLES -> {
-        // merge everything into one
-        MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row)
-            .filterByRelativeNumberOfScans(minimumRelativeNumberOfScans);
-        entries.add(spectrumToEntry(MsType.MSMS, spectrum, row.getBestFeature()));
-      }
-    }
-
-    entries.removeIf(e -> e.getNumberOfDataPoints() == 0);
-    return entries;
   }
 
   private boolean checkFeatureCriteria(final FeatureListRow row) {
@@ -412,24 +303,67 @@ public class SiriusExportTask extends AbstractTask {
     return !excludeMultimers || adduct == null || adduct.getIonType().getMolecules() <= 1;
   }
 
-
   @Nullable
-  protected File getFileForFeatureList(boolean substitute, FeatureList featureList) {
-    File tmpFile = fileName;
+  public File getFileForFeatureList(FeatureList featureList) {
+    return SiriusExportTask.getFileForFeatureList(featureList, fileName, MULTI_NAME_PATTERN, "mgf");
+  }
+
+  /**
+   * Uses {} as a pattern to fill in feature list name. If file is prefix_{}_some_suffix the feature
+   * list name will be inserted and file format appended, resulting in:
+   * <p>
+   * prefix_FEATURELISTNAME_some_suffix.mgf (if format is defined as mgf)
+   *
+   * @param featureList   the feature list name will be added into the substitution pattern
+   * @param file          the initial file name to be modified
+   * @param fileExtension file format to apply
+   * @return replaced file
+   */
+  @Nullable
+  public static File getFileForFeatureList(FeatureList featureList, File file,
+      final @Nullable String fileExtension) {
+    return getFileForFeatureList(featureList, file, MULTI_NAME_PATTERN, fileExtension);
+  }
+
+  /**
+   * if file is prefix_{}_some_suffix and the namePattern is defined as {} the feature list name
+   * will be inserted and file format appended, resulting in:
+   * <p>
+   * prefix_FEATURELISTNAME_some_suffix.mgf (if format is defined as mgf)
+   *
+   * @param featureList   the feature list name will be added into the substitution pattern
+   * @param file          the initial file name to be modified
+   * @param namePattern   the name pattern to be replaced with the feature list name. usually {}
+   * @param fileExtension file format to apply
+   * @return replaced file
+   */
+  @Nullable
+  public static File getFileForFeatureList(FeatureList featureList, File file,
+      final String namePattern, final @Nullable String fileExtension) {
+    final boolean substitute = hasSubstitutionPattern(file, namePattern);
     if (substitute) {
       // Cleanup from illegal filename characters
       String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
       // Substitute
-      String newFilename = fileName.getPath()
-          .replaceAll(Pattern.quote(MULTI_NAME_PATTERN), cleanPlName);
-      tmpFile = new File(newFilename);
+      String newFilename = file.getPath().replaceAll(Pattern.quote(namePattern), cleanPlName);
+      file = new File(newFilename);
     }
-    final File curFile = FileAndPathUtil.getRealFilePath(tmpFile, "mgf");
+    if (fileExtension != null) {
+      file = FileAndPathUtil.getRealFilePath(file, fileExtension);
+    }
 
-    if (!FileAndPathUtil.createDirectory(curFile.getParentFile())) {
+    if (!FileAndPathUtil.createDirectory(file.getParentFile())) {
       return null;
     }
-    return curFile;
+    return file;
+  }
+
+  public static boolean hasDefaultSubstitutionPattern(final File file) {
+    return hasSubstitutionPattern(file, MULTI_NAME_PATTERN);
+  }
+
+  public static boolean hasSubstitutionPattern(final File file, final String namePattern) {
+    return file.getPath().contains(namePattern);
   }
 
   /**
@@ -437,8 +371,10 @@ public class SiriusExportTask extends AbstractTask {
    * via IIN (+ their isotopes).
    */
   @Nullable
-  private MassSpectrum generateCorrelationSpectrum(@NotNull FeatureListRow row,
-      @Nullable RawDataFile file) {
+  public static SpectralLibraryEntry generateCorrelationSpectrum(
+      final SpectralLibraryEntryFactory entryFactory, final MZTolerance mzTol,
+      @NotNull FeatureListRow row, @Nullable RawDataFile file,
+      @Nullable final Map<DBEntryField, Object> metadataMap) {
     file = file != null ? file : row.getBestFeature().getRawDataFile();
     final List<DataPoint> dps = new ArrayList<>();
 
@@ -487,17 +423,27 @@ public class SiriusExportTask extends AbstractTask {
       }
     }
 
-    dps.sort(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
-    removeDuplicateDataPoints(dps,
-        mzTol); // remove duplicate isotope peaks (might be correlated features too)
-    final double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(dps);
-    return dps.isEmpty() ? null : new SimpleMassSpectrum(dp[0], dp[1]);
+    dps.sort(DataPointSorter.DEFAULT_MZ_ASCENDING);
+    // remove duplicate isotope peaks (might be correlated features too)
+    removeDuplicateDataPoints(dps, mzTol);
+
+    if (dps.size() <= 1) {
+      return null; // empty or only self signal
+    }
+
+    final SpectralLibraryEntry entry = entryFactory.createUnknown(null, row, null, null,
+        dps.toArray(DataPoint[]::new), null, metadataMap);
+
+    entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
+    entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, MergingType.CORRELATED_MS1);
+
+    return entry;
   }
 
   /**
    * Adds the isotopic peaks of this row to the list of data points.
    */
-  private void addIsotopePattern(@NotNull Feature feature, @NotNull List<DataPoint> dps,
+  private static void addIsotopePattern(@NotNull Feature feature, @NotNull List<DataPoint> dps,
       @Nullable IsotopePattern ip) {
     if (ip != null) {
       for (int i = 0; i < ip.getNumberOfDataPoints(); i++) {
@@ -514,7 +460,7 @@ public class SiriusExportTask extends AbstractTask {
    * @param sortedDp data points sorted by mz.
    * @param mzTol    MZ tolerance to filter equal data points.
    */
-  private void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance mzTol) {
+  private static void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance mzTol) {
     for (int i = sortedDp.size() - 2; i >= 0; i--) {
       if (mzTol.checkWithinTolerance(sortedDp.get(i).getMZ(), sortedDp.get(i + 1).getMZ())) {
         if (sortedDp.get(i) instanceof AnnotatedDataPoint) {
@@ -527,19 +473,4 @@ public class SiriusExportTask extends AbstractTask {
   }
 
 
-  public enum MsType {
-    /**
-     * Describes the original MS1 spectrum
-     */
-    MS,
-    /**
-     * The MS2 spectrum, either merged raw spectra, or the best raw spectrum.
-     */
-    MSMS,
-    /**
-     * Only contains m/zs of features that correlate with this feature. (e.g. isotopic signals or
-     * different adducts).
-     */
-    CORRELATED
-  }
 }

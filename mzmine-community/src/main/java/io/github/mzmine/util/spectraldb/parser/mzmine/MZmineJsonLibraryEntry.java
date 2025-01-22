@@ -196,6 +196,7 @@ public class MZmineJsonLibraryEntry {
       case DATASET_ID -> datasetId;
       case FILENAME -> null;
       case USI -> usi;
+      case SOURCE_SCAN_USI -> null;
       case SPLASH -> splash;
       case QUALITY -> quality;
       case QUALITY_PRECURSOR_PURITY -> purity;
@@ -209,6 +210,7 @@ public class MZmineJsonLibraryEntry {
       case GNPS_ID -> null;
       case MONA_ID -> null;
       case CHEMSPIDER -> null;
+      case MERGED_N_SAMPLES -> null;
       case SIRIUS_MERGED_SCANS -> null;
       case SIRIUS_MERGED_STATS -> null;
       case OTHER_MATCHED_COMPOUNDS_N -> null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -45,6 +46,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -192,8 +194,8 @@ public class ParameterUtils {
         if (param1.getClass() != param2.getClass()) {
           logger.finest(
               () -> "Parameters " + param1.getName() + "(" + param1.getClass().getName() + ") and "
-                  + param2.getName() + " (" + param2.getClass().getName()
-                  + ") are not of the same class.");
+                    + param2.getName() + " (" + param2.getClass().getName()
+                    + ") are not of the same class.");
           return false;
         }
 
@@ -218,7 +220,7 @@ public class ParameterUtils {
           logger.finest(
               () -> "Parameter \"" + param1.getName() + "\" of parameter set " + a.getClass()
                   .getName() + " has different values: " + param1.getValue() + " and "
-                  + param2.getValue());
+                    + param2.getValue());
           return false;
         }
 
@@ -266,6 +268,65 @@ public class ParameterUtils {
     }
     return false;
   }
+
+  /**
+   * Stream all parameters and embedded parameters depth first
+   *
+   * @param params input parameters
+   * @return flat stream of parameters
+   */
+  public static Stream<Parameter<?>> streamParametersDeep(final ParameterSet params) {
+    if (params == null) {
+      return Stream.empty();
+    }
+
+    return Arrays.stream(params.getParameters()).flatMap(ParameterUtils::streamThisAndEmbeddedDeep);
+  }
+
+  /**
+   * Stream all parameters and embedded parameters depth first
+   *
+   * @param params input parameters
+   * @return flat stream of parameters of specific type
+   */
+  public static <T extends Parameter<?>> Stream<T> streamParametersDeep(final ParameterSet params,
+      final Class<T> paramClass) {
+    return streamParametersDeep(params).filter(paramClass::isInstance).map(paramClass::cast);
+  }
+
+
+  /**
+   * Stream this parameter and its embedded parameters depth first
+   *
+   * @param parameter input parameter
+   * @return flat stream of this parameter first followed by any embedded parameters
+   */
+  public static Stream<Parameter<?>> streamThisAndEmbeddedDeep(final Parameter<?> parameter) {
+    if (parameter == null) {
+      return Stream.empty();
+    }
+    Stream<Parameter<?>> paramStream = Stream.of(parameter);
+    // search for embedded parameters
+    switch (parameter) {
+      case EmbeddedParameterSet<?, ?> parent -> {
+        ParameterSet embedded = parent.getEmbeddedParameters();
+        return Stream.concat(paramStream, streamParametersDeep(embedded));
+      }
+      // optional?
+      case EmbeddedParameter<?, ?, ?> parent -> {
+        UserParameter<?, ?> embedded = parent.getEmbeddedParameter();
+        return Stream.concat(paramStream, streamThisAndEmbeddedDeep(embedded));
+      }
+      case HiddenParameter<?> parent -> {
+        var embedded = parent.getEmbeddedParameter();
+        return Stream.concat(paramStream, streamThisAndEmbeddedDeep(embedded));
+      }
+      default -> {
+      }
+    }
+    return paramStream;
+  }
+
 
   public static <M extends Class<? extends MZmineModule>> List<FeatureListAppliedMethod> getModuleCalls(
       @NotNull List<@Nullable FeatureListAppliedMethod> appliedMethods, @NotNull M module) {

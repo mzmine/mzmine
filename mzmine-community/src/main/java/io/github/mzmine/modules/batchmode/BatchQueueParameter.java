@@ -147,7 +147,8 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
         if (!newErrors.isEmpty()) {
           // add module name and
-          errorMessages.add("\n%s:".formatted(batchStep.getModule().getName()));
+          errorMessages.add("\n%s (step %d):".formatted(batchStep.getModule().getName(),
+              value.indexOf(batchStep) + 1));
           errorMessages.addAll(newErrors);
           newErrors.clear();
         }

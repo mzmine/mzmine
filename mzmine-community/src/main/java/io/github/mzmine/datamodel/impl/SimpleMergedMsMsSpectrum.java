@@ -98,10 +98,11 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     }
 
     final int mslevel = Integer.parseInt(reader.getAttributeValue(null, CONST.XML_MSLEVEL_ATTR));
-    final IntensityMergingType type = IntensityMergingType.valueOf(
-        reader.getAttributeValue(null, CONST.XML_INTENSITY_MERGE_TYPE_ATTR));
+    final IntensityMergingType type = IntensityMergingType.parseOrElse(
+        reader.getAttributeValue(null, CONST.XML_INTENSITY_MERGE_TYPE_ATTR), null);
     String mergingType = reader.getAttributeValue(null, CONST.XML_MERGE_TYPE_ATTR);
-    final MergingType mergeSpecType = mergingType == null ? null : MergingType.valueOf(mergingType);
+    final MergingType mergeSpecType =
+        mergingType == null ? null : MergingType.parseOrElse(mergingType, MergingType.UNKNOWN);
     assert file.getName().equals(reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT));
 
     double[] mzs = null;
@@ -130,14 +131,14 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
           final String finalFileName = fileName != null ? fileName : file.getName();
 
           final RawDataFile specificFile = possibleFiles.stream()
-              .filter(f -> f.getName().equals(finalFileName))
-              .findFirst().orElse(null);
+              .filter(f -> f.getName().equals(finalFileName)).findFirst().orElse(null);
           if (specificFile == null) {
             throw new IllegalArgumentException(
                 "Raw file with name '%s' not present. Cannot load merged MS2 spectrum.".formatted(
                     fileName));
           }
-          final List<Scan> tempScans = ParsingUtils.stringToScanList(reader.getElementText(), specificFile);
+          final List<Scan> tempScans = ParsingUtils.stringToScanList(reader.getElementText(),
+              specificFile);
           if (tempScans == null) {
             throw new IllegalStateException(
                 "Could not load MS2 scans in MergedMsMsSpectrum, did not find specified scans.");
@@ -195,9 +196,10 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleMergedMsMsSpectrum.XML_SCAN_TYPE);
 
     writer.writeAttribute(CONST.XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
-    writer.writeAttribute(CONST.XML_MERGE_TYPE_ATTR, getMergingType().name());
+    writer.writeAttribute(CONST.XML_MERGE_TYPE_ATTR, getMergingType().getUniqueID());
     writer.writeAttribute(CONST.XML_CE_ATTR, String.valueOf(getCollisionEnergy()));
-    writer.writeAttribute(CONST.XML_INTENSITY_MERGE_TYPE_ATTR, getIntensityMergingType().name());
+    writer.writeAttribute(CONST.XML_INTENSITY_MERGE_TYPE_ATTR,
+        getIntensityMergingType().getUniqueID());
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
 
     if (msMsInfo != null) {
