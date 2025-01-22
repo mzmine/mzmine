@@ -187,7 +187,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return isolationWindowMergingProgress * 0.25 + adapTaskProgess * 0.25
-        + (currentRow / (double) numRows) * 0.5d;
+           + (currentRow / (double) numRows) * 0.5d;
   }
 
   @Override
@@ -375,7 +375,7 @@ public class DiaMs2CorrTask extends AbstractTask {
         continue;
       }
       if (activationMethod == ActivationMethod.UNKNOWN) {
-        activationMethod = ScanUtils.streamMsMsInfos(subSeries.getSpectra())
+        activationMethod = ScanUtils.streamMsMsInfos(subSeries.getSpectra(), feature.getMZ())
             .map(MsMsInfo::getActivationMethod).findFirst().orElse(ActivationMethod.UNKNOWN);
       }
       final double[] rts = new double[subSeries.getNumberOfValues()];
@@ -424,9 +424,9 @@ public class DiaMs2CorrTask extends AbstractTask {
 
       ms2Mzs.add(mz);
       ms2Intensities.add(maxIntensity);
-      ScanUtils.streamMsMsInfos(subSeries.getSpectra()).map(MsMsInfo::getActivationEnergy)
-          .filter(Objects::nonNull).mapToDouble(Float::doubleValue).average()
-          .ifPresent(collisionEnergies::add);
+      ScanUtils.streamMsMsInfos(subSeries.getSpectra(), feature.getMZ())
+          .map(MsMsInfo::getActivationEnergy).filter(Objects::nonNull)
+          .mapToDouble(Float::doubleValue).average().ifPresent(collisionEnergies::add);
     }
 
     if (ms2Mzs.isEmpty()) {
