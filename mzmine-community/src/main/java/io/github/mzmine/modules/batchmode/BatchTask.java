@@ -165,10 +165,11 @@ public class BatchTask extends AbstractTask {
 
     String errorMessage = finishedTask.getErrorMessage();
     if (finishedTask.getStatus() == TaskStatus.ERROR) {
-      if (DesktopService.isGUI()) {
-        FxThread.runLater(
-            () -> DialogLoggerUtil.showErrorDialog("Batch had errors and stopped", errorMessage));
-      }
+      // not needed as this is done by caller - just important to set this task to error
+//      if (DesktopService.isGUI()) {
+//        FxThread.runLater(
+//            () -> DialogLoggerUtil.showErrorDialog("Batch had errors and stopped", errorMessage));
+//      }
       error(errorMessage);
       return TaskStatus.ERROR;
     }
@@ -187,6 +188,7 @@ public class BatchTask extends AbstractTask {
       // BatchTask is often run directly without WrappedTask, so handling of error message is important
       runBatchQueue();
     } catch (Throwable e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
       // in case of an exception
       // regular errors are already handled in the runBatchQueue methods
       if (getErrorMessage() != null) {
@@ -195,8 +197,6 @@ public class BatchTask extends AbstractTask {
               () -> DialogLoggerUtil.showErrorDialog("EXCEPTION Batch had errors and stopped",
                   getErrorMessage()));
         }
-      } else {
-        logger.log(Level.WARNING, e.getMessage(), e);
       }
       return;
     }
@@ -254,7 +254,7 @@ public class BatchTask extends AbstractTask {
               setStatus(TaskStatus.ERROR);
               setErrorMessage(
                   "Could not set data files in advanced batch mode. Will cancel all jobs. "
-                      + datasetName);
+                  + datasetName);
               return;
             }
           }
@@ -379,7 +379,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFiles == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-              + "Missing parameter value for " + p.getName());
+                          + "Missing parameter value for " + p.getName());
           return;
         }
         selectedFiles.setBatchLastFiles(createdFiles);
@@ -479,15 +479,16 @@ public class BatchTask extends AbstractTask {
 
     TaskStatus result = TaskUtils.waitForTasksToFinish(this, wrappedTasks);
 
-    // any error message?
+    // any error message - even if null this means that there was an error
     Optional<String> errorMessage = Arrays.stream(wrappedTasks)
         .filter(t -> t.getStatus() == TaskStatus.ERROR).map(WrappedTask::getErrorMessage)
         .findFirst();
     if (errorMessage.isPresent()) {
-      if (DesktopService.isGUI()) {
-        FxThread.runLater(() -> DialogLoggerUtil.showErrorDialog("Batch had errors and stopped",
-            errorMessage.get()));
-      }
+      // not needed as this is done by caller - just important to set this task to error
+//      if (DesktopService.isGUI()) {
+//        FxThread.runLater(() -> DialogLoggerUtil.showErrorDialog("Batch had errors and stopped",
+//            errorMessage.get()));
+//      }
       error(errorMessage.get());
       return TaskStatus.ERROR;
     }
@@ -512,7 +513,7 @@ public class BatchTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
             "Wanted to set the last batch files from raw data import but failed because less data files were imported than expected.\n"
-                + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
+            + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
                 createdDataFiles.size()));
       }
     }
@@ -535,7 +536,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFeatureLists == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-              + "Missing parameter value for " + p.getName());
+                          + "Missing parameter value for " + p.getName());
           return false;
         }
         selectedFeatureLists.setBatchLastFeatureLists(createdFlists);
