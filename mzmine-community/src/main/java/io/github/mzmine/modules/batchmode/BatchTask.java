@@ -72,7 +72,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -86,20 +88,20 @@ public class BatchTask extends AbstractTask {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final int totalSteps;
   private final MZmineProject project;
-  private int processedSteps;
   private final boolean useAdvanced;
   private final int datasets;
+  private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
+  private int processedSteps;
   private List<File> subDirectories;
   private List<RawDataFile> createdDataFiles;
   private List<RawDataFile> previousCreatedDataFiles;
   private List<FeatureList> createdFeatureLists;
   private List<FeatureList> previousCreatedFeatureLists;
-  private Boolean skipOnError;
+  private boolean skipOnError = false;
   private Boolean searchSubdirs;
   private Boolean createResultsDir;
   private File parentDir;
   private int currentDataset;
-  private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
 
   BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     this(project, parameters, moduleCallDate,
@@ -163,10 +165,11 @@ public class BatchTask extends AbstractTask {
 
     String errorMessage = finishedTask.getErrorMessage();
     if (finishedTask.getStatus() == TaskStatus.ERROR) {
-      if (DesktopService.isGUI()) {
-        FxThread.runLater(
-            () -> DialogLoggerUtil.showErrorDialog("Batch had errors and stopped", errorMessage));
-      }
+      // not needed as this is done by caller - just important to set this task to error
+//      if (DesktopService.isGUI()) {
+//        FxThread.runLater(
+//            () -> DialogLoggerUtil.showErrorDialog("Batch had errors and stopped", errorMessage));
+//      }
       error(errorMessage);
       return TaskStatus.ERROR;
     }
@@ -176,11 +179,44 @@ public class BatchTask extends AbstractTask {
 
   @Override
   public void run() {
-
     Instant batchStart = Instant.now();
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
+    try {
+      // run batch that may fail with error message
+      // BatchTask is often run directly without WrappedTask, so handling of error message is important
+      runBatchQueue();
+    } catch (Throwable e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+      // in case of an exception
+      // regular errors are already handled in the runBatchQueue methods
+      if (getErrorMessage() != null) {
+        if (DesktopService.isGUI()) {
+          FxThread.runLater(
+              () -> DialogLoggerUtil.showErrorDialog("EXCEPTION Batch had errors and stopped",
+                  getErrorMessage()));
+        }
+      }
+      return;
+    }
+
+    if (getStatus() == TaskStatus.ERROR && getErrorMessage() != null) {
+      logger.log(Level.WARNING, getErrorMessage());
+    }
+
+    if (isCanceled()) {
+      return;
+    }
+
+    logger.info("Finished a batch of " + totalSteps + " steps");
+    setStatus(TaskStatus.FINISHED);
+    Duration duration = Duration.between(batchStart, Instant.now());
+    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration));
+    printBatchTimes();
+  }
+
+  private void runBatchQueue() {
     int errorDataset = 0;
     currentDataset = -1;
     String datasetName = "";
@@ -210,7 +246,7 @@ public class BatchTask extends AbstractTask {
 
         if (allFiles.length != 0) {
           // set files to import
-          if (!queue.setImportFiles(allFiles, null)) {
+          if (!queue.setImportFiles(allFiles, null, null)) {
             if (skipOnError) {
               processedSteps += stepsPerDataset;
               continue;
@@ -248,26 +284,22 @@ public class BatchTask extends AbstractTask {
       }
 
       // If we are canceled or ran into error, stop here
-      if (isCanceled()) {
-        return;
-      } else if (getStatus() == TaskStatus.ERROR) {
+      if (getStatus() == TaskStatus.ERROR) {
         errorDataset++;
+        DialogLoggerUtil.showDialog(AlertType.ERROR, "Batch processing error",
+            "An error occurred while processing batch step %d.\n%s".formatted(
+                i % stepsPerDataset + 1, getErrorMessage()), false);
         if (skipOnError && datasets - currentDataset > 0) {
           // skip to next dataset
           logger.info("Error in dataset: " + datasetName + " total error datasets:" + errorDataset);
           processedSteps = (processedSteps / stepsPerDataset + 1) * stepsPerDataset;
           continue;
-        } else {
-          return;
         }
       }
+      if (isCanceled()) {
+        return;
+      }
     }
-
-    logger.info("Finished a batch of " + totalSteps + " steps");
-    setStatus(TaskStatus.FINISHED);
-    Duration duration = Duration.between(batchStart, Instant.now());
-    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration));
-    printBatchTimes();
   }
 
   private void printBatchTimes() {
@@ -366,6 +398,7 @@ public class BatchTask extends AbstractTask {
       setErrorMessage(
           "Invalid parameter settings for module " + method.getName() + ": " + Arrays.toString(
               messages.toArray()));
+      return;
     }
 
     List<Task> currentStepTasks = new ArrayList<>();
@@ -446,15 +479,16 @@ public class BatchTask extends AbstractTask {
 
     TaskStatus result = TaskUtils.waitForTasksToFinish(this, wrappedTasks);
 
-    // any error message?
+    // any error message - even if null this means that there was an error
     Optional<String> errorMessage = Arrays.stream(wrappedTasks)
         .filter(t -> t.getStatus() == TaskStatus.ERROR).map(WrappedTask::getErrorMessage)
         .findFirst();
     if (errorMessage.isPresent()) {
-      if (DesktopService.isGUI()) {
-        FxThread.runLater(() -> DialogLoggerUtil.showErrorDialog("Batch had errors and stopped",
-            errorMessage.get()));
-      }
+      // not needed as this is done by caller - just important to set this task to error
+//      if (DesktopService.isGUI()) {
+//        FxThread.runLater(() -> DialogLoggerUtil.showErrorDialog("Batch had errors and stopped",
+//            errorMessage.get()));
+//      }
       error(errorMessage.get());
       return TaskStatus.ERROR;
     }

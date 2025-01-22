@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -94,8 +95,8 @@ public class NistMspParser extends SpectralDBTextParser {
             if (isData) {
               // empty row after data
               // add entry and reset
-              SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), fields,
-                  dps.toArray(new DataPoint[dps.size()]));
+              SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(),
+                  fields, dps.toArray(new DataPoint[dps.size()]));
               // add and push
               addLibraryEntry(entry);
               // reset
@@ -170,9 +171,10 @@ public class NistMspParser extends SpectralDBTextParser {
           Object value = field.convertValue(content);
           fields.put(field, value);
         } catch (Exception e) {
-          logger.log(Level.WARNING,
-              "Cannot convert value type of " + content + " to " + field.getObjectClass()
-                  .toString(), e);
+          logger.log(Level.WARNING, """
+              Cannot convert value '%s' to type %s
+              Parsing will skip this value for field %s""".formatted(content,
+              field.getObjectClass(), field.toString()));
         }
       }
     }

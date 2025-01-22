@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -210,6 +209,11 @@ public class MzMLParser {
             manageCompression(vars.binaryDataInfo, accession);
           } else if (arrayTypeMap.get(accession) != null) {
             vars.binaryDataInfo.setArrayType(arrayTypeMap.get(accession));
+            final String unitAccession = xmlStreamReader.getAttributeValue(null, "unitAccession");
+            vars.binaryDataInfo.setUnitAccession(unitAccession);
+          } else if (accession.equals("MS:1003006")) {
+            throw new IllegalStateException(
+                "Importing timsTOF files from mzML with the --combineIonMobilitySpectra option is not supported. Please use the native .d data instead.");
           } else {
             vars.skipBinaryDataArray = true;
           }
@@ -226,6 +230,9 @@ public class MzMLParser {
           }
           if (MzMLArrayType.WAVELENGTH == vars.binaryDataInfo.getArrayType()) {
             vars.spectrum.setWavelengthBinaryDataInfo(vars.binaryDataInfo);
+          }
+          if (MzMLArrayType.ION_MOBILITY == vars.binaryDataInfo.getArrayType()) {
+            vars.spectrum.setMobilityBinaryDataInfo(vars.binaryDataInfo);
           }
         }
         if (vars.spectrum != null && !vars.skipBinaryDataArray) {
@@ -532,7 +539,10 @@ public class MzMLParser {
     }
 
     if (scanProcessorConfig.scanFilter().matches(spectrum)) {
-      if (spectrum.loadProcessMemMapMzData(storage, scanProcessorConfig)) {
+      if (spectrum.isMergedMobilitySpectrum()) {
+        vars.mobilityScanData.add(
+            spectrum.loadProccessMemMapMzDataForMergedMobilityScan(storage, scanProcessorConfig));
+      } else if (spectrum.loadProcessMemMapMzData(storage, scanProcessorConfig)) {
         vars.addSpectrumToList(storage, spectrum);
       }
     }
@@ -752,7 +762,7 @@ public class MzMLParser {
     public void addSpectrumToList(final MemoryMapStorage storage, BuildingMzMLMsScan scan) {
       MzMLMobility mobility = scan.getMobility();
       if (mobility == null) {
-        // scan or frame spectrum
+        // scan or frame or uv spectrum
         spectrumList.add(scan);
         return;
       }
@@ -762,6 +772,7 @@ public class MzMLParser {
         return;
       }
 
+      // "regular" representation of ims scans. each scan stored individually
       BuildingMzMLMsScan last = mobilityScans.getLast();
       if (last != null && Double.compare(last.getRetentionTime(), scan.getRetentionTime()) != 0) {
         // changed retention time --> finish frame and memory map all mobility scans together as one
@@ -782,7 +793,6 @@ public class MzMLParser {
       var memoryMapped = new BuildingMobilityScanStorage(storage, mobilityScans);
       mobilityScanData.add(memoryMapped);
 
-      nextFrameStartScanIndex = mobilityScans.size();
       // all scans were already converted
       mobilityScans.clear();
     }

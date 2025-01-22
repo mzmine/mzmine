@@ -50,7 +50,6 @@ import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.Button;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -82,19 +81,9 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     BorderPane pane = new BorderPane();
     pane.setCenter(model.getChromatogramPlot().buildView());
 
-//    pane.getCenter().addEventHandler(KeyEvent.KEY_PRESSED, e -> {
-//      if (e.getCode() == KeyCode.SPACE && e.isShortcutDown() && model.isCurrentIntegrationValid()) {
-//        e.consume();
-//        onFinishPressed.run();
-//      }
-//    });
-
     pane.setFocusTraversable(true);
     pane.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
       pane.getCenter().requestFocus();
-    });
-    pane.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-      logger.finest("Integration plot pane key pressed " + e.getCode());
     });
 
     var chromPlot = model.getChromatogramPlot();
@@ -171,8 +160,8 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
 
     return switch (series) {
       case OtherTimeSeries other ->
-          uf.format(other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesRangeLabel(),
-              other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesRangeUnit());
+          uf.format(other.getOtherDataFile().getOtherTimeSeriesData().getTimeSeriesRangeLabel(),
+              other.getOtherDataFile().getOtherTimeSeriesData().getTimeSeriesRangeUnit());
       default -> uf.format("Intensity", "a.u.");
     };
   }
@@ -182,8 +171,8 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     final UnitFormat uf = formats.unitFormat();
     return switch (series) {
       case OtherTimeSeries other ->
-          uf.format(other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesDomainLabel(),
-              other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesDomainUnit());
+          uf.format(other.getOtherDataFile().getOtherTimeSeriesData().getTimeSeriesDomainLabel(),
+              other.getOtherDataFile().getOtherTimeSeriesData().getTimeSeriesDomainUnit());
       default -> uf.format("Retention time", "min");
     };
   }

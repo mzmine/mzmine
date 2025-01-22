@@ -122,6 +122,31 @@ public class ParsingUtils {
     return b.toString();
   }
 
+  public static String floatBufferToString(MemorySegment buffer) {
+    StringBuilder b = new StringBuilder();
+    for (long i = 0, arrayLength = StorageUtils.numFloats(buffer); i < arrayLength; i++) {
+      double v = buffer.getAtIndex(ValueLayout.JAVA_FLOAT, i);
+      b.append(v);
+      if (i < arrayLength - 1) {
+        b.append(SEPARATOR);
+      }
+    }
+    return b.toString();
+  }
+
+  public static float[] stringToFloatArray(String string) {
+    return stringToFloatArray(string, SEPARATOR);
+  }
+
+  public static float[] stringToFloatArray(String string, String separator) {
+    final String[] strValues = string.split(separator);
+    final float[] values = new float[strValues.length];
+    for (int i = 0; i < strValues.length; i++) {
+      values[i] = Float.parseFloat(strValues[i]);
+    }
+    return values;
+  }
+
   public static String intArrayToString(int[] array, int length) {
     assert length <= array.length;
 

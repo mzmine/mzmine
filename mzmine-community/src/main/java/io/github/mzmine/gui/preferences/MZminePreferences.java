@@ -27,13 +27,15 @@ package io.github.mzmine.gui.preferences;
 
 import static io.github.mzmine.util.files.ExtensionFilters.MSCONVERT;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.download.ExternalAsset;
+import io.github.mzmine.modules.io.download.AssetGroup;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -55,7 +57,6 @@ import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParamet
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.color.ColorUtils;
-import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.web.Proxy;
 import io.github.mzmine.util.web.ProxyType;
@@ -73,7 +74,6 @@ import javafx.collections.FXCollections;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
 
 public class MZminePreferences extends SimpleParameterSet {
 
@@ -121,6 +121,12 @@ public class MZminePreferences extends SimpleParameterSet {
       Typically the Java Virtual Machine will hold on to RAM and manage it to achieve the highest throughput.
       The recommendation is to keep this setting turned off.""", false);
 
+  public static final BooleanParameter deleteTempFiles = new BooleanParameter(
+      "Fast temp files cleanup", """
+      Cleanup temp files as soon as possible. This is the new default behavior. \
+      This options is only added temporarily to allow using the old temp file cleanup, which should not be necessary.
+      Default is true (checked).""", true);
+
   public static final OptionalModuleParameter<ProxyParameters> proxySettings = new OptionalModuleParameter<>(
       "Use proxy", "Use proxy for internet connection?", new ProxyParameters(), false);
 
@@ -155,24 +161,24 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
       new OptOutParameter("Ion mobility compatibility warnings",
           "Shows a warning message when a module without explicit ion mobility support is "
-              + "used to process ion mobility data."));
+          + "used to process ion mobility data."));
 
   public static final DirectoryParameter tempDirectory = new DirectoryParameter(
       "Temporary file directory", "Directory where temporary files"
-      + " will be stored. Directory should be located on a drive with fast read and write "
-      + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
-      + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
+                                  + " will be stored. Directory should be located on a drive with fast read and write "
+                                  + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
+                                  + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
       System.getProperty("java.io.tmpdir"));
 
   public static final ComboParameter<KeepInMemory> memoryOption = new ComboParameter<>(
       "Keep in memory", String.format(
       "Specifies the objects that are kept in memory rather than memory mapping "
-          + "them into temp files in the temp directory. Parameter is overriden by the program "
-          + "argument --memory. Depending on the read/write speed of the temp directory,"
-          + " memory mapping is a fast and memory efficient way to handle data, therefore, the "
-          + "default is to memory map all spectral data and feature data with the option %s. On "
-          + "systems where memory (RAM) is no concern, viable options are %s and %s, to keep all in memory "
-          + "or to keep mass lists and feauture data in memory, respectively.", KeepInMemory.NONE,
+      + "them into temp files in the temp directory. Parameter is overriden by the program "
+      + "argument --memory. Depending on the read/write speed of the temp directory,"
+      + " memory mapping is a fast and memory efficient way to handle data, therefore, the "
+      + "default is to memory map all spectral data and feature data with the option %s. On "
+      + "systems where memory (RAM) is no concern, viable options are %s and %s, to keep all in memory "
+      + "or to keep mass lists and feauture data in memory, respectively.", KeepInMemory.NONE,
       KeepInMemory.ALL, KeepInMemory.MASSES_AND_FEATURES), KeepInMemory.values(),
       KeepInMemory.NONE);
 
@@ -194,7 +200,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
       "Normalize images",
       "Specifies if displayed images shall be normalized to the average TIC or shown according to the raw data."
-          + "only applies to newly generated plots.", ImageNormalization.values(),
+      + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
 
   public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
@@ -211,19 +217,18 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final FileNameParameter msConvertPath = new FileNameWithDownloadParameter(
       "MSConvert path",
       "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
-      List.of(MSCONVERT), ExternalAsset.MSCONVERT);
+      List.of(MSCONVERT), AssetGroup.MSCONVERT);
 
   public static final BooleanParameter keepConvertedFile = new BooleanParameter(
       "Keep files converted by MSConvert",
       "Store the files after conversion by MSConvert to an mzML file.\n"
-          + "This will reduce the import time when re-processing, but require more disc space.",
-      false);
+      + "This will reduce the import time when re-processing, but require more disc space.", false);
 
   public static final BooleanParameter applyPeakPicking = new BooleanParameter(
-      "Apply peak picking (recommended)",
-      "Apply vendor peak picking during import of native vendor files with MSConvert.\n"
-          + "Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.",
-      true);
+      "Apply peak picking (recommended)", """
+      Apply vendor peak picking during import of native vendor files with MSConvert.
+      Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
+      Peak picking is only """, true);
 
   public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
       "Thermo data import", """
@@ -239,7 +244,7 @@ public class MZminePreferences extends SimpleParameterSet {
       new ExtensionFilter("Windows executable", "ThermoRawFileParser.exe"),
       new ExtensionFilter("Linux executable", "ThermoRawFileParserLinux"),
       new ExtensionFilter("Mac executable", "ThermoRawFileParserMac")),
-      ExternalAsset.ThermoRawFileParser);
+      AssetGroup.ThermoRawFileParser);
 
   public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
       new ParameterSetParameter<>("Apply lockmass on import (Waters)",
@@ -248,7 +253,8 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(// start with performance
-        numOfThreads, memoryOption, tempDirectory, runGCafterBatchStep, proxySettings,
+        numOfThreads, memoryOption, tempDirectory, runGCafterBatchStep, deleteTempFiles,
+        proxySettings,
         /*applyTimsPressureCompensation,*/
         // visuals
         // number formats
@@ -289,7 +295,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
     // add groups
     dialog.addParameterGroup("General", numOfThreads, memoryOption, tempDirectory,
-        runGCafterBatchStep, proxySettings
+        runGCafterBatchStep, deleteTempFiles, proxySettings
         /*, applyTimsPressureCompensation*/);
     dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
         intensityFormat, ppmFormat, scoreFormat, unitFormat);
@@ -323,29 +329,27 @@ public class MZminePreferences extends SimpleParameterSet {
     updateSystemProxySettings();
 
     // enforce memory option (only applies to new data)
-    var config = MZmineCore.getConfiguration();
-    if (config == null) {
-      return;
-    }
-    final KeepInMemory keepInMemory = config.getPreferences()
-        .getParameter(MZminePreferences.memoryOption).getValue();
+    final KeepInMemory keepInMemory = getValue(MZminePreferences.memoryOption);
     keepInMemory.enforceToMemoryMapping();
 
     final Themes theme = getValue(MZminePreferences.theme);
     if (previousTheme != null) {
       showDialogToAdjustColorsToTheme(previousTheme, theme);
     }
-    theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    darkModeProperty.set(theme.isDark());
+    // need to check as MZmineCore.getDesktop() throws exception if not initialized
+    // if apply is called before window is opened the new settings will by taken up during window creation
+    if (DesktopService.isGUI()) {
+      theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      darkModeProperty.set(theme.isDark());
 
-    Boolean presentation = config.getPreferences().getParameter(MZminePreferences.presentationMode)
-        .getValue();
-    if (presentation) {
-      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .add("themes/MZmine_default_presentation.css");
-    } else {
-      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("MZmine_default_presentation"));
+      Boolean presentation = getValue(MZminePreferences.presentationMode);
+      if (presentation) {
+        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+            .add("themes/MZmine_default_presentation.css");
+      } else {
+        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+            .removeIf(e -> e.contains("MZmine_default_presentation"));
+      }
     }
 
     updateGuiFormat();
@@ -357,6 +361,8 @@ public class MZminePreferences extends SimpleParameterSet {
       }
       FileAndPathUtil.setTempDir(tempDir);
     }
+    // delete temp files as soon as possible
+    FileAndPathUtil.setEarlyTempFileCleanup(getValue(MZminePreferences.deleteTempFiles));
   }
 
   private void showDialogToAdjustColorsToTheme(Themes previousTheme, Themes theme) {
@@ -370,8 +376,8 @@ public class MZminePreferences extends SimpleParameterSet {
 
       boolean changeColors = false;
       if (theme.isDark() && (ColorUtils.isDark(bgColor) || ColorUtils.isDark(axisFont.getColor())
-          || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(titleFont.getColor())
-          || ColorUtils.isDark(subTitleFont.getColor()))) {
+                             || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(
+          titleFont.getColor()) || ColorUtils.isDark(subTitleFont.getColor()))) {
         if (DialogLoggerUtil.showDialogYesNo("Change theme?", """
             MZmine detected that you changed the GUI theme.
             The current chart theme colors might not be readable.
@@ -458,8 +464,7 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   @Override
-  public void loadValuesFromXML(Element xmlElement) {
-    super.loadValuesFromXML(xmlElement);
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
     updateSystemProxySettings();
     updateGuiFormat();
     darkModeProperty.set(getValue(MZminePreferences.theme).isDark());

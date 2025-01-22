@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -154,6 +154,7 @@ public interface RowsRelationship {
      *
      */
     MS2Deepscore,
+    DREAMS,
     /**
      * External or other undefined
      */
@@ -179,11 +180,12 @@ public interface RowsRelationship {
       return switch (this) {
         case MS1_FEATURE_CORR -> "MS1 shape correlation";
         case ION_IDENTITY_NET -> "Ion Identity";
-        case MS2_COSINE_SIM -> "MS2 mod-cosine";
+        case MS2_COSINE_SIM -> "MS2 (modified) cosine";
         case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine";
         case MS2_GNPS_COSINE_SIM -> "GNPS mod-cosine";
         case ONLINE_REACTION -> "Online reaction";
         case MS2Deepscore -> "MS2Deepscore";
+        case DREAMS -> "DreaMS";
         case OTHER -> "Other";
       };
     }

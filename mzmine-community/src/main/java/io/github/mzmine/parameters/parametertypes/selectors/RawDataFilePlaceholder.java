@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,7 +38,6 @@ import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.Color;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
@@ -279,7 +278,7 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   @Override
-  public void addScan(Scan newScan) throws IOException {
+  public void addScan(Scan newScan) {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
@@ -303,7 +302,7 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   @Override
-  public List<OtherDataFile> getOtherDataFiles() {
+  public @NotNull List<OtherDataFile> getOtherDataFiles() {
     if (getMatchingFile() != null) {
       return getMatchingFile().getOtherDataFiles();
     }

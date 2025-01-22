@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,11 +51,14 @@ public class WrappedTask implements Task {
   public WrappedTask(Task task, TaskPriority priority) {
     this.task = task;
     this.priority = new SimpleObjectProperty<>(priority);
+    final WrappedTask wrapped = this;
     task.addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.CANCELED) {
-        this.cancel();
+        wrapped.cancel();
       } else if (newStatus == TaskStatus.ERROR) {
-        future.cancel(true);
+        if (future != null) {
+          future.cancel(true);
+        }
       }
     });
   }
@@ -190,8 +193,13 @@ public class WrappedTask implements Task {
        */
 
       logger.log(Level.SEVERE,
-          "Unhandled exception " + e + " while processing task " + actualTask.getTaskDescription(),
-          e);
+          "Unhandled exception " + e + " while processing task " + actualTask.getTaskDescription());
+
+      if (e instanceof Exception exception) {
+        actualTask.error(e.getMessage(), exception);
+      } else {
+        actualTask.error(e.getMessage());
+      }
 
 //      DesktopService.getDesktop().displayErrorMessage(
 //          "Unhandled exception in task " + actualTask.getTaskDescription() + ": "

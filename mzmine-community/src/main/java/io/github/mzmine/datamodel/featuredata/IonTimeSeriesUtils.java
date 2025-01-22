@@ -211,16 +211,24 @@ public class IonTimeSeriesUtils {
       }
 
       final int closestPeakIndex = access.binarySearch(centerMz, DefaultTo.CLOSEST_VALUE);
-      final double mz = access.getMzValue(closestPeakIndex);
-
-      if (mzRange.contains(mz)) {
-        scans.add(scan);
-        mzs.add(mz);
-        intensities.add(access.getIntensityValue(closestPeakIndex));
-      } else {
+      if (closestPeakIndex < 0) {
+        // empty scan
         mzs.add(0);
         intensities.add(0);
         scans.add(scan);
+      } else {
+        // closest mz
+        final double mz = access.getMzValue(closestPeakIndex);
+
+        if (mzRange.contains(mz)) {
+          scans.add(scan);
+          mzs.add(mz);
+          intensities.add(access.getIntensityValue(closestPeakIndex));
+        } else {
+          mzs.add(0);
+          intensities.add(0);
+          scans.add(scan);
+        }
       }
 
       i++;

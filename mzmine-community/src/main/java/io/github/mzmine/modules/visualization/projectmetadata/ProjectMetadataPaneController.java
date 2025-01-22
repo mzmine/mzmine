@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,7 @@ import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
-import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExporter;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
@@ -190,7 +190,7 @@ public class ProjectMetadataPaneController {
           alert.setHeaderText(null);
           alert.setContentText(
               "Please respect the " + parameter.getType() + " parameter value format, e.g. "
-                  + parameter.exampleValue());
+              + parameter.exampleValue());
           alert.showAndWait();
         }
         // need to render
@@ -248,22 +248,16 @@ public class ProjectMetadataPaneController {
     final ExitCode exitCode = MZmineCore.setupAndRunModule(ProjectMetadataImportModule.class,
         () -> {
           logger.info("Successfully imported parameters from file");
-          FxThread.runLater(() -> updateParametersToTable());
+          FxThread.runLater(this::updateParametersToTable);
         }, () -> logger.warning("Importing parameters from file failed"));
     if (exitCode == ExitCode.ERROR) {
-      logger.warning("Setup of metadata import failes");
+      logger.warning("Setup of metadata import failed");
     }
   }
 
   @FXML
   public void exportParameters(ActionEvent ev) {
-    ProjectMetadataExporter exporter = new ProjectMetadataExporter(currentStage);
-    if (exporter.exportParameters()) {
-      logger.info("Successfully exported parameters");
-      updateParametersToTable();
-    } else {
-      logger.info("Exporting parameters to file failed");
-    }
+    MZmineCore.setupAndRunModule(ProjectMetadataExportModule.class);
   }
 
   @FXML

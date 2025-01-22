@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BasicStroke;
 import java.util.List;
 import java.util.logging.Logger;
@@ -42,7 +41,6 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
   private static final Logger logger = Logger.getLogger(IntegrationPlotController.class.getName());
 
-  protected final SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
   private IntegrationPlotViewBuilder builder = new IntegrationPlotViewBuilder(model,
       this::onSetLeftPressed, this::onSetRightPressed, this::onFinishPressed, this::onAbortPressed,
       this::onEditPressed);
@@ -56,11 +54,11 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
         model.currentStartTimeProperty(), model.currentEndTimeProperty()));
 
     model.currentStartTimeProperty().addListener((_, _, value) -> model.setCurrentStartMarker(
-        value != null ? new ValueMarker(model.getCurrentStartTime(),
+        value != null ? new ValueMarker(value,
             ConfigService.getDefaultColorPalette().getPositiveColorAWT(), new BasicStroke(2f))
             : null));
     model.currentEndTimeProperty().addListener((_, _, value) -> model.setCurrentEndMarker(
-        value != null ? new ValueMarker(model.getCurrentEndTime(),
+        value != null ? new ValueMarker(value,
             ConfigService.getDefaultColorPalette().getNegativeColorAWT(), new BasicStroke(2f))
             : null));
   }

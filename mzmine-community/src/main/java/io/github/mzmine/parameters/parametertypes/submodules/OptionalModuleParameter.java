@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -68,7 +68,8 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
     this.name = name;
     this.description = description;
     this.componentViewOption = componentViewOption;
-    this.embeddedParameters = embeddedParameters;
+    // requires cloning to avoid usage of static parameters
+    this.embeddedParameters = (T) embeddedParameters.cloneParameterSet();
     value = defaultVal;
   }
 

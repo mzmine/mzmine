@@ -36,13 +36,17 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
+import io.github.mzmine.gui.mainwindow.workspace.AcademicWorkspace;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -52,6 +56,7 @@ import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
@@ -75,6 +80,9 @@ import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
 import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.mzio.mzmine.gui.workspace.Workspace;
+import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
+import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Collections;
@@ -150,6 +158,7 @@ public class MainWindowController {
       "icons/peaklisticon_aligned.png");
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
   private final Logger logger = Logger.getLogger(this.getClass().getName());
+
   @FXML
   public ContextMenu rawDataContextMenu;
   @FXML
@@ -228,6 +237,7 @@ public class MainWindowController {
   private Region miniTaskView;
   private final PauseTransition manualGcDelay = new PauseTransition(Duration.millis(500));
 
+  private Workspace activeWorkspace;
 
   @NotNull
   private static Pane getRawGraphic(RawDataFile rawDataFile) {
@@ -314,17 +324,36 @@ public class MainWindowController {
       tasksViewController.updateDataModel();
 
       // Obtain the settings of max concurrent threads
-      var numOfThreads = MZmineCore.getConfiguration().getNumOfThreads();
+      MZmineConfiguration config = ConfigService.getConfiguration();
+      var numOfThreads = config.getNumOfThreads();
       MZmineCore.getTaskController().setNumberOfThreads(numOfThreads);
+
       final double GB = 1 << 30; // 1 GB
-      final double totalMemGB = Runtime.getRuntime().totalMemory() / GB;
-      final double usedMemGB = totalMemGB - Runtime.getRuntime().freeMemory() / GB;
+      final double totalMemGB = config.getTotalMemoryGB();
+      final double usedMemGB = config.getUsedMemoryGB();
       final double memory = usedMemGB / totalMemGB;
 
       memoryBar.setProgress(memory);
       memoryBarLabel.setText("%.1f/%.1f GB used".formatted(usedMemGB, totalMemGB));
     }));
     memoryUpdater.play();
+
+    final AcademicWorkspace academicWorkspace = new AcademicWorkspace();
+    WorkspaceMenuHelper.addWorkspace(academicWorkspace);
+    if (WorkspaceMenuHelper.getDefaultWorkspaceId() == null) {
+      WorkspaceMenuHelper.setDefaultWorkspace(academicWorkspace);
+    }
+    setActiveWorkspace(WorkspaceMenuHelper.getDefaultWorkspaceOrElse(academicWorkspace),
+        EnumSet.allOf(WorkspaceTags.class));
+  }
+
+  public void setActiveWorkspace(@NotNull Workspace workspace, EnumSet<WorkspaceTags> tags) {
+    activeWorkspace = workspace;
+    mainPane.setTop(workspace.buildMainMenu(tags));
+  }
+
+  public Workspace getActiveWorkspace() {
+    return activeWorkspace;
   }
 
   private void initFeatureListsList() {
@@ -1066,5 +1095,13 @@ public class MainWindowController {
 
   public BorderPane getMainPane() {
     return mainPane;
+  }
+
+  public void handleColorByMetadata(final ActionEvent e) {
+    MZmineCore.setupAndRunModule(ColorByMetadataModule.class);
+  }
+
+  public void handleShowStatisticsDashboard(final ActionEvent e) {
+    MZmineCore.setupAndRunModule(StatsDasboardModule.class);
   }
 }

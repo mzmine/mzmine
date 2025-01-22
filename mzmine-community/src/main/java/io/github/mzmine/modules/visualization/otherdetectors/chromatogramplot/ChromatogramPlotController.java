@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot;
 
+import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -183,5 +185,22 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
 
   public void setDomainAxisFormat(NumberFormat format) {
     domainAxisFormat().set(format);
+  }
+
+  public void setTitle(String title) {
+    // todo apply chart theme
+    model.setTitle(title);
+  }
+
+  public StringProperty title() {
+    return model.titleProperty();
+  }
+
+  public void setChartGroup(ChartGroup chartGroup) {
+    chartGroup.add(new ChartViewWrapper(model.getChart()));
+  }
+
+  public void setRangeAxisStickyZero(boolean stickyZero) {
+    model.getChart().setStickyZeroRangeAxis(stickyZero);
   }
 }

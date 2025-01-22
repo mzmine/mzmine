@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -126,7 +126,7 @@ public class RangeUtils {
    * @param range Range
    * @return Range length
    */
-  public static <N extends Number & Comparable<N>> N rangeLength(Range<N> range) {
+  public static <N extends Number & Comparable<?>> N rangeLength(Range<N> range) {
     return ArithmeticUtils.subtract(range.upperEndpoint(), range.lowerEndpoint());
   }
 
@@ -380,5 +380,19 @@ public class RangeUtils {
    */
   public static boolean isBounded(final @Nullable Range<? extends Number> range) {
     return !isNullOrUnbounded(range);
+  }
+
+  /**
+   * return The wider range (determined by {@link RangeUtils#rangeLength(Range)}.
+   */
+  public static <T extends Number & Comparable<?>> Range<T> max(Range<T> a, Range<T> b) {
+    return rangeLength(a).doubleValue() > rangeLength(b).doubleValue() ? a : b;
+  }
+
+  /**
+   * @return The smaller range (determined by {@link RangeUtils#rangeLength(Range)}.
+   */
+  public static <T extends Number & Comparable<?>> Range<T> min(Range<T> a, Range<T> b) {
+    return rangeLength(a).doubleValue() < rangeLength(b).doubleValue() ? a : b;
   }
 }

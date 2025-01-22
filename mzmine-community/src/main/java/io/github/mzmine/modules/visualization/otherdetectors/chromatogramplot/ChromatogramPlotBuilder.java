@@ -60,7 +60,7 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
     initializeAnnotationListener(chart);
     initializeValueListener(chart);
 
-    model.cursorPositionProperty().bind(chart.cursorPositionProperty());
+    model.cursorPositionProperty().bindBidirectional(chart.cursorPositionProperty());
     model.titleProperty().subscribe(title -> chart.getChart().setTitle(title));
     model.domainLabelProperty()
         .subscribe(label -> chart.getXYPlot().getDomainAxis().setLabel(label));

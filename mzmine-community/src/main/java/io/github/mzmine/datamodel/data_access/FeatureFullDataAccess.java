@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.data_access;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Arrays;
@@ -172,12 +173,21 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
           break;
         }
       }
+      if (detectedIndex != detectedScans.size()) {
+        throw new IllegalStateException(
+            "Less scans added than actually detected in Full Feature data access. This may point to wrong sorting of scans between detected and all scans of a feature list.");
+      }
       currentNumberOfDataPoints = allScans.size();
     } else {
       // clear
       allScans = null;
     }
     return feature;
+  }
+
+  @Override
+  public int getMaxNumberOfValues() {
+    return mzs.length;
   }
 
   @Override
@@ -188,5 +198,10 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
   @Override
   public double[] getMzValues() {
     return mzs;
+  }
+
+  @Override
+  public IonTimeSeries<Scan> emptySeries() {
+    return featureData.emptySeries();
   }
 }

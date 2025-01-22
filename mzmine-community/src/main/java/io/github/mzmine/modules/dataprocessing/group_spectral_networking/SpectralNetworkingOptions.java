@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,13 +26,15 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor.NoPrecursorCosineSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams.DreaMSNetworkingModule;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 
 public enum SpectralNetworkingOptions implements ModuleOptionsEnum {
 
-  MODIFIED_COSINE, MS2_DEEPSCORE;
+  MODIFIED_COSINE, MS2_DEEPSCORE, COSINE_NO_PRECURSOR, DREAMS;
 
   @Override
   public String toString() {
@@ -42,8 +44,10 @@ public enum SpectralNetworkingOptions implements ModuleOptionsEnum {
   @Override
   public String getStableId() {
     return switch (this) {
-      case MS2_DEEPSCORE -> "MS2Deepscore";
-      case MODIFIED_COSINE -> "Modified cosine";
+      case MS2_DEEPSCORE -> MS2DeepscoreNetworkingModule.NAME;
+      case MODIFIED_COSINE -> ModifiedCosineSpectralNetworkingModule.NAME;
+      case COSINE_NO_PRECURSOR -> NoPrecursorCosineSpectralNetworkingModule.NAME;
+      case DREAMS -> DreaMSNetworkingModule.NAME;
     };
   }
 
@@ -53,6 +57,8 @@ public enum SpectralNetworkingOptions implements ModuleOptionsEnum {
     return switch (this) {
       case MODIFIED_COSINE -> ModifiedCosineSpectralNetworkingModule.class;
       case MS2_DEEPSCORE -> MS2DeepscoreNetworkingModule.class;
+      case COSINE_NO_PRECURSOR -> NoPrecursorCosineSpectralNetworkingModule.class;
+      case DREAMS -> DreaMSNetworkingModule.class;
     };
   }
 

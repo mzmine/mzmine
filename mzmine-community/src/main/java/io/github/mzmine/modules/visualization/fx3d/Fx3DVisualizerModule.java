@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,8 +56,8 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
   private static final Logger logger = Logger.getLogger(Fx3DVisualizerModule.class.getName());
 
-  private static final String MODULE_NAME = "3D visualizer";
-  private static final String MODULE_DESCRIPTION = "3D visualizer."; // TODO
+  private static final String MODULE_NAME = "3D plot";
+  private static final String MODULE_DESCRIPTION = "3D plot shows retention time, m/z, and intensity of MS data.";
 
   @Override
   public @NotNull String getName() {

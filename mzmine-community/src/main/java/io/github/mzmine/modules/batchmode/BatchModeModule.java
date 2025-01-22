@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -66,7 +66,7 @@ public class BatchModeModule implements MZmineProcessingModule {
   @Nullable
   public static BatchTask runBatch(@NotNull MZmineProject project, File batchFile,
       @NotNull Instant moduleCallDate) {
-    return runBatch(project, batchFile, null, null, null, moduleCallDate);
+    return runBatch(project, batchFile, null, null, null, null, moduleCallDate);
   }
 
   /**
@@ -74,6 +74,7 @@ public class BatchModeModule implements MZmineProcessingModule {
    *
    * @param batchFile                    local file
    * @param overrideDataFiles            change the data import to those files if not null
+   * @param overrideMetadataFile
    * @param overrideSpectralLibraryFiles change the spectral libraries imported
    * @param overrideOutBaseFile          change all output files with this out path and base
    *                                     filename
@@ -81,8 +82,9 @@ public class BatchModeModule implements MZmineProcessingModule {
    */
   @Nullable
   public static BatchTask runBatch(@NotNull MZmineProject project, File batchFile,
-      @Nullable File[] overrideDataFiles, final File[] overrideSpectralLibraryFiles,
-      @Nullable final String overrideOutBaseFile, @NotNull Instant moduleCallDate) {
+      @Nullable File[] overrideDataFiles, @Nullable final File overrideMetadataFile,
+      final File[] overrideSpectralLibraryFiles, @Nullable final String overrideOutBaseFile,
+      @NotNull Instant moduleCallDate) {
     if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Cannot run a second batch while the current batch is not finished.");
@@ -109,13 +111,19 @@ public class BatchModeModule implements MZmineProcessingModule {
       }
 
       // change input files and spectral libraries, e.g., by command line arguments
-      if (overrideDataFiles != null || overrideSpectralLibraryFiles != null) {
-        if (!newQueue.setImportFiles(overrideDataFiles, overrideSpectralLibraryFiles)) {
+      if (overrideDataFiles != null || overrideSpectralLibraryFiles != null
+          || overrideMetadataFile != null) {
+        if (!newQueue.setImportFiles(overrideDataFiles, overrideMetadataFile,
+            overrideSpectralLibraryFiles)) {
           if (overrideDataFiles != null) {
             logger.log(Level.SEVERE,
                 "Could not change the input files to " + Arrays.stream(overrideDataFiles)
                     .map(file -> file != null ? file.getAbsolutePath() : "null")
                     .collect(Collectors.joining("\n")));
+          }
+          if (overrideMetadataFile != null) {
+            logger.log(Level.SEVERE, "Could not change the import metadata file to "
+                                     + overrideMetadataFile.getAbsolutePath());
           }
           if (overrideSpectralLibraryFiles != null) {
             logger.log(Level.SEVERE,

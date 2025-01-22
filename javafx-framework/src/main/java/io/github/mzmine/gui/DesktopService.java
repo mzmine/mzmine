@@ -25,7 +25,9 @@
 
 package io.github.mzmine.gui;
 
+import java.io.Console;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Get the desktop that may be headless or GUI
@@ -52,9 +54,11 @@ public class DesktopService {
   }
 
   /**
-   * True if {@link System#console#isTerminal} is true and shows that console input is available
+   * True if {@link System#console#isTerminal} is true and shows that console input is available.
+   * False if not terminal or if console==null
    */
   public static boolean hasTerminalInput() {
-    return System.console().isTerminal();
+    final @Nullable Console console = System.console();
+    return console != null && console.isTerminal();
   }
 }

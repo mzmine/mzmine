@@ -27,6 +27,7 @@ package io.github.mzmine.util.exceptions;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.scans.ScanUtils;
+import org.jetbrains.annotations.Nullable;
 
 public class MissingMassListException extends RuntimeException {
 
@@ -34,13 +35,16 @@ public class MissingMassListException extends RuntimeException {
     this("", scan);
   }
 
-  public MissingMassListException(String message, Scan scan) {
-    super("Missing mass list in scan " + ScanUtils.scanToString(scan, true) + ". " + message);
+  public MissingMassListException(String message, @Nullable Scan scan) {
+    super(
+        "Missing mass list in scan " + (scan != null ? ScanUtils.scanToString(scan, true) : "null")
+            + ". " + message);
   }
 
   /**
-   * This constructor is only to be used when no direct scan object is present. (e.g., {@link
-   * io.github.mzmine.datamodel.impl.MobilityScanStorage}) Use other constructors by default.
+   * This constructor is only to be used when no direct scan object is present. (e.g.,
+   * {@link io.github.mzmine.datamodel.impl.MobilityScanStorage}) Use other constructors by
+   * default.
    *
    * @param message Error message
    */

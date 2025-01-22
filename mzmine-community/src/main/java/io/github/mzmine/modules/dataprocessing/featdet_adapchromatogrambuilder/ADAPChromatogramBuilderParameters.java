@@ -161,11 +161,11 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("Min group size in # of scans", minimumConsecutiveScans);
-    nameParameterMap.put("Group intensity threshold", minGroupIntensity);
-    nameParameterMap.put("Min highest intensity", minHighestPoint);
-    nameParameterMap.put("Scans", scanSelection);
-    nameParameterMap.put("Scan to scan accuracy (m/z)", mzTolerance);
+    nameParameterMap.put("Min group size in # of scans", getParameter(minimumConsecutiveScans));
+    nameParameterMap.put("Group intensity threshold", getParameter(minGroupIntensity));
+    nameParameterMap.put("Min highest intensity", getParameter(minHighestPoint));
+    nameParameterMap.put("Scans", getParameter(scanSelection));
+    nameParameterMap.put("Scan to scan accuracy (m/z)", getParameter(mzTolerance));
     return nameParameterMap;
   }
 }

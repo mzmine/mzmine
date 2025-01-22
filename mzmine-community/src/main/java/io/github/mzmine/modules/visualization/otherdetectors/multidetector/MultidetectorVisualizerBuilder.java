@@ -42,6 +42,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
@@ -59,12 +60,13 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
 
   @Override
   public Region build() {
-    content = FxLayout.newVBox(new Insets(0));
+    content = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true);
 
     final Button addButton = FxButtons.createButton(null, FxIcons.ADD, "Add another trace",
         this::addNewDetector);
     final HBox addWrapper = FxLayout.newHBox(Pos.TOP_RIGHT, addButton);
-    final VBox contentWrapper = FxLayout.newVBox(content, addWrapper);
+    final VBox contentWrapper = content = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true,
+        content, addWrapper);
 
     main = new BorderPane(contentWrapper);
     var scroll = new ScrollPane(main);
@@ -90,6 +92,7 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
 
     final IntegrationPane pane = new IntegrationPane(file.get());
     pane.minHeightProperty().set(250);
+    VBox.setVgrow(pane, Priority.SOMETIMES);
 //    pane.addEventFilter(KeyEvent.KEY_PRESSED, event -> logger.finest("pane " + event.toString()));
     content.getChildren().add(pane);
   }

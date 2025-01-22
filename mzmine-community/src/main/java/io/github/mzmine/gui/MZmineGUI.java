@@ -69,6 +69,8 @@ import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
+import io.mzio.mzmine.gui.workspace.Workspace;
+import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.UsersViewState;
 import io.mzio.users.user.CurrentUserService;
@@ -78,6 +80,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -105,7 +108,6 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -248,6 +250,16 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   }
 
+  /**
+   * Currently the {@link GroupableListView} only allows sorting by name.
+   */
+  public static void sortRawDataFilesAlphabetically(final List<RawDataFile> raws) {
+    if (mainWindowController == null) {
+      return;
+    }
+    FxThread.runLater(() -> mainWindowController.getRawDataList().sortItemObjects(raws));
+  }
+
   @NotNull
   public static List<RawDataFile> getSelectedRawDataFiles() {
     final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
@@ -362,13 +374,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
           logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-                              + rawDataFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
         if (!libraryFiles.isEmpty()) {
           logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
-                              + libraryFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
 
         // set raw and library files to parameter
@@ -547,24 +557,10 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         FxThread.runLater(() -> displayNotification("""
                 Set temp folder to a fast local drive (prefer a public folder over a user folder).
                 mzmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
-                """, "Change", MZmineCore::openTempPreferences,
+                """, "Change", ConfigService::openTempPreferences,
             () -> preferences.setParameter(MZminePreferences.showTempFolderAlert, false)));
       }
     }
-    // update the size and position of the main window
-    /*
-     * ParameterSet paramSet = configuration.getPreferences(); WindowSettingsParameter settings =
-     * paramSet .getParameter(MZminePreferences.windowSetttings);
-     * settings.applySettingsToWindow(desktop.getMainWindow());
-     */
-    // add last project menu items
-    /*
-     * if (desktop instanceof MainWindow) { ((MainWindow) desktop).createLastUsedProjectsMenu(
-     * configuration.getLastProjects()); // listen for changes
-     * configuration.getLastProjectsParameter() .addFileListChangedListener(list -> { // new list of
-     * last used projects Desktop desk = getDesktop(); if (desk instanceof MainWindow) {
-     * ((MainWindow) desk) .createLastUsedProjectsMenu(list); } }); }
-     */
 
     // Activate project - bind it to the desktop's project tree
     MZmineGUI.activateProject(ProjectService.getProject());
@@ -876,7 +872,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     return mainWindowController.getSelectedProjectTab();
   }
 
-  public void setMenubar(MenuBar menubar) {
-    mainWindowController.getMainPane().setTop(menubar);
+  public void setWorkspace(@NotNull Workspace workspace, @NotNull EnumSet<WorkspaceTags> tags) {
+    mainWindowController.setActiveWorkspace(workspace, tags);
+  }
+
+  public Workspace getActiveWorkspace() {
+    return mainWindowController.getActiveWorkspace();
   }
 }

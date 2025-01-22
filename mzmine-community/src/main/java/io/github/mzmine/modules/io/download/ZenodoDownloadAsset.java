@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.io.download;
 
 import io.github.mzmine.util.StringUtils;
-import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
  *                      the Cite all versions DOI on each record: for 10.5281/zenodo.12628368 the
  *                      record ID would be 12628368 which points to the latest version.
  */
-public record ZenodoDownloadAsset(@NotNull ExternalAsset extAsset, @Nullable String version,
+public record ZenodoDownloadAsset(@NotNull AssetGroup extAsset, @Nullable String version,
                                   boolean requiresUnzip, @Nullable String mainFileName,
                                   @NotNull String recordId,
                                   @NotNull String fileNameRegEx) implements DownloadAsset {
@@ -67,32 +67,31 @@ public record ZenodoDownloadAsset(@NotNull ExternalAsset extAsset, @Nullable Str
 
   public String getDownloadDescription() {
     if (version == null) {
-      return "Download %s from Zenodo record %s".formatted(extAsset, recordId);
+      return "Download %s from Zenodo record %s".formatted(extAsset.getLabel(), recordId);
     }
-    return "Download %s version %s from Zenodo record %s".formatted(extAsset, version, recordId);
+    return "Download %s version %s from Zenodo record %s".formatted(extAsset.getLabel(), version,
+        recordId);
   }
 
   public String getLabel(boolean includeUrl) {
     if (version == null) {
-      return "%s, Zenodo: %s".formatted(extAsset, recordId);
+      return "%s, Zenodo: %s".formatted(extAsset.getLabel(), recordId);
     }
-    return "%s (%s), Zenodo: %s".formatted(extAsset, version, recordId);
+    return "%s (%s), Zenodo: %s".formatted(extAsset.getLabel(), version, recordId);
   }
 
   /**
-   * Estimated file name as in download directory of {@link ExternalAsset#getDownloadToDir()} and
+   * Estimated file name as in download directory of {@link AssetGroup#getDownloadToDir()} and
    * mainFileName or url file name. If file is unzipped - then the final file name may be different.
    * In this case use the mainFileName to determine the final file.
    *
    * @return estimated filename based on download directory and mainFileName or URL
    */
-  @NotNull
-  public File getEstimatedFinalFile() {
-    File dir = extAsset.getDownloadToDir();
-    if (mainFileName != null) {
-      return new File(dir, mainFileName);
-    }
-    var fileName = FileAndPathUtil.getFileNameFromUrl(recordId);
-    return new File(dir, fileName);
+  @Override
+  public @NotNull List<File> getEstimatedFinalFiles() {
+    // cannot estimate final files
+    // latest zenodo record needs request to know files
+    // this is done in {@link FileDownloadTask}
+    return List.of();
   }
 }

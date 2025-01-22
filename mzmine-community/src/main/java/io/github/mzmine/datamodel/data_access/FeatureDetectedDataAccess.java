@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.data_access;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.List;
@@ -139,5 +140,15 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
   @Override
   public double[] getMzValues() {
     return mzs;
+  }
+
+  @Override
+  public int getMaxNumberOfValues() {
+    return mzs.length;
+  }
+
+  @Override
+  public IonTimeSeries<Scan> emptySeries() {
+    return featureData.emptySeries();
   }
 }

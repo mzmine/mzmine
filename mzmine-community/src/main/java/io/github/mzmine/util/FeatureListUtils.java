@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import static io.github.mzmine.util.RangeUtils.calcCenterScore;
 import static io.github.mzmine.util.RangeUtils.isBounded;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -40,10 +41,12 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -611,15 +614,36 @@ public class FeatureListUtils {
     return map;
   }
 
+  /**
+   * Does not copy rows
+   */
   public static ModularFeatureList createCopy(final FeatureList featureList, final String suffix,
       final MemoryMapStorage storage) {
+    return createCopy(featureList, suffix, storage, false);
+  }
+
+  public static ModularFeatureList createCopy(final FeatureList featureList, final String suffix,
+      final MemoryMapStorage storage, boolean copyRows) {
     ModularFeatureList newFlist = new ModularFeatureList(featureList.getName() + " " + suffix,
         storage, featureList.getRawDataFiles());
 
     FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
     FeatureListUtils.transferRowTypes(newFlist, List.of(featureList));
     FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
+    if (copyRows) {
+      copyRows(featureList, newFlist);
+    }
+
     return newFlist;
+  }
+
+  public static void copyRows(final FeatureList featureList,
+      final ModularFeatureList newFeatureList) {
+    for (final FeatureListRow row : featureList.getRows()) {
+      FeatureListRow copy = new ModularFeatureListRow(newFeatureList, row.getID(),
+          (ModularFeatureListRow) row, true);
+      newFeatureList.addRow(copy);
+    }
   }
 
   /**
@@ -670,5 +694,19 @@ public class FeatureListUtils {
               ids.stream().map(Object::toString).collect(Collectors.joining(","))));
     }
     return list;
+  }
+
+  /**
+   * Ims features usually consume more ram than non ims features. IF memory usage can be estimated
+   * for regular features, estimate a correction factor for the ram usage if ims files are present.
+   */
+  public static double getImsRamFactor(FeatureList flist) {
+    final int numRaws = flist.getNumberOfRawDataFiles();
+    final long numImsFiles = flist.getRawDataFiles().stream()
+        .filter(IMSRawDataFile.class::isInstance).count();
+    final boolean isIms = flist.getFeatureTypes().contains(DataTypes.get(MobilityType.class));
+    // ims features generally consume 10 times the ram of non ims features. not all files may be ims though
+    final double imsRamFactor = isIms ? (double) (numImsFiles * 10) / numRaws : 1;
+    return imsRamFactor;
   }
 }

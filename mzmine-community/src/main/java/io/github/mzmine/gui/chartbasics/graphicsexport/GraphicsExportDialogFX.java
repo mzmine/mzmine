@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,8 @@ import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory2;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
@@ -39,7 +41,12 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import org.jfree.chart.JFreeChart;
 
 /**
@@ -57,33 +64,47 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   protected EChartViewer chartPanel;
   protected ExportChartThemeParameters chartParam;
   protected SimpleColorPalette colorPalette;
+  // do not show dialogs when running all export in batch only show when single export
+  private boolean openResultDialog = false;
 
 
   public GraphicsExportDialogFX(boolean valueCheckRequired, ParameterSet parameterSet,
-      JFreeChart chart) {
+      JFreeChart chart, final boolean openResultDialog) {
     super(valueCheckRequired, parameterSet);
 
     chartParam = (ExportChartThemeParameters) parameterSet.getParameter(
         GraphicsExportParameters.chartParameters).getValue();
 
     colorPalette = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
+    this.openResultDialog = openResultDialog;
 
     try {
       this.chart = (JFreeChart) chart.clone();
     } catch (Exception e1) {
-      logger.log(Level.WARNING, "Clone not implemented for chart of class" + chart.getClass(), e1);
+      logger.log(Level.WARNING,
+          "Clone not implemented (will use original) for chart of class" + chart.getClass(), e1);
       this.chart = chart;
     }
 
     theme = ChartThemeFactory2.createExportChartTheme("Export theme");
     chartParam.applyToChartTheme(theme);
+
+    // do not set min width on this otherwise scrollpane freaks out and does not show bars
     pnChartPreview = new BorderPane();
 
-    pnChartPreview.setMinWidth(400);
-    pnChartPreview.setMinHeight(300);
-    mainPane.setRight(pnChartPreview);
-    chartPanel = new EChartViewer(this.chart);
+    var centerNode = mainPane.getCenter();
+    if (centerNode instanceof Region r) {
+      r.setMinWidth(400);
+    }
+
+    var scrollChart = new StackPane(
+        FxLayout.newScrollPane(pnChartPreview, ScrollBarPolicy.AS_NEEDED,
+            ScrollBarPolicy.AS_NEEDED));
+//    mainPane.setRight(scrollChart);
+    chartPanel = new EChartViewer(this.chart, false, false, true, true, false);
     pnChartPreview.setCenter(chartPanel);
+    mainPane.setCenter(FxLayout.newHBox(centerNode, scrollChart));
+    HBox.setHgrow(scrollChart, Priority.ALWAYS);
 
     // add buttons
     btnRenewPreview = new Button("Renew Preview");
@@ -100,6 +121,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     setMinHeight(400.0);
 
     centerOnScreen();
+    renewPreview();
   }
 
   protected void applyTheme() {
@@ -173,15 +195,25 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
       File path = parameterSet.getFullpath();
       try {
         logger.info("Writing image to file: " + path.getAbsolutePath());
+
         ChartExportUtil.writeChartToImageFX(chartPanel, parameterSet);
-        logger.info("Success" + path);
+
+        showResultDialog("Success", "Exported image " + path.getAbsolutePath());
       } catch (Exception e) {
-        e.printStackTrace();
         logger.log(Level.SEVERE, "File not written (" + path + ")", e);
-        // DialogLoggerUtil.showErrorDialog(this, "File not written. ", e); TODO
+        showResultDialog("Failed", "Failed to export image. " + e.getMessage());
       }
     }
   }
+
+  private void showResultDialog(final String title, final String message) {
+    if (openResultDialog) {
+      DialogLoggerUtil.showMessageDialogForTime(title, message);
+    } else {
+      logger.fine(title + ": " + message);
+    }
+  }
+
 
   public void export() {
     applyTheme();

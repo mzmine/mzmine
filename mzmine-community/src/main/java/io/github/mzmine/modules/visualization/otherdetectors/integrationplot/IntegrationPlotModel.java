@@ -42,18 +42,19 @@ import org.jfree.chart.plot.ValueMarker;
 
 public class IntegrationPlotModel {
 
-  private BooleanProperty currentIntegrationValid = new SimpleBooleanProperty(false);
-  private ObjectProperty<ChromatogramPlotController> chromatogramPlot = new SimpleObjectProperty<>(
+  private final BooleanProperty currentIntegrationValid = new SimpleBooleanProperty(false);
+  private final ObjectProperty<ChromatogramPlotController> chromatogramPlot = new SimpleObjectProperty<>(
       new ChromatogramPlotController());
-  private ListProperty<IntensityTimeSeries> integratedFeatures = new SimpleListProperty<>(
+  private final ListProperty<IntensityTimeSeries> integratedFeatures = new SimpleListProperty<>(
       FXCollections.observableArrayList());
-  private ObjectProperty<@Nullable IntensityTimeSeries> selectedFeature = new SimpleObjectProperty<>();
-  private ObjectProperty<@Nullable IntensityTimeSeries> currentTimeSeries = new SimpleObjectProperty<>();
-  private ObjectProperty<@Nullable Double> currentStartTime = new SimpleObjectProperty<>();
-  private ObjectProperty<@Nullable Double> currentEndTime = new SimpleObjectProperty<>();
-  private ObjectProperty<@NotNull State> state = new SimpleObjectProperty<>(State.NOT_INTEGRATING);
-  private ObjectProperty<@Nullable ValueMarker> currentStartMarker = new SimpleObjectProperty<>();
-  private ObjectProperty<@Nullable ValueMarker> currentEndMarker = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable IntensityTimeSeries> selectedFeature = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable IntensityTimeSeries> currentTimeSeries = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable Double> currentStartTime = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable Double> currentEndTime = new SimpleObjectProperty<>();
+  private final ObjectProperty<@NotNull State> state = new SimpleObjectProperty<>(
+      State.NOT_INTEGRATING);
+  private final ObjectProperty<@Nullable ValueMarker> currentStartMarker = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable ValueMarker> currentEndMarker = new SimpleObjectProperty<>();
 
   public ChromatogramPlotController getChromatogramPlot() {
     return chromatogramPlot.get();
