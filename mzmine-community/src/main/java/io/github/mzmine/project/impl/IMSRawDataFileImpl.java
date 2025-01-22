@@ -124,6 +124,17 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     return frames;
   }
 
+  @Override
+  public void clearScans() {
+    super.clearScans();
+    frames.clear();
+    frameNumbersCache.clear();
+    dataMobilityRangeCache.clear();
+    frameMsLevelCache.clear();
+    mobilityRange = null;
+    maxRawDataPoints = -1;
+  }
+
   @NotNull
   @Override
   public List<Frame> getFrames(int msLevel) {

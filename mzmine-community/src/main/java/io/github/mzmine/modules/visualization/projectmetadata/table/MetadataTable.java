@@ -36,6 +36,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,10 +45,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Holds the metadata of a project and represents it as a table (parameters are columns).
@@ -205,6 +207,11 @@ public class MetadataTable {
    * the metadata table
    */
   public MetadataColumn<?> getColumnByName(String name) {
+    // filename column is not added because this would duplicate the RawDataFile.name method
+    if (FILENAME_HEADER.equals(name)) {
+      return createDataFileColumn();
+    }
+    //
     for (MetadataColumn<?> column : getColumns()) {
       if (column.getTitle().equals(name)) {
         return column;
@@ -377,5 +384,19 @@ public class MetadataTable {
       });
     });
     return this;
+  }
+
+  @Nullable
+  public Map<RawDataFile, Object> getColumnData(final MetadataColumn<?> col) {
+    if (col == null) {
+      return null;
+    }
+    // filename column is not in data so create it here
+    if (FILENAME_HEADER.equals(col.getTitle())) {
+      return ProjectService.getProject().getCurrentRawDataFiles().stream()
+          .collect(Collectors.toMap(Function.identity(), RawDataFile::getName));
+    }
+
+    return data.get(col);
   }
 }

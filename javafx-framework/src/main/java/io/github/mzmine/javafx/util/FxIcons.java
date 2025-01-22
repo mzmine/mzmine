@@ -37,7 +37,7 @@ public enum FxIcons implements IconCodeSupplier {
 
   //
   USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, TOOL, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, //
-  ROCKET, LIGHTBULB,
+  ROCKET, LIGHTBULB, METADATA_TABLE, TABLE, SPREADSHEET,
 
   // ACTIONS
   SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD;
@@ -66,6 +66,9 @@ public enum FxIcons implements IconCodeSupplier {
       case BOOK -> "bi-book";
       case DOCUMENTATION -> "bi-book";
       case ROCKET -> "las-rocket";
+      case METADATA_TABLE -> "bi-grid-3x2-gap";
+      case SPREADSHEET -> "bi-file-spreadsheet"; // or bi-file-earmark-spreadsheet
+      case TABLE -> "bi-grid-3x2"; // maybe bi-grid-3x3  or  bi-table
       case SAVE -> "bi-box-arrow-down";
       case LOAD -> "bi-box-arrow-in-up";
       case CANCEL -> "bi-x-circle";

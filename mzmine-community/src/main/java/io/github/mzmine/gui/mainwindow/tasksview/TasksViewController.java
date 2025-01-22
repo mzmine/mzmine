@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,6 @@ package io.github.mzmine.gui.mainwindow.tasksview;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.taskcontrol.TaskService;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
-import javafx.collections.ObservableList;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,8 +40,6 @@ public class TasksViewController extends FxController<TasksViewModel> {
   private final TasksViewInteractor interactor;
   private final TasksView view;
   private final MiniTaskView miniView;
-  // this reference needs to stay here to keep a reference - otherwise the weakListener will be garbage collected
-  private final ObservableList<WrappedTask> readOnlyTasks;
 
   public TasksViewController() {
     super(new TasksViewModel());
@@ -56,8 +52,7 @@ public class TasksViewController extends FxController<TasksViewModel> {
     model.setOnCancelBatchTask(interactor::cancelBatchTasks);
     model.setOnShowTasksView(interactor::showTasksView);
 
-    readOnlyTasks = TaskService.getController().getReadOnlyTasks();
-    readOnlyTasks.addListener(interactor::onSubmittedTasksChanged);
+    TaskService.getController().addTasksChangedListener(interactor::onSubmittedTasksChanged);
   }
 
   /**

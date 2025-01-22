@@ -193,8 +193,13 @@ public class WrappedTask implements Task {
        */
 
       logger.log(Level.SEVERE,
-          "Unhandled exception " + e + " while processing task " + actualTask.getTaskDescription(),
-          e);
+          "Unhandled exception " + e + " while processing task " + actualTask.getTaskDescription());
+
+      if (e instanceof Exception exception) {
+        actualTask.error(e.getMessage(), exception);
+      } else {
+        actualTask.error(e.getMessage());
+      }
 
 //      DesktopService.getDesktop().displayErrorMessage(
 //          "Unhandled exception in task " + actualTask.getTaskDescription() + ": "

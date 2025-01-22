@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -196,6 +196,7 @@ public class MZmineJsonLibraryEntry {
       case DATASET_ID -> datasetId;
       case FILENAME -> null;
       case USI -> usi;
+      case SOURCE_SCAN_USI -> null;
       case SPLASH -> splash;
       case QUALITY -> quality;
       case QUALITY_PRECURSOR_PURITY -> purity;
@@ -209,11 +210,13 @@ public class MZmineJsonLibraryEntry {
       case GNPS_ID -> null;
       case MONA_ID -> null;
       case CHEMSPIDER -> null;
+      case MERGED_N_SAMPLES -> null;
       case SIRIUS_MERGED_SCANS -> null;
       case SIRIUS_MERGED_STATS -> null;
       case OTHER_MATCHED_COMPOUNDS_N -> null;
       case OTHER_MATCHED_COMPOUNDS_NAMES -> null;
-      case FEATURE_ID, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT -> null;
+      case FEATURE_ID, FEATURELIST_NAME_FEATURE_ID, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT ->
+          null;
       case SCAN_NUMBER -> scanNumber;
       case UNSPECIFIED -> null;
     };

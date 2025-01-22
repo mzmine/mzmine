@@ -47,19 +47,17 @@ import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionInfo;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -188,6 +186,50 @@ public class MSConvertImportTask extends AbstractTask {
     }
   }
 
+  public static @NotNull File getMzMLFileName(File filePath) {
+    final String fileName = filePath.getName();
+    final String mzMLName = FileAndPathUtil.getRealFileName(fileName, "mzML");
+    final File mzMLFile = new File(filePath.getParent(), mzMLName);
+    return mzMLFile;
+  }
+
+  /**
+   * Some versions of msconvert output information into stdout before the mzml is parsed. Therefore,
+   * we need to find the mzml header and skip to it's start.
+   */
+  private static void skipToMzmlStart(InputStream mzMLStream) throws IOException {
+    if (mzMLStream.markSupported()) {
+      // set a mark so we can later return to the start of the file
+      mzMLStream.mark(Integer.MAX_VALUE);
+      final byte[] xmlHeader = "<?xml".getBytes(StandardCharsets.UTF_8);
+      final byte[] buffer = new byte[256];
+      int headerStartIndex = -1;
+      int headerStartOffset = 0;
+
+      while (headerStartIndex == -1) {
+        final int read = mzMLStream.read(buffer);
+        for (int i = 0; i < read; i++) {
+          if (buffer[i] == xmlHeader[0]) {
+            final byte[] bytes = Arrays.copyOfRange(buffer, i,
+                Math.min(i + xmlHeader.length, read));
+            if (Arrays.equals(bytes, xmlHeader)) {
+              headerStartIndex = i;
+              break;
+            }
+          }
+        }
+        if (headerStartIndex == -1) {
+          logger.finest(() -> "Skipping text before mzml header: %s".formatted(
+              new String(buffer, 0, read, StandardCharsets.UTF_8)));
+          headerStartOffset += read;
+        }
+      }
+      // return to start of file and skip ahead to the index where the mzml starts
+      mzMLStream.reset();
+      mzMLStream.skipNBytes(headerStartOffset + headerStartIndex);
+    }
+  }
+
   @Override
   public String getTaskDescription() {
     return msdkTask != null ? msdkTask.getTaskDescription()
@@ -246,13 +288,6 @@ public class MSConvertImportTask extends AbstractTask {
     }
   }
 
-  public static @NotNull File getMzMLFileName(File filePath) {
-    final String fileName = filePath.getName();
-    final String mzMLName = FileAndPathUtil.getRealFileName(fileName, "mzML");
-    final File mzMLFile = new File(filePath.getParent(), mzMLName);
-    return mzMLFile;
-  }
-
   private void importFromMzML(File mzMLFile) {
     RawDataFile dataFile = null;
     ParameterUtils.replaceRawFileName(parameters, rawFilePath, mzMLFile);
@@ -305,6 +340,7 @@ public class MSConvertImportTask extends AbstractTask {
       RawDataFile dataFile = null;
       try (InputStream mzMLStream = process.getInputStream()) //
       {
+        skipToMzmlStart(mzMLStream);
         msdkTask = new MSDKmzMLImportTask(project, rawFilePath, mzMLStream, config, module,
             parameters, moduleCallDate, storage);
 

@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -62,7 +62,7 @@ public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters 
 
 
   public WorkflowDiaWizardParameters() {
-    super(WorkflowWizardParameterFactory.DIA,
+    super(new WorkflowDIA(),
         // actual parameters
         minPearson, minCorrelatedPoints, exportPath, exportGnps, exportSirius,
         exportAnnotationGraphics);

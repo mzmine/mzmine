@@ -51,7 +51,11 @@ public enum ArticleReferences {
 
   MS2DEEPSCORE(
       "de Jonge N, Joas D, Truong LJ, van der Hooft JJJ, Huber F bioRxiv 2024.03.25.586580",
-      "https://doi.org/10.1101/2024.03.25.586580");
+      "https://doi.org/10.1101/2024.03.25.586580"),
+
+  DREAMS(
+      "Bushuiev R, Bushuiev A, Samusevich R, Brungs C, Sivic J, Pluskal T chemRxiv 10.26434/chemrxiv-2023-kss3r-v2",
+      "https://doi.org/10.26434/chemrxiv-2023-kss3r-v2");
 
   private final String content;
   private final String link;

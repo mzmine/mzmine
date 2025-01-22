@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,6 +43,7 @@ import io.github.mzmine.util.ExitCode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -81,8 +82,7 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   public SimpleParameterSet(String onlineHelpUrl, Parameter<?>... parameters) {
-    this.helpUrl = onlineHelpUrl;
-    this.parameters = parameters;
+    this(parameters, onlineHelpUrl);
   }
 
   public SimpleParameterSet(Parameter<?>[] parameters, String onlineHelpUrl) {
@@ -106,11 +106,13 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   @Override
-  public void loadValuesFromXML(Element xmlElement) {
+  public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
     var nameParameterMap = getNameParameterMap();
     // cannot use getElementsByTagName, this goes recursively through all levels
     // finding nested ParameterSets
 //    NodeList list = xmlElement.getElementsByTagName(parameterElement);
+
+    Map<String, Parameter<?>> loadedParameters = HashMap.newHashMap(nameParameterMap.size());
 
     var childNodes = xmlElement.getChildNodes();
     for (int i = 0; i < childNodes.getLength(); i++) {
@@ -124,6 +126,8 @@ public class SimpleParameterSet implements ParameterSet {
       if (param != null) {
         try {
           param.loadValueFromXML(nextElement);
+          // keep track of all parameters that were actually loaded - this means that some may be missing
+          loadedParameters.put(param.getName(), param);
         } catch (Exception e) {
           logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
               e);
@@ -138,6 +142,8 @@ public class SimpleParameterSet implements ParameterSet {
         }
       }
     }
+    handleLoadedParameters(loadedParameters);
+    return loadedParameters;
   }
 
   @Override
