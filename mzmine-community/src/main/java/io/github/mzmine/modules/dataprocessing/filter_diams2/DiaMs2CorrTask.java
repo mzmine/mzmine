@@ -187,7 +187,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return isolationWindowMergingProgress * 0.25 + adapTaskProgess * 0.25
-           + (currentRow / (double) numRows) * 0.5d;
+        + (currentRow / (double) numRows) * 0.5d;
   }
 
   @Override
@@ -195,8 +195,9 @@ public class DiaMs2CorrTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     if (flist.getNumberOfRawDataFiles() != 1) {
-      setErrorMessage("Cannot build DIA MS2 for feature lists with more than one raw data file.");
-      setStatus(TaskStatus.ERROR);
+      error(
+          "Cannot build DIA MS2 for feature lists with more than one raw data file. Run DIA pseudo MS2 builder before alignment.");
+      return;
     }
 
     final RawDataFile file = flist.getRawDataFile(0);
@@ -587,8 +588,8 @@ public class DiaMs2CorrTask extends AbstractTask {
           final SimpleFrame newFrame = new SimpleFrame(windowFile, scan.getScanNumber(),
               scan.getMSLevel(), scan.getRetentionTime(), mzIntensities[0], mzIntensities[1],
               scan.getSpectrumType(), scan.getPolarity(), scan.getScanDefinition(),
-              scan.getScanningMZRange(), ((Frame) scan).getMobilityType(), null,
-              scan.getInjectionTime());
+              scan.getScanningMZRange(), ((Frame) scan).getMobilityType(),
+              msMsInfo.map(Set::of).orElse(null), scan.getInjectionTime());
           newFrame.setMsMsInfo(msMsInfo.orElse(
               null)); //set to regular msmsinfo so we can extract for later CE setting
           newFrame.addMassList(new ScanPointerMassList(newFrame));
