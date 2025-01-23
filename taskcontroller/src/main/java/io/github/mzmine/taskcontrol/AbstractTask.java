@@ -144,7 +144,7 @@ public abstract class AbstractTask implements Task {
    */
   public final void setStatus(TaskStatus newStatus) {
     TaskStatus old = status;
-    if (old == TaskStatus.ERROR || old == TaskStatus.FINISHED) {
+    if (old.isUnmodifiable()) {
       return;
     }
 
