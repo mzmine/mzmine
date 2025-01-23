@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.main;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -36,6 +38,7 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -115,7 +118,6 @@ public final class MZmineCore {
    * Loads the configuration, parses the arguments and initializes everything, but does not launch
    * the batch or gui. Note: not static so it ensures that the {@link MZmineCore#init()} method is
    * called.
-   *
    */
   public void startUp(@NotNull final MZmineCoreArgumentParser argsParser) {
     ArgsToConfigUtils.applyArgsToConfig(argsParser);
@@ -137,7 +139,9 @@ public final class MZmineCore {
   private static void addUserRequiredListener() {
     // add event listener
     EventService.subscribe(mzEvent -> {
-      if (mzEvent instanceof AuthRequiredEvent) {
+      if (mzEvent instanceof AuthRequiredEvent(String message)) {
+        DialogLoggerUtil.showMessageDialog("Invalid user", requireNonNullElse(message, ""));
+
         if (DesktopService.isGUI()) {
           getDesktop().addTab(UsersTab.showTab());
         } else {
@@ -190,8 +194,7 @@ public final class MZmineCore {
   }
 
   /**
-   *
-   * @param args the program arguments, required to launch the gui.
+   * @param args       the program arguments, required to launch the gui.
    * @param argsParser Args parser for easy access to e.g. the batch file.
    */
   public static void launchBatchOrGui(String[] args, MZmineCoreArgumentParser argsParser) {
