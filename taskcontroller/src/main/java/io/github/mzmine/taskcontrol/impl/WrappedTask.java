@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,7 +45,7 @@ public class WrappedTask implements Task {
   private static final Logger logger = Logger.getLogger(WrappedTask.class.getName());
   private Task task;
   private final Property<TaskPriority> priority;
-  private boolean finished = false;
+  private boolean running = false;
   private @Nullable Future<?> future;
 
   public WrappedTask(Task task, TaskPriority priority) {
@@ -158,65 +158,68 @@ public class WrappedTask implements Task {
   }
 
   public void run() {
-    Task actualTask = getActualTask();
-
     try {
+      running = true;
+      Task actualTask = getActualTask();
+      try {
 
-      // Log the start (INFO level events go to the Status bar, too)
-      logger.info("Starting processing of task " + actualTask.getTaskDescription());
+        // Log the start (INFO level events go to the Status bar, too)
+        logger.info("Starting processing of task " + actualTask.getTaskDescription());
 
-      // Process the actual task
-      actualTask.run();
+        // Process the actual task
+        actualTask.run();
 
-      // Check if task finished with an error
-      if (actualTask.getStatus() == TaskStatus.ERROR) {
+        // Check if task finished with an error
+        if (actualTask.getStatus() == TaskStatus.ERROR) {
 
-        String errorMsg = actualTask.getErrorMessage();
-        if (errorMsg == null) {
-          errorMsg = "Unspecified error in " + actualTask.getClass();
-        }
+          String errorMsg = actualTask.getErrorMessage();
+          if (errorMsg == null) {
+            errorMsg = "Unspecified error in " + actualTask.getClass();
+          }
 
-        // Log the error
-        logger.severe("Error of task " + actualTask.getTaskDescription() + ": " + errorMsg);
+          // Log the error
+          logger.severe("Error of task " + actualTask.getTaskDescription() + ": " + errorMsg);
 
 //        DesktopService.getDesktop().displayErrorMessage(errorMsg);
-      } else {
-        // Log the finish
-        logger.info("Processing of task " + actualTask.getTaskDescription() + " done, status "
-                    + actualTask.getStatus());
-      }
+        } else {
+          // Log the finish
+          logger.info("Processing of task " + actualTask.getTaskDescription() + " done, status "
+                      + actualTask.getStatus());
+        }
 
-    } catch (Throwable e) {
-      /*
-       * This should never happen, it means the task did not handle its exception properly, or there
-       * was some severe error, like OutOfMemoryError
-       */
+      } catch (Throwable e) {
+        /*
+         * This should never happen, it means the task did not handle its exception properly, or there
+         * was some severe error, like OutOfMemoryError
+         */
 
-      logger.log(Level.SEVERE,
-          "Unhandled exception " + e + " while processing task " + actualTask.getTaskDescription());
+        logger.log(Level.SEVERE, "Unhandled exception " + e + " while processing task "
+                                 + actualTask.getTaskDescription());
 
-      if (e instanceof Exception exception) {
-        actualTask.error(e.getMessage(), exception);
-      } else {
-        actualTask.error(e.getMessage());
-      }
+        if (e instanceof Exception exception) {
+          actualTask.error(e.getMessage(), exception);
+        } else {
+          actualTask.error(e.getMessage());
+        }
 
 //      DesktopService.getDesktop().displayErrorMessage(
 //          "Unhandled exception in task " + actualTask.getTaskDescription() + ": "
 //          + ExceptionUtils.exceptionToString(e));
 
+      }
+
+      /*
+       * This is important to allow the garbage collector to remove the task, while keeping the task
+       * description in the "Tasks in progress" window
+       */
+      removeTaskReference();
+
+      /*
+       * Mark this thread as finished
+       */
+    } finally {
+      running = false;
     }
-
-    /*
-     * This is important to allow the garbage collector to remove the task, while keeping the task
-     * description in the "Tasks in progress" window
-     */
-    removeTaskReference();
-
-    /*
-     * Mark this thread as finished
-     */
-    finished = true;
   }
 
   /**
@@ -224,7 +227,9 @@ public class WrappedTask implements Task {
    * though
    */
   public boolean isWorkFinished() {
-    return finished;
+    return (future != null && future.isDone()) ||
+           // task is not running but also not waiting anymore
+           (!running && getActualTask().getStatus() != TaskStatus.WAITING);
   }
 
 }
