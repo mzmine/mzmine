@@ -579,4 +579,7 @@ public class BatchTask extends AbstractTask {
     }
   }
 
+  public BatchQueue getQueueCopy() {
+    return queue.clone();
+  }
 }
