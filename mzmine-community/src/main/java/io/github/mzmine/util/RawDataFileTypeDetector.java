@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,6 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
-import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,6 +33,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -75,6 +75,7 @@ public class RawDataFileTypeDetector {
   private static final String BRUKER_FOLDER_SUFFIX = ".d";
   private static final String AIRD_SUFFIX = ".aird";
   private static final String MZML_SUFFIX = ".mzml";
+  private static final String MZXML_SUFFIX = ".mzxml";
   private static final String IMZML_SUFFIX = ".imzml";
   private static final String SCIEX_WIFF_SUFFIX = ".wiff";
   private static final String SCIEX_WIFF2_SUFFIX = ".wiff2";
@@ -99,15 +100,14 @@ public class RawDataFileTypeDetector {
           return detectWatersAcquisitionType(fileName).isIms() ? RawDataFileType.WATERS_RAW_IMS
               : RawDataFileType.WATERS_RAW;
         }
-        if (f.isFile() && (f.getName().contains(TDF_SUFFIX) || f.getName()
-            .contains(TDF_BIN_SUFFIX))) {
+        final var lowerName = f.getName().toLowerCase();
+        if (f.isFile() && (lowerName.endsWith(TDF_SUFFIX) || lowerName.endsWith(TDF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TDF;
         }
-        if (f.isFile() && (f.getName().contains(TSF_SUFFIX) || f.getName()
-            .contains(TSF_BIN_SUFFIX))) {
+        if (f.isFile() && (lowerName.endsWith(TSF_SUFFIX) || lowerName.endsWith(TSF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TSF;
         }
-        if (f.isFile() && (f.getName().contains(BAF_SUFFIX))) {
+        if (f.isFile() && (lowerName.endsWith(BAF_SUFFIX))) {
           return RawDataFileType.BRUKER_BAF;
         }
         if (f.isDirectory() && f.getName().equals(AGILENT_ACQDATATA_FOLDER)) {
@@ -123,16 +123,20 @@ public class RawDataFileTypeDetector {
 
     try {
       if (fileName.isFile()) {
-        if (fileName.getName().toLowerCase().endsWith(MZML_SUFFIX)) {
+        var lowerName = fileName.getName().toLowerCase();
+        if (lowerName.endsWith(MZML_SUFFIX)) {
           return RawDataFileType.MZML;
         }
-        if (fileName.getName().toLowerCase().endsWith(IMZML_SUFFIX)) {
+        if (lowerName.endsWith(MZXML_SUFFIX)) {
+          return RawDataFileType.MZXML;
+        }
+        if (lowerName.endsWith(IMZML_SUFFIX)) {
           return RawDataFileType.IMZML;
         }
-        if (fileName.getName().toLowerCase().endsWith(SCIEX_WIFF_SUFFIX)) {
+        if (lowerName.endsWith(SCIEX_WIFF_SUFFIX)) {
           return RawDataFileType.SCIEX_WIFF;
         }
-        if (fileName.getName().toLowerCase().endsWith(SCIEX_WIFF2_SUFFIX)) {
+        if (lowerName.endsWith(SCIEX_WIFF2_SUFFIX)) {
           return RawDataFileType.SCIEX_WIFF2;
         }
         //the suffix is json and have a .aird file with same name
@@ -146,24 +150,30 @@ public class RawDataFileTypeDetector {
           }
           logger.info("It's not an aird format file or the aird index file not exist");
         }*/
-        if (fileName.getName().contains(TDF_SUFFIX) || fileName.getName()
-            .contains(TDF_BIN_SUFFIX)) {
+        if (lowerName.endsWith(TDF_SUFFIX) || lowerName.endsWith(TDF_BIN_SUFFIX)) {
           return RawDataFileType.BRUKER_TDF;
         }
-        if (fileName.getName().contains(TSF_SUFFIX) || fileName.getName()
-            .contains(TSF_BIN_SUFFIX)) {
+        if (lowerName.endsWith(TSF_SUFFIX) || lowerName.endsWith(TSF_BIN_SUFFIX)) {
           return RawDataFileType.BRUKER_TSF;
         }
 
         // Read the first 1kB of the file into a String
-        InputStreamReader reader = new InputStreamReader(new FileInputStream(fileName),
-            StandardCharsets.ISO_8859_1);
-        char[] buffer = new char[1024];
-        reader.read(buffer);
-        reader.close();
-        String fileHeader = new String(buffer);
+        String fileHeader = null;
+        try (final var reader = Files.newBufferedReader(fileName.toPath(),
+            StandardCharsets.UTF_8)) {
+//        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(fileName),
+//            StandardCharsets.ISO_8859_1)) {
+          char[] buffer = new char[1024];
+          int read = reader.read(buffer);
+          if (read > 0) {
+            fileHeader = new String(buffer, 0, read);
+          }
+        }
+        if (fileHeader == null) {
+          return null;
+        }
 
-        if (fileName.getName().toLowerCase().endsWith(".csv")) {
+        if (lowerName.endsWith(".csv")) {
           if (fileHeader.contains(":") && fileHeader.contains("\\") && !fileHeader.contains(
               "file name")) {
             logger.fine("ICP raw file detected");
@@ -208,7 +218,7 @@ public class RawDataFileTypeDetector {
 
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.SEVERE, e.getMessage(), e);
     }
 
     return null;
