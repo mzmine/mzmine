@@ -63,18 +63,20 @@ public class MsLevelFilterParameter extends
   public void loadValueFromXML(Element xmlElement) {
     // used to be an IntegerParameter - also support a simple integer
     try {
-      final String numString = xmlElement.getTextContent();
-      if (numString != null && !numString.isEmpty()) {
-        int oldParameterValue = Integer.parseInt(numString);
-        setValue(MsLevelFilter.of(oldParameterValue));
-        return;
+      final String selected = xmlElement.getAttribute("selected");
+      if (selected == null || selected.isBlank()) {
+        final String numString = xmlElement.getTextContent();
+        if (numString != null && !numString.isEmpty()) {
+          int oldParameterValue = Integer.parseInt(numString);
+          setValue(MsLevelFilter.of(oldParameterValue));
+          return;
+        }
       }
     } catch (Exception e) {
       // silent as this is only for compatibility to old parameter
     }
 
     // otherwise load the new parameter
-    xmlElement.setAttribute("selected", value.getSelectedOption().toString());
-    embeddedParameter.loadValueFromXML(xmlElement);
+    super.loadValueFromXML(xmlElement);
   }
 }
