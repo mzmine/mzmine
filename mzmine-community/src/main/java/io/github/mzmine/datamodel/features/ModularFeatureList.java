@@ -888,7 +888,7 @@ public class ModularFeatureList implements FeatureList {
 
     nodeThreadLock.writeLock().lock();
     try {
-      if (nodeThread == null || nodeThread.isFinished()) {
+      if (nodeThread == null || nodeThread.isFinished() || nodeThread.isCanceled()) {
         nodeThread = new NodeGenerationThread(null, Instant.now(), this);
         logger.finest("Starting new node thread.");
         MZmineCore.getTaskController().addTask(nodeThread);
