@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -311,13 +311,14 @@ public class FeatureListUtils {
     SortedList<FeatureListRow> rows = alignedFeatureList.getRows().sorted(MZ_ASCENDING);
 
     // find the number of rows that match RT,MZ,Mobility in each original feature list
-    rows.stream().parallel().forEach(alignedRow -> {
+    rows.stream().parallel().mapToInt(alignedRow -> {
       AlignmentScores score = calculator.calcScore(alignedRow);
       if (mergeScores) {
         AlignmentScores oldScore = alignedRow.get(AlignmentMainType.class);
         score = score.merge(oldScore);
       }
       alignedRow.set(AlignmentMainType.class, score);
+      return 1;
     });
   }
 
@@ -557,11 +558,18 @@ public class FeatureListUtils {
   /**
    * Transfers all row types present in the source feature list to the target feature list.
    */
-  public static void transferRowTypes(FeatureList targetFlist,
-      Collection<FeatureList> sourceFlists) {
+  public static void transferRowTypes(FeatureList targetFlist, Collection<FeatureList> sourceFlists,
+      final boolean transferFeatureTypes) {
+
     for (FeatureList sourceFlist : sourceFlists) {
       // uses a set so okay to use addAll
       targetFlist.addRowType(sourceFlist.getRowTypes());
+    }
+    if (transferFeatureTypes) {
+      for (FeatureList sourceFlist : sourceFlists) {
+        // uses a set so okay to use addAll
+        targetFlist.addFeatureType(sourceFlist.getFeatureTypes());
+      }
     }
   }
 
@@ -628,7 +636,7 @@ public class FeatureListUtils {
         storage, featureList.getRawDataFiles());
 
     FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
-    FeatureListUtils.transferRowTypes(newFlist, List.of(featureList));
+    FeatureListUtils.transferRowTypes(newFlist, List.of(featureList), true);
     FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
     if (copyRows) {
       copyRows(featureList, newFlist);
@@ -709,4 +717,5 @@ public class FeatureListUtils {
     final double imsRamFactor = isIms ? (double) (numImsFiles * 10) / numRaws : 1;
     return imsRamFactor;
   }
+
 }
