@@ -27,6 +27,7 @@ package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
 import io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAModule;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule;
@@ -202,6 +203,7 @@ public class BatchModeModulesList {
           ProjectSaveModule.class, //
           ProjectSaveAsModule.class, //
           ClearProjectModule.class, //
+          AutoSaveBatchModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}

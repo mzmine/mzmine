@@ -140,6 +140,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     // export
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
         exportAnnotationGraphics, mzTolScans);
+    makeAndAddBatchExportStep(q, isExportActive, exportPath);
     return q;
   }
 
