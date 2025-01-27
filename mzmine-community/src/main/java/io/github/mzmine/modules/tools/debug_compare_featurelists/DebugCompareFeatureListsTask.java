@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
@@ -86,6 +87,8 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
             NetworkStatsType.class,
             // check separately
             IonIdentityListType.class,
+            // references to other rows do not work
+            FeatureGroupType.class,
             // different order
             FragmentScanNumbersType.class));
 
