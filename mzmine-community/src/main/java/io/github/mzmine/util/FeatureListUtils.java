@@ -632,25 +632,41 @@ public class FeatureListUtils {
 
   public static ModularFeatureList createCopy(final FeatureList featureList, final String suffix,
       final MemoryMapStorage storage, boolean copyRows) {
-    ModularFeatureList newFlist = new ModularFeatureList(featureList.getName() + " " + suffix,
-        storage, featureList.getRawDataFiles());
+    return createCopy(featureList, null, suffix, storage, copyRows, featureList.getRawDataFiles(),
+        false);
+  }
+
+  public static ModularFeatureList createCopy(final FeatureList featureList,
+      @Nullable String fullTitle, final @Nullable String suffix, final MemoryMapStorage storage,
+      boolean copyRows, List<RawDataFile> dataFiles, boolean renumberIDs) {
+    if (StringUtils.isBlank(fullTitle) && StringUtils.isBlank(suffix)) {
+      throw new IllegalArgumentException("Either suffix or fullTitle need a value");
+    }
+    if (fullTitle == null) {
+      fullTitle = featureList.getName() + " " + suffix;
+    }
+
+    ModularFeatureList newFlist = new ModularFeatureList(fullTitle, storage, dataFiles);
 
     FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
     FeatureListUtils.transferRowTypes(newFlist, List.of(featureList), true);
     FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
+
     if (copyRows) {
-      copyRows(featureList, newFlist);
+      copyRows(featureList, newFlist, renumberIDs);
     }
 
     return newFlist;
   }
 
   public static void copyRows(final FeatureList featureList,
-      final ModularFeatureList newFeatureList) {
+      final ModularFeatureList newFeatureList, final boolean renumberIDs) {
+    int id = 1;
     for (final FeatureListRow row : featureList.getRows()) {
-      FeatureListRow copy = new ModularFeatureListRow(newFeatureList, row.getID(),
-          (ModularFeatureListRow) row, true);
+      FeatureListRow copy = new ModularFeatureListRow(newFeatureList,
+          renumberIDs ? id : row.getID(), (ModularFeatureListRow) row, true);
       newFeatureList.addRow(copy);
+      id++;
     }
   }
 
