@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.align_common;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
@@ -123,14 +122,15 @@ public sealed interface FeatureCloner {
             feature.getScanNumbers(), mzTolRange, feature.getRawDataPointsRTRange(),
             dataFile.getMemoryMapStorage());
 
+        final ModularFeature newFeature;
         if (reuseOriginalFeature) {
-          feature.set(FeatureDataType.class, ionTimeSeries);
-          FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
-          return withNewReferences(feature, targetFeatureList, targetAlignRow);
+          newFeature = withNewReferences(feature, targetFeatureList, targetAlignRow);
         } else {
-          return new ModularFeature(targetFeatureList, dataFile, ionTimeSeries,
-              FeatureStatus.DETECTED);
+          newFeature = new ModularFeature(targetFeatureList, feature);
         }
+        newFeature.set(FeatureDataType.class, ionTimeSeries);
+        FeatureDataUtils.recalculateIonSeriesDependingTypes(newFeature);
+        return newFeature;
       }
     }
 
