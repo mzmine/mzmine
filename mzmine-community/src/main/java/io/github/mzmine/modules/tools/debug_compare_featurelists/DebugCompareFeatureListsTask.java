@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.parameters.ParameterSet;
@@ -83,6 +84,8 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
             SpectralLibraryMatchesType.class, CompoundDatabaseMatchesType.class,
             // different community ID is not stable
             NetworkStatsType.class,
+            // check separately
+            IonIdentityListType.class,
             // different order
             FragmentScanNumbersType.class));
 
@@ -114,6 +117,47 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
         if (scans1.size() != scans2.size()) {
           errors.add("Number of fragment scans is different for row i=%d. %d : %d".formatted(i,
               scans1.size(), scans2.size()));
+        }
+
+        // ion identities
+        var ions1 = row1.getIonIdentities();
+        var ions2 = row2.getIonIdentities();
+        if (ions1 == null ^ ions2 == null) {
+          errors.add(
+              "Ions in one list were null and the other not null for row i=%d. %s : %s".formatted(i,
+                  ions1, ions2));
+        } else if (ions1 != null && ions2 != null) {
+          if (ions1.size() != ions2.size()) {
+            errors.add("Different number of ions in row i=%d. %d : %d".formatted(i, ions1.size(),
+                ions2.size()));
+          } else {
+            for (int ion = 0; ion < ions1.size(); ion++) {
+              var adduct1 = ions1.get(ion);
+              var adduct2 = ions2.get(ion);
+              if (!adduct1.equalsAdduct(adduct2.getIonType())) {
+                errors.add("Ion types were different for row i=%d. %s : %s".formatted(i, adduct1,
+                    adduct2));
+              }
+            }
+          }
+        }
+
+        var matches1 = row1.getSpectralLibraryMatches();
+        var matches2 = row1.getSpectralLibraryMatches();
+        if (matches1.size() != matches2.size()) {
+          errors.add(
+              "Different number of spectral library matches in row i=%d. %d : %d".formatted(i,
+                  matches1.size(), matches2.size()));
+        } else {
+          for (int match = 0; match < matches1.size(); match++) {
+            var id1 = matches1.get(match).getEntry();
+            var id2 = matches2.get(match).getEntry();
+            if (!id1.equals(id2)) {
+              errors.add(
+                  "Spectral library matches were different for row i=%d. %s : %s".formatted(i, id1,
+                      id2));
+            }
+          }
         }
 
         // row types
