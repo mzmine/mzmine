@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -309,6 +311,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
 
   @Override
   public void error(@Nullable String message, @Nullable Exception exceptionToLog) {
+    message = requireNonNullElse(message, "");
     if (exceptionToLog != null) {
       logger.log(Level.SEVERE, message, exceptionToLog);
     }

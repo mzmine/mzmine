@@ -25,6 +25,8 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -163,6 +165,7 @@ public abstract class AbstractTaskXYZDataset extends AbstractXYZDataset implemen
 
   @Override
   public void error(@Nullable String message, @Nullable Exception exceptionToLog) {
+    message = requireNonNullElse(message, "");
     if (exceptionToLog != null) {
       logger.log(Level.SEVERE, message, exceptionToLog);
     }

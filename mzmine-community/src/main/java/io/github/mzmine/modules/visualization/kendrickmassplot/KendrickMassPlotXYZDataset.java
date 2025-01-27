@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
@@ -450,6 +452,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
 
   @Override
   public void error(@Nullable String message, @Nullable Exception exceptionToLog) {
+    message = requireNonNullElse(message, "");
     if (exceptionToLog != null) {
       logger.log(Level.SEVERE, message, exceptionToLog);
     }

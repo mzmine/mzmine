@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
@@ -253,6 +255,7 @@ public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements 
 
   @Override
   public void error(@Nullable String message, @Nullable Exception exceptionToLog) {
+    message = requireNonNullElse(message, "");
     if (exceptionToLog != null) {
       logger.log(Level.SEVERE, message, exceptionToLog);
     }
