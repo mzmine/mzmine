@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -852,7 +853,13 @@ public class FileAndPathUtil {
     FileAndPathUtil.earlyTempFileCleanup = state;
   }
 
-  public static @Nullable File getMostCommonFilePath(@Nullable Collection<@Nullable File> files) {
+  /**
+   * @param files A list of files
+   * @return The most frequently used path in the list of files. If two paths have the same number
+   * of occurrences, the result may vary as the map type of {@link Collectors#groupingBy(Function)}
+   * is a hash map.
+   */
+  public static @Nullable File getMajorityFilePath(@Nullable Collection<@Nullable File> files) {
     if (files == null || files.isEmpty()) {
       return null;
     }

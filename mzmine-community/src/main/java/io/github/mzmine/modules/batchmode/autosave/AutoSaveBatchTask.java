@@ -91,7 +91,7 @@ public class AutoSaveBatchTask extends AbstractSimpleTask {
     File savePath = parameters.getOptionalValue(AutoSaveBatchParameters.savePath).orElse(null);
     if (savePath == null || savePath.toString().isBlank()) {
       final File commonFromExport = ParameterUtils.extractMajorityExportPath(queueCopy);
-      final File commonImport = ParameterUtils.extractCommonRawFileImportFilePath(queueCopy);
+      final File commonImport = ParameterUtils.extractMajorityRawFileImportFilePath(queueCopy);
       if (commonFromExport != null) {
         savePath = new File(commonFromExport, "batch.%s".formatted(mzbatch));
       } else if (commonImport != null) {

@@ -332,6 +332,11 @@ public class ParameterUtils {
     return paramStream;
   }
 
+  /**
+   * @param batch A list of {@link MZmineProcessingStep}s, e.g.,
+   *              {@link io.github.mzmine.modules.batchmode.BatchQueue} or a pre-filtered batch.
+   * @return The most-used export path from the {@link FileNameSuffixExportParameter}s.
+   */
   @Nullable
   public static <S extends MZmineProcessingStep<?>, T extends Collection<S>> File extractMajorityExportPath(
       T batch) {
@@ -343,10 +348,17 @@ public class ParameterUtils {
           }
         })).filter(Objects::nonNull).toList();
 
-    return FileAndPathUtil.getMostCommonFilePath(allExportPaths);
+    return FileAndPathUtil.getMajorityFilePath(allExportPaths);
   }
 
-  public static <M extends MZmineProcessingModule, S extends MZmineProcessingStep<M>, T extends List<S>> File extractCommonRawFileImportFilePath(
+  /**
+   * @param batch A list of {@link MZmineProcessingStep}s, e.g.,
+   *              {@link io.github.mzmine.modules.batchmode.BatchQueue} or a pre-filtered batch.
+   * @return The most-used raw file import path. The batch is searched for modules where the
+   * {@link MZmineProcessingModule#getModuleCategory()}  is
+   * {@link MZmineModuleCategory#RAWDATAIMPORT} is used.
+   */
+  public static <M extends MZmineProcessingModule, S extends MZmineProcessingStep<M>, T extends List<S>> File extractMajorityRawFileImportFilePath(
       T batch) {
     final List<File> allImportedFiles = batch.stream()
         .filter(step -> step.getModule().getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT)
@@ -357,7 +369,7 @@ public class ParameterUtils {
             }
           });
         }).toList();
-    return FileAndPathUtil.getMostCommonFilePath(
+    return FileAndPathUtil.getMajorityFilePath(
         allImportedFiles.stream().map(File::getParentFile).toList());
   }
 }
