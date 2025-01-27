@@ -271,7 +271,7 @@ public class RowsFilterTask extends AbstractTask {
     } else {
       final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
       newFeatureList = FeatureListUtils.createCopy(featureList, suffix, getMemoryMapStorage(),
-          true);
+          false);
     }
 
     // Add task description to featureList.
