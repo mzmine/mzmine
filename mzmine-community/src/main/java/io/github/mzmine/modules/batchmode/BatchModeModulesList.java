@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -195,6 +195,8 @@ public class BatchModeModulesList {
   // must be modifiable so we can add more modules for mzminepro
   public static final List<Class<? extends MZmineProcessingModule>> MODULES = new ArrayList<>(
       List.of(
+          // debugging
+//          DebugCompareFeatureListsModule.class, //
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#PROJECT}
            */
