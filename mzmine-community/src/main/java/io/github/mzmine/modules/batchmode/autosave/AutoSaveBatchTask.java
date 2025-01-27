@@ -79,7 +79,7 @@ public class AutoSaveBatchTask extends AbstractSimpleTask {
       return;
     }
 
-    final BatchTask batchTask = TaskService.getController().getReadOnlyTasks().stream()
+    final BatchTask batchTask = TaskService.getController().getReadOnlyTasksSnapshot().stream()
         .filter(task -> task.getActualTask() instanceof BatchTask)
         .map(task -> (BatchTask) task.getActualTask()).findFirst().orElse(null);
     assert batchTask != null;
@@ -93,7 +93,7 @@ public class AutoSaveBatchTask extends AbstractSimpleTask {
 //      Set.of(SiriusExportModule.class, GnpsFbmnExportAndSubmitModule.class,
 //          CSVExportModularModule.class, LegacyCSVExportModule.class,
 //          ProjectMetadataExportModule.class);
-      final File commonFromExport = ParameterUtils.extractCommonExportPath(queueCopy);
+      final File commonFromExport = ParameterUtils.extractMajorityExportPath(queueCopy);
       final File commonImport = ParameterUtils.extractCommonRawFileImportFilePath(queueCopy);
       if (commonFromExport != null) {
         savePath = new File(commonFromExport, "batch.%s".formatted(mzbatch));

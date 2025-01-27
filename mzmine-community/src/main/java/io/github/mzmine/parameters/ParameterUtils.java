@@ -41,13 +41,12 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -334,25 +333,17 @@ public class ParameterUtils {
   }
 
   @Nullable
-  public static <S extends MZmineProcessingStep<?>, T extends Collection<S>> File extractCommonExportPath(
+  public static <S extends MZmineProcessingStep<?>, T extends Collection<S>> File extractMajorityExportPath(
       T batch) {
     final List<File> allExportPaths = batch.stream().map(MZmineProcessingStep::getParameterSet)
-        .<File>mapMulti((paramSet, c) -> streamParametersDeep(paramSet).forEach(p -> {
-          if (Objects.requireNonNull(p) instanceof FileNameSuffixExportParameter fnp) {
-            if (fnp.getType() == FileSelectionType.SAVE && fnp.getValue() != null) {
-              if (fnp.getValue().getName()
-                  .contains(".")) { // if there is a . in the file name, interpret as file
-                c.accept(fnp.getValue().getParentFile());
-              } else {
-                c.accept(fnp.getValue());
-              }
-            }
+        .<File>mapMulti((paramSet, c) -> streamParametersDeep(paramSet,
+            FileNameSuffixExportParameter.class).forEach(fnp -> {
+          if (fnp.getValue() != null) {
+            c.accept(fnp.getValue().getParentFile());
           }
         })).filter(Objects::nonNull).toList();
 
-    return allExportPaths.stream().collect(Collectors.groupingBy(p -> p, Collectors.counting()))
-        .entrySet().stream().sorted(Entry.comparingByValue(Comparator.reverseOrder()))
-        .map(Entry::getKey).findFirst().orElse(null);
+    return FileAndPathUtil.getMostCommonFilePath(allExportPaths);
   }
 
   public static <M extends MZmineProcessingModule, S extends MZmineProcessingStep<M>, T extends List<S>> File extractCommonRawFileImportFilePath(
@@ -360,17 +351,13 @@ public class ParameterUtils {
     final List<File> allImportedFiles = batch.stream()
         .filter(step -> step.getModule().getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT)
         .map(MZmineProcessingStep::getParameterSet).<File>mapMulti((paramSet, c) -> {
-          streamParametersDeep(paramSet).forEach(p -> {
-            if (p instanceof FileNameParameter fnp && fnp.getType() == FileSelectionType.OPEN) {
-              c.accept(fnp.getValue());
-            } else if (p instanceof FileNamesParameter fnp && fnp.getValue() != null) {
-              Stream.of(fnp.getValue()).forEach(c);
+          streamParametersDeep(paramSet, FileNameParameter.class).forEach(p -> {
+            if (p.getType() == FileSelectionType.OPEN) {
+              c.accept(p.getValue());
             }
           });
         }).toList();
-    return allImportedFiles.stream().map(File::getParentFile)
-        .collect(Collectors.groupingBy(p -> p, Collectors.counting())).entrySet().stream()
-        .sorted(Entry.comparingByValue(Comparator.reverseOrder())).map(Entry::getKey).findFirst()
-        .orElse(null);
+    return FileAndPathUtil.getMostCommonFilePath(
+        allImportedFiles.stream().map(File::getParentFile).toList());
   }
 }

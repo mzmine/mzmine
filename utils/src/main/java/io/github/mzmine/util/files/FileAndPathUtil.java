@@ -48,11 +48,15 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.apache.commons.io.FileUtils;
@@ -846,6 +850,16 @@ public class FileAndPathUtil {
 
   public static void setEarlyTempFileCleanup(final boolean state) {
     FileAndPathUtil.earlyTempFileCleanup = state;
+  }
+
+  public static @Nullable File getMostCommonFilePath(@Nullable Collection<@Nullable File> files) {
+    if (files == null || files.isEmpty()) {
+      return null;
+    }
+
+    return files.stream().filter(Objects::nonNull)
+        .collect(Collectors.groupingBy(p -> p, Collectors.counting())).entrySet().stream()
+        .max(Entry.comparingByValue(Comparator.reverseOrder())).map(Entry::getKey).orElse(null);
   }
 
 }
