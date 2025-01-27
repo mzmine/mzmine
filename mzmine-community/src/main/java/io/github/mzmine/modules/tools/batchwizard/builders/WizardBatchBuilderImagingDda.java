@@ -118,6 +118,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, null);
     makeAndAddLipidAnnotationStep(q);
+    makeAndAddBatchExportStep(q, true, null);
     return q;
   }
 

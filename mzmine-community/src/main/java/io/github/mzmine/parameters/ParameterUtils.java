@@ -28,23 +28,33 @@ package io.github.mzmine.parameters;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ParameterUtils {
 
@@ -190,8 +200,8 @@ public class ParameterUtils {
         if (param1.getClass() != param2.getClass()) {
           logger.finest(
               () -> "Parameters " + param1.getName() + "(" + param1.getClass().getName() + ") and "
-                    + param2.getName() + " (" + param2.getClass().getName()
-                    + ") are not of the same class.");
+                  + param2.getName() + " (" + param2.getClass().getName()
+                  + ") are not of the same class.");
           return false;
         }
 
@@ -216,7 +226,7 @@ public class ParameterUtils {
           logger.finest(
               () -> "Parameter \"" + param1.getName() + "\" of parameter set " + a.getClass()
                   .getName() + " has different values: " + param1.getValue() + " and "
-                    + param2.getValue());
+                  + param2.getValue());
           return false;
         }
 
@@ -290,7 +300,6 @@ public class ParameterUtils {
     return streamParametersDeep(params).filter(paramClass::isInstance).map(paramClass::cast);
   }
 
-
   /**
    * Stream this parameter and its embedded parameters depth first
    *
@@ -323,4 +332,44 @@ public class ParameterUtils {
     return paramStream;
   }
 
+  /**
+   * @param batch A list of {@link MZmineProcessingStep}s, e.g.,
+   *              {@link io.github.mzmine.modules.batchmode.BatchQueue} or a pre-filtered batch.
+   * @return The most-used export path from the {@link FileNameSuffixExportParameter}s.
+   */
+  @Nullable
+  public static <S extends MZmineProcessingStep<?>, T extends Collection<S>> File extractMajorityExportPath(
+      T batch) {
+    final List<File> allExportPaths = batch.stream().map(MZmineProcessingStep::getParameterSet)
+        .<File>mapMulti((paramSet, c) -> streamParametersDeep(paramSet,
+            FileNameSuffixExportParameter.class).forEach(fnp -> {
+          if (fnp.getValue() != null) {
+            c.accept(fnp.getValue().getParentFile());
+          }
+        })).filter(Objects::nonNull).toList();
+
+    return FileAndPathUtil.getMajorityFilePath(allExportPaths);
+  }
+
+  /**
+   * @param batch A list of {@link MZmineProcessingStep}s, e.g.,
+   *              {@link io.github.mzmine.modules.batchmode.BatchQueue} or a pre-filtered batch.
+   * @return The most-used raw file import path. The batch is searched for modules where the
+   * {@link MZmineProcessingModule#getModuleCategory()}  is
+   * {@link MZmineModuleCategory#RAWDATAIMPORT} is used.
+   */
+  public static <M extends MZmineProcessingModule, S extends MZmineProcessingStep<M>, T extends List<S>> File extractMajorityRawFileImportFilePath(
+      T batch) {
+    final List<File> allImportedFiles = batch.stream()
+        .filter(step -> step.getModule().getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT)
+        .map(MZmineProcessingStep::getParameterSet).<File>mapMulti((paramSet, c) -> {
+          streamParametersDeep(paramSet, FileNameParameter.class).forEach(p -> {
+            if (p.getType() == FileSelectionType.OPEN) {
+              c.accept(p.getValue());
+            }
+          });
+        }).toList();
+    return FileAndPathUtil.getMajorityFilePath(
+        allImportedFiles.stream().map(File::getParentFile).toList());
+  }
 }
