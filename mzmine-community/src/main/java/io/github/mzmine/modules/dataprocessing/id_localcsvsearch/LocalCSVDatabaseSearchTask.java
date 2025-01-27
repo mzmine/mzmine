@@ -56,7 +56,6 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
-import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -70,6 +69,7 @@ import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureListUtils;
 import java.io.File;
+import java.nio.file.NoSuchFileException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,6 +77,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -222,10 +223,13 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     try {
       // read database contents in memory
       databaseValues = CSVParsingUtils.readData(dataBaseFile, fieldSeparator);
+    } catch (NoSuchFileException e) {
+      error("File %s does not exist.".formatted(
+          Objects.requireNonNullElse(dataBaseFile, "File does not exist.")));
+      return;
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(e.getMessage());
+      error(e.getMessage(), e);
       return;
     }
 
@@ -238,9 +242,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       final List<ImportType> lineIds = CSVParsingUtils.findLineIds(importTypes,
           databaseValues.getFirst(), error);
       if (lineIds == null) {
-        setErrorMessage(error.get());
-        DesktopService.getDesktop().displayErrorMessage(error.get());
-        setStatus(TaskStatus.ERROR);
+        this.error(error.get());
         return;
       }
 
@@ -255,8 +257,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       if (filterSamples) {
         sampleColIndex = getHeaderColumnIndex(databaseValues.getFirst(), sampleHeader);
         if (sampleColIndex == -1) {
-          setErrorMessage("Sample header " + sampleHeader + " not found");
-          setStatus(TaskStatus.ERROR);
+          error("Sample header " + sampleHeader + " not found");
           return;
         }
       }
@@ -305,9 +306,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
 
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(e.getMessage());
+      error(e.getMessage(), e);
       return;
     }
 
