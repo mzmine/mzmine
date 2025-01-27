@@ -90,9 +90,6 @@ public class AutoSaveBatchTask extends AbstractSimpleTask {
 
     File savePath = parameters.getOptionalValue(AutoSaveBatchParameters.savePath).orElse(null);
     if (savePath == null || savePath.toString().isBlank()) {
-//      Set.of(SiriusExportModule.class, GnpsFbmnExportAndSubmitModule.class,
-//          CSVExportModularModule.class, LegacyCSVExportModule.class,
-//          ProjectMetadataExportModule.class);
       final File commonFromExport = ParameterUtils.extractMajorityExportPath(queueCopy);
       final File commonImport = ParameterUtils.extractCommonRawFileImportFilePath(queueCopy);
       if (commonFromExport != null) {
@@ -103,6 +100,7 @@ public class AutoSaveBatchTask extends AbstractSimpleTask {
     }
 
     if (savePath == null || savePath.toString().isBlank()) {
+      // open a dialog, but don't fail the batch
       DialogLoggerUtil.showDialog(AlertType.WARNING, "Cannot save batch",
           "The %s module cannot automatically determine a path to export the batch file to. Please save the batch manually.",
           false);
