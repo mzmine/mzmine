@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
@@ -80,6 +81,8 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
     Set<DataType> ignoredTypes = Set.copyOf(
         DataTypes.getAll(FeaturesType.class, ManualAnnotationType.class,
             SpectralLibraryMatchesType.class, CompoundDatabaseMatchesType.class,
+            // different community ID is not stable
+            NetworkStatsType.class,
             // different order
             FragmentScanNumbersType.class));
 
