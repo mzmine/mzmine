@@ -156,7 +156,7 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
       // do meta checks through all parameters
       // check min samples filter
-      String warning = BatchUtils.checkMinSamplesFilter(value);
+      String warning = BatchUtils.checkBatchParameters(value);
       if (warning != null) {
         if (DesktopService.isGUI()) {
           final boolean continueAnyway = DialogLoggerUtil.showDialogYesNo("Warning", """
