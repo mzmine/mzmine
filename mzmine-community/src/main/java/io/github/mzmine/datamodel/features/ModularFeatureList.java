@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
@@ -796,31 +797,7 @@ public class ModularFeatureList implements FeatureList {
    */
   public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage,
       List<RawDataFile> dataFiles, boolean renumberIDs) {
-    ModularFeatureList flist = new ModularFeatureList(title, storage, dataFiles);
-
-    // key is original row and value is copied row
-    Map<FeatureListRow, ModularFeatureListRow> mapCopied = new HashMap<>();
-    // copy all rows and features
-    int id = 0;
-    for (FeatureListRow row : this.getRows()) {
-      id = renumberIDs ? id + 1 : row.getID();
-      ModularFeatureListRow copyRow = new ModularFeatureListRow(flist, id,
-          (ModularFeatureListRow) row, true);
-      flist.addRow(copyRow);
-      mapCopied.put(row, copyRow);
-    }
-
-    // todo copy all row to row relationships and exchange row references in datatypes
-
-    // change references in IIN
-
-    // Load previous applied methods
-    for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
-      flist.addDescriptionOfAppliedTask(proc);
-    }
-
-    selectedScans.forEach(flist::setSelectedScans);
-    return flist;
+    return FeatureListUtils.createCopy(this, title, null, storage, true, dataFiles, renumberIDs);
   }
 
   @Nullable

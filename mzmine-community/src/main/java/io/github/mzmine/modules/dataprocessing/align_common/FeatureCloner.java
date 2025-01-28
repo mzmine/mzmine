@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,15 +26,16 @@
 package io.github.mzmine.modules.dataprocessing.align_common;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,8 +49,11 @@ public sealed interface FeatureCloner {
    *                          method)
    * @return new feature either directly cloned or newly extracted
    */
-  @NotNull ModularFeature cloneFeature(final Feature feature,
-      final ModularFeatureList targetFeatureList, final FeatureListRow targetAlignRow);
+  @NotNull
+  ModularFeature cloneFeature(final Feature feature, final ModularFeatureList targetFeatureList,
+      final FeatureListRow targetAlignRow);
+
+  boolean isReuseOriginalFeature();
 
   /**
    * Always just clones the feature. For GC use {@link ExtractMzMismatchFeatureCloner}
@@ -61,6 +65,33 @@ public sealed interface FeatureCloner {
         final ModularFeatureList targetFeatureList, final FeatureListRow targetAlignRow) {
       return new ModularFeature(targetFeatureList, feature);
     }
+
+    @Override
+    public boolean isReuseOriginalFeature() {
+      return false;
+    }
+
+  }
+
+  record ReuseOriginalFeature() implements FeatureCloner {
+
+    @Override
+    public @NotNull ModularFeature cloneFeature(final Feature feature,
+        final ModularFeatureList targetFeatureList, final FeatureListRow targetAlignRow) {
+      return withNewReferences(feature, targetFeatureList, targetAlignRow);
+    }
+
+    @Override
+    public boolean isReuseOriginalFeature() {
+      return true;
+    }
+  }
+
+  private static ModularFeature withNewReferences(final Feature feature,
+      final ModularFeatureList targetFeatureList, final FeatureListRow targetAlignRow) {
+    feature.setFeatureList(targetFeatureList);
+    feature.setRow(targetAlignRow);
+    return (ModularFeature) feature;
   }
 
   /**
@@ -68,24 +99,44 @@ public sealed interface FeatureCloner {
    * completely new feature. This is useful for GC alignment as features in GC are based on random
    * representative m/z for a pseudo spectrum feature
    */
-  record ExtractMzMismatchFeatureCloner(MZTolerance mzTolerance) implements FeatureCloner {
+  record ExtractMzMismatchFeatureCloner(MZTolerance mzTolerance,
+                                        boolean reuseOriginalFeature) implements FeatureCloner {
 
     @Override
-    public @NotNull ModularFeature cloneFeature(final Feature feature,
+    public @NotNull ModularFeature cloneFeature(final Feature privFeature,
         final ModularFeatureList targetFeatureList, final FeatureListRow targetAlignRow) {
+      ModularFeature feature = (ModularFeature) privFeature;
+
       Range<Double> mzTolRange = mzTolerance.getToleranceRange(targetAlignRow.getAverageMZ());
       if (mzTolRange.contains(feature.getMZ())) {
-        // same mz so just duplicate
-        return new ModularFeature(targetFeatureList, feature);
+        if (reuseOriginalFeature) {
+          return withNewReferences(feature, targetFeatureList, targetAlignRow);
+        } else {
+          // same mz so just duplicate
+          return new ModularFeature(targetFeatureList, feature);
+        }
       } else {
         // mz mismatch, because GC retains a random m/z as a representative for a feature (deconvoluted pseudo spectrum)
         RawDataFile dataFile = feature.getRawDataFile();
         IonTimeSeries<Scan> ionTimeSeries = IonTimeSeriesUtils.extractIonTimeSeries(dataFile,
             feature.getScanNumbers(), mzTolRange, feature.getRawDataPointsRTRange(),
             dataFile.getMemoryMapStorage());
-        return new ModularFeature(targetFeatureList, dataFile, ionTimeSeries,
-            FeatureStatus.DETECTED);
+
+        final ModularFeature newFeature;
+        if (reuseOriginalFeature) {
+          newFeature = withNewReferences(feature, targetFeatureList, targetAlignRow);
+        } else {
+          newFeature = new ModularFeature(targetFeatureList, feature);
+        }
+        newFeature.set(FeatureDataType.class, ionTimeSeries);
+        FeatureDataUtils.recalculateIonSeriesDependingTypes(newFeature);
+        return newFeature;
       }
+    }
+
+    @Override
+    public boolean isReuseOriginalFeature() {
+      return reuseOriginalFeature;
     }
   }
 
