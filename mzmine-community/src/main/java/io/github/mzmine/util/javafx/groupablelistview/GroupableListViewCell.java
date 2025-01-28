@@ -199,8 +199,6 @@ public class GroupableListViewCell<T> extends DraggableListCell<GroupableListVie
     setText(renameTextField.getText());
     getListView().setEditable(false);
 
-//    getListView().getSelectionModel().clearSelection();
-//    getListView().getSelectionModel().select(getIndex());
   }
 
   /**
