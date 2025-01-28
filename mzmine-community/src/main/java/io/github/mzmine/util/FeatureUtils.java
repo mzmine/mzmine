@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.ModularDataModelMap;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -495,7 +496,7 @@ public class FeatureUtils {
    * Loops over all {@link DataType}s in a {@link FeatureListRow}. Extracts all annotations derived
    * from a {@link CompoundDBAnnotation} in all {@link AnnotationType}s derived from the
    * {@link ListWithSubsType} within the {@link FeatureListRow}'s
-   * {@link io.github.mzmine.datamodel.features.ModularDataModel}.
+   * {@link ModularDataModelMap}.
    *
    * @param selectedRow The row
    * @return List of all annotations.

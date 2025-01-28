@@ -28,7 +28,7 @@ package io.github.mzmine.datamodel.otherdetectors;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
-import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.ModularDataModelMap;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
@@ -39,7 +39,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramTyp
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface OtherFeature extends ModularDataModel {
+public interface OtherFeature extends ModularDataModelMap {
 
   @Nullable
   default OtherTimeSeries getFeatureData() {

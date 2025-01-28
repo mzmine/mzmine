@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
@@ -60,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -561,15 +563,18 @@ public class FeatureListUtils {
   public static void transferRowTypes(FeatureList targetFlist, Collection<FeatureList> sourceFlists,
       final boolean transferFeatureTypes) {
 
+    // transfer all at once to optimize resizing of data structures
+    Set<DataType> allRowTypes = new HashSet<>();
+    Set<DataType> allFeatureTypes = new HashSet<>();
+
     for (FeatureList sourceFlist : sourceFlists) {
       // uses a set so okay to use addAll
-      targetFlist.addRowType(sourceFlist.getRowTypes());
+      allRowTypes.addAll(sourceFlist.getRowTypes());
+      allFeatureTypes.addAll(sourceFlist.getFeatureTypes());
     }
+    targetFlist.addRowType(allRowTypes);
     if (transferFeatureTypes) {
-      for (FeatureList sourceFlist : sourceFlists) {
-        // uses a set so okay to use addAll
-        targetFlist.addFeatureType(sourceFlist.getFeatureTypes());
-      }
+      targetFlist.addFeatureType(allFeatureTypes);
     }
   }
 

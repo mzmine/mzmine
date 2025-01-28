@@ -84,9 +84,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,14 +98,9 @@ import org.jetbrains.annotations.Nullable;
  * chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
-public class ModularFeatureListRow implements FeatureListRow {
+public class ModularFeatureListRow extends ModularDataModelArray implements FeatureListRow {
 
   private static final Logger logger = Logger.getLogger(ModularFeatureListRow.class.getName());
-  /**
-   * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
-   * this map see {@link #addFeature}
-   */
-  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   private final Map<RawDataFile, ModularFeature> features;
   @NotNull
   private ModularFeatureList flist;
@@ -119,13 +112,14 @@ public class ModularFeatureListRow implements FeatureListRow {
    * @param id    the row id
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
+    super(flist.getRowsSchema());
     this.flist = flist;
 
-    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
-      if (change.wasAdded()) {
-        this.flist.addRowType(change.getKey());
-      }
-    });
+//    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
+//      if (change.wasAdded()) {
+//        this.flist.addRowType(change.getKey());
+//      }
+//    });
 
     // features
     List<RawDataFile> raws = flist.getRawDataFiles();
@@ -197,12 +191,6 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public Set<DataType> getTypes() {
     return flist.getRowTypes();
-  }
-
-  // todo make private?
-  @Override
-  public ObservableMap<DataType, Object> getMap() {
-    return map;
   }
 
   @Override
@@ -499,7 +487,8 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void addCompoundAnnotation(CompoundDBAnnotation id) {
-    synchronized (getMap()) {
+    // should usually not be called from multiple threads
+//    synchronized (getMap()) {
       List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
       List<CompoundDBAnnotation> newList = new ArrayList<>();
       if (matches != null) {
@@ -507,7 +496,7 @@ public class ModularFeatureListRow implements FeatureListRow {
       }
       newList.add(id);
       set(CompoundDatabaseMatchesType.class, newList);
-    }
+//    }
   }
 
   @NotNull
@@ -519,9 +508,9 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
-    synchronized (getMap()) {
+//    synchronized (getMap()) {
       set(CompoundDatabaseMatchesType.class, annotations);
-    }
+//    }
   }
 
   /**
@@ -533,8 +522,7 @@ public class ModularFeatureListRow implements FeatureListRow {
    */
   @Override
   public boolean isIdentified() {
-    for (Entry<DataType, Object> entry : getMap().entrySet()) {
-      final DataType dt = entry.getKey();
+    for (DataType dt : getTypes()) {
       if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType
           && !(dt instanceof IonIdentityListType)) {
         final List<?> list = get(listType);
@@ -548,26 +536,26 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void addSpectralLibraryMatch(SpectralDBAnnotation id) {
-    synchronized (getMap()) {
+//    synchronized (getMap()) {
       List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
       if (matches == null) {
         matches = new ArrayList<>();
       }
       matches.add(id);
       set(SpectralLibraryMatchesType.class, matches);
-    }
+//    }
   }
 
   @Override
   public void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches) {
-    synchronized (getMap()) {
+//    synchronized (getMap()) {
       List<SpectralDBAnnotation> old = get(SpectralLibraryMatchesType.class);
       if (old == null) {
         old = new ArrayList<>();
       }
       old.addAll(matches);
       set(SpectralLibraryMatchesType.class, old);
-    }
+//    }
   }
 
   @Override
@@ -578,9 +566,9 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches) {
-    synchronized (getMap()) {
+//    synchronized (getMap()) {
       set(SpectralLibraryMatchesType.class, matches);
-    }
+//    }
   }
 
   @Override

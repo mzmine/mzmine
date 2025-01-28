@@ -64,7 +64,6 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,8 +71,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,10 +79,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class ModularFeature implements Feature, ModularDataModel {
+public class ModularFeature extends ModularDataModelArray implements Feature {
 
   private static final Logger logger = Logger.getLogger(ModularFeature.class.getName());
-  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   // buffert col charts and nodes
   @NotNull
   private ModularFeatureList flist;
@@ -93,14 +89,15 @@ public class ModularFeature implements Feature, ModularDataModel {
   private FeatureListRow parentRow;
 
   public ModularFeature(@NotNull ModularFeatureList flist) {
+    super(flist.getFeaturesSchema());
     this.flist = flist;
 
     //
-    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
-      if (change.wasAdded()) {
-        this.flist.addFeatureType(change.getKey());
-      }
-    });
+//    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
+//      if (change.wasAdded()) {
+//        this.flist.addFeatureType(change.getKey());
+//      }
+//    });
   }
 
   // NOT TESTED
@@ -281,12 +278,6 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public Set<DataType> getTypes() {
     return flist.getFeatureTypes();
-  }
-
-  // todo make this private?
-  @Override
-  public ObservableMap<DataType, Object> getMap() {
-    return map;
   }
 
   /**

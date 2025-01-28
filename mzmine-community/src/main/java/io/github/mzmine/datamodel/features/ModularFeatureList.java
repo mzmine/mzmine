@@ -53,14 +53,12 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -74,8 +72,6 @@ import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
@@ -98,6 +94,11 @@ public class ModularFeatureList implements FeatureList {
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
+  private final @NotNull ModularDataModelSchema rowsSchema = new ModularDataModelSchema(
+      () -> stream().map(ModularFeatureListRow.class::cast));
+  private final @NotNull ModularDataModelSchema featuresSchema = new ModularDataModelSchema(
+      this::streamFeatures);
+
   // unmodifiable list
   private final ObservableList<RawDataFile> dataFiles;
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
@@ -107,12 +108,6 @@ public class ModularFeatureList implements FeatureList {
 
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
-  // TODO do we need two sets? We could have observableSet of LinkedHashSet
-  private final ObservableSet<DataType> rowTypes = FXCollections.observableSet(
-      new LinkedHashSet<>());
-  // TODO do we need two sets? We could have observableSet of LinkedHashSet
-  private final ObservableSet<DataType> featureTypes = FXCollections.observableSet(
-      new LinkedHashSet<>());
   private final ObservableList<FeatureListRow> featureListRows;
   private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
 
@@ -167,23 +162,18 @@ public class ModularFeatureList implements FeatureList {
     });
 
     // add row bindings automatically
-    featureTypes.addListener((SetChangeListener<? super DataType>) change -> {
-      if (change.wasAdded()) {
-        DataType<?> added = change.getElementAdded();
-        // add row bindings
-        addRowBinding(added.createDefaultRowBindings());
+    featuresSchema.addDataTypesChangeListener((added, removed) -> {
+      for (DataType dataType : added) {
+        addRowBinding(dataType.createDefaultRowBindings());
       }
-      if (change.wasRemoved()) {
-        // remove data from all features
-        DataType<?> removed = change.getElementRemoved();
-        parallelStreamFeatures().forEach(feature -> feature.remove(removed));
+      for (DataType dt : removed) {
+        parallelStreamFeatures().forEach(feature -> feature.remove(dt));
       }
     });
-    rowTypes.addListener((SetChangeListener<? super DataType>) change -> {
-      if (change.wasRemoved()) {
-        // remove data from all features
-        DataType<?> removed = change.getElementRemoved();
-        parallelStream().forEach(row -> row.remove(removed));
+
+    rowsSchema.addDataTypesChangeListener((_, removed) -> {
+      for (@NotNull DataType dataType : removed) {
+        parallelStream().forEach(row -> row.remove(dataType));
       }
     });
   }
@@ -365,40 +355,28 @@ public class ModularFeatureList implements FeatureList {
    * @return feature types (columns)
    */
   @Override
-  public ObservableSet<DataType> getFeatureTypes() {
-    return featureTypes;
+  public Set<DataType> getFeatureTypes() {
+    return getFeaturesSchema().getReadOnlyTypes().keySet();
   }
 
   @Override
   public void addFeatureType(Collection<DataType> types) {
-    for (DataType<?> type : types) {
-      if (!hasFeatureType(type)) {
-        synchronized (featureTypes) {
-          featureTypes.add(type);
-        }
-      }
-    }
+    getFeaturesSchema().addDataTypes(types.toArray(DataType[]::new));
   }
 
   @Override
   public void addFeatureType(@NotNull DataType<?>... types) {
-    addFeatureType(Arrays.asList(types));
+    getFeaturesSchema().addDataTypes(types);
   }
 
   @Override
   public void addRowType(Collection<DataType> types) {
-    for (DataType<?> type : types) {
-      if (!hasRowType(type)) {
-        synchronized (rowTypes) {
-          rowTypes.add(type);
-        }
-      }
-    }
+    getRowsSchema().addDataTypes(types.toArray(DataType[]::new));
   }
 
   @Override
   public void addRowType(@NotNull DataType<?>... types) {
-    addRowType(Arrays.asList(types));
+    getRowsSchema().addDataTypes(types);
   }
 
   /**
@@ -407,8 +385,8 @@ public class ModularFeatureList implements FeatureList {
    * @return row types (columns)
    */
   @Override
-  public ObservableSet<DataType> getRowTypes() {
-    return rowTypes;
+  public Set<DataType> getRowTypes() {
+    return getRowsSchema().getReadOnlyTypes().keySet();
   }
 
 
@@ -900,5 +878,13 @@ public class ModularFeatureList implements FeatureList {
     });*/
 
     bufferedCharts.clear();
+  }
+
+  public @NotNull ModularDataModelSchema getFeaturesSchema() {
+    return featuresSchema;
+  }
+
+  public @NotNull ModularDataModelSchema getRowsSchema() {
+    return rowsSchema;
   }
 }

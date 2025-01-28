@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.ModularDataModelMap;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -155,7 +155,7 @@ public class DataTypeUtils {
    * @return A map of the specified types and the matching rows. The map is a tree map sorted
    * according to the hierarchy of the specified types.
    */
-  public static <M extends ModularDataModel> Map<DataType<?>, List<M>> groupByBestDataType(
+  public static <M extends ModularDataModelMap> Map<DataType<?>, List<M>> groupByBestDataType(
       List<M> rows, boolean mapMissingValues, DataType<?>... allowedTypes) {
 
     final Map<DataType<?>, List<M>> results = new TreeMap<>(
@@ -176,9 +176,9 @@ public class DataTypeUtils {
 
   /**
    * @param collection            A collection of any type which allows access to a
-   *                              {@link ModularDataModel} (<b>M</b>)
+   *                              {@link ModularDataModelMap} (<b>M</b>)
    * @param modularModelExtractor A function which accepts an element of the collection and returns
-   *                              a  {@link ModularDataModel}.
+   *                              a  {@link ModularDataModelMap}.
    * @param mapMissingValues      if none of the provided types is present, rows will be mapped to
    *                              {@link MissingValueType} if this parameter is true. Otherwise they
    *                              are dropped.
@@ -191,7 +191,7 @@ public class DataTypeUtils {
    * @return A map of the specified types and the matching rows. The map is a tree map sorted
    * according to the hierarchy of the specified types.
    */
-  public static <T extends DataType<?>, M extends ModularDataModel, ANY> Map<T, List<ANY>> groupByBestDataType(
+  public static <T extends DataType<?>, M extends ModularDataModelMap, ANY> Map<T, List<ANY>> groupByBestDataType(
       Collection<ANY> collection, Function<ANY, M> modularModelExtractor, boolean mapMissingValues,
       T... allowedTypes) {
 
@@ -211,7 +211,7 @@ public class DataTypeUtils {
     return results;
   }
 
-  public static <T extends DataType<?>, M extends ModularDataModel> T getBestTypeWithValue(M row,
+  public static <T extends DataType<?>, M extends ModularDataModelMap> T getBestTypeWithValue(M row,
       T... allowedTypes) {
     return getBestTypeWithValue(row, null, allowedTypes);
   }
@@ -226,7 +226,7 @@ public class DataTypeUtils {
    * @return The annotation type or the default.
    */
   @Nullable
-  public static <T extends DataType<?>, M extends ModularDataModel> T getBestTypeWithValue(M row,
+  public static <T extends DataType<?>, M extends ModularDataModelMap> T getBestTypeWithValue(M row,
       @Nullable T defaultType, T... allowedTypes) {
     for (T allowedType : allowedTypes) {
       final Object value = row.get((DataType<?>) allowedType);
@@ -239,7 +239,7 @@ public class DataTypeUtils {
     return defaultType;
   }
 
-  public static <T extends ModularDataModel> void copyAllBut(T source, T dst,
+  public static <T extends ModularDataModelMap> void copyAllBut(T source, T dst,
       Set<DataType<?>> excluded) {
     source.getMap().entrySet().stream().filter(e -> !excluded.contains(e.getKey()))
         .forEach(e -> dst.set(e.getKey(), e.getValue()));

@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.ModularDataModelMap;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -63,7 +64,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Class of data types: Provides formatters. Should be added to one {@link ModularDataModel}
+ * Class of data types: Provides formatters. Should be added to one {@link ModularDataModelMap}
  *
  * @param <T>
  * @author Robin Schmid (robinschmid@uni-muenster.de)
@@ -328,7 +329,7 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
   }
 
   /**
-   * Creating a property which is used in a {@link ModularDataModel}
+   * Creating a property which is used in a {@link ModularDataModelMap}
    *
    * @return
    */

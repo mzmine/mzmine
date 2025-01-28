@@ -30,12 +30,12 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.main.ConfigService;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OtherFeatureImpl implements OtherFeature {
 
-  public final ObservableMap<DataType, Object> map = FXCollections.observableHashMap();
+  public final Map<DataType, Object> map = new HashMap<>();
 
   public OtherFeatureImpl() {
   }
@@ -46,7 +46,7 @@ public class OtherFeatureImpl implements OtherFeature {
   }
 
   @Override
-  public ObservableMap<DataType, Object> getMap() {
+  public Map<DataType, Object> getMap() {
     return map;
   }
 

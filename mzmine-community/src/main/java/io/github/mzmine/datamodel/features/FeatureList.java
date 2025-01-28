@@ -50,7 +50,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -103,7 +102,7 @@ public interface FeatureList {
    */
   void applyRowBindings(FeatureListRow row);
 
-  ObservableSet<DataType> getFeatureTypes();
+  Set<DataType> getFeatureTypes();
 
   void addFeatureType(Collection<DataType> types);
 
@@ -113,7 +112,7 @@ public interface FeatureList {
 
   void addRowType(@NotNull DataType<?>... types);
 
-  ObservableSet<DataType> getRowTypes();
+  Set<DataType> getRowTypes();
 
 
   /**

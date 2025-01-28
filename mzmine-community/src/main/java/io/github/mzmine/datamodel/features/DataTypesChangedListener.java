@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,25 +25,10 @@
 package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Simple implementation of {@link ModularDataModelMap} to store values together with data types. This
- * class should not be used to store small elements but rather to load and save objects
- */
-public class SimpleModularDataModel extends ModularDataModelMap {
+public interface DataTypesChangedListener {
 
-  private final Map<DataType, Object> map = new HashMap<>();
-
-  @Override
-  public Map<DataType, Object> getMap() {
-    return map;
-  }
-
-  @Override
-  public <T> boolean set(final Class<? extends DataType<T>> tclass, final T value) {
-    return super.set(tclass, value);
-  }
-
+  void onChange(@NotNull List<@NotNull DataType> added, @NotNull List<@NotNull DataType> removed);
 }
