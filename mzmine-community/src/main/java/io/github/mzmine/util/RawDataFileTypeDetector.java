@@ -160,9 +160,7 @@ public class RawDataFileTypeDetector {
         // Read the first 1kB of the file into a String
         String fileHeader = null;
         try (final var reader = Files.newBufferedReader(fileName.toPath(),
-            StandardCharsets.UTF_8)) {
-//        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(fileName),
-//            StandardCharsets.ISO_8859_1)) {
+            StandardCharsets.ISO_8859_1)) {
           char[] buffer = new char[1024];
           int read = reader.read(buffer);
           if (read > 0) {
