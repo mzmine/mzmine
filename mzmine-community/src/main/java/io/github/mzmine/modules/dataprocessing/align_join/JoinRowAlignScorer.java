@@ -134,13 +134,8 @@ public class JoinRowAlignScorer implements FeatureRowAlignScorer {
             ? mobilityTolerance.getToleranceRange(rowToAdd.getAverageMobility()) : Range.all();
 
     // find all rows in the aligned rows that might match
-    List<FeatureListRow> candidatesInAligned = null;
-    try {
-      candidatesInAligned = FeatureListUtils.getCandidatesWithinRanges(mzRange, rtRange,
-          mobilityRange, baseRowsByMz, true);
-    } catch (Exception exception) {
-      System.out.println(exception);
-    }
+    List<FeatureListRow> candidatesInAligned = FeatureListUtils.getCandidatesWithinRanges(mzRange,
+        rtRange, mobilityRange, baseRowsByMz, true);
 
     if (candidatesInAligned.isEmpty()) {
       return;
