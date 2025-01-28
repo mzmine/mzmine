@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -123,7 +123,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
       if (change.wasAdded()) {
-        flist.addRowType(change.getKey());
+        this.flist.addRowType(change.getKey());
       }
     });
 
@@ -245,7 +245,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-          + "row. Create feature with the correct feature list as an argument.");
+                                         + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -681,7 +681,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public IsotopePattern getBestIsotopePattern() {
     return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight))
         .map(ModularFeature::getIsotopePattern).orElse(null);
   }
