@@ -97,7 +97,9 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
           }
           extractedData.add(calibrant);
         } catch (Exception e) {
-          logger.fine(STR."Exception occurred when reading row index \{lines.indexOf(lineValues)}");
+          logger.fine(
+              "Exception occurred when reading row index %d. Will skip this row and continue parsing.".formatted(
+                  lines.indexOf(lineValues)));
           logger.fine(e.toString());
         }
       }
