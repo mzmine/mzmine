@@ -102,7 +102,8 @@ public class MSConvertImportTask extends AbstractTask {
       cmdLine.add("--numpressLinear");
     }
 
-    if (fileType == RawDataFileType.AGILENT_D_IMS || fileType == RawDataFileType.WATERS_RAW_IMS) {
+    if (fileType == RawDataFileType.AGILENT_D_IMS || fileType == RawDataFileType.WATERS_RAW_IMS
+        || fileType == RawDataFileType.MBI) {
       cmdLine.addAll(List.of("--combineIonMobilitySpectra"));
     }
 
@@ -142,6 +143,7 @@ public class MSConvertImportTask extends AbstractTask {
       case SCIEX_WIFF -> true;
       case SCIEX_WIFF2 -> true;
       case AGILENT_D -> true;
+      case MBI -> false;
       case WATERS_RAW_IMS, AGILENT_D_IMS -> false;
     };
   }
@@ -196,8 +198,11 @@ public class MSConvertImportTask extends AbstractTask {
   /**
    * Some versions of msconvert output information into stdout before the mzml is parsed. Therefore,
    * we need to find the mzml header and skip to it's start.
+   *
+   * @return true if the start of the mzml has been found, no matter if something was skipped. false
+   * if the file cannot be parsed by msconvert.
    */
-  private static void skipToMzmlStart(InputStream mzMLStream) throws IOException {
+  private boolean skipToMzmlStart(InputStream mzMLStream) throws IOException {
     if (mzMLStream.markSupported()) {
       // set a mark so we can later return to the start of the file
       mzMLStream.mark(Integer.MAX_VALUE);
@@ -208,6 +213,11 @@ public class MSConvertImportTask extends AbstractTask {
 
       while (headerStartIndex == -1) {
         final int read = mzMLStream.read(buffer);
+        if (read == -1) {
+          // if the stream has no data, it means that msconvert does not support the raw data
+          return false;
+        }
+
         for (int i = 0; i < read; i++) {
           if (buffer[i] == xmlHeader[0]) {
             final byte[] bytes = Arrays.copyOfRange(buffer, i,
@@ -228,6 +238,7 @@ public class MSConvertImportTask extends AbstractTask {
       mzMLStream.reset();
       mzMLStream.skipNBytes(headerStartOffset + headerStartIndex);
     }
+    return true;
   }
 
   @Override
@@ -340,12 +351,20 @@ public class MSConvertImportTask extends AbstractTask {
       RawDataFile dataFile = null;
       try (InputStream mzMLStream = process.getInputStream()) //
       {
-        skipToMzmlStart(mzMLStream);
+        if (!skipToMzmlStart(mzMLStream)) {
+          error(
+              "Unable to parse %s using MSConvert. The file format may not be supported by this MSConvert version.\n"
+                  + "Please update MSConvert to the latest release.");
+          // in this case msconvert has already exited, don't need to kill the process
+          return;
+        }
         msdkTask = new MSDKmzMLImportTask(project, rawFilePath, mzMLStream, config, module,
             parameters, moduleCallDate, storage);
 
+        final Process finalProcess = process;
         this.addTaskStatusListener((_, _, _) -> {
           if (isCanceled()) {
+            finalProcess.destroy();
             msdkTask.cancel();
           }
         });
@@ -353,6 +372,7 @@ public class MSConvertImportTask extends AbstractTask {
       }
 
       if (dataFile == null || isCanceled()) {
+        process.destroy();
         return;
       }
 
