@@ -37,6 +37,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
+import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchParameters;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters.ChimericMsOption;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
@@ -178,6 +180,7 @@ import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
+import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
@@ -1374,5 +1377,27 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(LipidAnnotationModule.class), param);
     q.add(step);
+  }
+
+  protected void makeAndAddBatchExportStep(final BatchQueue q, boolean exportEnabled,
+      @Nullable final File exportPath) {
+    if (!exportEnabled) {
+      return;
+    }
+
+    final ParameterSet param = new AutoSaveBatchParameters().cloneParameterSet();
+
+    if (exportPath != null) {
+      File fileName = FileAndPathUtil.eraseFormat(exportPath);
+      final String extension = ExtensionFilters.getExtensionName(ExtensionFilters.MZ_BATCH);
+      fileName = new File(fileName.getParentFile(),
+          fileName.getName() + "_batch.%s".formatted(extension));
+      param.setParameter(AutoSaveBatchParameters.savePath, true, fileName);
+    } else {
+      param.setParameter(AutoSaveBatchParameters.savePath, false);
+    }
+
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoSaveBatchModule.class),
+        param));
   }
 }
