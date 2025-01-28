@@ -93,9 +93,9 @@ public class AutoSaveBatchTask extends AbstractSimpleTask {
       final File commonFromExport = ParameterUtils.extractMajorityExportPath(queueCopy);
       final File commonImport = ParameterUtils.extractMajorityRawFileImportFilePath(queueCopy);
       if (commonFromExport != null) {
-        savePath = new File(commonFromExport, "batch.%s".formatted(mzbatch));
+        savePath = new File(commonFromExport, "autosave_batch.%s".formatted(mzbatch));
       } else if (commonImport != null) {
-        savePath = new File(commonImport, "batch.%s".formatted(mzbatch));
+        savePath = new File(commonImport, "autosave_batch.%s".formatted(mzbatch));
       }
     }
 
@@ -105,6 +105,15 @@ public class AutoSaveBatchTask extends AbstractSimpleTask {
           "The %s module cannot automatically determine a path to export the batch file to. Please save the batch manually.",
           false);
       return;
+    }
+
+    if (!savePath.exists()) {
+      try {
+        savePath.createNewFile();
+      } catch (IOException e) {
+        error("Cannot create file to save batch.", e);
+        return;
+      }
     }
 
     logger.info("Saving batch to %s".formatted(savePath.getAbsolutePath()));

@@ -34,10 +34,8 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
@@ -363,11 +361,9 @@ public class ParameterUtils {
     final List<File> allImportedFiles = batch.stream()
         .filter(step -> step.getModule().getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT)
         .map(MZmineProcessingStep::getParameterSet).<File>mapMulti((paramSet, c) -> {
-          streamParametersDeep(paramSet, FileNameParameter.class).forEach(p -> {
-            if (p.getType() == FileSelectionType.OPEN) {
-              c.accept(p.getValue());
-            }
-          });
+          streamParametersDeep(paramSet, FileNamesParameter.class).flatMap(
+                  p -> Arrays.stream(p.getValue() != null ? p.getValue() : new File[0]))
+              .filter(Objects::nonNull).forEach(c);
         }).toList();
     return FileAndPathUtil.getMajorityFilePath(
         allImportedFiles.stream().map(File::getParentFile).toList());
