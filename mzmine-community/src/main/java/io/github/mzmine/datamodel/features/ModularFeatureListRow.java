@@ -83,7 +83,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -125,8 +124,7 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
     List<RawDataFile> raws = flist.getRawDataFiles();
     if (!raws.isEmpty()) {
       // init FeaturesType map (is final)
-      HashMap<RawDataFile, ModularFeature> fmap = new HashMap<>(raws.size());
-      features = (FXCollections.observableMap(fmap));
+      features = HashMap.newHashMap(raws.size());
       // set
       set(FeaturesType.class, features);
     } else {
@@ -489,13 +487,13 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
   public void addCompoundAnnotation(CompoundDBAnnotation id) {
     // should usually not be called from multiple threads
 //    synchronized (getMap()) {
-      List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
-      List<CompoundDBAnnotation> newList = new ArrayList<>();
-      if (matches != null) {
-        newList.addAll(matches);
-      }
-      newList.add(id);
-      set(CompoundDatabaseMatchesType.class, newList);
+    List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
+    List<CompoundDBAnnotation> newList = new ArrayList<>();
+    if (matches != null) {
+      newList.addAll(matches);
+    }
+    newList.add(id);
+    set(CompoundDatabaseMatchesType.class, newList);
 //    }
   }
 
@@ -509,7 +507,7 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
   @Override
   public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
 //    synchronized (getMap()) {
-      set(CompoundDatabaseMatchesType.class, annotations);
+    set(CompoundDatabaseMatchesType.class, annotations);
 //    }
   }
 
@@ -537,24 +535,24 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
   @Override
   public void addSpectralLibraryMatch(SpectralDBAnnotation id) {
 //    synchronized (getMap()) {
-      List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
-      if (matches == null) {
-        matches = new ArrayList<>();
-      }
-      matches.add(id);
-      set(SpectralLibraryMatchesType.class, matches);
+    List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
+    if (matches == null) {
+      matches = new ArrayList<>();
+    }
+    matches.add(id);
+    set(SpectralLibraryMatchesType.class, matches);
 //    }
   }
 
   @Override
   public void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches) {
 //    synchronized (getMap()) {
-      List<SpectralDBAnnotation> old = get(SpectralLibraryMatchesType.class);
-      if (old == null) {
-        old = new ArrayList<>();
-      }
-      old.addAll(matches);
-      set(SpectralLibraryMatchesType.class, old);
+    List<SpectralDBAnnotation> old = get(SpectralLibraryMatchesType.class);
+    if (old == null) {
+      old = new ArrayList<>();
+    }
+    old.addAll(matches);
+    set(SpectralLibraryMatchesType.class, old);
 //    }
   }
 
@@ -567,7 +565,7 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
   @Override
   public void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches) {
 //    synchronized (getMap()) {
-      set(SpectralLibraryMatchesType.class, matches);
+    set(SpectralLibraryMatchesType.class, matches);
 //    }
   }
 

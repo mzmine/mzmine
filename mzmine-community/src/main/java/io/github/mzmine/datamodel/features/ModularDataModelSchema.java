@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -41,12 +42,10 @@ import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.LoggerFactory;
 
 public class ModularDataModelSchema {
 
   private static final Logger logger = Logger.getLogger(ModularDataModelSchema.class.getName());
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ModularDataModelSchema.class);
 
   private final Object2IntMap<DataType> indexMap = new Object2IntOpenHashMap<>();
   private final Object2IntMap<DataType> readOnlyIndexMap = Object2IntMaps.unmodifiable(indexMap);
@@ -55,7 +54,7 @@ public class ModularDataModelSchema {
   /**
    * The current size of all arrays controlled by this datamodel.
    */
-  private final AtomicInteger arrayInitialisationSize = new AtomicInteger(10);
+  private final AtomicInteger arrayInitialisationSize;
   private final int sizeIncrement = 5;
 
   /**
@@ -72,10 +71,11 @@ public class ModularDataModelSchema {
 
   public ModularDataModelSchema(
       final @NotNull Supplier<Stream<? extends ModularDataModelArray>> modelSupplier,
-      String modelName) {
+      String modelName, int initialSize) {
     this.modelSupplier = modelSupplier;
     this.modelName = modelName;
     indexMap.defaultReturnValue(-1);
+    arrayInitialisationSize = new AtomicInteger(initialSize);
   }
 
   /**
@@ -89,12 +89,12 @@ public class ModularDataModelSchema {
 //    logger.finest(modelName + " Trying to lock for read");
 //    try (var _ = resizeLock.lockRead()) {
 //      logger.finest(modelName + " Read lock acquired");
-      final int index = indexMap.getInt(type);
-      if (index == -1 && addIfAbsent) {
-        return addDataType(type);
-      } else {
-        return index;
-      }
+    final int index = indexMap.getInt(type);
+    if (index == -1 && addIfAbsent) {
+      return addDataType(type);
+    } else {
+      return index;
+    }
 //    }
   }
 
@@ -102,7 +102,7 @@ public class ModularDataModelSchema {
 //    logger.finest(modelName + " Trying to lock for read");
 //    try (var _ = resizeLock.lockRead()) {
 //      logger.finest(modelName + " Read lock acquired");
-      return indexMap.getInt(type) != -1;
+    return indexMap.getInt(type) != -1;
 //    }
   }
 
@@ -111,13 +111,16 @@ public class ModularDataModelSchema {
 //    logger.finest(modelName + " Trying to lock for read");
 //    try (var _ = resizeLock.lockRead()) {
 //      logger.finest(modelName + " Read lock acquired");
-      for (DataType type : types) {
-        if (!containsDataType(type)) {
-          toAdd.add(type);
-        }
+    for (DataType type : types) {
+      if (!containsDataType(type)) {
+        toAdd.add(type);
+      }
 //      }
     }
-
+    if (toAdd.isEmpty()) {
+      return;
+    }
+    
     logger.finest(modelName + " Trying to lock for write");
     try (var _ = resizeLock.lockWrite()) {
       logger.finest(modelName + " Write lock acquired");
@@ -144,7 +147,7 @@ public class ModularDataModelSchema {
 //    logger.finest(modelName + " Trying to lock for read");
 //    try (var _ = resizeLock.lockRead()) {
 //      logger.finest(modelName + " Read lock acquired");
-      return arrayInitialisationSize.get() - nextIndex.get();
+    return arrayInitialisationSize.get() - nextIndex.get();
 //    }
   }
 
@@ -187,9 +190,9 @@ public class ModularDataModelSchema {
    */
   private void resizeDataModels(final int resizeBy) {
     final Instant start = Instant.now();
-    logger.finest(modelName + " Trying to lock for write");
+    logger.finest(modelName + " Trying to lock for write for resizing");
     try (var _ = resizeLock.lockWrite()) {
-      logger.finest(modelName + " Write lock acquired");
+      logger.finest(modelName + " Write lock acquired for resizing");
       final int newSize = arrayInitialisationSize.addAndGet(resizeBy);
       // use map in parallel stream as forEach
       long updated = modelSupplier.get().parallel().filter(model -> model.ensureCapacity(newSize))
@@ -207,7 +210,7 @@ public class ModularDataModelSchema {
 //    logger.finest(modelName + " Trying to lock for read");
 //    try (var _ = resizeLock.lockRead()) {
 //      logger.finest(modelName + " Read lock acquired");
-      return readOnlyIndexMap;
+    return readOnlyIndexMap;
 //    }
   }
 
@@ -215,7 +218,7 @@ public class ModularDataModelSchema {
 //    logger.finest(modelName + " Trying to lock for read");
 //    try (var _ = resizeLock.lockRead()) {
 //      logger.finest(modelName + " Read lock acquired");
-      return new Object[arrayInitialisationSize.get()];
+    return new Object[arrayInitialisationSize.get()];
 //    }
   }
 
