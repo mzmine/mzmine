@@ -102,7 +102,7 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
   private static final Logger logger = Logger.getLogger(ModularFeatureListRow.class.getName());
   private final Map<RawDataFile, ModularFeature> features;
   @NotNull
-  private ModularFeatureList flist;
+  private final ModularFeatureList flist;
 
   /**
    * Creates an empty row
@@ -239,7 +239,6 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
 
 //    logger.log(Level.FINEST, "ADDING FEATURE");
     ModularFeature oldFeature = features.put(raw, modularFeature);
-    modularFeature.setFeatureList(flist);
     modularFeature.setRow(this);
 
     if (!Objects.equals(oldFeature, modularFeature)) {
@@ -353,19 +352,9 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
     return f != null && f.getFeatureStatus().equals(FeatureStatus.UNKNOWN) ? null : f;
   }
 
-  @Nullable
   @Override
-  public ModularFeatureList getFeatureList() {
+  public @NotNull ModularFeatureList getFeatureList() {
     return flist;
-  }
-
-  @Override
-  public void setFeatureList(@NotNull FeatureList flist) {
-    if (!(flist instanceof ModularFeatureList)) {
-      throw new IllegalArgumentException(
-          "Cannot set non-modular feature list to modular feature list row.");
-    }
-    this.flist = (ModularFeatureList) flist;
   }
 
   @Override

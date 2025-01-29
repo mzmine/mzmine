@@ -56,7 +56,6 @@ public class GCAlignerTask extends AbstractFeatureListTask {
   private final MZmineProject project;
   private final String featureListName;
   private final ParameterSet parameters;
-  private final boolean reuseOriginalFeatures;
   private ModularFeatureList alignedFeatureList;
   private final OriginalFeatureListOption handleOriginal;
   private BaseFeatureListAligner listAligner;
@@ -67,8 +66,6 @@ public class GCAlignerTask extends AbstractFeatureListTask {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.project = project;
     handleOriginal = parameters.getValue(GCAlignerParameters.handleOriginal);
-    reuseOriginalFeatures = handleOriginal != OriginalFeatureListOption.KEEP;
-
     featureListName = parameters.getValue(GCAlignerParameters.FEATURE_LIST_NAME);
 
     featureLists = Arrays.stream(
@@ -92,8 +89,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
     logger.info(() -> "Running parallel GC aligner on " + featureLists.size() + " feature lists.");
 
     var mzTolerance = parameters.getValue(GCAlignerParameters.MZ_TOLERANCE);
-    FeatureCloner featureCloner = new ExtractMzMismatchFeatureCloner(mzTolerance,
-        reuseOriginalFeatures);
+    FeatureCloner featureCloner = new ExtractMzMismatchFeatureCloner(mzTolerance);
     // create the row aligner that handles the scoring
     var rowAligner = new GcRowAlignScorer(parameters);
     listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
