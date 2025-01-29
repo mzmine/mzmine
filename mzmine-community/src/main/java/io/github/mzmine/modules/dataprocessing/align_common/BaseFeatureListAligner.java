@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -281,14 +280,8 @@ public class BaseFeatureListAligner {
     // create new rows, used as base for next alignment iteration, and later added to feature list
     List<FeatureListRow> nextBaseRows = new ArrayList<>(nextUnalignedFeatureList.size());
     for (var unalignedRow : nextUnalignedFeatureList) {
-      if (featureCloner.isReuseOriginalFeature()) {
-        unalignedRow.setFeatureList(alignedFeatureList);
-        unalignedRow.set(IDType.class, newRowID.getAndIncrement());
-        nextBaseRows.add(unalignedRow);
-      } else {
-        nextBaseRows.add(new ModularFeatureListRow(alignedFeatureList, newRowID.getAndIncrement(),
-            (ModularFeatureListRow) unalignedRow, true));
-      }
+      nextBaseRows.add(new ModularFeatureListRow(alignedFeatureList, newRowID.getAndIncrement(),
+          (ModularFeatureListRow) unalignedRow, true));
     }
     // either by mz in Join or by RT by GC
     nextBaseRows.sort(baseRowSorter);

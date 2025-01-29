@@ -84,7 +84,7 @@ public class ModularFeature extends ModularDataModelArray implements Feature {
   private static final Logger logger = Logger.getLogger(ModularFeature.class.getName());
   // buffert col charts and nodes
   @NotNull
-  private ModularFeatureList flist;
+  private final ModularFeatureList flist;
 
   private FeatureListRow parentRow;
 
@@ -413,15 +413,9 @@ public class ModularFeature extends ModularDataModelArray implements Feature {
     set(FeatureInformationType.class, featureInfo);
   }
 
-  @Nullable
   @Override
-  public FeatureList getFeatureList() {
+  public @NotNull FeatureList getFeatureList() {
     return flist;
-  }
-
-  @Override
-  public void setFeatureList(@NotNull FeatureList flist) {
-    this.flist = (ModularFeatureList) flist;
   }
 
   @Override
