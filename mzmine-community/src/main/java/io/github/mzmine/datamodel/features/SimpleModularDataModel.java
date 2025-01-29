@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Simple implementation of {@link ModularDataModelMap} to store values together with data types. This
+ * Simple implementation of {@link ModularDataModel} to store values together with data types. This
  * class should not be used to store small elements but rather to load and save objects
  */
 public class SimpleModularDataModel extends ModularDataModelMap {
