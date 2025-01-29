@@ -25,13 +25,33 @@
 package io.github.mzmine.util.concurrent;
 
 import java.util.concurrent.locks.StampedLock;
+import org.jetbrains.annotations.Nullable;
 
-public class StampedUpgradeLock {
+public class UpgradeReadWriteLock {
 
   private final StampedLock lock = new StampedLock();
 
-  public long readLock() {
-    return lock.readLock();
+  public CloseableUpgradableResourceLock readLock() {
+    final long stamp = lock.readLock();
+    return new CloseableUpgradableResourceLock(lock::unlockRead, stamp);
+  }
+
+  public CloseableUpgradableResourceLock writeLock() {
+    final long stamp = lock.writeLock();
+    return new CloseableUpgradableResourceLock(lock::unlockWrite, stamp);
+  }
+
+  public CloseableUpgradableResourceLock upgradeToWrite(
+      @Nullable final CloseableUpgradableResourceLock readLock) {
+    if (readLock == null) {
+      return writeLock();
+    }
+    final long newStamp = lock.tryConvertToWriteLock(readLock.stamp());
+    if (newStamp != 0) {
+      throw new IllegalStateException("Illegal conversion to write lock");
+    }
+
+    return new CloseableUpgradableResourceLock(lock::unlockWrite, readLock.stamp());
   }
 
 //  public
