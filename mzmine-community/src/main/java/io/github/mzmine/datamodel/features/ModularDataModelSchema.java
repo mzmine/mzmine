@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -120,13 +121,17 @@ public class ModularDataModelSchema {
     if (toAdd.isEmpty()) {
       return;
     }
-    
-    logger.finest(modelName + " Trying to lock for write");
+    logger.finest("%s: no index for %d data types %s".formatted(modelName, toAdd.size(),
+        toAdd.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
+
     try (var _ = resizeLock.lockWrite()) {
-      logger.finest(modelName + " Write lock acquired");
       // double-checked lock
       toAdd.removeIf(this::containsDataType);
-      logger.finest(modelName + ": adding data types: " + toAdd);
+      if (toAdd.isEmpty()) {
+        return;
+      }
+      logger.finest("%s: adding %d data types %s".formatted(modelName, toAdd.size(),
+          toAdd.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
       int currentFreeCap = getCurrentFreeCapacity();
       if (toAdd.size() > currentFreeCap) {
         // increase size to add all new types
@@ -134,6 +139,8 @@ public class ModularDataModelSchema {
       }
       for (DataType dataType : toAdd) {
         indexMap.put(dataType, nextIndex.getAndIncrement());
+        logger.finest("%s: adding data type %s at %d".formatted(modelName, dataType.getUniqueID(),
+            indexMap.getInt(dataType)));
       }
     }
 
@@ -156,11 +163,10 @@ public class ModularDataModelSchema {
     if (currentIndex != -1) {
       return currentIndex;
     }
-    logger.finest(modelName + ": adding data type " + type.getUniqueID());
 
-    logger.finest(modelName + " Trying to lock for write");
+    logger.finest(modelName + ": index -1 for data type " + type.getUniqueID());
+
     try (var _ = resizeLock.lockWrite()) {
-      logger.finest(modelName + " Write lock acquired");
       // double-checked lock
       currentIndex = getIndex(type, false);
       if (currentIndex != -1) {
@@ -172,6 +178,8 @@ public class ModularDataModelSchema {
         resizeDataModels(sizeIncrement);
       }
       indexMap.put(type, nextIndex.getAndIncrement());
+      logger.finest("%s: adding data type %s at %d".formatted(modelName, type.getUniqueID(),
+          indexMap.getInt(type)));
       return next;
     }
   }
@@ -190,9 +198,7 @@ public class ModularDataModelSchema {
    */
   private void resizeDataModels(final int resizeBy) {
     final Instant start = Instant.now();
-    logger.finest(modelName + " Trying to lock for write for resizing");
     try (var _ = resizeLock.lockWrite()) {
-      logger.finest(modelName + " Write lock acquired for resizing");
       final int newSize = arrayInitialisationSize.addAndGet(resizeBy);
       // use map in parallel stream as forEach
       long updated = modelSupplier.get().parallel().filter(model -> model.ensureCapacity(newSize))
