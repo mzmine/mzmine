@@ -49,11 +49,8 @@ public sealed interface FeatureCloner {
    *                          method)
    * @return new feature either directly cloned or newly extracted
    */
-  @NotNull
-  ModularFeature cloneFeature(final Feature feature, final ModularFeatureList targetFeatureList,
-      final FeatureListRow targetAlignRow);
-
-  boolean isReuseOriginalFeature();
+  @NotNull ModularFeature cloneFeature(final Feature feature,
+      final ModularFeatureList targetFeatureList, final FeatureListRow targetAlignRow);
 
   /**
    * Always just clones the feature. For GC use {@link ExtractMzMismatchFeatureCloner}
@@ -66,32 +63,6 @@ public sealed interface FeatureCloner {
       return new ModularFeature(targetFeatureList, feature);
     }
 
-    @Override
-    public boolean isReuseOriginalFeature() {
-      return false;
-    }
-
-  }
-
-  record ReuseOriginalFeature() implements FeatureCloner {
-
-    @Override
-    public @NotNull ModularFeature cloneFeature(final Feature feature,
-        final ModularFeatureList targetFeatureList, final FeatureListRow targetAlignRow) {
-      return withNewReferences(feature, targetFeatureList, targetAlignRow);
-    }
-
-    @Override
-    public boolean isReuseOriginalFeature() {
-      return true;
-    }
-  }
-
-  private static ModularFeature withNewReferences(final Feature feature,
-      final ModularFeatureList targetFeatureList, final FeatureListRow targetAlignRow) {
-    feature.setFeatureList(targetFeatureList);
-    feature.setRow(targetAlignRow);
-    return (ModularFeature) feature;
   }
 
   /**
@@ -99,8 +70,7 @@ public sealed interface FeatureCloner {
    * completely new feature. This is useful for GC alignment as features in GC are based on random
    * representative m/z for a pseudo spectrum feature
    */
-  record ExtractMzMismatchFeatureCloner(MZTolerance mzTolerance,
-                                        boolean reuseOriginalFeature) implements FeatureCloner {
+  record ExtractMzMismatchFeatureCloner(MZTolerance mzTolerance) implements FeatureCloner {
 
     @Override
     public @NotNull ModularFeature cloneFeature(final Feature privFeature,
@@ -109,12 +79,7 @@ public sealed interface FeatureCloner {
 
       Range<Double> mzTolRange = mzTolerance.getToleranceRange(targetAlignRow.getAverageMZ());
       if (mzTolRange.contains(feature.getMZ())) {
-        if (reuseOriginalFeature) {
-          return withNewReferences(feature, targetFeatureList, targetAlignRow);
-        } else {
-          // same mz so just duplicate
-          return new ModularFeature(targetFeatureList, feature);
-        }
+        return new ModularFeature(targetFeatureList, feature);
       } else {
         // mz mismatch, because GC retains a random m/z as a representative for a feature (deconvoluted pseudo spectrum)
         RawDataFile dataFile = feature.getRawDataFile();
@@ -123,20 +88,11 @@ public sealed interface FeatureCloner {
             dataFile.getMemoryMapStorage());
 
         final ModularFeature newFeature;
-        if (reuseOriginalFeature) {
-          newFeature = withNewReferences(feature, targetFeatureList, targetAlignRow);
-        } else {
-          newFeature = new ModularFeature(targetFeatureList, feature);
-        }
+        newFeature = new ModularFeature(targetFeatureList, feature);
         newFeature.set(FeatureDataType.class, ionTimeSeries);
         FeatureDataUtils.recalculateIonSeriesDependingTypes(newFeature);
         return newFeature;
       }
-    }
-
-    @Override
-    public boolean isReuseOriginalFeature() {
-      return reuseOriginalFeature;
     }
   }
 
