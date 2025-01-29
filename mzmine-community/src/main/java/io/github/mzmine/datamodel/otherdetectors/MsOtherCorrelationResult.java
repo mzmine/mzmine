@@ -35,6 +35,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.List;
 import java.util.Map.Entry;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -70,7 +71,7 @@ public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrela
         while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
             .equals(CONST.XML_OTHER_FEATURE_ELEMENT))) {
           reader.next();
-          if(!reader.isStartElement()) {
+          if (!reader.isStartElement()) {
             continue;
           }
 
@@ -104,7 +105,8 @@ public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrela
     writer.writeAttribute(XML_CORRELATION_TYPE_ATTR, type.name());
 
     writer.writeStartElement(CONST.XML_OTHER_FEATURE_ELEMENT);
-    for (Entry<DataType, Object> entry : otherFeature.getMap().entrySet()) {
+    final List<Entry<DataType, Object>> entries = otherFeature.stream().toList();
+    for (Entry<DataType, Object> entry : entries) {
       FeatureListSaveTask.writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, null,
           file);
     }

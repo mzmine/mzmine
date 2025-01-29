@@ -45,6 +45,7 @@ public class ModularDataModelArray implements ModularDataModel/*, Map<DataType, 
 
   public ModularDataModelArray(final ModularDataModelSchema schema) {
     this.schema = schema;
+    data = schema.allocateNew();
   }
 
   @Override
@@ -84,6 +85,7 @@ public class ModularDataModelArray implements ModularDataModel/*, Map<DataType, 
 
   @Override
   public <T> @Nullable T get(DataType<T> key) {
+//    schema.lockRead() do we need to lock? don't think so
     final int index = schema.getIndex(key, false);
     if (index != -1) {
       return (T) data[index];

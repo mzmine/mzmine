@@ -282,7 +282,8 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeStartElement(CONST.XML_ROW_ELEMENT);
     writer.writeAttribute(idType.getUniqueID(), String.valueOf(row.getID()));
 
-    for (Entry<DataType, Object> entry : row.getMap().entrySet()) {
+    final List<Entry<DataType, Object>> entries = row.stream().toList();
+    for (Entry<DataType, Object> entry : entries) {
       DataType dataType = entry.getKey();
       Object value = entry.getValue();
       if (dataType instanceof FeaturesType) {
@@ -326,7 +327,8 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeStartElement(CONST.XML_FEATURE_ELEMENT);
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, rawDataFile.getName());
 
-    for (Entry<DataType, Object> entry : feature.getMap().entrySet()) {
+    final List<Entry<DataType, Object>> entries = feature.stream().toList();
+    for (Entry<DataType, Object> entry : entries) {
       writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, feature, rawDataFile);
     }
 

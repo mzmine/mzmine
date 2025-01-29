@@ -30,6 +30,8 @@ import io.github.mzmine.util.concurrent.CloseableResourceLock;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,31 +40,41 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.collections.FXCollections;
-import javafx.collections.SetChangeListener;
-import javafx.collections.SetChangeListener.Change;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.LoggerFactory;
 
 public class ModularDataModelSchema {
 
   private static final Logger logger = Logger.getLogger(ModularDataModelSchema.class.getName());
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ModularDataModelSchema.class);
 
   private final Object2IntMap<DataType> indexMap = new Object2IntOpenHashMap<>();
   private final Object2IntMap<DataType> readOnlyIndexMap = Object2IntMaps.unmodifiable(indexMap);
 
   private final AtomicInteger nextIndex = new AtomicInteger(0);
+  /**
+   * The current size of all arrays controlled by this datamodel.
+   */
   private final AtomicInteger arrayInitialisationSize = new AtomicInteger(10);
   private final int sizeIncrement = 5;
+
+  /**
+   * A lock that controls the access and specifically the resizing of all
+   * {@link ModularDataModelArray}s controlled by this schema.
+   */
   private final CloseableReentrantReadWriteLock resizeLock = new CloseableReentrantReadWriteLock();
 
   private final Supplier<@NotNull Stream<? extends ModularDataModelArray>> modelSupplier;
+  private final String modelName;
 
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> dataTypeValueChangedListeners = new HashMap<>();
   private final List<DataTypesChangedListener> dataTypesChangeListeners = new ArrayList<>();
 
   public ModularDataModelSchema(
-      final @NotNull Supplier<Stream<? extends ModularDataModelArray>> modelSupplier) {
+      final @NotNull Supplier<Stream<? extends ModularDataModelArray>> modelSupplier,
+      String modelName) {
     this.modelSupplier = modelSupplier;
+    this.modelName = modelName;
     indexMap.defaultReturnValue(-1);
   }
 
@@ -74,35 +86,44 @@ public class ModularDataModelSchema {
    * @return the index of the data type or -1 if the type is not in this schema yet.
    */
   public int getIndex(final DataType type, final boolean addIfAbsent) {
-    try (var _ = resizeLock.lockRead()) {
+//    logger.finest(modelName + " Trying to lock for read");
+//    try (var _ = resizeLock.lockRead()) {
+//      logger.finest(modelName + " Read lock acquired");
       final int index = indexMap.getInt(type);
       if (index == -1 && addIfAbsent) {
         return addDataType(type);
       } else {
         return index;
       }
-    }
+//    }
   }
 
   public boolean containsDataType(final DataType type) {
-    try (var _ = resizeLock.lockRead()) {
+//    logger.finest(modelName + " Trying to lock for read");
+//    try (var _ = resizeLock.lockRead()) {
+//      logger.finest(modelName + " Read lock acquired");
       return indexMap.getInt(type) != -1;
-    }
+//    }
   }
 
   public void addDataTypes(final DataType... types) {
     List<DataType> toAdd = new ArrayList<>(types.length);
-    try (var _ = resizeLock.lockRead()) {
+//    logger.finest(modelName + " Trying to lock for read");
+//    try (var _ = resizeLock.lockRead()) {
+//      logger.finest(modelName + " Read lock acquired");
       for (DataType type : types) {
         if (!containsDataType(type)) {
           toAdd.add(type);
         }
-      }
+//      }
     }
 
+    logger.finest(modelName + " Trying to lock for write");
     try (var _ = resizeLock.lockWrite()) {
+      logger.finest(modelName + " Write lock acquired");
       // double-checked lock
       toAdd.removeIf(this::containsDataType);
+      logger.finest(modelName + ": adding data types: " + toAdd);
       int currentFreeCap = getCurrentFreeCapacity();
       if (toAdd.size() > currentFreeCap) {
         // increase size to add all new types
@@ -113,38 +134,18 @@ public class ModularDataModelSchema {
       }
     }
 
-    for (SetChangeListener<? super DataType> listener : dataTypesChangeListeners) {
-      for (DataType dataType : toAdd) {
-        listener.onChanged(
-            new Change<DataType>(FXCollections.observableSet(getReadOnlyTypes().keySet())) {
-              @Override
-              public boolean wasAdded() {
-                return true;
-              }
-
-              @Override
-              public boolean wasRemoved() {
-                return false;
-              }
-
-              @Override
-              public DataType getElementAdded() {
-                return dataType;
-              }
-
-              @Override
-              public DataType getElementRemoved() {
-                return null;
-              }
-            });
-      }
+    final List<DataType> addedCopy = List.copyOf(toAdd);
+    for (var listener : dataTypesChangeListeners) {
+      listener.onChange(addedCopy, List.of());
     }
   }
 
   private int getCurrentFreeCapacity() {
-    try (var _ = resizeLock.lockRead()) {
+//    logger.finest(modelName + " Trying to lock for read");
+//    try (var _ = resizeLock.lockRead()) {
+//      logger.finest(modelName + " Read lock acquired");
       return arrayInitialisationSize.get() - nextIndex.get();
-    }
+//    }
   }
 
   public int addDataType(final DataType type) {
@@ -152,8 +153,11 @@ public class ModularDataModelSchema {
     if (currentIndex != -1) {
       return currentIndex;
     }
+    logger.finest(modelName + ": adding data type " + type.getUniqueID());
 
+    logger.finest(modelName + " Trying to lock for write");
     try (var _ = resizeLock.lockWrite()) {
+      logger.finest(modelName + " Write lock acquired");
       // double-checked lock
       currentIndex = getIndex(type, false);
       if (currentIndex != -1) {
@@ -182,25 +186,37 @@ public class ModularDataModelSchema {
    * @param resizeBy number of columns to add
    */
   private void resizeDataModels(final int resizeBy) {
+    final Instant start = Instant.now();
+    logger.finest(modelName + " Trying to lock for write");
     try (var _ = resizeLock.lockWrite()) {
+      logger.finest(modelName + " Write lock acquired");
       final int newSize = arrayInitialisationSize.addAndGet(resizeBy);
       // use map in parallel stream as forEach
-      long updated = modelSupplier.get().parallel().map(model -> model.ensureCapacity(newSize))
+      long updated = modelSupplier.get().parallel().filter(model -> model.ensureCapacity(newSize))
           .count();
       logger.fine("Updated %d data models to a new size of %d types.".formatted(updated, newSize));
     }
+    final Instant end = Instant.now();
+    logger.finest(
+        "Resizing %s data models from %d to %d took %s ns.".formatted(modelSupplier.get().count(),
+            arrayInitialisationSize.get() - resizeBy, arrayInitialisationSize.get(),
+            Duration.between(start, end).toNanos()));
   }
 
   public Object2IntMap<DataType> getReadOnlyTypes() {
-    try (var _ = resizeLock.lockRead()) {
+//    logger.finest(modelName + " Trying to lock for read");
+//    try (var _ = resizeLock.lockRead()) {
+//      logger.finest(modelName + " Read lock acquired");
       return readOnlyIndexMap;
-    }
+//    }
   }
 
   public Object[] allocateNew() {
-    try (var _ = resizeLock.lockRead()) {
+//    logger.finest(modelName + " Trying to lock for read");
+//    try (var _ = resizeLock.lockRead()) {
+//      logger.finest(modelName + " Read lock acquired");
       return new Object[arrayInitialisationSize.get()];
-    }
+//    }
   }
 
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {

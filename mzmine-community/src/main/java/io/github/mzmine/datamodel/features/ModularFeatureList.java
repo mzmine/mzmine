@@ -95,9 +95,9 @@ public class ModularFeatureList implements FeatureList {
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
   private final @NotNull ModularDataModelSchema rowsSchema = new ModularDataModelSchema(
-      () -> stream().map(ModularFeatureListRow.class::cast));
+      () -> stream().map(ModularFeatureListRow.class::cast), "Rows");
   private final @NotNull ModularDataModelSchema featuresSchema = new ModularDataModelSchema(
-      this::streamFeatures);
+      this::streamFeatures, "Features");
 
   // unmodifiable list
   private final ObservableList<RawDataFile> dataFiles;
