@@ -63,8 +63,8 @@ public class BatchSpeedTestMain {
   private static final Logger logger = Logger.getLogger(BatchSpeedTestMain.class.getName());
 
   public static void main(String[] args) {
-    String speedTestFile = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
-    String description = "mzmine4.2";
+    String speedTestFile = "D:\\speed.jsonlines";
+    String description = "mzmine4.5";
     // keep running and all in memory
 //    String inMemory = "all";
     String inMemory = "none";
@@ -72,12 +72,12 @@ public class BatchSpeedTestMain {
 
 //    String batchFile = "rawdatafiles/test_batch_small.xml";
 //    String batchFile = "D:\\tmp\\workshop_small.mzbatch";
-    String batchFile = "D:\\tmp\\workshop.mzbatch";
+    String batchFile = "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\speedtest_benchmark\\Orbitrap_QE_environmental_DOM_sea_water\\0_dom_500_mzmine4-4-52.mzbatch";
 //    List<String> samples = List.of("rawdatafiles/DOM_a.mzML",
 //        "rawdatafiles/DOM_a_invalid_chars.mzML", "rawdatafiles/DOM_a_invalid_header.mzML",
 //        "rawdatafiles/DOM_b.mzXML", "rawdatafiles/DOM_b_invalid_header.mzXML");
 
-    List<BatchSpeedJob> jobs = List.of(new BatchSpeedJob(description, 3, batchFile, null));
+    List<BatchSpeedJob> jobs = List.of(new BatchSpeedJob(description, 1, batchFile, null));
 
     startAndRunTests(speedTestFile, headLess, inMemory, jobs);
   }
@@ -163,7 +163,7 @@ public class BatchSpeedTestMain {
             var nFiles =
                 files == null ? ProjectService.getProject().getNumberOfDataFiles() : files.size();
             var sm = new SpeedMeasurement(step.name(), new File(batchFile).getName(), description,
-                nFiles, seconds);
+                nFiles, seconds, step.usedHeap());
 
             String tsv = tsvObjectWriter.writeValueAsString(sm);
             tsvWriter.append(tsv);
@@ -190,8 +190,8 @@ public class BatchSpeedTestMain {
 
     File batch = getFileOrResource(batchFile);
 
-    BatchTask task = BatchModeModule.runBatch(ProjectService.getProject(), batch, files, null,
-        new File[0], null, Instant.now());
+    BatchTask task = BatchModeModule.runBatch(ProjectService.getProject(), batch, files, null, null,
+        null, Instant.now());
 
     Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus());
 
