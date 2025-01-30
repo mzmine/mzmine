@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import static io.github.mzmine.gui.preferences.MZminePreferences.runGCafterBatchStep;
 import static io.github.mzmine.main.ConfigService.getPreference;
 import static java.util.Objects.requireNonNullElse;
 
@@ -33,6 +32,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -91,6 +91,7 @@ public class BatchTask extends AbstractTask {
   private final boolean useAdvanced;
   private final int datasets;
   private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
+  private final boolean runGCafterBatchStep;
   private int processedSteps;
   private List<File> subDirectories;
   private List<RawDataFile> createdDataFiles;
@@ -111,6 +112,9 @@ public class BatchTask extends AbstractTask {
   public BatchTask(final MZmineProject project, final ParameterSet parameters,
       final Instant moduleCallDate, final List<File> subDirectories) {
     super(null, moduleCallDate);
+    this.runGCafterBatchStep = requireNonNullElse(
+        getPreference(MZminePreferences.runGCafterBatchStep), false);
+
     setName("Batch task");
     this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
@@ -212,7 +216,7 @@ public class BatchTask extends AbstractTask {
     logger.info("Finished a batch of " + totalSteps + " steps");
     setStatus(TaskStatus.FINISHED);
     Duration duration = Duration.between(batchStart, Instant.now());
-    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration));
+    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration, runGCafterBatchStep));
     printBatchTimes();
   }
 
@@ -459,10 +463,8 @@ public class BatchTask extends AbstractTask {
 
     Duration duration = Duration.between(start, Instant.now());
 
-    if (requireNonNullElse(getPreference(runGCafterBatchStep), false)) {
-      System.gc();
-    }
-    stepTimes.add(new StepTimeMeasurement(stepNumber + 1, method.getName(), duration));
+    stepTimes.add(
+        new StepTimeMeasurement(stepNumber + 1, method.getName(), duration, runGCafterBatchStep));
   }
 
   /**
