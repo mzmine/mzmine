@@ -313,7 +313,7 @@ public class FeatureListUtils {
     SortedList<FeatureListRow> rows = alignedFeatureList.getRows().sorted(MZ_ASCENDING);
 
     // find the number of rows that match RT,MZ,Mobility in each original feature list
-    rows.stream().parallel().mapToInt(alignedRow -> {
+    var changed = rows.stream().parallel().mapToInt(alignedRow -> {
       AlignmentScores score = calculator.calcScore(alignedRow);
       if (mergeScores) {
         AlignmentScores oldScore = alignedRow.get(AlignmentMainType.class);
@@ -321,7 +321,7 @@ public class FeatureListUtils {
       }
       alignedRow.set(AlignmentMainType.class, score);
       return 1;
-    });
+    }).sum();
   }
 
   /**

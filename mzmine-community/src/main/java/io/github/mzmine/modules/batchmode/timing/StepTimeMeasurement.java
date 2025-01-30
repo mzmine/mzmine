@@ -25,17 +25,20 @@
 
 package io.github.mzmine.modules.batchmode.timing;
 
+import io.github.mzmine.main.ConfigService;
 import java.time.Duration;
 
-public record StepTimeMeasurement(int step, double secondsToFinish, String name) {
+public record StepTimeMeasurement(int step, double secondsToFinish, String name, double usedHeap) {
 
   public StepTimeMeasurement(final int stepNumber, final String name, final Duration duration) {
-    this(stepNumber, duration.toMillis() / 1000.0, name);
+    this(stepNumber, duration.toMillis() / 1000.0, name,
+        ConfigService.getConfiguration().getUsedMemoryGB());
   }
 
   @Override
   public String toString() {
-    return STR."Step \{step + 1}: \{name} took \{secondsToFinish} seconds to finish";
+    return STR."Step \{step
+        + 1}: \{name} took \{secondsToFinish} seconds to finish (\{usedHeap} GB used)";
   }
 
 }
