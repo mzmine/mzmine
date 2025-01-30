@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -121,8 +120,8 @@ public class ModularDataModelSchema {
     if (toAdd.isEmpty()) {
       return;
     }
-    logger.finest("%s: no index for %d data types %s".formatted(modelName, toAdd.size(),
-        toAdd.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
+//    logger.finest("%s: no index for %d data types %s".formatted(modelName, toAdd.size(),
+//        toAdd.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
 
     try (var _ = resizeLock.lockWrite()) {
       // double-checked lock
@@ -130,8 +129,8 @@ public class ModularDataModelSchema {
       if (toAdd.isEmpty()) {
         return;
       }
-      logger.finest("%s: adding %d data types %s".formatted(modelName, toAdd.size(),
-          toAdd.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
+//      logger.finest("%s: adding %d data types %s".formatted(modelName, toAdd.size(),
+//          toAdd.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
       int currentFreeCap = getCurrentFreeCapacity();
       if (toAdd.size() > currentFreeCap) {
         // increase size to add all new types
@@ -139,8 +138,8 @@ public class ModularDataModelSchema {
       }
       for (DataType dataType : toAdd) {
         indexMap.put(dataType, nextIndex.getAndIncrement());
-        logger.finest("%s: adding data type %s at %d".formatted(modelName, dataType.getUniqueID(),
-            indexMap.getInt(dataType)));
+//        logger.finest("%s: adding data type %s at %d".formatted(modelName, dataType.getUniqueID(),
+//            indexMap.getInt(dataType)));
       }
     }
 
@@ -164,7 +163,7 @@ public class ModularDataModelSchema {
       return currentIndex;
     }
 
-    logger.finest(modelName + ": index -1 for data type " + type.getUniqueID());
+//    logger.finest(modelName + ": index -1 for data type " + type.getUniqueID());
 
     try (var _ = resizeLock.lockWrite()) {
       // double-checked lock
@@ -178,8 +177,8 @@ public class ModularDataModelSchema {
         resizeDataModels(sizeIncrement);
       }
       indexMap.put(type, nextIndex.getAndIncrement());
-      logger.finest("%s: adding data type %s at %d".formatted(modelName, type.getUniqueID(),
-          indexMap.getInt(type)));
+//      logger.finest("%s: adding data type %s at %d".formatted(modelName, type.getUniqueID(),
+//          indexMap.getInt(type)));
       return next;
     }
   }
