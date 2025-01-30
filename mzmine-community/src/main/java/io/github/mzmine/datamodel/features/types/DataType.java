@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
+import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeGraphicalCellFactory;
@@ -48,6 +49,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -328,7 +330,8 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
   }
 
   /**
-   * Creating a property which is used for representing a value of a {@link ModularDataModel} in the gui.
+   * Creating a property which is used for representing a value of a {@link ModularDataModel} in the
+   * gui.
    *
    * @return
    */
@@ -443,5 +446,9 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
       default:
         return null;
     }
+  }
+
+  public DataColumn createDataColumn(final MemoryMapStorage storage, final int columnLength) {
+    return new Object[columnLength];
   }
 }
