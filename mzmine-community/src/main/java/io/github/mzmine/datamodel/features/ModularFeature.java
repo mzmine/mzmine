@@ -88,7 +88,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   // buffert col charts and nodes
   @NotNull
-  private ModularFeatureList flist;
+  private final ModularFeatureList flist;
 
   private FeatureListRow parentRow;
 
@@ -422,15 +422,9 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(FeatureInformationType.class, featureInfo);
   }
 
-  @Nullable
   @Override
-  public FeatureList getFeatureList() {
+  public @NotNull FeatureList getFeatureList() {
     return flist;
-  }
-
-  @Override
-  public void setFeatureList(@NotNull FeatureList flist) {
-    this.flist = (ModularFeatureList) flist;
   }
 
   @Override

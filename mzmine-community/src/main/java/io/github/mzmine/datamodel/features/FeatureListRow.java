@@ -286,9 +286,7 @@ public interface FeatureListRow extends ModularDataModel {
    */
   IsotopePattern getBestIsotopePattern();
 
-  @Nullable FeatureList getFeatureList();
-
-  void setFeatureList(@NotNull FeatureList flist);
+  @NotNull FeatureList getFeatureList();
 
   /**
    * @return A list of all compound annotations.
