@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,9 +32,12 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.mmap.DetectionMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.util.MemoryMapStorage;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
@@ -82,6 +85,12 @@ public class DetectionType extends DataType<FeatureStatus> implements
   }
 
   @Override
+  public DataColumn<FeatureStatus> createDataColumn(final MemoryMapStorage storage,
+      final int columnLength) {
+    return new DetectionMemorySegmentColumn(storage, columnLength);
+  }
+
+  @Override
   public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
     TreeTableColumn<ModularFeatureListRow, Object> col = new TreeTableColumn<>(
@@ -103,6 +112,7 @@ public class DetectionType extends DataType<FeatureStatus> implements
 
               private Circle circle;
               private StackPane pane;
+
               {
                 pane = new StackPane();
                 circle = new Circle(10);
@@ -175,7 +185,7 @@ public class DetectionType extends DataType<FeatureStatus> implements
     if (!(value instanceof FeatureStatus status)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
+          + value.getClass());
     }
     writer.writeCharacters(status.toString());
   }

@@ -23,15 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package import_data.speed;
+package io.github.mzmine.datamodel.features.columnar_data.mmap;
 
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 
-public record SpeedMeasurement(String name, String batchFile, String description, int files,
-                               double timeSeconds, @Nullable String gbRamUsed) {
+public class DetectionMemorySegmentColumn extends AbstractEnumMemorySegmentColumn<FeatureStatus> {
 
-  public SpeedMeasurement(final String name, final String batchFile, final String description,
-      final int size, final double seconds, final double usedMemoryGB) {
-    this(name, batchFile, description, size, seconds, "%.2f".formatted(usedMemoryGB));
+  public DetectionMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+    super(storage, initialCapacity, FeatureStatus.class);
+  }
+
+  @Override
+  public FeatureStatus[] values() {
+    return FeatureStatus.values();
   }
 }

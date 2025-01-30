@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.types.AreaBarType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
@@ -68,6 +69,11 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.SizeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
@@ -504,7 +510,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     }
 
     // useful for debugging and seeing how many cells are empty / full
-    // logTableFillingRatios(flist);
+    logTableFillingRatios(flist);
 
     //    logger.info("Adding columns to table");
     // for all data columns available in "data"
@@ -550,9 +556,32 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     long totalFeatureCells = (long) flist.getFeatureTypes().size() * flist.streamFeatures().count();
 
     logger.fine("""
+        Types:
+        Row types: %s
+        Feature types: %s
         Fill stats:
         Row cells (%d types): %d / %d (%.1f)
         Feature cells (%d types): %d / %d (%.1f)""".formatted( //
+        flist.getRowTypes().stream() //
+            .filter(t -> {
+              return switch (t) {
+                case IntegerType _, DoubleType _, FloatType _, FloatRangeType _, DoubleRangeType _,
+                     AlignmentMainType _ -> false;
+                default -> true;
+              };
+            })//
+            .map(t -> "%s (%s)".formatted(t.getUniqueID(), t.getClass().getSimpleName()))
+            .collect(Collectors.joining(", ")),//
+        flist.getFeatureTypes().stream()//
+            .filter(t -> {
+              return switch (t) {
+                case IntegerType _, DoubleType _, FloatType _, FloatRangeType _, DoubleRangeType _,
+                     AlignmentMainType _, DetectionType _ -> false;
+                default -> true;
+              };
+            })//
+            .map(t -> "%s (%s)".formatted(t.getUniqueID(), t.getClass().getSimpleName()))
+            .collect(Collectors.joining(", ")),//
         flist.getRowTypes().size(), rowValues, totalRowCells,
         (rowValues / (double) totalRowCells) * 100, //
         flist.getFeatureTypes().size(), featureValues, totalFeatureCells,

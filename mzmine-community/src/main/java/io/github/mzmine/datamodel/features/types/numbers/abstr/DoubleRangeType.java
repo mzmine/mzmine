@@ -32,7 +32,10 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.mmap.DoubleRangeMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import java.text.NumberFormat;
 import java.util.List;
@@ -51,6 +54,12 @@ public abstract class DoubleRangeType extends NumberRangeType<Double> {
   @Override
   public Class<Range<Double>> getValueClass() {
     return (Class) Range.class;
+  }
+
+  @Override
+  public DataColumn<Range<Double>> createDataColumn(final MemoryMapStorage storage,
+      final int columnLength) {
+    return new DoubleRangeMemorySegmentColumn(storage, columnLength);
   }
 
   @Override

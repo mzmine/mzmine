@@ -27,12 +27,12 @@ package io.github.mzmine.datamodel.features.columnar_data.mmap;
 
 import io.github.mzmine.datamodel.features.columnar_data.AbstractDataColumn;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
 
 public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<T> {
 
-  protected static final int SIZE_MULTIPLIER = 10;
+  protected static final int SIZE_MULTIPLIER = 4;
   protected final MemoryMapStorage storage;
   protected MemorySegment data;
 
@@ -41,7 +41,7 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
     ensureCapacity(initialCapacity);
   }
 
-  protected abstract ValueLayout getValueLayout();
+  protected abstract MemoryLayout getValueLayout();
 
   /**
    * Set the initial value like Double.NaN or a blacklisted int
