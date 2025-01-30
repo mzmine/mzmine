@@ -279,9 +279,6 @@ public class BatchTask extends AbstractTask {
       // run step
       processQueueStep(i % stepsPerDataset);
       processedSteps++;
-      if (requireNonNullElse(getPreference(runGCafterBatchStep), false)) {
-        System.gc();
-      }
 
       // If we are canceled or ran into error, stop here
       if (getStatus() == TaskStatus.ERROR) {
@@ -461,6 +458,10 @@ public class BatchTask extends AbstractTask {
     }
 
     Duration duration = Duration.between(start, Instant.now());
+
+    if (requireNonNullElse(getPreference(runGCafterBatchStep), false)) {
+      System.gc();
+    }
     stepTimes.add(new StepTimeMeasurement(stepNumber + 1, method.getName(), duration));
   }
 
