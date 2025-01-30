@@ -150,7 +150,7 @@ public class ColumnarModularDataModelSchema {
 
       var newColumn = type.createDataColumn(storage, columnLength);
       columns.put(type, newColumn);
-      logger.finest("%s: adding data type %s".formatted(modelName, type.getUniqueID()));
+//      logger.finest("%s: adding data type %s".formatted(modelName, type.getUniqueID()));
       return newColumn;
     }
   }
@@ -181,7 +181,8 @@ public class ColumnarModularDataModelSchema {
           .filter(column -> column.ensureCapacity(finalSize)).count();
 
       logger.info("""
-          Resized %d of %d columns in model %s""".formatted(success, columns.size(), modelName));
+          Resized %d of %d columns in model %s to %d rows""".formatted(success, columns.size(),
+          modelName, finalSize));
 
       columnLength = finalSize;
     }
