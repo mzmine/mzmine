@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.columnar_data.ModularDataModelColumnarRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
@@ -97,7 +98,7 @@ import org.jetbrains.annotations.Nullable;
  * chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
-public class ModularFeatureListRow extends ModularDataModelArray implements FeatureListRow {
+public class ModularFeatureListRow extends ModularDataModelColumnarRow implements FeatureListRow {
 
   private static final Logger logger = Logger.getLogger(ModularFeatureListRow.class.getName());
   private final Map<RawDataFile, ModularFeature> features;

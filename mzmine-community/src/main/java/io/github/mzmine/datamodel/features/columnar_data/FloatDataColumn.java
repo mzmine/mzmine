@@ -25,16 +25,20 @@
 
 package io.github.mzmine.datamodel.features.columnar_data;
 
-public interface DataColumn<T> {
+public interface FloatDataColumn extends DataColumn<Float> {
 
-  T get(final int index);
+  float getFloat(final int index);
 
-  void set(final int index, final T value);
+  void setFloat(final int index, final float value);
 
-  /**
-   * @return true if resized
-   */
-  boolean ensureCapacity(int requiredCapacity);
+  @Override
+  default void set(final int index, final Float value) {
+    setFloat(index, value);
+  }
 
-  int capacity();
+  @Override
+  default Float get(final int index) {
+    return getFloat(index);
+  }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,10 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.mmap.NullableDoubleMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.text.NumberFormat;
 import java.util.List;
 import javafx.beans.property.Property;
@@ -64,6 +67,12 @@ public abstract class DoubleType extends NumberType<Double> {
   }
 
   @Override
+  public DataColumn<Double> createDataColumn(final MemoryMapStorage storage,
+      final int columnLength) {
+    return new NullableDoubleMemorySegmentColumn(storage, columnLength);
+  }
+
+  @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
@@ -75,7 +84,7 @@ public abstract class DoubleType extends NumberType<Double> {
     } else {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
+          + value.getClass());
     }
   }
 

@@ -25,16 +25,20 @@
 
 package io.github.mzmine.datamodel.features.columnar_data;
 
-public interface DataColumn<T> {
+public interface DoubleDataColumn extends DataColumn<Double> {
 
-  T get(final int index);
+  double getDouble(final int index);
 
-  void set(final int index, final T value);
+  void setDouble(final int index, final double value);
 
-  /**
-   * @return true if resized
-   */
-  boolean ensureCapacity(int requiredCapacity);
+  @Override
+  default void set(final int index, final Double value) {
+    setDouble(index, value);
+  }
 
-  int capacity();
+  @Override
+  default Double get(final int index) {
+    return getDouble(index);
+  }
+  
 }

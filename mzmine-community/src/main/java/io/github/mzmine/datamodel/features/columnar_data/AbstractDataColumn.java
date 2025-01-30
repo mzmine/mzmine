@@ -25,16 +25,15 @@
 
 package io.github.mzmine.datamodel.features.columnar_data;
 
-public interface DataColumn<T> {
+public abstract class AbstractDataColumn<T> implements DataColumn<T> {
 
-  T get(final int index);
+  @Override
+  public boolean ensureCapacity(final int requiredCapacity) {
+    if (requiredCapacity > capacity()) {
+      return resizeTo(requiredCapacity);
+    }
+    return false;
+  }
 
-  void set(final int index, final T value);
-
-  /**
-   * @return true if resized
-   */
-  boolean ensureCapacity(int requiredCapacity);
-
-  int capacity();
+  protected abstract boolean resizeTo(final int finalSize);
 }

@@ -23,18 +23,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.arrays;
 
-public interface DataColumn<T> {
+import io.github.mzmine.datamodel.features.columnar_data.AbstractDataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
+import java.util.Arrays;
 
-  T get(final int index);
+public class FloatArrayColumn extends AbstractDataColumn<Float> implements DataColumn<Float> {
 
-  void set(final int index, final T value);
+  public float[] data;
 
-  /**
-   * @return true if resized
-   */
-  boolean ensureCapacity(int requiredCapacity);
+  public float getFloat(final int index) {
+    return data[index];
+  }
 
-  int capacity();
+  public void setFloat(final int index, final float value) {
+    data[index] = value;
+  }
+
+  @Override
+  public Float get(final int index) {
+    return data[index];
+  }
+
+  @Override
+  public void set(final int index, final Float value) {
+    data[index] = value;
+  }
+
+  @Override
+  protected boolean resizeTo(final int finalSize) {
+    data = Arrays.copyOf(data, finalSize);
+    return true;
+  }
+
+  @Override
+  public int capacity() {
+    return data == null ? 0 : data.length;
+  }
 }

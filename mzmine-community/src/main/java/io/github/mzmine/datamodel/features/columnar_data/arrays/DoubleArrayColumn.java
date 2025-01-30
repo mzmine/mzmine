@@ -23,18 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.arrays;
 
-public interface DataColumn<T> {
+import io.github.mzmine.datamodel.features.columnar_data.AbstractDataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.DoubleDataColumn;
+import java.util.Arrays;
 
-  T get(final int index);
+public class DoubleArrayColumn extends AbstractDataColumn<Double> implements DoubleDataColumn {
 
-  void set(final int index, final T value);
+  public double[] data;
 
-  /**
-   * @return true if resized
-   */
-  boolean ensureCapacity(int requiredCapacity);
+  public double getDouble(final int index) {
+    return data[index];
+  }
 
-  int capacity();
+  public void setDouble(final int index, final double value) {
+    data[index] = value;
+  }
+
+  @Override
+  protected boolean resizeTo(final int finalSize) {
+    data = Arrays.copyOf(data, finalSize);
+    return true;
+  }
+
+  @Override
+  public int capacity() {
+    return data == null ? 0 : data.length;
+  }
 }

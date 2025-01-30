@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,10 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.mmap.NullableIntMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
@@ -84,7 +87,7 @@ public abstract class IntegerType extends NumberType<Integer> {
     if (!(value instanceof Integer)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
+          + value.getClass());
     }
     writer.writeCharacters(String.valueOf(value));
   }
@@ -98,6 +101,12 @@ public abstract class IntegerType extends NumberType<Integer> {
       return null;
     }
     return Integer.parseInt(str);
+  }
+
+  @Override
+  public DataColumn<Integer> createDataColumn(final MemoryMapStorage storage,
+      final int columnLength) {
+    return new NullableIntMemorySegmentColumn(storage, columnLength);
   }
 
   @Override

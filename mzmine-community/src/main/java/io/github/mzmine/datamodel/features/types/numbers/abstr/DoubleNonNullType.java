@@ -23,35 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import java.util.Arrays;
+import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.mmap.DoubleMemorySegmentColumn;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.text.NumberFormat;
 
-public class FloatArrayColumn implements DataColumn<Float> {
+public abstract class DoubleNonNullType extends DoubleType {
 
-  public float[] data;
-
-  public float getFloat(final int index) {
-    return data[index];
-  }
-
-  public void setFloat(final int index, final float value) {
-    data[index] = value;
+  protected DoubleNonNullType(final NumberFormat defaultFormat) {
+    super(defaultFormat);
   }
 
   @Override
-  public Float get(final int index) {
-    return data[index];
-  }
-
-  @Override
-  public void set(final int index, final Float value) {
-    data[index] = value;
-  }
-
-  @Override
-  public boolean resizeTo(final int finalSize) {
-    data = Arrays.copyOf(data, finalSize);
-    return true;
+  public DataColumn<Double> createDataColumn(final MemoryMapStorage storage,
+      final int columnLength) {
+    return new DoubleMemorySegmentColumn(storage, columnLength);
   }
 }

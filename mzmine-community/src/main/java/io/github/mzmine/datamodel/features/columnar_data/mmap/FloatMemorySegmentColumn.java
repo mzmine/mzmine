@@ -23,18 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.mmap;
 
-public interface DataColumn<T> {
+import io.github.mzmine.datamodel.features.columnar_data.FloatDataColumn;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.ValueLayout;
 
-  T get(final int index);
+public class FloatMemorySegmentColumn extends AbstractMemorySegmentColumn<Float> implements
+    FloatDataColumn {
 
-  void set(final int index, final T value);
+  public FloatMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+    super(storage, initialCapacity);
+  }
 
-  /**
-   * @return true if resized
-   */
-  boolean ensureCapacity(int requiredCapacity);
+  @Override
+  protected ValueLayout getValueLayout() {
+    return ValueLayout.JAVA_FLOAT;
+  }
 
-  int capacity();
+  @Override
+  public float getFloat(final int index) {
+    return data.getAtIndex(ValueLayout.JAVA_FLOAT, index);
+  }
+
+  @Override
+  public void setFloat(final int index, final float value) {
+    data.setAtIndex(ValueLayout.JAVA_FLOAT, index, value);
+  }
+
+
 }

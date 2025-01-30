@@ -23,35 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.mmap;
 
-import java.util.Arrays;
+import io.github.mzmine.datamodel.features.columnar_data.IntDataColumn;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.ValueLayout;
 
-public class DoubleArrayColumn implements DataColumn<Double> {
+public class IntMemorySegmentColumn extends AbstractMemorySegmentColumn<Integer> implements
+    IntDataColumn {
 
-  public double[] data;
-
-  public double getDouble(final int index) {
-    return data[index];
-  }
-
-  public void setDouble(final int index, final double value) {
-    data[index] = value;
+  public IntMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+    super(storage, initialCapacity);
   }
 
   @Override
-  public Double get(final int index) {
-    return data[index];
+  protected ValueLayout getValueLayout() {
+    return ValueLayout.JAVA_INT;
   }
 
   @Override
-  public void set(final int index, final Double value) {
-    data[index] = value;
+  public int getInt(final int index) {
+    return data.getAtIndex(ValueLayout.JAVA_INT, index);
   }
 
   @Override
-  public boolean resizeTo(final int finalSize) {
-    data = Arrays.copyOf(data, finalSize);
-    return true;
+  public void setInt(final int index, final int value) {
+    data.setAtIndex(ValueLayout.JAVA_INT, index, value);
   }
+
+
 }

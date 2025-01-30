@@ -23,18 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.mmap;
 
-public interface DataColumn<T> {
+import io.github.mzmine.datamodel.features.columnar_data.DoubleDataColumn;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.ValueLayout;
 
-  T get(final int index);
+public class DoubleMemorySegmentColumn extends AbstractMemorySegmentColumn<Double> implements
+    DoubleDataColumn {
 
-  void set(final int index, final T value);
+  public DoubleMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+    super(storage, initialCapacity);
+  }
 
-  /**
-   * @return true if resized
-   */
-  boolean ensureCapacity(int requiredCapacity);
+  @Override
+  protected ValueLayout getValueLayout() {
+    return ValueLayout.JAVA_DOUBLE;
+  }
 
-  int capacity();
+  @Override
+  public double getDouble(final int index) {
+    return data.getAtIndex(ValueLayout.JAVA_DOUBLE, index);
+  }
+
+  @Override
+  public void setDouble(final int index, final double value) {
+    data.setAtIndex(ValueLayout.JAVA_DOUBLE, index, value);
+  }
+
+
 }

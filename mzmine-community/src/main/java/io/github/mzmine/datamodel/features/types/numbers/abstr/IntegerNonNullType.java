@@ -23,27 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import java.util.Arrays;
+import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.mmap.IntMemorySegmentColumn;
+import io.github.mzmine.util.MemoryMapStorage;
 
-public class ObjectArrayColumn<T> implements DataColumn<T> {
-
-  public T[] data;
-
-  @Override
-  public T get(final int index) {
-    return data[index];
-  }
+public abstract class IntegerNonNullType extends IntegerType {
 
   @Override
-  public void set(final int index, final T value) {
-    data[index] = value;
-  }
-
-  @Override
-  public boolean resizeTo(final int finalSize) {
-    data = Arrays.copyOf(data, finalSize);
-    return true;
+  public DataColumn<Integer> createDataColumn(final MemoryMapStorage storage,
+      final int columnLength) {
+    return new IntMemorySegmentColumn(storage, columnLength);
   }
 }

@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -94,10 +95,8 @@ public class ModularFeatureList implements FeatureList {
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
-  private final @NotNull ModularDataModelSchema rowsSchema = new ModularDataModelSchema(
-      () -> stream().map(ModularFeatureListRow.class::cast), "Rows", 24);
-  private final @NotNull ModularDataModelSchema featuresSchema = new ModularDataModelSchema(
-      this::streamFeatures, "Features", 20);
+  private final @NotNull ColumnarModularDataModelSchema rowsSchema;
+  private final @NotNull ColumnarModularDataModelSchema featuresSchema;
 
   // unmodifiable list
   private final ObservableList<RawDataFile> dataFiles;
@@ -138,6 +137,10 @@ public class ModularFeatureList implements FeatureList {
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull List<RawDataFile> dataFiles) {
     setName(name);
+    //
+    rowsSchema = new ColumnarModularDataModelSchema(storage, "Rows", 5000);
+    featuresSchema = new ColumnarModularDataModelSchema(storage, "Features",
+        4000 * dataFiles.size());
     // sort data files by name to have the same order in export and GUI FeatureTableFx
     dataFiles = new ArrayList<>(dataFiles);
     dataFiles.sort(Comparator.comparing(RawDataFile::getName));
@@ -356,7 +359,7 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public Set<DataType> getFeatureTypes() {
-    return getFeaturesSchema().getReadOnlyTypes().keySet();
+    return getFeaturesSchema().getTypes();
   }
 
   @Override
@@ -386,7 +389,7 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public Set<DataType> getRowTypes() {
-    return getRowsSchema().getReadOnlyTypes().keySet();
+    return getRowsSchema().getTypes();
   }
 
 
@@ -880,11 +883,11 @@ public class ModularFeatureList implements FeatureList {
     bufferedCharts.clear();
   }
 
-  public @NotNull ModularDataModelSchema getFeaturesSchema() {
+  public @NotNull ColumnarModularDataModelSchema getFeaturesSchema() {
     return featuresSchema;
   }
 
-  public @NotNull ModularDataModelSchema getRowsSchema() {
+  public @NotNull ColumnarModularDataModelSchema getRowsSchema() {
     return rowsSchema;
   }
 }

@@ -23,18 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.mmap;
 
-public interface DataColumn<T> {
+import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 
-  T get(final int index);
+public class NullableFloatMemorySegmentColumn extends FloatMemorySegmentColumn {
 
-  void set(final int index, final T value);
+  public NullableFloatMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+    super(storage, initialCapacity);
+  }
 
-  /**
-   * @return true if resized
-   */
-  boolean ensureCapacity(int requiredCapacity);
+  @Override
+  protected void setInitialValue(final MemorySegment newData, final int startInclusive,
+      final int endExclusive) {
+    for (int i = startInclusive; i < endExclusive; i++) {
+      newData.setAtIndex(ValueLayout.JAVA_FLOAT, i, Float.NaN);
+    }
+  }
 
-  int capacity();
+  @Override
+  public Float get(final int index) {
+    var value = super.get(index);
+    return Float.isNaN(value) ? null : value;
+  }
+
+  @Override
+  public void set(final int index, final Float value) {
+    super.set(index, value == null ? Float.NaN : value);
+  }
 }
