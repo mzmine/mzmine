@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,6 +47,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -102,24 +104,34 @@ public abstract class AbstractResolver implements Resolver {
 
       // make a new subseries for each resolved range.
       for (final Range<Double> range : resolvedRanges) {
-        final List<? extends Scan> subList = originalSeries.getSpectra().stream()
-            .filter(s -> range.contains((double) s.getRetentionTime())).toList();
-        if (subList.isEmpty()) {
+        // use the series here to refer to the same list of scans.
+        // using a sublist of the FullFeatureDataAccess.scans leads to a single list that will be wrapped by all features of this sample
+        final IndexRange indexRange = BinarySearch.indexRange(range, series.getSpectra(),
+            Scan::getRetentionTime);
+        if (indexRange.isEmpty()) {
           continue;
         }
         if (originalSeries instanceof IonMobilogramTimeSeries trace) {
           resolved.add((T) trace.subSeries(storage, range.lowerEndpoint().floatValue(),
               range.upperEndpoint().floatValue(), getMobilogramDataAccess()));
         } else if (originalSeries instanceof SimpleIonTimeSeries chrom) {
-          resolved.add((T) chrom.subSeries(storage, range.lowerEndpoint().floatValue(),
-              range.upperEndpoint().floatValue()));
+          // optimization so that all features of the same sample refer to a single list of raw data files
+          if (series instanceof FeatureFullDataAccess fullAccess) {
+            // same sublist for all features
+            resolved.add(
+                (T) chrom.subSeries(storage, indexRange.sublist(fullAccess.getSpectra(), false)));
+          } else {
+            // creates a copy of the scans list internally to release the original list of scans
+            resolved.add((T) chrom.subSeries(storage, range.lowerEndpoint().floatValue(),
+                range.upperEndpoint().floatValue()));
+          }
         } else {
           throw new IllegalStateException(
               "Resolving behaviour of " + originalSeries.getClass().getName() + " not specified.");
         }
       }
     } else if (dimension == ResolvingDimension.MOBILITY
-        && originalSeries instanceof IonMobilogramTimeSeries originalTrace) {
+               && originalSeries instanceof IonMobilogramTimeSeries originalTrace) {
       setSeriesToMobilogramDataAccess(series);
       final List<Range<Double>> resolvedRanges = resolveMobility(mobilogramDataAccess);
 
@@ -147,7 +159,7 @@ public abstract class AbstractResolver implements Resolver {
     } else {
       throw new IllegalStateException(
           "Cannot resolve " + originalSeries.getClass().getName() + " in " + dimension
-              + " mobility dimension.");
+          + " mobility dimension.");
     }
     return resolved;
   }
@@ -170,7 +182,7 @@ public abstract class AbstractResolver implements Resolver {
     } else {
       throw new IllegalArgumentException(
           "Unexpected type of ion series (" + series.getClass().getName()
-              + "). Please contact the developers. ");
+          + "). Please contact the developers. ");
     }
   }
 
@@ -195,7 +207,7 @@ public abstract class AbstractResolver implements Resolver {
       // if the date comes from a different source, the results might be inconsistent.
       throw new IllegalArgumentException(
           "This resolver has been set to use data from a " + chromatogramDataSource.toString()
-              + ". The current data os passed from a " + series.getClass().toString());
+          + ". The current data os passed from a " + series.getClass().toString());
     }
 
     xBuffer = extractRtValues(series, xBuffer);
@@ -223,7 +235,7 @@ public abstract class AbstractResolver implements Resolver {
       // if the date comes from a different source, the results might be inconsistent.
       throw new IllegalArgumentException(
           "This resolver has been set to use data from a " + mobilogramDataSource.toString()
-              + ". The current data os passed from a " + series.getClass().toString());
+          + ". The current data os passed from a " + series.getClass().toString());
     }
 
     if (series instanceof BinningMobilogramDataAccess dataAccess) {
