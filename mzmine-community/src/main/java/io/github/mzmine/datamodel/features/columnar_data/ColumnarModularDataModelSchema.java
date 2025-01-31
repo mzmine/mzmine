@@ -148,11 +148,15 @@ public class ColumnarModularDataModelSchema {
         return column;
       }
 
-      var newColumn = type.createDataColumn(storage, columnLength);
-      columns.put(type, newColumn);
+      column = type.createDataColumn(storage, columnLength);
+      columns.put(type, column);
 //      logger.finest("%s: adding data type %s".formatted(modelName, type.getUniqueID()));
-      return newColumn;
     }
+    var addedCopy = List.of(type);
+    for (var listener : dataTypesChangeListeners) {
+      listener.onChange(addedCopy, List.of());
+    }
+    return column;
   }
 
   /**

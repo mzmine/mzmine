@@ -192,11 +192,12 @@ public class ModularFeatureList implements FeatureList {
       }
     });
 
-    rowsSchema.addDataTypesChangeListener((_, removed) -> {
-      for (@NotNull DataType dataType : removed) {
-        parallelStream().forEach(row -> row.remove(dataType));
-      }
-    });
+    // not needed
+//    rowsSchema.addDataTypesChangeListener((_, removed) -> {
+//      for (@NotNull DataType dataType : removed) {
+//        parallelStream().forEach(row -> row.remove(dataType));
+//      }
+//    });
   }
 
   @Override
