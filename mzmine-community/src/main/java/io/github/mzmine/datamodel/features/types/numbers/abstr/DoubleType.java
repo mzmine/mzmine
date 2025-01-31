@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.NullableDoubleMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.DataColumns;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.text.NumberFormat;
@@ -69,7 +69,7 @@ public abstract class DoubleType extends NumberType<Double> {
   @Override
   public DataColumn<Double> createDataColumn(final MemoryMapStorage storage,
       final int columnLength) {
-    return new NullableDoubleMemorySegmentColumn(storage, columnLength);
+    return DataColumns.ofDouble(storage, columnLength);
   }
 
   @Override

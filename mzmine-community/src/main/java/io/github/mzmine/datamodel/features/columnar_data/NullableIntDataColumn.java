@@ -23,33 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.mmap;
+package io.github.mzmine.datamodel.features.columnar_data;
 
-import io.github.mzmine.datamodel.features.columnar_data.IntDataColumn;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.lang.foreign.ValueLayout;
+public interface NullableIntDataColumn extends DataColumn<Integer> {
 
-public class IntMemorySegmentColumn extends AbstractMemorySegmentColumn<Integer> implements
-    IntDataColumn {
+  public static final int NULL_VALUE = Integer.MIN_VALUE + 1;
 
-  public IntMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
-    super(storage, initialCapacity);
+  int getInt(final int index);
+
+  void setInt(final int index, final int value);
+
+  default void clear(final int index) {
+    setInt(index, NULL_VALUE);
   }
 
   @Override
-  protected ValueLayout getValueLayout() {
-    return ValueLayout.JAVA_INT;
+  default void set(final int index, final Integer value) {
+    setInt(index, value == null ? NULL_VALUE : value);
   }
 
   @Override
-  public int getInt(final int index) {
-    return data.getAtIndex(ValueLayout.JAVA_INT, index);
+  default Integer get(final int index) {
+    var value = getInt(index);
+    return isNull(value) ? null : value;
   }
 
-  @Override
-  public void setInt(final int index, final int value) {
-    data.setAtIndex(ValueLayout.JAVA_INT, index, value);
+  default boolean isNull(final int value) {
+    return value == NULL_VALUE;
   }
-
 
 }

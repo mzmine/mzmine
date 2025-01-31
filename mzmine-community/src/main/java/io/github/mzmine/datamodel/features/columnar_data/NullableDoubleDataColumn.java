@@ -23,22 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.abstr;
+package io.github.mzmine.datamodel.features.columnar_data;
 
-import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.FloatMemorySegmentColumn;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.text.NumberFormat;
+public interface NullableDoubleDataColumn extends DataColumn<Double> {
 
-public abstract class FloatNonNullType extends FloatType {
+  double getDouble(final int index);
 
-  protected FloatNonNullType(final NumberFormat defaultFormat) {
-    super(defaultFormat);
+  void setDouble(final int index, final double value);
+
+  default void clear(final int index) {
+    setDouble(index, Double.NaN);
   }
 
   @Override
-  public DataColumn<Float> createDataColumn(final MemoryMapStorage storage,
-      final int columnLength) {
-    return new FloatMemorySegmentColumn(storage, columnLength);
+  default void set(final int index, final Double value) {
+    setDouble(index, value == null ? Double.NaN : value);
   }
+
+  @Override
+  default Double get(final int index) {
+    var value = getDouble(index);
+    return isNull(value) ? null : value;
+  }
+
+  default boolean isNull(final double value) {
+    return Double.isNaN(value);
+  }
+
 }

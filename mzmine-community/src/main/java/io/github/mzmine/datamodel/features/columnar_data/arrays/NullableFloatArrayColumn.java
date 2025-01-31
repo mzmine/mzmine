@@ -23,22 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.arrays;
 
-public interface IntDataColumn extends DataColumn<Integer> {
+import io.github.mzmine.datamodel.features.columnar_data.AbstractDataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.NullableFloatDataColumn;
+import java.util.Arrays;
 
-  int getInt(final int index);
+public class NullableFloatArrayColumn extends AbstractDataColumn<Float> implements
+    NullableFloatDataColumn {
 
-  void setInt(final int index, final int value);
+  public float[] data;
 
-  @Override
-  default void set(final int index, final Integer value) {
-    setInt(index, value);
+  public NullableFloatArrayColumn(int initialSize) {
+    data = new float[initialSize];
   }
 
   @Override
-  default Integer get(final int index) {
-    return getInt(index);
+  public float getFloat(final int index) {
+    return data[index];
   }
 
+  @Override
+  public void setFloat(final int index, final float value) {
+    data[index] = value;
+  }
+
+  @Override
+  protected boolean resizeTo(final int finalSize) {
+    data = Arrays.copyOf(data, finalSize);
+    return true;
+  }
+
+  @Override
+  public int capacity() {
+    return data == null ? 0 : data.length;
+  }
 }

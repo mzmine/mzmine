@@ -26,28 +26,25 @@
 package io.github.mzmine.datamodel.features.columnar_data.arrays;
 
 import io.github.mzmine.datamodel.features.columnar_data.AbstractDataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.NullableIntDataColumn;
 import java.util.Arrays;
 
-public class FloatArrayColumn extends AbstractDataColumn<Float> implements DataColumn<Float> {
+public class NullableIntArrayColumn extends AbstractDataColumn<Integer> implements
+    NullableIntDataColumn {
 
-  public float[] data;
+  public int[] data;
 
-  public float getFloat(final int index) {
-    return data[index];
-  }
-
-  public void setFloat(final int index, final float value) {
-    data[index] = value;
+  public NullableIntArrayColumn(int initialSize) {
+    data = new int[initialSize];
   }
 
   @Override
-  public Float get(final int index) {
+  public int getInt(final int index) {
     return data[index];
   }
 
   @Override
-  public void set(final int index, final Float value) {
+  public void setInt(final int index, final int value) {
     data[index] = value;
   }
 

@@ -25,14 +25,31 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.mmap;
 
+import io.github.mzmine.datamodel.features.columnar_data.NullableDoubleDataColumn;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 
-public class NullableDoubleMemorySegmentColumn extends DoubleMemorySegmentColumn {
+public class NullableDoubleMemorySegmentColumn extends
+    AbstractMemorySegmentColumn<Double> implements NullableDoubleDataColumn {
 
   public NullableDoubleMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
     super(storage, initialCapacity);
+  }
+
+  @Override
+  protected ValueLayout getValueLayout() {
+    return ValueLayout.JAVA_DOUBLE;
+  }
+
+  @Override
+  public double getDouble(final int index) {
+    return data.getAtIndex(ValueLayout.JAVA_DOUBLE, index);
+  }
+
+  @Override
+  public void setDouble(final int index, final double value) {
+    data.setAtIndex(ValueLayout.JAVA_DOUBLE, index, value);
   }
 
   @Override
@@ -43,14 +60,5 @@ public class NullableDoubleMemorySegmentColumn extends DoubleMemorySegmentColumn
     }
   }
 
-  @Override
-  public Double get(final int index) {
-    var value = super.get(index);
-    return Double.isNaN(value) ? null : value;
-  }
 
-  @Override
-  public void set(final int index, final Double value) {
-    super.set(index, value == null ? Double.NaN : value);
-  }
 }

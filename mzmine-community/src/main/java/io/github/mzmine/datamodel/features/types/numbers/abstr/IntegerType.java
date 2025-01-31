@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.NullableIntMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.DataColumns;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.text.DecimalFormat;
@@ -106,7 +106,7 @@ public abstract class IntegerType extends NumberType<Integer> {
   @Override
   public DataColumn<Integer> createDataColumn(final MemoryMapStorage storage,
       final int columnLength) {
-    return new NullableIntMemorySegmentColumn(storage, columnLength);
+    return DataColumns.ofInt(storage, columnLength);
   }
 
   @Override

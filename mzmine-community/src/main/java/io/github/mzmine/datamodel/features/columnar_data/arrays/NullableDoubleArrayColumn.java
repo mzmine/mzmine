@@ -23,17 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.abstr;
+package io.github.mzmine.datamodel.features.columnar_data.arrays;
 
-import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.IntMemorySegmentColumn;
-import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.datamodel.features.columnar_data.AbstractDataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.NullableDoubleDataColumn;
+import java.util.Arrays;
 
-public abstract class IntegerNonNullType extends IntegerType {
+public class NullableDoubleArrayColumn extends AbstractDataColumn<Double> implements
+    NullableDoubleDataColumn {
+
+  public double[] data;
+
+  public NullableDoubleArrayColumn(int initialSize) {
+    data = new double[initialSize];
+  }
 
   @Override
-  public DataColumn<Integer> createDataColumn(final MemoryMapStorage storage,
-      final int columnLength) {
-    return new IntMemorySegmentColumn(storage, columnLength);
+  public double getDouble(final int index) {
+    return data[index];
+  }
+
+  @Override
+  public void setDouble(final int index, final double value) {
+    data[index] = value;
+  }
+
+  @Override
+  protected boolean resizeTo(final int finalSize) {
+    data = Arrays.copyOf(data, finalSize);
+    return true;
+  }
+
+  @Override
+  public int capacity() {
+    return data == null ? 0 : data.length;
   }
 }

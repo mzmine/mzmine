@@ -25,16 +25,31 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.mmap;
 
+import io.github.mzmine.datamodel.features.columnar_data.NullableIntDataColumn;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 
-public class NullableIntMemorySegmentColumn extends IntMemorySegmentColumn {
-
-  public static final int NULL_VALUE = Integer.MIN_VALUE + 1;
+public class NullableIntMemorySegmentColumn extends AbstractMemorySegmentColumn<Integer> implements
+    NullableIntDataColumn {
 
   public NullableIntMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
     super(storage, initialCapacity);
+  }
+
+  @Override
+  protected ValueLayout getValueLayout() {
+    return ValueLayout.JAVA_INT;
+  }
+
+  @Override
+  public int getInt(final int index) {
+    return data.getAtIndex(ValueLayout.JAVA_INT, index);
+  }
+
+  @Override
+  public void setInt(final int index, final int value) {
+    data.setAtIndex(ValueLayout.JAVA_INT, index, value);
   }
 
   @Override
@@ -45,14 +60,4 @@ public class NullableIntMemorySegmentColumn extends IntMemorySegmentColumn {
     }
   }
 
-  @Override
-  public Integer get(final int index) {
-    var value = super.get(index);
-    return value == NULL_VALUE ? null : value;
-  }
-
-  @Override
-  public void set(final int index, final Integer value) {
-    super.set(index, value == null ? NULL_VALUE : value);
-  }
 }
