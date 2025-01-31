@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,7 +39,6 @@ import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
@@ -77,8 +76,7 @@ public class DataTypeUtils {
       new RTRangeType(),
       // needed next to each other for switching between RTType and RTRangeType
       new MZType(), new MZRangeType(), //
-      new HeightType(), new AreaType(), new ManualAnnotationType(), new FeatureShapeType(),
-      new FeaturesType());
+      new HeightType(), new AreaType(), new ManualAnnotationType(), new FeatureShapeType());
 
   @NotNull
   public static final List<DataType> DEFAULT_CHROMATOGRAPHIC_FEATURE = List.of(new RawFileType(),
@@ -232,7 +230,7 @@ public class DataTypeUtils {
       final Object value = row.get((DataType<?>) allowedType);
       // if the annotation is a list we have to check if the list is not empty
       if (value != null && (!(value instanceof Collection<?> collection)
-          || !collection.isEmpty())) {
+                            || !collection.isEmpty())) {
         return allowedType;
       }
     }

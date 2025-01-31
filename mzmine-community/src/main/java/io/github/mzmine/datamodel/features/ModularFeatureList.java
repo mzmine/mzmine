@@ -909,7 +909,7 @@ public class ModularFeatureList implements FeatureList {
     return featuresSchema;
   }
 
-  public @NotNull ColumnarModularDataModelSchema getRowsSchema() {
+  public @NotNull ColumnarModularFeatureListRowsSchema getRowsSchema() {
     return rowsSchema;
   }
 }

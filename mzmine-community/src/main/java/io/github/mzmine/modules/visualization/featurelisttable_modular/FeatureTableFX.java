@@ -41,7 +41,6 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
@@ -530,8 +529,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     rowCol.setGraphic(headerLabel);
 
     // add row types
-    featureList.getRowTypes().stream().filter(t -> !(t instanceof FeaturesType))
-        .forEach(dataType -> addColumn(rowCol, dataType));
+    featureList.getRowTypes().forEach(dataType -> addColumn(rowCol, dataType));
 
     sortColumn(rowCol);
 
@@ -539,10 +537,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     this.getColumns().add(rowCol);
 
     // add features
-    if (featureList.hasRowType(FeaturesType.class)) {
-      addColumn(rowCol, DataTypes.get(FeaturesType.class));
-    }
-
+    addFeaturesColumns();
   }
 
   private static void logTableFillingRatios(final FeatureList flist) {
@@ -616,30 +611,26 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     }
 
     // Is feature type?
-    if (dataType.getClass().equals(FeaturesType.class)) {
-      addFeaturesColumns();
-    } else {
-      var col = dataType.createColumn(null, null);
-      if (col == null) {
-        return;
-      }
+    var col = dataType.createColumn(null, null);
+    if (col == null) {
+      return;
+    }
 
-      if (dataType instanceof ExpandableType) {
-        setupExpandableColumn(dataType, col, ColumnType.ROW_TYPE, null);
-      }
+    if (dataType instanceof ExpandableType) {
+      setupExpandableColumn(dataType, col, ColumnType.ROW_TYPE, null);
+    }
 
-      // Add row column
-      rowCol.getColumns().add(col);
+    // Add row column
+    rowCol.getColumns().add(col);
 
-      registerColumn(col, ColumnType.ROW_TYPE, dataType, null);
-      if (!(dataType instanceof ExpandableType)) {
-        // Hide area bars and area share columns, if there is only one raw data file in the feature list
-        if ((dataType instanceof AreaBarType || dataType instanceof AreaShareType)
-            && getFeatureList().getNumberOfRawDataFiles() == 1) {
-          col.setVisible(false);
-        } else {
-          recursivelyApplyVisibilityParameterToColumn(col);
-        }
+    registerColumn(col, ColumnType.ROW_TYPE, dataType, null);
+    if (!(dataType instanceof ExpandableType)) {
+      // Hide area bars and area share columns, if there is only one raw data file in the feature list
+      if ((dataType instanceof AreaBarType || dataType instanceof AreaShareType)
+          && getFeatureList().getNumberOfRawDataFiles() == 1) {
+        col.setVisible(false);
+      } else {
+        recursivelyApplyVisibilityParameterToColumn(col);
       }
     }
   }
@@ -801,6 +792,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       return;
     }
 
+    List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
     // Add feature columns for each raw file
     for (RawDataFile dataFile : getFeatureList().getRawDataFiles()) {
       TreeTableColumn<ModularFeatureListRow, String> sampleCol = new TreeTableColumn<>();
@@ -838,8 +830,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       // Add sample column
       // NOTE: sample column is not added to the columnMap
       sortColumn(sampleCol);
-      this.getColumns().add(sampleCol);
+      rawColumns.add(sampleCol);
     }
+    // bulk add columns
+    this.getColumns().addAll(rawColumns);
   }
 
   private void initHandleDoubleClicks() {
@@ -1108,7 +1102,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     boolean smallDataset = flist.getNumberOfRawDataFiles() <= getMaximumSamplesForVisibleShapes();
     setVisible(ColumnType.ROW_TYPE, FeatureShapeType.class, null, smallDataset);
     setVisible(ColumnType.ROW_TYPE, FeatureShapeMobilogramType.class, null, smallDataset);
-    setVisible(ColumnType.ROW_TYPE, FeaturesType.class, null, true);
+//    setVisible(ColumnType.ROW_TYPE, FeaturesType.class, null, true);
 
     applyVisibilityParametersToAllColumns();
   }

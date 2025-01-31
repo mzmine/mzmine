@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -286,9 +285,6 @@ public class FeatureListSaveTask extends AbstractTask {
     for (Entry<DataType, Object> entry : entries) {
       DataType dataType = entry.getKey();
       Object value = entry.getValue();
-      if (dataType instanceof FeaturesType) {
-        continue;
-      }
       writeDataType(writer, dataType, value, flist, row, null, null);
     }
 
@@ -311,7 +307,7 @@ public class FeatureListSaveTask extends AbstractTask {
       dataType.saveToXML(writer, value, flist, row, feature, file);
     } catch (XMLStreamException e) {
       logger.warning(() -> "Error while writing data type " + dataType.getClass().getSimpleName()
-          + " with value " + value + " to xml.");
+                           + " with value " + value + " to xml.");
       e.printStackTrace();
     }
     writer.writeEndElement();

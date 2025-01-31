@@ -33,7 +33,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataModelSchema {
@@ -74,5 +76,38 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
       }
     }
     super.resizeColumnsTo(finalSize);
+  }
+
+  /**
+   * @param rowIndex the row index
+   * @param raw      feature for this raw file
+   * @param feature  the feature to set
+   * @return the old feature or null if there was no previous mapping
+   */
+  public ModularFeature setFeature(final int rowIndex, final RawDataFile raw,
+      final ModularFeature feature) {
+    final ModularFeature[] featuresCol = features.get(raw);
+    if (featuresCol == null) {
+      return null; // previous behaviour was to return null
+    }
+    var old = featuresCol[rowIndex];
+    featuresCol[rowIndex] = feature;
+    return old;
+  }
+
+  public ModularFeature getFeature(final int rowIndex, final RawDataFile raw) {
+    final ModularFeature[] featuresCol = features.get(raw);
+    if (featuresCol == null) {
+      return null; // previous behaviour was to return null
+    }
+    return featuresCol[rowIndex];
+  }
+
+  /**
+   * @param rowIndex row index
+   * @return non-null stream of features of one row
+   */
+  public Stream<ModularFeature> streamFeatures(final int rowIndex) {
+    return features.values().stream().map(column -> column[rowIndex]).filter(Objects::nonNull);
   }
 }
