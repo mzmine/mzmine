@@ -559,6 +559,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         Types:
         Row types: %s
         Feature types: %s
+        Rows: %d
         Fill stats:
         Row cells (%d types): %d / %d (%.1f)
         Feature cells (%d types): %d / %d (%.1f)""".formatted( //
@@ -582,6 +583,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
             })//
             .map(t -> "%s (%s)".formatted(t.getUniqueID(), t.getClass().getSimpleName()))
             .collect(Collectors.joining(", ")),//
+        flist.getNumberOfRows(), //
         flist.getRowTypes().size(), rowValues, totalRowCells,
         (rowValues / (double) totalRowCells) * 100, //
         flist.getFeatureTypes().size(), featureValues, totalFeatureCells,
