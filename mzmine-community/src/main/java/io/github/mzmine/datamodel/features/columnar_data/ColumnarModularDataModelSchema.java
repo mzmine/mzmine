@@ -180,9 +180,9 @@ public class ColumnarModularDataModelSchema {
       long success = columns.values().stream().parallel()
           .filter(column -> column.ensureCapacity(finalSize)).count();
 
-      logger.info("""
-          Resized %d of %d columns in model %s to %d rows""".formatted(success, columns.size(),
-          modelName, finalSize));
+//      logger.info("""
+//          Resized %d of %d columns in model %s to %d rows""".formatted(success, columns.size(),
+//          modelName, finalSize));
 
       columnLength = finalSize;
     }
