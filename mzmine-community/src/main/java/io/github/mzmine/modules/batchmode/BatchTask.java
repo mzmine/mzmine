@@ -281,15 +281,24 @@ public class BatchTask extends AbstractTask {
       }
 
       // run step
-      processQueueStep(i % stepsPerDataset);
+      final int stepNumber = i % stepsPerDataset;
+      Instant start = Instant.now();
+
+      // the heavy lifting
+      processQueueStep(stepNumber);
       processedSteps++;
+
+      Duration duration = Duration.between(start, Instant.now());
+      stepTimes.add(
+          new StepTimeMeasurement(stepNumber + 1, queue.get(stepNumber).getModule().getName(),
+              duration, runGCafterBatchStep));
 
       // If we are canceled or ran into error, stop here
       if (getStatus() == TaskStatus.ERROR) {
         errorDataset++;
         DialogLoggerUtil.showDialog(AlertType.ERROR, "Batch processing error",
-            "An error occurred while processing batch step %d.\n%s".formatted(
-                i % stepsPerDataset + 1, getErrorMessage()), false);
+            "An error occurred while processing batch step %d.\n%s".formatted(stepNumber + 1,
+                getErrorMessage()), false);
         if (skipOnError && datasets - currentDataset > 0) {
           // skip to next dataset
           logger.info("Error in dataset: " + datasetName + " total error datasets:" + errorDataset);
@@ -350,8 +359,6 @@ public class BatchTask extends AbstractTask {
   }
 
   private void processQueueStep(int stepNumber) {
-
-    Instant start = Instant.now();
     logger.info("Starting step # " + (stepNumber + 1));
 
     // Run next step of the batch
@@ -460,11 +467,6 @@ public class BatchTask extends AbstractTask {
     if (!createdFeatureLists.isEmpty()) {
       previousCreatedFeatureLists = createdFeatureLists;
     }
-
-    Duration duration = Duration.between(start, Instant.now());
-
-    stepTimes.add(
-        new StepTimeMeasurement(stepNumber + 1, method.getName(), duration, runGCafterBatchStep));
   }
 
   /**
