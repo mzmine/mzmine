@@ -83,6 +83,7 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("rawtypes")
 public class ModularFeatureList implements FeatureList {
 
+  public static final int DEFAULT_ESTIMATED_ROWS = 5000;
   public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
   private static final Logger logger = Logger.getLogger(ModularFeatureList.class.getName());
   /**
@@ -136,11 +137,26 @@ public class ModularFeatureList implements FeatureList {
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull List<RawDataFile> dataFiles) {
+    this(name, storage, DEFAULT_ESTIMATED_ROWS,
+        FeatureListUtils.estimateFeatures(DEFAULT_ESTIMATED_ROWS, dataFiles.size()), dataFiles);
+  }
+
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, int estimatedRows,
+      int estimatedFeatures, @NotNull RawDataFile... dataFiles) {
+    this(name, storage, estimatedRows, estimatedFeatures, List.of(dataFiles));
+  }
+
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, int estimatedRows,
+      int estimatedFeatures, @NotNull List<RawDataFile> dataFiles) {
     setName(name);
+
+    logger.fine(
+        "Creating new feature list %s with %d raw files with estimated rows : features : %d : %d".formatted(
+            name, dataFiles.size(), estimatedRows, estimatedFeatures));
+
     //
-    rowsSchema = new ColumnarModularDataModelSchema(storage, "Rows", 5000);
-    featuresSchema = new ColumnarModularDataModelSchema(storage, "Features",
-        4000 * dataFiles.size());
+    rowsSchema = new ColumnarModularDataModelSchema(storage, "Rows", estimatedRows);
+    featuresSchema = new ColumnarModularDataModelSchema(storage, "Features", estimatedFeatures);
     // sort data files by name to have the same order in export and GUI FeatureTableFx
     dataFiles = new ArrayList<>(dataFiles);
     dataFiles.sort(Comparator.comparing(RawDataFile::getName));
@@ -580,6 +596,7 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(FeatureListRow row) {
+    // TODO remove from schema rows and features
     featureListRows.remove(row);
   }
 
@@ -588,12 +605,14 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(int rowNum) {
+    // TODO remove from schema rows and features
     removeRow(featureListRows.remove(rowNum));
   }
 
   @Override
-  public void removeRows(final Set<FeatureListRow> rowsToRemove) {
-    featureListRows.removeIf(rowsToRemove::contains);
+  public void removeRows(final Collection<FeatureListRow> rowsToRemove) {
+    // TODO remove from schema rows and features
+    featureListRows.removeAll(rowsToRemove);
   }
 
   @Override
@@ -778,7 +797,8 @@ public class ModularFeatureList implements FeatureList {
    */
   public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage,
       List<RawDataFile> dataFiles, boolean renumberIDs) {
-    return FeatureListUtils.createCopy(this, title, null, storage, true, dataFiles, renumberIDs);
+    return FeatureListUtils.createCopy(this, title, null, storage, true, dataFiles, renumberIDs,
+        null, null);
   }
 
   @Nullable
