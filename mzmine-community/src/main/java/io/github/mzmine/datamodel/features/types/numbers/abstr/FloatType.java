@@ -32,10 +32,7 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.DataColumns;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.text.NumberFormat;
 import java.util.List;
 import javafx.beans.property.Property;
@@ -64,12 +61,6 @@ public abstract class FloatType extends NumberType<Float> {
   @Override
   public Property<Float> createProperty() {
     return new SimpleObjectProperty<Float>();
-  }
-
-  @Override
-  public DataColumn<Float> createDataColumn(final MemoryMapStorage storage,
-      final int columnLength) {
-    return DataColumns.ofFloat(storage, columnLength);
   }
 
   @Override

@@ -32,12 +32,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.DetectionMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.util.MemoryMapStorage;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
@@ -82,12 +79,6 @@ public class DetectionType extends DataType<FeatureStatus> implements
   @Override
   public double getColumnWidth() {
     return 10;
-  }
-
-  @Override
-  public DataColumn<FeatureStatus> createDataColumn(final MemoryMapStorage storage,
-      final int columnLength) {
-    return new DetectionMemorySegmentColumn(storage, columnLength);
   }
 
   @Override

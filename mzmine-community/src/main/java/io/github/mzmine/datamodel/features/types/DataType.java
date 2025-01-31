@@ -34,7 +34,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.arrays.ObjectArrayColumn;
+import io.github.mzmine.datamodel.features.columnar_data.DataColumns;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeGraphicalCellFactory;
@@ -450,6 +450,6 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
   }
 
   public DataColumn<T> createDataColumn(final MemoryMapStorage storage, final int columnLength) {
-    return new ObjectArrayColumn<T>(columnLength);
+    return DataColumns.ofType(this, storage, columnLength);
   }
 }

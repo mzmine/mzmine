@@ -28,9 +28,22 @@ package io.github.mzmine.datamodel.features.columnar_data;
 import io.github.mzmine.datamodel.features.columnar_data.arrays.NullableDoubleArrayColumn;
 import io.github.mzmine.datamodel.features.columnar_data.arrays.NullableFloatArrayColumn;
 import io.github.mzmine.datamodel.features.columnar_data.arrays.NullableIntArrayColumn;
+import io.github.mzmine.datamodel.features.columnar_data.arrays.ObjectArrayColumn;
+import io.github.mzmine.datamodel.features.columnar_data.mmap.AlignmenScoreMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.mmap.DetectionMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.mmap.DoubleRangeMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.mmap.FloatRangeMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.columnar_data.mmap.NullableDoubleMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.columnar_data.mmap.NullableFloatMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.columnar_data.mmap.NullableIntMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.util.MemoryMapStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,6 +65,24 @@ public class DataColumns {
   public static @NotNull NullableIntDataColumn ofInt(@Nullable MemoryMapStorage storage, int size) {
     return storage == null ? new NullableIntArrayColumn(size)
         : new NullableIntMemorySegmentColumn(storage, size);
+  }
+
+  @SuppressWarnings("unchecked")
+  public static @NotNull <T> DataColumn<T> ofType(DataType<T> type,
+      @Nullable MemoryMapStorage storage, int size) {
+    if (storage == null) {
+      return new ObjectArrayColumn<>(size);
+    }
+    return (DataColumn<T>) switch (type) {
+      case IntegerType _ -> ofInt(storage, size);
+      case DoubleType _ -> ofDouble(storage, size);
+      case FloatType _ -> ofFloat(storage, size);
+      case FloatRangeType _ -> new FloatRangeMemorySegmentColumn(storage, size);
+      case DoubleRangeType _ -> new DoubleRangeMemorySegmentColumn(storage, size);
+      case DetectionType _ -> new DetectionMemorySegmentColumn(storage, size);
+      case AlignmentMainType _ -> new AlignmenScoreMemorySegmentColumn(storage, size);
+      default -> new ObjectArrayColumn<>(size);
+    };
   }
 
 }

@@ -26,13 +26,10 @@
 package io.github.mzmine.datamodel.features.types.alignment;
 
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
-import io.github.mzmine.datamodel.features.columnar_data.DataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.AlignmenScoreMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
@@ -65,12 +62,6 @@ public class AlignmentMainType extends SimpleSubColumnsType<AlignmentScores> imp
   @Override
   public Property<AlignmentScores> createProperty() {
     return new SimpleObjectProperty<>();
-  }
-
-  @Override
-  public DataColumn<AlignmentScores> createDataColumn(final MemoryMapStorage storage,
-      final int columnLength) {
-    return new AlignmenScoreMemorySegmentColumn(storage, columnLength);
   }
 
   @Override
