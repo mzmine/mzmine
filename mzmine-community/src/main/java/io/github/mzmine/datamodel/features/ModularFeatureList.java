@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -96,7 +97,7 @@ public class ModularFeatureList implements FeatureList {
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
-  private final @NotNull ColumnarModularDataModelSchema rowsSchema;
+  private final @NotNull ColumnarModularFeatureListRowsSchema rowsSchema;
   private final @NotNull ColumnarModularDataModelSchema featuresSchema;
 
   // unmodifiable list
@@ -155,7 +156,8 @@ public class ModularFeatureList implements FeatureList {
             name, dataFiles.size(), estimatedRows, estimatedFeatures));
 
     //
-    rowsSchema = new ColumnarModularDataModelSchema(storage, "Rows", estimatedRows);
+    rowsSchema = new ColumnarModularFeatureListRowsSchema(storage, "Rows", estimatedRows,
+        dataFiles);
     featuresSchema = new ColumnarModularDataModelSchema(storage, "Features", estimatedFeatures);
     // sort data files by name to have the same order in export and GUI FeatureTableFx
     dataFiles = new ArrayList<>(dataFiles);

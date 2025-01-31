@@ -54,14 +54,14 @@ public class ColumnarModularDataModelSchema {
   private static final Logger logger = Logger.getLogger(
       ColumnarModularDataModelSchema.class.getName());
 
-  private final MemoryMapStorage storage;
-  private final Map<DataType, DataColumn> columns = HashMap.newHashMap(20);
+  protected final MemoryMapStorage storage;
+  protected final Map<DataType, DataColumn> columns = HashMap.newHashMap(20);
   private final Map<DataType, DataColumn> readOnlyColumns = Collections.unmodifiableMap(columns);
 
   /**
    * The current length of the columns
    */
-  private volatile int columnLength;
+  protected volatile int columnLength;
   private final AtomicInteger nextRow = new AtomicInteger(0);
   private final int sizeIncrement = 5000;
 
@@ -69,9 +69,9 @@ public class ColumnarModularDataModelSchema {
    * A lock that controls the access and specifically the resizing of all
    * {@link ModularDataModelArray}s controlled by this schema.
    */
-  private final CloseableReentrantReadWriteLock resizeLock = new CloseableReentrantReadWriteLock();
+  protected final CloseableReentrantReadWriteLock resizeLock = new CloseableReentrantReadWriteLock();
 
-  private final String modelName;
+  protected final String modelName;
 
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> dataTypeValueChangedListeners = new HashMap<>();
   private final List<DataTypesChangedListener> dataTypesChangeListeners = new ArrayList<>();
