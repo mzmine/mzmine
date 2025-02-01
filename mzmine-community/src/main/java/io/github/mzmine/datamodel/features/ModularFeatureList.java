@@ -55,6 +55,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
@@ -99,7 +100,8 @@ public class ModularFeatureList implements FeatureList {
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
   // unmodifiable list
-  private final ObservableList<RawDataFile> dataFiles;
+  private final List<RawDataFile> dataFiles;
+  private final List<RawDataFile> readOnlyRawDataFiles; // keep one copy in case it is used somewhere
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
 
   private NodeGenerationThread nodeThread;
@@ -147,7 +149,8 @@ public class ModularFeatureList implements FeatureList {
     dataFiles = new ArrayList<>(dataFiles);
     dataFiles.sort(Comparator.comparing(RawDataFile::getName));
     ((ArrayList) dataFiles).trimToSize();
-    this.dataFiles = FXCollections.observableList(dataFiles);
+    this.dataFiles = dataFiles;
+    this.readOnlyRawDataFiles = Collections.unmodifiableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
@@ -423,11 +426,11 @@ public class ModularFeatureList implements FeatureList {
   /**
    * Returns all raw data files participating in the alignment
    *
-   * @return the raw data files for this list
+   * @return an unmodifiable list raw data files for this list
    */
   @Override
-  public ObservableList<RawDataFile> getRawDataFiles() {
-    return dataFiles;
+  public List<RawDataFile> getRawDataFiles() {
+    return readOnlyRawDataFiles;
   }
 
   @Override
@@ -544,7 +547,7 @@ public class ModularFeatureList implements FeatureList {
           "Can not add non-modular feature list row to modular feature list");
     }
 
-    ObservableList<RawDataFile> myFiles = this.getRawDataFiles();
+    List<RawDataFile> myFiles = this.getRawDataFiles();
     for (RawDataFile testFile : modularRow.getRawDataFiles()) {
       if (!myFiles.contains(testFile)) {
         throw (new IllegalArgumentException(
