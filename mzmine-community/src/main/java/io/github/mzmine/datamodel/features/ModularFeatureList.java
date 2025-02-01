@@ -190,9 +190,10 @@ public class ModularFeatureList implements FeatureList {
       for (DataType dataType : added) {
         addRowBinding(dataType.createDefaultRowBindings());
       }
-      for (DataType dt : removed) {
-        parallelStreamFeatures().forEach(feature -> feature.remove(dt));
-      }
+      // TODO no need to remove from each feature as this is already removed from the schema itself
+//      for (DataType dt : removed) {
+//        parallelStreamFeatures().forEach(feature -> feature.remove(dt));
+//      }
     });
 
     // not needed

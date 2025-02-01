@@ -55,19 +55,25 @@ public class ColumnarModularDataModelSchema {
       ColumnarModularDataModelSchema.class.getName());
 
   protected final MemoryMapStorage storage;
+
+  /**
+   * Each data type has its own DataColumns usually created in the factory {@link DataColumns}.
+   */
   protected final Map<DataType, DataColumn> columns = HashMap.newHashMap(20);
   private final Map<DataType, DataColumn> readOnlyColumns = Collections.unmodifiableMap(columns);
 
   /**
-   * The current length of the columns
+   * The current length of the columns. This value should only change withing a
+   * resizeLock.writeLock
    */
   protected volatile int columnLength;
   private final AtomicInteger nextRow = new AtomicInteger(0);
   private final int sizeIncrement = 5000;
 
   /**
-   * A lock that controls the access and specifically the resizing of all
-   * {@link ModularDataModelArray}s controlled by this schema.
+   * A lock that controls specifically the resizing of all {@link DataColumn}s controlled by this
+   * schema. If more rows are added than the size allows, a write lock will block the creation of
+   * new columns until resizing is finished.
    */
   protected final CloseableReentrantReadWriteLock resizeLock = new CloseableReentrantReadWriteLock();
 
@@ -84,23 +90,15 @@ public class ColumnarModularDataModelSchema {
   }
 
   public boolean containsDataType(final DataType type) {
-//    logger.finest(modelName + " Trying to lock for read");
-//    try (var _ = resizeLock.lockRead()) {
-//      logger.finest(modelName + " Read lock acquired");
     return columns.containsKey(type);
-//    }
   }
 
   public void addDataTypes(final DataType... types) {
     List<DataType> toAdd = new ArrayList<>(types.length);
-//    logger.finest(modelName + " Trying to lock for read");
-//    try (var _ = resizeLock.lockRead()) {
-//      logger.finest(modelName + " Read lock acquired");
     for (DataType type : types) {
       if (!containsDataType(type)) {
         toAdd.add(type);
       }
-//      }
     }
     if (toAdd.isEmpty()) {
       return;
@@ -138,8 +136,6 @@ public class ColumnarModularDataModelSchema {
     if (column != null) {
       return column;
     }
-
-//    logger.finest(modelName + ": index -1 for data type " + type.getUniqueID());
 
     try (var _ = resizeLock.lockWrite()) {
       // double-checked lock
@@ -212,7 +208,16 @@ public class ColumnarModularDataModelSchema {
     return columns.size();
   }
 
-  // row operations
+  /**
+   * Setting the value of a model in this schema.
+   *
+   * @param model    the model of this row - used in listeners
+   * @param rowIndex the rowIndex of model
+   * @param type     the type for the column
+   * @param value    the value to set
+   * @param <T>      value type
+   * @return the old value mapping
+   */
   public <T> boolean set(final ModularDataModel model, final int rowIndex, DataType<T> type,
       T value) {
     if (type instanceof MissingValueType) {
@@ -230,6 +235,10 @@ public class ColumnarModularDataModelSchema {
       column = addDataType(type);
     }
 
+    /*
+     * using a lock inside each column because they might be resized at different points in time.
+     * Also they are resized on different treads
+     */
     final Object old = column.get(rowIndex);
     column.set(rowIndex, value);
 
@@ -247,6 +256,13 @@ public class ColumnarModularDataModelSchema {
     return false;
   }
 
+  /**
+   * This method is lock-free. The reason is that when adding rows to this model triggers a resize
+   * to the backing data model in DataColumn, either the new or old backing array/MemorySegment
+   * contains the same values.
+   *
+   * @return value of row with key
+   */
   public <T> @Nullable T get(final int rowIndex, DataType<T> key) {
 //    schema.lockRead() do we need to lock? don't think so
     var column = getColumn(key);
@@ -267,6 +283,9 @@ public class ColumnarModularDataModelSchema {
     return Objects.requireNonNullElse(get(rowIndex, type), defaultValue);
   }
 
+  /**
+   * Remove the column
+   */
   public <T> void remove(DataType<T> type) {
     var column = getColumn(type);
     if (column == null) {
@@ -290,6 +309,9 @@ public class ColumnarModularDataModelSchema {
     return getTypesSnapshot().stream();
   }
 
+  /**
+   * @return a stream of all values even those that are null
+   */
   public Stream<Entry<DataType, Object>> streamValues(int rowIndex) {
     return streamColumns().map(col -> new SimpleEntry<>(col, get(rowIndex, col)));
   }

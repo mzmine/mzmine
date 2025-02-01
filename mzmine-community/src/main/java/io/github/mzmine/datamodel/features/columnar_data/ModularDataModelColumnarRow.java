@@ -73,7 +73,9 @@ public class ModularDataModelColumnarRow implements ModularDataModel {
 
   @Override
   public <T> void remove(DataType<T> type) {
-    schema.remove(type);
+    // cannot completely remove the type from the schema - this should be called directly on the schema
+    // so on a row we can only set null
+    set(type, null);
   }
 
   @Override
