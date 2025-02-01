@@ -25,19 +25,19 @@
 
 package io.github.mzmine.datamodel.features.columnar_data;
 
-public interface NullableFloatDataColumn extends DataColumn<Float> {
+public non-sealed interface NullableFloatDataColumn extends DataColumn<Float> {
 
   float getFloat(final int index);
 
-  void setFloat(final int index, final float value);
+  float setFloat(final int index, final float value);
 
   default void clear(final int index) {
     setFloat(index, Float.NaN);
   }
 
   @Override
-  default void set(final int index, final Float value) {
-    setFloat(index, value == null ? Float.NaN : value);
+  default Float set(final int index, final Float value) {
+    return setFloat(index, value == null ? Float.NaN : value);
   }
 
   @Override

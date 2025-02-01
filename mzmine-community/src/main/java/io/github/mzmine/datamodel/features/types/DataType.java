@@ -449,7 +449,4 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
     }
   }
 
-  public DataColumn<T> createDataColumn(final MemoryMapStorage storage, final int columnLength) {
-    return DataColumns.ofType(this, storage, columnLength);
-  }
 }

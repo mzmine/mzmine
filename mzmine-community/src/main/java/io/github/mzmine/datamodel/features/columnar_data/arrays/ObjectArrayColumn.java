@@ -42,8 +42,10 @@ public class ObjectArrayColumn<T> extends AbstractDataColumn<T> {
   }
 
   @Override
-  public void set(final int index, final T value) {
+  public T set(final int index, final T value) {
+    T oldValue = get(index);
     data[index] = value;
+    return oldValue;
   }
 
   @Override

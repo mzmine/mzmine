@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.mmap;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.columnar_data.NullableDoubleDataColumn;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
@@ -43,22 +45,20 @@ public class NullableDoubleMemorySegmentColumn extends
   }
 
   @Override
+  protected void set(final MemorySegment data, final int index, final Double value) {
+    data.setAtIndex(ValueLayout.JAVA_DOUBLE, index, value != null ? value : Double.NaN);
+  }
+
+  @Override
   public double getDouble(final int index) {
     return data.getAtIndex(ValueLayout.JAVA_DOUBLE, index);
   }
 
   @Override
-  public void setDouble(final int index, final double value) {
+  public double setDouble(final int index, final double value) {
+    double old = getDouble(index);
     data.setAtIndex(ValueLayout.JAVA_DOUBLE, index, value);
+    return old;
   }
-
-  @Override
-  protected void setInitialValue(final MemorySegment newData, final int startInclusive,
-      final int endExclusive) {
-    for (int i = startInclusive; i < endExclusive; i++) {
-      newData.setAtIndex(ValueLayout.JAVA_DOUBLE, i, Double.NaN);
-    }
-  }
-
 
 }

@@ -41,18 +41,43 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
     ensureCapacity(initialCapacity);
   }
 
+
+  @Override
+  public T set(final int index, final T value) {
+    T old = get(index);
+    set(data, index, value);
+    return old;
+  }
+
+  /**
+   * Internal method to actually set the value to a memory segment
+   * @param data a memory segment
+   */
+  protected abstract void set(final MemorySegment data, final int index, final T value);
+
   protected abstract MemoryLayout getValueLayout();
 
   /**
    * Set the initial value like Double.NaN or a blacklisted int
    *
-   * @param newData        the new memorySegment
+   * @param data        a MemorySegment to be changed
    * @param startInclusive the start index
    * @param endExclusive   the end index excluded to be set
    */
-  protected void setInitialValue(final MemorySegment newData, final int startInclusive,
+  protected void clearRange(final MemorySegment data, final int startInclusive,
       final int endExclusive) {
-    // do nothing by default
+    for (int i = startInclusive; i < endExclusive; i++) {
+      clear(data, i);
+    }
+  }
+
+  /**
+   *
+   * @param data backing data to clear
+   * @param index element to clear
+   */
+  protected void clear(final MemorySegment data, final int index) {
+    set(data, index, null);
   }
 
   @Override
@@ -73,7 +98,7 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
       return false;
     }
     MemorySegment newData = storage.allocateMemorySegment(getValueLayout(), finalSize);
-    setInitialValue(newData, capacity, finalSize);
+    clearRange(newData, capacity, finalSize);
     if (data != null) {
       data = newData.copyFrom(data);
     } else {

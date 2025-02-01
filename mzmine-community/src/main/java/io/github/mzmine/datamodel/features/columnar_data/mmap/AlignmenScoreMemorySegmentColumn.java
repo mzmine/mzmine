@@ -78,14 +78,6 @@ public class AlignmenScoreMemorySegmentColumn extends AbstractMemorySegmentColum
   }
 
   @Override
-  protected void setInitialValue(final MemorySegment newData, final int startInclusive,
-      final int endExclusive) {
-    for (int i = startInclusive; i < endExclusive; i++) {
-      clear(newData, i);
-    }
-  }
-
-  @Override
   public AlignmentScores get(final int index) {
     long offset = index * OFFSET;
 
@@ -106,17 +98,13 @@ public class AlignmenScoreMemorySegmentColumn extends AbstractMemorySegmentColum
     );
   }
 
-  public void clear(final MemorySegment data, final int index) {
-    data.set(JAVA_FLOAT, index * OFFSET, Float.NaN);
-  }
-
   @Override
-  public void set(final int index, final AlignmentScores value) {
+  public void set(final MemorySegment data, final int index, final AlignmentScores value) {
+    long offset = index * OFFSET;
     if (value == null) {
-      clear(data, index);
+      data.set(JAVA_FLOAT, index * OFFSET, Float.NaN);
       return;
     }
-    long offset = index * OFFSET;
 
     data.set(JAVA_FLOAT, offset, value.rate());
     data.set(JAVA_INT, offset + offsets[0], value.alignedFeatures());

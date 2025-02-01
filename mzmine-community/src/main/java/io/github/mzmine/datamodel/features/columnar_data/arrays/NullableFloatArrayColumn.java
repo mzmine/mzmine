@@ -36,6 +36,7 @@ public class NullableFloatArrayColumn extends AbstractDataColumn<Float> implemen
 
   public NullableFloatArrayColumn(int initialSize) {
     data = new float[initialSize];
+    Arrays.fill(data, Float.NaN);
   }
 
   @Override
@@ -44,13 +45,17 @@ public class NullableFloatArrayColumn extends AbstractDataColumn<Float> implemen
   }
 
   @Override
-  public void setFloat(final int index, final float value) {
+  public float setFloat(final int index, final float value) {
+    float oldValue = data[index];
     data[index] = value;
+    return oldValue;
   }
 
   @Override
   protected boolean resizeTo(final int finalSize) {
+    var oldSize = data.length;
     data = Arrays.copyOf(data, finalSize);
+    Arrays.fill(data, oldSize - 1, finalSize, Float.NaN);
     return true;
   }
 

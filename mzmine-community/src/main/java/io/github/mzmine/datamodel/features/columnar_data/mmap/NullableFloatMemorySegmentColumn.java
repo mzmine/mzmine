@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.mmap;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.columnar_data.NullableFloatDataColumn;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
@@ -43,21 +45,20 @@ public class NullableFloatMemorySegmentColumn extends AbstractMemorySegmentColum
   }
 
   @Override
+  protected void set(final MemorySegment data, final int index, final Float value) {
+    data.setAtIndex(ValueLayout.JAVA_FLOAT, index,  value!=null? value : Float.NaN);
+  }
+
+  @Override
   public float getFloat(final int index) {
     return data.getAtIndex(ValueLayout.JAVA_FLOAT, index);
   }
 
   @Override
-  public void setFloat(final int index, final float value) {
+  public float setFloat(final int index, final float value) {
+    float old = getFloat(index);
     data.setAtIndex(ValueLayout.JAVA_FLOAT, index, value);
-  }
-
-  @Override
-  protected void setInitialValue(final MemorySegment newData, final int startInclusive,
-      final int endExclusive) {
-    for (int i = startInclusive; i < endExclusive; i++) {
-      newData.setAtIndex(ValueLayout.JAVA_FLOAT, i, Float.NaN);
-    }
+    return old;
   }
 
 }

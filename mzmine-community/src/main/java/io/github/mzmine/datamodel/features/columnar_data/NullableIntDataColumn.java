@@ -25,21 +25,21 @@
 
 package io.github.mzmine.datamodel.features.columnar_data;
 
-public interface NullableIntDataColumn extends DataColumn<Integer> {
+public non-sealed interface NullableIntDataColumn extends DataColumn<Integer> {
 
   public static final int NULL_VALUE = Integer.MIN_VALUE + 1;
 
   int getInt(final int index);
 
-  void setInt(final int index, final int value);
+  int setInt(final int index, final int value);
 
   default void clear(final int index) {
     setInt(index, NULL_VALUE);
   }
 
   @Override
-  default void set(final int index, final Integer value) {
-    setInt(index, value == null ? NULL_VALUE : value);
+  default Integer set(final int index, final Integer value) {
+    return setInt(index, value == null ? NULL_VALUE : value);
   }
 
   @Override

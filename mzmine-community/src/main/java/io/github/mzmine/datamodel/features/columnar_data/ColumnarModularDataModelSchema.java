@@ -115,7 +115,8 @@ public class ColumnarModularDataModelSchema {
 //      logger.finest("%s: adding %d data types %s".formatted(modelName, toAdd.size(),
 //          toAdd.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
       for (DataType dataType : toAdd) {
-        columns.put(dataType, dataType.createDataColumn(storage, columnLength));
+        // for now use synchronized DataColumns
+        columns.put(dataType, DataColumns.ofTypeSynchronized(dataType, storage, columnLength));
 //        logger.finest("%s: adding data type %s at %d".formatted(modelName, dataType.getUniqueID(),
 //            indexMap.getInt(dataType)));
       }
@@ -143,8 +144,8 @@ public class ColumnarModularDataModelSchema {
       if (column != null) {
         return column;
       }
-
-      column = type.createDataColumn(storage, columnLength);
+      // for now use synchronized DataColumns
+      column = DataColumns.ofTypeSynchronized(type, storage, columnLength);
       columns.put(type, column);
 //      logger.finest("%s: adding data type %s".formatted(modelName, type.getUniqueID()));
     }

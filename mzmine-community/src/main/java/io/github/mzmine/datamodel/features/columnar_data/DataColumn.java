@@ -25,11 +25,18 @@
 
 package io.github.mzmine.datamodel.features.columnar_data;
 
-public interface DataColumn<T> {
+/**
+ * All classes should extend {@link AbstractDataColumn} because
+ * {@link OptimisticallySynchronizedDataColumn} requires some methods
+ *
+ * @param <T>
+ */
+public sealed interface DataColumn<T> permits AbstractDataColumn, NullableDoubleDataColumn,
+    NullableFloatDataColumn, NullableIntDataColumn {
 
   T get(final int index);
 
-  void set(final int index, final T value);
+  T set(final int index, final T value);
 
   /**
    * @return true if resized

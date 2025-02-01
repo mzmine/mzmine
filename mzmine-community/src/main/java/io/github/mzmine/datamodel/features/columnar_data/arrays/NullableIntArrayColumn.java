@@ -36,6 +36,7 @@ public class NullableIntArrayColumn extends AbstractDataColumn<Integer> implemen
 
   public NullableIntArrayColumn(int initialSize) {
     data = new int[initialSize];
+    Arrays.fill(data, NULL_VALUE);
   }
 
   @Override
@@ -44,13 +45,17 @@ public class NullableIntArrayColumn extends AbstractDataColumn<Integer> implemen
   }
 
   @Override
-  public void setInt(final int index, final int value) {
+  public int setInt(final int index, final int value) {
+    int oldValue = data[index];
     data[index] = value;
+    return oldValue;
   }
 
   @Override
   protected boolean resizeTo(final int finalSize) {
+    var oldSize = data.length;
     data = Arrays.copyOf(data, finalSize);
+    Arrays.fill(data, oldSize-1, finalSize, NULL_VALUE);
     return true;
   }
 

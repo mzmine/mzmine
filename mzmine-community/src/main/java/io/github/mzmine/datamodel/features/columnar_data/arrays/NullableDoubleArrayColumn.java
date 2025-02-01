@@ -36,6 +36,7 @@ public class NullableDoubleArrayColumn extends AbstractDataColumn<Double> implem
 
   public NullableDoubleArrayColumn(int initialSize) {
     data = new double[initialSize];
+    Arrays.fill(data, Double.NaN);
   }
 
   @Override
@@ -44,13 +45,17 @@ public class NullableDoubleArrayColumn extends AbstractDataColumn<Double> implem
   }
 
   @Override
-  public void setDouble(final int index, final double value) {
+  public double setDouble(final int index, final double value) {
+    double old = data[index];
     data[index] = value;
+    return old;
   }
 
   @Override
   protected boolean resizeTo(final int finalSize) {
+    var oldSize = data.length;
     data = Arrays.copyOf(data, finalSize);
+    Arrays.fill(data, oldSize - 1, finalSize, Double.NaN);
     return true;
   }
 

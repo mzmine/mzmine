@@ -25,19 +25,19 @@
 
 package io.github.mzmine.datamodel.features.columnar_data;
 
-public interface NullableDoubleDataColumn extends DataColumn<Double> {
+public non-sealed interface NullableDoubleDataColumn extends DataColumn<Double> {
 
   double getDouble(final int index);
 
-  void setDouble(final int index, final double value);
+  double setDouble(final int index, final double value);
 
   default void clear(final int index) {
     setDouble(index, Double.NaN);
   }
 
   @Override
-  default void set(final int index, final Double value) {
-    setDouble(index, value == null ? Double.NaN : value);
+  default Double set(final int index, final Double value) {
+   return setDouble(index, value == null ? Double.NaN : value);
   }
 
   @Override

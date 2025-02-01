@@ -25,7 +25,12 @@
 
 package io.github.mzmine.datamodel.features.columnar_data;
 
-public abstract class AbstractDataColumn<T> implements DataColumn<T> {
+
+/**
+ * Currently this class is used to hide the resizeTo method. Maybe it is also ok to put this into
+ * the interface and then there is no need to seal the {@link DataColumn} interface
+ */
+public abstract non-sealed class AbstractDataColumn<T> implements DataColumn<T> {
 
   @Override
   public boolean ensureCapacity(final int requiredCapacity) {

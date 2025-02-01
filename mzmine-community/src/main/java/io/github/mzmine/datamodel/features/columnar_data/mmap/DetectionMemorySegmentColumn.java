@@ -31,7 +31,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 public class DetectionMemorySegmentColumn extends AbstractEnumMemorySegmentColumn<FeatureStatus> {
 
   public DetectionMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
-    super(storage, initialCapacity, FeatureStatus.class);
+    super(storage, initialCapacity);
   }
 
   @Override

@@ -32,25 +32,13 @@ import java.lang.foreign.ValueLayout;
 public abstract class AbstractEnumMemorySegmentColumn<T extends Enum> extends
     AbstractMemorySegmentColumn<T> {
 
-  private final Class<T> enumClass;
-
-  public AbstractEnumMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity,
-      Class<T> enumClass) {
+  public AbstractEnumMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
     super(storage, initialCapacity);
-    this.enumClass = enumClass;
   }
 
   @Override
   protected ValueLayout getValueLayout() {
     return ValueLayout.JAVA_INT;
-  }
-
-  @Override
-  protected void setInitialValue(final MemorySegment newData, final int startInclusive,
-      final int endExclusive) {
-    for (int i = startInclusive; i < endExclusive; i++) {
-      newData.setAtIndex(ValueLayout.JAVA_INT, i, -1);
-    }
   }
 
   @Override
@@ -63,7 +51,7 @@ public abstract class AbstractEnumMemorySegmentColumn<T extends Enum> extends
   }
 
   @Override
-  public void set(final int index, final T value) {
+  public void set(final MemorySegment data, final int index, final T value) {
     data.setAtIndex(ValueLayout.JAVA_INT, index, value == null ? -1 : value.ordinal());
   }
 

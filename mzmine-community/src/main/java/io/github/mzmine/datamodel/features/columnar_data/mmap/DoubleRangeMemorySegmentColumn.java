@@ -47,14 +47,6 @@ public class DoubleRangeMemorySegmentColumn extends AbstractMemorySegmentColumn<
     return LAYOUT;
   }
 
-  @Override
-  protected void setInitialValue(final MemorySegment newData, final int startInclusive,
-      final int endExclusive) {
-    for (int i = startInclusive; i < endExclusive; i++) {
-      set(newData, i, null, null);
-    }
-  }
-
   public @Nullable Double getLowerBound(final int index) {
     return getAtIndex(index * 2L);
   }
@@ -88,7 +80,7 @@ public class DoubleRangeMemorySegmentColumn extends AbstractMemorySegmentColumn<
   }
 
   @Override
-  public void set(final int index, final Range<Double> value) {
+  public void set(final MemorySegment data, final int index, final Range<Double> value) {
     if (value == null) {
       set(data, index, null, null);
       return;

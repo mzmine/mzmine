@@ -68,12 +68,22 @@ public class DataColumns {
   }
 
   @SuppressWarnings("unchecked")
-  public static @NotNull <T> DataColumn<T> ofType(DataType<T> type,
+  public static @NotNull <T> DataColumn<T> ofTypeSynchronized(DataType<T> type,
+      @Nullable MemoryMapStorage storage, int size) {
+    return new OptimisticallySynchronizedDataColumn<>(ofType(type, storage, size));
+  }
+
+  public static @NotNull <T> DataColumn<T> ofSynchronized(AbstractDataColumn<T> column) {
+    return new OptimisticallySynchronizedDataColumn<>(column);
+  }
+
+  @SuppressWarnings("unchecked")
+  public static @NotNull <T> AbstractDataColumn<T> ofType(DataType<T> type,
       @Nullable MemoryMapStorage storage, int size) {
     if (storage == null) {
       return new ObjectArrayColumn<>(size);
     }
-    return (DataColumn<T>) switch (type) {
+    return (AbstractDataColumn<T>) switch (type) {
       case IntegerType _ -> ofInt(storage, size);
       case DoubleType _ -> ofDouble(storage, size);
       case FloatType _ -> ofFloat(storage, size);

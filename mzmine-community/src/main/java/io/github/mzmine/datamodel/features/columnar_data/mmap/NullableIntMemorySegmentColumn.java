@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.mmap;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.columnar_data.NullableIntDataColumn;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
@@ -43,21 +45,19 @@ public class NullableIntMemorySegmentColumn extends AbstractMemorySegmentColumn<
   }
 
   @Override
+  protected void set(final MemorySegment data, final int index, final Integer value) {
+    data.setAtIndex(ValueLayout.JAVA_INT, index, value!=null? value : NULL_VALUE);
+  }
+
+  @Override
   public int getInt(final int index) {
     return data.getAtIndex(ValueLayout.JAVA_INT, index);
   }
 
   @Override
-  public void setInt(final int index, final int value) {
+  public int setInt(final int index, final int value) {
     data.setAtIndex(ValueLayout.JAVA_INT, index, value);
-  }
-
-  @Override
-  protected void setInitialValue(final MemorySegment newData, final int startInclusive,
-      final int endExclusive) {
-    for (int i = startInclusive; i < endExclusive; i++) {
-      newData.setAtIndex(ValueLayout.JAVA_INT, i, NULL_VALUE);
-    }
+    return index;
   }
 
 }
