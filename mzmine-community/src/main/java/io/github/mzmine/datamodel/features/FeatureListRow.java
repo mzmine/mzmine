@@ -57,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
 public interface FeatureListRow extends ModularDataModel {
 
   /**
-   * Return raw data with features on this row
+   * Return unmodifiable list of all raw data files in this feature list even those without detection in this row
    */
   List<RawDataFile> getRawDataFiles();
 
