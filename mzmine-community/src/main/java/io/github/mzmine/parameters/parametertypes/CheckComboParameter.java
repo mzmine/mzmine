@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,7 @@ public class CheckComboParameter<ValueType> implements
   protected final ObservableList<ValueType> choices;
   @NotNull
   protected List<ValueType> value;
+  private final boolean requiresSelection;
 
   public CheckComboParameter(String name, String description, ValueType[] choices) {
     this(name, description, choices, List.of());
@@ -69,10 +70,17 @@ public class CheckComboParameter<ValueType> implements
 
   public CheckComboParameter(String name, String description, List<ValueType> choices,
       @NotNull List<ValueType> defaultValue) {
+    this(name, description, choices, defaultValue, false);
+  }
+
+  public CheckComboParameter(String name, String description, List<ValueType> choices,
+      @NotNull List<ValueType> defaultValue, boolean requiresSelection) {
     this.name = name;
     this.description = description;
-    this.choices = FXCollections.observableList(choices);
+    // requires defensive copy of choices otherwise may share choices between clones
+    this.choices = FXCollections.observableArrayList(choices);
     this.value = defaultValue;
+    this.requiresSelection = requiresSelection;
   }
 
   @Override
@@ -173,7 +181,7 @@ public class CheckComboParameter<ValueType> implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    return true;
+    return !requiresSelection || (value != null && !value.isEmpty());
   }
 
 }

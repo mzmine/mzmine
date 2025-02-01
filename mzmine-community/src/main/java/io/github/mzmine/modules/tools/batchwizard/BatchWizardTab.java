@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard;
 
 import static io.github.mzmine.modules.tools.batchwizard.WizardPart.DATA_IMPORT;
 import static io.github.mzmine.modules.tools.batchwizard.WizardPart.FILTER;
+import static io.github.mzmine.modules.tools.batchwizard.WizardPart.WORKFLOW;
 import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getOrElse;
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
@@ -39,7 +40,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
@@ -47,10 +47,11 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizard
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
@@ -65,7 +66,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.Optional;
 import java.util.logging.Level;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -179,34 +180,57 @@ public class BatchWizardTab extends SimpleTab {
         .orElse(IonInterfaceWizardParameterFactory.HPLC);
 
     // apply filters
-    filterComboBox(WizardPart.IMS, ionization.getMatchingImsPresets());
-    filterComboBox(WizardPart.WORKFLOW, ionization.getMatchingWorkflowPresets());
+    filterComboBox(WizardPart.IMS, WizardPartFilter.allow(ionization.getMatchingImsPresets()));
+    filterWorkflows(sequenceSteps);
 
     // check timsTOF and TWIMS TOF only
-    var ims = sequenceSteps.get(WizardPart.IMS)
+    IonMobilityWizardParameterFactory ims = sequenceSteps.get(WizardPart.IMS)
         .map(step -> (IonMobilityWizardParameterFactory) step.getFactory())
         .orElse(IonMobilityWizardParameterFactory.NO_IMS);
 
-    filterComboBox(WizardPart.MS, ims.getMatchingMassSpectrometerPresets());
+    filterComboBox(WizardPart.MS, WizardPartFilter.allow(ims.getMatchingMassSpectrometerPresets()));
+
+    // after import or applying a partial sequence (changing multiple steps at once) it is important to select the correct item
+    ensureComboBoxSelection();
+  }
+
+  private void ensureComboBoxSelection() {
+    // select the correct options
+    for (var preset : sequenceSteps) {
+      ComboBox<WizardStepParameters> combo = combos.get(preset.getPart());
+      if (combo != null) {
+        combo.getSelectionModel().select(preset);
+      }
+    }
+  }
+
+  private void filterWorkflows(WizardSequence sequenceSteps) {
+    final List<WizardStepParameters> availableWorkflows = ALL_PRESETS.get(WizardPart.WORKFLOW)
+        .stream().filter(workflow -> {
+          if (workflow instanceof WorkflowWizardParameters workflowParams) {
+            return workflowParams.isApplicableToSteps(sequenceSteps);
+          }
+          return false;
+        }).toList();
+    var selected = setItemsToCombo(WORKFLOW, availableWorkflows, false);
+    sequenceSteps.set(WORKFLOW, selected); // set the updated sequence
   }
 
   /**
    * Filter combobox and set new selection
    *
-   * @param part              the part
-   * @param filteredFactories the filtered list of presets
+   * @param part the part
    */
-  private void filterComboBox(final WizardPart part, WizardParameterFactory[] filteredFactories) {
-    var filterSet = Set.of(filteredFactories);
+  private void filterComboBox(final WizardPart part, WizardPartFilter filter) {
 
     List<WizardStepParameters> filteredPresets = ALL_PRESETS.get(part).stream()
-        .filter(workflow -> filterSet.contains(workflow.getFactory())).toList();
+        .filter(workflow -> filter.accept(workflow.getFactory())).toList();
 
     ComboBox<WizardStepParameters> combo = combos.get(part);
     ObservableList<WizardStepParameters> currentPresets = combo.getItems();
     if (!currentPresets.equals(filteredPresets)) {
       // need to set new selection to workflow
-      var selected = setItemsToCombo(combo, filteredPresets, false);
+      var selected = setItemsToCombo(part, filteredPresets, false);
       sequenceSteps.set(part, selected);
 
       if (part == WizardPart.MS) {
@@ -224,16 +248,17 @@ public class BatchWizardTab extends SimpleTab {
     }
   }
 
-  private WizardStepParameters setItemsToCombo(final ComboBox<WizardStepParameters> combo,
+  private WizardStepParameters setItemsToCombo(final WizardPart part,
       final List<WizardStepParameters> newItems, boolean notifyListeners) {
+    final ComboBox<WizardStepParameters> combo = combos.get(part);
+
     boolean oldNotify = listenersActive;
     setListenersActive(notifyListeners);
     // keep selection or select first element if not available
     SingleSelectionModel<WizardStepParameters> selection = combo.getSelectionModel();
-    WizardStepParameters oldSelected = selection.getSelectedItem();
     // set new items
     combo.setItems(FXCollections.observableList(newItems));
-    selection.select(oldSelected);
+    sequenceSteps.get(part).ifPresentOrElse(selection::select, selection::clearSelection);
     if (selection.getSelectedIndex() < 0) {
       selection.selectFirst();
     }
@@ -383,6 +408,9 @@ public class BatchWizardTab extends SimpleTab {
   private void applyPartialSequence(final WizardSequence partialSequence) {
     setListenersActive(false);
 
+    // keep old parameters before applying sequence
+    updateAllParametersFromUi();
+
     // partialSequence might contain other instances of the presets (after loading)
     // need to apply all parameter changes to ALL_PRESETS
     WizardSequence correctPartialSequence = new WizardSequence();
@@ -398,15 +426,11 @@ public class BatchWizardTab extends SimpleTab {
     // keep current as default parameters
     sequenceSteps.apply(correctPartialSequence);
 
-    for (var preset : sequenceSteps) {
-      ComboBox<WizardStepParameters> combo = combos.get(preset.getPart());
-      if (combo != null) {
-        combo.getSelectionModel().select(preset);
-      }
-    }
-    setListenersActive(true);
-
+    // apply preset filters so that combos show the correct options
     createParameterPanes();
+
+    // now activate listeners again. Should be after changing the sequence and createParameterPanes
+    setListenersActive(true);
   }
 
   /**
@@ -439,12 +463,18 @@ public class BatchWizardTab extends SimpleTab {
     if (sequenceSteps == null) {
       return;
     }
+    final Optional<WizardStepParameters> workflow = sequenceSteps.get(WORKFLOW);
+    if (workflow.isEmpty()) {
+      DialogLoggerUtil.showErrorDialog("Cannot create batch",
+          "A workflow must be selected to create a batch.");
+      return;
+    }
 
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     try {
-      final BatchQueue q = WizardBatchBuilder.createBatchBuilderForSequence(sequenceSteps)
-          .createQueue();
+      final BatchQueue q = ((WorkflowWizardParameterFactory) workflow.get()
+          .getFactory()).getBatchBuilder(sequenceSteps).createQueue();
       batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
 
       if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {

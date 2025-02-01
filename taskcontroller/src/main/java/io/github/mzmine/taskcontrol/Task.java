@@ -25,7 +25,6 @@
 
 package io.github.mzmine.taskcontrol;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -70,7 +69,7 @@ public interface Task extends Runnable {
     this.error(message, null);
   }
 
-  void error(@NotNull String message, @Nullable Exception exceptionToLog);
+  void error(@Nullable String message, @Nullable Exception exceptionToLog);
 
   String getErrorMessage();
 

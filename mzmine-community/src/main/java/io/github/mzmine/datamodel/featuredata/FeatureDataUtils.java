@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,9 +51,6 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
-import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,7 +101,7 @@ public class FeatureDataUtils {
         for (int i = 0; i < mobilogram.getNumberOfValues(); i++) {
           final double mz = mobilogram.getMZ(i);
           // we add flanking 0 intensities with 0d mz during building, don't count those
-          if (mz < min && Double.compare(mz, 0d) == 1) {
+          if (mz < min && Double.compare(mz, 0d) > 0) {
             min = mz;
           }
           if (mz > max) {
@@ -120,7 +117,7 @@ public class FeatureDataUtils {
       for (int i = 0; i < series.getNumberOfValues(); i++) {
         final double mz = series.getMZ(i);
         // we add flanking 0 intesities with 0d mz during building, don't count those
-        if (mz < min && Double.compare(mz, 0d) == 1) {
+        if (mz < min && Double.compare(mz, 0d) > 0) {
           min = mz;
         }
         if (mz > max) {
@@ -128,7 +125,7 @@ public class FeatureDataUtils {
         }
       }
     }
-    if (min == max) {
+    if (Double.compare(min, max) == 0) {
       return Range.singleton(min);
     }
     return min < max ? Range.closed(min, max) : null;
@@ -160,6 +157,18 @@ public class FeatureDataUtils {
       return Range.singleton((float) min);
     }
     return min < max ? Range.closed((float) min, (float) max) : null;
+  }
+
+  /**
+   * Caclualtes the highest point of the intensity series. Usually, this method is not needed
+   * because {@link #getIntensityRange(IntensitySeries)} returns more information.
+   */
+  public static float getHeight(IntensitySeries series) {
+    final Range<Float> range = getIntensityRange(series);
+    if (range == null) {
+      return 0f;
+    }
+    return range.upperEndpoint();
   }
 
   /**
@@ -285,8 +294,10 @@ public class FeatureDataUtils {
     var intensityRange = getIntensityRange(featureData);
     feature.set(IntensityRangeType.class, intensityRange);
     feature.set(AreaType.class, calculateArea(featureData));
-    feature.set(HeightType.class, (float) featureData.getIntensity(mostIntenseIndex));
-    feature.set(RTType.class, featureData.getRetentionTime(mostIntenseIndex));
+    if (mostIntenseIndex >= 0) {
+      feature.set(HeightType.class, (float) featureData.getIntensity(mostIntenseIndex));
+      feature.set(RTType.class, featureData.getRetentionTime(mostIntenseIndex));
+    }
     feature.set(RTRangeType.class, getRtRange(featureData));
   }
 

@@ -40,6 +40,7 @@ import java.time.Instant;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.Node;
@@ -52,6 +53,7 @@ public class NodeGenerationThread extends AbstractTask {
   private static final Logger logger = Logger.getLogger(NodeGenerationThread.class.getName());
   private final Queue<NodeRequest<?>> nodeRequestQueue = new ConcurrentLinkedQueue<>();
   private final Queue<FinishedNodePair> finishedNodes = new ConcurrentLinkedQueue<>();
+  private final AtomicLong requestedNodesCount = new AtomicLong(0);
   private FeatureList flist;
   private double progress = 0;
 
@@ -63,7 +65,7 @@ public class NodeGenerationThread extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Creating charts for row %d rows".formatted(nodeRequestQueue.size());
+    return "Creating charts for row %d rows".formatted(requestedNodesCount.get());
   }
 
   @Override
@@ -76,7 +78,7 @@ public class NodeGenerationThread extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // if there was no chart request for this time, stop the thread
-    final Timer waitTimer = new Timer(500, () -> setStatus(TaskStatus.CANCELED));
+    final Timer waitTimer = new Timer(500, () -> setStatus(TaskStatus.FINISHED));
 
     try {
       while (getStatus() == TaskStatus.PROCESSING) {
@@ -141,6 +143,7 @@ public class NodeGenerationThread extends AbstractTask {
   public <T> void requestNode(@NotNull ModularFeatureListRow row, DataType<T> type, T value,
       RawDataFile raw, Pane parentNode) {
     nodeRequestQueue.add(new NodeRequest<>(row, type, value, raw, parentNode));
+    requestedNodesCount.incrementAndGet();
   }
 
   private record FinishedNodePair(Pane parent, Node child) {

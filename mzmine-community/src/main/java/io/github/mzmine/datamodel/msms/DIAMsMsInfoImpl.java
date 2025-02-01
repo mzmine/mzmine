@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class DIAMsMsInfoImpl implements MsMsInfo {
 
-  public static final String XML_TYPE_NAME = "ddamsmsinfo";
+  public static final String XML_TYPE_NAME = "diamsmsinfo";
 
   @Nullable
   private final Float activationEnergy;
@@ -58,6 +58,14 @@ public class DIAMsMsInfoImpl implements MsMsInfo {
     this.msLevel = msLevel;
     this.method = method;
     this.isolationWindow = isolationWindow;
+  }
+
+  public DIAMsMsInfoImpl(DDAMsMsInfo msMsInfo) {
+    this.activationEnergy = msMsInfo.getActivationEnergy();
+    this.msLevel = msMsInfo.getMsLevel();
+    this.method = msMsInfo.getActivationMethod();
+    this.isolationWindow = msMsInfo.getIsolationWindow();
+    this.msMsScan = msMsInfo.getMsMsScan();
   }
 
   /**

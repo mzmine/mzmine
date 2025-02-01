@@ -154,11 +154,11 @@ public class NetworkOverviewController {
     gridAnnotations.getChildren().clear();
     List<RowConstraints> rows = new ArrayList<>();
     for (final FeatureRowInterfaceFx inter : annotationInterfaces) {
-      if (inter.isEmptyContent()) {
+      if (inter.isEmptyContent() || !(inter instanceof Tab tab)) {
         continue;
       }
 
-      gridAnnotations.add(spectralMatchesController.getContent(), 0, rows.size());
+      gridAnnotations.add(tab.getContent(), 0, rows.size());
       RowConstraints row = new RowConstraints();
       row.setFillHeight(true);
       row.setVgrow(Priority.SOMETIMES);

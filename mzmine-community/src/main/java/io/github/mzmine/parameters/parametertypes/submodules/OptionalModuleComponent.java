@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,17 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import java.util.Map;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
@@ -45,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
  *
  */
 public class OptionalModuleComponent extends BorderPane implements EstimatedComponentHeightProvider,
-    EstimatedComponentWidthProvider {
+    EstimatedComponentWidthProvider, EmbeddedParameterComponentProvider {
 
   // null if shown in dialog
   protected final @Nullable ParameterSetupPane paramPane;
@@ -74,14 +77,14 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
       setButton.setOnAction(e -> embeddedParameters.showSetupDialog(false));
     } else {
       // use internal parameter pane
-      paramPane = new ParameterSetupPane(true, embeddedParameters, false, false, null, true, false);
+      paramPane = ParameterSetupPane.createEmbedded(true, embeddedParameters, null);
 
       setButton = new Button("Show");
       setButton.setOnAction(e -> {
         boolean toggledHidden = !hidden.get();
         // change text
         setButton.setText(toggledHidden ? "Show" : "Hide");
-        setBottom(toggledHidden ? null : paramPane);
+        setCenter(toggledHidden ? null : paramPane);
         // events
         hidden.set(toggledHidden);
 
@@ -165,4 +168,9 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
     return estimatedWidthProperty;
   }
 
+  @Override
+  public @Nullable Map<String, Node> getParametersAndComponents() {
+    return getEmbeddedParameterPane() != null
+        ? getEmbeddedParameterPane().getParametersAndComponents() : null;
+  }
 }

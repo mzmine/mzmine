@@ -31,7 +31,6 @@ import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MzSeries;
@@ -184,7 +183,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+  public IonTimeSeries<Scan> subSeries(MemoryMapStorage storage, int startIndexInclusive,
       int endIndexExclusive) {
 
     return new SimpleIonTimeSeries(
@@ -222,7 +221,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public IonSpectrumSeries<Scan> copyAndReplace(@Nullable final MemoryMapStorage storage,
+  public IonTimeSeries<Scan> copyAndReplace(@Nullable final MemoryMapStorage storage,
       @NotNull final double[] newIntensityValues) {
     var intensities = StorageUtils.storeValuesToDoubleBuffer(storage, newIntensityValues);
     // reuse mz memory segment
@@ -264,5 +263,10 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   @Override
   public int hashCode() {
     return Objects.hash(scans, intensityValues.byteSize(), mzValues.byteSize());
+  }
+
+  @Override
+  public IonTimeSeries<Scan> emptySeries() {
+    return IonTimeSeries.EMPTY;
   }
 }

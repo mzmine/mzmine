@@ -53,6 +53,7 @@ import org.jetbrains.annotations.Nullable;
 public class MobilityScanStorage {
 
   // raw data
+  @NotNull
   private final Frame frame;
   /**
    * doubles
@@ -365,7 +366,7 @@ public class MobilityScanStorage {
     if (massListStorageOffsets == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
-          null);
+          frame);
     }
     assert index < getNumberOfMobilityScans();
 
@@ -384,7 +385,7 @@ public class MobilityScanStorage {
     if (massListStorageOffsets == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
-          null);
+          frame);
     }
     return massListStorageOffsets.getAtIndex(ValueLayout.JAVA_INT, index);
   }
@@ -397,7 +398,7 @@ public class MobilityScanStorage {
     if (massListBasePeakIndices == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
-          null);
+          frame);
     }
     return massListBasePeakIndices.getAtIndex(ValueLayout.JAVA_INT, index);
   }
@@ -409,7 +410,7 @@ public class MobilityScanStorage {
     if (massListMaxNumPoints == -1) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
-          null);
+          frame);
     }
     return massListMaxNumPoints;
   }
@@ -421,7 +422,7 @@ public class MobilityScanStorage {
     if (massListIntensityValues == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
-          null);
+          frame);
     }
     return (int) StorageUtils.numDoubles(massListIntensityValues);
   }
@@ -430,7 +431,7 @@ public class MobilityScanStorage {
     if (massListMzValues == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
-          null);
+          frame);
     }
     final int numMassListDp = getNumberOfMassListDatapoints(mobilityScanIndex);
     assert numMassListDp <= dst.length;
@@ -445,7 +446,7 @@ public class MobilityScanStorage {
     if (massListMzValues == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
-          null);
+          frame);
     }
     assert dst.length >= getMassListTotalNumPoints();
     StorageUtils.copyToBuffer(dst, massListMzValues, 0, getMassListTotalNumPoints());
@@ -455,7 +456,7 @@ public class MobilityScanStorage {
     if (massListIntensityValues == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
-          null);
+          frame);
     }
     final int numMassListDp = getNumberOfMassListDatapoints(mobilityScanIndex);
     assert numMassListDp <= dst.length;
@@ -470,7 +471,7 @@ public class MobilityScanStorage {
     if (massListIntensityValues == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
-          null);
+          frame);
     }
     assert dst.length >= getMassListTotalNumPoints();
     StorageUtils.copyToBuffer(dst, massListIntensityValues, 0, getMassListTotalNumPoints());
@@ -480,7 +481,7 @@ public class MobilityScanStorage {
     if (massListMzValues == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
-          null);
+          frame);
     }
     return massListMzValues.getAtIndex(ValueLayout.JAVA_DOUBLE,
         getMassListStorageOffset(mobilityScanIndex) + index);
@@ -490,7 +491,7 @@ public class MobilityScanStorage {
     if (massListIntensityValues == null) {
       throw new MissingMassListException(
           "No mass list present for mobility scans. Run mass detection for scan type \"Mobility scans\" prior.",
-          null);
+          frame);
     }
     return massListIntensityValues.getAtIndex(ValueLayout.JAVA_DOUBLE,
         getMassListStorageOffset(mobilityScanIndex) + index);

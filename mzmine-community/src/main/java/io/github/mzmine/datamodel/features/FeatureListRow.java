@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
@@ -42,6 +43,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -284,9 +286,7 @@ public interface FeatureListRow extends ModularDataModel {
    */
   IsotopePattern getBestIsotopePattern();
 
-  @Nullable FeatureList getFeatureList();
-
-  void setFeatureList(@NotNull FeatureList flist);
+  @NotNull FeatureList getFeatureList();
 
   /**
    * @return A list of all compound annotations.
@@ -523,4 +523,17 @@ public interface FeatureListRow extends ModularDataModel {
    * @return preferred compound name
    */
   @Nullable String getPreferredAnnotationName();
+
+  /**
+   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()}.
+   */
+  @Nullable
+  default PolarityType getRepresentativePolarity() {
+    final Feature bestFeature = getBestFeature();
+    if (bestFeature != null && bestFeature.getRepresentativePolarity() != null) {
+      return bestFeature.getRepresentativePolarity();
+    }
+    return streamFeatures().sorted(Comparator.comparingDouble(Feature::getHeight).reversed())
+        .map(Feature::getRepresentativePolarity).filter(Objects::nonNull).findFirst().orElse(null);
+  }
 }

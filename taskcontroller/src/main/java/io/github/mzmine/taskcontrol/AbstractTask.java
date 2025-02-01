@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.taskcontrol;
+
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
@@ -107,7 +109,8 @@ public abstract class AbstractTask implements Task {
   }
 
   @Override
-  public void error(@NotNull String message, @Nullable Exception exceptionToLog) {
+  public void error(@Nullable String message, @Nullable Exception exceptionToLog) {
+    message = requireNonNullElse(message, "");
     if (exceptionToLog != null) {
       logger.log(Level.SEVERE, message, exceptionToLog);
     }
@@ -144,7 +147,7 @@ public abstract class AbstractTask implements Task {
    */
   public final void setStatus(TaskStatus newStatus) {
     TaskStatus old = status;
-    if (old == TaskStatus.ERROR || old == TaskStatus.FINISHED) {
+    if (old.isUnmodifiable()) {
       return;
     }
 

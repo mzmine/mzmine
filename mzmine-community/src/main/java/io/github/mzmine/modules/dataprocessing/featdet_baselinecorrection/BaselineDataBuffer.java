@@ -79,8 +79,8 @@ public class BaselineDataBuffer {
     }
 
     ensureCapacity(numValues);
-    extractRtValues(timeSeries); // needs to happen after ensureCapacity
     clearRemovedPeaksBuffers();
+    extractRtValues(timeSeries); // needs to happen after ensureCapacity
 
     indicesOfInterest.clear();
     indicesOfInterest.add(0);

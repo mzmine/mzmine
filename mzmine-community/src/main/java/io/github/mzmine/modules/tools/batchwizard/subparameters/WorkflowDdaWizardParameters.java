@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
@@ -55,7 +55,7 @@ public final class WorkflowDdaWizardParameters extends WorkflowWizardParameters 
 
 
   public WorkflowDdaWizardParameters() {
-    super(WorkflowWizardParameterFactory.DDA,
+    super(new WorkflowDDA(),
         // actual parameters
         applySpectralNetworking, exportPath, exportGnps, exportSirius, exportAnnotationGraphics);
   }

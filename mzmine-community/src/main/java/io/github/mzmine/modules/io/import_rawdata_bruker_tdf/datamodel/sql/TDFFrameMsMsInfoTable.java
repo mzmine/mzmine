@@ -26,10 +26,14 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.util.RangeUtils;
 import java.util.Arrays;
 
 /**
@@ -110,5 +114,40 @@ public class TDFFrameMsMsInfoTable extends TDFDataTable<Long> {
         ce.get(index).floatValue(), msmsScan, parentScan, msLevel, ActivationMethod.CID,
         Range.closed(precursor - width / 2, precursor + width / 2));
     return ddaMsMsInfo;
+  }
+
+  public PasefMsMsInfo getImsAutoMsMsInfo(int index, Frame msmsScan, Frame parentScan) {
+    final double precursor = precursorMz.get(index).doubleValue();
+    final double width = isolationWidth.get(index).doubleValue();
+    final float ce = getCe().get(index).floatValue();
+
+    final PasefMsMsInfoImpl ddaImsMsMsInfo = new PasefMsMsInfoImpl(precursor,
+        Range.closed(0, msmsScan.getNumberOfMobilityScans() - 1), ce, charge.get(index).intValue(),
+        parentScan, msmsScan, RangeUtils.rangeAround(precursor, width));
+    return ddaImsMsMsInfo;
+  }
+
+  public TDFDataColumn<Long> getFrameId() {
+    return frameId;
+  }
+
+  public TDFDataColumn<Long> getParentId() {
+    return parentId;
+  }
+
+  public TDFDataColumn<Double> getPrecursorMz() {
+    return precursorMz;
+  }
+
+  public TDFDataColumn<Double> getIsolationWidth() {
+    return isolationWidth;
+  }
+
+  public TDFDataColumn<Long> getCharge() {
+    return charge;
+  }
+
+  public TDFDataColumn<Double> getCe() {
+    return ce;
   }
 }

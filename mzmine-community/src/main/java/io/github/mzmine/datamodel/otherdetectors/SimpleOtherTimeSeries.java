@@ -48,6 +48,10 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
   public static final String XML_OTHER_TIME_SERIES_ATTR_VALUE = "simpleothertimeseries";
   public static final String XML_TRACE_NAME_ATTR = "othertimeseries_name";
 
+  public static final SimpleOtherTimeSeries empty = new SimpleOtherTimeSeries(null, new float[0],
+      new double[0], "",
+      new OtherTimeSeriesDataImpl(new OtherDataFileImpl(RawDataFile.createDummyFile())));
+
   /**
    * doubles
    */
@@ -65,6 +69,12 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
     if (intensityValues.length != rtValues.length) {
       throw new IllegalArgumentException("Intensities and RT values must have the same length");
     }
+    for (int i = 0; i < rtValues.length - 1; i++) {
+      if (rtValues[i + 1] < rtValues[i]) {
+        throw new IllegalArgumentException("Chromatogram not sorted in retention time");
+      }
+    }
+
     this.timeSeriesData = timeSeriesData;
     intensityBuffer = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
     timeBuffer = StorageUtils.storeValuesToFloatBuffer(storage, rtValues);
@@ -81,50 +91,6 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
     intensityBuffer = intensityValues;
     timeBuffer = rtValues;
     this.name = name;
-  }
-
-  @Override
-  public MemorySegment getIntensityValueBuffer() {
-    return intensityBuffer;
-  }
-
-  @Override
-  public float getRetentionTime(int index) {
-    assert index < StorageUtils.numFloats(timeBuffer);
-    return timeBuffer.getAtIndex(ValueLayout.JAVA_FLOAT, index);
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public ChromatogramType getChromatoogramType() {
-    return getTimeSeriesData().getChromatogramType();
-  }
-
-  @Override
-  public @NotNull OtherDataFile getOtherDataFile() {
-    return timeSeriesData.getOtherDataFile();
-  }
-
-  @Override
-  @NotNull
-  public OtherTimeSeriesData getTimeSeriesData() {
-    return timeSeriesData;
-  }
-
-  @Override
-  public OtherTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newIntensities,
-      String newName) {
-    if (getNumberOfValues() != newIntensities.length) {
-      throw new IllegalArgumentException("The number of intensities does not match number of rts.");
-    }
-
-    return new SimpleOtherTimeSeries(timeBuffer,
-        StorageUtils.storeValuesToDoubleBuffer(storage, newIntensities), newName,
-        getTimeSeriesData());
   }
 
   public static OtherTimeSeries loadFromXML(XMLStreamReader reader, RawDataFile currentFile)
@@ -169,6 +135,50 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
 
     return new SimpleOtherTimeSeries(currentFile.getMemoryMapStorage(), rts, intensities, name,
         timeSeriesData);
+  }
+
+  @Override
+  public MemorySegment getIntensityValueBuffer() {
+    return intensityBuffer;
+  }
+
+  @Override
+  public float getRetentionTime(int index) {
+    assert index < StorageUtils.numFloats(timeBuffer);
+    return timeBuffer.getAtIndex(ValueLayout.JAVA_FLOAT, index);
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public ChromatogramType getChromatoogramType() {
+    return getTimeSeriesData().getChromatogramType();
+  }
+
+  @Override
+  public @NotNull OtherDataFile getOtherDataFile() {
+    return timeSeriesData.getOtherDataFile();
+  }
+
+  @Override
+  @NotNull
+  public OtherTimeSeriesData getTimeSeriesData() {
+    return timeSeriesData;
+  }
+
+  @Override
+  public OtherTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newIntensities,
+      String newName) {
+    if (getNumberOfValues() != newIntensities.length) {
+      throw new IllegalArgumentException("The number of intensities does not match number of rts.");
+    }
+
+    return new SimpleOtherTimeSeries(timeBuffer,
+        StorageUtils.storeValuesToDoubleBuffer(storage, newIntensities), newName,
+        getTimeSeriesData());
   }
 
   @Override
@@ -235,5 +245,10 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
     int result = 31 * Objects.hashCode(getName());
     result = 31 * result + getTimeSeriesData().hashCode();
     return result;
+  }
+
+  @Override
+  public OtherTimeSeries emptySeries() {
+    return empty;
   }
 }
