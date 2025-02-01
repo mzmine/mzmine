@@ -43,7 +43,7 @@ public enum AssetGroup {
   MSnLib, GNPS_LIB, MONA_LIB, MASSBANK_EU,
 
   // models
-  MS2DEEPSCORE;
+  MS2DEEPSCORE, DREAMS;
 
   @Override
   public String toString() {
@@ -63,6 +63,7 @@ public enum AssetGroup {
       case MONA_LIB -> "MoNA";
       case MASSBANK_EU -> "MassBank EU";
       case MS2DEEPSCORE -> "MS2Deepscore";
+      case DREAMS -> "DreaMS";
     };
   }
 
@@ -75,7 +76,7 @@ public enum AssetGroup {
     return switch (this) {
       case ThermoRawFileParser, MSCONVERT -> AssetCategory.TOOLS;
       case MSnLib, GNPS_LIB, MONA_LIB, MASSBANK_EU -> AssetCategory.SPECTRAL_LIBRARIES;
-      case MS2DEEPSCORE -> AssetCategory.MODELS;
+      case MS2DEEPSCORE, DREAMS -> AssetCategory.MODELS;
     };
   }
 
@@ -94,6 +95,7 @@ public enum AssetGroup {
       case MONA_LIB -> "https://mona.fiehnlab.ucdavis.edu/downloads";
       case MASSBANK_EU -> "https://github.com/MassBank/MassBank-data/releases/latest";
       case MS2DEEPSCORE -> "https://zenodo.org/records/12628368";
+      case DREAMS -> "https://huggingface.co/roman-bushuiev/DreaMS";
     };
   }
 

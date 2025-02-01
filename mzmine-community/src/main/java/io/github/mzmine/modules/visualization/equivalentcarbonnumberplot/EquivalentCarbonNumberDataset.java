@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
+
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -189,7 +191,7 @@ public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements 
   @Override
   public String getTaskDescription() {
     return "Computing ECN model for " + selectedLipidClass.getAbbr() + " with " + selectedDBENumber
-        + " DBEs";
+           + " DBEs";
   }
 
   @Override
@@ -252,7 +254,8 @@ public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements 
 
 
   @Override
-  public void error(@NotNull String message, @Nullable Exception exceptionToLog) {
+  public void error(@Nullable String message, @Nullable Exception exceptionToLog) {
+    message = requireNonNullElse(message, "");
     if (exceptionToLog != null) {
       logger.log(Level.SEVERE, message, exceptionToLog);
     }

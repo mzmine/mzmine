@@ -118,10 +118,10 @@ public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("Minimum purity score", minimumPurity);
-    nameParameterMap.put("Minimum distance of MS/MS spectra", minimumDistance);
-    nameParameterMap.put("Number of MS/MS spectra", numMsMs);
-    nameParameterMap.put("Path to msmsmaldi.exe", acquisitionControl);
+    nameParameterMap.put("Minimum purity score", getParameter(minimumPurity));
+    nameParameterMap.put("Minimum distance of MS/MS spectra", getParameter(minimumDistance));
+    nameParameterMap.put("Number of MS/MS spectra", getParameter(numMsMs));
+    nameParameterMap.put("Path to msmsmaldi.exe", getParameter(acquisitionControl));
     return nameParameterMap;
   }
 

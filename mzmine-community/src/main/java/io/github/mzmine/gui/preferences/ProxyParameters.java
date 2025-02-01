@@ -54,7 +54,7 @@ public class ProxyParameters extends SimpleParameterSet {
   @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
     var map = super.getNameParameterMap();
-    map.put("Proxy adress", proxyAddress);
+    map.put("Proxy adress", getParameter(proxyAddress));
     return map;
   }
 

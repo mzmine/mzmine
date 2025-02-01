@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,6 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.awt.Color;
-import java.io.IOException;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -283,7 +282,7 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   }
 
   @Override
-  public void addScan(Scan newScan) throws IOException {
+  public void addScan(Scan newScan) {
     throw new UnsupportedOperationException("Unsupported during project load.");
   }
 

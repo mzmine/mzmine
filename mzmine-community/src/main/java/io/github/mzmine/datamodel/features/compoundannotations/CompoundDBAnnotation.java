@@ -37,7 +37,6 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure2dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
@@ -259,17 +258,6 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
-
-  @Nullable
-  default DatabaseMatchInfo getDatabaseMatchInfo() {
-    return get(DatabaseMatchInfoType.class);
-  }
-
-  @Nullable
-  default String getDatabaseUrl() {
-    final DatabaseMatchInfo databaseMatchInfo = getDatabaseMatchInfo();
-    return databaseMatchInfo == null ? null : databaseMatchInfo.url();
-  }
 
   @Override
   @Nullable

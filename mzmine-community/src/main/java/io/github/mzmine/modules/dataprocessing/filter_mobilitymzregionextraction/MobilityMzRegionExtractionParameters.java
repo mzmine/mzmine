@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextractio
 
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.PlotType;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
@@ -34,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -70,5 +72,10 @@ public class MobilityMzRegionExtractionParameters extends SimpleParameterSet {
     dialog.showAndWait();
 
     return dialog.getExitCode();
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

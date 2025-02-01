@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,7 +52,7 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
 
   private final String name;
   private final String description;
-  private final EnumMap<EnumType, ParameterSet> parametersMap;
+  protected final EnumMap<EnumType, ParameterSet> parametersMap;
   private EnumType selectedValue;
 
   public ModuleOptionsEnumComboParameter(final String name, final String description,
@@ -73,7 +73,10 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
     }
   }
 
-  private ModuleOptionsEnumComboParameter(final String name, final String description,
+  /**
+   * Used in clone parameter
+   */
+  protected ModuleOptionsEnumComboParameter(final String name, final String description,
       final EnumType selectedValue, final EnumMap<EnumType, ParameterSet> parameters) {
     this.name = name;
     this.description = description;

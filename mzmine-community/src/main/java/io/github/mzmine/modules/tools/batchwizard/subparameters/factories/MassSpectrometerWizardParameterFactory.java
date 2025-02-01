@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWiza
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -61,7 +62,7 @@ public enum MassSpectrometerWizardParameterFactory implements WizardParameterFac
   }
 
   @Override
-  public String getUniqueId() {
+  public @NotNull String getUniqueID() {
     return name();
   }
 

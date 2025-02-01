@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -110,7 +110,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   private final Map<RawDataFile, ModularFeature> features;
   @NotNull
-  private ModularFeatureList flist;
+  private final ModularFeatureList flist;
 
   /**
    * Creates an empty row
@@ -123,7 +123,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
       if (change.wasAdded()) {
-        flist.addRowType(change.getKey());
+        this.flist.addRowType(change.getKey());
       }
     });
 
@@ -253,7 +253,6 @@ public class ModularFeatureListRow implements FeatureListRow {
 
 //    logger.log(Level.FINEST, "ADDING FEATURE");
     ModularFeature oldFeature = features.put(raw, modularFeature);
-    modularFeature.setFeatureList(flist);
     modularFeature.setRow(this);
 
     if (!Objects.equals(oldFeature, modularFeature)) {
@@ -367,19 +366,9 @@ public class ModularFeatureListRow implements FeatureListRow {
     return f != null && f.getFeatureStatus().equals(FeatureStatus.UNKNOWN) ? null : f;
   }
 
-  @Nullable
   @Override
-  public ModularFeatureList getFeatureList() {
+  public @NotNull ModularFeatureList getFeatureList() {
     return flist;
-  }
-
-  @Override
-  public void setFeatureList(@NotNull FeatureList flist) {
-    if (!(flist instanceof ModularFeatureList)) {
-      throw new IllegalArgumentException(
-          "Cannot set non-modular feature list to modular feature list row.");
-    }
-    this.flist = (ModularFeatureList) flist;
   }
 
   @Override
@@ -535,7 +524,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   public boolean isIdentified() {
     for (Entry<DataType, Object> entry : getMap().entrySet()) {
       final DataType dt = entry.getKey();
-      if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType) {
+      if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType
+          && !(dt instanceof IonIdentityListType)) {
         final List<?> list = get(listType);
         if (list != null && !list.isEmpty()) {
           return true;

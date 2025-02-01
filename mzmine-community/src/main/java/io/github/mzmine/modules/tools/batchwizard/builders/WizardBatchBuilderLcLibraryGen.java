@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
   private final Boolean rtSmoothing;
   private final LibraryBatchMetadataParameters libGenMetadata;
   private final Boolean applySpectralNetworking;
+  private final Boolean exportUnknownScansFile;
 
   public WizardBatchBuilderLcLibraryGen(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -79,6 +80,8 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
     exportPath = getValue(params, WorkflowLibraryGenerationWizardParameters.exportPath);
     exportGnps = getValue(params, WorkflowLibraryGenerationWizardParameters.exportGnps);
     exportSirius = getValue(params, WorkflowLibraryGenerationWizardParameters.exportSirius);
+    exportUnknownScansFile = getValue(params,
+        WorkflowLibraryGenerationWizardParameters.exportUnknownScansFile);
     libGenMetadata = getOptionalParameters(params,
         WorkflowLibraryGenerationWizardParameters.metadata).value();
   }
@@ -107,13 +110,13 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
 
     // annotation
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
-    makeAndAddLipidAnnotationStep(q, true);
+    makeAndAddLipidAnnotationStep(q);
 
     // library generation, reload library
     makeAndAddBatchLibraryGeneration(q, exportPath, libGenMetadata);
 
     // join after the generation but just concat all lists together
-    makeAndAddJoinAlignmentStep(q, null);
+    makeAndAddJoinAlignmentStep(q, interSampleRtTol);
 
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q);
@@ -122,17 +125,22 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
     // match against own library
     makeAndAddLibrarySearchStep(q, true);
 
+    // export all unannotated scans - after alignment to merge duplicates
+    if (exportUnknownScansFile) {
+      makeAndAddExportScansStep(q, exportPath, libGenMetadata, true, "_unknown_scans");
+    }
+
     // export
-    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius, false);
+    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius, false, mzTolScans);
 
     // convert library to feature list
     makeAndAddLibraryToFeatureListStep(q);
 
     // networking
     if (applySpectralNetworking) {
-      makeAndAddSpectralNetworkingSteps(q, true, exportPath);
+      makeAndAddSpectralNetworkingSteps(q, true, exportPath, false);
     }
-
+    makeAndAddBatchExportStep(q, true, exportPath);
     return q;
   }
 

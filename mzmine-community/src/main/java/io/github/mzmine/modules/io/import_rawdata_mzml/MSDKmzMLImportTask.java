@@ -40,7 +40,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
-import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModule;
@@ -361,7 +361,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     var scans = frameStorage.getMobilityScans();
 
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
-    Set<PasefMsMsInfo> finishedImsMsMsInfos;
+    Set<IonMobilityMsMsInfo> finishedImsMsMsInfos;
     int mobilityScanNumberCounter = 0;
 
     int[] storageOffsets = new int[mobilities.length];
@@ -371,6 +371,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
       final BuildingMzMLMobilityScan mzMLScan = scans.get(scanIndex);
       int storageOffset = frameStorage.getStorageOffset(scanIndex);
       int basePeakIndex = frameStorage.getBasePeakIndex(scanIndex);
+
+      // start msms info construction here in case there are missing scans
+      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
+          frameNumber, mobilityScanNumberCounter);
 
       // fill in missing scans
       // I'm not proud of this piece of code, but some manufactures or conversion tools leave out
@@ -383,10 +387,12 @@ public class MSDKmzMLImportTask extends AbstractTask {
         storageOffsets[mobilityScanNumberCounter] = storageOffset;
         basePeakIndices[mobilityScanNumberCounter] = -1;
         mobilityScanNumberCounter++;
+
+        // keep incrementing msms info construction here for missing scans
+        ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
+            frameNumber, mobilityScanNumberCounter);
       }
 
-      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
-          frameNumber, mobilityScanNumberCounter);
       storageOffsets[mobilityScanNumberCounter] = storageOffset;
       basePeakIndices[mobilityScanNumberCounter] = basePeakIndex;
       mobilityScanNumberCounter++;
@@ -398,6 +404,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
 //          new BuildingMobilityScan(mobilityScanNumberCounter, MassDetector.EMPTY_DATA));
       storageOffsets[mobilityScanNumberCounter] = storageOffsets[mobilityScanNumberCounter - 1];
       basePeakIndices[mobilityScanNumberCounter] = -1;
+      if(!buildingImsMsMsInfos.isEmpty()) {
+        buildingImsMsMsInfos.getLast().setLastSpectrumNumber(mobilityScanNumberCounter);
+      }
     }
 
     SimpleFrame finishedFrame = frameStorage.createFrame(newImsFile, frameNumber);

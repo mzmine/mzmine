@@ -135,12 +135,15 @@ public class ParsingUtils {
   }
 
   public static float[] stringToFloatArray(String string) {
-    final String[] strValues = string.split(ParsingUtils.SEPARATOR);
+    return stringToFloatArray(string, SEPARATOR);
+  }
+
+  public static float[] stringToFloatArray(String string, String separator) {
+    final String[] strValues = string.split(separator);
     final float[] values = new float[strValues.length];
     for (int i = 0; i < strValues.length; i++) {
       values[i] = Float.parseFloat(strValues[i]);
     }
-
     return values;
   }
 

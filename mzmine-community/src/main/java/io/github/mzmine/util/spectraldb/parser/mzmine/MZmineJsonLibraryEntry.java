@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -76,6 +77,7 @@ import org.jetbrains.annotations.Nullable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
 @Generated("jsonschema2pojo")
+@Deprecated
 public class MZmineJsonLibraryEntry {
 
   public String softwaresource;
@@ -90,7 +92,7 @@ public class MZmineJsonLibraryEntry {
   public Double rt, ccs;
   public String cas, splash;
   public String formula, smiles, inchi, inchikey, peptideSequence;
-  public Double fragmentationEnergy;
+  public FloatArrayList fragmentationEnergy;
   public String mergedSpectrumType;
   public String fragmentationMethod;
   public String instrumentType, instrument, resolution, ionSource;
@@ -194,6 +196,7 @@ public class MZmineJsonLibraryEntry {
       case DATASET_ID -> datasetId;
       case FILENAME -> null;
       case USI -> usi;
+      case SOURCE_SCAN_USI -> null;
       case SPLASH -> splash;
       case QUALITY -> quality;
       case QUALITY_PRECURSOR_PURITY -> purity;
@@ -207,11 +210,13 @@ public class MZmineJsonLibraryEntry {
       case GNPS_ID -> null;
       case MONA_ID -> null;
       case CHEMSPIDER -> null;
+      case MERGED_N_SAMPLES -> null;
       case SIRIUS_MERGED_SCANS -> null;
       case SIRIUS_MERGED_STATS -> null;
       case OTHER_MATCHED_COMPOUNDS_N -> null;
       case OTHER_MATCHED_COMPOUNDS_NAMES -> null;
-      case FEATURE_ID, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT -> null;
+      case FEATURE_ID, FEATURELIST_NAME_FEATURE_ID, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT ->
+          null;
       case SCAN_NUMBER -> scanNumber;
       case UNSPECIFIED -> null;
     };
@@ -247,7 +252,7 @@ public class MZmineJsonLibraryEntry {
       case CCS -> ccs = (double) value;
       case PRECURSOR_MZ -> precursorMz = (double) value;
       case MERGED_SPEC_TYPE -> mergedSpectrumType = value.toString();
-      case COLLISION_ENERGY -> fragmentationEnergy = (double) value;
+      case COLLISION_ENERGY -> fragmentationEnergy = (FloatArrayList) value;
       case FRAGMENTATION_METHOD -> fragmentationMethod = value.toString();
       case ISOLATION_WINDOW -> isolationWindow = (double) value;
       case ACQUISITION -> compoundSource = value.toString();

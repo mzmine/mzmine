@@ -48,7 +48,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
@@ -57,8 +56,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -201,8 +202,11 @@ public class ImsExpanderTask extends AbstractTask {
         new ArrayList<>(tasks));
     var wrappedTask = MZmineCore.getTaskController().runTaskOnThisThreadBlocking(poolTask);
 
-    if (wrappedTask == null || poolTask.getStatus() == TaskStatus.CANCELED) {
-      setStatus(TaskStatus.CANCELED);
+    if (wrappedTask == null || poolTask.isCanceled()) {
+      final String errors = tasks.stream().map(AbstractTask::getErrorMessage)
+          .filter(Objects::nonNull).distinct().collect(Collectors.joining(", "));
+      setErrorMessage(errors);
+      setStatus(poolTask.getStatus());
       return;
     }
 

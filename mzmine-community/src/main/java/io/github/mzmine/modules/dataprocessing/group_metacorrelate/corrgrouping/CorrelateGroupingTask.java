@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,6 +54,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
@@ -233,8 +234,7 @@ public class CorrelateGroupingTask extends AbstractTask {
 
       // create new feature list for grouping
       groupedPKL = handleOriginal == OriginalFeatureListOption.PROCESS_IN_PLACE ? featureList
-          : featureList.createCopy(featureList.getName() + " " + suffix, getMemoryMapStorage(),
-              false);
+          : FeatureListUtils.createCopy(featureList, suffix, getMemoryMapStorage(), true);
 
       // create correlation map
       // do R2R comparison correlation
