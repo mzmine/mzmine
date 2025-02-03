@@ -124,8 +124,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
       return true;
     } else {
       return useIonLibrary && (baseAnnotation.get(NeutralMassType.class) != null
-                               || baseAnnotation.getFormula() != null
-                               || baseAnnotation.getSmiles() != null);
+          || baseAnnotation.getFormula() != null || baseAnnotation.getSmiles() != null);
     }
   }
 

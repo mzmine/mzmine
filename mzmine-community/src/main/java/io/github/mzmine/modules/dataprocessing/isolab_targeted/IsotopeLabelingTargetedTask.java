@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.ChemicalFormula;
+import io.github.mzmine.modules.dataprocessing.featdet_targeted.OverlappingCompoundAnnotation;
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.ImsGap;
@@ -79,7 +80,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
-class IsotopeLabelingTargetedTask extends AbstractTask {
+public class IsotopeLabelingTargetedTask extends AbstractTask {
 
   protected static final Range<Double> doubleInfiniteRange = Range.closed(Double.NEGATIVE_INFINITY,
       Double.POSITIVE_INFINITY);
