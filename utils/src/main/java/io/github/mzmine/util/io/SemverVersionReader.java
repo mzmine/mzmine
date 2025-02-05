@@ -58,7 +58,7 @@ public class SemverVersionReader {
     try {
       InputStream inStream = classLoader.getResourceAsStream("mzmineproversion.properties");
       if (inStream == null) {
-        return new Semver("4-SNAPSHOT", SemverType.LOOSE);
+        return new Semver("4-NONE", SemverType.LOOSE);
       }
       Properties properties = new Properties();
       properties.load(inStream);
