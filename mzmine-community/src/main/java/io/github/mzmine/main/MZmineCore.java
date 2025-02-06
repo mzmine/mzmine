@@ -172,7 +172,8 @@ public final class MZmineCore {
 
   public static void printDebugInfo(String[] args) {
     Semver version = SemverVersionReader.getMZmineVersion();
-    logger.info("Starting mzmine %s".formatted(version));
+    logger.info("Starting mzmine %s libraries: %s".formatted(version,
+        SemverVersionReader.getMZmineProVersion()));
     /*
      * Dump the MZmine and JVM arguments for debugging purposes
      */
