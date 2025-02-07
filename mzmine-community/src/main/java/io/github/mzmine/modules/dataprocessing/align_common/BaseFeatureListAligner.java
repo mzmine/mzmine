@@ -135,9 +135,15 @@ public class BaseFeatureListAligner {
           final RawDataFile dataFile = feature.getRawDataFile();
           if (!alignedRow.hasFeature(dataFile)) {
             var newFeature = featureCloner.cloneFeature(feature, alignedFeatureList, alignedRow);
-            alignedRow.addFeature(dataFile, newFeature, false);
-            alignedRowsMap.put(row, true);
-            alignedRows.getAndIncrement();
+            if (newFeature.getMZ() != 0) {
+              // For GC-MS, ExtractMzMismatchFeatureCloner may search in raw data files for a closer ion series
+              // if no masses are found in range, MZ = 0 and we skip this
+
+              // Otherwise, add feature to aligned row, skip this file for it in the future
+              alignedRow.addFeature(dataFile, newFeature, true);
+              alignedRowsMap.put(row, true);
+              alignedRows.getAndIncrement();
+            }
           }
         }
       }
