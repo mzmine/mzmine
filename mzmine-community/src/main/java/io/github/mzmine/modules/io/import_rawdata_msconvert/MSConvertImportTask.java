@@ -55,6 +55,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -386,5 +387,11 @@ public class MSConvertImportTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
       }
     }
+  }
+
+  public static Set<RawDataFileType> getSupportedFileTypes() {
+    return Set.of(RawDataFileType.WATERS_RAW, RawDataFileType.WATERS_RAW_IMS,
+        RawDataFileType.SCIEX_WIFF, RawDataFileType.SCIEX_WIFF2, RawDataFileType.AGILENT_D,
+        RawDataFileType.AGILENT_D_IMS, RawDataFileType.THERMO_RAW);
   }
 }

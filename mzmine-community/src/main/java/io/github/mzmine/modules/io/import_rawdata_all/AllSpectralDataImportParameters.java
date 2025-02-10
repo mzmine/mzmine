@@ -27,6 +27,9 @@ package io.github.mzmine.modules.io.import_rawdata_all;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
@@ -38,17 +41,22 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AllSpectralDataImportParameters extends SimpleParameterSet {
+
+  private static final Logger logger = Logger.getLogger(
+      AllSpectralDataImportParameters.class.getName());
 
 
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
@@ -69,10 +77,10 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
   public AllSpectralDataImportParameters() {
     super(new Parameter[]{fileNames, //
-        advancedImport, // directly process masslists
-        metadataFile, // metadata import
-        sortAndRecolor, // sort and recolor
-        // allow import of spectral libraries
+            advancedImport, // directly process masslists
+            metadataFile, // metadata import
+            sortAndRecolor, // sort and recolor
+            // allow import of spectral libraries
             SpectralLibraryImportParameters.dataBaseFiles},
         "https://mzmine.github.io/mzmine_documentation/module_docs/io/data-import.html");
   }
@@ -113,10 +121,18 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
    */
   public static List<RawDataFile> getLoadedRawDataFiles(MZmineProject project,
       final ParameterSet parameters) {
+    final boolean keepConverted = ConfigService.getPreferences()
+        .getValue(MZminePreferences.keepConvertedFile);
     // all files that should be loaded
     // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
-    Set<File> loadFileSet = streamValidatedFiles(parameters).map(File::getAbsoluteFile)
-        .collect(Collectors.toSet());
+    Set<File> loadFileSet = streamValidatedFiles(parameters).<File>mapMulti((file, c) -> {
+      if (keepConverted && MSConvertImportTask.getSupportedFileTypes()
+          .contains(RawDataFileTypeDetector.detectDataFileType(file))) {
+        c.accept(MSConvertImportTask.getMzMLFileName(file));
+      } else {
+        c.accept(file);
+      }
+    }).collect(Collectors.toSet());
 
     // the actual files in the list
     return project.getCurrentRawDataFiles().stream()

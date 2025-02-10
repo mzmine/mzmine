@@ -400,6 +400,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
 //      case AIRD -> throw new IllegalStateException("Unexpected value: " + fileType);
+      // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
       case WATERS_RAW, WATERS_RAW_IMS, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, AGILENT_D_IMS ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
@@ -439,14 +440,13 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case THERMO_RAW ->
           new ThermoImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig, project,
               parameters, module);
-//          new ThermoRawImportTask(project, file, module, parameters, moduleCallDate,
-//              scanProcessorConfig);
       case BRUKER_TSF ->
           new TSFImportTask(project, file, storage, module, parameters, moduleCallDate,
               scanProcessorConfig);
       case BRUKER_BAF ->
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
+      // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
       case AGILENT_D, AGILENT_D_IMS, SCIEX_WIFF, SCIEX_WIFF2, WATERS_RAW, WATERS_RAW_IMS ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
