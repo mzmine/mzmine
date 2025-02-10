@@ -35,6 +35,7 @@
                         </ScrollPane>
                       </Tab>
                       <Tab fx:id="tabSimilarity" closable="false" text="Similarity"/>
+                      <Tab fx:id="tabMasst" closable="false" text="metaMASST"/>
                       <Tab fx:id="tabAllMs2" closable="false" text="All MS2"/>
                     </TabPane>
                 </SplitPane>

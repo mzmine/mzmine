@@ -173,6 +173,7 @@ import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.RegionExtractionModule;
 import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule;
+import io.github.mzmine.modules.visualization.masst.MasstVisualizerModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
@@ -469,6 +470,7 @@ public class BatchModeModulesList {
 
           // stats
           StatsDasboardModule.class, //
+          MasstVisualizerModule.class, //
           PCAModule.class, //
           VolcanoPlotModule.class //
 

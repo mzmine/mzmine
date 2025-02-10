@@ -31,6 +31,7 @@ import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
+import io.github.mzmine.modules.visualization.masst.MasstVisualizerController;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkController;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTabOld;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
@@ -68,6 +69,7 @@ public class NetworkOverviewController {
   public BorderPane pnNetwork;
   public Tab tabAnnotations;
   public Tab tabSimilarity;
+  public Tab tabMasst;
   public Tab tabAllMs2;
   public Tab tabNodes;
   public Tab tabEdges;
@@ -82,6 +84,7 @@ public class NetworkOverviewController {
   private @NotNull List<FeatureRowInterfaceFx> featureRowInterfaces;
   private @NotNull List<FeatureRowInterfaceFx> annotationInterfaces;
   private SpectraIdentificationResultsWindowFX spectralMatchesController;
+  private MasstVisualizerController masstController;
 
   public NetworkOverviewController() {
     this.focussedRows = FXCollections.observableArrayList();
@@ -128,9 +131,13 @@ public class NetworkOverviewController {
     tabAnnotations.setContent(gridAnnotations);
     tabAllMs2.setContent(allMs2Pane);
 
+    // MASST
+    masstController = new MasstVisualizerController();
+    tabMasst.setContent(masstController.buildView());
+
     // all content that listens to selected feature changes
     featureRowInterfaces = List.of(spectralMatchesController, compoundMatchController, allMs2Pane,
-        mirrorScanController, lipidAnnotationMatchTabOld);
+        mirrorScanController, lipidAnnotationMatchTabOld, masstController);
     // only annotation interfaces to control visibility
     annotationInterfaces = List.of(spectralMatchesController, compoundMatchController,
         lipidAnnotationMatchTabOld);
