@@ -231,6 +231,20 @@ public class MSConvertImportTask extends AbstractTask {
     }
   }
 
+  /**
+   * @param file
+   * @param keepConverted
+   * @return
+   */
+  public static File applyMsConvertImportNameChanges(File file, boolean keepConverted) {
+    if (keepConverted && getSupportedFileTypes().contains(
+        RawDataFileTypeDetector.detectDataFileType(file))) {
+      return getMzMLFileName(file);
+    } else {
+      return file;
+    }
+  }
+
   @Override
   public String getTaskDescription() {
     return msdkTask != null ? msdkTask.getTaskDescription()
@@ -292,6 +306,14 @@ public class MSConvertImportTask extends AbstractTask {
   private void importFromMzML(File mzMLFile) {
     RawDataFile dataFile = null;
     ParameterUtils.replaceRawFileName(parameters, rawFilePath, mzMLFile);
+
+    if (project.getCurrentRawDataFiles().stream()
+        .anyMatch(file -> file.getAbsolutePath().equals(mzMLFile.getAbsolutePath()))) {
+      // we should only get to this point if someone imported raw files with the "keep mzml" option,
+      // creates the mzml, then disables that option and imports the vendor file again.
+      return;
+    }
+
     msdkTask = new MSDKmzMLImportTask(project, mzMLFile, config, module, parameters, moduleCallDate,
         storage);
 

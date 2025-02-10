@@ -247,6 +247,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
     // after skipping already loaded
     if (checkDuplicateFilesInImportListAndProject(project, fileNames)) {
+      // in what case would this ever be triggered? ~SteffenHeu
       return ExitCode.ERROR;
     }
 

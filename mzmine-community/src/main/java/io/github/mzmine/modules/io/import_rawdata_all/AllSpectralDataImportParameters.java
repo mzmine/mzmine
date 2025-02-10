@@ -41,7 +41,6 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 import java.util.Arrays;
@@ -125,14 +124,9 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
         .getValue(MZminePreferences.keepConvertedFile);
     // all files that should be loaded
     // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
-    Set<File> loadFileSet = streamValidatedFiles(parameters).<File>mapMulti((file, c) -> {
-      if (keepConverted && MSConvertImportTask.getSupportedFileTypes()
-          .contains(RawDataFileTypeDetector.detectDataFileType(file))) {
-        c.accept(MSConvertImportTask.getMzMLFileName(file));
-      } else {
-        c.accept(file);
-      }
-    }).collect(Collectors.toSet());
+    Set<File> loadFileSet = streamValidatedFiles(parameters).map(
+            file -> MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted))
+        .collect(Collectors.toSet());
 
     // the actual files in the list
     return project.getCurrentRawDataFiles().stream()
@@ -146,16 +140,24 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
    */
   public static File[] skipAlreadyLoadedFiles(MZmineProject project,
       final ParameterSet parameters) {
-    var loadedFiles = getLoadedRawDataFiles(project, parameters);
-    var loadedAbsFiles = loadedFiles.stream().map(RawDataFile::getAbsoluteFilePath)
+    final boolean keepConverted = ConfigService.getPreferences()
+        .getValue(MZminePreferences.keepConvertedFile);
+
+    // all files that should be loaded
+    // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
+    Set<File> filesToLoad = streamValidatedFiles(parameters).map(
+            file -> MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted))
         .collect(Collectors.toSet());
+
+    var currentlyLoadedFiles = project.getCurrentRawDataFiles().stream()
+        .map(RawDataFile::getAbsoluteFilePath).collect(Collectors.toSet());
 
     // compare based on absolute files
     // skip all files in import that directly match the abs path of another file
-    return streamValidatedFiles(parameters).filter(
-        file -> !loadedAbsFiles.contains(file.getAbsoluteFile())).toArray(File[]::new);
+    return filesToLoad.stream()
+        .filter(file -> !currentlyLoadedFiles.contains(file.getAbsoluteFile()))
+        .toArray(File[]::new);
   }
-
 
   /**
    * Applies {@link AllSpectralDataImportModule#validateBrukerPath(File)} to get the actual file
