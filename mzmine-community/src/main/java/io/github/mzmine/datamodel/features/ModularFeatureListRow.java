@@ -179,7 +179,6 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
         .filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN);
   }
 
-
   // Helper methods
   @Override
   public Range<Double> getMZRange() {
@@ -205,7 +204,7 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-                                         + "row. Create feature with the correct feature list as an argument.");
+          + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -631,7 +630,7 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
   @Override
   public IsotopePattern getBestIsotopePattern() {
     return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight))
         .map(ModularFeature::getIsotopePattern).orElse(null);
   }
