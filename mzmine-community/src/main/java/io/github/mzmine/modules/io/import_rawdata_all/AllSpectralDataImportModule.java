@@ -24,6 +24,8 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
+import static io.github.mzmine.util.RawDataFileTypeDetector.AGILENT_ACQDATATA_FOLDER;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -135,12 +137,21 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * @return the valid bruker file path for bruker .d files or the input file
    */
   public static File validateBrukerPath(File f) {
-    var parent = f.getParent();
+    var parent = f.getParentFile();
     if (parent == null) {
       return f;
-    } else if (parent.endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
-        || f.getName().endsWith(".tsf") || f.getName().endsWith(".baf"))) {
+    } else if (f.getName().endsWith(".tdf") || f.getName().endsWith(".tsf") || f.getName()
+        .endsWith(".baf")) {
+      // refer to the .d folder by default
       return f.getParentFile();
+    } else if (parent.getName().endsWith(".d") && (f.getName().endsWith(".d")) && !new File(f,
+        AGILENT_ACQDATATA_FOLDER).exists()) {
+      // there also exists a .d file in the .d folder
+      return parent;
+    } else if (parent.exists() && parent.isDirectory() && Objects.requireNonNullElse(
+        parent.listFiles(p -> p != null && p.getName().startsWith("analysis.")), new File[0]).length
+        > 0 && parent.getName().endsWith(".d")) {
+      return parent;
     } else {
       return f;
     }

@@ -79,7 +79,7 @@ public class RawDataFileTypeDetector {
   private static final String IMZML_SUFFIX = ".imzml";
   private static final String SCIEX_WIFF_SUFFIX = ".wiff";
   private static final String SCIEX_WIFF2_SUFFIX = ".wiff2";
-  private static final String AGILENT_ACQDATATA_FOLDER = "AcqData";
+  public static final String AGILENT_ACQDATATA_FOLDER = "AcqData";
 
   private static final Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
 
