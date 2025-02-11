@@ -27,19 +27,17 @@ package import_data.speed;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Range;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -107,7 +105,8 @@ public class ImportSpeedTestMain {
     TaskResult finished = importFiles(files, 5 * 60, advanced);
 
     if (finished instanceof FINISHED f) {
-      var sm = new SpeedMeasurement(name, null, description, files.size(), f.getSeconds());
+      var sm = new SpeedMeasurement(name, null, description, files.size(), f.getSeconds(),
+          ConfigService.getConfiguration().getUsedMemoryGB());
       appendToFile(speedTestFile, sm);
     }
 

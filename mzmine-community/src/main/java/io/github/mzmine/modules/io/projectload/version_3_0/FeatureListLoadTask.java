@@ -53,7 +53,9 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -312,14 +314,6 @@ public class FeatureListLoadTask extends AbstractTask {
       final Element metadataElement = (Element) (((NodeList) metadataExpr
           .evaluate(configuration, XPathConstants.NODESET)).item(0));
 
-      final ModularFeatureList flist = new ModularFeatureList(
-          metadataElement.getElementsByTagName(CONST.XML_FLIST_NAME_ELEMENT).item(0)
-              .getTextContent(), storage, new ArrayList<>());
-
-      flist.setDateCreated(
-          metadataElement.getElementsByTagName(CONST.XML_FLIST_DATE_CREATED_ELEMENT).item(0)
-              .getTextContent());
-
       XPathExpression expr = xpath.compile(
           "//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_FLIST_APPLIED_METHODS_LIST_ELEMENT);
       NodeList nodelist = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
@@ -331,10 +325,12 @@ public class FeatureListLoadTask extends AbstractTask {
       Element appliedMethodsList = (Element) nodelist.item(0);
       NodeList methodElements = appliedMethodsList
           .getElementsByTagName(CONST.XML_FLIST_APPLIED_METHOD_ELEMENT);
+
+      List<FeatureListAppliedMethod> appliedMethods = new ArrayList<>();
       for (int i = 0; i < methodElements.getLength(); i++) {
         FeatureListAppliedMethod method = SimpleFeatureListAppliedMethod
             .loadValueFromXML((Element) methodElements.item(i));
-        flist.getAppliedMethods().add(method);
+        appliedMethods.add(method);
       }
 
       XPathExpression rawFilesListExpr = xpath
@@ -343,7 +339,8 @@ public class FeatureListLoadTask extends AbstractTask {
       NodeList filesList = ((Element) nodelist.item(0))
           .getElementsByTagName(CONST.XML_RAW_FILE_ELEMENT);
 
-      // set selected scans
+      // set selected scans - use LinkedHashMap to retain order
+      Map<RawDataFile, List<Scan>> selectedScansMap = new LinkedHashMap<>();
       for (int i = 0; i < filesList.getLength(); i++) {
         NodeList nameList = ((Element) filesList.item(i))
             .getElementsByTagName(CONST.XML_RAW_FILE_NAME_ELEMENT);
@@ -360,7 +357,6 @@ public class FeatureListLoadTask extends AbstractTask {
           throw new IllegalStateException("Raw data file with name " + name + " and path " + path
                                           + " not imported to project.");
         }
-        flist.getRawDataFiles().add(f.get());
 
         final Element selectedScansElement = (Element) ((Element) filesList.item(i))
             .getElementsByTagName(CONST.XML_FLIST_SELECTED_SCANS_ELEMENT).item(0);
@@ -368,13 +364,22 @@ public class FeatureListLoadTask extends AbstractTask {
             .stringToIntArray(selectedScansElement.getTextContent());
         final List<Scan> selectedScans = ParsingUtils
             .getSublistFromIndices(f.get().getScans(), selectedScanIndices);
-        flist.setSelectedScans(f.get(), selectedScans);
-
+        selectedScansMap.put(f.get(), selectedScans);
       }
+
+      var dataFiles = new ArrayList<>(selectedScansMap.keySet());
+      var flistName = metadataElement.getElementsByTagName(CONST.XML_FLIST_NAME_ELEMENT).item(0)
+          .getTextContent();
+      // need data files in constructor
+      final ModularFeatureList flist = new ModularFeatureList(flistName, storage, dataFiles);
+      flist.setDateCreated(
+          metadataElement.getElementsByTagName(CONST.XML_FLIST_DATE_CREATED_ELEMENT).item(0)
+              .getTextContent());
+      flist.getAppliedMethods().addAll(appliedMethods);
+      selectedScansMap.forEach(flist::setSelectedScans);
       return flist;
     } catch (XPathExpressionException | ParserConfigurationException | SAXException |
              IOException e) {
-      e.printStackTrace();
       logger.log(Level.SEVERE, e.getMessage(), e);
       return null;
     }
