@@ -41,7 +41,6 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
@@ -58,7 +57,6 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
   private static final Logger logger = Logger.getLogger(
       AllSpectralDataImportParameters.class.getName());
-
 
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
       ExtensionFilters.MS_RAW_DATA);
@@ -122,12 +120,9 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
    */
   public static List<RawDataFile> getLoadedRawDataFiles(MZmineProject project,
       final ParameterSet parameters) {
-    final boolean keepConverted = ConfigService.getPreferences()
-        .getValue(MZminePreferences.keepConvertedFile);
     // all files that should be loaded
     // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
-    Set<File> loadFileSet = streamValidatedFiles(parameters).map(
-            file -> MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted))
+    Set<File> loadFileSet = streamValidatedFiles(parameters).map(ImportFile::importedFile)
         .collect(Collectors.toSet());
 
     // the actual files in the list
@@ -140,38 +135,37 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
    *
    * @return array of files - files that are already loaded
    */
-  public static File[] skipAlreadyLoadedFiles(MZmineProject project,
+  public static ImportFile[] skipAlreadyLoadedFiles(MZmineProject project,
       final ParameterSet parameters) {
-    final boolean keepConverted = ConfigService.getPreferences()
-        .getValue(MZminePreferences.keepConvertedFile);
-
     // all files that should be loaded
     // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
-    Set<ImportFile> filesToLoad = streamValidatedFiles(parameters).map(
-            file -> new ImportFile(file, RawDataFileTypeDetector.detectDataFileType(file),
-                MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted)))
-        .collect(Collectors.toSet());
+    Set<ImportFile> filesToLoad = streamValidatedFiles(parameters).collect(Collectors.toSet());
 
-    var currentlyLoadedFiles = project.getCurrentRawDataFiles().stream()
+    Set<File> currentlyLoadedFiles = project.getCurrentRawDataFiles().stream()
         .map(RawDataFile::getAbsoluteFilePath).collect(Collectors.toSet());
 
     // compare based on absolute files
     // skip all files in import that directly match the abs path of another file
     return filesToLoad.stream()
-        .filter(file -> !currentlyLoadedFiles.contains(file.getAbsoluteFile()))
-        .toArray(File[]::new);
+        .filter(file -> !currentlyLoadedFiles.contains(file.importedFile().getAbsoluteFile()))
+        .toArray(ImportFile[]::new);
   }
 
   /**
    * Applies {@link AllSpectralDataImportModule#validateBrukerPath(File)} to get the actual file
-   * paths. This is done always before import.
+   * paths and applies name changes due to the MSconvert import.
+   * This is done always before import.
    *
-   * @return stream of files
+   * @return stream of {@link ImportFile}s
    */
   @NotNull
-  public static Stream<File> streamValidatedFiles(final ParameterSet parameters) {
+  public static Stream<ImportFile> streamValidatedFiles(final ParameterSet parameters) {
+    final boolean keepConverted = ConfigService.getPreferences()
+        .getValue(MZminePreferences.keepConvertedFile);
     return Arrays.stream(parameters.getValue(fileNames))
-        .map(AllSpectralDataImportModule::validateBrukerPath);
+        .map(AllSpectralDataImportModule::validateBrukerPath).map(
+            file -> new ImportFile(file, RawDataFileTypeDetector.detectDataFileType(file),
+                MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted)));
   }
 
 }

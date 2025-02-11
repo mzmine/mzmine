@@ -30,6 +30,7 @@ import static io.github.mzmine.util.StringUtils.inQuotes;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
@@ -62,7 +63,7 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MSConvertImportTask extends AbstractTask {
+public class MSConvertImportTask extends AbstractTask implements RawDataImportTask {
 
   private static final Logger logger = Logger.getLogger(MSConvertImportTask.class.getName());
 
@@ -415,5 +416,10 @@ public class MSConvertImportTask extends AbstractTask {
     return Set.of(RawDataFileType.WATERS_RAW, RawDataFileType.WATERS_RAW_IMS,
         RawDataFileType.SCIEX_WIFF, RawDataFileType.SCIEX_WIFF2, RawDataFileType.AGILENT_D,
         RawDataFileType.AGILENT_D_IMS, RawDataFileType.THERMO_RAW);
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : null;
   }
 }

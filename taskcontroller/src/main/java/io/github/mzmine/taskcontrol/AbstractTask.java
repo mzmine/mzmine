@@ -145,6 +145,7 @@ public abstract class AbstractTask implements Task {
   /**
    * error and finished cannot be overwritten
    */
+  @Override
   public final void setStatus(TaskStatus newStatus) {
     TaskStatus old = status;
     if (old.isUnmodifiable()) {
