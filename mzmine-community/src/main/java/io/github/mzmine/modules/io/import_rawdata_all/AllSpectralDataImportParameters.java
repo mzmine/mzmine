@@ -41,6 +41,8 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 import java.util.Arrays;
@@ -145,8 +147,9 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
     // all files that should be loaded
     // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
-    Set<File> filesToLoad = streamValidatedFiles(parameters).map(
-            file -> MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted))
+    Set<ImportFile> filesToLoad = streamValidatedFiles(parameters).map(
+            file -> new ImportFile(file, RawDataFileTypeDetector.detectDataFileType(file),
+                MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted)))
         .collect(Collectors.toSet());
 
     var currentlyLoadedFiles = project.getCurrentRawDataFiles().stream()
