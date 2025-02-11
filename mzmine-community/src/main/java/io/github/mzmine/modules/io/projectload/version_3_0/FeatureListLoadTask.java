@@ -53,6 +53,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -188,6 +189,7 @@ public class FeatureListLoadTask extends AbstractTask {
         }
         parseFeatureList(storage, project, flist, flistFile);
 
+        // TODO maybe remove so that ModularFeatureList.getFeatureList can be unmodifiable
         // disable buffering after the import (replace references to CachedIMSRawDataFiles with IMSRawDataFiles
         flist.replaceCachedFilesAndScans();
 
@@ -339,8 +341,8 @@ public class FeatureListLoadTask extends AbstractTask {
       NodeList filesList = ((Element) nodelist.item(0))
           .getElementsByTagName(CONST.XML_RAW_FILE_ELEMENT);
 
-      // set selected scans - use LinkedHashMap to retain order
-      Map<RawDataFile, List<Scan>> selectedScansMap = new LinkedHashMap<>();
+      // order of raw files is not important. Will be sorted in feature list by name
+      Map<RawDataFile, List<Scan>> selectedScansMap = new HashMap<>();
       for (int i = 0; i < filesList.getLength(); i++) {
         NodeList nameList = ((Element) filesList.item(i))
             .getElementsByTagName(CONST.XML_RAW_FILE_NAME_ELEMENT);
