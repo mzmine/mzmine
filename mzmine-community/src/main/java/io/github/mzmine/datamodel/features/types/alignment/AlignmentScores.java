@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,6 +55,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
                               Float weightedDistanceScore, Float mzPpmDelta, Double maxMzDelta,
                               Float maxRtDelta, Float maxMobilityDelta) implements
     ModularDataRecord {
+
 
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
@@ -194,6 +195,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
     }
     return Math.max(a, b);
   }
+
   public static Double min(final Double a, final Double b) {
     if (a == null && b == null) {
       return null;

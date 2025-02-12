@@ -52,6 +52,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -262,23 +263,6 @@ public class RowsFilterTask extends AbstractTask {
    */
   private FeatureList filterFeatureListRows(final FeatureList featureList,
       boolean processInCurrentList) {
-
-    // Create new feature list.
-
-    final ModularFeatureList newFeatureList;
-    if (processInCurrentList) {
-      newFeatureList = (ModularFeatureList) featureList;
-    } else {
-      final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
-      newFeatureList = FeatureListUtils.createCopy(featureList, suffix, getMemoryMapStorage(),
-          false);
-    }
-
-    // Add task description to featureList.
-    newFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class, parameters,
-            getModuleCallDate()));
-
     int rowsCount = 0;
     // if keep is selected we remove rows on failed criteria
     // otherwise we remove those that match all criteria
@@ -305,6 +289,8 @@ public class RowsFilterTask extends AbstractTask {
 
     // Filter rows.
     totalRows = featureList.getNumberOfRows();
+    List<FeatureListRow> matchedRows = new ArrayList<>((int) (totalRows * 0.75));
+
     processedRows = 0;
     final ListIterator<FeatureListRow> iterator = featureList.getRows().listIterator();
     while (iterator.hasNext()) {
@@ -329,17 +315,45 @@ public class RowsFilterTask extends AbstractTask {
             row.set(IDType.class, rowsCount);
           }
         } else {
-          iterator.remove();
+          // process in place means that matched rows will be removed
+          matchedRows.add(row);
         }
       } else if (keepRow) {
+        matchedRows.add(row);
         rowsCount++;
-        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
-            renumber ? rowsCount : row.getID(), (ModularFeatureListRow) row, true);
-        newFeatureList.addRow(resetRow);
       }
 
       processedRows++;
     }
+
+    // Create new feature list.
+
+    final ModularFeatureList newFeatureList;
+    if (processInCurrentList) {
+      newFeatureList = (ModularFeatureList) featureList;
+      // process in place will remove all rows
+      newFeatureList.removeRows(matchedRows);
+    } else {
+      final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
+      // exact number of needed features and rows
+      int totalRows = matchedRows.size();
+      int totalFeatures = matchedRows.stream().mapToInt(FeatureListRow::getNumberOfFeatures).sum();
+
+      newFeatureList = FeatureListUtils.createCopyWithoutRows(featureList, suffix,
+          getMemoryMapStorage(), totalRows, totalFeatures);
+      // add rows to new list
+      for (int i = 0; i < matchedRows.size(); i++) {
+        var row = matchedRows.get(i);
+        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
+            renumber ? i + 1 : row.getID(), (ModularFeatureListRow) row, true);
+        newFeatureList.addRow(resetRow);
+      }
+    }
+
+    // Add task description to featureList.
+    newFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class, parameters,
+            getModuleCallDate()));
 
     return newFeatureList;
   }

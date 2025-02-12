@@ -29,6 +29,7 @@ import static io.github.mzmine.util.FeatureListRowSorter.DEFAULT_RT;
 import static io.github.mzmine.util.FeatureListRowSorter.MZ_ASCENDING;
 import static io.github.mzmine.util.RangeUtils.calcCenterScore;
 import static io.github.mzmine.util.RangeUtils.isBounded;
+import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -42,6 +43,7 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
@@ -60,6 +62,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -561,15 +564,18 @@ public class FeatureListUtils {
   public static void transferRowTypes(FeatureList targetFlist, Collection<FeatureList> sourceFlists,
       final boolean transferFeatureTypes) {
 
+    // transfer all at once to optimize resizing of data structures
+    Set<DataType> allRowTypes = new HashSet<>();
+    Set<DataType> allFeatureTypes = new HashSet<>();
+
     for (FeatureList sourceFlist : sourceFlists) {
       // uses a set so okay to use addAll
-      targetFlist.addRowType(sourceFlist.getRowTypes());
+      allRowTypes.addAll(sourceFlist.getRowTypes());
+      allFeatureTypes.addAll(sourceFlist.getFeatureTypes());
     }
+    targetFlist.addRowType(allRowTypes);
     if (transferFeatureTypes) {
-      for (FeatureList sourceFlist : sourceFlists) {
-        // uses a set so okay to use addAll
-        targetFlist.addFeatureType(sourceFlist.getFeatureTypes());
-      }
+      targetFlist.addFeatureType(allFeatureTypes);
     }
   }
 
@@ -625,28 +631,53 @@ public class FeatureListUtils {
   /**
    * Does not copy rows
    */
-  public static ModularFeatureList createCopy(final FeatureList featureList, final String suffix,
-      final MemoryMapStorage storage) {
-    return createCopy(featureList, suffix, storage, false);
+  public static ModularFeatureList createCopyWithoutRows(final FeatureList featureList,
+      final String suffix, final MemoryMapStorage storage, final @Nullable Integer totalRows,
+      final @Nullable Integer totalFeatures) {
+    return createCopy(featureList, null, suffix, storage, false, featureList.getRawDataFiles(),
+        false, totalRows, totalFeatures);
   }
 
+  /**
+   * Automatically determines size for new feature list rows and features data backend
+   *
+   * @param featureList
+   * @param suffix
+   * @param storage
+   * @param copyRows
+   * @return
+   */
   public static ModularFeatureList createCopy(final FeatureList featureList, final String suffix,
       final MemoryMapStorage storage, boolean copyRows) {
     return createCopy(featureList, null, suffix, storage, copyRows, featureList.getRawDataFiles(),
-        false);
+        false, null, null);
   }
 
   public static ModularFeatureList createCopy(final FeatureList featureList,
       @Nullable String fullTitle, final @Nullable String suffix, final MemoryMapStorage storage,
-      boolean copyRows, List<RawDataFile> dataFiles, boolean renumberIDs) {
+      boolean copyRows, List<RawDataFile> dataFiles, boolean renumberIDs,
+      final @Nullable Integer totalRows, final @Nullable Integer totalFeatures) {
     if (StringUtils.isBlank(fullTitle) && StringUtils.isBlank(suffix)) {
       throw new IllegalArgumentException("Either suffix or fullTitle need a value");
     }
     if (fullTitle == null) {
       fullTitle = featureList.getName() + " " + suffix;
     }
+    final int estimatedRows;
+    final int estimatedFeatures;
+    if (copyRows) {
+      // need space for all rows and features
+      estimatedRows = featureList.getNumberOfRows();
+      estimatedFeatures = featureList.stream().mapToInt(FeatureListRow::getNumberOfFeatures).sum();
+    } else {
+      // start with half as many rows to not over commit to the size of
+      estimatedRows = (int) (featureList.getNumberOfRows() * 0.5);
+      estimatedFeatures = FeatureListUtils.estimateFeatures(estimatedRows, dataFiles.size());
+    }
 
-    ModularFeatureList newFlist = new ModularFeatureList(fullTitle, storage, dataFiles);
+    ModularFeatureList newFlist = new ModularFeatureList(fullTitle, storage,
+        requireNonNullElse(totalRows, estimatedRows),
+        requireNonNullElse(totalFeatures, estimatedFeatures), dataFiles);
 
     FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
     FeatureListUtils.transferRowTypes(newFlist, List.of(featureList), true);
@@ -734,4 +765,10 @@ public class FeatureListUtils {
     return imsRamFactor;
   }
 
+  public static int estimateFeatures(final int rows, final int samples) {
+    if (samples == 1) {
+      return rows;
+    }
+    return (int) (rows * samples * 0.85); // do not over commit to number of features
+  }
 }

@@ -104,9 +104,17 @@ public class BaseFeatureListAligner {
     if (allDataFiles.isEmpty()) {
       return null;
     }
+    // estimated rows after alignment
+    var stats = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).summaryStatistics();
+    // hard to estimate but rather stay too low than over commit
+    // 1 raw = max
+    // 10 raws = max + average (roughly double)
+    // 100 raws = max + 2 * average (roughly triple)
+    int estimatedRows = (int) (stats.getMax() + stats.getAverage() * Math.log10(stats.getCount()));
 
     // Create a new aligned feature list based on the baseList and renumber IDs
-    var alignedFeatureList = new ModularFeatureList(featureListName, storage, allDataFiles);
+    var alignedFeatureList = new ModularFeatureList(featureListName, storage, estimatedRows,
+        FeatureListUtils.estimateFeatures(estimatedRows, allDataFiles.size()), allDataFiles);
     FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists, true);
     FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
     FeatureListUtils.copyPeakListAppliedMethods(featureLists.getFirst(), alignedFeatureList);

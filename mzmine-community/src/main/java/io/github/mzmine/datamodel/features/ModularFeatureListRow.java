@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.columnar_data.ModularDataModelColumnarRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
@@ -39,7 +40,6 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
@@ -73,20 +73,15 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,15 +95,9 @@ import org.jetbrains.annotations.Nullable;
  * chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
-public class ModularFeatureListRow implements FeatureListRow {
+public class ModularFeatureListRow extends ModularDataModelColumnarRow implements FeatureListRow {
 
   private static final Logger logger = Logger.getLogger(ModularFeatureListRow.class.getName());
-  /**
-   * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
-   * this map see {@link #addFeature}
-   */
-  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
-  private final Map<RawDataFile, ModularFeature> features;
   @NotNull
   private final ModularFeatureList flist;
 
@@ -119,26 +108,8 @@ public class ModularFeatureListRow implements FeatureListRow {
    * @param id    the row id
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
+    super(flist.getRowsSchema());
     this.flist = flist;
-
-    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
-      if (change.wasAdded()) {
-        this.flist.addRowType(change.getKey());
-      }
-    });
-
-    // features
-    List<RawDataFile> raws = flist.getRawDataFiles();
-    if (!raws.isEmpty()) {
-      // init FeaturesType map (is final)
-      HashMap<RawDataFile, ModularFeature> fmap = new HashMap<>(raws.size());
-      features = (FXCollections.observableMap(fmap));
-      // set
-      set(FeaturesType.class, features);
-    } else {
-      features = Collections.emptyMap();
-    }
-
     // set ID
     this.set(IDType.class, id);
   }
@@ -181,15 +152,13 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     // copy all but features and id
     if (row != null) {
-      row.stream()
-          .filter(e -> !(e.getKey() instanceof FeaturesType) && !(e.getKey() instanceof IDType))
+      row.stream().filter(e -> !(e.getKey() instanceof IDType))
           .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
-    }
 
-    if (copyFeatures) {
-      // Copy the features.
-      for (final Entry<RawDataFile, ModularFeature> feature : row.getFilesFeatures().entrySet()) {
-        this.addFeature(feature.getKey(), new ModularFeature(flist, feature.getValue()));
+      if (copyFeatures) {
+        // Copy the features.
+        row.streamFeatures().forEach(feature -> this.addFeature(feature.getRawDataFile(),
+            new ModularFeature(flist, feature)));
       }
     }
   }
@@ -199,12 +168,6 @@ public class ModularFeatureListRow implements FeatureListRow {
     return flist.getRowTypes();
   }
 
-  // todo make private?
-  @Override
-  public ObservableMap<DataType, Object> getMap() {
-    return map;
-  }
-
   @Override
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
     return getFeatureList().getRowTypeChangeListeners();
@@ -212,8 +175,8 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public Stream<ModularFeature> streamFeatures() {
-    return features.values().stream()
-        .filter(f -> f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN);
+    return flist.getRowsSchema().streamFeatures(modelRowIndex)
+        .filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN);
   }
 
   // Helper methods
@@ -224,14 +187,11 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   public Map<RawDataFile, ModularFeature> getFilesFeatures() {
-    return get(FeaturesType.class);
+    return streamFeatures().collect(Collectors.toMap(ModularFeature::getRawDataFile, f -> f));
   }
 
   @Override
   public List<ModularFeature> getFeatures() {
-    // TODO remove features object - not always do we have features
-    // FeaturesType creates an empty ListProperty for that
-    // return FXCollections.observableArrayList(get(FeaturesType.class).values());
     return streamFeatures().toList();
   }
 
@@ -250,8 +210,8 @@ public class ModularFeatureListRow implements FeatureListRow {
       throw new IllegalArgumentException("Raw file cannot be null");
     }
 
-//    logger.log(Level.FINEST, "ADDING FEATURE");
-    ModularFeature oldFeature = features.put(raw, modularFeature);
+    ModularFeature oldFeature = flist.getRowsSchema()
+        .setFeature(modelRowIndex, raw, modularFeature);
     modularFeature.setRow(this);
 
     if (!Objects.equals(oldFeature, modularFeature)) {
@@ -273,13 +233,12 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public int getNumberOfFeatures() {
-    return (int) features.values().stream()
-        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).count();
+    return (int) streamFeatures().count();
   }
 
   @Override
   public void removeFeature(RawDataFile file) {
-    this.features.remove(file);
+    addFeature(file, null);
   }
 
   @Override
@@ -330,15 +289,18 @@ public class ModularFeatureListRow implements FeatureListRow {
     return get(AreaType.class);
   }
 
+  /**
+   *
+   * @return unmodifiable list of all raw data files - even if there is no feature
+   */
   @Override
-  public ObservableList<RawDataFile> getRawDataFiles() {
+  public List<RawDataFile> getRawDataFiles() {
     return flist.getRawDataFiles();
   }
 
   @Override
   public boolean hasFeature(RawDataFile rawData) {
-    ModularFeature feature = features.get(rawData);
-    return feature != null && !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN);
+    return getFeature(rawData) != null;
   }
 
   @Override
@@ -348,7 +310,7 @@ public class ModularFeatureListRow implements FeatureListRow {
       // feature.");
       return false;
     }
-    return features.containsValue(feature);
+    return streamFeatures().anyMatch(f -> Objects.equals(f, feature));
   }
 
   /**
@@ -361,7 +323,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Nullable
   @Override
   public ModularFeature getFeature(RawDataFile raw) {
-    ModularFeature f = features.get(raw);
+    ModularFeature f = flist.getRowsSchema().getFeature(modelRowIndex, raw);
     return f != null && f.getFeatureStatus().equals(FeatureStatus.UNKNOWN) ? null : f;
   }
 
@@ -487,15 +449,16 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void addCompoundAnnotation(CompoundDBAnnotation id) {
-    synchronized (getMap()) {
-      List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
-      List<CompoundDBAnnotation> newList = new ArrayList<>();
-      if (matches != null) {
-        newList.addAll(matches);
-      }
-      newList.add(id);
-      set(CompoundDatabaseMatchesType.class, newList);
+    // should usually not be called from multiple threads
+//    synchronized (getMap()) {
+    List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
+    List<CompoundDBAnnotation> newList = new ArrayList<>();
+    if (matches != null) {
+      newList.addAll(matches);
     }
+    newList.add(id);
+    set(CompoundDatabaseMatchesType.class, newList);
+//    }
   }
 
   @NotNull
@@ -507,9 +470,9 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
-    synchronized (getMap()) {
-      set(CompoundDatabaseMatchesType.class, annotations);
-    }
+//    synchronized (getMap()) {
+    set(CompoundDatabaseMatchesType.class, annotations);
+//    }
   }
 
   /**
@@ -521,8 +484,7 @@ public class ModularFeatureListRow implements FeatureListRow {
    */
   @Override
   public boolean isIdentified() {
-    for (Entry<DataType, Object> entry : getMap().entrySet()) {
-      final DataType dt = entry.getKey();
+    for (DataType dt : getTypes()) {
       if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType
           && !(dt instanceof IonIdentityListType)) {
         final List<?> list = get(listType);
@@ -536,26 +498,26 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void addSpectralLibraryMatch(SpectralDBAnnotation id) {
-    synchronized (getMap()) {
-      List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
-      if (matches == null) {
-        matches = new ArrayList<>();
-      }
-      matches.add(id);
-      set(SpectralLibraryMatchesType.class, matches);
+//    synchronized (getMap()) {
+    List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
+    if (matches == null) {
+      matches = new ArrayList<>();
     }
+    matches.add(id);
+    set(SpectralLibraryMatchesType.class, matches);
+//    }
   }
 
   @Override
   public void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches) {
-    synchronized (getMap()) {
-      List<SpectralDBAnnotation> old = get(SpectralLibraryMatchesType.class);
-      if (old == null) {
-        old = new ArrayList<>();
-      }
-      old.addAll(matches);
-      set(SpectralLibraryMatchesType.class, old);
+//    synchronized (getMap()) {
+    List<SpectralDBAnnotation> old = get(SpectralLibraryMatchesType.class);
+    if (old == null) {
+      old = new ArrayList<>();
     }
+    old.addAll(matches);
+    set(SpectralLibraryMatchesType.class, old);
+//    }
   }
 
   @Override
@@ -566,9 +528,9 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches) {
-    synchronized (getMap()) {
-      set(SpectralLibraryMatchesType.class, matches);
-    }
+//    synchronized (getMap()) {
+    set(SpectralLibraryMatchesType.class, matches);
+//    }
   }
 
   @Override
@@ -637,9 +599,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Nullable
   @Override
   public ModularFeature getBestFeature() {
-    return streamFeatures().filter(Objects::nonNull)
-        .filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN)
-        .sorted(new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
+    return streamFeatures().sorted(
+            new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
         .orElse(null);
   }
 

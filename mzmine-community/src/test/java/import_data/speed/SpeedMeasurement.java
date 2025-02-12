@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,13 @@
 
 package import_data.speed;
 
-public record SpeedMeasurement(String name, String batchFile, String description, int files,
-                               double timeSeconds, double gbRamUsed) {
+import org.jetbrains.annotations.Nullable;
 
+public record SpeedMeasurement(String name, String batchFile, String description, int files,
+                               double timeSeconds, @Nullable String gbRamUsed) {
+
+  public SpeedMeasurement(final String name, final String batchFile, final String description,
+      final int size, final double seconds, final double usedMemoryGB) {
+    this(name, batchFile, description, size, seconds, "%.2f".formatted(usedMemoryGB));
+  }
 }

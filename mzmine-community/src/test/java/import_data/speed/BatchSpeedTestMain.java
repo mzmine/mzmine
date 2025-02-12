@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -69,7 +69,7 @@ public class BatchSpeedTestMain {
 //    String inMemory = "all";
     String inMemory = "none";
     boolean headLess = false;
-
+   
 //    String batchFile = "rawdatafiles/test_batch_small.xml";
 //    String batchFile = "D:\\tmp\\workshop_small.mzbatch";
     String batchFile = "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\speedtest_benchmark\\Orbitrap_QE_environmental_DOM_sea_water\\0_dom_500_mzmine4-4-52.mzbatch";
@@ -163,7 +163,7 @@ public class BatchSpeedTestMain {
             var nFiles =
                 files == null ? ProjectService.getProject().getNumberOfDataFiles() : files.size();
             var sm = new SpeedMeasurement(step.name(), new File(batchFile).getName(), description,
-                nFiles, seconds, step.usedHeap());
+                nFiles, seconds, step.usedHeapGB());
 
             String tsv = tsvObjectWriter.writeValueAsString(sm);
             tsvWriter.append(tsv);
