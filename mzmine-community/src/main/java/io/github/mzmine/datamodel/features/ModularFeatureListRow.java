@@ -330,8 +330,12 @@ public class ModularFeatureListRow implements FeatureListRow {
     return get(AreaType.class);
   }
 
+  /**
+   *
+   * @return unmodifiable list of all raw data files - even if there is no feature
+   */
   @Override
-  public ObservableList<RawDataFile> getRawDataFiles() {
+  public List<RawDataFile> getRawDataFiles() {
     return flist.getRawDataFiles();
   }
 
