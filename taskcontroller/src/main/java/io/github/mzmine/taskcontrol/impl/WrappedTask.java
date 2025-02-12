@@ -231,4 +231,8 @@ public class WrappedTask implements Task {
            (!running && getActualTask().getStatus() != TaskStatus.WAITING);
   }
 
+  @Override
+  public void setStatus(TaskStatus newStatus) {
+    task.setStatus(newStatus);
+  }
 }

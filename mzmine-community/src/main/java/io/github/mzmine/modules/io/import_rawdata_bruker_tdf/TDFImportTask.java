@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.DIAImsMsMsInfoImpl;
@@ -88,7 +90,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author https://github.com/SteffenHeu
  */
-public class TDFImportTask extends AbstractTask {
+public class TDFImportTask extends AbstractTask implements RawDataImportTask {
 
   private static final Logger logger = Logger.getLogger(TDFImportTask.class.getName());
   private final MZmineProject project;
@@ -109,7 +111,7 @@ public class TDFImportTask extends AbstractTask {
   private TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
   private DiaFrameMsMsWindowTable diaFrameMsMsWindowTable;
   private DiaFrameMsMsInfoTable diaFrameMsMsInfoTable;
-  private IMSRawDataFile newMZmineFile;
+  private IMSRawDataFile newMZmineFile = null;
   private boolean isMaldi;
   private String description;
   private double finishedPercentage;
@@ -588,6 +590,11 @@ public class TDFImportTask extends AbstractTask {
         .filter(f -> f.getFrameId() == parentFrameNumber).findFirst();
     Frame parentFrame = optionalFrame.orElseGet(() -> null);
     return parentFrame;
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
   }
 
  /*private void compareMobilities(IMSRawDataFile rawDataFile) {

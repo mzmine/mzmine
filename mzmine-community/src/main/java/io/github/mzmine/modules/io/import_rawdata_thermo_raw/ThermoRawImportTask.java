@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -61,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  * This module binds spawns a separate process that dumps the native format's data in a text+binary
  * form into its standard output. This class then reads the output of that process.
  */
-public class ThermoRawImportTask extends AbstractTask {
+public class ThermoRawImportTask extends AbstractTask implements RawDataImportTask {
 
   public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
 
@@ -352,5 +353,10 @@ public class ThermoRawImportTask extends AbstractTask {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : null;
   }
 }
