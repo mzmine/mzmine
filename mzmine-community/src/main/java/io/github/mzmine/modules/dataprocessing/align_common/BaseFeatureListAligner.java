@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -107,7 +107,7 @@ public class BaseFeatureListAligner {
 
     // Create a new aligned feature list based on the baseList and renumber IDs
     var alignedFeatureList = new ModularFeatureList(featureListName, storage, allDataFiles);
-    FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists);
+    FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists, true);
     FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
     FeatureListUtils.copyPeakListAppliedMethods(featureLists.getFirst(), alignedFeatureList);
     return alignedFeatureList;

@@ -53,7 +53,6 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.InputStream;
-import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -350,22 +349,21 @@ public class MassCalibrationTask extends AbstractTask {
                 .getParameter(MassCalibrationParameters.ionizationMode).getValue();
         String universalCalibrantsFilename =
             MassCalibrationParameters.ionizationModeChoices.get(universalCalibrantsIonizationMode);
-        URL universalCalibrantsPath =
-            getClass().getClassLoader().getResource(universalCalibrantsFilename);
-        standardsListFilename = universalCalibrantsPath.getPath();
-        InputStream inputStream =
-            getClass().getClassLoader().getResourceAsStream(universalCalibrantsFilename);
-        UniversalCalibrantsListCsvExtractor extractor =
-            new UniversalCalibrantsListCsvExtractor(standardsListFilename, inputStream);
-        standardsListExtractor = extractor;
+        try (InputStream is = getClass().getClassLoader()
+            .getResourceAsStream(universalCalibrantsFilename)) {
+          UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(
+              universalCalibrantsFilename, is);
+          standardsListExtractor = extractor;
+          standardsList = standardsListExtractor.extractStandardsList();
+        }
       } else {
         standardsListFilename = massPeakMatchingMethod.getChoices()
             .get(MassPeakMatchingChoice.STANDARDS_LIST.toString())
             .getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
         standardsListExtractor =
             StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
+        standardsList = standardsListExtractor.extractStandardsList();
       }
-      standardsList = standardsListExtractor.extractStandardsList();
 
       if (standardsList.getStandardMolecules().size() == 0) {
         throw new RuntimeException(
@@ -374,12 +372,7 @@ public class MassCalibrationTask extends AbstractTask {
       }
 
     } catch (Exception e) {
-      e.printStackTrace();
-      logger.warning("Exception when extracting standards list from " + standardsListFilename);
-      logger.warning(e.toString());
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Exception when extracting standards list from " + standardsListFilename
-          + "\n" + e.toString());
+      error("Exception when extracting standards list from " + standardsListFilename, e);
       return false;
     }
     return true;

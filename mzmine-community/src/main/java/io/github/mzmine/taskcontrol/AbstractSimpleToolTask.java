@@ -29,6 +29,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +43,8 @@ import org.jetbrains.annotations.Nullable;
  * {@link #incrementFinishedItems()}.
  */
 public abstract class AbstractSimpleToolTask extends AbstractTask {
+
+  private static final Logger logger = Logger.getLogger(AbstractSimpleToolTask.class.getName());
 
   protected final ParameterSet parameters;
   protected long totalItems;
@@ -73,12 +77,23 @@ public abstract class AbstractSimpleToolTask extends AbstractTask {
 
   @Override
   public void run() {
-    setStatus(TaskStatus.PROCESSING);
+    try {
+      setStatus(TaskStatus.PROCESSING);
 
-    process();
+      process();
 
-    if (!isCanceled()) {
-      setStatus(TaskStatus.FINISHED);
+      if (!isCanceled()) {
+        setStatus(TaskStatus.FINISHED);
+      }
+    } catch (Throwable e) {
+      logger.log(Level.SEVERE, "Unhandled exception " + e.getMessage() + " while processing task "
+                               + getTaskDescription(), e);
+
+      if (e instanceof Exception exception) {
+        error(e.getMessage(), exception);
+      } else {
+        error(e.getMessage());
+      }
     }
   }
 

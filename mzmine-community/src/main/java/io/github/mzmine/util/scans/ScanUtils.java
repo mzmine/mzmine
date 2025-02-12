@@ -56,6 +56,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.CachedMobilityScan;
@@ -625,7 +626,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-              - leftNeighbourBinIndex);
+                                                                       - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -2518,15 +2519,44 @@ public class ScanUtils {
 
 
   /**
+   * @param imsCheckPrecursorMz Only applied to IMS Frames. Regular Scan data is usually already
+   *                            filtered to match the selection. Uses precursor mz to filter out
+   *                            spectra with mismatching isolation window. This is important for
+   *                            timsTOF DIA workflows where one Frame contains multiple precursor
+   *                            ions and MsMsInfos. Leave precursorMz as null to ignore this
+   *                            filter.
    * @return A stream of all MsMsInfos in the given collection of scans. IMS frames will return all
    * isolations if there are multiple. This stream will not contain null entries and may be empty.
    */
-  public static Stream<MsMsInfo> streamMsMsInfos(@Nullable Collection<? extends Scan> scans) {
+  public static Stream<MsMsInfo> streamMsMsInfos(@Nullable Collection<? extends Scan> scans,
+      final @Nullable Double imsCheckPrecursorMz) {
     if (scans == null) {
       return Stream.empty();
     }
-    return scans.stream().flatMap(s -> s instanceof Frame f ? f.getImsMsMsInfos().stream()
-        : Stream.ofNullable(s.getMsMsInfo())).filter(Objects::nonNull);
+    return scans.stream().mapMulti((s, downstream) -> {
+      if (s instanceof Frame f) {
+        // frames may contain multiple precursor isolations - check each and find the ones with matching isolation window
+        for (final IonMobilityMsMsInfo imsInfo : f.getImsMsMsInfos()) {
+          if (imsInfo != null) {
+            final Range<Double> mzWindow = imsInfo.getIsolationWindow();
+            if (imsCheckPrecursorMz != null && mzWindow != null && !mzWindow.contains(
+                imsCheckPrecursorMz)) {
+              continue;
+            }
+            downstream.accept(imsInfo);
+          }
+        }
+      } else {
+        final MsMsInfo info = s.getMsMsInfo();
+        if (info != null) {
+          // do not apply precursor mz filter
+          // Scan is usually already filtered to match the precursor ion
+          // filtering out based on the isolation window in MsMsInfo may be error prone / too strict
+          // isolation is sometimes wider than the isolation window set in MsMsInfo
+          downstream.accept(info);
+        }
+      }
+    });
   }
 
   /**

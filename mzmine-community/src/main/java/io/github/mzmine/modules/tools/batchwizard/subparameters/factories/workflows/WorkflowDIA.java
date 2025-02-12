@@ -27,7 +27,7 @@ public class WorkflowDIA extends WorkflowWizardParameterFactory {
 
   @Override
   public WizardStepParameters create() {
-    return new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true, false);
+    return new WorkflowDiaWizardParameters(0.8, 5, true, true, null, true, true, false);
   }
 
   @Override
@@ -49,7 +49,8 @@ public class WorkflowDIA extends WorkflowWizardParameterFactory {
 
     return switch (ionInterface.group()) {
       case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDIA(steps);
-      case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING, DIRECT_AND_FLOW -> throw new UnsupportedWorkflowException(steps);
+      case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING, DIRECT_AND_FLOW ->
+          throw new UnsupportedWorkflowException(steps);
     };
   }
 

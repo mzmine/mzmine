@@ -38,6 +38,8 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_scans.ExportScansModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
@@ -55,8 +57,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
@@ -281,13 +281,13 @@ public class SpectraVisualizerTab extends MZmineTab {
 
   private void loadColorSettings() {
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    scanColor = FxColorUtil.fxColorToAWT(palette.get(0));
+    scanColor = currentScan.getDataFile().getColorAWT();
     massListColor = FxColorUtil.fxColorToAWT(
         ColorUtils.getContrastPaletteColor(FxColorUtil.awtColorToFX(dataFileColor), palette));
-    peaksColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
-    singlePeakColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
-    detectedIsotopesColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
-    predictedIsotopesColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
+    peaksColor = getNextFileContrastColor();
+    singlePeakColor = getNextFileContrastColor();
+    detectedIsotopesColor = getNextFileContrastColor();
+    predictedIsotopesColor = getNextFileContrastColor();
   }
 
   public void loadRawData(Scan scan) {
@@ -440,7 +440,7 @@ public class SpectraVisualizerTab extends MZmineTab {
         for (int i = 0; i < patterns.size(); i++) {
           Color newColor;
           if (newPattern.getStatus() == IsotopePatternStatus.DETECTED) {
-            newColor = palette.getNextColorAWT();
+            newColor = detectedIsotopesColor;
           } else {
             newColor = predictedIsotopesColor;
           }
@@ -472,6 +472,17 @@ public class SpectraVisualizerTab extends MZmineTab {
         spectrumPlot.addDataSet(newDataSet, newColor, true, false);
       }
     });
+  }
+
+  private Color getNextFileContrastColor() {
+    if (currentScan != null) {
+      return palette.getNextColorAWT(
+          FxColorUtil.fxColorToAWT(currentScan.getDataFile().getColor()));
+    } else if (dataFile != null) {
+      return palette.getNextColorAWT(FxColorUtil.fxColorToAWT(dataFile.getColor()));
+    } else {
+      return palette.getNextColorAWT();
+    }
   }
 
   @Nullable

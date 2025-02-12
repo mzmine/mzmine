@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams;
 
 import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask.convertMatrixToR2RMap;
+import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask.getScanAndApplyPrechecks;
 import static io.github.mzmine.util.collections.CollectionUtils.argsortReversed;
 import static io.github.mzmine.util.scans.similarity.impl.ms2deepscore.EmbeddingBasedSimilarity.dotProduct;
 
@@ -48,7 +49,7 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpe
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.similarity.impl.DreaMS.DreaMSModel;
 import java.io.File;
 import java.io.IOException;
@@ -66,6 +67,7 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
 
   private static final Logger logger = Logger.getLogger(DreaMSNetworkingTask.class.getName());
   private final @NotNull FeatureList[] featureLists;
+  private final FragmentScanSelection scanMergeSelect;
   private int processedItems = 0, totalItems;
   private final double minScore;
   private final Integer numNeighbors;
@@ -90,12 +92,15 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
 
     this.featureLists = featureLists;
     // Get parameter values
+    this.scanMergeSelect = subParams.getParameter(DreaMSNetworkingParameters.spectraMergeSelect)
+        .createFragmentScanSelection(getMemoryMapStorage());
+
     minScore = subParams.getValue(DreaMSNetworkingParameters.minScore);
     if (subParams.getValue(DreaMSNetworkingParameters.kNN)) {
       numNeighbors = subParams.getEmbeddedParameterValue(DreaMSNetworkingParameters.kNN)
-              .getValue(DreaMSNetworkingKNNParameter.numNeighbors);
+          .getValue(DreaMSNetworkingKNNParameter.numNeighbors);
       minScoreNeighbors = subParams.getEmbeddedParameterValue(DreaMSNetworkingParameters.kNN)
-              .getValue(DreaMSNetworkingKNNParameter.minScoreNeighbors);
+          .getValue(DreaMSNetworkingKNNParameter.minScoreNeighbors);
     } else {
       minScoreNeighbors = 0;
       numNeighbors = null;
@@ -133,16 +138,12 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
     List<FeatureListRow> featureListRows = new ArrayList<>();
 
     for (FeatureListRow row : featureList.getRows()) {
-      Scan scan = row.getMostIntenseFragmentScan();
-      if (scan == null || scan.getPrecursorMz() == null) {
-        continue;
-      }
-      if (scan.getMassList() == null) {
-        throw new MissingMassListException(scan);
-      }
 
-      scanList.add(scan);
-      featureListRows.add(row);
+      final Scan scan = getScanAndApplyPrechecks(row, scanMergeSelect, 1);
+      if (scan != null) {
+        scanList.add(scan);
+        featureListRows.add(row);
+      }
     }
 
     // Predict the matrix of pairwise DreaMS similarities
@@ -199,11 +200,11 @@ public class DreaMSNetworkingTask extends AbstractFeatureListTask {
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
   public double getFinishedPercentage() {
-      if (totalItems == 0) {
-          return 0;
-      } else {
-          return (double) processedItems / totalItems;
-      }
+    if (totalItems == 0) {
+      return 0;
+    } else {
+      return (double) processedItems / totalItems;
+    }
   }
 
   @Override

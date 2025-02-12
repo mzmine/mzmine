@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,6 +56,7 @@ import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.GraphStreamUtils;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.collections.StreamUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.Combinatorics;
@@ -97,7 +98,7 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
   // target
   private final SpectralSignalFilter signalFilter;
   private final double maxMzDelta;
-  private final List<FeatureListRow> rows;
+  private final List<FeatureListRow> mzSortedRows;
   private long totalMaxPairs = 0;
   // this is always off for now. Could be reintroduced as separate similarity metric
   private final @NotNull FragmentScanSelection scanMergeSelect;
@@ -115,7 +116,10 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
       @Nullable ModularFeatureList featureList, List<FeatureListRow> rows,
       @NotNull Instant moduleCallDate, final Class<? extends MZmineModule> moduleClass) {
     super(null, moduleCallDate, mainParameters, moduleClass);
-    this.rows = rows;
+    // make sure to copy rows and sort them by mz
+    // copy to not change original sorting
+    this.mzSortedRows = rows.stream().sorted(FeatureListRowSorter.MZ_ASCENDING)
+        .collect(CollectionUtils.toArrayList());
     // get sub parameters of this algorithm
     var subParams = mainParameters.getEmbeddedParameterValue(
         MainSpectralNetworkingParameters.algorithms);
@@ -358,7 +362,7 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
   public void process() {
     final R2RMap<RowsRelationship> mapCosineSim = new R2RMap<>();
     try {
-      checkRows(mapCosineSim, rows);
+      checkRows(mapCosineSim, mzSortedRows);
       logger.info(MessageFormat.format(
           "MS2 similarity check on rows done. MS2 modified cosine similarity edges={0}",
           mapCosineSim.size()));
@@ -424,12 +428,12 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
    * Parallel check of all r2r similarities
    *
    * @param mapSimilarity map for all MS2 cosine similarity edges
-   * @param rows          match rows
+   * @param mzSortedRows  match rows
    */
-  public void checkRows(R2RMap<RowsRelationship> mapSimilarity, List<FeatureListRow> rows)
+  public void checkRows(R2RMap<RowsRelationship> mapSimilarity, List<FeatureListRow> mzSortedRows)
       throws MissingMassListException {
     List<Entry<FeatureListRow, List<FilteredRowData>>> sortedFilteredRows = new ArrayList<>(
-        prepareRowSpectra(rows).entrySet());
+        prepareRowSpectra(mzSortedRows).entrySet());
     final int numRows = sortedFilteredRows.size();
     totalMaxPairs = Combinatorics.uniquePairs(sortedFilteredRows.size());
     logger.log(Level.INFO, MessageFormat.format("Checking MS2 similarity on {0} rows", numRows));
@@ -483,14 +487,12 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
   }
 
   private Map<FeatureListRow, List<FilteredRowData>> prepareRowSpectra(
-      final List<FeatureListRow> rows) {
-    // required
-    rows.sort(FeatureListRowSorter.MZ_ASCENDING);
+      final List<FeatureListRow> mzSortedRows) {
     // prefilter rows: has MS2 and in case only best MS2 is considered - check minDP
     // and prepare data points
     // retain order of mz in LinkedHashMap
     Map<FeatureListRow, List<FilteredRowData>> filteredRows = new LinkedHashMap<>();
-    for (FeatureListRow row : rows) {
+    for (FeatureListRow row : mzSortedRows) {
       List<Scan> selectedScans = scanMergeSelect.getAllFragmentSpectra(row);
       if (selectedScans.isEmpty()) {
         continue;

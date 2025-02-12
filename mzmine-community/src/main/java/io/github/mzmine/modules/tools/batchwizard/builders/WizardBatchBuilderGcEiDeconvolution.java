@@ -180,6 +180,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
       if (exportAnnotationGraphics) {
         makeAndAddAnnotationGraphicsExportStep(q, exportPath);
       }
+      makeAndAddBatchExportStep(q, isExportActive, exportPath);
     }
     return q;
   }
