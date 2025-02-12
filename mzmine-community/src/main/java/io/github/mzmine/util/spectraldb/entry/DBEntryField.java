@@ -495,7 +495,7 @@ public enum DBEntryField {
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI ->
           name();
       case RT -> "RTINSECONDS";
-      case RI -> "?";
+      case RI -> "";
       case SCAN_NUMBER -> "SCANS";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
       case MERGED_N_SAMPLES -> "MERGED_ACROSS_N_SAMPLES";
@@ -581,7 +581,7 @@ public enum DBEntryField {
       //not covered
       case INSTRUMENT -> "INSTRUMENT_NAME";
       case RT -> "RTINSECONDS";
-      case RI -> "?";
+      case RI -> "";
       case ENTRY_ID -> "SPECTRUMID";
       case COMMENT -> "COMMENT";
       case DESCRIPTION -> "DESCRIPTION";
@@ -781,12 +781,9 @@ public enum DBEntryField {
         case Double d -> "%.2f".formatted(d * 60.0);
         default -> throw new IllegalArgumentException("RT has to be a number");
       };
-      case RI -> switch (value) {
-        // float is default for RI but handle Double in case wrong value was present
-        case Float f -> "%.2f".formatted(f * 60.f);
-        case Double d -> "%.2f".formatted(d * 60.0);
-        default -> throw new IllegalArgumentException("RI has to be a number");
-      };
+      case RI ->  {
+        throw new IllegalArgumentException("Retention index is not supported for MGF format");
+      }
       case PRECURSOR_MZ, EXACT_MASS -> switch (value) {
         case Number d -> MZmineCore.getConfiguration().getExportFormats().mz(d);
         default -> throw new IllegalArgumentException("MZ has to be a number");
