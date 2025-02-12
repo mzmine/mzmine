@@ -104,6 +104,22 @@ public interface FeatureListRow extends ModularDataModel {
 
 
   /**
+   * Remove all features from this row
+   *
+   * @param updateByRowBindings updates values by row bindings if true. In case multiple feature
+   *                            add/remove operations are done, this option may be set to false.
+   *                            Remember to call {@link #applyRowBindings()}.
+   */
+  void clearFeatures(boolean updateByRowBindings);
+
+  /**
+   * Remove all features from this row
+   */
+  default void clearFeatures() {
+    clearFeatures(true);
+  }
+
+  /**
    * apply row bindings of the feature list (if available) to this row
    */
   default void applyRowBindings() {
@@ -116,7 +132,18 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Remove a feature
    */
-  void removeFeature(RawDataFile file);
+  default void removeFeature(RawDataFile file) {
+    removeFeature(file, true);
+  }
+
+  /**
+   * Remove a features from this row
+   *
+   * @param updateByRowBindings updates values by row bindings if true. In case multiple feature
+   *                            add/remove operations are done, this option may be set to false.
+   *                            Remember to call {@link #applyRowBindings()}.
+   */
+  void removeFeature(RawDataFile file, boolean updateByRowBindings);
 
   /**
    * Has a feature?
@@ -536,4 +563,5 @@ public interface FeatureListRow extends ModularDataModel {
     return streamFeatures().sorted(Comparator.comparingDouble(Feature::getHeight).reversed())
         .map(Feature::getRepresentativePolarity).filter(Objects::nonNull).findFirst().orElse(null);
   }
+
 }

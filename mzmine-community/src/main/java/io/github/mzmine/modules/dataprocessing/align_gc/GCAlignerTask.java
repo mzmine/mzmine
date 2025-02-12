@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.align_common.BaseFeatureListAligner;
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner;
-import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner.ExtractMzMismatchFeatureCloner;
+import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner.SimpleFeatureCloner;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -89,11 +89,15 @@ public class GCAlignerTask extends AbstractFeatureListTask {
     logger.info(() -> "Running parallel GC aligner on " + featureLists.size() + " feature lists.");
 
     var mzTolerance = parameters.getValue(GCAlignerParameters.MZ_TOLERANCE);
-    FeatureCloner featureCloner = new ExtractMzMismatchFeatureCloner(mzTolerance);
+    // for now use a simple feature cloner that just uses the picked feature
+    // later after alignment we will find the main consensus feature in the post processor
+    FeatureCloner featureCloner = new SimpleFeatureCloner();
+    var postProcessor = new GCConsensusAlignerPostProcessor(mzTolerance);
     // create the row aligner that handles the scoring
     var rowAligner = new GcRowAlignScorer(parameters);
     listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
-        getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT);
+        getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT,
+        postProcessor);
 
     alignedFeatureList = listAligner.alignFeatureLists();
     if (alignedFeatureList == null || isCanceled()) {
