@@ -147,13 +147,12 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         .endsWith(BAF_SUFFIX)) {
       // refer to the .d folder by default
       return f.getParentFile();
-    } else if (parent.getName().endsWith(BRUKER_FOLDER_SUFFIX) && (
-        f.getName().endsWith(BRUKER_FOLDER_SUFFIX) && f.isFile())) {
+    } else if (f.getName().endsWith(BRUKER_FOLDER_SUFFIX) && f.isFile()) {
       // there also exists a .d file in the .d folder
       return parent;
     } else if (parent.exists() && parent.isDirectory() && Objects.requireNonNullElse(
         parent.listFiles(p -> p != null && p.getName().startsWith("analysis.")), new File[0]).length
-        > 0 && parent.getName().endsWith(BRUKER_FOLDER_SUFFIX)) {
+        > 0) {
       return parent;
     } else {
       return f;
@@ -245,7 +244,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
     // after skipping already loaded
     if (checkDuplicateFilesInImportListAndProject(project, filesToImport)) {
-      // in what case would this ever be triggered? ~SteffenHeu
       return ExitCode.ERROR;
     }
 
@@ -258,8 +256,12 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     final File[] libraryFiles = parameters.getValue(SpectralLibraryImportParameters.dataBaseFiles);
 
     if (libraryFiles != null) {
-      // no duplicate names
+      // not existing files
       if (containsMissingFiles(libraryFiles, "spectral library")) {
+        return ExitCode.ERROR;
+      }
+      // no duplicate names
+      if (containsDuplicateFiles(libraryFiles, "spectral library file names in the import list.")) {
         return ExitCode.ERROR;
       }
 

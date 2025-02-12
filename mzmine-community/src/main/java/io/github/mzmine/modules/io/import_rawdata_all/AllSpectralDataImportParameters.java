@@ -137,16 +137,14 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
    */
   public static ImportFile[] skipAlreadyLoadedFiles(MZmineProject project,
       final ParameterSet parameters) {
-    // all files that should be loaded
-    // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
-    Set<ImportFile> filesToLoad = streamValidatedFiles(parameters).collect(Collectors.toSet());
 
     Set<File> currentlyLoadedFiles = project.getCurrentRawDataFiles().stream()
         .map(RawDataFile::getAbsoluteFilePath).collect(Collectors.toSet());
 
     // compare based on absolute files
-    // skip all files in import that directly match the abs path of another file
-    return filesToLoad.stream()
+    // skip all files in import that directly match the abs path of another file.
+    // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
+    return streamValidatedFiles(parameters)
         .filter(file -> !currentlyLoadedFiles.contains(file.importedFile().getAbsoluteFile()))
         .toArray(ImportFile[]::new);
   }
