@@ -377,7 +377,7 @@ public class ConversionUtils {
     if (collissionEnergy == null && buildingInfo.getCollisionEnergy() == null) {
       return true;
     }
-    if (collissionEnergy == null) {
+    if (collissionEnergy == null || buildingInfo.getCollisionEnergy() == null) {
       return false;
     }
     if (Float.compare(collissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
