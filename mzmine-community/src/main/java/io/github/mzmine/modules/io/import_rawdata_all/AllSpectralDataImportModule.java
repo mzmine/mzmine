@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -400,7 +401,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
 //      case AIRD -> throw new IllegalStateException("Unexpected value: " + fileType);
-      case WATERS_RAW, WATERS_RAW_IMS, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, AGILENT_D_IMS ->
+      case WATERS_RAW, WATERS_RAW_IMS, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, AGILENT_D_IMS, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
     };
@@ -447,7 +448,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_BAF ->
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
-      case AGILENT_D, AGILENT_D_IMS, SCIEX_WIFF, SCIEX_WIFF2, WATERS_RAW, WATERS_RAW_IMS ->
+      case AGILENT_D, AGILENT_D_IMS, SCIEX_WIFF, SCIEX_WIFF2, WATERS_RAW, WATERS_RAW_IMS, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
       // all unsupported tasks are wrapped to apply import and mass detection separately
@@ -482,7 +483,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_TSF, BRUKER_BAF, BRUKER_TDF ->
           null; // TSF can be anything: Single shot maldi, imaging, or LC-MS (non ims)
       case WATERS_RAW, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, THERMO_RAW, AGILENT_D_IMS,
-           WATERS_RAW_IMS -> null;
+           WATERS_RAW_IMS, MBI -> null;
     };
   }
 
