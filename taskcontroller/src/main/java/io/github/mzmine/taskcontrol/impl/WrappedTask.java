@@ -233,6 +233,6 @@ public class WrappedTask implements Task {
 
   @Override
   public void setStatus(TaskStatus newStatus) {
-    // do nothing
+    task.setStatus(newStatus);
   }
 }
