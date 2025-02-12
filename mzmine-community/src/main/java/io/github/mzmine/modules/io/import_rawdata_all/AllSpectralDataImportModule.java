@@ -24,7 +24,10 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
-import static io.github.mzmine.util.RawDataFileTypeDetector.AGILENT_ACQDATATA_FOLDER;
+import static io.github.mzmine.util.RawDataFileTypeDetector.BAF_SUFFIX;
+import static io.github.mzmine.util.RawDataFileTypeDetector.BRUKER_FOLDER_SUFFIX;
+import static io.github.mzmine.util.RawDataFileTypeDetector.TDF_SUFFIX;
+import static io.github.mzmine.util.RawDataFileTypeDetector.TSF_SUFFIX;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -137,20 +140,20 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * @return the valid bruker file path for bruker .d files or the input file
    */
   public static File validateBrukerPath(File f) {
-    var parent = f.getParentFile();
-    if (parent == null) {
+    final File parent = f.getParentFile();
+    if (parent == null || !parent.getName().endsWith(BRUKER_FOLDER_SUFFIX)) {
       return f;
-    } else if (f.getName().endsWith(".tdf") || f.getName().endsWith(".tsf") || f.getName()
-        .endsWith(".baf")) {
+    } else if (f.getName().endsWith(TDF_SUFFIX) || f.getName().endsWith(TSF_SUFFIX) || f.getName()
+        .endsWith(BAF_SUFFIX)) {
       // refer to the .d folder by default
       return f.getParentFile();
-    } else if (parent.getName().endsWith(".d") && (f.getName().endsWith(".d")) && !new File(f,
-        AGILENT_ACQDATATA_FOLDER).exists()) {
+    } else if (parent.getName().endsWith(BRUKER_FOLDER_SUFFIX) && (
+        f.getName().endsWith(BRUKER_FOLDER_SUFFIX) && f.isFile())) {
       // there also exists a .d file in the .d folder
       return parent;
     } else if (parent.exists() && parent.isDirectory() && Objects.requireNonNullElse(
         parent.listFiles(p -> p != null && p.getName().startsWith("analysis.")), new File[0]).length
-        > 0 && parent.getName().endsWith(".d")) {
+        > 0 && parent.getName().endsWith(BRUKER_FOLDER_SUFFIX)) {
       return parent;
     } else {
       return f;
