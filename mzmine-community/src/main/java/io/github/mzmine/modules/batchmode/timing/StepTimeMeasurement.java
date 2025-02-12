@@ -33,15 +33,12 @@ public record StepTimeMeasurement(int step, double secondsToFinish, String name,
                                   @Nullable String usedHeapGB) {
 
   /**
-   * @param performGcAndMeasureMemory memory measurements are only precise when combined with GC
-   *                                  before, if active this will perform a GC
+   * @param trackMemory memory measurements are only precise when combined with GC
+   *                                  before, if active - please perform gc before this constructor
    */
   public StepTimeMeasurement(final int stepNumber, final String name, final Duration duration,
-      final boolean performGcAndMeasureMemory) {
-    if (performGcAndMeasureMemory) {
-      System.gc();
-    }
-    var memory = performGcAndMeasureMemory ? " %.2f".formatted(
+      final boolean trackMemory) {
+    var memory = trackMemory ? "%.2f".formatted(
         ConfigService.getConfiguration().getUsedMemoryGB()) : null;
     this(stepNumber, duration.toMillis() / 1000.0, name, memory);
   }
