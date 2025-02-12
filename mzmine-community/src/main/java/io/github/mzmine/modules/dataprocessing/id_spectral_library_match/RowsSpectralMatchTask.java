@@ -308,6 +308,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
       logger.info(
           () -> String.format("Comparing %d library spectra to scan: %s", entries.size(), scan));
 
+      if (useRI) {
+        logger.warning("Cannot directly apply retention index criterion with unprocessed scans");
+      }
+
       matchScan(entries, scan);
 
       logger.info(
@@ -377,8 +381,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
       for (var entry : entries) {
         float rt = scan.getRetentionTime();
-        Integer ri = scan.getRetentionIndex();
-        final SpectralSimilarity sim = matchSpectrum(rt, ri, scanPrecursorMZ, precursorCCS, masses,
+        final SpectralSimilarity sim = matchSpectrum(rt, null, scanPrecursorMZ, precursorCCS, masses,
             entry);
         if (sim != null) {
           Float ccsError = PercentTolerance.getPercentError(entry.getOrElse(DBEntryField.CCS, null),
