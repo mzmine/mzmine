@@ -219,9 +219,14 @@ public class MSConvertImportTask extends AbstractTask {
           }
         }
         if (headerStartIndex == -1) {
-          logger.finest(() -> "Skipping text before mzml header: %s".formatted(
-              new String(buffer, 0, read, StandardCharsets.UTF_8)));
-          headerStartOffset += read;
+          if (read != -1) {
+            logger.finest(() -> "Skipping text before mzml header: %s".formatted(
+                new String(buffer, 0, read, StandardCharsets.UTF_8)));
+            headerStartOffset += read;
+          } else {
+            logger.finest("No data recieved from MSConvert. Current header offset: %d".formatted(
+                headerStartOffset));
+          }
         }
       }
       // return to start of file and skip ahead to the index where the mzml starts
