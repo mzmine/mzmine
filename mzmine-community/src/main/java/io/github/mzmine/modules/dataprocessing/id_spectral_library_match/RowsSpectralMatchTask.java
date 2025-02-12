@@ -34,7 +34,9 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
@@ -46,8 +48,10 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionException;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.RIRecord;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.FragmentScanSelection;
@@ -98,8 +102,11 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private final SpectralSimilarityFunction simFunction;
   private final FragmentScanSelection fragmentScanSelection;
   protected RTTolerance rtTolerance;
+  protected RITolerance riTolerance;
   protected PercentTolerance ccsTolerance;
   private boolean useRT;
+  private boolean useRI;
+  private boolean shouldIgnoreWithoutRI;
   private boolean cropSpectraToOverlap;
   // remove 13C isotopes
   private boolean removeIsotopes;
@@ -126,7 +133,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
         SingleSpectrumLibrarySearchParameters.usePrecursorMZ, scan.getPrecursorMz());
 
     useRT = false;
+    useRI = false;
     rtTolerance = null;
+    riTolerance = null;
+    shouldIgnoreWithoutRI = false;
 
     minMatch = parameters.getValue(SpectralLibrarySearchParameters.minMatch);
     var simfuncParams = parameters.getParameter(SpectralLibrarySearchParameters.similarityFunction)
@@ -201,6 +211,11 @@ public class RowsSpectralMatchTask extends AbstractTask {
       useRT = advanced.getValue(AdvancedSpectralLibrarySearchParameters.rtTolerance);
       rtTolerance = advanced.getParameter(AdvancedSpectralLibrarySearchParameters.rtTolerance)
           .getEmbeddedParameter().getValue();
+
+      useRI = advanced.getValue(AdvancedSpectralLibrarySearchParameters.riTolerance);
+      riTolerance = advanced.getParameter(AdvancedSpectralLibrarySearchParameters.riTolerance)
+              .getEmbeddedParameter().getValue();
+      shouldIgnoreWithoutRI = advanced.getParameter(AdvancedSpectralLibrarySearchParameters.ignoreWithoutRI).getValue();
 
       needsIsotopePattern = advanced.getValue(
           AdvancedSpectralLibrarySearchParameters.needsIsotopePattern);
@@ -362,7 +377,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
       for (var entry : entries) {
         float rt = scan.getRetentionTime();
-        final SpectralSimilarity sim = matchSpectrum(rt, scanPrecursorMZ, precursorCCS, masses,
+        Integer ri = scan.getRetentionIndex();
+        final SpectralSimilarity sim = matchSpectrum(rt, ri, scanPrecursorMZ, precursorCCS, masses,
             entry);
         if (sim != null) {
           Float ccsError = PercentTolerance.getPercentError(entry.getOrElse(DBEntryField.CCS, null),
@@ -459,8 +475,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
             continue;
           }
 
-          SpectralSimilarity sim = matchSpectrum(row.getAverageRT(), row.getAverageMZ(), rowCCS,
-              rowMassLists.get(i), ident);
+          SpectralSimilarity sim = matchSpectrum(
+            row.getAverageRT(),
+            row.getAverageRI(),
+            row.getAverageMZ(), rowCCS, rowMassLists.get(i), ident);
           if (sim != null && (!needsIsotopePattern || checkForIsotopePattern(sim,
               mzToleranceSpectra, minMatchedIsoSignals)) && (best == null
                                                              || best.getSimilarity().getScore()
@@ -533,10 +551,11 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @param ident       library entry
    * @return spectral similarity or null if no match
    */
-  private SpectralSimilarity matchSpectrum(Float rowRT, double rowMZ, Float rowCCS,
+  private SpectralSimilarity matchSpectrum(Float rowRT, Integer rowRI, double rowMZ, Float rowCCS,
       DataPoint[] rowMassList, SpectralLibraryEntry ident) {
     // prefilters
     if (!checkRT(rowRT, ident) // retention time optional
+        || !checkRI(rowRI, ident) // retention index optional
         // mz only for MS2 not for MS1
         || (msLevelFilter.isFragmentationNoMS1() && !checkPrecursorMZ(rowMZ, ident))
         // CCS/ion mobility optional
@@ -617,6 +636,15 @@ public class RowsSpectralMatchTask extends AbstractTask {
     }
     Float rt = (Float) ident.getField(DBEntryField.RT).orElse(null);
     return (rt == null || rtTolerance.checkWithinTolerance(rt, retentionTime));
+  }
+
+  private boolean checkRI(Integer retentionIndex, SpectralLibraryEntry ident) {
+    if (!useRI || retentionIndex == null) {
+      return true;
+    }
+    RIRecord riRecord = (RIRecord) ident.getField(DBEntryField.RI).orElse(null);
+    boolean shouldIgnore = shouldIgnoreWithoutRI && (riRecord == null || riRecord.getRI(riTolerance.getRIType()) == null);
+    return !shouldIgnore && riTolerance.checkWithinTolerance(retentionIndex, riRecord);
   }
 
   /**

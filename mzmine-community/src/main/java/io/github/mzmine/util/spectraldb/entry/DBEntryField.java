@@ -66,6 +66,7 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.RIRecord;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.io.JsonUtils;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
@@ -106,7 +107,7 @@ public enum DBEntryField {
   FEATURELIST_NAME_FEATURE_ID,
 
   // spectrum specific
-  MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
+  MS_LEVEL, RT(Float.class), RI(RIRecord.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
       Integer.class), // height of feature
   FEATURE_MS1_HEIGHT(Float.class), FEATURE_MS1_REL_HEIGHT(Float.class),
 
@@ -155,7 +156,7 @@ public enum DBEntryField {
   public static final DBEntryField[] DATABASE_FIELDS = new DBEntryField[]{USI, PUBMED, PUBCHEM,
       MONA_ID, CHEMSPIDER, CAS};
   public static final DBEntryField[] COMPOUND_FIELDS = new DBEntryField[]{NAME, SYNONYMS, FORMULA,
-      MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, CCS, POLARITY, INCHI, INCHIKEY,
+      MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, RI, CCS, POLARITY, INCHI, INCHIKEY,
       SMILES, NUM_PEAKS, FEATURE_ID};
   public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[]{INSTRUMENT_TYPE,
       INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, MERGED_SPEC_TYPE, ACQUISITION,
@@ -304,7 +305,7 @@ public enum DBEntryField {
            SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N,
            OTHER_MATCHED_COMPOUNDS_NAMES, //
            MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
-           MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURELIST_NAME_FEATURE_ID -> StringType.class;
+           MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURELIST_NAME_FEATURE_ID, RI -> StringType.class;
       case MERGED_N_SAMPLES -> TotalSamplesType.class;
       case CLASSYFIRE_SUPERCLASS -> ClassyFireSuperclassType.class;
       case CLASSYFIRE_CLASS -> ClassyFireClassType.class;
@@ -380,6 +381,7 @@ public enum DBEntryField {
       case PRINCIPAL_INVESTIGATOR -> "investigator";
       case PUBMED -> "pubmed";
       case RT -> "rt";
+      case RI -> "ri";
       case SMILES -> "smiles";
       case MS_LEVEL -> "ms_level";
       case PUBCHEM -> "pubchem";
@@ -449,6 +451,7 @@ public enum DBEntryField {
       case NAME -> "Name";
       case SPLASH -> "Splash";
       case RT -> "RT";
+      case RI -> "Retention_index";
       case MS_LEVEL -> "Spectrum_type";
       case NUM_PEAKS -> "Num Peaks";
       case CCS -> "CCS";
@@ -492,6 +495,7 @@ public enum DBEntryField {
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI ->
           name();
       case RT -> "RTINSECONDS";
+      case RI -> "?";
       case SCAN_NUMBER -> "SCANS";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
       case MERGED_N_SAMPLES -> "MERGED_ACROSS_N_SAMPLES";
@@ -577,6 +581,7 @@ public enum DBEntryField {
       //not covered
       case INSTRUMENT -> "INSTRUMENT_NAME";
       case RT -> "RTINSECONDS";
+      case RI -> "?";
       case ENTRY_ID -> "SPECTRUMID";
       case COMMENT -> "COMMENT";
       case DESCRIPTION -> "DESCRIPTION";
@@ -647,6 +652,7 @@ public enum DBEntryField {
       case PRINCIPAL_INVESTIGATOR -> "";
       case PUBMED -> "";
       case RT -> "RT";
+      case RI -> "";
       case SMILES -> "";
       case MS_LEVEL -> "";
       case PUBCHEM -> "";
@@ -722,6 +728,10 @@ public enum DBEntryField {
       final float[] floats = ParsingUtils.stringToFloatArray(replaced, ",");
       return new FloatArrayList(floats);
     }
+
+    if (getObjectClass().equals(RIRecord.class)) {
+      return new RIRecord(content);
+    }
     // TODO currently we can only parse this as list of strings - should be either json list or java object list
     // FloatArrayList IntArrayList and other specialized classes help to load numbers
     else if (getObjectClass().equals(List.class) && content != null) {
@@ -770,6 +780,12 @@ public enum DBEntryField {
         case Float f -> "%.2f".formatted(f * 60.f);
         case Double d -> "%.2f".formatted(d * 60.0);
         default -> throw new IllegalArgumentException("RT has to be a number");
+      };
+      case RI -> switch (value) {
+        // float is default for RI but handle Double in case wrong value was present
+        case Float f -> "%.2f".formatted(f * 60.f);
+        case Double d -> "%.2f".formatted(d * 60.0);
+        default -> throw new IllegalArgumentException("RI has to be a number");
       };
       case PRECURSOR_MZ, EXACT_MASS -> switch (value) {
         case Number d -> MZmineCore.getConfiguration().getExportFormats().mz(d);

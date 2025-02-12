@@ -38,6 +38,9 @@ import java.util.Collection;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+
+import io.github.mzmine.util.RIColumn;
+import io.github.mzmine.util.RIRecord;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -150,8 +153,14 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   float getRetentionTime();
 
   /**
+   * @return Retention time of this scan, if it exists
+   */
+  default Integer getRetentionIndex() { return null; }
+
+  /**
    * @return The injection time of this scan or null.
    */
+
   @Nullable
   public Float getInjectionTime();
 
