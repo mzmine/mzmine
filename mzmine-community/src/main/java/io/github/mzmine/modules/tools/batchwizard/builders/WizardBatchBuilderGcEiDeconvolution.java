@@ -156,7 +156,9 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     if (rtSmoothing) {
       makeAndAddSmoothingStep(q, true, minRtDataPoints, false);
     }
-    makeAndAddRtLocalMinResolver(q, null, minRtDataPoints, cropRtRange, rtFwhm, 10);
+    // use 100 isomers to decrease the chromatographic threshold
+    // GC-EI generates a lot of the same mz fragments and covers the whole RT range
+    makeAndAddRtLocalMinResolver(q, null, minRtDataPoints, cropRtRange, rtFwhm, 100);
     if (recalibrateRetentionTime) {
       makeAndAddRetentionTimeCalibration(q, mzTolInterSample, interSampleRtTol,
           handleOriginalFeatureLists);
