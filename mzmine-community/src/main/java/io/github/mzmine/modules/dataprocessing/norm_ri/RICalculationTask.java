@@ -190,22 +190,22 @@ public class RICalculationTask extends AbstractFeatureListTask {
       return;
     }
 
-    Integer ri = null;
+    Float ri = null;
     boolean hasRI = false;
     double[] knots = riScale.interpolator.getKnots();
 
     if (rt >= knots[0] && rt <= knots[knots.length - 1]) {
-      ri = Math.toIntExact(Math.round(riScale.interpolator.value(rt)));
+      ri = (float) riScale.interpolator.value(rt);
       hasRI = true;
     }
 
     else if (shouldExtrapolate && rt > knots[knots.length - 1]) {
-      ri = Math.toIntExact(Math.round(riScale.interpolator.getPolynomials()[riScale.interpolator.getPolynomials().length - 1].value(rt - knots[knots.length - 1])));
+      ri = (float) riScale.interpolator.getPolynomials()[riScale.interpolator.getPolynomials().length - 1].value(rt - knots[knots.length - 1]);
       hasRI = true;
     }
 
     else if (shouldExtrapolate && rt < knots[0]) {
-      ri = Math.toIntExact(Math.round(riScale.interpolator.getPolynomials()[0].value(rt - knots[0])));
+      ri = (float) riScale.interpolator.getPolynomials()[0].value(rt - knots[0]);
       hasRI = true;
     }
 

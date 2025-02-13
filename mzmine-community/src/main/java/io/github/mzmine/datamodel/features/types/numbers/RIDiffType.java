@@ -55,7 +55,7 @@ public class RIDiffType extends RIType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "RI range";
+    return "RI difference";
   }
 
   @NotNull

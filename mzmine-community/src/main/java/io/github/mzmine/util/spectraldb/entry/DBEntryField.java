@@ -107,7 +107,7 @@ public enum DBEntryField {
   FEATURELIST_NAME_FEATURE_ID,
 
   // spectrum specific
-  MS_LEVEL, RT(Float.class), RI(RIRecord.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
+  MS_LEVEL, RT(Float.class), RETENTION_INDEX(RIRecord.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
       Integer.class), // height of feature
   FEATURE_MS1_HEIGHT(Float.class), FEATURE_MS1_REL_HEIGHT(Float.class),
 
@@ -156,7 +156,7 @@ public enum DBEntryField {
   public static final DBEntryField[] DATABASE_FIELDS = new DBEntryField[]{USI, PUBMED, PUBCHEM,
       MONA_ID, CHEMSPIDER, CAS};
   public static final DBEntryField[] COMPOUND_FIELDS = new DBEntryField[]{NAME, SYNONYMS, FORMULA,
-      MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, RI, CCS, POLARITY, INCHI, INCHIKEY,
+      MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, RETENTION_INDEX, CCS, POLARITY, INCHI, INCHIKEY,
       SMILES, NUM_PEAKS, FEATURE_ID};
   public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[]{INSTRUMENT_TYPE,
       INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, MERGED_SPEC_TYPE, ACQUISITION,
@@ -305,7 +305,7 @@ public enum DBEntryField {
            SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N,
            OTHER_MATCHED_COMPOUNDS_NAMES, //
            MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
-           MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURELIST_NAME_FEATURE_ID, RI -> StringType.class;
+           MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURELIST_NAME_FEATURE_ID, RETENTION_INDEX -> StringType.class;
       case MERGED_N_SAMPLES -> TotalSamplesType.class;
       case CLASSYFIRE_SUPERCLASS -> ClassyFireSuperclassType.class;
       case CLASSYFIRE_CLASS -> ClassyFireClassType.class;
@@ -381,7 +381,7 @@ public enum DBEntryField {
       case PRINCIPAL_INVESTIGATOR -> "investigator";
       case PUBMED -> "pubmed";
       case RT -> "rt";
-      case RI -> "ri";
+      case RETENTION_INDEX -> "ri";
       case SMILES -> "smiles";
       case MS_LEVEL -> "ms_level";
       case PUBCHEM -> "pubchem";
@@ -451,7 +451,7 @@ public enum DBEntryField {
       case NAME -> "Name";
       case SPLASH -> "Splash";
       case RT -> "RT";
-      case RI -> "Retention_index";
+      case RETENTION_INDEX -> "Retention_index";
       case MS_LEVEL -> "Spectrum_type";
       case NUM_PEAKS -> "Num Peaks";
       case CCS -> "CCS";
@@ -495,7 +495,7 @@ public enum DBEntryField {
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI ->
           name();
       case RT -> "RTINSECONDS";
-      case RI -> "";
+      case RETENTION_INDEX -> "";
       case SCAN_NUMBER -> "SCANS";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
       case MERGED_N_SAMPLES -> "MERGED_ACROSS_N_SAMPLES";
@@ -581,7 +581,7 @@ public enum DBEntryField {
       //not covered
       case INSTRUMENT -> "INSTRUMENT_NAME";
       case RT -> "RTINSECONDS";
-      case RI -> "";
+      case RETENTION_INDEX -> "";
       case ENTRY_ID -> "SPECTRUMID";
       case COMMENT -> "COMMENT";
       case DESCRIPTION -> "DESCRIPTION";
@@ -652,7 +652,7 @@ public enum DBEntryField {
       case PRINCIPAL_INVESTIGATOR -> "";
       case PUBMED -> "";
       case RT -> "RT";
-      case RI -> "";
+      case RETENTION_INDEX -> "";
       case SMILES -> "";
       case MS_LEVEL -> "";
       case PUBCHEM -> "";
@@ -781,7 +781,7 @@ public enum DBEntryField {
         case Double d -> "%.2f".formatted(d * 60.0);
         default -> throw new IllegalArgumentException("RT has to be a number");
       };
-      case RI ->  {
+      case RETENTION_INDEX ->  {
         throw new IllegalArgumentException("Retention index is not supported for MGF format");
       }
       case PRECURSOR_MZ, EXACT_MASS -> switch (value) {

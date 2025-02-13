@@ -501,12 +501,12 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public Integer getRI() {
+  public Float getRI() {
     return get(RIType.class);
   }
 
   @Override
-  public void setRI(int ri) {
+  public void setRI(float ri) {
     set(RIType.class, ri);
   }
 

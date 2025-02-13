@@ -6,6 +6,8 @@ import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
+// This records the file containing the straight-chain alkane retention times used to calculate the scale
+
 public class RIScaleType extends StringType implements AnnotationType {
 
     public String fromString(String s) {

@@ -518,6 +518,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     }
 
     return retentionTime == null ? -1 : retentionTime;
+    // float is default for RI but handle Double in case wrong value was present
   }
 
   @Override

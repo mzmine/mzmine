@@ -51,7 +51,11 @@ import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.M
  * This is frequently rounded, because everyone uses rounded versions
  * Rounding is therefore necessary for the endpoints of ranges to be placed at integer values
  */
-public class RIType extends IntegerType {
+public class RIType extends FloatType {
+
+  public RIType() {
+    super(new DecimalFormat("0"));
+  }
 
   @NotNull
   @Override
@@ -94,20 +98,20 @@ public class RIType extends IntegerType {
       case AVERAGE:
       {
         // calc average center of ranges
-        double mean = 0.0;
+        float mean = 0.0f;
         int c = 0;
         for (var model : models) {
-          Integer value = model.get(this);
+          Float value = model.get(this);
           if (value != null) {
             mean += value;
             c++;
           }
         }
-        return c == 0 ? null : Math.toIntExact(Math.round(mean / (double) c));
+        return c == 0 ? null : mean / (float) c;
       }
       case RANGE:
-        Integer max = (Integer) evaluateBindings(MAX, models);
-        Integer min = (Integer) evaluateBindings(MIN, models);
+        Float max = (Float) evaluateBindings(MAX, models);
+        Float min = (Float) evaluateBindings(MIN, models);
         return (max != null && min != null) ? max - min : null;
       default:
         return super.evaluateBindings(bindingsType, models);

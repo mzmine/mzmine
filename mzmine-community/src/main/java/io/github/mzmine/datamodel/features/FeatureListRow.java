@@ -147,7 +147,7 @@ public interface FeatureListRow extends ModularDataModel {
    * Returns average RI for features on this row
    */
 
-  Integer getAverageRI();
+  Float getAverageRI();
 
   /**
    * Sets average rt for this row

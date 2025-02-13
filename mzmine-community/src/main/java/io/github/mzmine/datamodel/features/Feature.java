@@ -74,12 +74,12 @@ public interface Feature {
   /**
    * This method returns retention index of the feature if available
    */
-  Integer getRI();
+  Float getRI();
 
   /**
    * Sets retention index of the feature
    */
-  void setRI(int ri);
+  void setRI(float ri);
 
   /**
    * This method returns the raw height of the feature

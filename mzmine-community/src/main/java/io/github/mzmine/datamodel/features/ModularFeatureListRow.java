@@ -289,7 +289,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     return get(RTType.class);
   }
 
-  public Integer getAverageRI() {
+  public Float getAverageRI() {
     return get(RIType.class);
   }
 

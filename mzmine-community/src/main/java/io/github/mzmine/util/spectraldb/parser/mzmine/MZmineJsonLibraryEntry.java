@@ -166,7 +166,7 @@ public class MZmineJsonLibraryEntry {
 
       case MS_LEVEL -> msLevel;
       case RT -> rt;
-      case RI -> ri;
+      case RETENTION_INDEX -> ri;
       case CCS -> ccs;
       case ION_TYPE -> adduct;
       case IMS_TYPE -> imsType;
@@ -251,7 +251,7 @@ public class MZmineJsonLibraryEntry {
       case NUM_PEAKS -> numSignals = (int) value;
       case EXACT_MASS -> exactMass = (double) value;
       case RT -> rt = (double) value;
-      case RI -> ri = value.toString();
+      case RETENTION_INDEX -> ri = value.toString();
       case CCS -> ccs = (double) value;
       case PRECURSOR_MZ -> precursorMz = (double) value;
       case MERGED_SPEC_TYPE -> mergedSpectrumType = value.toString();
