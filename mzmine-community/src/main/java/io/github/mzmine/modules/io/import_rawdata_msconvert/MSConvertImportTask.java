@@ -89,14 +89,21 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
 
   public static @NotNull List<String> buildCommandLine(File filePath, File msConvertPath,
       boolean convertToFile) {
-
+    final File mzMLFile = getMzMLFileName(filePath);
     final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(filePath);
 
     List<String> cmdLine = new ArrayList<>();
     cmdLine.addAll(List.of(inQuotes(msConvertPath.toString()), // MSConvert path
-        inQuotes(filePath.getAbsolutePath()), // raw file path
-        "-o", !convertToFile ? "-" /* to stdout */ : inQuotes(filePath.getParent()) //
+        inQuotes(filePath.getAbsolutePath()) // raw file path
     )); // vendor peak-picking
+
+    if (convertToFile) {
+      cmdLine.addAll(List.of(
+          "--outdir", inQuotes(mzMLFile.getParent()), // need to set dir here
+          "--outfile", inQuotes(mzMLFile.getName()))); // only file name here
+    } else {
+      cmdLine.addAll(List.of("-o", "-")); /* to stdout */
+    }
 
     if (convertToFile) {
       cmdLine.add("--zlib");
@@ -354,7 +361,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     if (parsedScans != totalScans) {
       throw (new RuntimeException(
           "MSConvert process crashed before all scans were extracted (" + parsedScans + " out of "
-              + totalScans + ")"));
+          + totalScans + ")"));
     }
     msdkTask.addAppliedMethodAndAddToProject(dataFile);
   }
@@ -399,7 +406,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       if (parsedScans != totalScans) {
         throw (new RuntimeException(
             "ThermoRawFileParser/MSConvert process crashed before all scans were extracted ("
-                + parsedScans + " out of " + totalScans + ")"));
+            + parsedScans + " out of " + totalScans + ")"));
       }
 
       msdkTask.addAppliedMethodAndAddToProject(dataFile);
