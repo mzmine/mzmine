@@ -52,7 +52,7 @@ public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<ListDoubleRangeParameter> MZ_VALUES_TO_IGNORE = new OptionalParameter<>(
       new ListDoubleRangeParameter("Exclude m/z-values",
-          "m/z-values to exclude as model feature. Values will be added to pseudo spectrum, yet not considered as representative feature in the feature list.",
+          "m/z-values to exclude as model feature. Values will be added to pseudo spectrum, yet not considered as representative feature in the feature list. Unless all values are excluded.",
           false, new ArrayList<>()), false);
 
   public SpectralDeconvolutionGCParameters() {

@@ -101,7 +101,7 @@ class ManualPickerTask extends AbstractTask {
     logger.finest("Starting manual feature picker, RT: " + rtRange + ", m/z: " + mzRange);
 
     for (RawDataFile file : dataFiles) {
-      final List<Scan> selectedScans = (List<Scan>) featureList.getSeletedScans(file);
+      final List<? extends Scan> selectedScans = featureList.getSeletedScans(file);
       final IonTimeSeries<?> series = IonTimeSeriesUtils.extractIonTimeSeries(file, selectedScans,
           mzRange, rtRange, featureList.getMemoryMapStorage());
 

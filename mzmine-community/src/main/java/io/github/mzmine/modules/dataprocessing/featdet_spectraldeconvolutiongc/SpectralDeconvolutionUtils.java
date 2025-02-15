@@ -87,9 +87,10 @@ public class SpectralDeconvolutionUtils {
    * @param groups         A list of {@link ModularFeature} objects sorted in descending order by
    *                       feature height.
    * @param adjustedRanges A list of {@link Range} objects representing m/z ranges to be excluded.
-   * @return The first {@link ModularFeature} not within the excluded m/z ranges, or {@code null} if
-   * all features are within the excluded ranges.
+   * @return The first highest {@link ModularFeature} not within the excluded m/z ranges, or the highest
+   * feature if all features are within the excluded ranges.
    */
+  @NotNull
   public static ModularFeature getMainFeature(List<ModularFeature> groups,
       List<Range<Double>> adjustedRanges) {
     for (ModularFeature feature : groups) {
@@ -107,7 +108,8 @@ public class SpectralDeconvolutionUtils {
         return feature;
       }
     }
-    return null; // Return null if all features are in the ignored ranges
+    // if no feature matched then return the first (highest) even though it was excluded as main feature
+    return groups.getFirst();
   }
 
   /**
