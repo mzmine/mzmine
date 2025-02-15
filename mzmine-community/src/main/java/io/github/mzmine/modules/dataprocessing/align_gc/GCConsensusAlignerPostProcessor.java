@@ -19,6 +19,7 @@ import io.github.mzmine.datamodel.features.types.numbers.GcAlignShiftedNumFeatur
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureAlignmentPostProcessor;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -54,7 +55,7 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
         Done with setting consensus main features in GC alignment. /
         There were %d main signals that had no corresponding raw data signal in some samples. /
         Those features were excluded from alignment.
-        Also there were %d signals that were shifted to the closest signal to that was within 2x of the mz tolerance.
+        Also there were %d signals that were shifted to the closest signal that was within 2x of the mz tolerance.
         This may point to mz shifts between samples or this was just a missing signal in a sample with a close enough other signal.""".formatted(
         missing, shiftedFeatures.get()));
   }
@@ -77,10 +78,10 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
     final double mzTolRangeLength = RangeUtils.rangeLength(mzTolRange);
 
     int shifted = 0;
-    List<ModularFeature> featuresToReplace = new ArrayList<>();
+    List<ModularFeature> featuresToAdd = new ArrayList<>();
     for (final ModularFeature oldFeature : row.getFeatures()) {
       if (mzTolRange.contains(oldFeature.getMZ())) {
-        featuresToReplace.add(oldFeature); // just add the old feature
+        featuresToAdd.add(oldFeature); // just add the old feature
         continue;
       }
       // extract new for features with different mz
@@ -97,17 +98,17 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
 
       // finally add
       if (newFeature != null) {
-        featuresToReplace.add(newFeature);
+        featuresToAdd.add(newFeature);
       }
     }
 
     shiftedFeatures.addAndGet(shifted);
     // remove all features
-    int missing = row.getNumberOfFeatures() - featuresToReplace.size();
+    int missing = row.getNumberOfFeatures() - featuresToAdd.size();
     row.clearFeatures(false);
 
     // finally replace features
-    for (final ModularFeature nf : featuresToReplace) {
+    for (final ModularFeature nf : featuresToAdd) {
       // do not update bindings - this is done later in the alignment
       row.addFeature(nf.getRawDataFile(), nf, false);
     }
@@ -126,8 +127,13 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
       final ModularFeature feature, final Range<Double> mzTolRange) {
     // mz mismatch, because GC retains a random m/z as a representative for a feature (deconvoluted pseudo spectrum)
     RawDataFile dataFile = feature.getRawDataFile();
+    // there might be missing data points / gaps in feature.getScanNumbers
+    // therefore extract from raw file in RT range
+    List<? extends Scan> seletedScans = flist.getSeletedScans(feature.getRawDataFile());
+    seletedScans = BinarySearch.indexRange(feature.getRawDataPointsRTRange(), seletedScans,
+        Scan::getRetentionTime).sublist(seletedScans);
     IonTimeSeries<Scan> ionTimeSeries = IonTimeSeriesUtils.extractIonTimeSeries(dataFile,
-        feature.getScanNumbers(), mzTolRange, feature.getRawDataPointsRTRange(),
+        seletedScans, mzTolRange, feature.getRawDataPointsRTRange(),
         dataFile.getMemoryMapStorage());
 
     final ModularFeature newFeature;
@@ -140,14 +146,16 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
     return null;
   }
 
+  /**
+   *
+   * @param row
+   * @return list of
+   */
   private @NotNull List<Map<ModularFeature, DataPoint>> countCommonSignalsInFragmentSpectra(
       final FeatureListRow row) {
-    // list of spectra as list of data points
-    List<List<FeatureDataPoint>> spectra = prepareMostIntenseFragmentScans(row);
-
     // count how many features actually contain a signal at specific mz values
     final RangeMap<Double, Map<ModularFeature, DataPoint>> signalCounter = countMostIntenseSignalPerSampleFeature(
-        row, spectra);
+        row);
 
     // first is the one with the highest sum intensity across all samples
     List<Map<ModularFeature, DataPoint>> mostCommonDataPoints = signalCounter.asMapOfRanges()
@@ -159,10 +167,12 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
   }
 
   private @NotNull RangeMap<Double, Map<ModularFeature, DataPoint>> countMostIntenseSignalPerSampleFeature(
-      final FeatureListRow row, final List<List<FeatureDataPoint>> spectra) {
+      final FeatureListRow row) {
+
     RangeMap<Double, Map<ModularFeature, DataPoint>> signalCounter = TreeRangeMap.create();
     // start with most abundant data point in all scans
-    spectra.stream().flatMap(List::stream)
+    // list of spectra as list of data points
+    prepareMostIntenseFragmentScans(row).stream()
         .sorted(Comparator.comparing(fdp -> fdp.dp().getIntensity(), Comparator.reverseOrder()))
         .forEach(fdp -> {
           double mz = fdp.dp().getMZ();
@@ -184,11 +194,13 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
     return signalCounter;
   }
 
-  private static @NotNull List<List<FeatureDataPoint>> prepareMostIntenseFragmentScans(
+  private static @NotNull List<FeatureDataPoint> prepareMostIntenseFragmentScans(
       final FeatureListRow row) {
-    return row.streamFeatures().map(f -> {
+    return row.streamFeatures().<FeatureDataPoint>mapMulti((f, consumer) -> {
       var dps = ScanUtils.extractDataPoints(f.getMostIntenseFragmentScan());
-      return Arrays.stream(dps).map(dp -> new FeatureDataPoint(f, dp)).toList();
+      for (final DataPoint dp : dps) {
+        consumer.accept(new FeatureDataPoint(f, dp));
+      }
     }).toList();
   }
 
@@ -218,4 +230,11 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
   private record FeatureDataPoint(ModularFeature feature, DataPoint dp) {
 
   }
+
+  /**
+   *
+   * @param initialMz the range used to align data points
+   * @param mostAbundantDetection most abundant data point in mz range
+   */
+  private record AlignedDataPoint(Range<Double> initialMz, Map<ModularFeature, DataPoint> mostAbundantDetection) {}
 }
