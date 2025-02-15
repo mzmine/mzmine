@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.featuredata.impl;
 import io.github.mzmine.datamodel.featuredata.IonSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.nio.IntBuffer;
@@ -229,6 +230,19 @@ public class StorageUtils {
       buffer = storage.storeData(values);
     } else {
       buffer = MemorySegment.ofArray(values);
+    }
+
+    return buffer;
+  }
+
+  public static MemorySegment allocateSegment(@Nullable final MemoryMapStorage storage,
+      @NotNull final MemoryLayout layout, int numValues) {
+
+    MemorySegment buffer;
+    if (storage != null) {
+      buffer = storage.allocateMemorySegment(layout, numValues);
+    } else {
+      buffer = MemorySegment.ofArray(new int[(int) (layout.byteSize() / 4 * numValues)]);
     }
 
     return buffer;
