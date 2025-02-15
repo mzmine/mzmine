@@ -475,9 +475,9 @@ public interface FeatureListRow extends ModularDataModel {
    * @return true if this row has at least 1 MS2 spectrum
    */
   default boolean hasMs2Fragmentation() {
-    // should be faster. Best fragmentation loops through all spectra to find best
-    final List<Scan> ms2 = getAllFragmentScans();
-    return ms2 != null && !ms2.isEmpty();
+    // should be faster. Best fragmentation loops through all spectra to find best  
+    // all fragment scans copies from all features
+    return streamFeatures().anyMatch(Feature::hasMs2Fragmentation);
   }
 
   /**
