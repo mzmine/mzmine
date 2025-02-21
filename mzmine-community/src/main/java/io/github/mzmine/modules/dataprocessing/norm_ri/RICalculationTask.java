@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_ri;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.opencsv.CSVReader;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -38,12 +39,13 @@ import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import io.github.mzmine.util.io.CsvReader;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
@@ -55,6 +57,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -67,13 +70,7 @@ import java.util.regex.Pattern;
  */
 public class RICalculationTask extends AbstractFeatureListTask {
 
-  record RIScale(Date date, String fileName, PolynomialSplineFunction interpolator){
-    public RIScale(Date date, String fileName, PolynomialSplineFunction interpolator){
-      this.date = date;
-      this.fileName = fileName;
-      this.interpolator = interpolator;
-    }
-  }
+
   private static final Logger logger = Logger.getLogger(RICalculationTask.class.getName());
   private final String suffix;
   private final MZmineProject project;
@@ -83,6 +80,7 @@ public class RICalculationTask extends AbstractFeatureListTask {
   private final boolean shouldExtrapolate;
   private final boolean shouldAddSummary;
   private volatile List <RIScale> linearScales = new ArrayList<>();
+  private final MetadataTable metadataTable;;
 
 
   public RICalculationTask(MZmineProject project, @Nullable MemoryMapStorage storage,
@@ -90,6 +88,7 @@ public class RICalculationTask extends AbstractFeatureListTask {
                            @NotNull ModularFeatureList featureList, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.project = project;
+    this.metadataTable = project.getProjectMetadata();
     this.featureList = featureList;
     this.shouldExtrapolate = parameters.getValue(RICalculationParameters.extrapolate);
     this.shouldAddSummary = parameters.getValue(RICalculationParameters.addSummary);
@@ -100,52 +99,38 @@ public class RICalculationTask extends AbstractFeatureListTask {
   @Override
   protected void process() {
     linearScales = new ArrayList<>(Arrays.stream(parameters.getValue(RICalculationParameters.alkaneFiles))
-            .sequential()
-            .map(this::processScale)
-            .filter(Objects::nonNull)
-            .toList());
+        .sequential()
+        .map(this::processLadder)
+        .filter(Objects::nonNull)
+        .toList());
+    linearScales.sort(Comparator.comparing(RIScale::date).reversed());
 
-    linearScales.sort(new Comparator<RIScale>() {
-        @Override
-        public int compare(RIScale o1, RIScale o2) {
-            return o1.date.compareTo(o2.date);
-        }
-    });
-
-    Collections.reverse(linearScales);
     ModularFeatureList processedList = processFeatureList(featureList);
 
     handleOriginal.reflectNewFeatureListToProject(suffix, project, processedList,
-            featureList);
+        featureList);
     setStatus(TaskStatus.FINISHED);
 
   }
 
-  private RIScale processScale(File file) {
+  record RIScaleEntry(@JsonProperty("Carbon #") int nCarbons, @JsonProperty("RT") float rt) {
+  }
+
+  protected RIScale processLadder(File file) {
     if (file.exists() && file.canRead()) {
       try {
-        Date date = extractDate(file.getName());
+        LocalDate date = extractDate(file.getName());
         String fileName = file.getAbsolutePath();
 
         if (date == null || fileName == null) {
           return null;
         }
+        final List<RIScaleEntry> entries = CsvReader.readToList(file,
+            RIScaleEntry.class, ',');
 
-        CSVReader reader = new CSVReader(new BufferedReader(new FileReader(file)));
-        List<String[]> data = reader.readAll();
-        String[] header = data.getFirst();
-        if (header.length != 2 || !header[0].equalsIgnoreCase("carbon #") || !header[1].equalsIgnoreCase("rt")) {
-          return null;
-        }
-        DoubleArrayList x = new DoubleArrayList();
-        DoubleArrayList y = new DoubleArrayList();
-        for (String[] pair : data.subList(1, data.size())) {
-          y.add(Double.parseDouble(pair[0]) * 100);
-          x.add(Double.parseDouble(pair[1]));
-        }
         PolynomialSplineFunction interpolator = new LinearInterpolator().interpolate(
-                x.toDoubleArray(),
-                y.toDoubleArray()
+            entries.stream().mapToDouble(entry -> (double) entry.rt()).toArray(),
+            entries.stream().mapToDouble(entry -> (double) entry.nCarbons() * 100).toArray()
         );
 
         return new RIScale(date, fileName, interpolator);
@@ -158,7 +143,7 @@ public class RICalculationTask extends AbstractFeatureListTask {
 
   protected ModularFeatureList processFeatureList(final ModularFeatureList featureList) {
     if (featureList != null && featureList.hasFeatureType(RTType.class)) {
-      outputList = featureList.createCopy(featureList.getName() + " with retention index", null, false);
+      ModularFeatureList outputList = featureList.createCopy(featureList.getName() + " with retention index", null, false);
 
       outputList.addFeatureType(new RIType());
       if (shouldAddSummary) {
@@ -170,10 +155,9 @@ public class RICalculationTask extends AbstractFeatureListTask {
 
 
       for (RawDataFile file : outputList.getRawDataFiles()) {
-        Date sampleDate = extractDate(file.getAbsolutePath());
-        for (RIScale _riScale : linearScales) {
-          if (sampleDate != null && sampleDate.after(_riScale.date) || sampleDate.equals(_riScale.date)) {
-            final RIScale riScale = _riScale;
+        LocalDate sampleDate = metadataTable.getValue(metadataTable.getRunDateColumn(), file).toLocalDate();
+        for (RIScale riScale : linearScales) {
+          if (sampleDate != null && sampleDate.isAfter(riScale.date()) || sampleDate.isEqual(riScale.date())) {
             outputList.getFeatures(file).stream().parallel().forEach(f -> processFeature(f, riScale));
             break;
           }
@@ -192,39 +176,42 @@ public class RICalculationTask extends AbstractFeatureListTask {
     }
 
     Float ri = null;
-    double[] knots = riScale.interpolator.getKnots();
+    double[] knots = riScale.interpolator().getKnots();
 
     if (rt >= knots[0] && rt <= knots[knots.length - 1]) {
-      ri = (float) riScale.interpolator.value(rt);
+      ri = (float) riScale.interpolator().value(rt);
     }
 
     else if (shouldExtrapolate && rt > knots[knots.length - 1]) {
-      ri = (float) riScale.interpolator.getPolynomials()[riScale.interpolator.getPolynomials().length - 1].value(rt - knots[knots.length - 1]);
+      ri = (float) riScale.interpolator().getPolynomials()[riScale.interpolator().getPolynomials().length - 1].value(rt - knots[knots.length - 1]);
     }
 
     else if (shouldExtrapolate && rt < knots[0]) {
-      ri = (float) riScale.interpolator.getPolynomials()[0].value(rt - knots[0]);
+      ri = (float) riScale.interpolator().getPolynomials()[0].value(rt - knots[0]);
     }
 
     if (ri != null) {
       feature.set(RIType.class, ri);
-      feature.set(RIScaleType.class, FilenameUtils.getName(riScale.fileName));
+      feature.set(RIScaleType.class, FilenameUtils.getName(riScale.fileName()));
     }
   }
 
-  private Date extractDate(String fileName) {
+  private LocalDate extractDate(String fileName) {
     // Extract date from file name
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    Matcher matcher = Pattern.compile(".*(\\d{4}([-/])\\d{2}([-/])\\d{2}).*").matcher(fileName);
-    if (matcher.find()) {
-      try {
-        return dateFormat.parse(matcher.group(1));
-      }
-      catch (Exception e) {
-        logger.warning("Could not parse date from file name: " + fileName);
-        return null;
+    String[] dateComponents = {"\\d{4}", "\\d{2}", "\\d{2}"};
+    final String[] separators = {"-", "/", ""};
+
+    for (String sep : separators) {
+      Matcher matcher = Pattern.compile(String.join(sep, dateComponents)).matcher(fileName);
+      if (matcher.find()) {
+        try {
+          return LocalDate.parse(matcher.group(0));
+        } catch (Exception _) {
+        }
       }
     }
+
+    logger.warning("Could not extract date from file: " + fileName);
     return null;
   }
 
