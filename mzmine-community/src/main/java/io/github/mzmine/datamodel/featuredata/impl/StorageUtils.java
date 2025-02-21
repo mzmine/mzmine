@@ -30,6 +30,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import java.lang.foreign.ValueLayout.OfDouble;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -242,7 +243,8 @@ public class StorageUtils {
     if (storage != null) {
       buffer = storage.allocateMemorySegment(layout, numValues);
     } else {
-      buffer = MemorySegment.ofArray(new int[(int) (layout.byteSize() / 4 * numValues)]);
+      buffer = MemorySegment.ofArray(
+          new double[(int) (layout.byteSize() / OfDouble.JAVA_DOUBLE.byteSize() * numValues)]);
     }
 
     return buffer;
@@ -311,7 +313,7 @@ public class StorageUtils {
   }
 
   public static boolean contentEquals(MemorySegment s1, MemorySegment s2) {
-    if(s1.byteSize() != s2.byteSize()) {
+    if (s1.byteSize() != s2.byteSize()) {
       return false;
     }
     return MemorySegment.mismatch(s1, 0, s1.byteSize(), s2, 0, s2.byteSize()) == -1;
