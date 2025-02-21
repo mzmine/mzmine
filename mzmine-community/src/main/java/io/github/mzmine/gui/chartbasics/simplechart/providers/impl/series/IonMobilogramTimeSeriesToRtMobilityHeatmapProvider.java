@@ -147,7 +147,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
 //          MZmineCore.getConfiguration().isDarkMode() ? javafx.scene.paint.Color.BLACK
 //              : javafx.scene.paint.Color.WHITE;
       paintScale = new SimpleColorPalette(base, color).toPaintScale(PaintScaleTransform.LINEAR,
-          Range.closed(1d, max));
+          Range.closed(0d, max));
     }
   }
 
