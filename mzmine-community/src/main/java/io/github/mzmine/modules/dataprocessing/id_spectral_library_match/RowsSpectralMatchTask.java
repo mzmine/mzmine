@@ -556,7 +556,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
       DataPoint[] rowMassList, SpectralLibraryEntry ident) {
     // prefilters
     if (!checkRT(rowRT, ident) // retention time optional
-        || !checkRI(Math.round(rowRI), ident) // retention index optional
+        || !checkRI(rowRI, ident) // retention index optional
         // mz only for MS2 not for MS1
         || (msLevelFilter.isFragmentationNoMS1() && !checkPrecursorMZ(rowMZ, ident))
         // CCS/ion mobility optional
@@ -639,7 +639,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
     return (rt == null || rtTolerance.checkWithinTolerance(rt, retentionTime));
   }
 
-  private boolean checkRI(Integer retentionIndex, SpectralLibraryEntry ident) {
+  private boolean checkRI(Float retentionIndex, SpectralLibraryEntry ident) {
     if (!useRI || retentionIndex == null) {
       return true;
     }

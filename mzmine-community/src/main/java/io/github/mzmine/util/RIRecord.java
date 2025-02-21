@@ -68,38 +68,41 @@ public class RIRecord
         boolean hasPrev = false;
 
         if (map.containsKey(RIColumn.SEMIPOLAR)) {
-            Integer s_ri = map.get(RIColumn.SEMIPOLAR).ri();
+            Float s_ri = map.get(RIColumn.SEMIPOLAR).ri();
             Integer s_count = map.get(RIColumn.SEMIPOLAR).count();
-            Integer s_ci = map.get(RIColumn.SEMIPOLAR).ci();
+            Float s_ci = map.get(RIColumn.SEMIPOLAR).ci();
 
             // s_ri != null should always be true
-            sb.append(s_ri != null ? String.format("s=%d", s_ri) : "");
-            sb.append((s_ri != null && s_ci != null && s_count != null ) ? String.format("/%d/%d", s_ci, s_count) : "");
+            // round s_ri and s_ci to integer, as that's most likely to be supported
+            sb.append(s_ri != null ? String.format("s=%d", Math.round(s_ri)) : "");
+            sb.append((s_ri != null && s_ci != null && s_count != null ) ? String.format("/%d/%d", Math.round(s_ci), s_count) : "");
             hasPrev = s_ri != null;
         }
 
         if (map.containsKey(RIColumn.NONPOLAR)) {
-            Integer n_ri = map.get(RIColumn.NONPOLAR).ri();
+            Float n_ri = map.get(RIColumn.NONPOLAR).ri();
             Integer n_count = map.get(RIColumn.NONPOLAR).count();
-            Integer n_ci = map.get(RIColumn.NONPOLAR).ci();
+            Float n_ci = map.get(RIColumn.NONPOLAR).ci();
 
             // n_ri != null should always be true
+            // round n_ri and n_ci to integer, as that's most likely to be supported
             sb.append(hasPrev && n_ri != null ? " " : "");
-            sb.append(n_ri != null ? String.format("n=%d", n_ri) : "");
-            sb.append((n_ri != null && n_ci != null && n_count != null ) ? String.format("/%d/%d", n_ci, n_count) : "");
+            sb.append(n_ri != null ? String.format("n=%d", Math.round(n_ri)) : "");
+            sb.append((n_ri != null && n_ci != null && n_count != null ) ? String.format("/%d/%d", Math.round(n_ci), n_count) : "");
             hasPrev = hasPrev || n_ri != null;
         }
 
 
         if (map.containsKey(RIColumn.POLAR)) {
-            Integer p_ri = map.get(RIColumn.POLAR).ri();
+            Float p_ri = map.get(RIColumn.POLAR).ri();
             Integer p_count = map.get(RIColumn.POLAR).count();
-            Integer p_ci = map.get(RIColumn.POLAR).ci();
+            Float p_ci = map.get(RIColumn.POLAR).ci();
 
-            // n_ri != null should always be true
+            // p_ri != null should always be true
+            // round p_ri and p_ci to integer, as that's most likely to be supported
             sb.append(hasPrev && p_ri != null ? " " : "");
-            sb.append(p_ri != null ? String.format("n=%d", p_ri) : "");
-            sb.append((p_ri != null && p_ci != null&& p_count != null ) ? String.format("/%d/%d", p_ci, p_count) : "");
+            sb.append(p_ri != null ? String.format("n=%d", Math.round(p_ri)) : "");
+            sb.append((p_ri != null && p_ci != null&& p_count != null ) ? String.format("/%d/%d", Math.round(p_ci), p_count) : "");
             hasPrev = hasPrev || p_ri != null;
         }
 
@@ -112,8 +115,8 @@ public class RIRecord
 
         for(String record : records) {
             try {
-                Integer.parseInt(record);
-                recordsMap.put(RIColumn.DEFAULT, new RIRecordPart(Integer.parseInt(record), null, null));
+                // Record is just a number, equivalent to a={number}
+                recordsMap.put(RIColumn.DEFAULT, new RIRecordPart(Float.parseFloat(record), null, null));
             } catch (NumberFormatException ne)  {
                 String discoveredKey = null;
                 RIColumn currentType = null;
@@ -134,8 +137,8 @@ public class RIRecord
                         String[] recordValues = record.substring(discoveredKey.length()).split("/");
                         if (recordValues.length > 0) {
                             recordsMap.put(currentType, new RIRecordPart(
-                                recordValues[0] != null ? Integer.parseInt(recordValues[0]) : null,
-                                recordValues.length > 2 && recordValues[1] != null && recordValues[2] != null ? Integer.parseInt(recordValues[1]) : null,
+                                recordValues[0] != null ? Float.parseFloat(recordValues[0]) : null,
+                                recordValues.length > 2 && recordValues[1] != null && recordValues[2] != null ? Float.parseFloat(recordValues[1]) : null,
                                 recordValues.length > 2 && recordValues[1] != null && recordValues[2] != null ? Integer.parseInt(recordValues[2]) : null));
                         }
                     } catch (Exception e) {
@@ -153,7 +156,7 @@ public class RIRecord
         return recordsMap;
     }
 
-    public Integer getRI(RIColumn type) {
+    public Float getRI(RIColumn type) {
         if (map.containsKey(type)) {
             return map.get(type).ri();
         }
@@ -165,7 +168,7 @@ public class RIRecord
         }
     }
 
-    protected record RIRecordPart(Integer ri, Integer ci, Integer count) {
+    protected record RIRecordPart(Float ri, Float ci, Integer count) {
     }
 
 }

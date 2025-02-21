@@ -94,7 +94,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
   }
 
   /**
-   * @see io.github.mzmine.data.Parameter#getName()
+   * @see io.github.mzmine.parameters.UserParameter#getName()
    */
   @Override
   public String getName() {
@@ -102,7 +102,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
   }
 
   /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
+   * @see io.github.mzmine.parameters.UserParameter#getDescription()
    */
   @Override
   public String getDescription() {
@@ -154,7 +154,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
     if (toleranceNum.length() == 0) {
       return;
     }
-    int tolerance = Integer.parseInt(toleranceNum);
+    float tolerance = Float.parseFloat(toleranceNum);
     this.value = new RITolerance(tolerance, columnType);
   }
 
@@ -164,7 +164,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
       return;
     }
     xmlElement.setAttribute("columnType", value.getColumn().name());
-    int tolerance = value.getTolerance();
+    float  tolerance = value.getTolerance();
     String toleranceNum = String.valueOf(tolerance);
     xmlElement.setTextContent(toleranceNum);
   }
@@ -175,7 +175,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
       errorMessages.add(name + " is not set properly");
       return false;
     }
-    int tolerance = value.getTolerance();
+    float tolerance = value.getTolerance();
     if (tolerance <= 0) {
       errorMessages.add("Invalid retention index tolerance value.");
       return false;

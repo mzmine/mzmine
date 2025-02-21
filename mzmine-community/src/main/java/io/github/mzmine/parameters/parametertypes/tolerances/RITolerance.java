@@ -37,15 +37,15 @@ import io.github.mzmine.util.RIRecord;
  */
 public class RITolerance {
 
-  private final int tolerance;
+  private final float tolerance;
   private final RIColumn column;
 
-  public RITolerance(final int rtTolerance, RIColumn type) {
+  public RITolerance(final float rtTolerance, RIColumn type) {
     this.tolerance = rtTolerance;
     this.column = type;
   }
 
-  public int getTolerance() {
+  public float getTolerance() {
     return tolerance;
   }
 
@@ -53,17 +53,17 @@ public class RITolerance {
     return column;
   }
 
-  public Range<Integer> getToleranceRange(final Integer riValue) {
+  public Range<Float> getToleranceRange(final Float riValue) {
     // riValue may not exist depending on alkane scales
     //   Also, averaged RI is zero when riValues do not exist
     return riValue != null && riValue != 0 ? Range.closed(riValue - tolerance, riValue + tolerance) : Range.all();
   }
 
-  public boolean checkWithinTolerance(Integer ri, RIRecord libRI) {
+  public boolean checkWithinTolerance(Float ri, RIRecord libRI) {
     return libRI == null || getToleranceRange(libRI.getRI(column)).contains(ri);
   }
 
-  public boolean checkWithinTolerance(final int ri1, final int ri2) {
+  public boolean checkWithinTolerance(final float ri1, final float ri2) {
     return getToleranceRange(ri1).contains(ri2);
   }
 

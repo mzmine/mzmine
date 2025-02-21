@@ -43,6 +43,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
@@ -136,15 +137,15 @@ public class RICalculationTask extends AbstractFeatureListTask {
         if (header.length != 2 || !header[0].equalsIgnoreCase("carbon #") || !header[1].equalsIgnoreCase("rt")) {
           return null;
         }
-        List<Double> x = new ArrayList<Double>();
-        List<Double> y = new ArrayList<Double>();
+        DoubleArrayList x = new DoubleArrayList();
+        DoubleArrayList y = new DoubleArrayList();
         for (String[] pair : data.subList(1, data.size())) {
           y.add(Double.parseDouble(pair[0]) * 100);
           x.add(Double.parseDouble(pair[1]));
         }
         PolynomialSplineFunction interpolator = new LinearInterpolator().interpolate(
-                x.stream().mapToDouble(Double::doubleValue).toArray(),
-                y.stream().mapToDouble(Double::doubleValue).toArray()
+                x.toDoubleArray(),
+                y.toDoubleArray()
         );
 
         return new RIScale(date, fileName, interpolator);
@@ -171,7 +172,7 @@ public class RICalculationTask extends AbstractFeatureListTask {
       for (RawDataFile file : outputList.getRawDataFiles()) {
         Date sampleDate = extractDate(file.getAbsolutePath());
         for (RIScale _riScale : linearScales) {
-          if (sampleDate.after(_riScale.date) || sampleDate.equals(_riScale.date)) {
+          if (sampleDate != null && sampleDate.after(_riScale.date) || sampleDate.equals(_riScale.date)) {
             final RIScale riScale = _riScale;
             outputList.getFeatures(file).stream().parallel().forEach(f -> processFeature(f, riScale));
             break;
@@ -191,25 +192,21 @@ public class RICalculationTask extends AbstractFeatureListTask {
     }
 
     Float ri = null;
-    boolean hasRI = false;
     double[] knots = riScale.interpolator.getKnots();
 
     if (rt >= knots[0] && rt <= knots[knots.length - 1]) {
       ri = (float) riScale.interpolator.value(rt);
-      hasRI = true;
     }
 
     else if (shouldExtrapolate && rt > knots[knots.length - 1]) {
       ri = (float) riScale.interpolator.getPolynomials()[riScale.interpolator.getPolynomials().length - 1].value(rt - knots[knots.length - 1]);
-      hasRI = true;
     }
 
     else if (shouldExtrapolate && rt < knots[0]) {
       ri = (float) riScale.interpolator.getPolynomials()[0].value(rt - knots[0]);
-      hasRI = true;
     }
 
-    if (hasRI) {
+    if (ri != null) {
       feature.set(RIType.class, ri);
       feature.set(RIScaleType.class, FilenameUtils.getName(riScale.fileName));
     }

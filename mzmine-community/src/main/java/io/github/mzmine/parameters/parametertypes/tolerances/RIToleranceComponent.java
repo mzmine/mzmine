@@ -81,7 +81,7 @@ public class RIToleranceComponent extends HBox {
       return;
     }
 
-    int tolerance = value.getTolerance();
+    float tolerance = value.getTolerance();
     RIColumn selectedColumnType = value.getColumn();
 
     toleranceType.setValue(selectedColumnType);
