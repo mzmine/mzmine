@@ -50,7 +50,7 @@ public class AdvancedSpectralLibrarySearchParameters extends SimpleParameterSet 
   public static final OptionalParameter<RIToleranceParameter> riTolerance = new OptionalParameter<>(
           new RIToleranceParameter("Retention index tolerance", "Maximum difference in retention index for spectral library entries to be matched against a feature."));
 
-  public static final BooleanParameter ignoreWithoutRI = new BooleanParameter("Skip library entries without RIs", "");
+  public static final BooleanParameter ignoreWithoutRI = new BooleanParameter("Skip library entries without RIs", "Only use library entries that have a numerical retention index");
 
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping = new OptionalModuleParameter<>(
       "13C deisotoping",
