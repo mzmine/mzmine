@@ -390,7 +390,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       makeAndAddProjectMetadataExport(q, exportPath);
 
       if (exportGnps) {
-        makeAndAddIimnGnpsExportStep(q, exportPath, mzTolScans);
+        makeAndAddIimnGnpsExportStep(q, exportPath, mzTolScans, "_iimn_gnps");
       }
       if (exportSirius) {
         makeAndAddSiriusExportStep(q, exportPath);
@@ -443,11 +443,11 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   }
 
   protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath,
-      final MZTolerance mzTolScans) {
+      final MZTolerance mzTolScans, final String fileNameSuffix) {
     final ParameterSet param = new GnpsFbmnExportAndSubmitParameters().cloneParameterSet();
 
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
-    fileName = new File(fileName.getParentFile(), fileName.getName() + "_iimn_gnps");
+    fileName = new File(fileName.getParentFile(), fileName.getName() + fileNameSuffix);
 
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
