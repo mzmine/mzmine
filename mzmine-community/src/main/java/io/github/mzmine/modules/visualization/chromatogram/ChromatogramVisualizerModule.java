@@ -116,8 +116,11 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       final Feature[] selectionPeaks, final Map<Feature, String> peakLabels,
       final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
 
+    // this method is the quick visualization in table
+    // maximum samples to show as line. greater than that will be displayed only as feature shape
+    final int ticMaxSamples = 50; // don't show lines for so many samples
     createTICPlotInTask(dataFiles, plotType, scanSelection, mzRange,
-        Arrays.asList(selectionPeaks), peakLabels);
+        Arrays.asList(selectionPeaks), peakLabels, ticMaxSamples);
   }
 
   public static void showNewTICVisualizerWindow(final RawDataFile[] dataFiles,
@@ -125,7 +128,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
 
     createTICPlotInTask(dataFiles, plotType, scanSelection, mzRange,
-        selectionPeaks, peakLabels);
+        selectionPeaks, peakLabels, null);
   }
 
   public static void visualizeFeatureListRows(Collection<ModularFeatureListRow> rows) {
@@ -247,6 +250,8 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     final List<Feature> selectionPeaks =
         parameters.getParameter(TICVisualizerParameters.PEAKS).getValue();
 
+    final Integer ticMaxSamples = parameters.getOptionalValue(
+        TICVisualizerParameters.ticMaxSamples).orElse(null);
     // Add the window to the desktop only if we actually have any raw
     // data to show.
     boolean weHaveData = false;
@@ -259,7 +264,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
 
     if (weHaveData) {
       createTICPlotInTask(dataFiles, plotType, scanSelection, mzRange,
-          selectionPeaks, ((TICVisualizerParameters) parameters).getPeakLabelMap());
+          selectionPeaks, ((TICVisualizerParameters) parameters).getPeakLabelMap(), ticMaxSamples);
 
     } else {
 
@@ -271,7 +276,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
 
   private static void createTICPlotInTask(final RawDataFile[] dataFiles, final TICPlotType plotType, final ScanSelection scanSelection,
       final Range<Double> mzRange, final List<Feature> selectionPeaks,
-      final Map<Feature, String> peakLabelMap) {
+      final Map<Feature, String> peakLabelMap, @Nullable final Integer ticMaxSamples) {
     final LatestTaskScheduler scheduler = new LatestTaskScheduler();
     scheduler.onTaskThread(new FxUpdateTask<>("Creating TIC view", null) {
       private TICVisualizerTab window;
@@ -279,7 +284,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       @Override
       protected void process() {
         window = new TICVisualizerTab(dataFiles, plotType, scanSelection, mzRange, selectionPeaks,
-            peakLabelMap);
+            peakLabelMap, ticMaxSamples);
       }
 
       @Override

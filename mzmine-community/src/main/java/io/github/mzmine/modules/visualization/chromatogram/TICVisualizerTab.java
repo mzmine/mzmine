@@ -38,7 +38,6 @@ import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts.ChartUtils;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -71,6 +70,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.entity.ChartEntity;
@@ -121,9 +121,9 @@ public class TICVisualizerTab extends MZmineTab {
   /**
    * Constructor for total ion chromatogram visualizer
    */
-  public TICVisualizerTab(RawDataFile dataFiles[], TICPlotType plotType,
+  public TICVisualizerTab(RawDataFile[] dataFiles, TICPlotType plotType,
       ScanSelection scanSelection, Range<Double> mzRange, List<? extends Feature> features,
-      Map<Feature, String> featureLabels) {
+      Map<Feature, String> featureLabels, final @Nullable Integer ticMaxSamples) {
     super("TIC Visualizer", true, false);
 
     assert mzRange != null;
@@ -227,8 +227,10 @@ public class TICVisualizerTab extends MZmineTab {
       }
 
       // add all data files
-      for (RawDataFile dataFile : dataFiles) {
-        addRawDataFile(dataFile);
+      if(ticMaxSamples==null || dataFiles.length<=ticMaxSamples) {
+        for (RawDataFile dataFile : dataFiles) {
+          addRawDataFile(dataFile);
+        }
       }
 
       // only display if short enough. User can still activate the legend in the UI
