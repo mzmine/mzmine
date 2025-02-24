@@ -243,8 +243,15 @@ public class StorageUtils {
     if (storage != null) {
       buffer = storage.allocateMemorySegment(layout, numValues);
     } else {
-      buffer = MemorySegment.ofArray(
-          new double[(int) (layout.byteSize() / OfDouble.JAVA_DOUBLE.byteSize() * numValues)]);
+      // must be at least 1 large. If layout.byteSize * numValues < 8 bytes, a double[0] would be created.
+      final long minSize = Math.ceilDiv(layout.byteSize() * numValues,
+          OfDouble.JAVA_DOUBLE.byteSize());
+      if (minSize > Integer.MAX_VALUE) {
+        throw new IllegalArgumentException(
+            "The size of the memory segment is too large. %d entries of %d B per entry (%d B)".formatted(
+                numValues, layout.byteSize(), minSize));
+      }
+      buffer = MemorySegment.ofArray(new double[(int) minSize]);
     }
 
     return buffer;

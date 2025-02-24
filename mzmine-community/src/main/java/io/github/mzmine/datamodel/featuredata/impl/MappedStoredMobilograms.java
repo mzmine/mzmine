@@ -85,7 +85,6 @@ public class MappedStoredMobilograms implements StoredMobilograms {
         mobilogramScanIndices.setAtIndex(OfInt.JAVA_INT, scanIndicesOffset++,
             scan.getMobilityScanNumber());
       }
-
       scanIndicesEnd.set(mobilogramData, offset, scanIndicesOffset);
     }
   }
