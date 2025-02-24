@@ -80,7 +80,7 @@ public class ChartLogicsFX {
    * @param myChart
    * @param mouseX
    * @param mouseY
-   * @return Range as chart coordinates (never null)
+   * @return Range as chart coordinates
    */
   public static Point2D mouseXYToPlotXY(ChartViewer myChart, int mouseX, int mouseY) {
     XYPlot plot = null;
@@ -94,6 +94,10 @@ public class ChartLogicsFX {
     }
 
     ChartRenderingInfo info = myChart.getRenderingInfo();
+    if (info == null) {
+      return null; // this should not happen if there is actually a mouse event on the chart. musst be renedered first.
+    }
+
     int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
     if (subplot != -1) {
@@ -505,7 +509,8 @@ public class ChartLogicsFX {
     if (plot instanceof Zoomable) {
       Zoomable z = plot;
       Point2D endPoint = new Point2D.Double(0, 0);
-      PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
+      // nullable but ok here
+      PlotRenderingInfo pri = getPlotRenderingInfo(myChart);
       boolean saved = plot.isNotify();
       plot.setNotify(false);
       z.zoomDomainAxes(0, pri, endPoint);
