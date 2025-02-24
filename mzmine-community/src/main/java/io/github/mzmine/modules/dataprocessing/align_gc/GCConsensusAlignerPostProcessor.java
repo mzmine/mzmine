@@ -21,7 +21,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
-import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,8 +68,7 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
    * missing
    */
   private int setConsensusMainFeature(final ModularFeatureList flist, final FeatureListRow row) {
-    final List<AlignedDataPoint> mostCommonDataPoints = countCommonSignalsInFragmentSpectra(
-        row);
+    final List<AlignedDataPoint> mostCommonDataPoints = countCommonSignalsInFragmentSpectra(row);
 
     AlignedDataPoint best = mostCommonDataPoints.getFirst();
     final double meanMz = best.getAverageMz();
@@ -148,7 +145,6 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
   }
 
   /**
-   *
    * @return list of aligned data points sorted by decreasing number of detections and intensity
    */
   private @NotNull List<AlignedDataPoint> countCommonSignalsInFragmentSpectra(
@@ -158,10 +154,9 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
         row);
 
     // first is the one with the highest sum intensity across all samples
-    List<AlignedDataPoint> mostCommonDataPoints = signalCounter.asMapOfRanges()
-        .values().stream().sorted(
-            Comparator.comparing(AlignedDataPoint::numDetections).thenComparing(AlignedDataPoint::sumIntensity).reversed())
-        .toList();
+    List<AlignedDataPoint> mostCommonDataPoints = signalCounter.asMapOfRanges().values().stream()
+        .sorted(Comparator.comparing(AlignedDataPoint::numDetections)
+            .thenComparing(AlignedDataPoint::sumIntensity).reversed()).toList();
     return mostCommonDataPoints;
   }
 
@@ -174,19 +169,18 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
     prepareMostIntenseFragmentScans(row).stream()
         .sorted(Comparator.comparing(RawFileDataPoint::getIntensity, Comparator.reverseOrder()))
         .forEach(fdp -> {
-          double mz = fdp.getMZ();
-          var rawFile = fdp.rawFile();
-          var alignedDp = signalCounter.get(mz);
+          final double mz = fdp.getMZ();
+          final RawDataFile rawFile = fdp.rawFile();
+          final AlignedDataPoint alignedDp = signalCounter.get(mz);
           if (alignedDp != null) {
-          var consensusMap = alignedDp.mostAbundantDetection();
+            final Map<RawDataFile, DataPoint> consensusMap = alignedDp.mostAbundantDetection();
             // only put a new data point if this is the first dp for this sample (feature)
             consensusMap.computeIfAbsent(rawFile, _ -> fdp);
           } else {
             // start counter - use smaller range in case of overlaps
             var mzRange = SpectraMerging.createNewNonOverlappingRange(signalCounter,
                 mzTol.getToleranceRange(mz));
-            Map<RawDataFile, DataPoint> detected = HashMap.newHashMap(
-                row.getNumberOfFeatures());
+            Map<RawDataFile, DataPoint> detected = HashMap.newHashMap(row.getNumberOfFeatures());
             detected.put(rawFile, fdp);
             signalCounter.put(mzRange, new AlignedDataPoint(mzRange, detected));
           }
@@ -198,9 +192,10 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
       final FeatureListRow row) {
     return row.streamFeatures().<RawFileDataPoint>mapMulti((f, consumer) -> {
       final RawDataFile raw = f.getRawDataFile();
-      var dps = ScanUtils.extractDataPoints(f.getMostIntenseFragmentScan());
-      for (final DataPoint dp : dps) {
-        consumer.accept(new RawFileDataPoint(raw, dp));
+
+      final Scan scan = f.getMostIntenseFragmentScan();
+      for (int i = 0; i < scan.getNumberOfDataPoints(); i++) {
+        consumer.accept(new RawFileDataPoint(raw, scan.getMzValue(i), scan.getIntensityValue(i)));
       }
     }).toList();
   }
@@ -215,7 +210,7 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
     // then center on this new mz to try and extract new feature
     if (Math.abs(closestMz - meanMz) < maxAllowedMzDistance) {
       newFeature = extractNewFeature(flist, oldFeature, mzTol.getToleranceRange(closestMz));
-      if (newFeature!=null) {
+      if (newFeature != null) {
         // this time we found a feature with signals
         return newFeature;
       }
@@ -228,28 +223,30 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
     return null;
   }
 
-  private record RawFileDataPoint(RawDataFile rawFile, DataPoint dp) implements DataPoint {
+  private record RawFileDataPoint(RawDataFile rawFile, double mz, double intensity) implements DataPoint {
 
     @Override
     public double getMZ() {
-      return dp.getMZ();
+      return mz;
     }
 
     @Override
     public double getIntensity() {
-      return dp.getIntensity();
+      return intensity;
     }
   }
 
   /**
-   *
-   * @param initialMz the range used to align data points
+   * @param initialMz             the range used to align data points
    * @param mostAbundantDetection most abundant data point in mz range
    */
-  private record AlignedDataPoint(@NotNull Range<Double> initialMz, @NotNull Map<RawDataFile, DataPoint> mostAbundantDetection) {
+  private record AlignedDataPoint(@NotNull Range<Double> initialMz,
+                                  @NotNull Map<RawDataFile, DataPoint> mostAbundantDetection) {
+
     public int numDetections() {
       return mostAbundantDetection.size();
     }
+
     public double sumIntensity() {
       double sum = 0;
       for (final DataPoint dp : mostAbundantDetection.values()) {
