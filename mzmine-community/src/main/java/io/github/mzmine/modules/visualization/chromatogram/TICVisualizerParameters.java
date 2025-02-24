@@ -71,8 +71,8 @@ public class TICVisualizerParameters extends SimpleParameterSet {
   public static final MZRangeParameter MZ_RANGE = new MZRangeParameter();
 
   public static final OptionalParameter<IntegerParameter> ticMaxSamples = new OptionalParameter<>(
-      new IntegerParameter("Simplify above n samples",
-          "Removes the sample traces above n samples. Then only feature shapes are drawn. Put to 0 to exclude sample lines in all cases.",
+      new IntegerParameter("Omit EIC lines >n samples",
+          "Removes the sample traces (lines) above n samples. Then only feature shapes are drawn. Put to 0 to exclude sample lines in all cases.",
           20, true), false);
 
   /**
