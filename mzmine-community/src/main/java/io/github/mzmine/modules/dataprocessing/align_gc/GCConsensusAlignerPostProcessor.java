@@ -13,6 +13,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.numbers.GcAlignMissingNumFeaturesType;
 import io.github.mzmine.datamodel.features.types.numbers.GcAlignShiftedNumFeaturesType;
@@ -49,6 +50,10 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
    */
   @Override
   public void handlePostAlignment(final ModularFeatureList flist) {
+    // debugging info types - kept for now so that users may provide more info for debugging
+    flist.addRowType(DataTypes.get(GcAlignMissingNumFeaturesType.class));
+    flist.addRowType(DataTypes.get(GcAlignShiftedNumFeaturesType.class));
+
     int missing = flist.parallelStream().mapToInt(row -> setConsensusMainFeature(flist, row)).sum();
     logger.fine("""
         Done with setting consensus main features in GC alignment. /
@@ -111,7 +116,7 @@ public class GCConsensusAlignerPostProcessor implements FeatureAlignmentPostProc
       row.addFeature(nf.getRawDataFile(), nf, false);
     }
 
-    // TODO remove temporary debugging info types
+    // debugging info types - kept for now so that users may provide more info for debugging
     row.set(GcAlignMissingNumFeaturesType.class, missing);
     row.set(GcAlignShiftedNumFeaturesType.class, shifted);
 
