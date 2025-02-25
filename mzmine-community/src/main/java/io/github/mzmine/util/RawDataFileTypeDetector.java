@@ -268,8 +268,11 @@ public class RawDataFileTypeDetector {
     final Pattern referenceFunctionPattern = Pattern.compile(
         "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - REFERENCE");
     final Pattern mobilityPattern = Pattern.compile("\\[MOBILITY\\]");
-    final Pattern positivePolarityPattern = Pattern.compile("(Polarity)(\\s+)([a-zA-Z]+)([+])");
-    final Pattern negativePolarityPattern = Pattern.compile("(Polarity)(\\s+)([a-zA-Z]+)([-])");
+    final Pattern tofModeIMSPattern = Pattern.compile("(TOFMode)(\\s+)(IMS)");
+    final Pattern positivePolarityPattern = Pattern.compile(
+        "(Polarity)(\\s+)([a-zA-Z]+)?([+]|[Pp]ositive)");
+    final Pattern negativePolarityPattern = Pattern.compile(
+        "(Polarity)(\\s+)([a-zA-Z]+)?([-]|[Nn]egative)");
 
     final PatternMatchCounter parentCounter = new PatternMatchCounter(parentFunctionPattern);
     final PatternMatchCounter ddaCounter = new PatternMatchCounter(ddaFunctionPattern);
@@ -278,6 +281,8 @@ public class RawDataFileTypeDetector {
     final PatternMatchCounter mobilityCounter = new PatternMatchCounter(mobilityPattern);
     final PatternMatchCounter postiveCounter = new PatternMatchCounter(positivePolarityPattern);
     final PatternMatchCounter negativeCounter = new PatternMatchCounter(negativePolarityPattern);
+    final PatternMatchCounter tofModeImsCounter = new PatternMatchCounter(tofModeIMSPattern);
+
 
     try (var reader = new BufferedReader(new FileReader(new File(watersFolder, "_extern.inf")))) {
       reader.lines().forEach(line -> {
@@ -288,7 +293,9 @@ public class RawDataFileTypeDetector {
         mobilityCounter.checkMatch(line);
         postiveCounter.checkMatch(line);
         negativeCounter.checkMatch(line);
+        tofModeImsCounter.checkMatch(line);
       });
+      mobilityCounter.matches += tofModeImsCounter.matches;
 
       final PolarityType polarity =
           (postiveCounter.matches > negativeCounter.matches) ? PolarityType.POSITIVE
@@ -306,8 +313,8 @@ public class RawDataFileTypeDetector {
             polarity);
       }
 
-      logger.info(
-          "Unable to detect file type of Waters raw data. Defaulting to MSe and no mobility separation.");
+      logger.info("Unable to detect file type of Waters raw data. Defaulting to MSe and " + (
+          mobilityCounter.matches == 0 ? "no " : "") + "mobility separation.");
       return new WatersAcquisitionInfo(WatersAcquisitionType.MSE, mobilityCounter.matches > 0,
           polarity);
     } catch (IOException e) {
