@@ -278,8 +278,22 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void removeFeature(RawDataFile file) {
-    this.features.remove(file);
+  public void removeFeature(RawDataFile file, boolean updateByRowBindings) {
+    final ModularFeature removed = this.features.remove(file);
+    if (removed != null) {
+      // reflect changes by updating all row bindings
+      getFeatureList().fireFeatureChangedEvent(this, null, null, updateByRowBindings);
+    }
+  }
+
+  @Override
+  public void clearFeatures(final boolean updateByRowBindings) {
+    final  boolean changed = !features.isEmpty();
+    this.features.clear();
+    if (changed) {
+      // reflect changes by updating all row bindings
+      getFeatureList().fireFeatureChangedEvent(this, null, null, updateByRowBindings);
+    }
   }
 
   @Override
