@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * 2022-06-01T18:36:09Z is a zoned format that needs to be parsed by {@link ZonedDateTime}
  *
- * For {@link LocalDate} parsing look at {@link LocalDateParser#parseAnyDate(String)}
+ * For {@link LocalDate} parsing look at {@link LocalDateParser#parseAnyFirstDate(String)}
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */

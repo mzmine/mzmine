@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -14,13 +13,15 @@ import org.jetbrains.annotations.Nullable;
  */
 public enum LocalDateParser {
   // uses (?!\d) as look ahead to make date followed by another number illegal.
-  BASIC_ISO_DATE(DateTimeFormatter.BASIC_ISO_DATE, "\\d{8}(?!\\d)"), // 20241231 yyyyMMdd
-  ISO_DATE(DateTimeFormatter.ISO_DATE, "\\d{4}-\\d{2}-\\d{2}(?!\\d)"), // yyyy-MM-dd
-  EUROPEAN_DATE("dd.MM.yyyy", "\\d{2}\\.\\d{2}\\.\\d{4}(?!\\d)"), //
-  EUROPEAN_DATE_REVERSED("yyyy.MM.dd", "\\d{4}\\.\\d{2}\\.\\d{2}(?!\\d)");
+  BASIC_ISO_DATE(DateTimeFormatter.BASIC_ISO_DATE, "\\d{8}"), // 20241231 yyyyMMdd
+  ISO_DATE(DateTimeFormatter.ISO_DATE, "\\d{4}-\\d{2}-\\d{2}"), // yyyy-MM-dd
+  EUROPEAN_DATE("dd.MM.yyyy", "\\d{2}\\.\\d{2}\\.\\d{4}"), //
+  EUROPEAN_DATE_REVERSED("yyyy.MM.dd", "\\d{4}\\.\\d{2}\\.\\d{2}");
 
   private final DateTimeFormatter formatter;
   private final Pattern pattern;
+  private final Pattern patternStarts;
+  private final Pattern patternEnds;
 
   LocalDateParser(String pattern, String regex) {
     this(DateTimeFormatter.ofPattern(pattern), regex);
@@ -28,7 +29,9 @@ public enum LocalDateParser {
 
   LocalDateParser(final DateTimeFormatter formatter, final String regex) {
     this.formatter = formatter;
-    this.pattern = Pattern.compile(regex);
+    this.pattern = Pattern.compile(regex+"(?!\\d)"); // disallow trailing numbers
+    this.patternStarts = Pattern.compile("^"+regex+"(?!\\d)"); // disallow trailing numbers
+    this.patternEnds = Pattern.compile(regex+"$");
   }
 
   public DateTimeFormatter getFormatter() {
@@ -44,22 +47,83 @@ public enum LocalDateParser {
    * @return the local date
    * @throws DateTimeParseException
    */
-  public @NotNull LocalDate parse(String input) {
+  public @Nullable LocalDate parseFirst(String input) {
     final Matcher matcher = pattern.matcher(input);
     if (matcher.find()) {
       return LocalDate.parse(matcher.group(0), formatter);
     }
-    throw new DateTimeParseException("Could not parse date: " + input, input, 0);
+    return null;
+  }
+  /**
+   * @param input any string that starts with a date pattern
+   * @return the local date
+   * @throws DateTimeParseException
+   */
+  public @Nullable LocalDate parseStart(String input) {
+    final Matcher matcher = patternStarts.matcher(input);
+    if (matcher.find()) {
+      return LocalDate.parse(matcher.group(0), formatter);
+    }
+    return null;
+  }
+  /**
+   * @param input any string that ends with a date pattern
+   * @return the local date
+   * @throws DateTimeParseException
+   */
+  public @Nullable LocalDate parseEnd(String input) {
+    final Matcher matcher = patternEnds.matcher(input);
+    if (matcher.find()) {
+      return LocalDate.parse(matcher.group(0), formatter);
+    }
+    return null;
   }
 
   /**
    * @param input any string that contains a date pattern anywhere in the string
    * @return the local date
    */
-  public static @Nullable LocalDate parseAnyDate(String input) {
+  public static @Nullable LocalDate parseAnyFirstDate(String input) {
     for (final LocalDateParser parser : values()) {
       try {
-        return parser.parse(input);
+        final LocalDate date = parser.parseFirst(input);
+        if (date != null) {
+          return date;
+        }
+      } catch (DateTimeParseException ex) {
+        // silent and try next
+      }
+    }
+    return null;
+  }
+  /**
+   * @param input any string that starts with a date pattern
+   * @return the local date
+   */
+  public static @Nullable LocalDate parseAnyStartingDate(String input) {
+    for (final LocalDateParser parser : values()) {
+      try {
+        final LocalDate date = parser.parseStart(input);
+        if (date != null) {
+          return date;
+        }
+      } catch (DateTimeParseException ex) {
+        // silent and try next
+      }
+    }
+    return null;
+  }
+  /**
+   * @param input any string that ends with a date pattern
+   * @return the local date
+   */
+  public static @Nullable LocalDate parseAnyEndingDate(String input) {
+    for (final LocalDateParser parser : values()) {
+      try {
+        final LocalDate date = parser.parseEnd(input);
+        if (date != null) {
+          return date;
+        }
       } catch (DateTimeParseException ex) {
         // silent and try next
       }
