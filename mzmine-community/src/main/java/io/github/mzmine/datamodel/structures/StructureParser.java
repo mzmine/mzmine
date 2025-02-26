@@ -54,7 +54,8 @@ public class StructureParser {
   @Nullable
   public SimpleMolecularStructure parseStructure(@Nullable String structure,
       @NotNull StructureInputType inputType) {
-    if (structure == null || structure.isBlank()) {
+    if (structure == null || structure.isBlank() || structure.equalsIgnoreCase("n/a")
+        || structure.equalsIgnoreCase("na")) {
       return null;
     }
     try {

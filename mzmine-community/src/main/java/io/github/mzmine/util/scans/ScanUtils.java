@@ -423,10 +423,11 @@ public class ScanUtils {
    * @return the total ion count of the scan within the mass range.
    */
   public static double calculateTIC(Scan scan, Range<Double> mzRange) {
+    final IndexRange indexRange = BinarySearch.indexRange(mzRange, scan.getNumberOfDataPoints(), scan::getMzValue);
 
     double tic = 0.0;
-    for (final DataPoint dataPoint : selectDataPointsByMass(extractDataPoints(scan), mzRange)) {
-      tic += dataPoint.getIntensity();
+    for (int i = indexRange.min(); i < indexRange.maxExclusive(); i++) {
+      tic += scan.getIntensityValue(i);
     }
     return tic;
   }

@@ -156,7 +156,9 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     if (rtSmoothing) {
       makeAndAddSmoothingStep(q, true, minRtDataPoints, false);
     }
-    makeAndAddRtLocalMinResolver(q, null, minRtDataPoints, cropRtRange, rtFwhm, 10);
+    // use 100 isomers to decrease the chromatographic threshold
+    // GC-EI generates a lot of the same mz fragments and covers the whole RT range
+    makeAndAddRtLocalMinResolver(q, null, minRtDataPoints, cropRtRange, rtFwhm, 100);
     if (recalibrateRetentionTime) {
       makeAndAddRetentionTimeCalibration(q, mzTolInterSample, interSampleRtTol,
           handleOriginalFeatureLists);
@@ -294,21 +296,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
 
 
   protected void makeAndAddGnpsExportStep(final BatchQueue q) {
-    final ParameterSet param = new GnpsGcExportAndSubmitParameters().cloneParameterSet();
-
-    File fileName = FileAndPathUtil.eraseFormat(exportPath);
-    fileName = new File(fileName.getParentFile(), fileName.getName() + "_gc_ei_gnps");
-    param.setParameter(GnpsGcExportAndSubmitParameters.FEATURE_LISTS,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    // going back into scans so rather use scan mz tol
-    param.setParameter(GnpsGcExportAndSubmitParameters.REPRESENTATIVE_MZ,
-        MzMode.AS_IN_FEATURE_TABLE);
-    param.setParameter(GnpsGcExportAndSubmitParameters.OPEN_FOLDER, false);
-    param.setParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY, AbundanceMeasure.Area);
-    param.setParameter(GnpsGcExportAndSubmitParameters.FILENAME, fileName);
-
-    q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(GnpsGcExportAndSubmitModule.class), param));
+    makeAndAddIimnGnpsExportStep(q, exportPath, mzTolScans, "_gc_ei_gnps");
   }
 
   protected void makeAndAddMSPExportStep(final BatchQueue q) {
@@ -320,8 +308,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     param.setParameter(AdapMspExportParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(AdapMspExportParameters.FILENAME, fileName);
-    param.setParameter(AdapMspExportParameters.ADD_RET_TIME, true);
-    param.setParameter(AdapMspExportParameters.ADD_ANOVA_P_VALUE, true);
+    param.setParameter(AdapMspExportParameters.ADD_RET_TIME, true, "RT");
+    param.setParameter(AdapMspExportParameters.ADD_ANOVA_P_VALUE, true, "ANOVA_P_VALUE");
     param.setParameter(AdapMspExportParameters.INTEGER_MZ, false);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AdapMspExportModule.class),

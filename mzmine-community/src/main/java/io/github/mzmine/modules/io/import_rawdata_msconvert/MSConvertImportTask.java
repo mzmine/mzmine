@@ -30,6 +30,7 @@ import static io.github.mzmine.util.StringUtils.inQuotes;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
@@ -55,13 +56,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MSConvertImportTask extends AbstractTask {
+public class MSConvertImportTask extends AbstractTask implements RawDataImportTask {
 
   private static final Logger logger = Logger.getLogger(MSConvertImportTask.class.getName());
 
@@ -87,14 +89,21 @@ public class MSConvertImportTask extends AbstractTask {
 
   public static @NotNull List<String> buildCommandLine(File filePath, File msConvertPath,
       boolean convertToFile) {
-
+    final File mzMLFile = getMzMLFileName(filePath);
     final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(filePath);
 
     List<String> cmdLine = new ArrayList<>();
     cmdLine.addAll(List.of(inQuotes(msConvertPath.toString()), // MSConvert path
-        inQuotes(filePath.getAbsolutePath()), // raw file path
-        "-o", !convertToFile ? "-" /* to stdout */ : inQuotes(filePath.getParent()) //
+        inQuotes(filePath.getAbsolutePath()) // raw file path
     )); // vendor peak-picking
+
+    if (convertToFile) {
+      cmdLine.addAll(List.of(
+          "--outdir", inQuotes(mzMLFile.getParent()), // need to set dir here
+          "--outfile", inQuotes(mzMLFile.getName()))); // only file name here
+    } else {
+      cmdLine.addAll(List.of("-o", "-")); /* to stdout */
+    }
 
     if (convertToFile) {
       cmdLine.add("--zlib");
@@ -235,6 +244,20 @@ public class MSConvertImportTask extends AbstractTask {
     }
   }
 
+  /**
+   * @param file
+   * @param keepConverted
+   * @return
+   */
+  public static File applyMsConvertImportNameChanges(File file, boolean keepConverted) {
+    if (keepConverted && getSupportedFileTypes().contains(
+        RawDataFileTypeDetector.detectDataFileType(file))) {
+      return getMzMLFileName(file);
+    } else {
+      return file;
+    }
+  }
+
   @Override
   public String getTaskDescription() {
     return msdkTask != null ? msdkTask.getTaskDescription()
@@ -296,6 +319,14 @@ public class MSConvertImportTask extends AbstractTask {
   private void importFromMzML(File mzMLFile) {
     RawDataFile dataFile = null;
     ParameterUtils.replaceRawFileName(parameters, rawFilePath, mzMLFile);
+
+    if (project.getCurrentRawDataFiles().stream()
+        .anyMatch(file -> file.getAbsolutePath().equals(mzMLFile.getAbsolutePath()))) {
+      // we should only get to this point if someone imported raw files with the "keep mzml" option,
+      // creates the mzml, then disables that option and imports the vendor file again.
+      return;
+    }
+
     msdkTask = new MSDKmzMLImportTask(project, mzMLFile, config, module, parameters, moduleCallDate,
         storage);
 
@@ -330,7 +361,7 @@ public class MSConvertImportTask extends AbstractTask {
     if (parsedScans != totalScans) {
       throw (new RuntimeException(
           "MSConvert process crashed before all scans were extracted (" + parsedScans + " out of "
-              + totalScans + ")"));
+          + totalScans + ")"));
     }
     msdkTask.addAppliedMethodAndAddToProject(dataFile);
   }
@@ -375,7 +406,7 @@ public class MSConvertImportTask extends AbstractTask {
       if (parsedScans != totalScans) {
         throw (new RuntimeException(
             "ThermoRawFileParser/MSConvert process crashed before all scans were extracted ("
-                + parsedScans + " out of " + totalScans + ")"));
+            + parsedScans + " out of " + totalScans + ")"));
       }
 
       msdkTask.addAppliedMethodAndAddToProject(dataFile);
@@ -391,5 +422,16 @@ public class MSConvertImportTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
       }
     }
+  }
+
+  public static Set<RawDataFileType> getSupportedFileTypes() {
+    return Set.of(RawDataFileType.WATERS_RAW, RawDataFileType.WATERS_RAW_IMS,
+        RawDataFileType.SCIEX_WIFF, RawDataFileType.SCIEX_WIFF2, RawDataFileType.AGILENT_D,
+        RawDataFileType.AGILENT_D_IMS, RawDataFileType.THERMO_RAW);
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : null;
   }
 }

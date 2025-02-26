@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,27 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.io;
+package io.github.mzmine.datamodel.features.types.numbers;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import org.jetbrains.annotations.NotNull;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
-import java.time.Duration;
-import java.util.List;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+public class GcAlignMissingNumFeaturesType extends IntegerType {
 
-class CsvWriterTest {
-
-  @Test
-  void writeToString() throws JsonProcessingException {
-    List<StepTimeMeasurement> steps = List.of( //
-        new StepTimeMeasurement(0, "test", Duration.ofSeconds(5), false), //
-        new StepTimeMeasurement(1, "test2", Duration.ofSeconds(2), false) //
-    );
-    String csv = CsvWriter.writeToString(steps, StepTimeMeasurement.class, '\t', true);
-    Assertions.assertNotNull(csv);
-    assertTrue(csv.length() > 10);
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "gc_align_missing_num_features";
   }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "GC missing features (align)";
+  }
+
 }

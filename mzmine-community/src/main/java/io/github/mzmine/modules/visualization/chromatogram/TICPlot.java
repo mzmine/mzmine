@@ -225,6 +225,10 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     }
   }
 
+  public int getDatasetCount() {
+    return plot.getDatasetCount();
+  }
+
 
   public void setLegendVisible(boolean state) {
     final LegendTitle legend = getChart().getLegend();
