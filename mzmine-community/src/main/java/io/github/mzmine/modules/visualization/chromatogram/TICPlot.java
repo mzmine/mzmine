@@ -616,7 +616,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
             ((FeatureDataSet) dataSet).getFeature().getRawDataFile().getColorAWT());
       }
 
-      plot.setRenderer(nextDatasetId, renderer);
+      plot.setRenderer(nextDatasetId, renderer, false); // notify on dataset change
       plot.setDataset(nextDatasetId, dataSet);
     });
 
