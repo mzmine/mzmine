@@ -145,8 +145,6 @@ public class SpectraVisualizerTab extends MZmineTab {
     // setTitle("Spectrum loading...");
     this.dataFile = dataFile;
     this.currentScan = scanNumber;
-    dataFileColor = dataFile.getColorAWT();
-
     loadColorSettings();
 
     mainPane = new BorderPane();
@@ -281,7 +279,8 @@ public class SpectraVisualizerTab extends MZmineTab {
 
   private void loadColorSettings() {
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    scanColor = currentScan.getDataFile().getColorAWT();
+    dataFileColor = dataFile != null ? dataFile.getColorAWT() : palette.getNextColorAWT();
+    scanColor = dataFileColor;
     massListColor = FxColorUtil.fxColorToAWT(
         ColorUtils.getContrastPaletteColor(FxColorUtil.awtColorToFX(dataFileColor), palette));
     peaksColor = getNextFileContrastColor();
