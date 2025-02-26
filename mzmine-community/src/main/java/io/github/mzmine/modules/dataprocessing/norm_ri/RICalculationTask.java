@@ -58,6 +58,7 @@ import java.io.FileReader;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -198,14 +199,20 @@ public class RICalculationTask extends AbstractFeatureListTask {
 
   private LocalDate extractDate(String fileName) {
     // Extract date from file name
-    String[] dateComponents = {"\\d{4}", "\\d{2}", "\\d{2}"};
-    final String[] separators = {"-", "/", ""};
+    String[] dateComponents = {"\\d{4}", "\\d{2}", "\\d{2}(?!\\d)"};
+    final String[] separators = {"-", "", "."};
 
     for (String sep : separators) {
       Matcher matcher = Pattern.compile(String.join(sep, dateComponents)).matcher(fileName);
       if (matcher.find()) {
         try {
-          return LocalDate.parse(matcher.group(0));
+          if (sep.equals("-")) {
+            return LocalDate.parse(matcher.group(0));
+          } else if (sep.equals("")) {
+            return LocalDate.parse(matcher.group(0), DateTimeFormatter.BASIC_ISO_DATE);
+          } else if (sep.equals(".")) {
+            return LocalDate.parse(matcher.group(0), DateTimeFormatter.ofPattern("yyyy.MM.dd"));
+          }
         } catch (Exception _) {
         }
       }
