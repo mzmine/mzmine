@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import java.lang.foreign.MemorySegment;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -186,10 +187,13 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   public IonTimeSeries<Scan> subSeries(MemoryMapStorage storage, int startIndexInclusive,
       int endIndexExclusive) {
 
+    // better create copy - sublist keeps original list alive
+    List<? extends Scan> sublist = new ArrayList<>(
+        scans.subList(startIndexInclusive, endIndexExclusive));
     return new SimpleIonTimeSeries(
         StorageUtils.sliceDoubles(mzValues, startIndexInclusive, endIndexExclusive),
         StorageUtils.sliceDoubles(intensityValues, startIndexInclusive, endIndexExclusive),
-        scans.subList(startIndexInclusive, endIndexExclusive));
+        sublist);
   }
 
   @Override
@@ -257,7 +261,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       return false;
     }
     return Objects.equals(scans, that.scans) && IntensitySeries.seriesSubsetEqual(this, that)
-        && MzSeries.seriesSubsetEqual(this, that);
+           && MzSeries.seriesSubsetEqual(this, that);
   }
 
   @Override

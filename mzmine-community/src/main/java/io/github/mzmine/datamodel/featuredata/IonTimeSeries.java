@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
+import java.util.ArrayList;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -95,7 +96,12 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
     if (endIndexExclusive - startIndexInclusive <= 0) {
       return emptySeries();
     }
-    return subSeries(storage, getSpectra().subList(startIndexInclusive, endIndexExclusive));
+
+    // do not use sublist for now as it keeps the original list alive.
+    // TODO think about using this fact to just having one list of scans with continuos sublists
+    // like having one MemorySegment for chromatogram and then just save the index ranges of scans for resolved features.
+    List<T> scans = new ArrayList<>(getSpectra().subList(startIndexInclusive, endIndexExclusive));
+    return subSeries(storage, scans);
   }
 
   @Override
