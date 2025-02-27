@@ -67,6 +67,7 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
@@ -78,6 +79,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -507,13 +509,39 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
         // set the parent frame
         final Set<IonMobilityMsMsInfo> newInfos = infos.stream()
             .<IonMobilityMsMsInfo>mapMulti((info, c) -> {
-              final IonMobilityMsMsInfo copy = info.createCopy();
+              final IonMobilityMsMsInfo copy = !isMaldi ? info.createCopy()
+                  : Objects.requireNonNullElse(mapToPasefInfo(info), info.createCopy());
               copy.setMsMsScan(frame);
               c.accept(copy);
             }).collect(Collectors.toSet());
+
         ((SimpleFrame) frame).setPrecursorInfos(newInfos);
       }
     }
+  }
+
+  /**
+   * With timsControl > 6.1 the SIMSEF data is saved as DIA window. We have to map it to a regular
+   * MS2 info.
+   */
+  private static @Nullable PasefMsMsInfo mapToPasefInfo(IonMobilityMsMsInfo i) {
+    return switch (i) {
+      case PasefMsMsInfo pasef -> pasef;
+      case DIAImsMsMsInfoImpl dia -> {
+        if (dia.getIsolationWindow() == null) {
+          yield null;
+        }
+        final double isoWidth = RangeUtils.rangeLength(dia.getIsolationWindow()).doubleValue();
+        if (isoWidth
+            <= 5) { // is arbitrarily chosen as a cutoff for what can be deemed as a SIMSEF dda MS2.
+          yield new PasefMsMsInfoImpl(RangeUtils.rangeCenter(dia.getIsolationWindow()),
+              dia.getSpectrumNumberRange(), dia.getActivationEnergy(), null, null,
+              dia.getMsMsFrame(), dia.getIsolationWindow());
+        }
+        yield null;
+      }
+      default -> null;
+    };
   }
 
   /**
