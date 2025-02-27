@@ -80,8 +80,9 @@ public class RICalculationTask extends AbstractFeatureListTask {
   private final OriginalFeatureListHandlingParameter.OriginalFeatureListOption handleOriginal;
   private final boolean shouldExtrapolate;
   private final boolean shouldAddSummary;
-  private volatile List <RIScale> linearScales = new ArrayList<>();
-  private final MetadataTable metadataTable;;
+  private volatile List<RIScale> linearScales = new ArrayList<>();
+  private final MetadataTable metadataTable;
+  ;
 
 
   public RICalculationTask(MZmineProject project, @Nullable MemoryMapStorage storage,
@@ -181,13 +182,9 @@ public class RICalculationTask extends AbstractFeatureListTask {
 
     if (rt >= knots[0] && rt <= knots[knots.length - 1]) {
       ri = (float) riScale.interpolator().value(rt);
-    }
-
-    else if (shouldExtrapolate && rt > knots[knots.length - 1]) {
+    } else if (shouldExtrapolate && rt > knots[knots.length - 1]) {
       ri = (float) riScale.interpolator().getPolynomials()[riScale.interpolator().getPolynomials().length - 1].value(rt - knots[knots.length - 1]);
-    }
-
-    else if (shouldExtrapolate && rt < knots[0]) {
+    } else if (shouldExtrapolate && rt < knots[0]) {
       ri = (float) riScale.interpolator().getPolynomials()[0].value(rt - knots[0]);
     }
 

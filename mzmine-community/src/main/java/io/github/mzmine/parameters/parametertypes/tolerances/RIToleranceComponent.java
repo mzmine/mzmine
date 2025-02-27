@@ -66,7 +66,7 @@ public class RIToleranceComponent extends HBox {
 
     Integer tolerance = null;
     try {
-        tolerance = Integer.parseInt(valueString);
+      tolerance = Integer.parseInt(valueString);
     } catch (Exception e) {
       return null;
     }

@@ -59,8 +59,8 @@ public class RICalculationModule extends TaskPerFeatureListModule {
 
   @Override
   public @NotNull Task createTask(final @NotNull MZmineProject project,
-      final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
-      @Nullable final MemoryMapStorage storage, @NotNull final FeatureList featureList){
+                                  final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
+                                  @Nullable final MemoryMapStorage storage, @NotNull final FeatureList featureList) {
     return new RICalculationTask(project, storage, moduleCallDate, parameters, (ModularFeatureList) featureList, this.getClass());
   }
 

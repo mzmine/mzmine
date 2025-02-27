@@ -53,7 +53,7 @@ public class RICalculationParameters extends SimpleParameterSet {
   public static final BooleanParameter addSummary = new BooleanParameter("Add row summaries", "Inserts the minimum and maximum retention index values for each row", false);
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(false);
   public static final StringParameter suffix = new StringParameter("Name suffix",
-          "Suffix to be added to feature list name", "ri");
+      "Suffix to be added to feature list name", "ri");
 
 
   public RICalculationParameters() {

@@ -66,12 +66,12 @@ public class RIType extends FloatType {
 
   @Override
   public NumberFormat getFormat() {
-      return DEFAULT_FORMAT;
+    return DEFAULT_FORMAT;
   }
 
   @Override
   public NumberFormat getExportFormat() {
-      return DEFAULT_FORMAT;
+    return DEFAULT_FORMAT;
   }
 
   @Override
@@ -82,9 +82,7 @@ public class RIType extends FloatType {
   @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
-    return List.of(
-      new SimpleRowBinding(this, AVERAGE)
-    );
+    return List.of(new SimpleRowBinding(this, AVERAGE));
   }
 
   @Override
@@ -93,10 +91,9 @@ public class RIType extends FloatType {
   }
 
   @Override
-  public Object evaluateBindings(@NotNull BindingsType bindingsType, @NotNull List <? extends ModularDataModel> models) {
+  public Object evaluateBindings(@NotNull BindingsType bindingsType, @NotNull List<? extends ModularDataModel> models) {
     switch (bindingsType) {
-      case AVERAGE:
-      {
+      case AVERAGE: {
         // calc average center of ranges
         float mean = 0.0f;
         int c = 0;

@@ -10,20 +10,20 @@ import org.jetbrains.annotations.NotNull;
 
 public class RIScaleType extends StringType implements AnnotationType {
 
-    public String fromString(String s) {
-        return s;
-    }
+  public String fromString(String s) {
+    return s;
+  }
 
-    @Override
-    public @NotNull String getHeaderString() {
-        return "RI Scale source";
-    }
+  @Override
+  public @NotNull String getHeaderString() {
+    return "RI Scale source";
+  }
 
-    @NotNull
-    @Override
-    public final String getUniqueID() {
-        // Never change the ID for compatibility during saving/loading of type
-        return "retention_index_scale";
-    }
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "retention_index_scale";
+  }
 
 }
