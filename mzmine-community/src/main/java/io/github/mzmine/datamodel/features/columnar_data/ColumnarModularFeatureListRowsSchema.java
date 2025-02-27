@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.columnar_data;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Arrays;
@@ -38,6 +39,10 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A specific implementation of a columnar data model for {@link FeatureListRow}s. This also links
+ * the rows to their features.
+ */
 public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataModelSchema {
 
   private static final Logger logger = Logger.getLogger(

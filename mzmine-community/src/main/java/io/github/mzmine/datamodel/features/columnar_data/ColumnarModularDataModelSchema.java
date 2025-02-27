@@ -45,11 +45,20 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * The data schema for a columnar data model. Columns will define how to store, read and write data.
+ * Columns are already either of the correct length or larger to accommodate new row additions. If
+ * another row is added, columns size is ensured and potentially resized.
+ * <p>
+ * Use {@link #addRowGetIndex()} as a non-blocking way to add a new row to this data model. Resizing
+ * is done automatically with optimistic {@link StampedLock}.
+ */
 public class ColumnarModularDataModelSchema {
 
   private static final Logger logger = Logger.getLogger(

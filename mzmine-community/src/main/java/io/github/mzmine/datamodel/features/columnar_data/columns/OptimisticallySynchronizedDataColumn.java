@@ -2,6 +2,12 @@ package io.github.mzmine.datamodel.features.columnar_data.columns;
 
 import java.util.concurrent.locks.StampedLock;
 
+/**
+ * This column synchronizes the resizing of the backing data structures and the write operations
+ * optimistically.
+ *
+ * @param <T> data type of values
+ */
 public final class OptimisticallySynchronizedDataColumn<T> extends AbstractDataColumn<T> {
 
   private final StampedLock resizeLock = new StampedLock();

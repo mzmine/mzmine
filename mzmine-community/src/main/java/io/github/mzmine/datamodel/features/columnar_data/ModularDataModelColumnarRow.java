@@ -36,6 +36,10 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A row in a {@link ColumnarModularDataModelSchema} where the index was obtained from
+ * {@link ColumnarModularDataModelSchema#addRowGetIndex()}.
+ */
 public class ModularDataModelColumnarRow implements ModularDataModel {
 
   protected final ColumnarModularDataModelSchema schema;
