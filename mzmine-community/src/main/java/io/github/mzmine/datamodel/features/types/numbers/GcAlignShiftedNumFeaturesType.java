@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,31 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode.timing;
+package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.main.ConfigService;
-import java.time.Duration;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import org.jetbrains.annotations.NotNull;
 
-public record StepTimeMeasurement(int step, double secondsToFinish, String name,
-                                  @Nullable String usedHeapGB) {
+public class GcAlignShiftedNumFeaturesType extends IntegerType {
 
-  /**
-   * @param trackMemory memory measurements are only precise when combined with GC
-   *                                  before, if active - please perform gc before this constructor
-   */
-  public StepTimeMeasurement(final int stepNumber, final String name, final Duration duration,
-      final boolean trackMemory) {
-    var memory = trackMemory ? "%.2f".formatted(
-        ConfigService.getConfiguration().getUsedMemoryGB()) : null;
-    this(stepNumber, duration.toMillis() / 1000.0, name, memory);
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "gc_align_shifted_num_features";
   }
 
   @Override
-  public String toString() {
-    String heap = usedHeapGB == null ? "" : " (used heap: %s GB)".formatted(usedHeapGB);
-    return "Step %d: %s took %.3f seconds to finish%s".formatted(step + 1, name, secondsToFinish,
-        heap);
+  public @NotNull String getHeaderString() {
+    return "GC shifted features (align)";
   }
 
 }

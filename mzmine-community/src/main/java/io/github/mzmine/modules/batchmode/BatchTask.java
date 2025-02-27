@@ -216,6 +216,9 @@ public class BatchTask extends AbstractTask {
     logger.info("Finished a batch of " + totalSteps + " steps");
     setStatus(TaskStatus.FINISHED);
     Duration duration = Duration.between(batchStart, Instant.now());
+    if (runGCafterBatchStep) {
+      System.gc();
+    }
     stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration, runGCafterBatchStep));
     printBatchTimes();
   }
@@ -289,6 +292,9 @@ public class BatchTask extends AbstractTask {
       processedSteps++;
 
       Duration duration = Duration.between(start, Instant.now());
+      if (runGCafterBatchStep) {
+        System.gc();
+      }
       stepTimes.add(
           new StepTimeMeasurement(stepNumber + 1, queue.get(stepNumber).getModule().getName(),
               duration, runGCafterBatchStep));

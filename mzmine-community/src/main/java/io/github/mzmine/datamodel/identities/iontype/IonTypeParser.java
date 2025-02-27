@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.identities.iontype;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -170,12 +172,15 @@ public class IonTypeParser {
   }
 
   private static int getMolMultiplier(String mod, int defaultValue) {
+    if (mod.isBlank()) {
+      return defaultValue;
+    }
     mod = mod.substring(0, mod.length() - 1);
     if (!mod.isBlank()) {
       try {
         return Integer.parseInt(mod);
       } catch (Exception ex) {
-        logger.finest("Cannot parse prefix of M in ion notation");
+        logger.finest("Cannot parse prefix of M in ion notation for " + inQuotes(mod));
       }
     }
     return defaultValue;

@@ -115,6 +115,14 @@ public class IINTests {
     testIonParser("M+Cl", "[M+Cl]-", 1, -1, 0);
     testIonParser("M-HCl+FA", "[M-HCl+FA]-", 1, -1, 1);
 
+    testIonParser("[M]+", "[M]+", 1, 1, 0);
+    testIonParser("NA", "[M]+", 1, 1, 0);
+    testIonParser("[Cat]+", "[M]+", 1, 1, 0);
+    testIonParser("[Cat-C6H10O5]+", "[M-C6H10O5]+", 1, 1, 1);
+    testIonParser("[Cat+C6H10O5]+", "[M+C6H10O5]+", 1, 1, 1);
+    testIonParser("[M+H-C12H20O9]+", "[M-C12H20O9+H]+", 1, 1, 1);
+    testIonParser(" -idontknowhatimdoing31773", "[M+-idontknowhatimdoing31773]+", 1, 1, 1);
+
     // counter intuitve but we expect ions to have a charge and default to 1
     testIonParser("[M-H2O]", "[M-H2O]+", 1, 1, 1);
   }
@@ -141,7 +149,7 @@ public class IINTests {
 
     logger.info(
         () -> "Smiles: " + mzFromSmiles + "\tFormula: " + mzFromFormula + "\tPrecursor: " + mzFromMz
-              + "\tNeutral: " + mzFromNeutral);
+            + "\tNeutral: " + mzFromNeutral);
     Assertions.assertTrue(tol.checkWithinTolerance(mzFromFormula, mzFromNeutral));
     Assertions.assertTrue(tol.checkWithinTolerance(mzFromMz, mzFromNeutral));
     Assertions.assertTrue(tol.checkWithinTolerance(mzFromSmiles, mzFromNeutral));

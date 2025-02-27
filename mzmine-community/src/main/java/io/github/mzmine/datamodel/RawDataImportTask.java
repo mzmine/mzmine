@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,31 +22,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode.timing;
+package io.github.mzmine.datamodel;
 
-import io.github.mzmine.main.ConfigService;
-import java.time.Duration;
+import io.github.mzmine.taskcontrol.Task;
 import org.jetbrains.annotations.Nullable;
 
-public record StepTimeMeasurement(int step, double secondsToFinish, String name,
-                                  @Nullable String usedHeapGB) {
+
+public interface RawDataImportTask extends Task {
 
   /**
-   * @param trackMemory memory measurements are only precise when combined with GC
-   *                                  before, if active - please perform gc before this constructor
+   * @return The imported file or null. Will be null unless this task is finished.
    */
-  public StepTimeMeasurement(final int stepNumber, final String name, final Duration duration,
-      final boolean trackMemory) {
-    var memory = trackMemory ? "%.2f".formatted(
-        ConfigService.getConfiguration().getUsedMemoryGB()) : null;
-    this(stepNumber, duration.toMillis() / 1000.0, name, memory);
-  }
-
-  @Override
-  public String toString() {
-    String heap = usedHeapGB == null ? "" : " (used heap: %s GB)".formatted(usedHeapGB);
-    return "Step %d: %s took %.3f seconds to finish%s".formatted(step + 1, name, secondsToFinish,
-        heap);
-  }
-
+  @Nullable RawDataFile getImportedRawDataFile();
 }

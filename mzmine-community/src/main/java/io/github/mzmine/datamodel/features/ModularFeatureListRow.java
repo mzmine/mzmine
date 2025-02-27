@@ -81,7 +81,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -198,25 +197,29 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
   @Override
   public synchronized void addFeature(RawDataFile raw, Feature feature,
       boolean updateByRowBindings) {
-    if (!(feature instanceof ModularFeature modularFeature)) {
-      throw new IllegalArgumentException(
-          "Cannot add non-modular feature to modular feature list row.");
-    }
-    if (!flist.equals(feature.getFeatureList())) {
-      throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-          + "row. Create feature with the correct feature list as an argument.");
-    }
-    if (raw == null) {
-      throw new IllegalArgumentException("Raw file cannot be null");
+    final ModularFeature oldFeature;
+    if (feature == null) {
+      oldFeature = flist.getRowsSchema().setFeature(modelRowIndex, raw, null);
+    } else {
+      if (!(feature instanceof ModularFeature modularFeature)) {
+        throw new IllegalArgumentException(
+            "Cannot add non-modular feature to modular feature list row.");
+      }
+      if (!flist.equals(feature.getFeatureList())) {
+        throw new IllegalArgumentException("Cannot add feature with different feature list to this "
+                                           + "row. Create feature with the correct feature list as an argument.");
+      }
+      if (raw == null) {
+        throw new IllegalArgumentException("Raw file cannot be null");
+      }
+
+      oldFeature = flist.getRowsSchema().setFeature(modelRowIndex, raw, modularFeature);
+      modularFeature.setRow(this);
     }
 
-    ModularFeature oldFeature = flist.getRowsSchema()
-        .setFeature(modelRowIndex, raw, modularFeature);
-    modularFeature.setRow(this);
-
-    if (!Objects.equals(oldFeature, modularFeature)) {
+    if (!Objects.equals(oldFeature, feature)) {
       // reflect changes by updating all row bindings
-      getFeatureList().fireFeatureChangedEvent(this, modularFeature, raw, updateByRowBindings);
+      getFeatureList().fireFeatureChangedEvent(this, feature, raw, updateByRowBindings);
     }
   }
 
@@ -237,8 +240,17 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
   }
 
   @Override
-  public void removeFeature(RawDataFile file) {
-    addFeature(file, null);
+  public void removeFeature(RawDataFile file, boolean updateByRowBindings) {
+    addFeature(file, null, updateByRowBindings);
+  }
+
+  @Override
+  public void clearFeatures(final boolean updateByRowBindings) {
+    final boolean changed = flist.getRowsSchema().clearFeatures(modelRowIndex);
+    if (changed) {
+      // reflect changes by updating all row bindings
+      getFeatureList().fireFeatureChangedEvent(this, null, null, updateByRowBindings);
+    }
   }
 
   @Override
@@ -290,7 +302,6 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
   }
 
   /**
-   *
    * @return unmodifiable list of all raw data files - even if there is no feature
    */
   @Override
@@ -630,7 +641,7 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
   @Override
   public IsotopePattern getBestIsotopePattern() {
     return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight))
         .map(ModularFeature::getIsotopePattern).orElse(null);
   }
