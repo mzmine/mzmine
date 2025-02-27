@@ -28,10 +28,10 @@
           "name": "global-events-1.0.0.jar",
           "url": "global-events-1.0.0.jar",
           "size": 7286,
-          "sha512": "96cb36ba2bcbd8cdd77781f5ea0f14e6d6db28ecbcc7b378190e21b925f4adddd4f53cd208570b824d2823d863d3f2462fe0cfd70331a6c96e28c092cdbe20af",
-          "sha256": "8a412eb2eb0637be37303f42a7cfc77ad7329f13a5c897f3f130edcbc52e3294",
-          "sha1": "7fd1bc1c4aad81fc7d1c51278c9308730c3e4e28",
-          "md5": "e1c32c9123edbd846c7a3834e0b8ab3f"
+          "sha512": "ef2f09433bccf1d501a6bb3ca8abee133a566623d5251d5189b19012c936bff3ee82bc9fd3c507abbd6d1d773c1fc0e3cea19ed07b3505df92190163bfc1212b",
+          "sha256": "74fefbfc132f1f42ce3dbe64d296d9bacc6b1b764ccdbe44a63cdb2d96cfc418",
+          "sha1": "b172aad87d983d1eaf2f6c5990a32a47637768c2",
+          "md5": "25746c9c23dd8cc0d6d3b3ee028db3de"
         }
       ]
     },
@@ -58,10 +58,10 @@
           "name": "global-events-1.0.0.jar",
           "url": "global-events-1.0.0.jar",
           "size": 7286,
-          "sha512": "96cb36ba2bcbd8cdd77781f5ea0f14e6d6db28ecbcc7b378190e21b925f4adddd4f53cd208570b824d2823d863d3f2462fe0cfd70331a6c96e28c092cdbe20af",
-          "sha256": "8a412eb2eb0637be37303f42a7cfc77ad7329f13a5c897f3f130edcbc52e3294",
-          "sha1": "7fd1bc1c4aad81fc7d1c51278c9308730c3e4e28",
-          "md5": "e1c32c9123edbd846c7a3834e0b8ab3f"
+          "sha512": "ef2f09433bccf1d501a6bb3ca8abee133a566623d5251d5189b19012c936bff3ee82bc9fd3c507abbd6d1d773c1fc0e3cea19ed07b3505df92190163bfc1212b",
+          "sha256": "74fefbfc132f1f42ce3dbe64d296d9bacc6b1b764ccdbe44a63cdb2d96cfc418",
+          "sha1": "b172aad87d983d1eaf2f6c5990a32a47637768c2",
+          "md5": "25746c9c23dd8cc0d6d3b3ee028db3de"
         }
       ]
     }
