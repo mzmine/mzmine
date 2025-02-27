@@ -24,6 +24,8 @@
 
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
+import io.github.mzmine.datamodel.features.columnar_data.ModularDataModelColumnarRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import java.util.AbstractMap.SimpleEntry;
@@ -38,6 +40,13 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * First iteration of new data model that is based on rows with an array of objects.
+ * <p>
+ * Next try is to use a columnar model so that all values of the same type can be stored more
+ * efficiently. {@link ModularDataModelColumnarRow} in {@link ColumnarModularDataModelSchema}
+ */
+@Deprecated
 public class ModularDataModelArray implements ModularDataModel/*, Map<DataType, Object>*/ {
 
   protected final ModularDataModelSchema schema;

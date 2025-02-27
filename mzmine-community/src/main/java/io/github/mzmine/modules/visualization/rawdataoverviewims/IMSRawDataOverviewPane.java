@@ -582,10 +582,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   protected void updateTicPlot() {
     ticChart.removeAllDataSets();
     mzRangeTicDatasetIndices.clear();
-    final double selectedRt =
-        selectedFrame.get() != null ? selectedFrame.get().getRetentionTime() : rtWidth / 2;
-    final ScanSelection scanSel = new ScanSelection(msLevelFilter).cloneWithNewRtRange(
-        RangeUtils.rangeAround(selectedRt, rtWidth));
+    final ScanSelection scanSel = new ScanSelection(msLevelFilter);
     Thread thread = new Thread(
         new BuildMultipleTICRanges(controlsPanel.getMobilogramRangesList(), rawDataFile, scanSel,
             this));
@@ -593,15 +590,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     TICDataSet dataSet = new TICDataSet(rawDataFile,
         new ScanSelection(msLevelFilter).getMatchingScans(rawDataFile),
         rawDataFile.getDataMZRange(), null);
-    ticChart.addTICDataSet(dataSet, rawDataFile.getColorAWT());
-    ticChart.getXYPlot().getDomainAxis().setRange(
-        RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(rawDataFile.getDataRTRange(), 0.001f)));
-    ticChart.setTitle("BPC - " + rawDataFile.getName(), "");
-    if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(
+    if (RangeUtils.isDefaultJFreeRange(ticChart.getXYPlot().getDomainAxis().getRange())
+        || !RangeUtils.isJFreeRangeConnectedToGuavaRange(
         ticChart.getXYPlot().getDomainAxis().getRange(), rawDataFile.getDataRTRange(1))) {
-      ticChart.getXYPlot().getDomainAxis().setRange(rawDataFile.getDataRTRange().lowerEndpoint(),
-          rawDataFile.getDataRTRange().upperEndpoint());
+      ticChart.getXYPlot().getDomainAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(rawDataFile.getDataRTRange(), 0.001f)));
     }
+    // add tic dataset after setting the range, so autoscale on the y axis uses the correct range.
+    ticChart.addTICDataSet(dataSet, rawDataFile.getColorAWT());
   }
 
   public void addRanges(List<Range<Double>> ranges) {
@@ -652,6 +648,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     selectedBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
     updateTicPlot();
     updateAxisLabels();
+    ionTraceChart.removeAllDatasets();
     setSelectedFrame(((IMSRawDataFile) rawDataFile).getFrames().stream().findFirst().get());
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,8 +39,8 @@ class CsvWriterTest {
   @Test
   void writeToString() throws JsonProcessingException {
     List<StepTimeMeasurement> steps = List.of( //
-        new StepTimeMeasurement(0, "test", Duration.ofSeconds(5)), //
-        new StepTimeMeasurement(1, "test2", Duration.ofSeconds(2)) //
+        new StepTimeMeasurement(0, "test", Duration.ofSeconds(5), false), //
+        new StepTimeMeasurement(1, "test2", Duration.ofSeconds(2), false) //
     );
     String csv = CsvWriter.writeToString(steps, StepTimeMeasurement.class, '\t', true);
     Assertions.assertNotNull(csv);

@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.ThermoImportOptions;
@@ -36,7 +37,6 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImp
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
-import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
@@ -49,9 +49,9 @@ import org.jetbrains.annotations.Nullable;
  * Handles if thermo files are imported via msconvert or the raw file parser. launches the correct
  * task.
  */
-public class ThermoImportTaskDelegator extends AbstractSimpleTask {
+public class ThermoImportTaskDelegator extends AbstractSimpleTask implements RawDataImportTask {
 
-  private AbstractTask actualTask;
+  private RawDataImportTask actualTask;
 
   public ThermoImportTaskDelegator(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, File file, ScanImportProcessorConfig processorConfig,
@@ -102,5 +102,10 @@ public class ThermoImportTaskDelegator extends AbstractSimpleTask {
   @Override
   public double getFinishedPercentage() {
     return actualTask.getFinishedPercentage();
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return actualTask.getImportedRawDataFile();
   }
 }

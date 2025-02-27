@@ -27,6 +27,8 @@ package io.github.mzmine.datamodel.features;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
+import io.github.mzmine.datamodel.features.columnar_data.ModularDataModelColumnarRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import java.util.List;
@@ -39,6 +41,9 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * TODO try to replace this with {@link ColumnarModularDataModelSchema} where possible and then {@link ModularDataModelColumnarRow}
+ */
 public abstract class ModularDataModelMap implements ModularDataModel {
 
   public static final Logger logger = Logger.getLogger(ModularDataModelMap.class.getName());

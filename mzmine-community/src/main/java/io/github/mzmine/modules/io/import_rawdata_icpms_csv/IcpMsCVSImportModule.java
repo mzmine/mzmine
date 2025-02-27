@@ -25,27 +25,19 @@
 
 package io.github.mzmine.modules.io.import_rawdata_icpms_csv;
 
-import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.RawDataFileType;
-import io.github.mzmine.util.RawDataFileTypeDetector;
-import io.github.mzmine.util.RawDataFileUtils;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -90,48 +82,20 @@ public class IcpMsCVSImportModule implements MZmineProcessingModule {
       return ExitCode.ERROR;
     }
 
-    // Find common prefix in raw file names if in GUI mode
-    String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
-
     // one storage for all files imported in the same task as they are typically analyzed together
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     for (int i = 0; i < fileNames.length; i++) {
-
       if ((!fileNames[i].exists()) || (!fileNames[i].canRead())) {
-        MZmineCore.getDesktop().displayErrorMessage("Cannot read file " + fileNames[i]);
-        logger.warning("Cannot read file " + fileNames[i]);
+        DialogLoggerUtil.showErrorDialog("Error", "Cannot read file " + fileNames[i]);
         return ExitCode.ERROR;
       }
 
-      // Set the new name by removing the common prefix
-      String newName;
-      if (!Strings.isNullOrEmpty(commonPrefix)) {
-        final String regex = "^" + Pattern.quote(commonPrefix);
-        newName = fileNames[i].getName().replaceFirst(regex, "");
-      } else {
-        newName = fileNames[i].getName();
-      }
-
-      RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileNames[i]);
-      logger.finest("File " + fileNames[i] + " type detected as " + fileType);
-
-      try {
-        RawDataFile newMZmineFile = MZmineCore
-            .createNewFile(newName, fileNames[i].getAbsolutePath(), storage);
-        Task newTask = new IcpMsCVSImportTask(project, fileNames[i], newMZmineFile,
-            IcpMsCVSImportModule.class, parameters, moduleCallDate);
-        tasks.add(newTask);
-      } catch (IOException e) {
-        e.printStackTrace();
-        MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e);
-        logger.log(Level.SEVERE, "Could not create a new temporary file ", e);
-        return ExitCode.ERROR;
-      }
-
+      Task newTask = new IcpMsCVSImportTask(project, fileNames[i], IcpMsCVSImportModule.class,
+          parameters, moduleCallDate, storage);
+      tasks.add(newTask);
     }
 
     return ExitCode.OK;
   }
-
 }

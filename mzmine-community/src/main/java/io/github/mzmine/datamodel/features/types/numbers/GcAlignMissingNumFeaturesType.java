@@ -23,51 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import java.util.Map;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * This FeaturesType contains features for each RawDataFile. Sub columns for samples and charts are
- * created.
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
- */
-public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
-    implements NoTextColumn {
+public class GcAlignMissingNumFeaturesType extends IntegerType {
 
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "features_map";
-  }
-
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "Features";
+    return "gc_align_missing_num_features";
   }
 
   @Override
-  public Property<Map<RawDataFile, ModularFeature>> createProperty() {
-    return new SimpleObjectProperty<>();
+  public @NotNull String getHeaderString() {
+    return "GC missing features (align)";
   }
 
-  @Override
-  public Class<Map<RawDataFile, ModularFeature>> getValueClass() {
-    return (Class) Map.class;
-  }
-
-  @Override
-  public boolean getDefaultVisibility() {
-    return true;
-  }
 }

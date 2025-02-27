@@ -34,6 +34,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.javafx.mvci.FxUpdateTask;
+import io.github.mzmine.javafx.mvci.LatestTaskScheduler;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -41,6 +43,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -113,18 +116,19 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       final Feature[] selectionPeaks, final Map<Feature, String> peakLabels,
       final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
 
-    TICVisualizerTab window = new TICVisualizerTab(dataFiles, plotType, scanSelection,
-        mzRange, Arrays.asList(selectionPeaks), peakLabels);
-    MZmineCore.getDesktop().addTab(window);
+    // this method is the quick visualization in table
+    // maximum samples to show as line. greater than that will be displayed only as feature shape
+    final int ticMaxSamples = 50; // don't show lines for so many samples
+    createTICPlotInTask(dataFiles, plotType, scanSelection, mzRange,
+        Arrays.asList(selectionPeaks), peakLabels, ticMaxSamples);
   }
 
   public static void showNewTICVisualizerWindow(final RawDataFile[] dataFiles,
       final List<Feature> selectionPeaks, final Map<Feature, String> peakLabels,
       final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
 
-    TICVisualizerTab window = new TICVisualizerTab(dataFiles, plotType, scanSelection,
-        mzRange, selectionPeaks, peakLabels);
-    MZmineCore.getDesktop().addTab(window);
+    createTICPlotInTask(dataFiles, plotType, scanSelection, mzRange,
+        selectionPeaks, peakLabels, null);
   }
 
   public static void visualizeFeatureListRows(Collection<ModularFeatureListRow> rows) {
@@ -246,6 +250,8 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     final List<Feature> selectionPeaks =
         parameters.getParameter(TICVisualizerParameters.PEAKS).getValue();
 
+    final Integer ticMaxSamples = parameters.getOptionalValue(
+        TICVisualizerParameters.ticMaxSamples).orElse(null);
     // Add the window to the desktop only if we actually have any raw
     // data to show.
     boolean weHaveData = false;
@@ -257,9 +263,8 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     }
 
     if (weHaveData) {
-      TICVisualizerTab window = new TICVisualizerTab(dataFiles, plotType, scanSelection,
-          mzRange, selectionPeaks, ((TICVisualizerParameters) parameters).getPeakLabelMap());
-      MZmineCore.getDesktop().addTab(window);
+      createTICPlotInTask(dataFiles, plotType, scanSelection, mzRange,
+          selectionPeaks, ((TICVisualizerParameters) parameters).getPeakLabelMap(), ticMaxSamples);
 
     } else {
 
@@ -267,6 +272,36 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     }
 
     return ExitCode.OK;
+  }
+
+  private static void createTICPlotInTask(final RawDataFile[] dataFiles, final TICPlotType plotType, final ScanSelection scanSelection,
+      final Range<Double> mzRange, final List<Feature> selectionPeaks,
+      final Map<Feature, String> peakLabelMap, @Nullable final Integer ticMaxSamples) {
+    final LatestTaskScheduler scheduler = new LatestTaskScheduler();
+    scheduler.onTaskThread(new FxUpdateTask<>("Creating TIC view", null) {
+      private TICVisualizerTab window;
+
+      @Override
+      protected void process() {
+        window = new TICVisualizerTab(dataFiles, plotType, scanSelection, mzRange, selectionPeaks,
+            peakLabelMap, ticMaxSamples);
+      }
+
+      @Override
+      protected void updateGuiModel() {
+        MZmineCore.getDesktop().addTab(window);
+      }
+
+      @Override
+      public String getTaskDescription() {
+        return "Creating TIC view";
+      }
+
+      @Override
+      public double getFinishedPercentage() {
+        return 0;
+      }
+    }, TaskPriority.HIGH);
   }
 
   @Override

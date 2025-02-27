@@ -25,15 +25,13 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeaturesParameter;
@@ -42,6 +40,10 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TICVisualizerParameters extends SimpleParameterSet {
 
@@ -53,20 +55,25 @@ public class TICVisualizerParameters extends SimpleParameterSet {
   /**
    * Scans (used to be RT range).
    */
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
   /**
    * Type of plot.
    */
-  public static final ComboParameter<TICPlotType> PLOT_TYPE =
-      new ComboParameter<TICPlotType>("Plot type",
-          "Type of Y value calculation (TIC = sum, base peak = max)", TICPlotType.values());
+  public static final ComboParameter<TICPlotType> PLOT_TYPE = new ComboParameter<TICPlotType>(
+      "Plot type", "Type of Y value calculation (TIC = sum, base peak = max)",
+      TICPlotType.values());
 
   /**
    * m/z range.
    */
   public static final MZRangeParameter MZ_RANGE = new MZRangeParameter();
+
+  public static final OptionalParameter<IntegerParameter> ticMaxSamples = new OptionalParameter<>(
+      new IntegerParameter("Omit EIC lines >n samples",
+          "Removes the sample traces (lines) above n samples. Then only feature shapes are drawn. Put to 0 to exclude sample lines in all cases.",
+          20, true), false);
 
   /**
    * Peaks to display.
@@ -79,15 +86,14 @@ public class TICVisualizerParameters extends SimpleParameterSet {
   /**
    * Windows size and position
    */
-  public static final WindowSettingsParameter WINDOWSETTINGSPARAMETER =
-      new WindowSettingsParameter();
+  public static final WindowSettingsParameter WINDOWSETTINGSPARAMETER = new WindowSettingsParameter();
 
   /**
    * Create the parameter set.
    */
   public TICVisualizerParameters() {
-    super(new Parameter[] {DATA_FILES, scanSelection, PLOT_TYPE, MZ_RANGE, PEAKS,
-        WINDOWSETTINGSPARAMETER},
+    super(new Parameter[]{DATA_FILES, scanSelection, PLOT_TYPE, ticMaxSamples, MZ_RANGE, PEAKS,
+            WINDOWSETTINGSPARAMETER},
         "https://mzmine.github.io/mzmine_documentation/visualization_modules/raw_data_overview/raw_data_additional.html#chromatogram-plot");
     peakLabelMap = null;
   }
@@ -115,9 +121,9 @@ public class TICVisualizerParameters extends SimpleParameterSet {
   /**
    * Show the setup dialog.
    *
-   * @param allFiles files to choose from.
+   * @param allFiles      files to choose from.
    * @param selectedFiles default file selections.
-   * @param allPeaks peaks to choose from.
+   * @param allPeaks      peaks to choose from.
    * @param selectedPeaks default peak selections.
    * @return an ExitCode indicating the user's action.
    */

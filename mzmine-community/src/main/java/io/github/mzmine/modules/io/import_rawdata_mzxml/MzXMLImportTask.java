@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
@@ -38,6 +39,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CompressionUtils;
@@ -69,7 +71,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  *
  */
-public class MzXMLImportTask extends AbstractTask {
+public class MzXMLImportTask extends AbstractTask implements RawDataImportTask {
 
   private final ScanImportProcessorConfig scanProcessorConfig;
   private final ParameterSet parameters;
@@ -109,7 +111,7 @@ public class MzXMLImportTask extends AbstractTask {
   private SimpleScan lastScan;
 
 
-  public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+  public MzXMLImportTask(MZmineProject project, File fileToOpen,
       @NotNull ScanImportProcessorConfig scanProcessorConfig,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate, final @Nullable MemoryMapStorage storage) {
@@ -121,7 +123,8 @@ public class MzXMLImportTask extends AbstractTask {
     charBuffer = new StringBuilder(1 << 18);
     this.project = project;
     this.file = fileToOpen;
-    this.newMZmineFile = newMZmineFile;
+    this.newMZmineFile = new RawDataFileImpl(file.getName(), file.getAbsolutePath(),
+        getMemoryMapStorage());
   }
 
   @Override
@@ -206,6 +209,11 @@ public class MzXMLImportTask extends AbstractTask {
 
     // after peaks the scan is done - add to stack and wait for last scan to be closed before adding to file
     parentStack.add(lastScan);
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
   }
 
   private class MzXMLHandler extends DefaultHandler {

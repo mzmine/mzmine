@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.export_features_mgf;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
@@ -168,7 +169,7 @@ public class AdapMgfExportTask extends AbstractTask {
 
   private void exportFeatureList(FeatureList featureList, FileWriter writer) throws IOException {
     for (FeatureListRow row : featureList.getRows()) {
-      IsotopePattern ip = row.getBestIsotopePattern();
+      Scan ip = row.getMostIntenseFragmentScan();
       if (ip == null) {
         continue;
       }
@@ -179,7 +180,7 @@ public class AdapMgfExportTask extends AbstractTask {
     }
   }
 
-  private void exportRow(FileWriter writer, FeatureListRow row, IsotopePattern ip)
+  private void exportRow(FileWriter writer, FeatureListRow row, Scan ip)
       throws IOException {
     // data points of this cluster
     DataPoint dataPoints[] = ScanUtils.extractDataPoints(ip);
@@ -199,6 +200,8 @@ public class AdapMgfExportTask extends AbstractTask {
     // needs to be MSLEVEL=2 for GC-GNPS (even for GC-EI-MS data)
     writer.write("MSLEVEL=2" + newLine);
     writer.write("CHARGE=1+" + newLine);
+    writer.write("Num peaks="+ dataPoints.length + newLine);
+
 
     for (DataPoint point : dataPoints) {
       String line = formatMZ(point.getMZ()) + " " + intensityForm.format(point.getIntensity());

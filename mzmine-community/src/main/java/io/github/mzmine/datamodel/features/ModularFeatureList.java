@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -54,6 +56,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
@@ -82,6 +85,7 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("rawtypes")
 public class ModularFeatureList implements FeatureList {
 
+  public static final int DEFAULT_ESTIMATED_ROWS = 5000;
   public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
   private static final Logger logger = Logger.getLogger(ModularFeatureList.class.getName());
   /**
@@ -94,13 +98,12 @@ public class ModularFeatureList implements FeatureList {
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
-  private final @NotNull ModularDataModelSchema rowsSchema = new ModularDataModelSchema(
-      () -> stream().map(ModularFeatureListRow.class::cast), "Rows", 24);
-  private final @NotNull ModularDataModelSchema featuresSchema = new ModularDataModelSchema(
-      this::streamFeatures, "Features", 20);
+  private final @NotNull ColumnarModularFeatureListRowsSchema rowsSchema;
+  private final @NotNull ColumnarModularDataModelSchema featuresSchema;
 
   // unmodifiable list
-  private final ObservableList<RawDataFile> dataFiles;
+  private final List<RawDataFile> dataFiles;
+  private final List<RawDataFile> readOnlyRawDataFiles; // keep one copy in case it is used somewhere
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
 
   private NodeGenerationThread nodeThread;
@@ -137,12 +140,33 @@ public class ModularFeatureList implements FeatureList {
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull List<RawDataFile> dataFiles) {
+    this(name, storage, DEFAULT_ESTIMATED_ROWS,
+        FeatureListUtils.estimateFeatures(DEFAULT_ESTIMATED_ROWS, dataFiles.size()), dataFiles);
+  }
+
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, int estimatedRows,
+      int estimatedFeatures, @NotNull RawDataFile... dataFiles) {
+    this(name, storage, estimatedRows, estimatedFeatures, List.of(dataFiles));
+  }
+
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, int estimatedRows,
+      int estimatedFeatures, @NotNull List<RawDataFile> dataFiles) {
     setName(name);
+
+    logger.fine(
+        "Creating new feature list %s with %d raw files with estimated rows : features : %d : %d".formatted(
+            name, dataFiles.size(), estimatedRows, estimatedFeatures));
+
+    //
+    rowsSchema = new ColumnarModularFeatureListRowsSchema(storage, "Rows", estimatedRows,
+        dataFiles);
+    featuresSchema = new ColumnarModularDataModelSchema(storage, "Features", estimatedFeatures);
     // sort data files by name to have the same order in export and GUI FeatureTableFx
     dataFiles = new ArrayList<>(dataFiles);
     dataFiles.sort(Comparator.comparing(RawDataFile::getName));
     ((ArrayList) dataFiles).trimToSize();
-    this.dataFiles = FXCollections.observableList(dataFiles);
+    this.dataFiles = dataFiles;
+    this.readOnlyRawDataFiles = Collections.unmodifiableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
@@ -166,16 +190,18 @@ public class ModularFeatureList implements FeatureList {
       for (DataType dataType : added) {
         addRowBinding(dataType.createDefaultRowBindings());
       }
-      for (DataType dt : removed) {
-        parallelStreamFeatures().forEach(feature -> feature.remove(dt));
-      }
+      // TODO no need to remove from each feature as this is already removed from the schema itself
+//      for (DataType dt : removed) {
+//        parallelStreamFeatures().forEach(feature -> feature.remove(dt));
+//      }
     });
 
-    rowsSchema.addDataTypesChangeListener((_, removed) -> {
-      for (@NotNull DataType dataType : removed) {
-        parallelStream().forEach(row -> row.remove(dataType));
-      }
-    });
+    // not needed
+//    rowsSchema.addDataTypesChangeListener((_, removed) -> {
+//      for (@NotNull DataType dataType : removed) {
+//        parallelStream().forEach(row -> row.remove(dataType));
+//      }
+//    });
   }
 
   @Override
@@ -356,7 +382,7 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public Set<DataType> getFeatureTypes() {
-    return getFeaturesSchema().getReadOnlyTypes().keySet();
+    return getFeaturesSchema().getTypes();
   }
 
   @Override
@@ -386,7 +412,7 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public Set<DataType> getRowTypes() {
-    return getRowsSchema().getReadOnlyTypes().keySet();
+    return getRowsSchema().getTypes();
   }
 
 
@@ -401,11 +427,11 @@ public class ModularFeatureList implements FeatureList {
   /**
    * Returns all raw data files participating in the alignment
    *
-   * @return the raw data files for this list
+   * @return an unmodifiable list raw data files for this list
    */
   @Override
-  public ObservableList<RawDataFile> getRawDataFiles() {
-    return dataFiles;
+  public List<RawDataFile> getRawDataFiles() {
+    return readOnlyRawDataFiles;
   }
 
   @Override
@@ -522,7 +548,7 @@ public class ModularFeatureList implements FeatureList {
           "Can not add non-modular feature list row to modular feature list");
     }
 
-    ObservableList<RawDataFile> myFiles = this.getRawDataFiles();
+    List<RawDataFile> myFiles = this.getRawDataFiles();
     for (RawDataFile testFile : modularRow.getRawDataFiles()) {
       if (!myFiles.contains(testFile)) {
         throw (new IllegalArgumentException(
@@ -577,6 +603,7 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(FeatureListRow row) {
+    // TODO remove from schema rows and features
     featureListRows.remove(row);
   }
 
@@ -585,12 +612,14 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(int rowNum) {
+    // TODO remove from schema rows and features
     removeRow(featureListRows.remove(rowNum));
   }
 
   @Override
-  public void removeRows(final Set<FeatureListRow> rowsToRemove) {
-    featureListRows.removeIf(rowsToRemove::contains);
+  public void removeRows(final Collection<FeatureListRow> rowsToRemove) {
+    // TODO remove from schema rows and features
+    featureListRows.removeAll(rowsToRemove);
   }
 
   @Override
@@ -775,7 +804,8 @@ public class ModularFeatureList implements FeatureList {
    */
   public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage,
       List<RawDataFile> dataFiles, boolean renumberIDs) {
-    return FeatureListUtils.createCopy(this, title, null, storage, true, dataFiles, renumberIDs);
+    return FeatureListUtils.createCopy(this, title, null, storage, true, dataFiles, renumberIDs,
+        null, null);
   }
 
   @Nullable
@@ -880,11 +910,11 @@ public class ModularFeatureList implements FeatureList {
     bufferedCharts.clear();
   }
 
-  public @NotNull ModularDataModelSchema getFeaturesSchema() {
+  public @NotNull ColumnarModularDataModelSchema getFeaturesSchema() {
     return featuresSchema;
   }
 
-  public @NotNull ModularDataModelSchema getRowsSchema() {
+  public @NotNull ColumnarModularFeatureListRowsSchema getRowsSchema() {
     return rowsSchema;
   }
 }

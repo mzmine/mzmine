@@ -37,10 +37,10 @@ import io.github.mzmine.datamodel.features.types.AreaBarType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
@@ -68,6 +68,11 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.SizeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
@@ -504,7 +509,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     }
 
     // useful for debugging and seeing how many cells are empty / full
-    // logTableFillingRatios(flist);
+    logTableFillingRatios(flist);
 
     //    logger.info("Adding columns to table");
     // for all data columns available in "data"
@@ -524,8 +529,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     rowCol.setGraphic(headerLabel);
 
     // add row types
-    featureList.getRowTypes().stream().filter(t -> !(t instanceof FeaturesType))
-        .forEach(dataType -> addColumn(rowCol, dataType));
+    featureList.getRowTypes().forEach(dataType -> addColumn(rowCol, dataType));
 
     sortColumn(rowCol);
 
@@ -533,10 +537,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     this.getColumns().add(rowCol);
 
     // add features
-    if (featureList.hasRowType(FeaturesType.class)) {
-      addColumn(rowCol, DataTypes.get(FeaturesType.class));
-    }
-
+    addFeaturesColumns();
   }
 
   private static void logTableFillingRatios(final FeatureList flist) {
@@ -550,9 +551,34 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     long totalFeatureCells = (long) flist.getFeatureTypes().size() * flist.streamFeatures().count();
 
     logger.fine("""
+        Types:
+        Row types: %s
+        Feature types: %s
+        Rows: %d
         Fill stats:
         Row cells (%d types): %d / %d (%.1f)
         Feature cells (%d types): %d / %d (%.1f)""".formatted( //
+        flist.getRowTypes().stream() //
+            .filter(t -> {
+              return switch (t) {
+                case IntegerType _, DoubleType _, FloatType _, FloatRangeType _, DoubleRangeType _,
+                     AlignmentMainType _ -> false;
+                default -> true;
+              };
+            })//
+            .map(t -> "%s (%s)".formatted(t.getUniqueID(), t.getClass().getSimpleName()))
+            .collect(Collectors.joining(", ")),//
+        flist.getFeatureTypes().stream()//
+            .filter(t -> {
+              return switch (t) {
+                case IntegerType _, DoubleType _, FloatType _, FloatRangeType _, DoubleRangeType _,
+                     AlignmentMainType _, DetectionType _ -> false;
+                default -> true;
+              };
+            })//
+            .map(t -> "%s (%s)".formatted(t.getUniqueID(), t.getClass().getSimpleName()))
+            .collect(Collectors.joining(", ")),//
+        flist.getNumberOfRows(), //
         flist.getRowTypes().size(), rowValues, totalRowCells,
         (rowValues / (double) totalRowCells) * 100, //
         flist.getFeatureTypes().size(), featureValues, totalFeatureCells,
@@ -585,30 +611,26 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     }
 
     // Is feature type?
-    if (dataType.getClass().equals(FeaturesType.class)) {
-      addFeaturesColumns();
-    } else {
-      var col = dataType.createColumn(null, null);
-      if (col == null) {
-        return;
-      }
+    var col = dataType.createColumn(null, null);
+    if (col == null) {
+      return;
+    }
 
-      if (dataType instanceof ExpandableType) {
-        setupExpandableColumn(dataType, col, ColumnType.ROW_TYPE, null);
-      }
+    if (dataType instanceof ExpandableType) {
+      setupExpandableColumn(dataType, col, ColumnType.ROW_TYPE, null);
+    }
 
-      // Add row column
-      rowCol.getColumns().add(col);
+    // Add row column
+    rowCol.getColumns().add(col);
 
-      registerColumn(col, ColumnType.ROW_TYPE, dataType, null);
-      if (!(dataType instanceof ExpandableType)) {
-        // Hide area bars and area share columns, if there is only one raw data file in the feature list
-        if ((dataType instanceof AreaBarType || dataType instanceof AreaShareType)
-            && getFeatureList().getNumberOfRawDataFiles() == 1) {
-          col.setVisible(false);
-        } else {
-          recursivelyApplyVisibilityParameterToColumn(col);
-        }
+    registerColumn(col, ColumnType.ROW_TYPE, dataType, null);
+    if (!(dataType instanceof ExpandableType)) {
+      // Hide area bars and area share columns, if there is only one raw data file in the feature list
+      if ((dataType instanceof AreaBarType || dataType instanceof AreaShareType)
+          && getFeatureList().getNumberOfRawDataFiles() == 1) {
+        col.setVisible(false);
+      } else {
+        recursivelyApplyVisibilityParameterToColumn(col);
       }
     }
   }
@@ -770,6 +792,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       return;
     }
 
+    List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
     // Add feature columns for each raw file
     for (RawDataFile dataFile : getFeatureList().getRawDataFiles()) {
       TreeTableColumn<ModularFeatureListRow, String> sampleCol = new TreeTableColumn<>();
@@ -807,8 +830,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       // Add sample column
       // NOTE: sample column is not added to the columnMap
       sortColumn(sampleCol);
-      this.getColumns().add(sampleCol);
+      rawColumns.add(sampleCol);
     }
+    // bulk add columns
+    this.getColumns().addAll(rawColumns);
   }
 
   private void initHandleDoubleClicks() {
@@ -1077,7 +1102,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     boolean smallDataset = flist.getNumberOfRawDataFiles() <= getMaximumSamplesForVisibleShapes();
     setVisible(ColumnType.ROW_TYPE, FeatureShapeType.class, null, smallDataset);
     setVisible(ColumnType.ROW_TYPE, FeatureShapeMobilogramType.class, null, smallDataset);
-    setVisible(ColumnType.ROW_TYPE, FeaturesType.class, null, true);
+//    setVisible(ColumnType.ROW_TYPE, FeaturesType.class, null, true);
 
     applyVisibilityParametersToAllColumns();
   }

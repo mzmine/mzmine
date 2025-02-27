@@ -77,7 +77,7 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
   @Override
   public String getTaskDescription() {
     if (libraryEntries == 0) {
-      return "Identify possible precursor m/z in %d feature lists";
+      return "Identify possible precursor m/z in %d feature lists".formatted(featureLists.size());
     }
 
     return "Identify possible precursor m/z in %d feature lists using %d spectral library entries".formatted(
