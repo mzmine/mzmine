@@ -66,15 +66,18 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.RIRecord;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.io.JsonUtils;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,7 +109,7 @@ public enum DBEntryField {
   FEATURELIST_NAME_FEATURE_ID,
 
   // spectrum specific
-  MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
+  MS_LEVEL, RT(Float.class), RETENTION_INDEX(RIRecord.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
       Integer.class), // height of feature
   FEATURE_MS1_HEIGHT(Float.class), FEATURE_MS1_REL_HEIGHT(Float.class),
 
@@ -155,7 +158,7 @@ public enum DBEntryField {
   public static final DBEntryField[] DATABASE_FIELDS = new DBEntryField[]{USI, PUBMED, PUBCHEM,
       MONA_ID, CHEMSPIDER, CAS};
   public static final DBEntryField[] COMPOUND_FIELDS = new DBEntryField[]{NAME, SYNONYMS, FORMULA,
-      MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, CCS, POLARITY, INCHI, INCHIKEY,
+      MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, RETENTION_INDEX, CCS, POLARITY, INCHI, INCHIKEY,
       SMILES, NUM_PEAKS, FEATURE_ID};
   public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[]{INSTRUMENT_TYPE,
       INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, MERGED_SPEC_TYPE, ACQUISITION,
@@ -304,7 +307,7 @@ public enum DBEntryField {
            SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N,
            OTHER_MATCHED_COMPOUNDS_NAMES, //
            MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
-           MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURELIST_NAME_FEATURE_ID -> StringType.class;
+           MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURELIST_NAME_FEATURE_ID, RETENTION_INDEX -> StringType.class;
       case MERGED_N_SAMPLES -> TotalSamplesType.class;
       case CLASSYFIRE_SUPERCLASS -> ClassyFireSuperclassType.class;
       case CLASSYFIRE_CLASS -> ClassyFireClassType.class;
@@ -348,8 +351,7 @@ public enum DBEntryField {
   public String getMZmineJsonID() {
     return switch (this) {
       case CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
-           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY ->
-          name().toLowerCase();
+           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY -> name().toLowerCase();
       case SCAN_NUMBER -> "scan_number";
       case FEATURE_MS1_HEIGHT -> "feature_ms1_height";
       case FEATURE_MS1_REL_HEIGHT -> "feature_ms1_relative_height";
@@ -380,6 +382,7 @@ public enum DBEntryField {
       case PRINCIPAL_INVESTIGATOR -> "investigator";
       case PUBMED -> "pubmed";
       case RT -> "rt";
+      case RETENTION_INDEX -> "ri";
       case SMILES -> "smiles";
       case MS_LEVEL -> "ms_level";
       case PUBCHEM -> "pubchem";
@@ -426,8 +429,7 @@ public enum DBEntryField {
       case CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, ACQUISITION, GNPS_ID,
            MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, MOLWEIGHT, PUBCHEM, PUBMED,
-           PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR, SOURCE_SCAN_USI ->
-          this.name().toLowerCase();
+           PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR, SOURCE_SCAN_USI -> this.name().toLowerCase();
       case SCAN_NUMBER -> "scan_number";
       case MERGED_SPEC_TYPE -> "merge_type";
       case MERGED_N_SAMPLES -> "merged_across_n_samples";
@@ -449,6 +451,7 @@ public enum DBEntryField {
       case NAME -> "Name";
       case SPLASH -> "Splash";
       case RT -> "RT";
+      case RETENTION_INDEX -> "Retention_index";
       case MS_LEVEL -> "Spectrum_type";
       case NUM_PEAKS -> "Num Peaks";
       case CCS -> "CCS";
@@ -489,9 +492,9 @@ public enum DBEntryField {
       case ACQUISITION, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, GNPS_ID, MONA_ID, CHEMSPIDER,
            PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY,
            CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
-           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI ->
-          name();
+           NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI -> name();
       case RT -> "RTINSECONDS";
+      case RETENTION_INDEX -> "";
       case SCAN_NUMBER -> "SCANS";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
       case MERGED_N_SAMPLES -> "MERGED_ACROSS_N_SAMPLES";
@@ -577,6 +580,7 @@ public enum DBEntryField {
       //not covered
       case INSTRUMENT -> "INSTRUMENT_NAME";
       case RT -> "RTINSECONDS";
+      case RETENTION_INDEX -> "";
       case ENTRY_ID -> "SPECTRUMID";
       case COMMENT -> "COMMENT";
       case DESCRIPTION -> "DESCRIPTION";
@@ -647,6 +651,7 @@ public enum DBEntryField {
       case PRINCIPAL_INVESTIGATOR -> "";
       case PUBMED -> "";
       case RT -> "RT";
+      case RETENTION_INDEX -> "";
       case SMILES -> "";
       case MS_LEVEL -> "";
       case PUBCHEM -> "";
@@ -722,6 +727,10 @@ public enum DBEntryField {
       final float[] floats = ParsingUtils.stringToFloatArray(replaced, ",");
       return new FloatArrayList(floats);
     }
+
+    if (getObjectClass().equals(RIRecord.class)) {
+      return new RIRecord(content);
+    }
     // TODO currently we can only parse this as list of strings - should be either json list or java object list
     // FloatArrayList IntArrayList and other specialized classes help to load numbers
     else if (getObjectClass().equals(List.class) && content != null) {
@@ -771,6 +780,9 @@ public enum DBEntryField {
         case Double d -> "%.2f".formatted(d * 60.0);
         default -> throw new IllegalArgumentException("RT has to be a number");
       };
+      case RETENTION_INDEX -> {
+        throw new IllegalArgumentException("Retention index is not supported for MGF format");
+      }
       case PRECURSOR_MZ, EXACT_MASS -> switch (value) {
         case Number d -> MZmineCore.getConfiguration().getExportFormats().mz(d);
         default -> throw new IllegalArgumentException("MZ has to be a number");
