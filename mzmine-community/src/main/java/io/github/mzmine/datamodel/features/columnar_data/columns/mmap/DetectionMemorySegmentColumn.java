@@ -23,44 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.arrays;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
-import io.github.mzmine.datamodel.features.columnar_data.AbstractDataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.NullableFloatDataColumn;
-import java.util.Arrays;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 
-public class NullableFloatArrayColumn extends AbstractDataColumn<Float> implements
-    NullableFloatDataColumn {
+public class DetectionMemorySegmentColumn extends AbstractEnumMemorySegmentColumn<FeatureStatus> {
 
-  public float[] data;
-
-  public NullableFloatArrayColumn(int initialSize) {
-    data = new float[initialSize];
-    Arrays.fill(data, Float.NaN);
+  public DetectionMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+    super(storage, initialCapacity);
   }
 
   @Override
-  public float getFloat(final int index) {
-    return data[index];
-  }
-
-  @Override
-  public float setFloat(final int index, final float value) {
-    float oldValue = data[index];
-    data[index] = value;
-    return oldValue;
-  }
-
-  @Override
-  protected boolean resizeTo(final int finalSize) {
-    var oldSize = data.length;
-    data = Arrays.copyOf(data, finalSize);
-    Arrays.fill(data, oldSize - 1, finalSize, Float.NaN);
-    return true;
-  }
-
-  @Override
-  public int capacity() {
-    return data == null ? 0 : data.length;
+  public FeatureStatus[] values() {
+    return FeatureStatus.values();
   }
 }

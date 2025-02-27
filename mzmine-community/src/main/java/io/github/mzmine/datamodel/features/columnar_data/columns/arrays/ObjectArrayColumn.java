@@ -23,37 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.mmap;
+package io.github.mzmine.datamodel.features.columnar_data.columns.arrays;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
+import io.github.mzmine.datamodel.features.columnar_data.columns.AbstractDataColumn;
+import java.util.Arrays;
 
-public abstract class AbstractEnumMemorySegmentColumn<T extends Enum> extends
-    AbstractMemorySegmentColumn<T> {
+public class ObjectArrayColumn<T> extends AbstractDataColumn<T> {
 
-  public AbstractEnumMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
-    super(storage, initialCapacity);
-  }
+  public Object[] data;
 
-  @Override
-  protected ValueLayout getValueLayout() {
-    return ValueLayout.JAVA_INT;
+  public ObjectArrayColumn(final int columnLength) {
+    data = new Object[columnLength];
   }
 
   @Override
   public T get(final int index) {
-    int value = data.getAtIndex(ValueLayout.JAVA_INT, index);
-    if (value < 0) {
-      return null;
-    }
-    return values()[value];
+    return (T) data[index];
   }
 
   @Override
-  public void set(final MemorySegment data, final int index, final T value) {
-    data.setAtIndex(ValueLayout.JAVA_INT, index, value == null ? -1 : value.ordinal());
+  public T set(final int index, final T value) {
+    T oldValue = get(index);
+    data[index] = value;
+    return oldValue;
   }
 
-  public abstract T[] values();
+  @Override
+  protected boolean resizeTo(final int finalSize) {
+    data = Arrays.copyOf(data, finalSize);
+    return true;
+  }
+
+  @Override
+  public int capacity() {
+    return data == null ? 0 : data.length;
+  }
 }

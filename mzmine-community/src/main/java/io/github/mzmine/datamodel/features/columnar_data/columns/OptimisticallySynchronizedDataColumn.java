@@ -1,10 +1,10 @@
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.columns;
 
 import java.util.concurrent.locks.StampedLock;
 
 public final class OptimisticallySynchronizedDataColumn<T> extends AbstractDataColumn<T> {
 
-  private final StampedLock lock = new StampedLock();
+  private final StampedLock resizeLock = new StampedLock();
   private final AbstractDataColumn<T> delegate;
 
   public OptimisticallySynchronizedDataColumn(final AbstractDataColumn<T> delegate) {
@@ -21,16 +21,17 @@ public final class OptimisticallySynchronizedDataColumn<T> extends AbstractDataC
     // actually use read lock to set values
     // write lock is only used when the backing data array is changed
     // optimistic read will fail here only if backing data array was changed for a new one
-    long stamp = lock.tryOptimisticRead();
+    long stamp = resizeLock.tryOptimisticRead();
     T old = delegate.set(index, value);
-    if (!lock.validate(stamp)) {
-      stamp = lock.readLock();
+    if (!resizeLock.validate(stamp)) {
+      // was currently resized - so wait for finish and then write the value to the new data structure
+      stamp = resizeLock.readLock();
       try {
         // do not overwrite old because the old value should already be saved there
         // the new backing data structure may be updated during the first call
         delegate.set(index, value);
       } finally {
-        lock.unlockRead(stamp);
+        resizeLock.unlockRead(stamp);
       }
     }
     return old;
@@ -48,24 +49,29 @@ public final class OptimisticallySynchronizedDataColumn<T> extends AbstractDataC
    * Resize with write lock
    */
   protected boolean resizeTo(final int finalSize) {
-    long stamp = lock.writeLock();
+    long stamp = resizeLock.writeLock();
     try {
-      return delegate.resizeTo(finalSize);
+      // check size again - might have been changed already
+      if (delegate.capacity() < finalSize) {
+        return delegate.resizeTo(finalSize);
+      } else {
+        return false;
+      }
     } finally {
-      lock.unlockWrite(stamp);
+      resizeLock.unlockWrite(stamp);
     }
   }
 
   @Override
   public int capacity() {
-    long stamp = lock.tryOptimisticRead();
+    long stamp = resizeLock.tryOptimisticRead();
     int capacity = delegate.capacity();
-    if(!lock.validate(stamp)) {
-      stamp = lock.readLock();
+    if (!resizeLock.validate(stamp)) {
+      stamp = resizeLock.readLock();
       try {
         capacity = delegate.capacity();
       } finally {
-        lock.unlockRead(stamp);
+        resizeLock.unlockRead(stamp);
       }
     }
     return capacity;

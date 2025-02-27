@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.columns;
 
 public non-sealed interface NullableDoubleDataColumn extends DataColumn<Double> {
 
@@ -37,7 +37,7 @@ public non-sealed interface NullableDoubleDataColumn extends DataColumn<Double> 
 
   @Override
   default Double set(final int index, final Double value) {
-   return setDouble(index, value == null ? Double.NaN : value);
+    return setDouble(index, value == null ? Double.NaN : value);
   }
 
   @Override

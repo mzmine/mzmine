@@ -23,42 +23,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.mmap;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
-import static java.util.Objects.requireNonNullElse;
-
-import io.github.mzmine.datamodel.features.columnar_data.NullableFloatDataColumn;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 
-public class NullableFloatMemorySegmentColumn extends AbstractMemorySegmentColumn<Float> implements
-    NullableFloatDataColumn {
+public abstract class AbstractEnumMemorySegmentColumn<T extends Enum> extends
+    AbstractMemorySegmentColumn<T> {
 
-  public NullableFloatMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+  public AbstractEnumMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
     super(storage, initialCapacity);
   }
 
   @Override
   protected ValueLayout getValueLayout() {
-    return ValueLayout.JAVA_FLOAT;
+    return ValueLayout.JAVA_INT;
   }
 
   @Override
-  protected void set(final MemorySegment data, final int index, final Float value) {
-    data.setAtIndex(ValueLayout.JAVA_FLOAT, index,  value!=null? value : Float.NaN);
+  public T get(final int index) {
+    int value = data.getAtIndex(ValueLayout.JAVA_INT, index);
+    if (value < 0) {
+      return null;
+    }
+    return values()[value];
   }
 
   @Override
-  public float getFloat(final int index) {
-    return data.getAtIndex(ValueLayout.JAVA_FLOAT, index);
+  public void set(final MemorySegment data, final int index, final T value) {
+    data.setAtIndex(ValueLayout.JAVA_INT, index, value == null ? -1 : value.ordinal());
   }
 
-  @Override
-  public float setFloat(final int index, final float value) {
-    float old = getFloat(index);
-    data.setAtIndex(ValueLayout.JAVA_FLOAT, index, value);
-    return old;
-  }
-
+  public abstract T[] values();
 }

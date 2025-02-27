@@ -23,30 +23,44 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.columns.arrays;
 
-public non-sealed interface NullableFloatDataColumn extends DataColumn<Float> {
+import io.github.mzmine.datamodel.features.columnar_data.columns.AbstractDataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.NullableDoubleDataColumn;
+import java.util.Arrays;
 
-  float getFloat(final int index);
+public class NullableDoubleArrayColumn extends AbstractDataColumn<Double> implements
+    NullableDoubleDataColumn {
 
-  float setFloat(final int index, final float value);
+  public double[] data;
 
-  default void clear(final int index) {
-    setFloat(index, Float.NaN);
+  public NullableDoubleArrayColumn(int initialSize) {
+    data = new double[initialSize];
+    Arrays.fill(data, Double.NaN);
   }
 
   @Override
-  default Float set(final int index, final Float value) {
-    return setFloat(index, value == null ? Float.NaN : value);
+  public double getDouble(final int index) {
+    return data[index];
   }
 
   @Override
-  default Float get(final int index) {
-    var value = getFloat(index);
-    return isNull(value) ? null : value;
+  public double setDouble(final int index, final double value) {
+    double old = data[index];
+    data[index] = value;
+    return old;
   }
 
-  default boolean isNull(final float value) {
-    return Float.isNaN(value);
+  @Override
+  protected boolean resizeTo(final int finalSize) {
+    var oldSize = data.length;
+    data = Arrays.copyOf(data, finalSize);
+    Arrays.fill(data, oldSize - 1, finalSize, Double.NaN);
+    return true;
+  }
+
+  @Override
+  public int capacity() {
+    return data == null ? 0 : data.length;
   }
 }

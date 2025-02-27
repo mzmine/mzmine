@@ -23,44 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.arrays;
+package io.github.mzmine.datamodel.features.columnar_data.columns;
 
-import io.github.mzmine.datamodel.features.columnar_data.AbstractDataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.NullableIntDataColumn;
-import java.util.Arrays;
+public non-sealed interface NullableIntDataColumn extends DataColumn<Integer> {
 
-public class NullableIntArrayColumn extends AbstractDataColumn<Integer> implements
-    NullableIntDataColumn {
+  public static final int NULL_VALUE = Integer.MIN_VALUE + 1;
 
-  public int[] data;
+  int getInt(final int index);
 
-  public NullableIntArrayColumn(int initialSize) {
-    data = new int[initialSize];
-    Arrays.fill(data, NULL_VALUE);
+  int setInt(final int index, final int value);
+
+  default void clear(final int index) {
+    setInt(index, NULL_VALUE);
   }
 
   @Override
-  public int getInt(final int index) {
-    return data[index];
+  default Integer set(final int index, final Integer value) {
+    return setInt(index, value == null ? NULL_VALUE : value);
   }
 
   @Override
-  public int setInt(final int index, final int value) {
-    int oldValue = data[index];
-    data[index] = value;
-    return oldValue;
+  default Integer get(final int index) {
+    var value = getInt(index);
+    return isNull(value) ? null : value;
   }
 
-  @Override
-  protected boolean resizeTo(final int finalSize) {
-    var oldSize = data.length;
-    data = Arrays.copyOf(data, finalSize);
-    Arrays.fill(data, oldSize-1, finalSize, NULL_VALUE);
-    return true;
+  default boolean isNull(final int value) {
+    return value == NULL_VALUE;
   }
 
-  @Override
-  public int capacity() {
-    return data == null ? 0 : data.length;
-  }
 }

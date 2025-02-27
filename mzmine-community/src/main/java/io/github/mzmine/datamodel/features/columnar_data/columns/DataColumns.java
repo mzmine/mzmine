@@ -23,19 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.columns;
 
-import io.github.mzmine.datamodel.features.columnar_data.arrays.NullableDoubleArrayColumn;
-import io.github.mzmine.datamodel.features.columnar_data.arrays.NullableFloatArrayColumn;
-import io.github.mzmine.datamodel.features.columnar_data.arrays.NullableIntArrayColumn;
-import io.github.mzmine.datamodel.features.columnar_data.arrays.ObjectArrayColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.AlignmenScoreMemorySegmentColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.DetectionMemorySegmentColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.DoubleRangeMemorySegmentColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.FloatRangeMemorySegmentColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.NullableDoubleMemorySegmentColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.NullableFloatMemorySegmentColumn;
-import io.github.mzmine.datamodel.features.columnar_data.mmap.NullableIntMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.NullableDoubleArrayColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.NullableFloatArrayColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.NullableIntArrayColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.ObjectArrayColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.AlignmenScoreMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.DetectionMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.DoubleRangeMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.FloatRangeMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.NullableDoubleMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.NullableFloatMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.NullableIntMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
@@ -81,7 +81,7 @@ public class DataColumns {
   public static @NotNull <T> AbstractDataColumn<T> ofType(DataType<T> type,
       @Nullable MemoryMapStorage storage, int size) {
     if (storage == null) {
-      return new ObjectArrayColumn<>(size);
+      return inMemory(type, size);
     }
     return (AbstractDataColumn<T>) switch (type) {
       case IntegerType _ -> ofInt(storage, size);
@@ -91,6 +91,23 @@ public class DataColumns {
       case DoubleRangeType _ -> new DoubleRangeMemorySegmentColumn(storage, size);
       case DetectionType _ -> new DetectionMemorySegmentColumn(storage, size);
       case AlignmentMainType _ -> new AlignmenScoreMemorySegmentColumn(storage, size);
+      default -> new ObjectArrayColumn<>(size);
+    };
+  }
+
+  /**
+   * Create column always in memory
+   *
+   * @param type type of column
+   * @param size number of elements
+   */
+  @SuppressWarnings("unchecked")
+  public static @NotNull <T> AbstractDataColumn<T> inMemory(final DataType<T> type,
+      final int size) {
+    return (AbstractDataColumn<T>) switch (type) {
+      case IntegerType _ -> ofInt(null, size);
+      case DoubleType _ -> ofDouble(null, size);
+      case FloatType _ -> ofFloat(null, size);
       default -> new ObjectArrayColumn<>(size);
     };
   }

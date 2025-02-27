@@ -23,44 +23,40 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.arrays;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
-import io.github.mzmine.datamodel.features.columnar_data.AbstractDataColumn;
-import io.github.mzmine.datamodel.features.columnar_data.NullableDoubleDataColumn;
-import java.util.Arrays;
+import io.github.mzmine.datamodel.features.columnar_data.columns.NullableDoubleDataColumn;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 
-public class NullableDoubleArrayColumn extends AbstractDataColumn<Double> implements
-    NullableDoubleDataColumn {
+public class NullableDoubleMemorySegmentColumn extends
+    AbstractMemorySegmentColumn<Double> implements NullableDoubleDataColumn {
 
-  public double[] data;
+  public NullableDoubleMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+    super(storage, initialCapacity);
+  }
 
-  public NullableDoubleArrayColumn(int initialSize) {
-    data = new double[initialSize];
-    Arrays.fill(data, Double.NaN);
+  @Override
+  protected ValueLayout getValueLayout() {
+    return ValueLayout.JAVA_DOUBLE;
+  }
+
+  @Override
+  protected void set(final MemorySegment data, final int index, final Double value) {
+    data.setAtIndex(ValueLayout.JAVA_DOUBLE, index, value != null ? value : Double.NaN);
   }
 
   @Override
   public double getDouble(final int index) {
-    return data[index];
+    return data.getAtIndex(ValueLayout.JAVA_DOUBLE, index);
   }
 
   @Override
   public double setDouble(final int index, final double value) {
-    double old = data[index];
-    data[index] = value;
+    double old = getDouble(index);
+    data.setAtIndex(ValueLayout.JAVA_DOUBLE, index, value);
     return old;
   }
 
-  @Override
-  protected boolean resizeTo(final int finalSize) {
-    var oldSize = data.length;
-    data = Arrays.copyOf(data, finalSize);
-    Arrays.fill(data, oldSize - 1, finalSize, Double.NaN);
-    return true;
-  }
-
-  @Override
-  public int capacity() {
-    return data == null ? 0 : data.length;
-  }
 }

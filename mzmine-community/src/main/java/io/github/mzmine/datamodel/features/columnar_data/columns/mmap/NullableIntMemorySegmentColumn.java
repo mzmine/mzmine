@@ -23,19 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.mmap;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
-import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.features.columnar_data.columns.NullableIntDataColumn;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 
-public class DetectionMemorySegmentColumn extends AbstractEnumMemorySegmentColumn<FeatureStatus> {
+public class NullableIntMemorySegmentColumn extends AbstractMemorySegmentColumn<Integer> implements
+    NullableIntDataColumn {
 
-  public DetectionMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+  public NullableIntMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
     super(storage, initialCapacity);
   }
 
   @Override
-  public FeatureStatus[] values() {
-    return FeatureStatus.values();
+  protected ValueLayout getValueLayout() {
+    return ValueLayout.JAVA_INT;
   }
+
+  @Override
+  protected void set(final MemorySegment data, final int index, final Integer value) {
+    data.setAtIndex(ValueLayout.JAVA_INT, index, value != null ? value : NULL_VALUE);
+  }
+
+  @Override
+  public int getInt(final int index) {
+    return data.getAtIndex(ValueLayout.JAVA_INT, index);
+  }
+
+  @Override
+  public int setInt(final int index, final int value) {
+    data.setAtIndex(ValueLayout.JAVA_INT, index, value);
+    return index;
+  }
+
 }

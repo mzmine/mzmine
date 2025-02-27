@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.mmap;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.util.MemoryMapStorage;

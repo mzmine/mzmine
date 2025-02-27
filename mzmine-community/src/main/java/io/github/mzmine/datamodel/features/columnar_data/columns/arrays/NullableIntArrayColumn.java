@@ -23,41 +23,44 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.mmap;
+package io.github.mzmine.datamodel.features.columnar_data.columns.arrays;
 
-import static java.util.Objects.requireNonNullElse;
+import io.github.mzmine.datamodel.features.columnar_data.columns.AbstractDataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.NullableIntDataColumn;
+import java.util.Arrays;
 
-import io.github.mzmine.datamodel.features.columnar_data.NullableIntDataColumn;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
-
-public class NullableIntMemorySegmentColumn extends AbstractMemorySegmentColumn<Integer> implements
+public class NullableIntArrayColumn extends AbstractDataColumn<Integer> implements
     NullableIntDataColumn {
 
-  public NullableIntMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
-    super(storage, initialCapacity);
-  }
+  public int[] data;
 
-  @Override
-  protected ValueLayout getValueLayout() {
-    return ValueLayout.JAVA_INT;
-  }
-
-  @Override
-  protected void set(final MemorySegment data, final int index, final Integer value) {
-    data.setAtIndex(ValueLayout.JAVA_INT, index, value!=null? value : NULL_VALUE);
+  public NullableIntArrayColumn(int initialSize) {
+    data = new int[initialSize];
+    Arrays.fill(data, NULL_VALUE);
   }
 
   @Override
   public int getInt(final int index) {
-    return data.getAtIndex(ValueLayout.JAVA_INT, index);
+    return data[index];
   }
 
   @Override
   public int setInt(final int index, final int value) {
-    data.setAtIndex(ValueLayout.JAVA_INT, index, value);
-    return index;
+    int oldValue = data[index];
+    data[index] = value;
+    return oldValue;
   }
 
+  @Override
+  protected boolean resizeTo(final int finalSize) {
+    var oldSize = data.length;
+    data = Arrays.copyOf(data, finalSize);
+    Arrays.fill(data, oldSize - 1, finalSize, NULL_VALUE);
+    return true;
+  }
+
+  @Override
+  public int capacity() {
+    return data == null ? 0 : data.length;
+  }
 }

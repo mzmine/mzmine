@@ -23,9 +23,44 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.mmap;
+package io.github.mzmine.datamodel.features.columnar_data.columns.arrays;
 
-class AlignmenScoreMemorySegmentColumnTest {
+import io.github.mzmine.datamodel.features.columnar_data.columns.AbstractDataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.NullableFloatDataColumn;
+import java.util.Arrays;
 
+public class NullableFloatArrayColumn extends AbstractDataColumn<Float> implements
+    NullableFloatDataColumn {
 
+  public float[] data;
+
+  public NullableFloatArrayColumn(int initialSize) {
+    data = new float[initialSize];
+    Arrays.fill(data, Float.NaN);
+  }
+
+  @Override
+  public float getFloat(final int index) {
+    return data[index];
+  }
+
+  @Override
+  public float setFloat(final int index, final float value) {
+    float oldValue = data[index];
+    data[index] = value;
+    return oldValue;
+  }
+
+  @Override
+  protected boolean resizeTo(final int finalSize) {
+    var oldSize = data.length;
+    data = Arrays.copyOf(data, finalSize);
+    Arrays.fill(data, oldSize - 1, finalSize, Float.NaN);
+    return true;
+  }
+
+  @Override
+  public int capacity() {
+    return data == null ? 0 : data.length;
+  }
 }

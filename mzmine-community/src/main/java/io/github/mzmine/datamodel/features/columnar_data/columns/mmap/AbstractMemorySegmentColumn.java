@@ -23,9 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.mmap;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
-import io.github.mzmine.datamodel.features.columnar_data.AbstractDataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.AbstractDataColumn;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
@@ -51,6 +51,7 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
 
   /**
    * Internal method to actually set the value to a memory segment
+   *
    * @param data a memory segment
    */
   protected abstract void set(final MemorySegment data, final int index, final T value);
@@ -60,7 +61,7 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
   /**
    * Set the initial value like Double.NaN or a blacklisted int
    *
-   * @param data        a MemorySegment to be changed
+   * @param data           a MemorySegment to be changed
    * @param startInclusive the start index
    * @param endExclusive   the end index excluded to be set
    */
@@ -72,8 +73,7 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
   }
 
   /**
-   *
-   * @param data backing data to clear
+   * @param data  backing data to clear
    * @param index element to clear
    */
   protected void clear(final MemorySegment data, final int index) {

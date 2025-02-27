@@ -23,39 +23,40 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.arrays;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
-import io.github.mzmine.datamodel.features.columnar_data.AbstractDataColumn;
-import java.util.Arrays;
+import io.github.mzmine.datamodel.features.columnar_data.columns.NullableFloatDataColumn;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 
-public class ObjectArrayColumn<T> extends AbstractDataColumn<T> {
+public class NullableFloatMemorySegmentColumn extends AbstractMemorySegmentColumn<Float> implements
+    NullableFloatDataColumn {
 
-  public Object[] data;
-
-  public ObjectArrayColumn(final int columnLength) {
-    data = new Object[columnLength];
+  public NullableFloatMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+    super(storage, initialCapacity);
   }
 
   @Override
-  public T get(final int index) {
-    return (T) data[index];
+  protected ValueLayout getValueLayout() {
+    return ValueLayout.JAVA_FLOAT;
   }
 
   @Override
-  public T set(final int index, final T value) {
-    T oldValue = get(index);
-    data[index] = value;
-    return oldValue;
+  protected void set(final MemorySegment data, final int index, final Float value) {
+    data.setAtIndex(ValueLayout.JAVA_FLOAT, index, value != null ? value : Float.NaN);
   }
 
   @Override
-  protected boolean resizeTo(final int finalSize) {
-    data = Arrays.copyOf(data, finalSize);
-    return true;
+  public float getFloat(final int index) {
+    return data.getAtIndex(ValueLayout.JAVA_FLOAT, index);
   }
 
   @Override
-  public int capacity() {
-    return data == null ? 0 : data.length;
+  public float setFloat(final int index, final float value) {
+    float old = getFloat(index);
+    data.setAtIndex(ValueLayout.JAVA_FLOAT, index, value);
+    return old;
   }
+
 }

@@ -23,42 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.mmap;
+package io.github.mzmine.datamodel.features.columnar_data.columns;
 
-import static java.util.Objects.requireNonNullElse;
+public non-sealed interface NullableFloatDataColumn extends DataColumn<Float> {
 
-import io.github.mzmine.datamodel.features.columnar_data.NullableDoubleDataColumn;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
+  float getFloat(final int index);
 
-public class NullableDoubleMemorySegmentColumn extends
-    AbstractMemorySegmentColumn<Double> implements NullableDoubleDataColumn {
+  float setFloat(final int index, final float value);
 
-  public NullableDoubleMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
-    super(storage, initialCapacity);
+  default void clear(final int index) {
+    setFloat(index, Float.NaN);
   }
 
   @Override
-  protected ValueLayout getValueLayout() {
-    return ValueLayout.JAVA_DOUBLE;
+  default Float set(final int index, final Float value) {
+    return setFloat(index, value == null ? Float.NaN : value);
   }
 
   @Override
-  protected void set(final MemorySegment data, final int index, final Double value) {
-    data.setAtIndex(ValueLayout.JAVA_DOUBLE, index, value != null ? value : Double.NaN);
+  default Float get(final int index) {
+    var value = getFloat(index);
+    return isNull(value) ? null : value;
   }
 
-  @Override
-  public double getDouble(final int index) {
-    return data.getAtIndex(ValueLayout.JAVA_DOUBLE, index);
+  default boolean isNull(final float value) {
+    return Float.isNaN(value);
   }
-
-  @Override
-  public double setDouble(final int index, final double value) {
-    double old = getDouble(index);
-    data.setAtIndex(ValueLayout.JAVA_DOUBLE, index, value);
-    return old;
-  }
-
 }

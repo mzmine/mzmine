@@ -23,33 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.columns;
 
-public non-sealed interface NullableIntDataColumn extends DataColumn<Integer> {
+/**
+ * All classes should extend {@link AbstractDataColumn} because
+ * {@link OptimisticallySynchronizedDataColumn} requires some methods
+ *
+ * @param <T>
+ */
+public sealed interface DataColumn<T> permits AbstractDataColumn, NullableDoubleDataColumn,
+    NullableFloatDataColumn, NullableIntDataColumn {
 
-  public static final int NULL_VALUE = Integer.MIN_VALUE + 1;
+  T get(final int index);
 
-  int getInt(final int index);
+  T set(final int index, final T value);
 
-  int setInt(final int index, final int value);
+  /**
+   * @return true if resized
+   */
+  boolean ensureCapacity(int requiredCapacity);
 
-  default void clear(final int index) {
-    setInt(index, NULL_VALUE);
-  }
-
-  @Override
-  default Integer set(final int index, final Integer value) {
-    return setInt(index, value == null ? NULL_VALUE : value);
-  }
-
-  @Override
-  default Integer get(final int index) {
-    var value = getInt(index);
-    return isNull(value) ? null : value;
-  }
-
-  default boolean isNull(final int value) {
-    return value == NULL_VALUE;
-  }
-
+  int capacity();
 }

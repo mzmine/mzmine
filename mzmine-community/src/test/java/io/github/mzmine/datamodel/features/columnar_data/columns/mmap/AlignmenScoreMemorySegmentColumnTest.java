@@ -23,22 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
+
+class AlignmenScoreMemorySegmentColumnTest {
 
 
-/**
- * Currently this class is used to hide the resizeTo method. Maybe it is also ok to put this into
- * the interface and then there is no need to seal the {@link DataColumn} interface
- */
-public abstract non-sealed class AbstractDataColumn<T> implements DataColumn<T> {
-
-  @Override
-  public boolean ensureCapacity(final int requiredCapacity) {
-    if (requiredCapacity > capacity()) {
-      return resizeTo(requiredCapacity);
-    }
-    return false;
-  }
-
-  protected abstract boolean resizeTo(final int finalSize);
 }
