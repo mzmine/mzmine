@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -53,7 +55,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -61,7 +62,6 @@ import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -75,8 +75,6 @@ import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
@@ -87,6 +85,7 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("rawtypes")
 public class ModularFeatureList implements FeatureList {
 
+  public static final int DEFAULT_ESTIMATED_ROWS = 5000;
   public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
   private static final Logger logger = Logger.getLogger(ModularFeatureList.class.getName());
   /**
@@ -99,6 +98,9 @@ public class ModularFeatureList implements FeatureList {
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
+  private final @NotNull ColumnarModularFeatureListRowsSchema rowsSchema;
+  private final @NotNull ColumnarModularDataModelSchema featuresSchema;
+
   // unmodifiable list
   private final List<RawDataFile> dataFiles;
   private final List<RawDataFile> readOnlyRawDataFiles; // keep one copy in case it is used somewhere
@@ -109,12 +111,6 @@ public class ModularFeatureList implements FeatureList {
 
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
-  // TODO do we need two sets? We could have observableSet of LinkedHashSet
-  private final ObservableSet<DataType> rowTypes = FXCollections.observableSet(
-      new LinkedHashSet<>());
-  // TODO do we need two sets? We could have observableSet of LinkedHashSet
-  private final ObservableSet<DataType> featureTypes = FXCollections.observableSet(
-      new LinkedHashSet<>());
   private final ObservableList<FeatureListRow> featureListRows;
   private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
 
@@ -144,7 +140,27 @@ public class ModularFeatureList implements FeatureList {
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull List<RawDataFile> dataFiles) {
+    this(name, storage, DEFAULT_ESTIMATED_ROWS,
+        FeatureListUtils.estimateFeatures(DEFAULT_ESTIMATED_ROWS, dataFiles.size()), dataFiles);
+  }
+
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, int estimatedRows,
+      int estimatedFeatures, @NotNull RawDataFile... dataFiles) {
+    this(name, storage, estimatedRows, estimatedFeatures, List.of(dataFiles));
+  }
+
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, int estimatedRows,
+      int estimatedFeatures, @NotNull List<RawDataFile> dataFiles) {
     setName(name);
+
+    logger.fine(
+        "Creating new feature list %s with %d raw files with estimated rows : features : %d : %d".formatted(
+            name, dataFiles.size(), estimatedRows, estimatedFeatures));
+
+    //
+    rowsSchema = new ColumnarModularFeatureListRowsSchema(storage, "Rows", estimatedRows,
+        dataFiles);
+    featuresSchema = new ColumnarModularDataModelSchema(storage, "Features", estimatedFeatures);
     // sort data files by name to have the same order in export and GUI FeatureTableFx
     dataFiles = new ArrayList<>(dataFiles);
     dataFiles.sort(Comparator.comparing(RawDataFile::getName));
@@ -170,25 +186,22 @@ public class ModularFeatureList implements FeatureList {
     });
 
     // add row bindings automatically
-    featureTypes.addListener((SetChangeListener<? super DataType>) change -> {
-      if (change.wasAdded()) {
-        DataType<?> added = change.getElementAdded();
-        // add row bindings
-        addRowBinding(added.createDefaultRowBindings());
+    featuresSchema.addDataTypesChangeListener((added, removed) -> {
+      for (DataType dataType : added) {
+        addRowBinding(dataType.createDefaultRowBindings());
       }
-      if (change.wasRemoved()) {
-        // remove data from all features
-        DataType<?> removed = change.getElementRemoved();
-        parallelStreamFeatures().forEach(feature -> feature.remove(removed));
-      }
+      // TODO no need to remove from each feature as this is already removed from the schema itself
+//      for (DataType dt : removed) {
+//        parallelStreamFeatures().forEach(feature -> feature.remove(dt));
+//      }
     });
-    rowTypes.addListener((SetChangeListener<? super DataType>) change -> {
-      if (change.wasRemoved()) {
-        // remove data from all features
-        DataType<?> removed = change.getElementRemoved();
-        parallelStream().forEach(row -> row.remove(removed));
-      }
-    });
+
+    // not needed
+//    rowsSchema.addDataTypesChangeListener((_, removed) -> {
+//      for (@NotNull DataType dataType : removed) {
+//        parallelStream().forEach(row -> row.remove(dataType));
+//      }
+//    });
   }
 
   @Override
@@ -368,40 +381,28 @@ public class ModularFeatureList implements FeatureList {
    * @return feature types (columns)
    */
   @Override
-  public ObservableSet<DataType> getFeatureTypes() {
-    return featureTypes;
+  public Set<DataType> getFeatureTypes() {
+    return getFeaturesSchema().getTypes();
   }
 
   @Override
   public void addFeatureType(Collection<DataType> types) {
-    for (DataType<?> type : types) {
-      if (!hasFeatureType(type)) {
-        synchronized (featureTypes) {
-          featureTypes.add(type);
-        }
-      }
-    }
+    getFeaturesSchema().addDataTypes(types.toArray(DataType[]::new));
   }
 
   @Override
   public void addFeatureType(@NotNull DataType<?>... types) {
-    addFeatureType(Arrays.asList(types));
+    getFeaturesSchema().addDataTypes(types);
   }
 
   @Override
   public void addRowType(Collection<DataType> types) {
-    for (DataType<?> type : types) {
-      if (!hasRowType(type)) {
-        synchronized (rowTypes) {
-          rowTypes.add(type);
-        }
-      }
-    }
+    getRowsSchema().addDataTypes(types.toArray(DataType[]::new));
   }
 
   @Override
   public void addRowType(@NotNull DataType<?>... types) {
-    addRowType(Arrays.asList(types));
+    getRowsSchema().addDataTypes(types);
   }
 
   /**
@@ -410,8 +411,8 @@ public class ModularFeatureList implements FeatureList {
    * @return row types (columns)
    */
   @Override
-  public ObservableSet<DataType> getRowTypes() {
-    return rowTypes;
+  public Set<DataType> getRowTypes() {
+    return getRowsSchema().getTypes();
   }
 
 
@@ -602,6 +603,7 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(FeatureListRow row) {
+    // TODO remove from schema rows and features
     featureListRows.remove(row);
   }
 
@@ -610,12 +612,14 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(int rowNum) {
+    // TODO remove from schema rows and features
     removeRow(featureListRows.remove(rowNum));
   }
 
   @Override
-  public void removeRows(final Set<FeatureListRow> rowsToRemove) {
-    featureListRows.removeIf(rowsToRemove::contains);
+  public void removeRows(final Collection<FeatureListRow> rowsToRemove) {
+    // TODO remove from schema rows and features
+    featureListRows.removeAll(rowsToRemove);
   }
 
   @Override
@@ -800,7 +804,8 @@ public class ModularFeatureList implements FeatureList {
    */
   public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage,
       List<RawDataFile> dataFiles, boolean renumberIDs) {
-    return FeatureListUtils.createCopy(this, title, null, storage, true, dataFiles, renumberIDs);
+    return FeatureListUtils.createCopy(this, title, null, storage, true, dataFiles, renumberIDs,
+        null, null);
   }
 
   @Nullable
@@ -903,5 +908,13 @@ public class ModularFeatureList implements FeatureList {
     });*/
 
     bufferedCharts.clear();
+  }
+
+  public @NotNull ColumnarModularDataModelSchema getFeaturesSchema() {
+    return featuresSchema;
+  }
+
+  public @NotNull ColumnarModularFeatureListRowsSchema getRowsSchema() {
+    return rowsSchema;
   }
 }
