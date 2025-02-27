@@ -28,12 +28,13 @@ package io.github.mzmine.datamodel.features.columnar_data;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumns;
+import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.ObjectArrayColumn;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -48,14 +49,16 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
   private static final Logger logger = Logger.getLogger(
       ColumnarModularFeatureListRowsSchema.class.getName());
 
-  private final Map<RawDataFile, ModularFeature[]> features;
+  private final Map<RawDataFile, DataColumn<ModularFeature>> features;
 
   public ColumnarModularFeatureListRowsSchema(final MemoryMapStorage storage,
       final String modelName, final int initialSize, final @NotNull List<RawDataFile> dataFiles) {
     super(storage, modelName, initialSize);
 
     features = HashMap.newHashMap(dataFiles.size());
-    dataFiles.forEach(raw -> features.put(raw, new ModularFeature[initialSize]));
+    for (final RawDataFile raw : dataFiles) {
+      features.put(raw, DataColumns.ofSynchronized(new ObjectArrayColumn<>(initialSize)));
+    }
   }
 
   @Override
@@ -64,23 +67,14 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
       if (columnLength >= finalSize) {
         return;
       }
-      // resize
-      long success = columns.values().stream().parallel()
+      super.resizeColumnsTo(finalSize);
+
+      // resize raw file columns
+      long success = features.values().stream().parallel()
           .filter(column -> column.ensureCapacity(finalSize)).count();
 
-//      logger.info("""
-//          Resized %d of %d columns in model %s to %d rows""".formatted(success, columns.size(),
-//          modelName, finalSize));
-
       columnLength = finalSize;
-
-      // resize features arrays
-      for (final Entry<RawDataFile, ModularFeature[]> entry : features.entrySet()) {
-        final ModularFeature[] copyColumn = Arrays.copyOf(entry.getValue(), finalSize);
-        entry.setValue(copyColumn);
-      }
     }
-    super.resizeColumnsTo(finalSize);
   }
 
   /**
@@ -91,21 +85,19 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
    */
   public ModularFeature setFeature(final int rowIndex, final RawDataFile raw,
       final ModularFeature feature) {
-    final ModularFeature[] featuresCol = features.get(raw);
+    final DataColumn<ModularFeature> featuresCol = features.get(raw);
     if (featuresCol == null) {
-      return null; // previous behaviour was to return null
+      return null; // previous behaviour was to return null - this means raw file is not in feature list
     }
-    var old = featuresCol[rowIndex];
-    featuresCol[rowIndex] = feature;
-    return old;
+    return featuresCol.set(rowIndex, feature);
   }
 
   public ModularFeature getFeature(final int rowIndex, final RawDataFile raw) {
-    final ModularFeature[] featuresCol = features.get(raw);
+    final DataColumn<ModularFeature> featuresCol = features.get(raw);
     if (featuresCol == null) {
       return null; // previous behaviour was to return null
     }
-    return featuresCol[rowIndex];
+    return featuresCol.get(rowIndex);
   }
 
   /**
@@ -113,7 +105,7 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
    * @return non-null stream of features of one row
    */
   public Stream<ModularFeature> streamFeatures(final int rowIndex) {
-    return features.values().stream().map(column -> column[rowIndex]).filter(Objects::nonNull);
+    return features.values().stream().map(column -> column.get(rowIndex)).filter(Objects::nonNull);
   }
 
   /**
@@ -124,11 +116,11 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
    */
   public boolean clearFeatures(final int modelRowIndex) {
     boolean changed = false;
-    for (final ModularFeature[] col : features.values()) {
-      if (!changed && col[modelRowIndex] != null) {
+    for (final DataColumn<ModularFeature> col : features.values()) {
+      final ModularFeature old = col.set(modelRowIndex, null);
+      if (!changed && old != null) {
         changed = true;
       }
-      col[modelRowIndex] = null;
     }
     return changed;
   }
