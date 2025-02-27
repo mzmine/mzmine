@@ -259,7 +259,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
         var merger = new SpectraMerger(scanTypes, SpectraMerging.pasefMS2MergeTol,
             IntensityMergingType.SUMMED);
         final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(
-            getMemoryMapStorage(), SelectInputScans.NONE, merger, scanTypes);
+            getMemoryMapStorage(), SelectInputScans.ALL_SCANS, merger, scanTypes);
         var spectra = fragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
         feature.setAllMS2FragmentScans(spectra, false);
       } else {
