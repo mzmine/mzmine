@@ -27,7 +27,6 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -45,9 +44,6 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Advance
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
-import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitModule;
-import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitParameters;
-import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters.MzMode;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
@@ -159,11 +155,12 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     // use 100 isomers to decrease the chromatographic threshold
     // GC-EI generates a lot of the same mz fragments and covers the whole RT range
     makeAndAddRtLocalMinResolver(q, null, minRtDataPoints, cropRtRange, rtFwhm, 100);
+    makeSpectralDeconvolutionStep(q);
+    // RT calibration after deconvolution - otherwise features may be shifted in different directions
     if (recalibrateRetentionTime) {
       makeAndAddRetentionTimeCalibration(q, mzTolInterSample, interSampleRtTol,
           handleOriginalFeatureLists);
     }
-    makeSpectralDeconvolutionStep(q);
     makeAndAddAlignmentStep(q);
     makeAndAddRowFilterStep(q);
     if (applySpectralNetworking) {
