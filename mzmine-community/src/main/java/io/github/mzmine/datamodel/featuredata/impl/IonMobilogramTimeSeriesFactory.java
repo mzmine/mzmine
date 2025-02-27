@@ -40,6 +40,7 @@ import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
@@ -50,6 +51,9 @@ import org.jetbrains.annotations.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public class IonMobilogramTimeSeriesFactory {
+
+  private static final Logger logger = Logger.getLogger(
+      IonMobilogramTimeSeriesFactory.class.getName());
 
   private IonMobilogramTimeSeriesFactory() {
 
@@ -213,9 +217,9 @@ public class IonMobilogramTimeSeriesFactory {
         summedMobilogram);
   }
 
-  static MobilogramStorageResult storeMobilograms(SimpleIonMobilogramTimeSeries trace,
+  static StoredMobilograms storeMobilograms(SimpleIonMobilogramTimeSeries trace,
       @Nullable MemoryMapStorage storage, List<IonMobilitySeries> mobilograms) {
-    if(mobilograms.isEmpty()) {
+    if (mobilograms.isEmpty()) {
       return MobilogramStorageResult.EMPTY;
     }
 
@@ -227,7 +231,7 @@ public class IonMobilogramTimeSeriesFactory {
     final MemorySegment[] stored = StorageUtils.storeIonSeriesToSingleBuffer(storage, mobilograms,
         offsets);
 
-    List<IonMobilitySeries> storedMobilograms = new ArrayList<>();
+    List<StorableIonMobilitySeries> storedMobilograms = new ArrayList<>();
     for (int i = 0; i < offsets.length; i++) {
       IonMobilitySeries mobilogram = mobilograms.get(i);
       List<MobilityScan> spectra;
@@ -241,17 +245,20 @@ public class IonMobilogramTimeSeriesFactory {
           new StorableIonMobilitySeries(trace, offsets[i], mobilogram.getNumberOfValues(),
               spectra));
     }
-    return new MobilogramStorageResult(storedMobilograms, stored[0], stored[1]);
+
+    return new MappedStoredMobilograms(storage, trace, stored[0], stored[1], offsets,
+        storedMobilograms);
+//    return new MobilogramStorageResult(storedMobilograms, stored[0], stored[1]);
   }
 
   /**
    * This method only gets triggered if chromatograms are built, expanded and then resolved in rt.
    * When resolving in mobility dimension, the mobilograms are cut anyway.
    */
-  private static MobilogramStorageResult storeMobilogramsFromAlreadyStored(
+  private static StoredMobilograms storeMobilogramsFromAlreadyStored(
       SimpleIonMobilogramTimeSeries newTrace, MemoryMapStorage storage,
       List<StorableIonMobilitySeries> mobilograms) {
-    if(mobilograms.isEmpty()) {
+    if (mobilograms.isEmpty()) {
       return MobilogramStorageResult.EMPTY;
     }
 
@@ -268,7 +275,7 @@ public class IonMobilogramTimeSeriesFactory {
     final int start = mobilograms.getFirst().getStorageOffset();
     final int lastValue =
         mobilograms.getLast().getStorageOffset() + mobilograms.getLast().getNumberOfValues();
-    final List<IonMobilitySeries> storedMobilograms = new ArrayList<>();
+    final List<StorableIonMobilitySeries> storedMobilograms = new ArrayList<>();
 
     int offsetCounter = 0;
     for (int i = 0; i < mobilograms.size(); i++) {
@@ -279,15 +286,18 @@ public class IonMobilogramTimeSeriesFactory {
     }
 
     final MemorySegment intensityValues = StorageUtils.sliceDoubles(
-        originalTrace.mobilogramIntensityValues, start, lastValue);
-    final MemorySegment mzValues = StorageUtils.sliceDoubles(originalTrace.mobilogramMzValues,
-        start, lastValue);
+        originalTrace.mobilograms.storedIntensityValues(), start, lastValue);
+    final MemorySegment mzValues = StorageUtils.sliceDoubles(
+        originalTrace.mobilograms.storedMzValues(), start, lastValue);
 
 //     rudimentary test
 //    assert mobilograms.getLast().getIntensity(mobilograms.getLast().getNumberOfValues() - 1)
 //        == intensityValues.getAtIndex(OfDouble.JAVA_DOUBLE,
 //        StorageUtils.numDoubles(intensityValues) - 1);
 
-    return new MobilogramStorageResult(storedMobilograms, mzValues, intensityValues);
+    return new MappedStoredMobilograms(storage, newTrace, mzValues, intensityValues,
+        storedMobilograms.stream().mapToInt(StorableIonMobilitySeries::getStorageOffset).toArray(),
+        storedMobilograms);
+//    return new MobilogramStorageResult(storedMobilograms, mzValues, intensityValues);
   }
 }
