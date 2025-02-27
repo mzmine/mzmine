@@ -110,4 +110,21 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
   public Stream<ModularFeature> streamFeatures(final int rowIndex) {
     return features.values().stream().map(column -> column[rowIndex]).filter(Objects::nonNull);
   }
+
+  /**
+   * Remove all features for a row
+   *
+   * @param modelRowIndex row
+   * @return true if at least one feature was removed
+   */
+  public boolean clearFeatures(final int modelRowIndex) {
+    boolean changed = false;
+    for (final ModularFeature[] col : features.values()) {
+      if (!changed && col[modelRowIndex] != null) {
+        changed = true;
+      }
+      col[modelRowIndex] = null;
+    }
+    return changed;
+  }
 }
