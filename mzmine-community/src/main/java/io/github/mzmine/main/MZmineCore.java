@@ -192,6 +192,11 @@ public final class MZmineCore {
     logger.finest("Working directory is %s".formatted(cwd));
     logger.finest(
         "Default temporary directory is %s".formatted(System.getProperty("java.io.tmpdir")));
+
+    final File logFile = ConfigService.getConfiguration().getLogFile();
+    if (logFile != null) {
+      logger.finest("Writing log file to %s".formatted(logFile.getAbsolutePath()));
+    }
   }
 
   /**
