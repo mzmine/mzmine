@@ -108,6 +108,7 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
       // MS1 like GC-EI-MS
       if (scan.getMSLevel() == 1) {
         c.accept(scan);
+        return;
       }
 
       // SWATH / DIA PASEF etc
