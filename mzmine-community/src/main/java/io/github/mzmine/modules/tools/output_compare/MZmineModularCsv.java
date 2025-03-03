@@ -9,21 +9,30 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 
-public class MZmineModularCsv {
+public record MZmineModularCsv(Map<Column, ColumnData> data) {
 
   private static final Logger logger = Logger.getLogger(MZmineModularCsv.class.getName());
 
-  private final Map<Column, ColumnData> data;
+  public int numColumns() {
+    return data.size();
+  }
 
-  private MZmineModularCsv(final Map<Column, ColumnData> data) {
-    this.data = data;
+  public int numRows() {
+    return data.values().stream().findFirst().map(ColumnData::numRows).orElse(0);
+  }
+
+  public Collection<Column> columns() {
+    return data.keySet();
   }
 
   public static @Nullable MZmineModularCsv parseFile(final File file) {
@@ -64,7 +73,20 @@ public class MZmineModularCsv {
     return null;
   }
 
-  interface ColumnData {
+  /**
+   * Pair all columns from this and other table.
+   *
+   * @return the list of {@link ColumnData} pairs
+   */
+  public List<ColumnData[]> pairColumns(final MZmineModularCsv other) {
+    final HashSet<Column> columns = new HashSet<>(data.keySet());
+    columns.addAll(other.columns());
+
+    return columns.stream().map(col -> new ColumnData[]{data.get(col), other.data.get(col)})
+        .toList();
+  }
+
+  interface ColumnData<T> {
 
     static ColumnData create(Column col, List<String> data) {
       if (col.type() instanceof NumberType<?> numberType) {
@@ -74,15 +96,75 @@ public class MZmineModularCsv {
       return new StringColumnData(col, data);
     }
 
-    record StringColumnData(Column col, List<String> data) implements ColumnData {
 
+    boolean checkEqual(final ColumnData other, List<String> messages);
+
+    Column col();
+
+    List<T> data();
+
+    default int numRows() {
+      return data().size();
     }
 
-    record NumberColumnData(Column col, List<Double> data) implements ColumnData {
+    // implementation
+    record StringColumnData(Column col, List<String> data) implements ColumnData<String> {
 
       @Override
       public boolean checkEqual(final ColumnData obj, List<String> messages) {
+        final String colID = "header: %s, type: %s;".formatted(col.header,
+            col.type != null ? col.type.getClass().getName() : "null");
+        if (!(obj instanceof StringColumnData other)) {
+          if (messages != null) {
+            messages.add(
+                colID + " Column type does not equal. This was String and other was Number.");
+          }
+          return false;
+        }
+
+        for (int i = 0; i < data.size(); i++) {
+          final String a = data.get(i);
+          final String b = other.data.get(i);
+          if (a == null && b == null) {
+            continue;
+          } else if (a == null) {
+            if (messages != null) {
+              messages.add(
+                  "%s Number value does not equal: first was null, second was %s".formatted(colID,
+                      b));
+            }
+            return false;
+          } else if (b == null) {
+            if (messages != null) {
+              messages.add(
+                  "%s Number value does not equal: first was %s, second was null".formatted(colID,
+                      b));
+            }
+            return false;
+          }
+
+          if (!Objects.equals(a, b)) {
+            if (messages != null) {
+              messages.add("%s String value does not equal: %s to %s".formatted(colID, a, b));
+            }
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+
+    record NumberColumnData(Column col, List<Double> data) implements ColumnData<Double> {
+
+      @Override
+      public boolean checkEqual(final ColumnData obj, List<String> messages) {
+        final String colID = "header: %s, type: %s; ".formatted(col.header,
+            col.type != null ? col.type.getClass().getName() : "null");
         if (!(obj instanceof NumberColumnData other)) {
+          if (messages != null) {
+            messages.add(
+                colID + " Column type does not equal. This was Number and other was String.");
+          }
           return false;
         }
 
@@ -94,20 +176,22 @@ public class MZmineModularCsv {
           } else if (a == null) {
             if (messages != null) {
               messages.add(
-                  "Number value does not equal: first was null, second was %f".formatted(b));
+                  "%s Number value does not equal: first was null, second was %f".formatted(colID,
+                      b));
             }
             return false;
           } else if (b == null) {
             if (messages != null) {
               messages.add(
-                  "Number value does not equal: first was %f, second was null".formatted(b));
+                  "%s Number value does not equal: first was %f, second was null".formatted(colID,
+                      b));
             }
             return false;
           }
 
           if (!Precision.equalDoubleSignificance(a, b)) {
             if (messages != null) {
-              messages.add("Number value does not equal: %f to %f".formatted(a, b));
+              messages.add("%s Number value does not equal: %f to %f".formatted(colID, a, b));
             }
             return false;
           }
@@ -116,7 +200,6 @@ public class MZmineModularCsv {
       }
     }
 
-    boolean checkEqual(final ColumnData other, List<String> messages);
   }
 
   record Column(String header, String uniqueTypeId, @Nullable DataType type,
