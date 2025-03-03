@@ -17,9 +17,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record MZmineModularCsv(Map<Column, ColumnData> data) {
+public record MZmineModularCsv(Map<Column, ColumnData> data, int numRows) {
 
   private static final Logger logger = Logger.getLogger(MZmineModularCsv.class.getName());
 
@@ -27,8 +29,30 @@ public record MZmineModularCsv(Map<Column, ColumnData> data) {
     return data.size();
   }
 
-  public int numRows() {
-    return data.values().stream().findFirst().map(ColumnData::numRows).orElse(0);
+  public List<String> getUniqueRawFiles() {
+    return data.keySet().stream().map(Column::rawFile).filter(Objects::nonNull).distinct().toList();
+  }
+
+  public List<DataType> getRowTypes() {
+    return extractUniqueDataTypes(getRowTypeColumns());
+  }
+
+  public List<DataType> getFeatureTypes() {
+    return extractUniqueDataTypes(getFeatureTypeColumns());
+  }
+
+  public static @NotNull List<DataType> extractUniqueDataTypes(
+      final Collection<ColumnData> columns) {
+    return columns.stream().map(col -> col.col().type()).filter(Objects::nonNull).distinct()
+        .toList();
+  }
+
+  public List<ColumnData> getRowTypeColumns() {
+    return data.values().stream().filter(cd -> cd.col().rawFile() == null).toList();
+  }
+
+  public List<ColumnData> getFeatureTypeColumns() {
+    return data.values().stream().filter(cd -> cd.col().rawFile() != null).toList();
   }
 
   public Collection<Column> columns() {
@@ -59,13 +83,15 @@ public record MZmineModularCsv(Map<Column, ColumnData> data) {
         }
         // rows data
         else {
-          col = Column.forRowType(header, parts[2]);
+          col = Column.forRowType(header, parts[0]);
         }
         data.put(col, ColumnData.create(col, colData));
       }
 
       //
-      return new MZmineModularCsv(data);
+      final int numRows = data.values().stream().mapToInt(ColumnData::numRows).findFirst()
+          .orElse(0);
+      return new MZmineModularCsv(data, numRows);
 
     } catch (IOException | CsvException e) {
       logger.log(Level.WARNING, "Issue parsing modular csv file from " + file.getAbsolutePath(), e);
@@ -74,17 +100,44 @@ public record MZmineModularCsv(Map<Column, ColumnData> data) {
   }
 
   /**
-   * Pair all columns from this and other table.
+   * Pair all row columns from this and other table.
    *
    * @return the list of {@link ColumnData} pairs
    */
-  public List<ColumnData[]> pairColumns(final MZmineModularCsv other) {
-    final HashSet<Column> columns = new HashSet<>(data.keySet());
-    columns.addAll(other.columns());
+  public List<ColumnData[]> pairRowColumns(final MZmineModularCsv other) {
+    return pairColumns(getRowTypeColumns(), other.getRowTypeColumns());
+  }
 
-    return columns.stream().map(col -> new ColumnData[]{data.get(col), other.data.get(col)})
+  /**
+   * Pair all feature columns from this and other table.
+   *
+   * @return the list of {@link ColumnData} pairs
+   */
+  public List<ColumnData[]> pairFeatureColumns(final MZmineModularCsv other) {
+    return pairColumns(getFeatureTypeColumns(), other.getFeatureTypeColumns());
+  }
+
+
+  /**
+   * Pair all columns from two lists
+   *
+   * @return the list of {@link ColumnData} pairs
+   */
+  public static List<ColumnData[]> pairColumns(final List<ColumnData> first,
+      final List<ColumnData> second) {
+    final Map<Column, ColumnData> firstMap = first.stream()
+        .collect(Collectors.toMap(ColumnData::col, cd -> cd));
+    final Map<Column, ColumnData> secondMap = second.stream()
+        .collect(Collectors.toMap(ColumnData::col, cd -> cd));
+
+    // collect all columns first
+    final HashSet<Column> columns = new HashSet<>(firstMap.keySet());
+    columns.addAll(secondMap.keySet());
+
+    return columns.stream().map(col -> new ColumnData[]{firstMap.get(col), secondMap.get(col)})
         .toList();
   }
+
 
   interface ColumnData<T> {
 
@@ -113,7 +166,7 @@ public record MZmineModularCsv(Map<Column, ColumnData> data) {
       @Override
       public boolean checkEqual(final ColumnData obj, List<String> messages) {
         final String colID = "header: %s, type: %s;".formatted(col.header,
-            col.type != null ? col.type.getClass().getName() : "null");
+            col.type != null ? col.type.getClass().getSimpleName() : "null");
         if (!(obj instanceof StringColumnData other)) {
           if (messages != null) {
             messages.add(
@@ -122,9 +175,13 @@ public record MZmineModularCsv(Map<Column, ColumnData> data) {
           return false;
         }
 
-        for (int i = 0; i < data.size(); i++) {
-          final String a = data.get(i);
-          final String b = other.data.get(i);
+        // max rows
+        int numRows = Math.max(numRows(), obj.numRows());
+
+        for (int row = 0; row < numRows; row++) {
+          // get value is safe for out of index --> null
+          final String a = getValue(row);
+          final String b = other.getValue(row);
           if (a == null && b == null) {
             continue;
           } else if (a == null) {
@@ -154,12 +211,20 @@ public record MZmineModularCsv(Map<Column, ColumnData> data) {
       }
     }
 
+
+    default T getValue(int row) {
+      if (row < 0 || row >= numRows()) {
+        return null;
+      }
+      return data().get(row);
+    }
+
     record NumberColumnData(Column col, List<Double> data) implements ColumnData<Double> {
 
       @Override
       public boolean checkEqual(final ColumnData obj, List<String> messages) {
         final String colID = "header: %s, type: %s; ".formatted(col.header,
-            col.type != null ? col.type.getClass().getName() : "null");
+            col.type != null ? col.type.getClass().getSimpleName() : "null");
         if (!(obj instanceof NumberColumnData other)) {
           if (messages != null) {
             messages.add(
@@ -168,9 +233,13 @@ public record MZmineModularCsv(Map<Column, ColumnData> data) {
           return false;
         }
 
-        for (int i = 0; i < data.size(); i++) {
-          final Double a = data.get(i);
-          final Double b = other.data.get(i);
+        // max rows
+        int numRows = Math.max(numRows(), obj.numRows());
+
+        for (int row = 0; row < numRows; row++) {
+          // get value is safe for out of index --> null
+          final Double a = getValue(row);
+          final Double b = other.getValue(row);
           if (a == null && b == null) {
             continue;
           } else if (a == null) {

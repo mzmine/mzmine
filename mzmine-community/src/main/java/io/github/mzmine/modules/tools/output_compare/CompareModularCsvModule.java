@@ -13,20 +13,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class CompareModularCsvModule extends AbstractRunnableModule {
 
-  /**
-   * @param name              name of the module in the menu and quick access
-   * @param parameterSetClass the class of the parameters
-   * @param moduleCategory    module category for quick access and batch mode
-   * @param description       the description of the task
-   */
-  public CompareModularCsvModule(final @NotNull String name,
-      final @NotNull Class<? extends ParameterSet> parameterSetClass,
-      final @NotNull MZmineModuleCategory moduleCategory, final @NotNull String description) {
+  public CompareModularCsvModule() {
     final String supported = String.join(", ", CSVExportModularModule.MODULE_NAME);
     super("Compare mzmine CSV output", CompareModularCsvParameters.class,
         MZmineModuleCategory.TOOLS, """
             Compares two csv files exported from mzmine. Supported files are from those modules:
-            %s""");
+            %s""".formatted(supported));
   }
 
   @Override
