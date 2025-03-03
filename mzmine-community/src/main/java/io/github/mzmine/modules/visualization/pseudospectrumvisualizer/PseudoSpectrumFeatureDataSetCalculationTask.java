@@ -105,6 +105,12 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
 
     // use scans from feature list
     List<Scan> scans = selection.streamMatchingScans(dataFile).<Scan>mapMulti((scan, c) -> {
+      // MS1 like GC-EI-MS
+      if (scan.getMSLevel() == 1) {
+        c.accept(scan);
+      }
+
+      // SWATH / DIA PASEF etc
       switch (scan) {
         case Frame frame -> {
           frame.getImsMsMsInfos().stream().map(IsolationWindow::new)
