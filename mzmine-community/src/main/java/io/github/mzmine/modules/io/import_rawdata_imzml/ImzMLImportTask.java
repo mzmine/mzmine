@@ -42,6 +42,8 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
@@ -51,6 +53,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -73,7 +76,7 @@ import org.jetbrains.annotations.Nullable;
  * This class reads mzML 1.0 and 1.1.0 files (http://www.psidev.info/index.php?q=node/257) using the
  * jmzml library (http://code.google.com/p/jmzml/).
  */
-public class ImzMLImportTask extends AbstractTask {
+public class ImzMLImportTask extends AbstractTask implements RawDataImportTask {
 
   private static final Logger logger = Logger.getLogger(ImzMLImportTask.class.getName());
 
@@ -101,14 +104,14 @@ public class ImzMLImportTask extends AbstractTask {
 
   public ImzMLImportTask(MZmineProject project, File fileToOpen,
       final @NotNull ScanImportProcessorConfig scanProcessorConfig,
-      ImagingRawDataFile newMZmineFile, @NotNull final Class<? extends MZmineModule> module,
-      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate,
-      final @Nullable MemoryMapStorage storage) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate, final @Nullable MemoryMapStorage storage) {
     super(storage, moduleCallDate); // storage also set in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.scanProcessorConfig = scanProcessorConfig;
-    this.newMZmineFile = newMZmineFile;
+    this.newMZmineFile = new ImagingRawDataFileImpl(file.getName(), file.getAbsolutePath(),
+        getMemoryMapStorage());
     this.parameters = parameters;
     this.module = module;
   }
@@ -469,4 +472,8 @@ public class ImzMLImportTask extends AbstractTask {
     return cvParams == null;
   }
 
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  }
 }

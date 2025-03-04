@@ -122,8 +122,12 @@ public class TICDataSet extends AbstractTaskXYZDataset {
 
     this.plotType = plotType;
 
+    // this will call to many update events if many datasets are added
     // Start-up the refresh task.
-    MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
+//    MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
+
+    // directly calculate data
+    calculateValues();
   }
 
   /**
@@ -151,8 +155,12 @@ public class TICDataSet extends AbstractTaskXYZDataset {
 
     this.plotType = TICPlotType.TIC;
 
+    // this will call to many update events if many datasets are added
     // Start-up the refresh task.
-    MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
+//    MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
+
+    // directly calculate data
+    calculateValues();
   }
 
   public TICDataSet(RawDataFile newFile, Scan[] scans, Range<Double> mzRange,

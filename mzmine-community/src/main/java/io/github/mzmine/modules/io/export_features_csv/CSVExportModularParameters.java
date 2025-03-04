@@ -58,7 +58,7 @@ public class CSVExportModularParameters extends SimpleParameterSet {
                   + "Use pattern \"{}\" in the file name to substitute with feature list name. "
                   + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
                   + "If the file already exists, it will be overwritten.", extensions,
-      "quant_modular");
+      "full_feature_table");
 
 
   public CSVExportModularParameters() {

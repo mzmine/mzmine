@@ -93,8 +93,7 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
 
         LipidDatabaseCalculator lipidDatabaseCalculator = new LipidDatabaseCalculator(parameters,
             selectedLipids);
-        FXMLLoader loader = new FXMLLoader(
-            (getClass().getResource("../annotation_modules/LipidDatabaseTable.fxml")));
+        FXMLLoader loader = new FXMLLoader((getClass().getResource("LipidDatabaseTable.fxml")));
         try {
           BorderPane root = loader.load();
           LipidDatabaseTab tab = new LipidDatabaseTab("Lipid database");

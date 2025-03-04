@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,19 +27,17 @@ package import_data.speed;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Range;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -60,7 +58,8 @@ import testutils.TaskResult.FINISHED;
 public class ImportSpeedTestMain {
 
   static final List<String> thermo = List.of("rawdatafiles/additional/astral.raw");
-  static final List<String> gc = List.of("D:\\Data\\convert_test\\speedtest\\gc_orbi_profle\\64_zlib_lin_int\\gc_orbi_profile_a.mzML");
+  static final List<String> gc = List.of(
+      "D:\\Data\\convert_test\\speedtest\\gc_orbi_profle\\64_zlib_lin_int\\gc_orbi_profile_a.mzML");
   static final List<String> dom = List.of("""
       rawdatafiles/DOM_a.mzML
       rawdatafiles/DOM_a_invalid_chars.mzML
@@ -78,7 +77,6 @@ public class ImportSpeedTestMain {
 
     try {
       var description = "mzml parser, advanced, RT filter 5min";
-
 
       for (int i = 0; i < 3; i++) {
         testImportSpeed("Robin, Import, Astral", description, gc, speedTestFile);
@@ -107,7 +105,9 @@ public class ImportSpeedTestMain {
     TaskResult finished = importFiles(files, 5 * 60, advanced);
 
     if (finished instanceof FINISHED f) {
-      var sm = new SpeedMeasurement(name, null, description, files.size(), f.getSeconds());
+      System.gc(); // better memory tracking
+      var sm = new SpeedMeasurement(name, null, description, files.size(), f.getSeconds(),
+          "%.2f".formatted(ConfigService.getConfiguration().getUsedMemoryGB()));
       appendToFile(speedTestFile, sm);
     }
 

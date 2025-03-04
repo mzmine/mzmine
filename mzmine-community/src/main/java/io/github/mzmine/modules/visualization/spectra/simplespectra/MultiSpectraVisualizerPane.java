@@ -270,7 +270,7 @@ public class MultiSpectraVisualizerPane extends BorderPane {
         mzRange, // mz range
         null,
         // new Feature[] {peak}, // selected features
-        labelsMap); // labels
+        labelsMap, null); // labels
 
     // get EIC Plot
     TICPlot ticPlot = window.getTICPlot();

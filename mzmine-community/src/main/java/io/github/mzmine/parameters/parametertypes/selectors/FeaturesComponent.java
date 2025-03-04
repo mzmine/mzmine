@@ -98,7 +98,7 @@ public class FeaturesComponent extends HBox {
         if (featureList == null) {
           return;
         }
-        dataFilesCombo.setItems(featureList.getRawDataFiles());
+        dataFilesCombo.setItems(FXCollections.observableList(featureList.getRawDataFiles()));
         dataFilesCombo.getSelectionModel().selectFirst();
       });
       dataFilesCombo.setOnAction(e3 -> {

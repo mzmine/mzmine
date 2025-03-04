@@ -370,4 +370,8 @@ public interface Feature {
     final Scan representativeScan = getRepresentativeScan();
     return representativeScan == null ? null : representativeScan.getPolarity();
   }
+
+  default boolean hasMs2Fragmentation() {
+    return !getAllMS2FragmentScans().isEmpty();
+  }
 }

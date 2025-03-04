@@ -27,12 +27,12 @@ jobs:
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
       - name: Publish mzmine packages
-        run: ./gradlew publish
+        run: ./gradlew publish -Pmziorepo=true
         env:
           PUBLISH_PACKAGE_USERNAME: ${{ secrets.PUBLISH_PACKAGE_USERNAME }}
           PUBLISH_PACKAGE_TOKEN: ${{ secrets.PUBLISH_PACKAGE_TOKEN }}
       - name: Publish convention plugins
-        run: ./gradlew convention-plugins:java-convention:publish
+        run: ./gradlew convention-plugins:java-convention:publish -Pmziorepo=true
         env:
           PUBLISH_PACKAGE_USERNAME: ${{ secrets.PUBLISH_PACKAGE_USERNAME }}
           PUBLISH_PACKAGE_TOKEN: ${{ secrets.PUBLISH_PACKAGE_TOKEN }}

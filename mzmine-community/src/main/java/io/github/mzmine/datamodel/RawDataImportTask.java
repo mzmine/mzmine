@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,27 +22,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.io;
+package io.github.mzmine.datamodel;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import io.github.mzmine.taskcontrol.Task;
+import org.jetbrains.annotations.Nullable;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
-import java.time.Duration;
-import java.util.List;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
-class CsvWriterTest {
+public interface RawDataImportTask extends Task {
 
-  @Test
-  void writeToString() throws JsonProcessingException {
-    List<StepTimeMeasurement> steps = List.of( //
-        new StepTimeMeasurement(0, "test", Duration.ofSeconds(5), false), //
-        new StepTimeMeasurement(1, "test2", Duration.ofSeconds(2), false) //
-    );
-    String csv = CsvWriter.writeToString(steps, StepTimeMeasurement.class, '\t', true);
-    Assertions.assertNotNull(csv);
-    assertTrue(csv.length() > 10);
-  }
+  /**
+   * @return The imported file or null. Will be null unless this task is finished.
+   */
+  @Nullable RawDataFile getImportedRawDataFile();
 }

@@ -111,7 +111,9 @@ public class MZTolerance {
   }
 
   public boolean checkWithinTolerance(final double mz1, final double mz2) {
-    return getToleranceRange(mz1).contains(mz2);
+    final double dist = Math.abs(mz1 - mz2);
+    // absolute then relative tolerance check
+    return dist <= mzTolerance || dist <= mz1 / MILLION * ppmTolerance;
   }
 
   @Override
@@ -129,15 +131,15 @@ public class MZTolerance {
     }
     MZTolerance that = (MZTolerance) o;
     return Double.compare(that.getMzTolerance(), getMzTolerance()) == 0
-        && Double.compare(that.getPpmTolerance(), getPpmTolerance()) == 0;
+           && Double.compare(that.getPpmTolerance(), getPpmTolerance()) == 0;
   }
 
-  public static MZTolerance [] getDefaultResolutions (){
-    MZTolerance [] mzTol= new MZTolerance [4];
-    mzTol[0] = new MZTolerance(0.00025,0);
-    mzTol[1] = new MZTolerance(0.001,0);
-    mzTol[2] = new MZTolerance(0.01,0);
-    mzTol[3] = new MZTolerance(0.1,0);
+  public static MZTolerance[] getDefaultResolutions() {
+    MZTolerance[] mzTol = new MZTolerance[4];
+    mzTol[0] = new MZTolerance(0.00025, 0);
+    mzTol[1] = new MZTolerance(0.001, 0);
+    mzTol[2] = new MZTolerance(0.01, 0);
+    mzTol[3] = new MZTolerance(0.1, 0);
     return mzTol;
   }
 

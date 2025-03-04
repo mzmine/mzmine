@@ -39,8 +39,12 @@ import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.fx.ChartCanvas;
 import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.CombinedDomainCategoryPlot;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeCategoryPlot;
 import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.plot.Zoomable;
@@ -76,7 +80,7 @@ public class ChartLogicsFX {
    * @param myChart
    * @param mouseX
    * @param mouseY
-   * @return Range as chart coordinates (never null)
+   * @return Range as chart coordinates
    */
   public static Point2D mouseXYToPlotXY(ChartViewer myChart, int mouseX, int mouseY) {
     XYPlot plot = null;
@@ -90,6 +94,10 @@ public class ChartLogicsFX {
     }
 
     ChartRenderingInfo info = myChart.getRenderingInfo();
+    if (info == null) {
+      return null; // this should not happen if there is actually a mouse event on the chart. musst be renedered first.
+    }
+
     int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
     if (subplot != -1) {
@@ -501,7 +509,8 @@ public class ChartLogicsFX {
     if (plot instanceof Zoomable) {
       Zoomable z = plot;
       Point2D endPoint = new Point2D.Double(0, 0);
-      PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
+      // nullable but ok here
+      PlotRenderingInfo pri = getPlotRenderingInfo(myChart);
       boolean saved = plot.isNotify();
       plot.setNotify(false);
       z.zoomDomainAxes(0, pri, endPoint);
@@ -597,6 +606,82 @@ public class ChartLogicsFX {
       chart.getXYPlot().getRangeAxis().setLowerMargin(margin);
     } catch (Exception ex) {
       // ignore as it only fails for combined plots or non XY plots
+    }
+  }
+
+  /**
+   * Set all axis of this chart to auto range or not when data is added. Auto range on axis is very
+   * slow if many datasets are added
+   *
+   * @param state auto range on of off
+   */
+  public static void setAutoRangeAxis(final JFreeChart chart, final boolean state) {
+    setAutoRangeAxis(chart.getPlot(), state);
+  }
+
+  public static void setAutoRangeAxis(final Plot plot, final boolean state) {
+    switch (plot) {
+      case CombinedDomainXYPlot cp -> {
+        for (final Object sub : cp.getSubplots()) {
+          if (sub instanceof Plot p) {
+            setAutoRangeAxis(p, state);
+          }
+        }
+        for (int i = 0; i < cp.getRangeAxisCount(); i++) {
+          cp.getRangeAxis(i).setAutoRange(state);
+        }
+        for (int i = 0; i < cp.getDomainAxisCount(); i++) {
+          cp.getDomainAxis(i).setAutoRange(state);
+        }
+      }
+      case CombinedRangeXYPlot cp -> {
+        for (final Object sub : cp.getSubplots()) {
+          if (sub instanceof Plot p) {
+            setAutoRangeAxis(p, state);
+          }
+        }
+        for (int i = 0; i < cp.getRangeAxisCount(); i++) {
+          cp.getRangeAxis(i).setAutoRange(state);
+        }
+        for (int i = 0; i < cp.getDomainAxisCount(); i++) {
+          cp.getDomainAxis(i).setAutoRange(state);
+        }
+      }
+      case CombinedRangeCategoryPlot cp -> {
+        for (final Object sub : cp.getSubplots()) {
+          if (sub instanceof Plot p) {
+            setAutoRangeAxis(p, state);
+          }
+        }
+        for (int i = 0; i < cp.getRangeAxisCount(); i++) {
+          cp.getRangeAxis(i).setAutoRange(state);
+        }
+      }
+      case CombinedDomainCategoryPlot cp -> {
+        for (final Object sub : cp.getSubplots()) {
+          if (sub instanceof Plot p) {
+            setAutoRangeAxis(p, state);
+          }
+        }
+        for (int i = 0; i < cp.getRangeAxisCount(); i++) {
+          cp.getRangeAxis(i).setAutoRange(state);
+        }
+      }
+      case XYPlot p -> {
+        for (int i = 0; i < p.getRangeAxisCount(); i++) {
+          p.getRangeAxis(i).setAutoRange(state);
+        }
+        for (int i = 0; i < p.getDomainAxisCount(); i++) {
+          p.getDomainAxis(i).setAutoRange(state);
+        }
+      }
+      case CategoryPlot p -> {
+        for (int i = 0; i < p.getRangeAxisCount(); i++) {
+          p.getRangeAxis(i).setAutoRange(state);
+        }
+      }
+      case null, default -> {
+      }
     }
   }
 }

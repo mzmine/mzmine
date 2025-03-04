@@ -198,9 +198,9 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
 
   @Override
   public Stream<ModularFeature> streamFeatures() {
-    return this.getFeatures().stream().map(ModularFeature.class::cast).filter(Objects::nonNull);
+    return features.values().stream()
+        .filter(f -> f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN);
   }
-
 
   // Helper methods
   @Override
@@ -218,8 +218,7 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
     // TODO remove features object - not always do we have features
     // FeaturesType creates an empty ListProperty for that
     // return FXCollections.observableArrayList(get(FeaturesType.class).values());
-    return features.values().stream().filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN)
-        .toList();
+    return streamFeatures().toList();
   }
 
   @Override
@@ -231,7 +230,7 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-                                         + "row. Create feature with the correct feature list as an argument.");
+          + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -265,8 +264,22 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
   }
 
   @Override
-  public void removeFeature(RawDataFile file) {
-    this.features.remove(file);
+  public void removeFeature(RawDataFile file, boolean updateByRowBindings) {
+    final ModularFeature removed = this.features.remove(file);
+    if (removed != null) {
+      // reflect changes by updating all row bindings
+      getFeatureList().fireFeatureChangedEvent(this, null, null, updateByRowBindings);
+    }
+  }
+
+  @Override
+  public void clearFeatures(final boolean updateByRowBindings) {
+    final  boolean changed = !features.isEmpty();
+    this.features.clear();
+    if (changed) {
+      // reflect changes by updating all row bindings
+      getFeatureList().fireFeatureChangedEvent(this, null, null, updateByRowBindings);
+    }
   }
 
   @Override
@@ -317,8 +330,12 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
     return get(AreaType.class);
   }
 
+  /**
+   *
+   * @return unmodifiable list of all raw data files - even if there is no feature
+   */
   @Override
-  public ObservableList<RawDataFile> getRawDataFiles() {
+  public List<RawDataFile> getRawDataFiles() {
     return flist.getRawDataFiles();
   }
 
@@ -656,7 +673,7 @@ public class ModularFeatureListRow extends ModularDataModelArray implements Feat
   @Override
   public IsotopePattern getBestIsotopePattern() {
     return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight))
         .map(ModularFeature::getIsotopePattern).orElse(null);
   }
