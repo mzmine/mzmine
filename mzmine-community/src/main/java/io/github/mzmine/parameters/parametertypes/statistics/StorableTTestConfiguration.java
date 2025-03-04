@@ -57,29 +57,28 @@ public record StorableTTestConfiguration(@NotNull TTestSamplingConfig samplingCo
     final T b = col.convertOrElse(groupB, null);
 
     if (a == null || b == null) {
-      logger.warning(
-          () -> STR."Could not convert metadata value \{a} or \{b} to values of required type \{col.getType()
-              .name()}");
+      logger.warning(() -> "Could not convert metadata value " + a + " or " + b
+          + " to values of required type " + col.getType().name());
       return null;
     }
 
     if (!distinctColumnValues.contains(a)) {
-      logger.warning(
-          () -> STR."Metadata column \{col.getTitle()} does not contain value \{a}. (available: \{distinctColumnValues.stream()
-              .map(Object::toString).collect(Collectors.joining(","))}");
+      logger.warning(() -> "Metadata column " + col.getTitle() + " does not contain value " + a
+          + ". (available: " + distinctColumnValues.stream().map(Object::toString)
+          .collect(Collectors.joining(",")));
       return null;
     }
 
     if (!distinctColumnValues.contains(b)) {
-      logger.warning(
-          () -> STR."Metadata column \{col.getTitle()} does not contain value \{b}. (available: \{distinctColumnValues.stream()
-              .map(Object::toString).collect(Collectors.joining(","))}");
+      logger.warning(() -> "Metadata column " + col.getTitle() + " does not contain value " + b
+          + ". (available: " + distinctColumnValues.stream().map(Object::toString)
+          .collect(Collectors.joining(",")));
       return null;
     }
 
     if (a.equals(b)) {
       logger.warning(
-          () -> STR."Same grouping parameter selected for both groups of the t-Test. (\{a})");
+          () -> "Same grouping parameter selected for both groups of the t-Test. (" + a + ")");
     }
 
     return new StudentTTest<>(samplingConfig, col, a, b);

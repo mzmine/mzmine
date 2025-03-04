@@ -104,11 +104,11 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
         }
       }
 
-      logger.info(
-          STR."Extracted \{extractedData.size()} standard molecules from \{lines.size()} rows");
+      logger.info("Extracted " + extractedData.size() + " standard molecules from " + lines.size()
+          + " rows");
       if (extractedData.size() < lines.size()) {
-        logger.warning(STR."Skipped \{lines.size()
-            - extractedData.size()} rows when reading standards list in csv file \{filename}");
+        logger.warning("Skipped " + (lines.size() - extractedData.size())
+            + " rows when reading standards list in csv file " + filename);
       }
       return new StandardsList(extractedData);
     }

@@ -77,7 +77,7 @@ public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
     // make sure we have a root signal
     SignalWithFormulae root = generateRootSignal(newFormula, ms2);
     final FragmentGraphGenerator graphGenerator = new FragmentGraphGenerator(
-        STR."Fragment graph for \{MolecularFormulaManipulator.getString(newFormula)}",
+        "Fragment graph for " + MolecularFormulaManipulator.getString(newFormula),
         peaksWithFormulae, root);
     graph = graphGenerator.getGraph();
 
@@ -117,8 +117,8 @@ public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
 
   @Override
   public String getTaskDescription() {
-    return STR."Calculating fragment graph for \{model.getPrecursorFormula() != null
-        ? MolecularFormulaManipulator.getString(model.getPrecursorFormula()) : ""}";
+    return "Calculating fragment graph for " + (model.getPrecursorFormula() != null
+        ? MolecularFormulaManipulator.getString(model.getPrecursorFormula()) : "");
   }
 
   @Override

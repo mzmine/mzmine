@@ -233,12 +233,12 @@ public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTas
 
       if (totalScansAfterFilter == 0 && newMZmineFile.getOtherDataFiles().isEmpty()) {
         var activeFilter = scanProcessorConfig.scanFilter().isActiveFilter();
-        String filter = activeFilter ? STR."""
-            \nScan filters were active in import and filtered out \{getTotalScansInMzML()} scans, either deactivate the filters or remove this file from the import list"""
-            : "Scan filters were off.";
+        String filter = activeFilter ? """
+            Scan filters were active in import and filtered out %d scans,
+            either deactivate the filters or remove this file from the import list""".formatted(
+            getTotalScansInMzML()) : "Scan filters were off.";
 
-        String msg = STR."""
-            \{file.getName()} had 0 scans after import. \{filter}""";
+        String msg = "%s had 0 scans after import. %s".formatted(file.getName(), filter);
         DialogLoggerUtil.showMessageDialogForTime("Empty file", msg);
       }
 
@@ -405,7 +405,7 @@ public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTas
 //          new BuildingMobilityScan(mobilityScanNumberCounter, MassDetector.EMPTY_DATA));
       storageOffsets[mobilityScanNumberCounter] = storageOffsets[mobilityScanNumberCounter - 1];
       basePeakIndices[mobilityScanNumberCounter] = -1;
-      if(!buildingImsMsMsInfos.isEmpty()) {
+      if (!buildingImsMsMsInfos.isEmpty()) {
         buildingImsMsMsInfos.getLast().setLastSpectrumNumber(mobilityScanNumberCounter);
       }
     }

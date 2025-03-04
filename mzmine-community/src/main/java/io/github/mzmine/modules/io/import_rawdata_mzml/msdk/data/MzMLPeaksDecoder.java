@@ -255,7 +255,7 @@ public class MzMLPeaksDecoder {
         data = decompressIfNumpress(binaryDataInfo, data, bytes);
         return data;
       } catch (MSDKException e) {
-        logger.warning(STR."Could not decompress numpress \{binaryDataInfo.getCompressionType()}");
+        logger.warning("Could not decompress numpress " + binaryDataInfo.getCompressionType());
       }
     }
 
