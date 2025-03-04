@@ -176,8 +176,8 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     putIfNotNull(MolecularStructureType.class, structure);
     putIfNotNull(SmilesStructureType.class, structure.canonicalSmiles());
     putIfNotNull(SmilesIsomericStructureType.class, structure.isomericSmiles());
-    putIfNotNull(InChIKeyStructureType.class, structure.inchi());
-    putIfNotNull(InChIStructureType.class, structure.inchiKey());
+    putIfNotNull(InChIKeyStructureType.class, structure.inchiKey());
+    putIfNotNull(InChIStructureType.class, structure.inchi());
     putIfNotNull(FormulaType.class, structure.formulaString());
     putIfNotNull(NeutralMassType.class, structure.monoIsotopicMass());
   }

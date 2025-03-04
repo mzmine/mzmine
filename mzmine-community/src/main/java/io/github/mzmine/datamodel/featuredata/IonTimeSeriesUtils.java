@@ -174,7 +174,7 @@ public class IonTimeSeriesUtils {
    * @see IonTimeSeriesUtils#extractIonTimeSeries(ScanDataAccess, Range, Range, MemoryMapStorage)
    */
   public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
-      @NotNull List<Scan> scans, @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
+      @NotNull List<? extends Scan> scans, @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
       @Nullable MemoryMapStorage storage) {
     final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST, scans);
     return extractIonTimeSeries(access, mzRange, rtRange, storage);

@@ -446,6 +446,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
       List<SpectralDBAnnotation> ids = null;
       // match against all library entries
       for (SpectralLibraryEntry ident : entries) {
+        if (isCanceled()) {
+          return 0;
+        }
 
         final String entryPolarity = ident.getOrElse(DBEntryField.POLARITY, null);
 

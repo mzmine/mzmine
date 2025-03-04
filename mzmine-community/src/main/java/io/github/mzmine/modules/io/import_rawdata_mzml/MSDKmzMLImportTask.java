@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
@@ -97,7 +98,7 @@ import org.jetbrains.annotations.Nullable;
  * href="http://code.google.com/p/jmzml/">http://code.google.com/p/jmzml/</a>).
  */
 @SuppressWarnings("UnstableApiUsage")
-public class MSDKmzMLImportTask extends AbstractTask {
+public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTask {
 
   public static final Pattern watersPattern = Pattern.compile(
       "function=([1-9]+) process=([0-9]+) scan=([0-9]+)");
@@ -115,6 +116,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private String description;
 
   private MzMLParser parser;
+  private RawDataFileImpl newMZmineFile;
 
   /**
    * Create for file
@@ -208,7 +210,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
       final boolean isIms = !msdkTaskRes.getMobilityScanData().isEmpty();
 
-      final RawDataFileImpl newMZmineFile;
       if (isIms) {
         totalScansAfterFilter = msdkTaskRes.getMobilityScanData().size();
         newMZmineFile = buildIonMobilityFile(msdkTaskRes);
@@ -625,5 +626,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
   public File getMzMLFile() {
     return file;
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
   }
 }
