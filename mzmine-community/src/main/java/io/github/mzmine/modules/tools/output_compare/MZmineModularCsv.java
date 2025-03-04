@@ -3,10 +3,7 @@ package io.github.mzmine.modules.tools.output_compare;
 import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.util.CSVParsingUtils;
-import io.github.mzmine.util.StringUtils;
-import io.github.mzmine.util.maths.Precision;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -139,139 +136,15 @@ public record MZmineModularCsv(Map<Column, ColumnData> data, int numRows) {
   }
 
 
-  interface ColumnData<T> {
-
-    static ColumnData create(Column col, List<String> data) {
-      if (col.type() instanceof NumberType<?> numberType) {
-        return new NumberColumnData(col,
-            data.stream().map(s -> StringUtils.parseDoubleOrElse(s, null)).toList());
-      }
-      return new StringColumnData(col, data);
-    }
-
-
-    boolean checkEqual(final ColumnData other, List<String> messages);
-
-    Column col();
-
-    List<T> data();
-
-    default int numRows() {
-      return data().size();
-    }
-
-    // implementation
-    record StringColumnData(Column col, List<String> data) implements ColumnData<String> {
-
-      @Override
-      public boolean checkEqual(final ColumnData obj, List<String> messages) {
-        final String colID = "header: %s, type: %s;".formatted(col.header,
-            col.type != null ? col.type.getClass().getSimpleName() : "null");
-        if (!(obj instanceof StringColumnData other)) {
-          if (messages != null) {
-            messages.add(
-                colID + " Column type does not equal. This was String and other was Number.");
-          }
-          return false;
-        }
-
-        // max rows
-        int numRows = Math.max(numRows(), obj.numRows());
-
-        for (int row = 0; row < numRows; row++) {
-          // get value is safe for out of index --> null
-          final String a = getValue(row);
-          final String b = other.getValue(row);
-          if (a == null && b == null) {
-            continue;
-          } else if (a == null) {
-            if (messages != null) {
-              messages.add(
-                  "%s Number value does not equal: first was null, second was %s".formatted(colID,
-                      b));
-            }
-            return false;
-          } else if (b == null) {
-            if (messages != null) {
-              messages.add(
-                  "%s Number value does not equal: first was %s, second was null".formatted(colID,
-                      b));
-            }
-            return false;
-          }
-
-          if (!Objects.equals(a, b)) {
-            if (messages != null) {
-              messages.add("%s String value does not equal: %s to %s".formatted(colID, a, b));
-            }
-            return false;
-          }
-        }
-        return true;
-      }
-    }
-
-
-    default T getValue(int row) {
-      if (row < 0 || row >= numRows()) {
-        return null;
-      }
-      return data().get(row);
-    }
-
-    record NumberColumnData(Column col, List<Double> data) implements ColumnData<Double> {
-
-      @Override
-      public boolean checkEqual(final ColumnData obj, List<String> messages) {
-        final String colID = "header: %s, type: %s; ".formatted(col.header,
-            col.type != null ? col.type.getClass().getSimpleName() : "null");
-        if (!(obj instanceof NumberColumnData other)) {
-          if (messages != null) {
-            messages.add(
-                colID + " Column type does not equal. This was Number and other was String.");
-          }
-          return false;
-        }
-
-        // max rows
-        int numRows = Math.max(numRows(), obj.numRows());
-
-        for (int row = 0; row < numRows; row++) {
-          // get value is safe for out of index --> null
-          final Double a = getValue(row);
-          final Double b = other.getValue(row);
-          if (a == null && b == null) {
-            continue;
-          } else if (a == null) {
-            if (messages != null) {
-              messages.add(
-                  "%s Number value does not equal: first was null, second was %f".formatted(colID,
-                      b));
-            }
-            return false;
-          } else if (b == null) {
-            if (messages != null) {
-              messages.add(
-                  "%s Number value does not equal: first was %f, second was null".formatted(colID,
-                      b));
-            }
-            return false;
-          }
-
-          if (!Precision.equalDoubleSignificance(a, b)) {
-            if (messages != null) {
-              messages.add("%s Number value does not equal: %f to %f".formatted(colID, a, b));
-            }
-            return false;
-          }
-        }
-        return true;
-      }
-    }
-
-  }
-
-  record Column(String header, String uniqueTypeId, @Nullable DataType type,
+  /**
+   * Column can act as a key in a map to map the data
+   *
+   * @param header       as in file
+   * @param uniqueTypeId the first type ID
+   * @param type         the first type
+   * @param rawFile      a datafile if this is a feature type
+   */
+  record Column(@NotNull String header, @NotNull String uniqueTypeId, @Nullable DataType type,
                 @Nullable String rawFile) {
 
     public static Column forFeatureType(final String header, final String uniqueTypeId,
@@ -281,6 +154,18 @@ public record MZmineModularCsv(Map<Column, ColumnData> data, int numRows) {
 
     public static Column forRowType(final String header, final String uniqueTypeId) {
       return new Column(header, uniqueTypeId, DataTypes.getTypeForId(uniqueTypeId), null);
+    }
+
+    boolean isFeatureType() {
+      return rawFile != null;
+    }
+
+    boolean isRowType() {
+      return rawFile == null;
+    }
+
+    @NotNull String getTypeClassName() {
+      return type == null ? "null" : type.getClass().getSimpleName();
     }
   }
 }
