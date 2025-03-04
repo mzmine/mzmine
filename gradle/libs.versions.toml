@@ -1,6 +1,6 @@
 [versions]
-jdk = { strictly = "22" }
-javafx = { strictly = "22.0.1" }
+jdk = { strictly = "23" }
+javafx = { strictly = "23.0.2" }
 javafx-plugin = "0.1.0"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
