@@ -48,23 +48,26 @@ public class AlignmenScoreMemorySegmentColumn extends AbstractMemorySegmentColum
       , JAVA_FLOAT.withName("weightedDistanceScore") //
       , JAVA_FLOAT.withName("mzPpmDelta") //
       , JAVA_FLOAT.withName("maxRtDelta") //
-      , JAVA_FLOAT.withName("maxMobilityDelta") //
+      , JAVA_FLOAT.withName("maxMobilityDelta"), //
+      // add padding to avoid unaligned memory (uneven number of int/floats)
+      MemoryLayout.paddingLayout(4) //
   );
 
-  private static final VarHandle rateHandle = LAYOUT.varHandle(PathElement.groupElement("rate"));
-  private static final VarHandle alignedFeaturesHandle = LAYOUT.varHandle(
+  private static final VarHandle rateHandle = LAYOUT.arrayElementVarHandle(
+      PathElement.groupElement("rate"));
+  private static final VarHandle alignedFeaturesHandle = LAYOUT.arrayElementVarHandle(
       PathElement.groupElement("alignedFeatures"));
-  private static final VarHandle extraFeaturesHandle = LAYOUT.varHandle(
+  private static final VarHandle extraFeaturesHandle = LAYOUT.arrayElementVarHandle(
       PathElement.groupElement("extraFeatures"));
-  private static final VarHandle weightedDistanceScoreHandle = LAYOUT.varHandle(
+  private static final VarHandle weightedDistanceScoreHandle = LAYOUT.arrayElementVarHandle(
       PathElement.groupElement("weightedDistanceScore"));
-  private static final VarHandle mzPpmDeltaHandle = LAYOUT.varHandle(
+  private static final VarHandle mzPpmDeltaHandle = LAYOUT.arrayElementVarHandle(
       PathElement.groupElement("mzPpmDelta"));
-  private static final VarHandle maxMzDeltaHandle = LAYOUT.varHandle(
+  private static final VarHandle maxMzDeltaHandle = LAYOUT.arrayElementVarHandle(
       PathElement.groupElement("maxMzDelta"));
-  private static final VarHandle maxRtDeltaHandle = LAYOUT.varHandle(
+  private static final VarHandle maxRtDeltaHandle = LAYOUT.arrayElementVarHandle(
       PathElement.groupElement("maxRtDelta"));
-  private static final VarHandle maxMobilityDeltaHandle = LAYOUT.varHandle(
+  private static final VarHandle maxMobilityDeltaHandle = LAYOUT.arrayElementVarHandle(
       PathElement.groupElement("maxMobilityDelta"));
 
   public AlignmenScoreMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
@@ -78,41 +81,38 @@ public class AlignmenScoreMemorySegmentColumn extends AbstractMemorySegmentColum
 
   @Override
   public @Nullable AlignmentScores get(final int index) {
-    final long offset = LAYOUT.byteSize() * index;
-
-    float rate = (float) rateHandle.get(data, offset);
+    float rate = (float) rateHandle.get(data, 0L, index);
     if (Float.isNaN(rate)) {
       return null;
     }
 
     return new AlignmentScores( //
         rate, //
-        (int) alignedFeaturesHandle.get(data, offset), //
-        (int) extraFeaturesHandle.get(data, offset), //
-        (float) weightedDistanceScoreHandle.get(data, offset), //
-        (float) mzPpmDeltaHandle.get(data, offset), //
-        (double) maxMzDeltaHandle.get(data, offset), //
-        (float) maxRtDeltaHandle.get(data, offset), //
-        (float) maxMobilityDeltaHandle.get(data, offset) //
+        (int) alignedFeaturesHandle.get(data, 0L, index), //
+        (int) extraFeaturesHandle.get(data, 0L, index), //
+        (float) weightedDistanceScoreHandle.get(data, 0L, index), //
+        (float) mzPpmDeltaHandle.get(data, 0L, index), //
+        (double) maxMzDeltaHandle.get(data, 0L, index), //
+        (float) maxRtDeltaHandle.get(data, 0L, index), //
+        (float) maxMobilityDeltaHandle.get(data, 0L, index) //
     );
   }
 
   @Override
   public void set(final MemorySegment data, final int index, final AlignmentScores value) {
-    final long offset = LAYOUT.byteSize() * index;
     if (value == null) {
-      rateHandle.set(data, offset, Float.NaN);
+      rateHandle.set(data, 0L, index, Float.NaN);
       return;
     }
 
-    rateHandle.set(data, offset, value.rate());
-    mzPpmDeltaHandle.set(data, offset, value.mzPpmDelta());
-    alignedFeaturesHandle.set(data, offset, value.alignedFeatures());
-    extraFeaturesHandle.set(data, offset, value.extraFeatures());
-    weightedDistanceScoreHandle.set(data, offset, value.weightedDistanceScore());
-    maxMzDeltaHandle.set(data, offset, value.maxMzDelta());
-    maxRtDeltaHandle.set(data, offset, value.maxRtDelta());
-    maxMobilityDeltaHandle.set(data, offset, value.maxMobilityDelta());
+    rateHandle.set(data, 0L, index, value.rate());
+    mzPpmDeltaHandle.set(data, 0L, index, value.mzPpmDelta());
+    alignedFeaturesHandle.set(data, 0L, index, value.alignedFeatures());
+    extraFeaturesHandle.set(data, 0L, index, value.extraFeatures());
+    weightedDistanceScoreHandle.set(data, 0L, index, value.weightedDistanceScore());
+    maxMzDeltaHandle.set(data, 0L, index, value.maxMzDelta());
+    maxRtDeltaHandle.set(data, 0L, index, value.maxRtDelta());
+    maxMobilityDeltaHandle.set(data, 0L, index, value.maxMobilityDelta());
   }
 
 }
