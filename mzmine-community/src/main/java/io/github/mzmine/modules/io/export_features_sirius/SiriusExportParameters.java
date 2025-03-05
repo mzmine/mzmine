@@ -37,13 +37,12 @@
 
 package io.github.mzmine.modules.io.export_features_sirius;
 
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
-
-import io.github.mzmine.javafx.components.factories.ArticleReferences;
-import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
@@ -99,11 +98,12 @@ public class SiriusExportParameters extends SimpleParameterSet {
       new ExtensionFilter("mgf format for SIRIUS that contains MS1 and MS2 data", "*.mgf") //
   );
   public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
-      "Filename", STR."""
-      Name of the output MGF file. Use pattern "\{SiriusExportTask.MULTI_NAME_PATTERN}" in the file name
-      to substitute with feature list name. (i.e. "prefix_\{SiriusExportTask.MULTI_NAME_PATTERN}_suffix.mgf" would
-      become "prefix_SourceFeatureListName_suffix.mgf"). If the file already exists, it will be overwritten.""",
-      extensions, "sirius" // suffix
+      "Filename", """
+      Name of the output MGF file. Use pattern "%s" in the file name
+      to substitute with feature list name. (i.e. "prefix_%s_suffix.mgf" would
+      become "prefix_SourceFeatureListName_suffix.mgf"). If the file already exists, it will be overwritten.""".formatted(
+      SiriusExportTask.MULTI_NAME_PATTERN, SiriusExportTask.MULTI_NAME_PATTERN), extensions,
+      "sirius" // suffix
   );
 
 
@@ -143,8 +143,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
         FILENAME).getName().contains(SiriusExportTask.MULTI_NAME_PATTERN)) {
       errorMessages.add(
           "More than one feature list selected but \"" + SiriusExportTask.MULTI_NAME_PATTERN
-          + "\" pattern not found in name."
-          + "Please add the name pattern to create individual files.");
+              + "\" pattern not found in name."
+              + "Please add the name pattern to create individual files.");
       superCheck = false;
     }
 

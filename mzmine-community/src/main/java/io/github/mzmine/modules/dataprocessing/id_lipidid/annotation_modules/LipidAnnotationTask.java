@@ -234,7 +234,7 @@ public class LipidAnnotationTask extends AbstractTask {
   @NotNull
   private Set<PolarityType> getPolarityTypes() {
     Set<PolarityType> polarityTypes = new HashSet<>();
-    ObservableList<RawDataFile> rawDataFiles = featureList.getRawDataFiles();
+    List<RawDataFile> rawDataFiles = featureList.getRawDataFiles();
     for (RawDataFile raw : rawDataFiles) {
       List<PolarityType> dataPolarity = raw.getDataPolarity();
       polarityTypes.addAll(dataPolarity);

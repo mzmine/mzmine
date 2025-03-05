@@ -112,6 +112,8 @@ import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnota
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportParameters;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalParameters;
+import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
+import io.github.mzmine.modules.io.export_features_csv.CSVExportModularParameters;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitParameters;
@@ -388,9 +390,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       final boolean exportAnnotationGraphics, final MZTolerance mzTolScans) {
     if (isExportActive && exportPath != null) {
       makeAndAddProjectMetadataExport(q, exportPath);
-
+      makeAndAddCsvModularExportStep(q, exportPath);
       if (exportGnps) {
-        makeAndAddIimnGnpsExportStep(q, exportPath, mzTolScans);
+        makeAndAddIimnGnpsExportStep(q, exportPath, mzTolScans, "_iimn_gnps");
       }
       if (exportSirius) {
         makeAndAddSiriusExportStep(q, exportPath);
@@ -401,6 +403,24 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         makeAndAddAnnotationGraphicsExportStep(q, exportPath);
       }
     }
+  }
+
+  public static void makeAndAddCsvModularExportStep(final BatchQueue q, final File exportPath) {
+    final ParameterSet param = new CSVExportModularParameters().cloneParameterSet();
+
+    param.setParameter(CSVExportModularParameters.featureLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(CSVExportModularParameters.fieldSeparator, ",");
+    param.setParameter(CSVExportModularParameters.idSeparator, ";");
+    param.setParameter(CSVExportModularParameters.omitEmptyColumns, true);
+    param.setParameter(CSVExportModularParameters.filter, FeatureListRowsFilter.ALL);
+
+    File fileName = FileAndPathUtil.eraseFormat(exportPath);
+    fileName = new File(fileName.getParentFile(), fileName.getName() + "_full_feature_table.csv");
+    param.setParameter(CSVExportModularParameters.filename, fileName);
+
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CSVExportModularModule.class),
+        param));
   }
 
   public static void makeAndAddAnnotationGraphicsExportStep(final BatchQueue q,
@@ -443,11 +463,11 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   }
 
   protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath,
-      final MZTolerance mzTolScans) {
+      final MZTolerance mzTolScans, final String fileNameSuffix) {
     final ParameterSet param = new GnpsFbmnExportAndSubmitParameters().cloneParameterSet();
 
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
-    fileName = new File(fileName.getParentFile(), fileName.getName() + "_iimn_gnps");
+    fileName = new File(fileName.getParentFile(), fileName.getName() + fileNameSuffix);
 
     param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));

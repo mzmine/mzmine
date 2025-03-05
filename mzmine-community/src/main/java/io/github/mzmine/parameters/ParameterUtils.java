@@ -81,8 +81,8 @@ public class ParameterUtils {
     }
     if (nFlistParams > 1) {
       throw new IllegalStateException(
-          STR."There are too many (\{nFlistParams}) FeatureListsParameter in class \{parameters.getClass()
-              .getName()}. Can only have 1. Coding error.");
+          "There are too many (" + nFlistParams + ") FeatureListsParameter in class "
+              + parameters.getClass().getName() + ". Can only have 1. Coding error.");
     }
     // exactly one parameter for feature lists found
     return parameters.getValue(featureListParameters.getFirst()).getMatchingFeatureLists();
@@ -108,8 +108,8 @@ public class ParameterUtils {
     }
     if (nRawFiles > 1) {
       throw new IllegalStateException(
-          STR."There are too many (\{nRawFiles}) RawDataFilesParameter in class \{parameters.getClass()
-              .getName()}. Can only have 1. Coding error.");
+          "There are too many (" + nRawFiles + ") RawDataFilesParameter in class "
+              + parameters.getClass().getName() + ". Can only have 1. Coding error.");
     }
     // exactly one parameter for RawDataFiles found
     return parameters.getValue(rawFilesParameter.getFirst()).getMatchingRawDataFiles();

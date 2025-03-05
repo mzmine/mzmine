@@ -26,8 +26,9 @@
 package io.github.mzmine.util.spectraldb.parser;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.io.spectraldbsubmit.AdductParser;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
@@ -132,8 +133,9 @@ public class GnpsMgfParser extends SpectralDBTextParser {
 
                             Object value = field.convertValue(content);
 
-                            // name
-                            if (field.equals(DBEntryField.NAME)) {
+                            // only attempt parsing of adduct from name if there is no adduct already.
+                            if (field.equals(DBEntryField.NAME)
+                                && fields.get(DBEntryField.ION_TYPE) == null) {
                               String name = ((String) value);
                               int lastSpace = name.lastIndexOf(' ');
                               if (lastSpace != -1 && lastSpace < name.length() - 2) {
@@ -143,9 +145,9 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                                 // adduct parser
                                 // from export
                                 // use as adduct
-                                String adduct = AdductParser.parse(adductCandidate);
-                                if (adduct != null && !adduct.isEmpty()) {
-                                  fields.put(DBEntryField.ION_TYPE, adduct);
+                                IonType adduct = IonTypeParser.parse(adductCandidate);
+                                if (adduct != null && !adduct.isUndefinedAdduct()) {
+                                  fields.put(DBEntryField.ION_TYPE, adduct.toString(false));
                                 }
                               }
                             }
@@ -160,7 +162,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                           } catch (Exception e) {
                             logger.log(Level.WARNING,
                                 "Cannot convert value type of " + content + " to "
-                                + field.getObjectClass().toString(), e);
+                                    + field.getObjectClass().toString(), e);
                           }
                         }
                       }

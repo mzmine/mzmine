@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,7 +58,8 @@ import testutils.TaskResult.FINISHED;
 public class ImportSpeedTestMain {
 
   static final List<String> thermo = List.of("rawdatafiles/additional/astral.raw");
-  static final List<String> gc = List.of("D:\\Data\\convert_test\\speedtest\\gc_orbi_profle\\64_zlib_lin_int\\gc_orbi_profile_a.mzML");
+  static final List<String> gc = List.of(
+      "D:\\Data\\convert_test\\speedtest\\gc_orbi_profle\\64_zlib_lin_int\\gc_orbi_profile_a.mzML");
   static final List<String> dom = List.of("""
       rawdatafiles/DOM_a.mzML
       rawdatafiles/DOM_a_invalid_chars.mzML
@@ -76,7 +77,6 @@ public class ImportSpeedTestMain {
 
     try {
       var description = "mzml parser, advanced, RT filter 5min";
-
 
       for (int i = 0; i < 3; i++) {
         testImportSpeed("Robin, Import, Astral", description, gc, speedTestFile);
@@ -105,8 +105,9 @@ public class ImportSpeedTestMain {
     TaskResult finished = importFiles(files, 5 * 60, advanced);
 
     if (finished instanceof FINISHED f) {
+      System.gc(); // better memory tracking
       var sm = new SpeedMeasurement(name, null, description, files.size(), f.getSeconds(),
-          ConfigService.getConfiguration().getUsedMemoryGB());
+          "%.2f".formatted(ConfigService.getConfiguration().getUsedMemoryGB()));
       appendToFile(speedTestFile, sm);
     }
 

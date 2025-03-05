@@ -29,20 +29,21 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.spectraldbsubmit.AdductParser;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.exceptions.MissingMassListException;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.swing.IconUtil;
 import java.awt.Dimension;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -73,8 +74,8 @@ public class ScanSelectPanel extends BorderPane {
   static final Image iconTIC = FxIconUtil.loadImageFromResources("icons/btnTIC.png");
   static final Image iconTICFalse = FxIconUtil.loadImageFromResources("icons/btnTIC_grey.png");
   static final Image iconSignals = FxIconUtil.loadImageFromResources("icons/btnSignals.png");
-  static final Image iconSignalsFalse =
-      FxIconUtil.loadImageFromResources("icons/btnSignals_grey.png");
+  static final Image iconSignalsFalse = FxIconUtil.loadImageFromResources(
+      "icons/btnSignals_grey.png");
   static final Image iconAccept = FxIconUtil.loadImageFromResources("icons/btnAccept.png");
   static final Image iconCross = FxIconUtil.loadImageFromResources("icons/btnCross.png");
   static final Image iconNext = FxIconUtil.loadImageFromResources("icons/btnNext.png");
@@ -283,8 +284,8 @@ public class ScanSelectPanel extends BorderPane {
     lbMassListError = new Label("ERROR with masslist selection: Wrong name or no masslist");
 //    lbMassListError.setFont(new Font("Tahoma", Font.BOLD, 13));
     lbMassListError.setAlignment(Pos.CENTER);
-    lbMassListError
-        .setTextFill(new Color(220 / (double) 255, 20 / (double) 255, 60 / (double) 255, 1d));
+    lbMassListError.setTextFill(
+        new Color(220 / (double) 255, 20 / (double) 255, 60 / (double) 255, 1d));
     lbMassListError.setVisible(false);
 //    add(lbMassListError, BorderLayout.NORTH);
     setTop(lbMassListError);
@@ -468,16 +469,13 @@ public class ScanSelectPanel extends BorderPane {
       if (row != null) {
         if (isFragmentScan) {
           // first entry is the best fragmentation scan
-          scans = ScanUtils.listAllFragmentScans(row, noiseLevel, minNumberOfSignals,
-              sort);
+          scans = ScanUtils.listAllFragmentScans(row, noiseLevel, minNumberOfSignals, sort);
         } else {
           // get most representative MS 1 scans of all features
-          scans =
-              ScanUtils.listAllMS1Scans(row, noiseLevel, minNumberOfSignals, sort);
+          scans = ScanUtils.listAllMS1Scans(row, noiseLevel, minNumberOfSignals, sort);
         }
       } else if (scansEntry != null) {
-        scans =
-            ScanUtils.listAllScans(scansEntry, noiseLevel, minNumberOfSignals, sort);
+        scans = ScanUtils.listAllScans(scansEntry, noiseLevel, minNumberOfSignals, sort);
       }
       selectedScanI = 0;
 
@@ -534,7 +532,7 @@ public class ScanSelectPanel extends BorderPane {
 //        spectrumPlot.setMinSize(400, 400);
         if (listener != null) {
           // chart has changed
-           listener.accept(spectrumPlot);
+          listener.accept(spectrumPlot);
         }
       }
       spectrumPlot.removeAllDataSets();
@@ -544,14 +542,14 @@ public class ScanSelectPanel extends BorderPane {
       spectrumPlot.addDataSet(data, FxColorUtil.fxColorToAWT(colorUsedData), false, true);
       if (showRemovedData) {
         // orange
-        DataPointsDataSet dataRemoved =
-            new DataPointsDataSet("Removed", getFilteredDataPointsRemoved());
+        DataPointsDataSet dataRemoved = new DataPointsDataSet("Removed",
+            getFilteredDataPointsRemoved());
         spectrumPlot.addDataSet(dataRemoved, FxColorUtil.fxColorToAWT(colorRemovedData), false,
             true);
       }
       spectrumPlot.getChart().getLegend().setVisible(showLegend);
       // spectrumPlot.setMaximumSize(new Dimension(chartSize.width, 10000));
-       spectrumPlot.setPrefSize(chartSize.width, chartSize.height);
+      spectrumPlot.setPrefSize(chartSize.width, chartSize.height);
       pnChart.setCenter(spectrumPlot);
 
       Scan scan = scans.get(selectedScanI);
@@ -560,8 +558,9 @@ public class ScanSelectPanel extends BorderPane {
       setValidSelection(true);
     } else {
       // add error label
-      Label error = new Label(MessageFormat
-          .format("NO MS2 SPECTRA: 0 of {0} match the minimum criteria", getTotalScans()));
+      Label error = new Label(
+          MessageFormat.format("NO MS2 SPECTRA: 0 of {0} match the minimum criteria",
+              getTotalScans()));
 //      error.setFont(new Font("Tahoma", Font.BOLD, 13));
       error.setAlignment(Pos.CENTER);
       pnChart.setCenter(error);
@@ -662,7 +661,8 @@ public class ScanSelectPanel extends BorderPane {
   public String getAdduct() {
     String adduct = txtAdduct.getText();
 
-    String formatted = AdductParser.parse(adduct);
+    String formatted = Objects.requireNonNullElse(((Object) IonTypeParser.parse(adduct)), "")
+        .toString();
     if (formatted.isEmpty()) {
       txtAdduct.setBorder(new Border(
           new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,

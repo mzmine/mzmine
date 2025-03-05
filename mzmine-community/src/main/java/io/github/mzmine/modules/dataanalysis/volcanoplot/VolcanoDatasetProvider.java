@@ -32,8 +32,8 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvide
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
-import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import java.awt.Color;
@@ -70,7 +70,7 @@ public class VolcanoDatasetProvider extends SimpleXYProvider implements
     final FeatureAnnotation bestAnnotation = FeatureUtils.getBestFeatureAnnotation(result.row());
     String name = result.row().toString();
     if (bestAnnotation != null) {
-      name += STR.", \{bestAnnotation.getCompoundName()}";
+      name += ", " + bestAnnotation.getCompoundName();
     }
     return String.format("""
         %s
