@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "mzmine-test-utils-1.0.0.jar",
           "url": "mzmine-test-utils-1.0.0.jar",
-          "size": 2670,
-          "sha512": "4847fb3ba9891ecb873bc5de565cd47aaed78fdafd1587984267d2cbcc5c0ef761d4f1c21c155c240b6ca92173548110dce8e5000339269f8ad05ba417aa02d5",
-          "sha256": "55f6fc268dbb7332a2e7890b2c33d62431386580c285e91cb5938603aa06251d",
-          "sha1": "d7c43b8114c0475c43b51db219f3cfbbe2a81af0",
-          "md5": "79c238a0bc7a14b808bc5620218b6533"
+          "size": 2669,
+          "sha512": "3bd57d7bcd385fa2a77cb1fa3ca8b78a55234d1ee723d5654f8bd2b8e2d04c387363e059cd40ff1866f6e1efb6ba619b444383ae6c759a0cfd26962409ee30d3",
+          "sha256": "763b774d510b5907e2c79f9c19bff9437cf8ba0e45d3b8976ed581e7c1fee0ce",
+          "sha1": "dad2c61626235a48d11836fe2fd92d605ceae7d6",
+          "md5": "aee9ebfe980268a39e18a7d1c94a9ff2"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -75,11 +75,11 @@
         {
           "name": "mzmine-test-utils-1.0.0.jar",
           "url": "mzmine-test-utils-1.0.0.jar",
-          "size": 2670,
-          "sha512": "4847fb3ba9891ecb873bc5de565cd47aaed78fdafd1587984267d2cbcc5c0ef761d4f1c21c155c240b6ca92173548110dce8e5000339269f8ad05ba417aa02d5",
-          "sha256": "55f6fc268dbb7332a2e7890b2c33d62431386580c285e91cb5938603aa06251d",
-          "sha1": "d7c43b8114c0475c43b51db219f3cfbbe2a81af0",
-          "md5": "79c238a0bc7a14b808bc5620218b6533"
+          "size": 2669,
+          "sha512": "3bd57d7bcd385fa2a77cb1fa3ca8b78a55234d1ee723d5654f8bd2b8e2d04c387363e059cd40ff1866f6e1efb6ba619b444383ae6c759a0cfd26962409ee30d3",
+          "sha256": "763b774d510b5907e2c79f9c19bff9437cf8ba0e45d3b8976ed581e7c1fee0ce",
+          "sha1": "dad2c61626235a48d11836fe2fd92d605ceae7d6",
+          "md5": "aee9ebfe980268a39e18a7d1c94a9ff2"
         }
       ]
     }

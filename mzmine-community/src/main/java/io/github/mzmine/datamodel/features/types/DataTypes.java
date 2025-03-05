@@ -146,8 +146,8 @@ public class DataTypes {
     final DataType<?> old = map.put(oldUniqueId, newType);
     if (old != null) {
       throw new IllegalStateException(
-          STR."FATAL: Multiple data types with unique ID \{oldUniqueId}\n\{newType.getClass()
-              .getName()}\n\{old.getClass().getName()}");
+          "FATAL: Multiple data types with unique ID %s\n%s\n%s".formatted(oldUniqueId,
+              newType.getClass().getName(), old.getClass().getName()));
     }
   }
 

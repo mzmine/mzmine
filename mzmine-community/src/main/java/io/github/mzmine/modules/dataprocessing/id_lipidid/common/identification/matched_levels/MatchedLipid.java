@@ -328,7 +328,7 @@ public class MatchedLipid implements FeatureAnnotation {
     try {
       return IonTypeParser.parse(getIonizationType().toString());
     } catch (Exception e) {
-      logger.fine(() -> STR."Error parsing ion type \{getIonizationType().toString()}");
+      logger.fine(() -> "Error parsing ion type " + getIonizationType().toString());
       return null;
     }
   }

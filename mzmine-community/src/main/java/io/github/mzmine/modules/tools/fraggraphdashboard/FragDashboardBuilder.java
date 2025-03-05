@@ -25,15 +25,14 @@
 
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import static io.github.mzmine.javafx.components.factories.FxButtons.createButton;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.javafx.components.util.FxTabs.newTab;
-
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -222,8 +221,8 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
     });
 
     final Button saveButton = createButton("Save formula to row",
-        STR."Saves the selected formula to the selected row. (\{model.getRow() != null
-            ? model.getRow().toString() : "none selected"})", saveToRowAction);
+        "Saves the selected formula to the selected row. (%s)".formatted(
+            model.getRow() != null ? model.getRow().toString() : "none selected"), saveToRowAction);
     saveButton.disableProperty()
         .bind(Bindings.createBooleanBinding(() -> model.getRow() == null, model.rowProperty()));
 

@@ -101,7 +101,7 @@ public class RegionExtractionTask extends AbstractTask {
     final ModularFeatureList flist = kendrickParameters.getValue(
         KendrickMassPlotParameters.featureList).getMatchingFeatureLists()[0];
 
-    final ModularFeatureList filtered = new ModularFeatureList(STR."\{flist.getName()} \{suffix}",
+    final ModularFeatureList filtered = new ModularFeatureList(flist.getName() + " " + suffix,
         flist.getMemoryMapStorage(), flist.getRawDataFiles().stream().toList());
     DataTypeUtils.copyTypes(flist, filtered, true, true);
     rows.forEach(filtered::addRow);
