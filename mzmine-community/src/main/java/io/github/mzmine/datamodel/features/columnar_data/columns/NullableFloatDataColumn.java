@@ -27,17 +27,25 @@ package io.github.mzmine.datamodel.features.columnar_data.columns;
 
 public non-sealed interface NullableFloatDataColumn extends DataColumn<Float> {
 
+  /**
+   * @param index row index
+   * @return the primitive double value or {@link #nullValue()} for null
+   */
   float getFloat(final int index);
 
+  /**
+   * @param index row index
+   * @param value the primitive value or {@link #nullValue()} for null
+   */
   float setFloat(final int index, final float value);
 
   default void clear(final int index) {
-    setFloat(index, Float.NaN);
+    setFloat(index, nullValue());
   }
 
   @Override
   default Float set(final int index, final Float value) {
-    return setFloat(index, value == null ? Float.NaN : value);
+    return setFloat(index, value == null ? nullValue() : value);
   }
 
   @Override
@@ -46,6 +54,16 @@ public non-sealed interface NullableFloatDataColumn extends DataColumn<Float> {
     return isNull(value) ? null : value;
   }
 
+  /**
+   * @return Float.NaN used as null representative
+   */
+  default float nullValue() {
+    return Float.NaN;
+  }
+
+  /**
+   * @return true if value represents null
+   */
   default boolean isNull(final float value) {
     return Float.isNaN(value);
   }

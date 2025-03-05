@@ -27,17 +27,25 @@ package io.github.mzmine.datamodel.features.columnar_data.columns;
 
 public non-sealed interface NullableDoubleDataColumn extends DataColumn<Double> {
 
+  /**
+   * @param index row index
+   * @return the primitive double value or {@link #nullValue()} for null
+   */
   double getDouble(final int index);
 
+  /**
+   * @param index row index
+   * @param value the primitive value or {@link #nullValue()} for null
+   */
   double setDouble(final int index, final double value);
 
   default void clear(final int index) {
-    setDouble(index, Double.NaN);
+    setDouble(index, nullValue());
   }
 
   @Override
   default Double set(final int index, final Double value) {
-    return setDouble(index, value == null ? Double.NaN : value);
+    return setDouble(index, value == null ? nullValue() : value);
   }
 
   @Override
@@ -46,6 +54,16 @@ public non-sealed interface NullableDoubleDataColumn extends DataColumn<Double> 
     return isNull(value) ? null : value;
   }
 
+  /**
+   * @return Double.NaN used as null representative
+   */
+  default double nullValue() {
+    return Double.NaN;
+  }
+
+  /**
+   * @return true if value represents null
+   */
   default boolean isNull(final double value) {
     return Double.isNaN(value);
   }

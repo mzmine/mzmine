@@ -29,8 +29,16 @@ public non-sealed interface NullableIntDataColumn extends DataColumn<Integer> {
 
   public static final int NULL_VALUE = Integer.MIN_VALUE + 1;
 
+  /**
+   * @param index row index
+   * @return the primitive double value or {@link #nullValue()} for null
+   */
   int getInt(final int index);
 
+  /**
+   * @param index row index
+   * @param value the primitive value or {@link #nullValue()} for null
+   */
   int setInt(final int index, final int value);
 
   default void clear(final int index) {
@@ -48,6 +56,16 @@ public non-sealed interface NullableIntDataColumn extends DataColumn<Integer> {
     return isNull(value) ? null : value;
   }
 
+  /**
+   * @return {@link #NULL_VALUE} used as null representative
+   */
+  default int nullValue() {
+    return NULL_VALUE;
+  }
+
+  /**
+   * @return true if value represents null
+   */
   default boolean isNull(final int value) {
     return value == NULL_VALUE;
   }
