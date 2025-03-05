@@ -66,7 +66,7 @@ public class ModularDataModelArray implements ModularDataModel/*, Map<DataType, 
   public <T> boolean set(DataType<T> type, T value) {
     if (type instanceof MissingValueType) {
       throw new UnsupportedOperationException(
-          STR."Type \{type.getClass()} is not meant to be added to a feature.");
+          "Type %s is not meant to be added to a feature.".formatted(type.getClass()));
     }
 
     if (value == null && !schema.containsDataType(type)) {

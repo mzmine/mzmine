@@ -233,7 +233,7 @@ public class ColumnarModularDataModelSchema {
       T value) {
     if (type instanceof MissingValueType) {
       throw new UnsupportedOperationException(
-          STR."Type \{type.getClass()} is not meant to be added to a feature.");
+          "Type %s is not meant to be added to a feature.".formatted(type.getClass()));
     }
 
     DataColumn column = columns.get(type);
