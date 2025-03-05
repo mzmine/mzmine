@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.columns;
 
+import org.jetbrains.annotations.Nullable;
+
 public non-sealed interface NullableDoubleDataColumn extends DataColumn<Double> {
 
   /**
@@ -44,12 +46,12 @@ public non-sealed interface NullableDoubleDataColumn extends DataColumn<Double> 
   }
 
   @Override
-  default Double set(final int index, final Double value) {
+  default @Nullable Double set(final int index, final @Nullable Double value) {
     return setDouble(index, value == null ? nullValue() : value);
   }
 
   @Override
-  default Double get(final int index) {
+  default @Nullable Double get(final int index) {
     var value = getDouble(index);
     return isNull(value) ? null : value;
   }

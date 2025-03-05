@@ -61,7 +61,7 @@ public class FloatRangeMemorySegmentColumn extends AbstractMemorySegmentColumn<R
   }
 
   @Override
-  public Range<Float> get(final int index) {
+  public @Nullable Range<Float> get(final int index) {
     var lower = getLowerBound(index);
     if (lower == null) {
       return null;

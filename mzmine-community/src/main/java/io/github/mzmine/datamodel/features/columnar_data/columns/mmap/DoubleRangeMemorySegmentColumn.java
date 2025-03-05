@@ -61,7 +61,7 @@ public class DoubleRangeMemorySegmentColumn extends AbstractMemorySegmentColumn<
   }
 
   @Override
-  public Range<Double> get(final int index) {
+  public @Nullable Range<Double> get(final int index) {
     var lower = getLowerBound(index);
     if (lower == null) {
       return null;

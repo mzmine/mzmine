@@ -1,6 +1,7 @@
 package io.github.mzmine.datamodel.features.columnar_data.columns;
 
 import java.util.concurrent.locks.StampedLock;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This column synchronizes the resizing of the backing data structures and the write operations
@@ -18,12 +19,12 @@ public final class OptimisticallySynchronizedDataColumn<T> extends AbstractDataC
   }
 
   @Override
-  public T get(final int index) {
+  public @Nullable T get(final int index) {
     return delegate.get(index);
   }
 
   @Override
-  public T set(final int index, final T value) {
+  public @Nullable T set(final int index, final @Nullable T value) {
     // actually use read lock to set values
     // write lock is only used when the backing data array is changed
     // optimistic read will fail here only if backing data array was changed for a new one

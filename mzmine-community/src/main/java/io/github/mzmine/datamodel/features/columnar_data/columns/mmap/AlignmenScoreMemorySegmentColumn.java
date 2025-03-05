@@ -35,6 +35,7 @@ import static java.lang.foreign.ValueLayout.JAVA_DOUBLE;
 import static java.lang.foreign.ValueLayout.JAVA_FLOAT;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 import java.lang.invoke.VarHandle;
+import org.jetbrains.annotations.Nullable;
 
 public class AlignmenScoreMemorySegmentColumn extends AbstractMemorySegmentColumn<AlignmentScores> {
 
@@ -76,7 +77,7 @@ public class AlignmenScoreMemorySegmentColumn extends AbstractMemorySegmentColum
   }
 
   @Override
-  public AlignmentScores get(final int index) {
+  public @Nullable AlignmentScores get(final int index) {
     final long offset = LAYOUT.byteSize() * index;
 
     float rate = (float) rateHandle.get(data, offset);

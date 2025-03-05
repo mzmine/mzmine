@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.features.columnar_data.columns.arrays;
 
 import io.github.mzmine.datamodel.features.columnar_data.columns.AbstractDataColumn;
 import java.util.Arrays;
+import org.jetbrains.annotations.Nullable;
 
 public class ObjectArrayColumn<T> extends AbstractDataColumn<T> {
 
@@ -37,12 +38,12 @@ public class ObjectArrayColumn<T> extends AbstractDataColumn<T> {
   }
 
   @Override
-  public T get(final int index) {
+  public @Nullable T get(final int index) {
     return (T) data[index];
   }
 
   @Override
-  public T set(final int index, final T value) {
+  public @Nullable T set(final int index, final @Nullable T value) {
     T oldValue = get(index);
     data[index] = value;
     return oldValue;

@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.columns;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * All classes should extend {@link AbstractDataColumn} because
  * {@link OptimisticallySynchronizedDataColumn} requires some methods
@@ -34,9 +36,9 @@ package io.github.mzmine.datamodel.features.columnar_data.columns;
 public sealed interface DataColumn<T> permits AbstractDataColumn, NullableDoubleDataColumn,
     NullableFloatDataColumn, NullableIntDataColumn {
 
-  T get(final int index);
+  @Nullable T get(final int index);
 
-  T set(final int index, final T value);
+  @Nullable T set(final int index, final @Nullable T value);
 
   /**
    * @return true if resized

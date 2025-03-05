@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractEnumMemorySegmentColumn<T extends Enum> extends
     AbstractMemorySegmentColumn<T> {
@@ -42,7 +43,7 @@ public abstract class AbstractEnumMemorySegmentColumn<T extends Enum> extends
   }
 
   @Override
-  public T get(final int index) {
+  public @Nullable T get(final int index) {
     int value = data.getAtIndex(ValueLayout.JAVA_INT, index);
     if (value < 0) {
       return null;

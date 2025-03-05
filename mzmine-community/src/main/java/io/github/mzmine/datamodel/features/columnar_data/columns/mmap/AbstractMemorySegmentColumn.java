@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.columnar_data.columns.AbstractDataCol
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<T> {
 
@@ -43,7 +44,7 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
 
 
   @Override
-  public T set(final int index, final T value) {
+  public @Nullable T set(final int index, final @Nullable T value) {
     T old = get(index);
     set(data, index, value);
     return old;

@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.columns;
 
+import org.jetbrains.annotations.Nullable;
+
 public non-sealed interface NullableIntDataColumn extends DataColumn<Integer> {
 
   public static final int NULL_VALUE = Integer.MIN_VALUE + 1;
@@ -46,12 +48,12 @@ public non-sealed interface NullableIntDataColumn extends DataColumn<Integer> {
   }
 
   @Override
-  default Integer set(final int index, final Integer value) {
+  default @Nullable Integer set(final int index, final @Nullable Integer value) {
     return setInt(index, value == null ? NULL_VALUE : value);
   }
 
   @Override
-  default Integer get(final int index) {
+  default @Nullable Integer get(final int index) {
     var value = getInt(index);
     return isNull(value) ? null : value;
   }

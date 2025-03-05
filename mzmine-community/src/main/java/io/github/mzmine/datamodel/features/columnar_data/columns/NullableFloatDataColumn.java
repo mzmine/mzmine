@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.columns;
 
+import org.jetbrains.annotations.Nullable;
+
 public non-sealed interface NullableFloatDataColumn extends DataColumn<Float> {
 
   /**
@@ -44,12 +46,12 @@ public non-sealed interface NullableFloatDataColumn extends DataColumn<Float> {
   }
 
   @Override
-  default Float set(final int index, final Float value) {
+  default @Nullable Float set(final int index, final @Nullable Float value) {
     return setFloat(index, value == null ? nullValue() : value);
   }
 
   @Override
-  default Float get(final int index) {
+  default @Nullable Float get(final int index) {
     var value = getFloat(index);
     return isNull(value) ? null : value;
   }
