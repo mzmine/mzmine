@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * MZmine configuration interface
@@ -145,7 +144,7 @@ public interface MZmineConfiguration {
 
   File getMsConvertPath();
 
-  @Nullable File getLogFile();
+  @NotNull File getLogFile();
 
   /**
    * The current hold total memory. Consider using {@link #getMaxMemoryGB()}

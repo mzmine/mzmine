@@ -105,9 +105,6 @@ public class MainMenuController {
 
   public void handleShowLogFile(Event event) {
     final File logFile = ConfigService.getConfiguration().getLogFile();
-    if (logFile == null) {
-      return;
-    }
     try {
       MZmineDesktop gui = MZmineCore.getDesktop();
       gui.openWebPage(logFile.toPath().toUri().toURL());

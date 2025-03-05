@@ -136,9 +136,6 @@ class WorkspaceMenuHelperImpl extends WorkspaceMenuHelper {
   @Override
   public void handleShowLogFile() {
     final File logFile = ConfigService.getConfiguration().getLogFile();
-    if (logFile == null) {
-      return;
-    }
     try {
       MZmineDesktop gui = MZmineCore.getDesktop();
       gui.openWebPage(logFile.toPath().toUri().toURL());

@@ -29,8 +29,6 @@ public class LoggerUtils {
           .filter(Objects::nonNull).findFirst().orElse(null);
     } catch (Exception ex) {
       // silent for now
-      ex.printStackTrace();
-      logger.log(Level.WARNING, "error during logger setup: " + ex.getMessage(), ex);
     }
     return null;
   }
@@ -45,8 +43,7 @@ public class LoggerUtils {
       }
     } catch (NoSuchFieldException | IllegalAccessException e) {
       // silent for now
-      e.printStackTrace();
-      logger.log(Level.WARNING, "error during logger setup: " + e.getMessage(), e);
+      logger.log(Level.WARNING, "Cannot get logger via reflection: " + e.getMessage(), e);
     }
     return null;
   }

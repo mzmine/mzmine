@@ -513,13 +513,14 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
-  public synchronized @Nullable File getLogFile() {
+  public synchronized @NotNull File getLogFile() {
     if (logFile != null) {
       return logFile;
     }
 
     logFile = LoggerUtils.getLogFile();
     if (logFile != null) {
+      logger.fine("Found log file: " + logFile.getAbsolutePath());
       return logFile;
     }
     // just use the first log file? Or maybe evaluate the log files based on creation date
