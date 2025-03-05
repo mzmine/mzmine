@@ -366,7 +366,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           moduleElement.appendChild(paramElement);
         } catch (Exception ex) {
           logger.log(Level.WARNING,
-              STR."Error while saving module parameters to config. Skipping class \{className}");
+              "Error while saving module parameters to config. Skipping class %s".formatted(
+                  className));
         }
       }
 

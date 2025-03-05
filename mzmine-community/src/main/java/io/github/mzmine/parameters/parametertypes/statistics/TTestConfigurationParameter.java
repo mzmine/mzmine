@@ -77,8 +77,8 @@ public class TTestConfigurationParameter implements
     if (value == null || value.column() == null || value.groupA() == null
         || value.groupB() == null) {
       errorMessages.add(
-          STR."Invalid t-Test parameter configuration \{value != null ? value.toString()
-              : "configuration is null"}");
+          "Invalid t-Test parameter configuration " + (value != null ? value.toString()
+              : "configuration is null"));
       return false;
     }
     return true;

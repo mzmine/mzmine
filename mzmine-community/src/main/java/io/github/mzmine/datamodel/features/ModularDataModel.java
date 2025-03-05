@@ -25,8 +25,6 @@
 
 package io.github.mzmine.datamodel.features;
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
@@ -35,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import static java.util.Objects.requireNonNullElse;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -225,7 +224,7 @@ public interface ModularDataModel {
   default <T> boolean set(DataType<T> type, T value) {
     if (type instanceof MissingValueType) {
       throw new UnsupportedOperationException(
-          STR."Type \{type.getClass()} is not meant to be added to a feature.");
+          "Type %s is not meant to be added to a feature.".formatted(type.getClass()));
     }
 
     Object old = getMap().put(type, value);

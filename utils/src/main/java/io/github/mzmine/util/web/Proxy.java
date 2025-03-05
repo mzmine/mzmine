@@ -25,9 +25,8 @@
 
 package io.github.mzmine.util.web;
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.github.mzmine.util.objects.ObjectUtils;
+import static java.util.Objects.requireNonNullElse;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,7 +71,7 @@ public record Proxy(boolean active, @Nullable String address, @Nullable String p
     if (ObjectUtils.anyIsNull(address, port, type)) {
       return null;
     }
-    return STR."\{type}://\{address}:\{port}";
+    return "%s://%s:%s".formatted(type, address, port);
   }
 
 }

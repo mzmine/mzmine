@@ -93,7 +93,7 @@ public class MainMenuController {
     CurrentUserService.subscribe(user -> currentUser.set(user));
     itemRemoveUser.disableProperty().bind(currentUser.map(Objects::isNull));
     itemRemoveUser.textProperty().bind(
-        currentUser.map(user -> STR."Remove user \{user.getNickname()} from local system")
+        currentUser.map(user -> "Remove user %s from local system".formatted(user.getNickname()))
             .orElse("Remove user"));
   }
 

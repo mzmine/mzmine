@@ -168,7 +168,8 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
     }
 
     logger.info(
-        STR."Finished parsing \{fileToOpen}, parsed \{parsedScans} scans and after filtering remained \{convertedScans}");
+        "Finished parsing %s, parsed %d scans and after filtering remained %d".formatted(fileToOpen,
+            parsedScans, convertedScans));
     setStatus(TaskStatus.FINISHED);
 
   }
@@ -306,12 +307,13 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
       return thermoRawFileParserExe;
     }
 
-    logger.finest(STR."Unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
+    logger.finest(
+        "Unpacking ThermoRawFileParser to folder %s".formatted(thermoRawFileParserFolder));
     taskDescription = "Unpacking thermo raw file parser.";
 
     ZipUtils.unzipFile(zipPath, thermoRawFileParserFolder);
     logger.finest(
-        STR."Finished unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
+        "Finished unpacking ThermoRawFileParser to folder %s".formatted(thermoRawFileParserFolder));
 
     return thermoRawFileParserExe;
   }

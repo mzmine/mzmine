@@ -26,8 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
 
-import static java.util.Objects.requireNonNullElse;
-
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -66,6 +64,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
+import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -173,7 +172,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     if (scans.length == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("There are no scans satisfying filtering values. Consider updating filters "
-                      + "with \"Set filters\" in the \"Scans\" parameter.");
+          + "with \"Set filters\" in the \"Scans\" parameter.");
       return;
     }
 
@@ -192,9 +191,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (s.getRetentionTime() < prevRT) {
         setStatus(TaskStatus.ERROR);
         final String msg = "Retention time of scan #" + s.getScanNumber()
-                           + " is smaller then the retention time of the previous scan."
-                           + " Please make sure you only use scans with increasing retention times."
-                           + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
+            + " is smaller then the retention time of the previous scan."
+            + " Please make sure you only use scans with increasing retention times."
+            + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
         setErrorMessage(msg);
         return;
       }
@@ -212,15 +211,16 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (level != scans[i].getMSLevel()) {
         DesktopService.getDesktop().displayMessage(null,
             "mzmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
-            + "This will likely produce wrong results. "
-            + "Please, set the scan filter parameter to a specific MS level");
+                + "This will likely produce wrong results. "
+                + "Please, set the scan filter parameter to a specific MS level");
         break;
       }
       if (pol != scans[i].getPolarity()) {
-        DesktopService.getDesktop().displayMessage(STR."""
-            mzmine thinks you are processing data of multiple polarities (\{pol} and \{scans[i].getPolarity()})
+        DesktopService.getDesktop().displayMessage("""
+            mzmine thinks you are processing data of multiple polarities (%s and %s)
             at the same time. This will likely lead to wrong results.
-            Set the polarity filter in the wizard or the chromatogram builder step to process each polarity individually.""");
+            Set the polarity filter in the wizard or the chromatogram builder step to process each polarity individually.""".formatted(
+            pol, scans[i].getPolarity()));
         break;
       }
     }

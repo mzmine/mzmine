@@ -207,7 +207,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
   private void expandSingleFeatureList(String spot, ModularFeatureList flist, int processedSpots,
       double totalSpots) {
     progress = 0.2 + 0.8 * processedSpots / totalSpots;
-    currentDesc = STR."Expanding traces in spot \{spot}";
+    currentDesc = "Expanding traces in spot %s".formatted(spot);
     logger.finest(() -> currentDesc);
 
     final BinningMobilogramDataAccess mobilogramDataAccess = new BinningMobilogramDataAccess(

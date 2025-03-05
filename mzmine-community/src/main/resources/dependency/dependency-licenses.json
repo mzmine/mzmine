@@ -2870,7 +2870,7 @@
         },
         {
             "moduleName": "org.slf4j:slf4j-jdk14",
-            "moduleVersion": "1.7.32",
+          "moduleVersion": "1.7.36",
             "moduleUrls": [
                 "http://www.slf4j.org"
             ],

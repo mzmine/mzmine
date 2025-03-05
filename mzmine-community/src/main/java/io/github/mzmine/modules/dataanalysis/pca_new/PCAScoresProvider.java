@@ -152,10 +152,10 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
     final RawDataFile file = result.files().get(itemIndex);
     final Object value = metadata.getValue(groupingColumn, file);
 
-    return STR."""
-        File: \{file.getName()}
-        Group: \{value}
-        """;
+    return """
+        File: %s
+        Group: %s
+        """.formatted(file.getName(), value);
   }
 
   @Override
