@@ -69,6 +69,7 @@ import org.jetbrains.annotations.Nullable;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorList;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
 
+@Deprecated
 public class MzTabmImportTask extends AbstractTask {
 
   // parameter values
