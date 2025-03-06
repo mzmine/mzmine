@@ -23,13 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class;
+package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.internal;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClassFragmentationRulesChoiceComponent.AddLipidFragmentationRuleParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 

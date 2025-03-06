@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class;
+package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.internal;
 
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.parameters.ParameterSet;
@@ -96,7 +96,8 @@ public class CustomLipidChainChoiceComponent extends BorderPane {
   }
 
   /**
-   * Represents a fragmentation rule of a custom lipid class.
+   * Represents a fragmentation rule of a custom lipid class. Not intended to be used as part of a
+   * module, does not support saving.
    */
   private static class AddLipidChainTypeParameters extends SimpleParameterSet {
 
