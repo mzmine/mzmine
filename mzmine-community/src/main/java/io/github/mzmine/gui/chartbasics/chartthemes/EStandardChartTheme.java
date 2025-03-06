@@ -372,7 +372,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     TextTitle title = chart.getTitle();
     if (title != null) {
       title.setVisible(isShowTitle());
-      super.applyToTitle(title);
+      applyToTitle(title);
       if (isChangeTitle()) {
         title.setText(getTitle());
       }

@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.visualization.dash_integration;
 
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -168,7 +192,7 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
 //        plot.setChartGroup(chartGroup);
       // auto update on change of the feature data entry. must be subscribed in here because we don't want to subscribe multiple times
       model.featureDataEntriesProperty()
-          .addListener((MapChangeListener<RawDataFile, FeatureDataEntry>) change -> {
+          .addListener((MapChangeListener<RawDataFile, FeatureIntegrationData>) change -> {
             if (change.getKey() == file) {
               plot.setTitle(file.getName());
               plot.setFeatureDataEntry(change.getValueAdded());
@@ -226,10 +250,10 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
         row.removeFeature(file);
       }
       // reflect change in gui
-      final FeatureDataEntry oldEntry = model.featureDataEntriesProperty().get(file);
+      final FeatureIntegrationData oldEntry = model.featureDataEntriesProperty().get(file);
       if (oldEntry != null) { // should always be the case
         model.featureDataEntriesProperty().put(file,
-            new FeatureDataEntry(file, newFeatureTimeSeries, oldEntry.chromatogram(),
+            new FeatureIntegrationData(file, newFeatureTimeSeries, oldEntry.chromatogram(),
                 oldEntry.additionalData()));
       }
     };

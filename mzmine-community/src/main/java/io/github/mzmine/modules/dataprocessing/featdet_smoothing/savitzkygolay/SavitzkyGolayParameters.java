@@ -29,11 +29,12 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import java.util.Map;
 
 public class SavitzkyGolayParameters extends SimpleParameterSet {
 
-  public static final String rtSmoothingName = "Retention time smoothing";
-  public static final String mobilitySmoothingName = "Mobility smoothing";
+  public static final String rtSmoothingName = "Retention time width (scans)";
+  public static final String mobilitySmoothingName = "Mobility width (scans)";
 
   public static final OptionalParameter<ComboParameter<Integer>> rtSmoothing = new OptionalParameter<>(
       new ComboParameter<Integer>(rtSmoothingName,
@@ -47,5 +48,13 @@ public class SavitzkyGolayParameters extends SimpleParameterSet {
 
   public SavitzkyGolayParameters() {
     super(new Parameter[]{rtSmoothing, mobilitySmoothing});
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    map.put("Retention time smoothing", rtSmoothing);
+    map.put("Mobility smoothing", mobilitySmoothing);
+    return map;
   }
 }

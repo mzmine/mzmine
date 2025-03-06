@@ -59,7 +59,7 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
       @NotNull Color colorAwt) {
     final NumberFormats formats = ConfigService.getGuiFormats();
     this(transition.chromatogram(), colorAwt,
-        "%s -> %s".formatted(formats.mz(transition.q1mass()), formats.mz(transition.q3mass())));
+        "%s → %s".formatted(formats.mz(transition.q1mass()), formats.mz(transition.q3mass())));
   }
 
   public IntensityTimeSeriesToXYProvider(IntensityTimeSeries series, @NotNull Color colorAwt,

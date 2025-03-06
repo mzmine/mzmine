@@ -180,8 +180,8 @@ public class IonTimeSeriesUtils {
    * @see IonTimeSeriesUtils#extractIonTimeSeries(ScanDataAccess, Range, Range, MemoryMapStorage)
    */
   public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
-      @NotNull List<? extends Scan> scans, @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
-      @Nullable MemoryMapStorage storage) {
+      @NotNull List<? extends Scan> scans, @NotNull Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable MemoryMapStorage storage) {
     final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST, scans);
     return extractIonTimeSeries(access, mzRange, rtRange, storage);
   }
@@ -244,6 +244,23 @@ public class IonTimeSeriesUtils {
         scans);
   }
 
+  /**
+   * Extracts an {@link IonMobilogramTimeSeries} from the given raw file in the
+   * {@link MobilityScanDataAccess}. The peak closest to the center of the given mz range will be
+   * used for every scan in the given rtRange. No leading or trailing zeros will be added. scans
+   * without detection are represented by 0 intensity.
+   *
+   * @param access        A mobility scan data access fir the raw data file.
+   * @param mzRange       The mz range to search for signals. It is recommended to create a range
+   *                      around the mz value to search, as the peak closest to the center in every
+   *                      scan will be used.
+   * @param rtRange       RT range to search. The {@link MobilityScanDataAccess} may include more
+   *                      than just the RT range. May be null, then the full file is searched.
+   * @param mobilityRange The mobility range to search. May be null.
+   * @param storage       A storage to use. may be null.
+   * @param binningAccess A binning data access to create the summed mobilogram.
+   * @return The ion mobility trace. Not null, but may be empty.
+   */
   public static IonMobilogramTimeSeries extractIonMobilogramTimeSeries(
       @NotNull MobilityScanDataAccess access, @NotNull Range<Double> mzRange,
       @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
@@ -264,7 +281,7 @@ public class IonTimeSeriesUtils {
       final List<MobilityScan> scans = new ArrayList<>();
       while (access.hasNextMobilityScan()) {
         MobilityScan scan = access.nextMobilityScan();
-        if (mobilityRange != null) {
+        if (mobilityRange != null || mobilityRange.contains((float) scan.getMobility())) {
           final int closestPeakIndex = access.binarySearch(centerMz, DefaultTo.CLOSEST_VALUE);
           if (closestPeakIndex < 0) {
             // empty scan

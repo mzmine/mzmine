@@ -35,7 +35,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.Intens
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.visualization.dash_integration.FeatureDataEntry;
+import io.github.mzmine.modules.visualization.dash_integration.FeatureIntegrationData;
 import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.FeatureIntegratedListener.EventType;
 import java.awt.BasicStroke;
 import java.util.ArrayList;
@@ -207,15 +207,16 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     setIntegratedFeatures(null);
   }
 
-  public void setFeatureDataEntry(@Nullable FeatureDataEntry featureDataEntry) {
-    if (featureDataEntry == null) {
+  public void setFeatureDataEntry(@Nullable FeatureIntegrationData featureIntegrationData) {
+    if (featureIntegrationData == null) {
       clear();
       return;
     }
-    setOtherTimeSeries(featureDataEntry.chromatogram());
+    setOtherTimeSeries(featureIntegrationData.chromatogram());
     setIntegratedFeatures(
-        featureDataEntry.feature() != null ? List.of(featureDataEntry.feature()) : null);
-    setAdditionalFeatures(featureDataEntry.additionalData());
+        featureIntegrationData.feature() != null ? List.of(featureIntegrationData.feature())
+            : null);
+    setAdditionalFeatures(featureIntegrationData.additionalData());
   }
 
   public void addIntegrationListener(@NotNull FeatureIntegratedListener listener) {
