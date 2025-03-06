@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.date;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,8 @@ import org.jetbrains.annotations.Nullable;
  * format: 2022-06-01T18:36:09
  * <p>
  * 2022-06-01T18:36:09Z is a zoned format that needs to be parsed by {@link ZonedDateTime}
+ *
+ * For {@link LocalDate} parsing look at {@link LocalDateParser#parseAnyFirstDate(String)}
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
@@ -77,4 +80,5 @@ public class DateTimeUtils {
       return defaultValue;
     }
   }
+
 }
