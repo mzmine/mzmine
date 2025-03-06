@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.visualization.dash_integration;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -74,7 +75,7 @@ public class IntegrationDashboardModel {
       new MZTolerance(0.005, 10));
   private final MapProperty<RawDataFile, FeatureIntegrationData> featureDataEntries = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
-  private final ObjectProperty<@NotNull Function> postProcessingMethod = new SimpleObjectProperty<>(
+  private final ObjectProperty<@NotNull Function<IonTimeSeries, IonTimeSeries>> postProcessingMethod = new SimpleObjectProperty<>(
       t -> t);
   private final BooleanProperty applyPostProcessing = new SimpleBooleanProperty(false);
 
@@ -210,11 +211,11 @@ public class IntegrationDashboardModel {
     return featureTableTab;
   }
 
-  public @NotNull Function getPostProcessingMethod() {
+  public @NotNull Function<IonTimeSeries, IonTimeSeries> getPostProcessingMethod() {
     return postProcessingMethod.get();
   }
 
-  public ObjectProperty<@NotNull Function> postProcessingMethodProperty() {
+  public ObjectProperty<@NotNull Function<IonTimeSeries, IonTimeSeries>> postProcessingMethodProperty() {
     return postProcessingMethod;
   }
 

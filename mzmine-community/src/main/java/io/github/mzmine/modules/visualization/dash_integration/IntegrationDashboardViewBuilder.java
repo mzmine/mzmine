@@ -70,7 +70,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
 
 public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDashboardModel> {
@@ -280,13 +279,6 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     model.gridNumRowsProperty()
         .addListener((_, _, i) -> spRows.getValueFactory().setValue(i.intValue()));
 
-    spCols.getValueFactory().valueProperty().addListener((_, _, c) -> {
-      logger.finest(c.toString());
-    });
-    spRows.getValueFactory().valueProperty().addListener((_, _, r) -> {
-      logger.finest(r.toString());
-    });
-
     final Button previousPage = FxButtons.createButton(null, FxIcons.ARROW_LEFT, "Previous page",
         () -> {
           final int currentOffset = model.getGridPaneFileOffset();
@@ -329,17 +321,6 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     final Label lblSortBy = FxLabels.newLabel("Sort files by:");
     ComboBox<MetadataColumn<?>> cmbMetadataCol = new ComboBox<>(
         FXCollections.observableArrayList(columns));
-    cmbMetadataCol.setConverter(new StringConverter<>() {
-      @Override
-      public String toString(MetadataColumn<?> object) {
-        return object != null ? object.getTitle() : "";
-      }
-
-      @Override
-      public MetadataColumn<?> fromString(String string) {
-        return null;
-      }
-    });
     cmbMetadataCol.valueProperty().bindBidirectional(model.rawFileSortingColumnProperty());
 
     return FxLayout.newHBox(lblSortBy, cmbMetadataCol);

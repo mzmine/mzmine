@@ -48,7 +48,7 @@ public enum IntegrationTransfer implements UniqueIdSupplier {
           "%s: Transfers a single re-integration to to all other files, overriding current integrations.".formatted(
               this.toString());
       case ONLY_MISSING ->
-          "%s: Transfers a reintegration to all files in which no feature was detected.".formatted(
+          "%s: Transfers a re-integration to all files in which no feature was detected.".formatted(
               this.toString());
       case NONE ->
           "%s: Does not transfer re-integration across files. All files must be re-integrated manually.".formatted(
