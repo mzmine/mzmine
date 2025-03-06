@@ -25,9 +25,6 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import static io.github.mzmine.main.ConfigService.getPreference;
-import static java.util.Objects.requireNonNullElse;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -35,6 +32,7 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import static io.github.mzmine.main.ConfigService.getPreference;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -70,6 +68,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import static java.util.Objects.requireNonNullElse;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -156,7 +155,7 @@ public class BatchTask extends AbstractTask {
   private TaskStatus runInTaskPool(final MZmineProcessingModule method,
       final List<Task> tasksToRun) {
     TaskController taskController = MZmineCore.getTaskController();
-    var description = STR."\{method.getName()} on \{tasksToRun.size()} items";
+    var description = "%s on %d items".formatted(method.getName(), tasksToRun.size());
     var threadPoolTask = ThreadPoolTask.createDefaultTaskManagerPool(description, tasksToRun);
     // clear tasks to not leak the long running tasks by keeping them alive
     tasksToRun.clear();

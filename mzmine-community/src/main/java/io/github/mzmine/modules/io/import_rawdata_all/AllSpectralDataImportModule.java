@@ -24,11 +24,6 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
-import static io.github.mzmine.util.RawDataFileTypeDetector.BAF_SUFFIX;
-import static io.github.mzmine.util.RawDataFileTypeDetector.BRUKER_FOLDER_SUFFIX;
-import static io.github.mzmine.util.RawDataFileTypeDetector.TDF_SUFFIX;
-import static io.github.mzmine.util.RawDataFileTypeDetector.TSF_SUFFIX;
-
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -64,6 +59,10 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
+import static io.github.mzmine.util.RawDataFileTypeDetector.BAF_SUFFIX;
+import static io.github.mzmine.util.RawDataFileTypeDetector.BRUKER_FOLDER_SUFFIX;
+import static io.github.mzmine.util.RawDataFileTypeDetector.TDF_SUFFIX;
+import static io.github.mzmine.util.RawDataFileTypeDetector.TSF_SUFFIX;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
@@ -312,7 +311,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       }
 
       final RawDataFileType fileType = fileToImport.type();
-      logger.finest(STR."File \{fileToImport.originalFile()} type detected as \{fileType}");
+      logger.finest("File " + fileToImport.originalFile() + " type detected as " + fileType);
 
       final Task newTask;//
       if (advancedParam != null) {

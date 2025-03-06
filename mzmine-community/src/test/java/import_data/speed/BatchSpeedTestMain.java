@@ -114,8 +114,9 @@ public class BatchSpeedTestMain {
             iterations[i]++;
             allDone = false;
 
-            String description = STR."inMemory=\{inMemory}, \{job.description()} \{headLess
-                ? "headless" : "GUI"}";
+            String description =
+                "inMemory=" + inMemory + ", " + job.description() + " " + (headLess ? "headless"
+                    : "GUI");
             runBatch(description, job.files(), job.batchFile(), outFile);
           }
         }
@@ -176,8 +177,9 @@ public class BatchSpeedTestMain {
         }
       }
     } catch (Exception ex) {
-      logger.info(STR."Failed batch \{description} for \{batchFile} with \{files == null ? "x"
-          : files.size()} files. Will continue with next task.");
+      logger.info(
+          "Failed batch " + description + " for " + batchFile + " with " + (files == null ? "x"
+              : files.size()) + " files. Will continue with next task.");
     }
 
     ProjectService.getProjectManager().clearProject();

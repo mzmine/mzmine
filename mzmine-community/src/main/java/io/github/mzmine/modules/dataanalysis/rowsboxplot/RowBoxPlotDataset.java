@@ -57,7 +57,7 @@ public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
       final List<Float> values = v.stream()
           .map(file -> abundance.get((ModularFeature) row.getFeature(file)))
           .filter(Objects::nonNull).toList();
-      add(values, groupName, STR."\{row.toString()} \{row.getPreferredAnnotationName()}");
+      add(values, groupName, "%s %s".formatted(row.toString(), row.getPreferredAnnotationName()));
     });
   }
 }

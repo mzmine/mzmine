@@ -41,15 +41,12 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.stage.FileChooser;
-import org.apache.commons.io.FileUtils;
 
 /**
  * Contains static utility methods for workspace related main-menus
@@ -138,18 +135,12 @@ class WorkspaceMenuHelperImpl extends WorkspaceMenuHelper {
 
   @Override
   public void handleShowLogFile() {
-    /*
-     * There doesn't seem to be any way to obtain the log file name from the logging FileHandler, so
-     * it is hard-coded here for now
-     */
-    final Path logFilePath = Paths.get(
-        FileUtils.getUserDirectory() + File.separator + "mzmine_0_0.log");
-
+    final File logFile = ConfigService.getConfiguration().getLogFile();
     try {
       MZmineDesktop gui = MZmineCore.getDesktop();
-      gui.openWebPage(logFilePath.toUri().toURL());
+      gui.openWebPage(logFile.toPath().toUri().toURL());
     } catch (MalformedURLException e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, "Opening log file failed: " + logFile.getAbsolutePath(), e);
     }
   }
 

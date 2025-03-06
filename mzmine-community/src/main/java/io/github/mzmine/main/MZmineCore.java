@@ -25,8 +25,6 @@
 
 package io.github.mzmine.main;
 
-import static java.util.Objects.requireNonNullElse;
-
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -72,6 +70,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -192,6 +191,9 @@ public final class MZmineCore {
     logger.finest("Working directory is %s".formatted(cwd));
     logger.finest(
         "Default temporary directory is %s".formatted(System.getProperty("java.io.tmpdir")));
+
+    final File logFile = ConfigService.getConfiguration().getLogFile();
+    logger.finest("Writing log file to %s".formatted(logFile.getAbsolutePath()));
   }
 
   /**

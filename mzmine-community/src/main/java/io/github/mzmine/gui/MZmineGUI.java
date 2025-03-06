@@ -26,15 +26,12 @@
 package io.github.mzmine.gui;
 
 
-import static io.github.mzmine.gui.WindowLocation.TAB;
-import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
-import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
-
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
+import static io.github.mzmine.gui.WindowLocation.TAB;
 import io.github.mzmine.gui.mainwindow.AboutTab;
 import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
@@ -56,7 +53,9 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
+import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
@@ -350,12 +349,12 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         if (WizardSequenceIOUtils.isWizardFile(extension)) {
           boolean result = copyToUserDirectory(selectedFile);
           String resultStr = result ? "succeeded" : "failed";
-          messages.add(STR."Adding wizard file \{selectedFile.getName()} \{resultStr}");
+          messages.add("Adding wizard file %s %s".formatted(selectedFile.getName(), resultStr));
         }
         if (UserAuthStore.isUserFile(extension)) {
           var result = UserAuthStore.copyAddUserFile(selectedFile);
           String resultStr = result ? "succeeded" : "failed";
-          messages.add(STR."Adding user \{selectedFile.getName()} \{resultStr}");
+          messages.add("Adding user %s %s".formatted(selectedFile.getName(), resultStr));
           if (result) {
             askChangeUser(selectedFile.getName());
           }
@@ -413,7 +412,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       }
 
       boolean changeUserResult = DialogLoggerUtil.showDialogYesNo("Changing active user",
-          STR."Switch to user \{user.getNickname()}?");
+          "Switch to user %s?".formatted(user.getNickname()));
 
       if (changeUserResult) {
         CurrentUserService.setUser(user);
