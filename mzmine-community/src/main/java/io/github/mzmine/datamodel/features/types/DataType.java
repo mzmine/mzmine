@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -328,7 +328,8 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
   }
 
   /**
-   * Creating a property which is used in a {@link ModularDataModel}
+   * Creating a property which is used for representing a value of a {@link ModularDataModel} in the
+   * gui.
    *
    * @return
    */
@@ -444,4 +445,5 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
         return null;
     }
   }
+
 }

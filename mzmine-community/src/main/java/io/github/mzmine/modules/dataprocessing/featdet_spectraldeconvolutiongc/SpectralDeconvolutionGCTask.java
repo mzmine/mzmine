@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -103,8 +103,9 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
   }
 
   private void createNewDeconvolutedFeatureList(List<FeatureListRow> deconvolutedFeatureListRows) {
-    deconvolutedFeatureList = FeatureListUtils.createCopy(featureList, suffix,
-        getMemoryMapStorage());
+    deconvolutedFeatureList = FeatureListUtils.createCopyWithoutRows(featureList, suffix,
+        getMemoryMapStorage(), deconvolutedFeatureListRows.size(),
+        deconvolutedFeatureListRows.size());
     deconvolutedFeatureListRows.sort(FeatureListRowSorter.DEFAULT_RT);
     int newID = 1;
     for (FeatureListRow featureListRow : deconvolutedFeatureListRows) {

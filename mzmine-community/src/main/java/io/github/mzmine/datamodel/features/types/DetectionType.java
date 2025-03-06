@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -103,6 +103,7 @@ public class DetectionType extends DataType<FeatureStatus> implements
 
               private Circle circle;
               private StackPane pane;
+
               {
                 pane = new StackPane();
                 circle = new Circle(10);
@@ -175,7 +176,7 @@ public class DetectionType extends DataType<FeatureStatus> implements
     if (!(value instanceof FeatureStatus status)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
+          + value.getClass());
     }
     writer.writeCharacters(status.toString());
   }
