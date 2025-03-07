@@ -36,7 +36,7 @@ import org.w3c.dom.Element;
 /**
  * Not intended to be used as part of a module, does not support saving.
  */
-public class CustomLipidChainChoiceParameter implements
+class CustomLipidChainChoiceParameter implements
     UserParameter<LipidChainType[], CustomLipidChainChoiceComponent> {
 
   private final String name;

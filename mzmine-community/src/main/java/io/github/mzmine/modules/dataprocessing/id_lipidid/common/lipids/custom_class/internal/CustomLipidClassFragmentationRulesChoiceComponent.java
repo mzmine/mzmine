@@ -53,7 +53,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPane {
+class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPane {
 
   // Logger.
   private final Logger logger = Logger.getLogger(this.getClass().getName());

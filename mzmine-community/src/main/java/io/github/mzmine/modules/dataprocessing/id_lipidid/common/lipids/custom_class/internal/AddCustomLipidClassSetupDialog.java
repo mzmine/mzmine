@@ -88,7 +88,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
+class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
 
   private final List<Integer> numberOfCAtomsList = new ArrayList<>();
   private final List<Integer> numberOfDbesList = new ArrayList<>();
@@ -116,7 +116,7 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
   private LipidChainType[] lipidChainTypes;
   private LipidFragmentationRule[] customLipidClassFragmentationRules;
 
-  public CustomLipidClassSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
+  public AddCustomLipidClassSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
     this.name = parameters.getParameter(AddCustomLipidClassParameters.name).getValue();
     this.abbr = parameters.getParameter(AddCustomLipidClassParameters.abbr).getValue();

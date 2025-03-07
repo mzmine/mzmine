@@ -41,7 +41,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 
-public class CustomLipidChainChoiceComponent extends BorderPane {
+class CustomLipidChainChoiceComponent extends BorderPane {
 
   private final ListView<LipidChainType> checkList = new ListView<>();
   private final FlowPane buttonsPane = new FlowPane(Orientation.HORIZONTAL);

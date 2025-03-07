@@ -8,7 +8,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnn
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.util.ExitCode;
 import io.mzio.general.Result;
 import java.util.Collection;
 import java.util.logging.Logger;
@@ -17,7 +16,7 @@ import java.util.logging.Logger;
  * Represents a fragmentation rule of a custom lipid class. Not intended to be used as part of a
  * module, does not support saving.
  */
-public class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
+class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
 
   private static final Logger logger = Logger.getLogger(
       AddLipidFragmentationRuleParameters.class.getName());
@@ -43,14 +42,6 @@ public class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
     super(polarity, ionizationMethod, lipidFragmentationRuleType,
         lipidFragmentationRuleInformationLevel, formula);
     setModuleNameAttribute("Define a lipid fragmentation rule");
-  }
-
-  @Override
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    AddLipidFragmentationRuleSetupDialog dialog = new AddLipidFragmentationRuleSetupDialog(
-        valueCheckRequired, this);
-    dialog.showAndWait();
-    return dialog.getExitCode();
   }
 
   @Override

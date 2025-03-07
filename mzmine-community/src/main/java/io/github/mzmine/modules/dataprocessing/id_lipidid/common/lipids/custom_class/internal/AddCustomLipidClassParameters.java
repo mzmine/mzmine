@@ -116,7 +116,8 @@ public class AddCustomLipidClassParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    CustomLipidClassSetupDialog dialog = new CustomLipidClassSetupDialog(valueCheckRequired, this);
+    AddCustomLipidClassSetupDialog dialog = new AddCustomLipidClassSetupDialog(valueCheckRequired,
+        this);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
