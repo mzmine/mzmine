@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -231,15 +231,17 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       return IonMobilogramTimeSeries.EMPTY;
     }
 
-    final List<IonMobilitySeries> mobilograms = this.mobilograms.subList(startIndexInclusive,
-        endIndexExclusive);
+    final List<IonMobilitySeries> mobilograms = new ArrayList<>(
+        this.mobilograms.subList(startIndexInclusive, endIndexExclusive));
     mobilogramBinning.setMobilogram(mobilograms);
+
+    // do not use sublist for now as it keeps the original list alive.
+    List<Frame> sublist = new ArrayList<>(frames.subList(startIndexInclusive, endIndexExclusive));
 
     return new SimpleIonMobilogramTimeSeries(
         StorageUtils.sliceDoubles(mzValues, startIndexInclusive, endIndexExclusive),
         StorageUtils.sliceDoubles(intensityValues, startIndexInclusive, endIndexExclusive), storage,
-        mobilograms, frames.subList(startIndexInclusive, endIndexExclusive),
-        mobilogramBinning.toSummedMobilogram(storage));
+        mobilograms, sublist, mobilogramBinning.toSummedMobilogram(storage));
   }
 
   @Override
@@ -314,7 +316,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
 
   private boolean checkRawFileIntegrity(@NotNull List<IonMobilitySeries> mobilograms) {
-    if(mobilograms.isEmpty()) {
+    if (mobilograms.isEmpty()) {
       return true;
     }
     RawDataFile file = null;
@@ -388,7 +390,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
         that.frames) && contentEquals(intensityValues, that.intensityValues) && contentEquals(
         mzValues, that.mzValues) && Objects.equals(getSummedMobilogram(),
         that.getSummedMobilogram()) && contentEquals(mobilogramMzValues, that.mobilogramMzValues)
-        && contentEquals(mobilogramIntensityValues, that.mobilogramIntensityValues);
+           && contentEquals(mobilogramIntensityValues, that.mobilogramIntensityValues);
   }
 
   @Override

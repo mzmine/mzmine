@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,6 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
-import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
-
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -34,12 +32,14 @@ import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MzSeries;
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import java.lang.foreign.MemorySegment;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -91,7 +91,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   /**
    * may reuse memory segments
    */
-  private SimpleIonTimeSeries(@NotNull MemorySegment mzValues,
+  public SimpleIonTimeSeries(@NotNull MemorySegment mzValues,
       @NotNull MemorySegment intensityValues, @NotNull List<? extends Scan> scans) {
     long values = numDoubles(mzValues);
     if (values != numDoubles(intensityValues) || values != scans.size()) {
@@ -186,10 +186,13 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   public IonTimeSeries<Scan> subSeries(MemoryMapStorage storage, int startIndexInclusive,
       int endIndexExclusive) {
 
+    // better create copy - sublist keeps original list alive
+    List<? extends Scan> sublist = new ArrayList<>(
+        scans.subList(startIndexInclusive, endIndexExclusive));
     return new SimpleIonTimeSeries(
         StorageUtils.sliceDoubles(mzValues, startIndexInclusive, endIndexExclusive),
         StorageUtils.sliceDoubles(intensityValues, startIndexInclusive, endIndexExclusive),
-        scans.subList(startIndexInclusive, endIndexExclusive));
+        sublist);
   }
 
   @Override
@@ -257,7 +260,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       return false;
     }
     return Objects.equals(scans, that.scans) && IntensitySeries.seriesSubsetEqual(this, that)
-        && MzSeries.seriesSubsetEqual(this, that);
+           && MzSeries.seriesSubsetEqual(this, that);
   }
 
   @Override
@@ -268,5 +271,10 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   @Override
   public IonTimeSeries<Scan> emptySeries() {
     return IonTimeSeries.EMPTY;
+  }
+
+  @Override
+  public List<Scan> getSpectraModifiable() {
+    return (List<Scan>) scans;
   }
 }

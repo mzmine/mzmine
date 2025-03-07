@@ -35,8 +35,8 @@ import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderParameters;
@@ -71,7 +71,8 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
   private static final double MOBILITY_EPSILON = 0.00001;
 
-  private static Logger logger = Logger.getLogger(BinningMobilogramDataAccess.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      BinningMobilogramDataAccess.class.getName());
 
   private final IMSRawDataFile dataFile;
 
@@ -114,10 +115,10 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         if (!distinctMobilities.isEmpty()
             // either not tims and current mobility > highest mobility
             && ((distinctMobilities.get(distinctMobilities.size() - 1) > scan.getMobility()
-            && mt != MobilityType.TIMS)
-            // or tims and current mobility < lowest mobility
-            || (distinctMobilities.get(distinctMobilities.size() - 1) < scan.getMobility()
-            && mt == MobilityType.TIMS))) {
+                 && mt != MobilityType.TIMS)
+                // or tims and current mobility < lowest mobility
+                || (distinctMobilities.get(distinctMobilities.size() - 1) < scan.getMobility()
+                    && mt == MobilityType.TIMS))) {
           continue;
         }
         distinctMobilities.add(scan.getMobility());
@@ -141,7 +142,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       centerBins.add(summedMobility / Math.max(currentBins, 1));
       upperLimits.add(
           distinctMobilities.get(Math.min(i + binWidth - 1, distinctMobilities.size() - 1))
-              + MOBILITY_EPSILON);
+          + MOBILITY_EPSILON);
     }
 
     mobilities = centerBins.stream().mapToDouble(Double::doubleValue).toArray();
@@ -158,7 +159,17 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     approximateBinSize = deltas / (mobilities.length - 2);
     logger.finest(
         () -> "Bin width set to " + binWidth + " scans. (approximately " + approximateBinSize + " "
-            + rawDataFile.getMobilityType().getUnit() + ")");
+              + rawDataFile.getMobilityType().getUnit() + ")");
+  }
+
+  /**
+   * Creates a new data access with the last parameters for binning etc
+   */
+  public static BinningMobilogramDataAccess createWithPreviousParameters(
+      @NotNull IMSRawDataFile imsFile, @NotNull FeatureList flist) {
+    // is never null at this point as we are having at least one imsFile
+    final Integer previousBinningWith = getPreviousBinningWith(flist, imsFile.getMobilityType());
+    return new BinningMobilogramDataAccess(imsFile, previousBinningWith);
   }
 
   @NotNull
@@ -178,9 +189,17 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   @Nullable
-  public static Integer getPreviousBinningWith(@NotNull final ModularFeatureList flist,
-      MobilityType mt) {
+  public static Integer getPreviousBinningWith(@NotNull final FeatureList flist, MobilityType mt) {
     List<FeatureListAppliedMethod> methods = flist.getAppliedMethods();
+    final IMSRawDataFile imsFile = flist.getRawDataFiles().stream()
+        .filter(IMSRawDataFile.class::isInstance).map(IMSRawDataFile.class::cast).findFirst()
+        .orElse(null);
+
+    if (imsFile == null) {
+      logger.warning(
+          "Did not find IMS raw data file in feature list. This should not be the case in getPreviousBinningWith");
+      return null;
+    }
 
     Integer binWidth = null;
     for (int i = methods.size() - 1; i >= 0; i--) {
@@ -195,17 +214,17 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
               advancedParam.getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
                       AdvancedImsTraceBuilderParameters.timsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() : getRecommendedBinWidth(imsFile);
           case DRIFT_TUBE ->
               advancedParam.getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
                       AdvancedImsTraceBuilderParameters.dtimsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() : getRecommendedBinWidth(imsFile);
           case TRAVELING_WAVE ->
               advancedParam.getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
                       AdvancedImsTraceBuilderParameters.twimsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() : getRecommendedBinWidth(imsFile);
           default -> null;
         };
         break;
@@ -221,17 +240,17 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
               advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
                       RecursiveIMSBuilderAdvancedParameters.timsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() : getRecommendedBinWidth(imsFile);
           case DRIFT_TUBE ->
               advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
                       RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() : getRecommendedBinWidth(imsFile);
           case TRAVELING_WAVE ->
               advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
                       RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
+                  .getValue() : getRecommendedBinWidth(imsFile);
           default -> null;
         };
         break;
@@ -255,15 +274,14 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         final ParameterSet parameterSet = method.getParameters();
         binWidth = parameterSet.getParameter(ImsExpanderParameters.mobilogramBinWidth).getValue()
             ? parameterSet.getParameter(ImsExpanderParameters.mobilogramBinWidth)
-            .getEmbeddedParameter().getValue()
-            : getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
+            .getEmbeddedParameter().getValue() : getRecommendedBinWidth(imsFile);
         break;
       }
     }
     if (binWidth == null) {
       logger.info(
           () -> "Previous binning width not recognised. Has the mobility type been implemented?");
-      binWidth = getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
+      binWidth = getRecommendedBinWidth(imsFile);
     }
     return binWidth;
   }
@@ -299,7 +317,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
       // ensure we are below the current upper-binning-limit
       while (rawIndex < numValues
-          && Double.compare(tempMobilities[rawIndex], upperBinLimits[binnedIndex]) == -1) {
+             && Double.compare(tempMobilities[rawIndex], upperBinLimits[binnedIndex]) == -1) {
         intensities[binnedIndex] += tempIntensities[rawIndex];
         rawIndex++;
       }
@@ -343,7 +361,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         final double binEnd = upperBinLimits[i];
         // if we are in the correct bin, add all values that fit
         while (rawIndex >= 0 && rawIndex < numValues && tempMobilities[rawIndex] < binEnd
-            && tempMobilities[rawIndex] > binStart) {
+               && tempMobilities[rawIndex] > binStart) {
 
           intensities[i] += tempIntensities[rawIndex];
           assigned[rawIndex] = true;

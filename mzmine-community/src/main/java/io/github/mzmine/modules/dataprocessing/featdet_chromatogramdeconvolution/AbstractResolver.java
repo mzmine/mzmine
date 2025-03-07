@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -41,7 +42,6 @@ import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.TimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
@@ -102,24 +102,14 @@ public abstract class AbstractResolver implements Resolver {
 
       // make a new subseries for each resolved range.
       for (final Range<Double> range : resolvedRanges) {
-        final List<? extends Scan> subList = originalSeries.getSpectra().stream()
-            .filter(s -> range.contains((double) s.getRetentionTime())).toList();
-        if (subList.isEmpty()) {
-          continue;
-        }
-        if (originalSeries instanceof IonMobilogramTimeSeries trace) {
-          resolved.add((T) trace.subSeries(storage, range.lowerEndpoint().floatValue(),
-              range.upperEndpoint().floatValue(), getMobilogramDataAccess()));
-        } else if (originalSeries instanceof SimpleIonTimeSeries chrom) {
-          resolved.add((T) chrom.subSeries(storage, range.lowerEndpoint().floatValue(),
-              range.upperEndpoint().floatValue()));
-        } else {
-          throw new IllegalStateException(
-              "Resolving behaviour of " + originalSeries.getClass().getName() + " not specified.");
-        }
+
+        final T subSeries = FeatureDataUtils.subSeries(storage, series,
+            range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue(),
+            mobilogramDataAccess);
+        resolved.add(subSeries);
       }
     } else if (dimension == ResolvingDimension.MOBILITY
-        && originalSeries instanceof IonMobilogramTimeSeries originalTrace) {
+               && originalSeries instanceof IonMobilogramTimeSeries originalTrace) {
       setSeriesToMobilogramDataAccess(series);
       final List<Range<Double>> resolvedRanges = resolveMobility(mobilogramDataAccess);
 
@@ -147,7 +137,7 @@ public abstract class AbstractResolver implements Resolver {
     } else {
       throw new IllegalStateException(
           "Cannot resolve " + originalSeries.getClass().getName() + " in " + dimension
-              + " mobility dimension.");
+          + " mobility dimension.");
     }
     return resolved;
   }
@@ -170,22 +160,29 @@ public abstract class AbstractResolver implements Resolver {
     } else {
       throw new IllegalArgumentException(
           "Unexpected type of ion series (" + series.getClass().getName()
-              + "). Please contact the developers. ");
+          + "). Please contact the developers. ");
     }
   }
 
-  @NotNull
-  protected BinningMobilogramDataAccess getMobilogramDataAccess() {
+  /**
+   * @throws RuntimeException if called for a non {@link IMSRawDataFile}
+   */
+  @NotNull BinningMobilogramDataAccess getMobilogramDataAccess() {
     if (mobilogramDataAccess != null) {
       return mobilogramDataAccess;
     }
 
     if (file instanceof IMSRawDataFile imsFile) {
-      mobilogramDataAccess = new BinningMobilogramDataAccess(imsFile,
-          BinningMobilogramDataAccess.getPreviousBinningWith(flist, imsFile.getMobilityType()));
+      mobilogramDataAccess = BinningMobilogramDataAccess.createWithPreviousParameters(imsFile,
+          flist);
       return mobilogramDataAccess;
     }
     throw new RuntimeException("Could not initialize BinningMobilogramDataAccess.");
+  }
+
+  @Override
+  public void setMobilogramDataAccess(final BinningMobilogramDataAccess mobilogramDataAccess) {
+    this.mobilogramDataAccess = mobilogramDataAccess;
   }
 
   @Override
@@ -195,7 +192,7 @@ public abstract class AbstractResolver implements Resolver {
       // if the date comes from a different source, the results might be inconsistent.
       throw new IllegalArgumentException(
           "This resolver has been set to use data from a " + chromatogramDataSource.toString()
-              + ". The current data os passed from a " + series.getClass().toString());
+          + ". The current data os passed from a " + series.getClass().toString());
     }
 
     xBuffer = extractRtValues(series, xBuffer);
@@ -223,7 +220,7 @@ public abstract class AbstractResolver implements Resolver {
       // if the date comes from a different source, the results might be inconsistent.
       throw new IllegalArgumentException(
           "This resolver has been set to use data from a " + mobilogramDataSource.toString()
-              + ". The current data os passed from a " + series.getClass().toString());
+          + ". The current data os passed from a " + series.getClass().toString());
     }
 
     if (series instanceof BinningMobilogramDataAccess dataAccess) {

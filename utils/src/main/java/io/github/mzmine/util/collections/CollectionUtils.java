@@ -328,4 +328,41 @@ public class CollectionUtils {
   public static @NotNull <T> Collector<T, ?, ArrayList<T>> toArrayList() {
     return Collectors.toCollection(ArrayList::new);
   }
+
+  /**
+   * Both lists need the same sorting. Compares elements by identity (==)
+   *
+   * @param subRegion needs contained in master without holes or missing parts
+   * @param master    the main list that contains subRegion
+   * @return true if sub is a continuous region in master
+   */
+  public static boolean isContinuousRegionByIdentity(final List<?> subRegion,
+      final List<?> master) {
+    if (subRegion.isEmpty()) {
+      return true;
+    }
+
+    boolean startFound = false;
+    int subIndex = 0;
+    Object sub = subRegion.getFirst();
+
+    for (Object o : master) {
+      // once the objects are the same we start the region that should contain all of subRegion
+      // scans need to be the exact same instance
+      if (sub == o) {
+        startFound = true;
+        subIndex++;
+
+        if (subIndex == subRegion.size()) {
+          return startFound;
+        }
+        // check next
+        sub = subRegion.get(subIndex);
+      } else if (startFound) {
+        // mismatch between objects after start was found
+        return false;
+      }
+    }
+    return false;
+  }
 }

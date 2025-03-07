@@ -29,8 +29,11 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
@@ -48,6 +51,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
@@ -72,6 +76,56 @@ public class FeatureDataUtils {
       DEFAULT_CENTER_MEASURE, DEFAULT_WEIGHTING);
 
   private static final Logger logger = Logger.getLogger(FeatureDataUtils.class.getName());
+
+  /**
+   * Create a subSeries of {@link IonTimeSeries} and {@link IonMobilogramTimeSeries}. Can also be
+   * called for {@link FeatureDataAccess}.
+   *
+   * @param series            the original series to subSeries of
+   * @param startRT           start retention time
+   * @param endRT             end retention time
+   * @param mobilogramBinning the mobilogram binning to build feature data. Consider
+   *                          {@link
+   *                          BinningMobilogramDataAccess#createWithPreviousParameters(IMSRawDataFile,
+   *                          FeatureList)} the default
+   * @return a subseries
+   */
+  public static <T extends IonTimeSeries<? extends Scan>> @NotNull T subSeries(
+      final @Nullable MemoryMapStorage storage, final T series, final float startRT,
+      final float endRT, final @Nullable BinningMobilogramDataAccess mobilogramBinning) {
+
+    return (T) switch (series) {
+      // needs to call a different method for Ion mobility data
+      case IonMobilogramTimeSeries imsSeries ->
+          imsSeries.subSeries(storage, startRT, endRT, mobilogramBinning);
+      // call the default method for the rest like {@link IonTimeSeries} {@link FeatureDataAccess}
+      default -> series.subSeries(storage, startRT, endRT);
+    };
+  }
+
+  /**
+   * Create a subSeries of {@link IonTimeSeries} and {@link IonMobilogramTimeSeries}. Can also be
+   * called for {@link FeatureDataAccess}.
+   *
+   * @param series            the original series to subSeries of
+   * @param mobilogramBinning the mobilogram binning to build feature data. Consider
+   *                          {@link
+   *                          BinningMobilogramDataAccess#createWithPreviousParameters(IMSRawDataFile,
+   *                          FeatureList)} the default
+   * @return a subseries
+   */
+  public static <T extends IonTimeSeries<? extends Scan>> @NotNull T subSeries(
+      final @Nullable MemoryMapStorage storage, final T series, final int startIndex,
+      final int endIndexExclusive, final @Nullable BinningMobilogramDataAccess mobilogramBinning) {
+
+    return (T) switch (series) {
+      // needs to call a different method for Ion mobility data
+      case IonMobilogramTimeSeries imsSeries ->
+          imsSeries.subSeries(storage, startIndex, endIndexExclusive, mobilogramBinning);
+      // call the default method for the rest like {@link IonTimeSeries} {@link FeatureDataAccess}
+      default -> series.subSeries(storage, startIndex, endIndexExclusive);
+    };
+  }
 
   /**
    * The Rt range of the series.
