@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.main.ConfigService;
 import java.util.List;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -61,7 +62,11 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
     initializeValueListener(chart);
 
     model.cursorPositionProperty().bindBidirectional(chart.cursorPositionProperty());
-    model.titleProperty().subscribe(title -> chart.getChart().setTitle(title));
+    model.titleProperty().subscribe(title -> {
+      chart.getChart().setTitle(title);
+      var theme = ConfigService.getConfiguration().getDefaultChartTheme();
+      theme.applyToTitles(model.getChart().getChart());
+    });
     model.domainLabelProperty()
         .subscribe(label -> chart.getXYPlot().getDomainAxis().setLabel(label));
     model.rangeLabelProperty().subscribe(label -> chart.getXYPlot().getRangeAxis().setLabel(label));

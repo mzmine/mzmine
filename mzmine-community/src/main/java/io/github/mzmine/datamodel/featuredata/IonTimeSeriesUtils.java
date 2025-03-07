@@ -26,12 +26,18 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
+import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.BuildingIonMobilitySeries;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MathUtils;
@@ -174,8 +180,8 @@ public class IonTimeSeriesUtils {
    * @see IonTimeSeriesUtils#extractIonTimeSeries(ScanDataAccess, Range, Range, MemoryMapStorage)
    */
   public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
-      @NotNull List<? extends Scan> scans, @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
-      @Nullable MemoryMapStorage storage) {
+      @NotNull List<? extends Scan> scans, @NotNull Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable MemoryMapStorage storage) {
     final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST, scans);
     return extractIonTimeSeries(access, mzRange, rtRange, storage);
   }
@@ -236,6 +242,77 @@ public class IonTimeSeriesUtils {
 
     return new SimpleIonTimeSeries(storage, mzs.toDoubleArray(), intensities.toDoubleArray(),
         scans);
+  }
+
+  /**
+   * Extracts an {@link IonMobilogramTimeSeries} from the given raw file in the
+   * {@link MobilityScanDataAccess}. The peak closest to the center of the given mz range will be
+   * used for every scan in the given rtRange. No leading or trailing zeros will be added. scans
+   * without detection are represented by 0 intensity.
+   *
+   * @param access        A mobility scan data access fir the raw data file.
+   * @param mzRange       The mz range to search for signals. It is recommended to create a range
+   *                      around the mz value to search, as the peak closest to the center in every
+   *                      scan will be used.
+   * @param rtRange       RT range to search. The {@link MobilityScanDataAccess} may include more
+   *                      than just the RT range. May be null, then the full file is searched.
+   * @param mobilityRange The mobility range to search. May be null.
+   * @param storage       A storage to use. may be null.
+   * @param binningAccess A binning data access to create the summed mobilogram.
+   * @return The ion mobility trace. Not null, but may be empty.
+   */
+  public static IonMobilogramTimeSeries extractIonMobilogramTimeSeries(
+      @NotNull MobilityScanDataAccess access, @NotNull Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable MemoryMapStorage storage, @NotNull BinningMobilogramDataAccess binningAccess) {
+
+    access.resetFrame();
+    final double centerMz = RangeUtils.rangeCenter(mzRange);
+
+    final List<IonMobilitySeries> mobilograms = new ArrayList<>();
+    while (access.hasNextFrame()) {
+      final Frame frame = access.nextFrame();
+      if (rtRange != null && !rtRange.contains(frame.getRetentionTime())) {
+        continue;
+      }
+
+      DoubleArrayList intensities = new DoubleArrayList();
+      DoubleArrayList mzs = new DoubleArrayList();
+      final List<MobilityScan> scans = new ArrayList<>();
+      while (access.hasNextMobilityScan()) {
+        MobilityScan scan = access.nextMobilityScan();
+        if (mobilityRange != null || mobilityRange.contains((float) scan.getMobility())) {
+          final int closestPeakIndex = access.binarySearch(centerMz, DefaultTo.CLOSEST_VALUE);
+          if (closestPeakIndex < 0) {
+            // empty scan
+            mzs.add(0);
+            intensities.add(0);
+            scans.add(scan);
+          } else {
+            // closest mz
+            final double mz = access.getMzValue(closestPeakIndex);
+
+            if (mzRange.contains(mz)) {
+              scans.add(scan);
+              mzs.add(mz);
+              intensities.add(access.getIntensityValue(closestPeakIndex));
+            } else {
+              mzs.add(0);
+              intensities.add(0);
+              scans.add(scan);
+            }
+          }
+        }
+      }
+
+      if (!intensities.isEmpty() && !mzs.isEmpty() && !scans.isEmpty()) {
+        mobilograms.add(
+            new BuildingIonMobilitySeries(storage, mzs.toDoubleArray(), intensities.toDoubleArray(),
+                scans));
+      }
+    }
+
+    return IonMobilogramTimeSeriesFactory.of(storage, mobilograms, binningAccess);
   }
 
   /**

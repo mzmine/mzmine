@@ -160,8 +160,8 @@
                                 text="Show feature list summary"
                                 fx:id="showFeatureListSummaryMenuItem"/>
                               <MenuItem onAction="#handleShowStatisticsDashboard" text="Show statistics dashboard"/>
-                              <MenuItem onAction="#handleShowScatterPlot"
-                                text="Show scatter plot"/>
+                              <MenuItem onAction="#handleShowIntegrationDashboard"
+                                text="Show integration dashboard"/>
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleFeatureListsSort"
                                 text="Sort alphabetically"/>
