@@ -69,6 +69,26 @@ public class IonMobilogramTimeSeriesFactory {
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
       @NotNull final List<IonMobilitySeries> mobilograms,
       @NotNull final BinningMobilogramDataAccess mobilogramBinning) {
+    return of(storage, mobilograms, mobilogramBinning, null);
+  }
+
+  /**
+   * Stores a list of mobilograms. A summed intensity of each mobilogram is automatically calculated
+   * and represents this series when plotted as a 2D intensity-vs time chart (accessed via
+   * {@link SimpleIonMobilogramTimeSeries#getMZ(int)} and
+   * {@link SimpleIonMobilogramTimeSeries#getIntensity(int)}). The mz representing a mobilogram is
+   * calculated by a weighted average based on the mzs in eah mobility scan.
+   *
+   * @param storage     May be null if values shall be stored in ram.
+   * @param mobilograms
+   * @param frames      the precomputed or original list of frames - if null the frames will be
+   *                    collected from the mobilograms
+   * @see IonSpectrumSeries#copyAndReplace(MemoryMapStorage, double[], double[])
+   */
+  public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
+      @NotNull final List<IonMobilitySeries> mobilograms,
+      @NotNull final BinningMobilogramDataAccess mobilogramBinning,
+      final @Nullable List<Frame> frames) {
 
     double[][] summedAndWeighted = sumIntensitiesWeightMzs(mobilograms);
 
@@ -76,7 +96,12 @@ public class IonMobilogramTimeSeriesFactory {
     final SummedIntensityMobilitySeries summedMobilogram = mobilogramBinning.toSummedMobilogram(
         storage);
 
-    return of(storage, summedAndWeighted[0], summedAndWeighted[1], mobilograms, summedMobilogram);
+    if (frames == null) {
+      return of(storage, summedAndWeighted[0], summedAndWeighted[1], mobilograms, summedMobilogram);
+    } else {
+      return of(storage, summedAndWeighted[0], summedAndWeighted[1], mobilograms, frames,
+          summedMobilogram);
+    }
   }
 
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
@@ -215,7 +240,7 @@ public class IonMobilogramTimeSeriesFactory {
 
   static MobilogramStorageResult storeMobilograms(SimpleIonMobilogramTimeSeries trace,
       @Nullable MemoryMapStorage storage, List<IonMobilitySeries> mobilograms) {
-    if(mobilograms.isEmpty()) {
+    if (mobilograms.isEmpty()) {
       return MobilogramStorageResult.EMPTY;
     }
 
@@ -251,7 +276,7 @@ public class IonMobilogramTimeSeriesFactory {
   private static MobilogramStorageResult storeMobilogramsFromAlreadyStored(
       SimpleIonMobilogramTimeSeries newTrace, MemoryMapStorage storage,
       List<StorableIonMobilitySeries> mobilograms) {
-    if(mobilograms.isEmpty()) {
+    if (mobilograms.isEmpty()) {
       return MobilogramStorageResult.EMPTY;
     }
 

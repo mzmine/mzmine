@@ -25,9 +25,6 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
-import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
-import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
-
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityType;
@@ -39,6 +36,8 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.MzSeries;
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningModule;
@@ -104,6 +103,11 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       throw new IllegalArgumentException(
           "Length of mz, intensity, frames and/or mobilograms does not match.");
     }
+    if (mzs.length != frames.size()) {
+      throw new IllegalArgumentException(
+          "Length of data arrays and number of frames mismatch: %d to %d".formatted(mzs.length,
+              frames.size()));
+    }
     if (!checkRawFileIntegrity(mobilograms)) {
       throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
     }
@@ -145,10 +149,15 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       MemorySegment intensityValues, @Nullable MemoryMapStorage storage,
       @NotNull List<IonMobilitySeries> mobilograms, @NotNull List<Frame> frames,
       @NotNull final SummedIntensityMobilitySeries summedMobilogram) {
-    if (mzValues.byteSize() != intensityValues.byteSize() || mobilograms.size() != numDoubles(
-        intensityValues)) {
+    final long numDataPoints = numDoubles(intensityValues);
+    if (mzValues.byteSize() != intensityValues.byteSize() || mobilograms.size() != numDataPoints) {
       throw new IllegalArgumentException(
           "Length of mz, intensity, frames and/or mobilograms does not match.");
+    }
+    if (numDataPoints != frames.size()) {
+      throw new IllegalArgumentException(
+          "Length of data arrays and number of frames mismatch: %d to %d".formatted(numDataPoints,
+              frames.size()));
     }
     if (!checkRawFileIntegrity(mobilograms)) {
       throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");

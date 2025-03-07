@@ -34,11 +34,14 @@ import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
+import io.github.mzmine.datamodel.featuredata.impl.ModifiableSpectra;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -61,7 +64,8 @@ public class ExpandingTrace {
     this.mzRange = mzRange;
   }
 
-  public ExpandingTrace(@NotNull final ModularFeatureListRow f, Range<Double> mzRange, Range<Float> rtRange) {
+  public ExpandingTrace(@NotNull final ModularFeatureListRow f, Range<Double> mzRange,
+      Range<Float> rtRange) {
     this.f = f;
     this.rtRange = rtRange;
     this.mzRange = mzRange;
@@ -99,6 +103,7 @@ public class ExpandingTrace {
     int scanEnd = 0;
     Frame lastFrame = null;
 
+    final List<Frame> actualFrames = new ArrayList<>();
     final List<MobilityScan> scans = dataPoints.keySet().stream().sorted().toList();
     final List<DataPoint> dataPointsList = this.dataPoints.entrySet().stream()
         .sorted(Comparator.comparing(Entry::getKey)).map(Entry::getValue).toList();
@@ -117,19 +122,30 @@ public class ExpandingTrace {
             scans.subList(scanStart, scanEnd));
         mobilograms.add(mobilogram);
         scanStart = i;
+        actualFrames.add(lastFrame);
         lastFrame = scan.getFrame();
       }
     }
+    actualFrames.add(lastFrame);
+    // finishing the last frame
+    final double[][] dps = DataPointUtils.getDataPointsAsDoubleArray(
+        dataPointsList.subList(scanStart, dataPoints.size()));
+    final IonMobilitySeries mobilogram = new SimpleIonMobilitySeries(null, dps[0], dps[1],
+        scans.subList(scanStart, scans.size()));
+    mobilograms.add(mobilogram);
 
-    if (scanStart <= scanEnd) {
-      final double[][] dps = DataPointUtils.getDataPointsAsDoubleArray(
-          dataPointsList.subList(scanStart, dataPoints.size()));
-      final IonMobilitySeries mobilogram = new SimpleIonMobilitySeries(null, dps[0], dps[1],
-          scans.subList(scanStart, scans.size()));
-      mobilograms.add(mobilogram);
-    }
+    // try reusing the old frames or a sublist of oldframes to save memory
+    // reusing the list might offer memory improvements by using the same sublist pointing to
+    // the scan in list in feature list
+    final List<Frame> oldFrames = (List<Frame>) f.streamFeatures().findFirst()
+        .map(ModularFeature::getFeatureData).map(ModifiableSpectra::getSpectraModifiable)
+        .orElse(null);
 
-    return IonMobilogramTimeSeriesFactory.of(storage, mobilograms, mobilogramDataAccess);
+    // not all frames may have data - use actualFrames if there are holes. Or use oldFrames.sublist if it is a continuous region
+    final List<Frame> unifiedFrames = CollectionUtils.asContinuousRegionSubListByIdentity(
+        actualFrames, oldFrames);
+    return IonMobilogramTimeSeriesFactory.of(storage, mobilograms, mobilogramDataAccess,
+        unifiedFrames);
   }
 
   public Range<Float> getRtRange() {
