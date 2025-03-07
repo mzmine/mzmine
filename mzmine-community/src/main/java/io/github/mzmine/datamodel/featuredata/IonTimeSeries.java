@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.featuredata;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.impl.ModifiableSpectra;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
@@ -45,7 +46,8 @@ import org.jetbrains.annotations.Nullable;
  * @param <T>
  * @author https://github.com/SteffenHeu
  */
-public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, IntensityTimeSeries {
+public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, IntensityTimeSeries,
+    ModifiableSpectra<T> {
 
   SimpleIonTimeSeries EMPTY = new SimpleIonTimeSeries(null, new double[0], new double[0],
       List.of());
@@ -97,7 +99,16 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
       return emptySeries();
     }
 
-    // do not use sublist for now as it keeps the original list alive.
+    // sublist:
+    // PRO: the original list is kept alive either way (e.g. the Scan list in FeatureList) - saves memory
+    // CONTRA: the original list is not referenced and and will be kept alive by sublist
+
+    // chromatograms are all from a different list of scans
+    // if resolver runs on {@link FeatureFullDataAccess} it is one list for all features of that file
+    // in that case it makes sense to keep the original list or a sublist
+    // in this case the feature list keeps the MS1 scans list alive (if its based on
+
+    // this general implementation should not use sublist as this mayb be used in other cases as well.
     // TODO think about using this fact to just having one list of scans with continuos sublists
     // like having one MemorySegment for chromatogram and then just save the index ranges of scans for resolved features.
     List<T> scans = new ArrayList<>(getSpectra().subList(startIndexInclusive, endIndexExclusive));

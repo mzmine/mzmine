@@ -67,7 +67,20 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
    * @param dataFile define the data file in an aligned feature list
    */
   protected FeatureDetectedDataAccess(FeatureList flist, @Nullable RawDataFile dataFile) {
-    super(flist, dataFile);
+    this(flist, dataFile, null);
+  }
+
+  /**
+   * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
+   * by retention time). Uses only data points currently assigned to features. This differs for
+   * chromatograms and resolved features
+   *
+   * @param flist    target feature list. Loops through all features in dataFile
+   * @param dataFile define the data file in an aligned feature list
+   */
+  protected FeatureDetectedDataAccess(FeatureList flist, @Nullable RawDataFile dataFile,
+      @Nullable BinningMobilogramDataAccess binningMobilogramDataAccess) {
+    super(flist, dataFile, binningMobilogramDataAccess);
 
     // detected data points currently on feature/chromatogram
     int detected = getMaxNumOfDetectedDataPoints();
@@ -79,6 +92,11 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
   public List<Scan> getSpectra() {
     assert featureData != null;
     return featureData.getSpectra();
+  }
+
+  @Override
+  public List<Scan> getSpectraModifiable() {
+    return (List<Scan>) getOriginalSeries().getSpectraModifiable();
   }
 
 

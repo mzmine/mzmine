@@ -25,10 +25,12 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
@@ -216,8 +218,14 @@ public class FeatureResolverTask extends AbstractTask {
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
 
+    final BinningMobilogramDataAccess binningIms = dataFile instanceof IMSRawDataFile imsFile
+        ? BinningMobilogramDataAccess.createWithPreviousParameters(imsFile, originalFeatureList)
+        : null;
+    // use the same in resolver and data access:
+    resolver.setMobilogramDataAccess(binningIms);
+
     final FeatureDataAccess access = EfficientDataAccess.of(originalFeatureList,
-        EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile);
+        EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile, binningIms);
 
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
@@ -250,7 +258,7 @@ public class FeatureResolverTask extends AbstractTask {
       processedRows++;
     }
     logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
-        + " have less than 4 scans (frames for IMS data)");
+                + " have less than 4 scans (frames for IMS data)");
     //    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(

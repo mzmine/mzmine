@@ -25,8 +25,6 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
-import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
-
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -34,6 +32,7 @@ import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MzSeries;
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
@@ -92,7 +91,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   /**
    * may reuse memory segments
    */
-  private SimpleIonTimeSeries(@NotNull MemorySegment mzValues,
+  public SimpleIonTimeSeries(@NotNull MemorySegment mzValues,
       @NotNull MemorySegment intensityValues, @NotNull List<? extends Scan> scans) {
     long values = numDoubles(mzValues);
     if (values != numDoubles(intensityValues) || values != scans.size()) {
@@ -272,5 +271,10 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   @Override
   public IonTimeSeries<Scan> emptySeries() {
     return IonTimeSeries.EMPTY;
+  }
+
+  @Override
+  public List<Scan> getSpectraModifiable() {
+    return (List<Scan>) scans;
   }
 }
