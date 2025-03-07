@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_
 
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.parameters.UserParameter;
+import io.mzio.general.Result;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -110,7 +111,16 @@ public class CustomLipidClassFragmentationRulesChoiceParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    return true;
+    if (values == null) {
+      return true;
+    }
+
+    final List<Result> failed = Arrays.stream(values).map(LipidFragmentationRule::validate)
+        .filter(Result::notOk).toList();
+    if (!failed.isEmpty()) {
+      failed.forEach(result -> errorMessages.add(result.message()));
+    }
+    return failed.isEmpty();
   }
 
   @Override

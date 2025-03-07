@@ -2,17 +2,25 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.general.Result;
+import java.util.Collection;
+import java.util.logging.Logger;
 
 /**
- * Represents a fragmentation rule of a custom lipid class. Not intended to be used as part of a module, does not support saving.
+ * Represents a fragmentation rule of a custom lipid class. Not intended to be used as part of a
+ * module, does not support saving.
  */
 public class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
+
+  private static final Logger logger = Logger.getLogger(
+      AddLipidFragmentationRuleParameters.class.getName());
 
   public static final ComboParameter<IonizationType> ionizationMethod = new ComboParameter<>(
       "Ionization method", "Type of ion used to calculate the ionized mass",
@@ -34,6 +42,7 @@ public class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
   public AddLipidFragmentationRuleParameters() {
     super(polarity, ionizationMethod, lipidFragmentationRuleType,
         lipidFragmentationRuleInformationLevel, formula);
+    setModuleNameAttribute("Define a lipid fragmentation rule");
   }
 
   @Override
@@ -42,5 +51,24 @@ public class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
         valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
+
+    boolean thisCheck = true;
+    final LipidFragmentationRuleType rule = getValue(
+        AddLipidFragmentationRuleParameters.lipidFragmentationRuleType);
+    final String formula = getValue(AddLipidFragmentationRuleParameters.formula);
+    final Result check = LipidFragmentationRule.validate(rule, formula);
+    if (!check.isOk()) {
+      thisCheck = false;
+      errorMessages.add(check.message());
+    }
+
+    return thisCheck && superCheck;
   }
 }

@@ -61,6 +61,4 @@ public class AddLipidFragmentationRuleSetupDialog extends ParameterSetupDialog {
     lipidAnnotationLevel = parameters.getParameter(AddLipidFragmentationRuleParameters.lipidFragmentationRuleInformationLevel).getValue();
     formula = parameters.getParameter(AddLipidFragmentationRuleParameters.formula).getValue();
   }
-
-
 }

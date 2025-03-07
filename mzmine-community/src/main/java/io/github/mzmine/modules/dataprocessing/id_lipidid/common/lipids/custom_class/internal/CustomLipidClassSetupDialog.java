@@ -63,7 +63,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.FormulaUtils;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -96,8 +95,7 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
   private final ReentrantLock lock = new ReentrantLock();
   private boolean isUpdateFromPreset = false;
 
-  private final RawDataFile dummyFile = new RawDataFileImpl("testfile", null, null,
-      javafx.scene.paint.Color.BLACK);
+  private final RawDataFile dummyFile = RawDataFile.createDummyFile();
   private final Scan simpleScan = new SimpleScan(dummyFile, -1, 2, 0.1F, null, new double[]{500},
       new double[]{100}, MassSpectrumType.ANY, PolarityType.ANY, "Pseudo", null);
 
@@ -307,7 +305,7 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
 
         TextField dbeTextField = new TextField(String.valueOf(numberOfDbesList.get(i)));
         dbeTextField.setMaxWidth(50);
-        dbeTextField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+        dbeTextField.focusedProperty().addListener((_, _, newValue) -> {
           if (!newValue) {
             try {
               int intValue = Integer.parseInt(dbeTextField.getText());
