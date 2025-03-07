@@ -151,4 +151,9 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
   public IonTimeSeries<Scan> emptySeries() {
     return featureData.emptySeries();
   }
+
+  @Override
+  public List<Scan> getSpectraModifiable() {
+    return featureData.getSpectraModifiable();
+  }
 }
