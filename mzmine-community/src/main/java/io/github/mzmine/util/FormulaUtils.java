@@ -307,8 +307,13 @@ public class FormulaUtils {
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
     IMolecularFormula molFormula;
 
-    molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
-    if (molFormula == null) {
+    try {
+      molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
+      if (molFormula == null) {
+        return false;
+      }
+    } catch (RuntimeException e) {
+      logger.info("Cannot parse formula " + formula);
       return false;
     }
 
@@ -778,7 +783,7 @@ public class FormulaUtils {
       c.put(IonTypeType.class, new IonType(mod));
     }
 
-    if(annotation.getAdductType() == null) {
+    if (annotation.getAdductType() == null) {
       return null;
     }
     try {
