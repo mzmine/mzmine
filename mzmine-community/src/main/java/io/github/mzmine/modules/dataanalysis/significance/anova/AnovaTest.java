@@ -61,7 +61,9 @@ public class AnovaTest implements RowSignificanceTest {
    *                        array[group][abundances]
    */
   private boolean checkConditions(List<double[]> groupAbundances) {
-    return groupAbundances.size() > 2; // anova usually used for more than two groups
+    // anova usually used for more than two groups. each group must have at least 2 values
+    return groupAbundances.size() > 2 && groupAbundances.stream()
+        .allMatch(array -> array.length >= 2);
   }
 
   @Override
