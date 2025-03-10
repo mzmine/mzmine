@@ -43,6 +43,7 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.List;
@@ -54,6 +55,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
+import org.jfree.data.Range;
 
 public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotModel> {
 
@@ -103,6 +105,18 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
 
         chromPlot.setRangeAxisLabel(getSeriesRangeLabel(series));
         chromPlot.setRangeAxisFormat(formats.intensityFormat());
+
+        if (series.getNumberOfValues() > 0) {
+          final Range xRange = chromPlot.getDomainAxisRange();
+          final Range yRange = chromPlot.getRangeAxisRange();
+
+          if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(xRange,
+              com.google.common.collect.Range.closed(series.getRetentionTime(0),
+                  series.getRetentionTime(series.getNumberOfValues() - 1)))) {
+            chromPlot.applyAutoRangeToDomainAxis();
+            chromPlot.applyAutoRangeToRangeAxis(); // only change y axis if we also change x axis.
+          }
+        }
       }
     });
 
@@ -288,7 +302,7 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     if (newDs.isEmpty() && oldDs.isEmpty()) {
       return;
     }
-    model.getChromatogramPlot().applyWithNotifyChanges(() -> {
+    model.getChromatogramPlot().applyWithNotifyChanges(false, () -> {
       model.getChromatogramPlot().removeDatasets(oldDs);
       model.getChromatogramPlot().addDatasets(
           newDs.stream().map(ds -> new DatasetAndRenderer(ds, new ColoredXYLineRenderer()))

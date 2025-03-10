@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxCheckBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.factories.FxSpinners;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
@@ -262,52 +263,34 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     final Label lblCols = FxLabels.newLabel("Columns");
     final Label lblRows = FxLabels.newLabel("Rows");
 
-    final Spinner<Integer> spCols = new Spinner<>(1, 10, model.getGridNumColumns());
-    final Spinner<Integer> spRows = new Spinner<>(1, 10, model.getGridNumRows());
-
-//    spCols.getValueFactory().valueProperty()
-//        .bindBidirectional(model.gridNumColumnsProperty().asObject());
-    // binding in this fashion did not work, somehow it stopped updating after a few changes.
-    // maybe the asObject() was gc'ed at some point.
-
-    spCols.getValueFactory().valueProperty().addListener(
-        (_, _, i) -> model.setGridNumColumns(i != null ? i : model.getGridNumColumns()));
-    model.gridNumColumnsProperty()
-        .addListener((_, _, i) -> spCols.getValueFactory().setValue(i.intValue()));
-    spRows.getValueFactory().valueProperty()
-        .addListener((_, _, i) -> model.setGridNumRows(i != null ? i : model.getGridNumRows()));
-    model.gridNumRowsProperty()
-        .addListener((_, _, i) -> spRows.getValueFactory().setValue(i.intValue()));
+    final Spinner<Integer> spCols = FxSpinners.newSpinner(1, 10, model.gridNumColumnsProperty());
+    final Spinner<Integer> spRows = FxSpinners.newSpinner(1, 10, model.gridNumRowsProperty());
 
     final Button previousPage = FxButtons.createButton(null, FxIcons.ARROW_LEFT, "Previous page",
-        () -> {
-          final int currentOffset = model.getGridPaneFileOffset();
-          model.setGridPaneFileOffset(
-              Math.max(0, currentOffset - (model.getGridNumRows() * model.getGridNumColumns())));
-        });
+        () -> model.setGridPaneFileOffset(
+            Math.max(0, model.getGridPaneFileOffset() - model.getCellsPerPage())));
     final Button nextPage = FxButtons.createButton(null, FxIcons.ARROW_RIGHT, "Next page", () -> {
-      final int currentOffset = model.getGridPaneFileOffset();
-      final int step = model.getGridNumRows() * model.getGridNumColumns();
-      model.setGridPaneFileOffset(
-          Math.min(Math.max(model.sortedFilesProperty().size() - 1, 0), currentOffset + step));
+      final int nextOffset = model.getGridPaneFileOffset() + model.getCellsPerPage();
+      if (nextOffset > model.getSortedFiles().size()) {
+        return;
+      }
+      model.setGridPaneFileOffset(nextOffset);
     });
 
     final Label lblPage = FxLabels.newLabel("Page 1/1");
-    PropertyUtils.onChange(() -> lblPage.setText("Page %d/%d".formatted(
+    PropertyUtils.onChangeSubscription(() -> lblPage.setText("Page %d/%d".formatted(
             // current page
-            (int) ((model.getGridPaneFileOffset() + 1) / (double) (model.getGridNumRows()
-                * model.getGridNumColumns()) + 1),
+            (int) ((model.getGridPaneFileOffset() + 1) / (double) (model.getCellsPerPage()) + 1),
             // total pages
-            (model.getSortedFiles().size()) / (model.getGridNumRows() * model.getGridNumColumns())
-                + 1)), model.getSortedFiles(), model.gridNumRowsProperty(),
+            model.getNumPages())), model.sortedFilesProperty(), model.gridNumRowsProperty(),
         model.gridNumColumnsProperty(), model.gridPaneFileOffsetProperty());
 
     final Label lblEntries = FxLabels.newLabel("Entries 0 - 0");
-    PropertyUtils.onChange(() -> {
-          lblEntries.setText("Entries %d - %d".formatted(model.getGridPaneFileOffset() + 1, Math.min(
-              model.getGridPaneFileOffset() + model.getGridNumRows() * model.getGridNumColumns(),
-              model.getSortedFiles().size())));
-        }, model.getSortedFiles(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
+    PropertyUtils.onChangeSubscription(() -> {
+          lblEntries.setText("Entries %d - %d".formatted(model.getGridPaneFileOffset() + 1,
+              Math.min(model.getGridPaneFileOffset() + model.getCellsPerPage(),
+                  model.getSortedFiles().size())));
+        }, model.sortedFilesProperty(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
         model.gridPaneFileOffsetProperty());
 
     return FxLayout.newHBox(Pos.CENTER, lblCols, spCols, lblRows, spRows,

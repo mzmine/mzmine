@@ -48,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 
 public class ChromatogramPlotController extends FxController<ChromatogramPlotModel> {
@@ -211,7 +212,31 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
     model.getChart().setStickyZeroRangeAxis(stickyZero);
   }
 
-  public void applyWithNotifyChanges(@NotNull final Runnable r) {
-    model.getChart().applyWithNotifyChanges(false, r);
+  public void applyWithNotifyChanges(boolean tempState, @NotNull final Runnable r) {
+    model.getChart().applyWithNotifyChanges(tempState, r);
+  }
+
+  public Range getDomainAxisRange() {
+    return model.getChart().getXYPlot().getDomainAxis().getRange();
+  }
+
+  public Range getRangeAxisRange() {
+    return model.getChart().getXYPlot().getRangeAxis().getRange();
+  }
+
+  public void setDomainAxisRange(Range range) {
+    model.getChart().getXYPlot().getDomainAxis().setRange(range);
+  }
+
+  public void setRangeAxisRange(Range range) {
+    model.getChart().getXYPlot().getRangeAxis().setRange(range);
+  }
+
+  public void applyAutoRangeToRangeAxis() {
+    model.getChart().getXYPlot().getRangeAxis().setAutoRange(true);
+  }
+
+  public void applyAutoRangeToDomainAxis() {
+    model.getChart().getXYPlot().getDomainAxis().setAutoRange(true);
   }
 }

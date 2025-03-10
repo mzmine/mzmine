@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.function.Function;
+import javafx.beans.binding.NumberBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -53,10 +54,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IntegrationDashboardModel {
-
-  private final IntegerProperty gridNumColumns = new SimpleIntegerProperty(3);
-  private final IntegerProperty gridNumRows = new SimpleIntegerProperty(2);
-  private final IntegerProperty gridPaneFileOffset = new SimpleIntegerProperty(0);
 
   private final ObjectProperty<@NotNull ModularFeatureList> featureList = new SimpleObjectProperty<>(
       new ModularFeatureList("flist", null, List.of()));
@@ -78,6 +75,13 @@ public class IntegrationDashboardModel {
   private final ObjectProperty<@NotNull Function<IonTimeSeries, IonTimeSeries>> postProcessingMethod = new SimpleObjectProperty<>(
       t -> t);
   private final BooleanProperty applyPostProcessing = new SimpleBooleanProperty(false);
+
+  private final IntegerProperty gridNumColumns = new SimpleIntegerProperty(3);
+  private final IntegerProperty gridNumRows = new SimpleIntegerProperty(2);
+  private final IntegerProperty gridPaneFileOffset = new SimpleIntegerProperty(0);
+  private final NumberBinding cellsPerPage = gridNumColumns.multiply(gridNumRows);
+  private final NumberBinding numPages = featureDataEntries.sizeProperty().divide(cellsPerPage)
+      .add(1);
 
   public int getGridNumColumns() {
     return gridNumColumns.get();
@@ -101,6 +105,22 @@ public class IntegrationDashboardModel {
 
   public IntegerProperty gridNumRowsProperty() {
     return gridNumRows;
+  }
+
+  public int getCellsPerPage() {
+    return cellsPerPage.intValue();
+  }
+
+  public NumberBinding cellsPerPageProperty() {
+    return cellsPerPage;
+  }
+
+  public int getNumPages() {
+    return (int) Math.ceil(numPages.doubleValue());
+  }
+
+  public NumberBinding numPagesProperty() {
+    return numPages;
   }
 
   public @NotNull ModularFeatureList getFeatureList() {
