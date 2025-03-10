@@ -38,7 +38,6 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
@@ -48,6 +47,7 @@ import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
@@ -57,15 +57,18 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
+/**
+ * Calculates the {@link FeatureIntegrationData} for the {@link IntegrationDashboardModel}.
+ */
+class FeatureIntegrationDataCalcTask extends FxUpdateTask<IntegrationDashboardModel> {
 
   private final List<FeatureIntegrationData> entries = new ArrayList<>();
 
   private long total = 0L;
   private long processed = 0L;
 
-  protected FeatureDataEntryTask(IntegrationDashboardModel model) {
-    super(FeatureDataEntryTask.class.getName(), model);
+  protected FeatureIntegrationDataCalcTask(IntegrationDashboardModel model) {
+    super(FeatureIntegrationDataCalcTask.class.getName(), model);
   }
 
   @Override
@@ -110,14 +113,14 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
             t.chromatogram()
                 .subSeries(null, extendedRtRange.lowerEndpoint(), extendedRtRange.upperEndpoint()),
             colors.getAWT(clr.getAndIncrement()),
-            "%s -> %s".formatted(formats.mz(t.q1mass()), formats.mz(t.q3mass())))).toList();
+            "%s → %s".formatted(formats.mz(t.q1mass()), formats.mz(t.q3mass())))).toList();
       } else {
         additionalData = List.of();
       }
 
       entries.add(
           new FeatureIntegrationData(file, feature != null ? feature.getFeatureData() : null,
-          chromatogram, additionalData));
+              chromatogram, additionalData));
       processed++;
     }
   }
@@ -127,7 +130,7 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
       Range<Float> extendedRtRange, FeatureListRow row) {
     final IonTimeSeries<? extends Scan> chromatogram;
 
-    if (feature != null && feature.get(MrmTransitionListType.class) != null) {
+    if (FeatureUtils.isMrm(feature)) {
       final MrmTransitionList mrms = feature.get(MrmTransitionListType.class);
       final MrmTransition quant = mrms.quantifier();
       return quant.chromatogram().subSeries(null, extendedRtRange.lowerEndpoint().floatValue(),
@@ -137,8 +140,7 @@ class FeatureDataEntryTask extends FxUpdateTask<IntegrationDashboardModel> {
       return IonTimeSeries.EMPTY;
     }
 
-    if (file instanceof IMSRawDataFile ims && (feature == null
-        || feature.get(MobilityType.class) != null)) {
+    if (file instanceof IMSRawDataFile ims && (FeatureUtils.isMrm(feature))) {
       final int previousBinningWith = BinningMobilogramDataAccess.getPreviousBinningWith(flist,
           ims.getMobilityType());
       var chrom = IonTimeSeriesUtils.extractIonMobilogramTimeSeries(

@@ -288,8 +288,8 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     final Button nextPage = FxButtons.createButton(null, FxIcons.ARROW_RIGHT, "Next page", () -> {
       final int currentOffset = model.getGridPaneFileOffset();
       final int step = model.getGridNumRows() * model.getGridNumColumns();
-      model.setGridPaneFileOffset(Math.min(Math.max(model.sortedFilesProperty().size() - 1, 0),
-          currentOffset + step));
+      model.setGridPaneFileOffset(
+          Math.min(Math.max(model.sortedFilesProperty().size() - 1, 0), currentOffset + step));
     });
 
     final Label lblPage = FxLabels.newLabel("Page 1/1");

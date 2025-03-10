@@ -190,7 +190,6 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
       model.integratedFeaturesProperty().clear();
       return;
     }
-
     model.setIntegratedFeatures((List<IntensityTimeSeries>) integratedFeatures);
   }
 
@@ -208,8 +207,8 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   }
 
   public void setFeatureDataEntry(@Nullable FeatureIntegrationData featureIntegrationData) {
+    clear();
     if (featureIntegrationData == null) {
-      clear();
       return;
     }
     setOtherTimeSeries(featureIntegrationData.chromatogram());

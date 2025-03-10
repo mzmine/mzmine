@@ -80,8 +80,8 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
     // the offset may never be larger than the number of files
     model.sortedFilesProperty().subscribe(files -> model.setGridPaneFileOffset(
         Math.max(Math.min(model.getGridPaneFileOffset(), files.size() - 1), 0)));
-    PropertyUtils.onChange(() -> onTaskThread(new FeatureDataEntryTask(model)), model.rowProperty(),
-        model.applyPostProcessingProperty());
+    PropertyUtils.onChange(() -> onTaskThread(new FeatureIntegrationDataCalcTask(model)),
+        model.rowProperty(), model.applyPostProcessingProperty());
   }
 
   private static SmoothingAlgorithm extractSmoother(ModularFeatureList flist) {
@@ -141,7 +141,7 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
 
       final T smoothedRt;
       if (smoother != null) {
-        final @Nullable double[] rtSmoothedIntensities = smoother.smoothRt(its);
+        final double @Nullable [] rtSmoothedIntensities = smoother.smoothRt(its);
         smoothedRt = (T) its.copyAndReplace(flist.getMemoryMapStorage(), rtSmoothedIntensities);
       } else {
         smoothedRt = its;
