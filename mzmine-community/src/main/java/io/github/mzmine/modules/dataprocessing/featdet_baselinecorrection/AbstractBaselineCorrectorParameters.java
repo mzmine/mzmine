@@ -28,20 +28,21 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import org.jetbrains.annotations.Nullable;
 
 public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
 
   public static final BooleanParameter applyPeakRemoval = new BooleanParameter("Exclude peaks",
       "Attempts to remove peaks prior to baseline correction.");
 
-  public static final IntegerParameter numSamples = new IntegerParameter(
-      "Number of baseline samples", """
+  public static final PercentParameter samplePercentage = new PercentParameter(
+      "Percentage of baseline samples", """
       The approximate number of samples taken from the chromatogram to fit the baseline.
-      The actual number might be slightly different for each chromatogram, depending on other parameters.
+      The actual number might be slightly different for each chromatogram, depending if peak removal is activated.
       Too low values may fail to approximate the baseline correctly, too high values may put
-      too much weight on chromatographic signals and distort the baseline. Default: 50.
-      """, 50, 2, Integer.MAX_VALUE);
+      too much weight on chromatographic signals and distort the baseline. Default: 10%.
+      """, 0.05);
 
   public AbstractBaselineCorrectorParameters() {
     super();
@@ -57,5 +58,19 @@ public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
 
   public AbstractBaselineCorrectorParameters(Parameter<?>[] parameters, String onlineHelpUrl) {
     super(onlineHelpUrl, parameters);
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 ->
+          "Baseline correction parameters were updated to use a relative percentage of sampled data points instead of an absolute number.";
+      default -> null;
+    };
   }
 }
