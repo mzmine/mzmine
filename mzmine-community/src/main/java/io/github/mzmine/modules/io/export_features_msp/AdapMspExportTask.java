@@ -29,11 +29,13 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.io.File;
@@ -43,6 +45,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.AnnotationUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -164,12 +167,12 @@ public class AdapMspExportTask extends AbstractTask {
       setStatus(TaskStatus.FINISHED);
   }
 
-  private void exportFeatureList(FeatureList featureList, FileWriter writer, File curFile)
+  private void exportFeatureList(FeatureList featureList,final FileWriter writer, File curFile)
       throws IOException {
     final String newLine = System.lineSeparator();
 
     for (FeatureListRow row : featureList.getRows()) {
-      IsotopePattern ip = row.getBestIsotopePattern();
+      Scan ip = row.getMostIntenseFragmentScan();
       if (ip == null)
         continue;
 
@@ -177,18 +180,11 @@ public class AdapMspExportTask extends AbstractTask {
       if (name != null)
         writer.write("Name: " + name + newLine);
 
-      FeatureIdentity identity = row.getPreferredFeatureIdentity();
-      if (identity != null) {
-        // String name = identity.getName();
-        // if (name != null) writer.write("Name: " + name + newLine);
-
-        String formula = identity.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
+      var identity = CompoundAnnotationUtils.getBestFeatureAnnotation(row).orElse(null);
+      if(identity!=null) {
+        String formula = identity.getFormula();
         if (formula != null)
           writer.write("Formula: " + formula + newLine);
-
-        String id = identity.getPropertyValue(FeatureIdentity.PROPERTY_ID);
-        if (id != null)
-          writer.write("Comments: " + id + newLine);
       }
 
       String rowID = Integer.toString(row.getID());

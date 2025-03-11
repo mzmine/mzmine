@@ -45,6 +45,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.date.LocalDateParser;
 import io.github.mzmine.util.io.CsvReader;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
@@ -52,17 +53,11 @@ import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -121,8 +116,8 @@ public class RICalculationTask extends AbstractFeatureListTask {
   protected RIScale processLadder(File file) {
     if (file.exists() && file.canRead()) {
       try {
-        LocalDate date = extractDate(file.getName());
         String fileName = file.getAbsolutePath();
+        LocalDate date = LocalDateParser.parseAnyEndingDate(FilenameUtils.removeExtension(fileName));
 
         if (date == null || fileName == null) {
           return null;
@@ -192,31 +187,6 @@ public class RICalculationTask extends AbstractFeatureListTask {
       feature.set(RIType.class, ri);
       feature.set(RIScaleType.class, FilenameUtils.getName(riScale.fileName()));
     }
-  }
-
-  private LocalDate extractDate(String fileName) {
-    // Extract date from file name
-    String[] dateComponents = {"\\d{4}", "\\d{2}", "\\d{2}(?!\\d)"};
-    final String[] separators = {"-", "", "."};
-
-    for (String sep : separators) {
-      Matcher matcher = Pattern.compile(String.join(sep, dateComponents)).matcher(fileName);
-      if (matcher.find()) {
-        try {
-          if (sep.equals("-")) {
-            return LocalDate.parse(matcher.group(0));
-          } else if (sep.equals("")) {
-            return LocalDate.parse(matcher.group(0), DateTimeFormatter.BASIC_ISO_DATE);
-          } else if (sep.equals(".")) {
-            return LocalDate.parse(matcher.group(0), DateTimeFormatter.ofPattern("yyyy.MM.dd"));
-          }
-        } catch (Exception _) {
-        }
-      }
-    }
-
-    logger.warning("Could not extract date from file: " + fileName);
-    return null;
   }
 
   @Override

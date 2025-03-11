@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -69,6 +68,7 @@ public class BaseFeatureListAligner {
   private final String featureListName;
   private final MemoryMapStorage storage;
   private final FeatureRowAlignScorer rowAligner;
+  private final FeatureAlignmentPostProcessor postProcessor;
   private final FeatureCloner featureCloner;
   private final FeatureListRowSorter baseRowSorter;
   private final TotalFinishedItemsProgress progress = new TotalFinishedItemsProgress();
@@ -77,7 +77,7 @@ public class BaseFeatureListAligner {
   public BaseFeatureListAligner(final Task parentTask, final List<FeatureList> featureLists,
       final String featureListName, final @Nullable MemoryMapStorage storage,
       final FeatureRowAlignScorer rowAligner, final FeatureCloner featureCloner,
-      final FeatureListRowSorter baseRowSorter) {
+      final FeatureListRowSorter baseRowSorter, final @Nullable FeatureAlignmentPostProcessor postProcessor) {
 
     this.parentTask = parentTask;
     this.featureLists = featureLists;
@@ -86,6 +86,7 @@ public class BaseFeatureListAligner {
     this.rowAligner = rowAligner;
     this.featureCloner = featureCloner;
     this.baseRowSorter = baseRowSorter;
+    this.postProcessor = postProcessor;
   }
 
   /**
@@ -135,6 +136,9 @@ public class BaseFeatureListAligner {
           final RawDataFile dataFile = feature.getRawDataFile();
           if (!alignedRow.hasFeature(dataFile)) {
             var newFeature = featureCloner.cloneFeature(feature, alignedFeatureList, alignedRow);
+            // very important to not trigger row bindings - GC-EI currently has features with different mz
+            // this is resolved later by a GCConsensunsPostProcessor
+            // row bindings are then updated at last
             alignedRow.addFeature(dataFile, newFeature, false);
             alignedRowsMap.put(row, true);
             alignedRows.getAndIncrement();
@@ -214,12 +218,18 @@ public class BaseFeatureListAligner {
       iteration++;
     }
 
-    // sort by RT and reset IDs
-    FeatureListUtils.sortByDefaultRT(alignedFeatureList, true);
+    // apply special handling - like GC-EI consensus feature finding
+    if (postProcessor != null) {
+      postProcessor.handlePostAlignment(alignedFeatureList);
+    }
 
-    // update row bindings
+    // first update row bindings
     alignedFeatureList.parallelStream().filter(row -> row.getNumberOfFeatures() > 1)
         .forEach(FeatureListRow::applyRowBindings);
+
+    // then sort by RT and reset IDs
+    FeatureListUtils.sortByDefaultRT(alignedFeatureList, true);
+
 
     // score alignment by the number of features that fall within the mz, RT, mobility range
     // do not apply all the advanced filters to keep it simple
@@ -281,14 +291,8 @@ public class BaseFeatureListAligner {
     // create new rows, used as base for next alignment iteration, and later added to feature list
     List<FeatureListRow> nextBaseRows = new ArrayList<>(nextUnalignedFeatureList.size());
     for (var unalignedRow : nextUnalignedFeatureList) {
-      if (featureCloner.isReuseOriginalFeature()) {
-        unalignedRow.setFeatureList(alignedFeatureList);
-        unalignedRow.set(IDType.class, newRowID.getAndIncrement());
-        nextBaseRows.add(unalignedRow);
-      } else {
-        nextBaseRows.add(new ModularFeatureListRow(alignedFeatureList, newRowID.getAndIncrement(),
-            (ModularFeatureListRow) unalignedRow, true));
-      }
+      nextBaseRows.add(new ModularFeatureListRow(alignedFeatureList, newRowID.getAndIncrement(),
+          (ModularFeatureListRow) unalignedRow, true));
     }
     // either by mz in Join or by RT by GC
     nextBaseRows.sort(baseRowSorter);

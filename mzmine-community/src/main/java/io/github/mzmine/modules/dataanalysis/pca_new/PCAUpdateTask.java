@@ -191,7 +191,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
   @Override
   public String getTaskDescription() {
-    return STR."Computing PCA dataset for \{flists.get(0).getName()}";
+    return "Computing PCA dataset for %s".formatted(flists.getFirst().getName());
   }
 
   @Override

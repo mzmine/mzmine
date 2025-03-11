@@ -87,7 +87,7 @@ public class IonNetworkIDType extends IntegerType {
           }).toList();
 
       TICVisualizerTab tab = new TICVisualizerTab(new RawDataFile[]{bestRaw}, TICPlotType.BASEPEAK,
-          new ScanSelection(1), bestFeature.getRawDataPointsMZRange(), features, labels);
+          new ScanSelection(1), bestFeature.getRawDataPointsMZRange(), features, labels, null);
       MZmineCore.getDesktop().addTab(tab);
     };
   }

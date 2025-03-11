@@ -127,8 +127,8 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
       final Color color = colors.getNextColorAWT();
       if (!significantRows.isEmpty()) {
         var provider = new VolcanoDatasetProvider(ttest, significantRows, color,
-            STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "unknown"
-                : type.getHeaderString()} (p < \{pValue})", abundanceMeasure);
+            (type.equals(DataTypes.get(MissingValueType.class)) ? "unknown"
+                : type.getHeaderString()) + " (p < " + pValue + ")", abundanceMeasure);
         temporaryDatasets.add(
             new DatasetAndRenderer(new ColoredXYZDataset(provider, RunOption.THIS_THREAD),
                 new ColoredXYShapeRenderer(false, ColoredXYShapeRenderer.defaultShape, true)));
@@ -136,8 +136,8 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
       // NOT significant
       if (!insignificantRows.isEmpty()) {
         var provider = new VolcanoDatasetProvider(ttest, insignificantRows, color,
-            STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "unknown"
-                : type.getHeaderString()} (p ≥ \{pValue})", abundanceMeasure);
+            (type.equals(DataTypes.get(MissingValueType.class)) ? "unknown"
+                : type.getHeaderString()) + " (p ≥ " + pValue + ")", abundanceMeasure);
         temporaryDatasets.add(
             new DatasetAndRenderer(new ColoredXYDataset(provider, RunOption.THIS_THREAD),
                 new ColoredXYShapeRenderer(true, ColoredXYShapeRenderer.defaultShape, true)));

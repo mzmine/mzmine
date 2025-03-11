@@ -38,13 +38,14 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.mzio.users.user.MZmineUser;
+import io.mzio.users.service.UserActiveService;
 import java.io.File;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * uses annotations to build spectral libraries
@@ -110,7 +111,7 @@ public class WorkflowLibraryGeneration extends WorkflowWizardParameterFactory {
   }
 
   @Override
-  public boolean isAvailableWithLicense(@Nullable MZmineUser user) {
-    return true;
+  public @NotNull Set<@NotNull UserActiveService> getUnlockingServices() {
+    return EnumSet.allOf(UserActiveService.class);
   }
 }

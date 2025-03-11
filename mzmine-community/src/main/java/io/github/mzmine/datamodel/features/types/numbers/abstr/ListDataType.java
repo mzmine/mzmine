@@ -50,7 +50,7 @@ public abstract class ListDataType<T> extends DataType<List<T>> {
   @NotNull
   @Override
   public String getFormattedString(List<T> list, boolean export) {
-    return list == null ? "" : list.stream().findFirst().map(Object::toString).orElse("");
+    return list == null || list.isEmpty() ? "" : list.getFirst().toString();
   }
 
   @Override

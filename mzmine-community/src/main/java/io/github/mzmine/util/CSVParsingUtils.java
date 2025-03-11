@@ -25,8 +25,6 @@
 
 package io.github.mzmine.util;
 
-import static io.github.mzmine.util.StringUtils.inQuotes;
-
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriterBuilder;
@@ -48,6 +46,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import static io.github.mzmine.util.StringUtils.inQuotes;
 import io.github.mzmine.util.exceptions.MissingColumnException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CSVUtils;
@@ -151,10 +150,10 @@ public class CSVParsingUtils {
     if (!nullMappings.isEmpty()) {
       // no header found at all. may indicate wrong separator
       boolean noHeaderFound = lines.size() == nullMappings.size();
-      final String error = STR."Did not find specified column \{Arrays.toString(
-          nullMappings.stream().map(ImportType::getCsvColumnName).toArray())} in file.\{
+      final String error = "Did not find specified column " + Arrays.toString(
+          nullMappings.stream().map(ImportType::getCsvColumnName).toArray()) + " in file." + (
           noHeaderFound
-              ? "\nNo column title was found. Did you specify the correct column separator?" : ""}";
+              ? "\nNo column title was found. Did you specify the correct column separator?" : "");
       logger.warning(() -> error);
       errorMessage.set(error);
       return null;
@@ -227,7 +226,7 @@ public class CSVParsingUtils {
 
     if (!peakListFile.exists()) {
       return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
-          STR."Input file \{peakListFile.getAbsolutePath()} does not exist.");
+          "Input file " + peakListFile.getAbsolutePath() + " does not exist.");
     }
 
     List<String[]> peakListValues = null;
@@ -236,7 +235,7 @@ public class CSVParsingUtils {
 
       if (peakListValues.isEmpty()) {
         return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
-            STR."File \{peakListFile.getAbsolutePath()} did not contain any content.");
+            "File " + peakListFile.getAbsolutePath() + " did not contain any content.");
       }
     } catch (IOException | CsvException e) {
       throw new RuntimeException(e);

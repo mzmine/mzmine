@@ -76,7 +76,7 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
   @Override
   public @NotNull Comparable<?> getSeriesKey() {
     if (series instanceof OtherTimeSeries other) {
-      return STR."\{other.getChromatoogramType()} \{other.getName()}";
+      return "%s %s".formatted(other.getChromatoogramType(), other.getName());
     } else {
       return "%s-%s".formatted(formats.rt(series.getRetentionTime(0)),
           formats.rt(series.getRetentionTime(series.getNumberOfValues()) - 1));

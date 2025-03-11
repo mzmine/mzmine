@@ -59,7 +59,7 @@ public class FormulaComboCell extends TableCell<SignalFormulaeModel, SignalFormu
       if (getItem().getSelectedFormulaWithMz().equals(n)) {
         return;
       }
-      logger.finest(() -> STR."Updating selected formula from \{o} to \{n}.");
+      logger.finest(() -> "Updating selected formula from " + o + " to " + n + ".");
       getItem().setSelectedFormulaWithMz(n);
     });
     combo.setConverter(new StringConverter<>() {

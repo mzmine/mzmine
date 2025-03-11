@@ -164,7 +164,7 @@ public interface FeatureList {
   /**
    * Returns all raw data files participating in the feature list
    */
-  public ObservableList<RawDataFile> getRawDataFiles();
+  public List<RawDataFile> getRawDataFiles();
 
   /**
    * Returns true if this feature list contains given file

@@ -89,7 +89,7 @@ public class CorrelationGroupingUtils {
       HashMap<FeatureListRow, RowGroup> used = new HashMap<>();
 
       int c = 0;
-      ObservableList<RawDataFile> raw = flist.getRawDataFiles();
+      List<RawDataFile> raw = flist.getRawDataFiles();
       // add all connections
       for (Entry<Integer, RowsRelationship> e : corrMap.entrySet()) {
         RowsRelationship r2r = e.getValue();

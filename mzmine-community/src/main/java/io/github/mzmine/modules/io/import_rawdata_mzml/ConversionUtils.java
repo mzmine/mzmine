@@ -308,7 +308,7 @@ public class ConversionUtils {
     Double isolationMz = null;
     Double precursorMz = null;
     Integer charge = null;
-    Float colissionEnergy = null;
+    Float collissionEnergy = null;
     for (MzMLPrecursorElement precursorElement : precursorList.getPrecursorElements()) {
       Optional<MzMLPrecursorSelectedIonList> selectedIonList = precursorElement.getSelectedIonList();
       if (selectedIonList.isPresent()) {
@@ -345,24 +345,23 @@ public class ConversionUtils {
       if (activation != null) {
         for (MzMLCVParam param : activation.getCVParamsList()) {
           if (param.getAccession().equals(MzMLCV.cvActivationEnergy)) {
-            colissionEnergy = Float.parseFloat(param.getValue().get());
+            collissionEnergy = Float.parseFloat(param.getValue().get());
           }
         }
       }
-      if (lowerWindow != null && upperWindow != null && isolationMz != null
-          && colissionEnergy != null) {
+      if (lowerWindow != null && upperWindow != null && isolationMz != null) {
         boolean infoFound = false;
         for (BuildingImsMsMsInfo buildingInfo : buildingInfos) {
           if (Double.compare(Objects.requireNonNullElse(precursorMz, isolationMz),
-              buildingInfo.getPrecursorMz()) == 0
-              && Float.compare(colissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
+              buildingInfo.getPrecursorMz()) == 0 && collisionEnergyCheck(buildingInfo,
+              collissionEnergy)) {
             buildingInfo.setLastSpectrumNumber(currentScanNumber);
             infoFound = true;
           }
         }
         if (!infoFound) {
           BuildingImsMsMsInfo info = new BuildingImsMsMsInfo(
-              Objects.requireNonNullElse(precursorMz, isolationMz), colissionEnergy,
+              Objects.requireNonNullElse(precursorMz, isolationMz), collissionEnergy,
               Objects.requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
               currentScanNumber);
           info.setLowerIsolationMz(isolationMz - lowerWindow);
@@ -371,6 +370,20 @@ public class ConversionUtils {
         }
       }
     }
+  }
+
+  private static boolean collisionEnergyCheck(BuildingImsMsMsInfo buildingInfo,
+      Float collissionEnergy) {
+    if (collissionEnergy == null && buildingInfo.getCollisionEnergy() == null) {
+      return true;
+    }
+    if (collissionEnergy == null || buildingInfo.getCollisionEnergy() == null) {
+      return false;
+    }
+    if (Float.compare(collissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
+      return true;
+    }
+    return false;
   }
 
   /**

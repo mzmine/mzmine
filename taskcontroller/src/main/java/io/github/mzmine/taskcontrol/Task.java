@@ -38,6 +38,7 @@ public interface Task extends Runnable {
 
   TaskStatus getStatus();
 
+  void setStatus(TaskStatus newStatus);
 
   /**
    * Convenience method for determining if this task has been canceled. Also returns true if the

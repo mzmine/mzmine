@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.msms.ActivationMethod;
 public class BuildingImsMsMsInfo {
 
   private final double precursorMz;
-  private final float collisionEnergy;
+  private final Float collisionEnergy;
   private final int precursorCharge;
   private final int fragmentFrameNumber;
   private final int firstSpectrumNumber;
@@ -43,7 +43,7 @@ public class BuildingImsMsMsInfo {
   private Double upperIsolationMz = null;
   private ActivationMethod activationMethod = null;
 
-  public BuildingImsMsMsInfo(final double precursorMz, final float collisionEnergy,
+  public BuildingImsMsMsInfo(final double precursorMz, final Float collisionEnergy,
       final int precursorCharge, final int fragmentFrameNumber, final int firstSpectrumNumber) {
     this.precursorMz = precursorMz;
     this.collisionEnergy = collisionEnergy;
@@ -82,7 +82,7 @@ public class BuildingImsMsMsInfo {
     throw new UnsupportedOperationException();
   }
 
-  public float getCollisionEnergy() {
+  public Float getCollisionEnergy() {
     return collisionEnergy;
   }
 

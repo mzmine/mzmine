@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -61,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  * This module binds spawns a separate process that dumps the native format's data in a text+binary
  * form into its standard output. This class then reads the output of that process.
  */
-public class ThermoRawImportTask extends AbstractTask {
+public class ThermoRawImportTask extends AbstractTask implements RawDataImportTask {
 
   public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
 
@@ -167,7 +168,8 @@ public class ThermoRawImportTask extends AbstractTask {
     }
 
     logger.info(
-        STR."Finished parsing \{fileToOpen}, parsed \{parsedScans} scans and after filtering remained \{convertedScans}");
+        "Finished parsing %s, parsed %d scans and after filtering remained %d".formatted(fileToOpen,
+            parsedScans, convertedScans));
     setStatus(TaskStatus.FINISHED);
 
   }
@@ -305,12 +307,13 @@ public class ThermoRawImportTask extends AbstractTask {
       return thermoRawFileParserExe;
     }
 
-    logger.finest(STR."Unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
+    logger.finest(
+        "Unpacking ThermoRawFileParser to folder %s".formatted(thermoRawFileParserFolder));
     taskDescription = "Unpacking thermo raw file parser.";
 
     ZipUtils.unzipFile(zipPath, thermoRawFileParserFolder);
     logger.finest(
-        STR."Finished unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
+        "Finished unpacking ThermoRawFileParser to folder %s".formatted(thermoRawFileParserFolder));
 
     return thermoRawFileParserExe;
   }
@@ -352,5 +355,10 @@ public class ThermoRawImportTask extends AbstractTask {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : null;
   }
 }
