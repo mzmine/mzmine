@@ -1,9 +1,8 @@
 package io.github.mzmine.util.date;
 
+import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-
-import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 class LocalDateParserTest {
@@ -15,13 +14,15 @@ class LocalDateParserTest {
     assertEquals(LocalDate.of(2020, 5, 20), LocalDateParser.parseAnyFirstDate("2020.05.20"));
     assertEquals(LocalDate.of(2020, 5, 20),
         LocalDateParser.parseAnyFirstDate("2020-05-20_somthing foll3owing"));
-    assertEquals(LocalDate.of(2020, 5, 20), LocalDateParser.parseAnyFirstDate("Lead3ing2020-05-20"));
+    assertEquals(LocalDate.of(2020, 5, 20),
+        LocalDateParser.parseAnyFirstDate("Lead3ing2020-05-20"));
     assertEquals(LocalDate.of(2020, 5, 20),
         LocalDateParser.parseAnyFirstDate("Lead3ing2020-05-20_and trai3ling"));
     assertEquals(LocalDate.of(2020, 5, 20),
         LocalDateParser.parseAnyFirstDate("Lead3ing20200520_and trai3ling"));
     assertEquals(LocalDate.of(2020, 5, 20), LocalDateParser.parseAnyFirstDate("Lead3ing20200520"));
-    assertEquals(LocalDate.of(2020, 5, 20), LocalDateParser.parseAnyFirstDate("20200520_trail3ing"));
+    assertEquals(LocalDate.of(2020, 5, 20),
+        LocalDateParser.parseAnyFirstDate("20200520_trail3ing"));
     assertNull(LocalDateParser.parseAnyFirstDate("2020052034234235_some num4bers"));
     assertNull(LocalDateParser.parseAnyFirstDate("2020-05-2034234235_some num4bers"));
   }
