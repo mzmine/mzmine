@@ -16,7 +16,7 @@ public enum LocalDateParser {
   BASIC_ISO_DATE(DateTimeFormatter.BASIC_ISO_DATE, "\\d{8}"), // 20241231 yyyyMMdd
   ISO_DATE(DateTimeFormatter.ISO_DATE, "\\d{4}-\\d{2}-\\d{2}"), // yyyy-MM-dd
   EUROPEAN_DATE("dd.MM.yyyy", "\\d{2}\\.\\d{2}\\.\\d{4}"), //
-  EUROPEAN_DATE_REVERSED("yyyy.MM.dd", "\\d{4}\\.\\d{2}\\.\\d{2}");
+  JAPANESE_DATE("yyyy.MM.dd", "\\d{4}\\.\\d{2}\\.\\d{2}"); //
 
   private final DateTimeFormatter formatter;
   private final Pattern pattern;
@@ -29,9 +29,9 @@ public enum LocalDateParser {
 
   LocalDateParser(final DateTimeFormatter formatter, final String regex) {
     this.formatter = formatter;
-    this.pattern = Pattern.compile(regex+"(?!\\d)"); // disallow trailing numbers
-    this.patternStarts = Pattern.compile("^"+regex+"(?!\\d)"); // disallow trailing numbers
-    this.patternEnds = Pattern.compile(regex+"$");
+    this.pattern = Pattern.compile(regex + "(?!\\d)"); // disallow trailing numbers
+    this.patternStarts = Pattern.compile("^" + regex + "(?!\\d)"); // disallow trailing numbers
+    this.patternEnds = Pattern.compile(regex + "$");
   }
 
   public DateTimeFormatter getFormatter() {
@@ -54,6 +54,7 @@ public enum LocalDateParser {
     }
     return null;
   }
+
   /**
    * @param input any string that starts with a date pattern
    * @return the local date
@@ -66,6 +67,7 @@ public enum LocalDateParser {
     }
     return null;
   }
+
   /**
    * @param input any string that ends with a date pattern
    * @return the local date
@@ -96,6 +98,7 @@ public enum LocalDateParser {
     }
     return null;
   }
+
   /**
    * @param input any string that starts with a date pattern
    * @return the local date
@@ -113,6 +116,7 @@ public enum LocalDateParser {
     }
     return null;
   }
+
   /**
    * @param input any string that ends with a date pattern
    * @return the local date
