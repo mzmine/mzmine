@@ -27,7 +27,9 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
@@ -39,11 +41,11 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
+import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import java.awt.Stroke;
 import java.text.DecimalFormat;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -87,7 +89,15 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
     final BorderPane mainPane = new BorderPane();
     chart = new SimpleXYChart<>("Volcano plot", "log2(fold change)", "-log10(p-Value)");
-    mainPane.setCenter(chart);
+    final RegionSelectionWrapper<SimpleXYChart<?>> regionWrapper = new RegionSelectionWrapper<>(
+        chart, regions -> {
+      VolcanoPlotRegionExtractionParameters parameters = VolcanoPlotRegionExtractionParameters.create(
+          (ModularFeatureList) model.getFlists().getFirst(),
+          ((StudentTTest<?>) model.getTest()).toConfiguration(), model.getAbundanceMeasure(),
+          RowSignificanceTestModules.TTEST, regions);
+      MZmineCore.runMZmineModule(VolcanoPlotRegionExtractionModule.class, parameters);
+    });
+    mainPane.setCenter(regionWrapper);
 
     final HBox pValueBox = createPValueBox();
     final HBox abundanceBox = createAbundanceBox();
@@ -235,7 +245,6 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     });
   }
 
-  // todo: enable as soon as we merge the pr with mvci row listener interfaces.
   private void initializeExternalSelectedRowListener() {
     model.selectedRowsProperty().addListener((_, old, rows) -> {
       if (rows.isEmpty() || ListUtils.isEqualList(old, rows)) {
@@ -253,4 +262,5 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
       }, RowSignificanceTestResult.class);
     });
   }
+
 }
