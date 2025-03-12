@@ -33,6 +33,7 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
@@ -43,6 +44,8 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRe
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,6 +65,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.RendererChangeEvent;
 import org.jfree.chart.plot.DatasetRenderingOrder;
@@ -89,13 +93,13 @@ import org.jfree.data.xy.XYSeriesCollection;
  * @see PlotXYDataProvider
  */
 public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer implements
-    SimpleChart<T> {
+    SimpleChart<T>, AllowsRegionSelection {
 
   private static final double AXIS_MARGINS = 0.01;
   private static final Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
 
   protected final JFreeChart chart;
-  protected final ObjectProperty<XYItemRenderer> defaultRenderer;
+  protected final ObjectProperty<XYItemRenderer> defaultRenderer = new SimpleObjectProperty<>();
   protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(true);
   protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
 
@@ -108,9 +112,14 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   private final List<DatasetChangeListener> datasetListeners;
   protected EStandardChartTheme theme;
   protected SimpleXYLabelGenerator defaultLabelGenerator;
-  protected SimpleToolTipGenerator defaultToolTipGenerator;
-  protected ColoredXYLineRenderer defaultLineRenderer;
-  protected ColoredAreaShapeRenderer defaultShapeRenderer;
+  protected SimpleToolTipGenerator defaultToolTipGenerator = new SimpleToolTipGenerator();
+  protected ColoredXYLineRenderer defaultLineRenderer = new ColoredXYLineRenderer();
+  protected ColoredAreaShapeRenderer defaultShapeRenderer = new ColoredAreaShapeRenderer();
+
+  // fields for region extraction
+  private RegionSelectionListener currentRegionListener = null;
+  private XYShapeAnnotation currentRegionAnnotation;
+  private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
 
   private int nextDataSetNum;
 
@@ -164,10 +173,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     }
 
     defaultLabelGenerator = new SimpleXYLabelGenerator(this);
-    defaultToolTipGenerator = new SimpleToolTipGenerator();
-    defaultShapeRenderer = new ColoredAreaShapeRenderer();
-    defaultLineRenderer = new ColoredXYLineRenderer();
-    defaultRenderer = new SimpleObjectProperty<>();
     defaultRenderer.addListener((obs, old, newValue) -> {
       newValue.setDefaultItemLabelsVisible(true);
       newValue.setDefaultToolTipGenerator(defaultToolTipGenerator);
@@ -523,5 +528,51 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     trend.add(x, m * x + b);
 
     addDataset(new XYSeriesCollection(trend), regressionRenderer);
+  }
+
+  /**
+   * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
+   * added to a region. Region selection can be finished by
+   * {@link SimpleXYZScatterPlot#finishPath()}.
+   */
+  @Override
+  public void startRegion() {
+    isDrawingRegion.set(true);
+
+    if (currentRegionListener != null) {
+      removeChartMouseListener(currentRegionListener);
+    }
+    currentRegionListener = new RegionSelectionListener(this);
+    currentRegionListener.pathProperty().addListener(((observable, oldValue, newValue) -> {
+      if (currentRegionAnnotation != null) {
+        getXYPlot().removeAnnotation(currentRegionAnnotation, false);
+      }
+      Color regionColor = new Color(0.6f, 0.6f, 0.6f, 0.4f);
+      currentRegionAnnotation = new XYShapeAnnotation(newValue, new BasicStroke(1f), regionColor,
+          regionColor);
+      getXYPlot().addAnnotation(currentRegionAnnotation, true);
+    }));
+    addChartMouseListener(currentRegionListener);
+  }
+
+  /**
+   * The {@link RegionSelectionListener} of the current selection. The path/points can be retrieved
+   * from the listener object.
+   *
+   * @return The finished listener
+   */
+  @Override
+  public RegionSelectionListener finishPath() {
+    if (!isDrawingRegion.get()) {
+      return null;
+    }
+    if (currentRegionAnnotation != null) {
+      getXYPlot().removeAnnotation(currentRegionAnnotation);
+    }
+    isDrawingRegion.set(false);
+    removeChartMouseListener(currentRegionListener);
+    RegionSelectionListener tempRegionListener = currentRegionListener;
+    currentRegionListener = null;
+    return tempRegionListener;
   }
 }
