@@ -264,4 +264,12 @@ public class StringUtils {
       @NotNull final Function<T, String> mapper) {
     return values.stream().map(mapper::apply).collect(Collectors.joining(delimiter));
   }
+
+  public static Double parseDoubleOrElse(final String s, final @Nullable Double defaultValue) {
+    try {
+      return Double.parseDouble(s);
+    } catch (Exception ex) {
+      return defaultValue;
+    }
+  }
 }

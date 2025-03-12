@@ -1,0 +1,175 @@
+package io.github.mzmine.modules.tools.output_compare;
+
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.modules.tools.output_compare.DataCheckResult.Severity;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
+import io.github.mzmine.util.io.CsvWriter;
+import io.github.mzmine.util.io.WriterOptions;
+import io.github.mzmine.util.objects.ObjectUtils;
+import java.io.File;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+
+public class CompareModularCsvTask extends AbstractSimpleToolTask {
+
+  private static final Logger logger = Logger.getLogger(CompareModularCsvTask.class.getName());
+  private final String baseName = "Base table";
+  private final String compareName = "Compare table";
+
+  private final List<DataCheckResult> checks = new ArrayList<>();
+  private final List<String> info = new ArrayList<>();
+
+  public CompareModularCsvTask(final @NotNull Instant moduleCallDate,
+      final @NotNull ParameterSet parameters) {
+    super(moduleCallDate, parameters);
+  }
+
+  @Override
+  protected void process() {
+    final File baseFile = parameters.getValue(CompareModularCsvParameters.baseFile);
+    final File compareFile = parameters.getValue(CompareModularCsvParameters.compareFile);
+
+    checks.add(DataCheckResult.create(Severity.INFO, "file paths", baseFile.getAbsolutePath(),
+        compareFile.getAbsolutePath(), "Modular CSV file paths"));
+    checks.add(DataCheckResult.create(Severity.INFO, "file names", baseFile.getName(),
+        compareFile.getAbsolutePath(), "Modular CSV file names"));
+
+    final MZmineModularCsv baseTab = MZmineModularCsv.parseFile(baseFile);
+    final MZmineModularCsv compareTab = MZmineModularCsv.parseFile(compareFile);
+
+    compareTablesAndLog(baseTab, compareTab);
+  }
+
+  public void compareTablesAndLog(final MZmineModularCsv baseTab,
+      final MZmineModularCsv compareTab) {
+    if (baseTab == null || compareTab == null) {
+      checks.add(DataCheckResult.create(Severity.ERROR, "file parsing", baseTab == null,
+          compareTab == null, "Failed to parse file (true failed, false success)"));
+      return;
+    }
+
+    // compare and add results to checks
+    compareTables(baseTab, compareTab);
+
+    // filter checks
+    final Severity filter = parameters.getValue(CompareModularCsvParameters.filterLevel);
+    filter.applyInPlace(checks);
+
+    final String csv = CsvWriter.writeToString(checks, DataCheckResult.class, ',', true);
+    // log all info
+    logger.info("""
+        CSV table comparison:
+        
+        %s""".formatted(csv));
+
+    // write to file
+    parameters.getOptionalValue(CompareModularCsvParameters.outFile).ifPresent(outFile -> {
+      try {
+        CsvWriter.writeToFile(outFile, checks, DataCheckResult.class, WriterOptions.REPLACE, ',');
+      } catch (IOException e) {
+        logger.log(Level.WARNING, e.getMessage(), e);
+      }
+    });
+  }
+
+  private void compareTables(final MZmineModularCsv baseTab, final MZmineModularCsv compareTab) {
+    // log general info for tables
+    logBaseInformation(baseName, baseTab);
+    logBaseInformation(compareName, compareTab);
+
+    // different num rows
+    if (baseTab.numRows() == compareTab.numRows()) {
+      checks.add(
+          DataCheckResult.create(Severity.INFO, "rows", baseTab.numRows(), compareTab.numRows(),
+              "Same number of rows"));
+    } else {
+      checks.add(
+          DataCheckResult.create(Severity.ERROR, "rows", baseTab.numRows(), compareTab.numRows(),
+              "Different Number of rows in both tables"));
+    }
+
+    // compare sorting - it might be different
+    // TODO sort by rowID? or by mz, rt, mobility? not all tables have all
+    // apply sorting to all columns by argsort
+    // similar to CollectionUtils.argsortReversed()
+//    compareAndFixSorting
+
+    // first compare row types
+    compareTypeColumns("row types", baseTab.pairRowColumns(compareTab));
+
+    // then compare feature types per sample
+    compareTypeColumns("feature types", baseTab.pairFeatureColumns(compareTab));
+  }
+
+  private void logBaseInformation(final String name, final MZmineModularCsv tab) {
+    final List<DataType> rowTypes = tab.getRowTypes();
+    final List<DataType> featureTypes = tab.getFeatureTypes();
+    final String summary = "Info for %s with %d columns and %d rows, %d row types, %d feature types, %d samples".formatted(
+        name, tab.numColumns(), tab.numRows(), rowTypes.size(), featureTypes.size(),
+        tab.getUniqueRawFiles().size());
+
+    checks.add(DataCheckResult.create(Severity.INFO, name + ": summary", summary));
+    checks.add(DataCheckResult.create(Severity.INFO, name + ": row types",
+        rowTypes.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
+    checks.add(DataCheckResult.create(Severity.INFO, name + ": feature types",
+        featureTypes.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
+    checks.add(DataCheckResult.create(Severity.INFO, name + ": raw files",
+        String.join(", ", tab.getUniqueRawFiles())));
+  }
+
+  private void compareTypeColumns(final String columnDefinition, final List<ColumnData[]> grouped) {
+    // singles are only present in one table pairs in both
+    final List<ColumnData> singles = grouped.stream()
+        .filter(p -> ObjectUtils.countNonNull((Object[]) p) == 1)
+        .map(p -> p[0] != null ? p[0] : p[1]).toList();
+    final List<ColumnData[]> pairs = grouped.stream()
+        .filter(p -> ObjectUtils.countNonNull((Object[]) p) == 2).toList();
+
+    // add info
+    final long colsA = grouped.stream().filter(g -> g[0] != null).count();
+    final long colsB = grouped.stream().filter(g -> g[1] != null).count();
+
+    if (singles.isEmpty()) {
+      checks.add(
+          DataCheckResult.create(Severity.INFO, columnDefinition + ": num columns", colsA, colsB,
+              "equal number of columns"));
+    } else {
+      // add info
+      checks.add(
+          DataCheckResult.create(Severity.WARN, columnDefinition + ": num columns", colsA, colsB,
+              "unequal number of columns"));
+
+      // list all single columns that will be skipped
+      checks.add(
+          DataCheckResult.create(Severity.WARN, "skip %s columns".formatted(columnDefinition),
+              "Downstream analysis will skip %d columns: %s".formatted(singles.size(),
+                  singles.stream().map(ColumnData::getIdentifier)
+                      .collect(Collectors.joining(", ")))));
+    }
+
+    // compare data values
+    compareData(pairs);
+  }
+
+  private void compareData(final List<ColumnData[]> pairs) {
+    for (final ColumnData[] pair : pairs) {
+      final ColumnData base = pair[0];
+      final ColumnData compare = pair[1];
+
+      checks.addAll(base.checkEqual(compare, 10));
+    }
+  }
+
+
+  @Override
+  public String getTaskDescription() {
+    return "Comparing two modular CSV output files";
+  }
+}
