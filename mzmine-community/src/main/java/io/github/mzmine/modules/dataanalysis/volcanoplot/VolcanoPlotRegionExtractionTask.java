@@ -77,8 +77,7 @@ public class VolcanoPlotRegionExtractionTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    final VolcanoPlotModel model = new VolcanoPlotModel();
-    ((VolcanoPlotRegionExtractionParameters) parameters).setToModel(model);
+    final VolcanoPlotModel model = ((VolcanoPlotRegionExtractionParameters) parameters).toModel();
 
     // reuse the same processing as we have in the gui
     VolcanoPlotUpdateTask task = new VolcanoPlotUpdateTask(model);

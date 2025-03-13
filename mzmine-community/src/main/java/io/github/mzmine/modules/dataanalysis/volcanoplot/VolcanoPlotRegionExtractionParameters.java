@@ -27,13 +27,13 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
+import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
-import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
 import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationParameter;
 import java.awt.geom.Point2D;
 import java.util.List;
@@ -56,23 +56,27 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
     super(flists, abundance, test, regions, config);
   }
 
-  public static VolcanoPlotRegionExtractionParameters create(ModularFeatureList flist,
-      StorableTTestConfiguration ttestConfig, AbundanceMeasure abundance,
-      RowSignificanceTestModules test, List<List<Point2D>> regions) {
+  public static VolcanoPlotRegionExtractionParameters create(VolcanoPlotModel model,
+      List<List<Point2D>> regions) {
     final VolcanoPlotRegionExtractionParameters param = (VolcanoPlotRegionExtractionParameters) new VolcanoPlotRegionExtractionParameters().cloneParameterSet();
     param.setParameter(VolcanoPlotRegionExtractionParameters.flists,
-        new FeatureListsSelection(flist));
-    param.setParameter(VolcanoPlotRegionExtractionParameters.abundance, abundance);
+        new FeatureListsSelection((ModularFeatureList) model.getFlists().getFirst()));
+    param.setParameter(VolcanoPlotRegionExtractionParameters.abundance,
+        model.getAbundanceMeasure());
     param.setParameter(VolcanoPlotRegionExtractionParameters.regions, regions);
-    param.setParameter(VolcanoPlotRegionExtractionParameters.test, test);
-    param.setParameter(VolcanoPlotRegionExtractionParameters.config, ttestConfig);
+    param.setParameter(VolcanoPlotRegionExtractionParameters.test,
+        RowSignificanceTestModules.TTEST);
+    param.setParameter(VolcanoPlotRegionExtractionParameters.config,
+        ((StudentTTest<?>) model.getTest()).toConfiguration());
 
     return param;
   }
 
-  public void setToModel(VolcanoPlotModel model) {
+  public VolcanoPlotModel toModel() {
+    VolcanoPlotModel model = new VolcanoPlotModel();
     model.setFlists(List.of(getValue(flists).getMatchingFeatureLists()));
     model.setTest(getValue(config).toValidConfig());
     model.setAbundanceMeasure(getValue(abundance));
+    return model;
   }
 }

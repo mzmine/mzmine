@@ -47,7 +47,7 @@ public class VolcanoPlotRegionExtractionModule extends TaskPerFeatureListModule 
   public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
       @NotNull FeatureList featureList) {
-    return new VolcanoPlotRegionExtractionTask(MemoryMapStorage.forFeatureList(), moduleCallDate,
-        parameters, this.getClass(), project);
+    return new VolcanoPlotRegionExtractionTask(storage, moduleCallDate, parameters, this.getClass(),
+        project);
   }
 }

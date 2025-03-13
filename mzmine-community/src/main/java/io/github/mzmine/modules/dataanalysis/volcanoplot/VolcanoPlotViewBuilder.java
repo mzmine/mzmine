@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
@@ -41,7 +40,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import java.awt.Stroke;
@@ -92,9 +90,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     final RegionSelectionWrapper<SimpleXYChart<?>> regionWrapper = new RegionSelectionWrapper<>(
         chart, regions -> {
       VolcanoPlotRegionExtractionParameters parameters = VolcanoPlotRegionExtractionParameters.create(
-          (ModularFeatureList) model.getFlists().getFirst(),
-          ((StudentTTest<?>) model.getTest()).toConfiguration(), model.getAbundanceMeasure(),
-          RowSignificanceTestModules.TTEST, regions);
+          model, regions);
       MZmineCore.runMZmineModule(VolcanoPlotRegionExtractionModule.class, parameters);
     });
     mainPane.setCenter(regionWrapper);
