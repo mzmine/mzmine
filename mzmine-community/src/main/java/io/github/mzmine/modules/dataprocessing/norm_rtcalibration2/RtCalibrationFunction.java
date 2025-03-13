@@ -7,6 +7,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,7 @@ public class RtCalibrationFunction {
 
   private final RawDataFile file;
   private final @NotNull PolynomialSplineFunction loess;
+  private final @NotNull PolynomialSplineFunction linear;
   private double optimisedBandwidth = 0d;
   private final int iterations = 3;
 
@@ -42,6 +44,8 @@ public class RtCalibrationFunction {
     addFinalRt(rtSortedStandards, fullRtRange, averageRT, thisRtValues, calibratedRtValues);
 
     loess = getInterpolatorIteratively(file, bandwidth, thisRtValues, calibratedRtValues);
+    linear = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
+        calibratedRtValues.toDoubleArray());
   }
 
   public RtCalibrationFunction(@NotNull final RawDataFile file,
@@ -79,6 +83,8 @@ public class RtCalibrationFunction {
     addFinalRt(rtSortedStandards, fullRtRange, lastStandardRt, thisRtValues, calibratedRtValues);
 
     loess = getInterpolatorIteratively(file, bandwidth, thisRtValues, calibratedRtValues);
+    linear = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
+        calibratedRtValues.toDoubleArray());
   }
 
   private static void addFinalRt(@NotNull List<RtStandard> rtSortedStandards,
@@ -147,5 +153,12 @@ public class RtCalibrationFunction {
 
   public double getOptimisedBandwidth() {
     return optimisedBandwidth;
+  }
+
+  public float getCorrectedRtLinear(float originalRt) {
+    if (!linear.isValidPoint(originalRt)) {
+      return originalRt;
+    }
+    return (float) linear.value(originalRt);
   }
 }

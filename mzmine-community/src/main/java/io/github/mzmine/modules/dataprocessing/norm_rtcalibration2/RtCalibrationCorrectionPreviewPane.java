@@ -1,9 +1,5 @@
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
-import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.findStandards;
-import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.interpolateMissingCalibrations;
-import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.removeNonMonotonousStandards;
-
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -17,6 +13,9 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRende
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
+import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.findStandards;
+import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.interpolateMissingCalibrations;
+import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.removeNonMonotonousStandards;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.previewpane.AbstractPreviewPane;
@@ -114,12 +113,24 @@ public class RtCalibrationCorrectionPreviewPane extends AbstractPreviewPane<List
                 new ColoredXYShapeRenderer(true)));
       }
 
-      final AnyXYProvider fitDataset = new AnyXYProvider(file.getColorAWT(),
+      final var clr = ConfigService.getDefaultColorPalette().getNextColorAWT();
+
+      final AnyXYProvider fitDataset = new AnyXYProvider(/*file.getColorAWT()*/clr,
           file.getName() + " correction at RT vs original RTs", file.getNumOfScans(),
           i -> (double) file.getScan(i).getRetentionTime(),
           i -> (double) cali.getCorrectedRtLoess(file.getScan(i).getRetentionTime()) - file.getScan(
               i).getRetentionTime());
+
+      final AnyXYProvider linearFitDataset = new AnyXYProvider(/*file.getColorAWT()*/clr,
+          file.getName() + " correction at RT vs original RTs", file.getNumOfScans(),
+          i -> (double) file.getScan(i).getRetentionTime(),
+          i -> (double) cali.getCorrectedRtLinear(file.getScan(i).getRetentionTime())
+              - file.getScan(i).getRetentionTime());
+
       datasets.add(new DatasetAndRenderer(new ColoredXYDataset(fitDataset, RunOption.THIS_THREAD),
+          new ColoredXYLineRenderer()));
+      datasets.add(
+          new DatasetAndRenderer(new ColoredXYDataset(linearFitDataset, RunOption.THIS_THREAD),
           new ColoredXYLineRenderer()));
     }
 
