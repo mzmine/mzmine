@@ -36,7 +36,8 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
-import io.github.mzmine.javafx.components.util.FxLayout;
+import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
@@ -54,13 +55,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -72,8 +73,6 @@ import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.plot.ValueMarker;
 
 public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
-
-  private static final int space = 5;
 
   private final SimpleXYChart<?> scoresPlot = new SimpleXYChart<>("Scores", "PC1", "PC2");
   private final SimpleXYChart<?> loadingsPlot = new SimpleXYChart<>("Loadings", "PC1", "PC2");
@@ -137,19 +136,13 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         FXCollections.observableArrayList(SampleType.values()));
     sampleTypesBox.getCheckModel().clearChecks();
     sampleTypesBox.getCheckModel().check(SampleType.SAMPLE);
-    sampleTypesBox.getCheckModel().getCheckedItems()
-        .addListener(new ListChangeListener<SampleType>() {
-          @Override
-          public void onChanged(Change<? extends SampleType> c) {
-            model.setSampleTypeFilter(SampleTypeFilter.of((List<SampleType>) c.getList()));
-          }
-        });
-    final HBox sampleBox = FxLayout.newHBox(Insets.EMPTY, FxLabels.newLabel("Sample types"),
-        sampleTypesBox);
+    sampleTypesBox.getCheckModel().getCheckedItems().addListener(
+        (ListChangeListener<SampleType>) c -> model.setSampleTypeFilter(
+            SampleTypeFilter.of((List<SampleType>) c.getList())));
+    final HBox sampleBox = newHBox(Insets.EMPTY, FxLabels.newLabel("Sample types"), sampleTypesBox);
 
     final TitledPane controls = new TitledPane("Controls",
-        new FlowPane(space, space, scaling, imputation, domain, range, coloring, abundance,
-            sampleBox));
+        newFlowPane(scaling, imputation, domain, range, coloring, abundance, sampleBox));
     final RegionSelectionWrapper<? extends SimpleXYChart<?>> loadingsWrapper = new RegionSelectionWrapper<>(
         loadingsPlot, onExtractRegionsPressed);
     final Accordion accordion = new Accordion(
@@ -180,7 +173,7 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     final Label coloringLabel = new Label("Coloring:");
     final MetadataGroupingComponent coloringSelection = new MetadataGroupingComponent();
     coloringSelection.valueProperty().bindBidirectional(model.metadataColumnProperty());
-    return new HBox(space, coloringLabel, coloringSelection);
+    return newHBox(Pos.CENTER_LEFT, coloringLabel, coloringSelection);
   }
 
   private void initDatasetListeners() {

@@ -67,6 +67,10 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
     final var param = (PCALoadingsExtractionParameters) parameters;
     final PCAModel pcaModel = param.toPcaModel();
     final PCAUpdateTask task = new PCAUpdateTask("task", pcaModel);
+    if (!task.checkPreConditions()) {
+      error("Cannot build PCA. Please check the parameters, metadata may be missing.");
+    }
+
     task.process();
     task.updateGuiModel();
     final List<PCALoadingsProvider> loadingProviders = pcaModel.getLoadingsDatasets().stream()

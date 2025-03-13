@@ -83,6 +83,7 @@ public class VolcanoPlotRegionExtractionTask extends AbstractFeatureListTask {
     VolcanoPlotUpdateTask task = new VolcanoPlotUpdateTask(model);
     if (!task.checkPreConditions()) {
       error("Cannot construct Volcano plot dataset. Metadata may be absent.");
+      return;
     }
     task.process();
     task.updateGuiModel();

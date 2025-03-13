@@ -114,7 +114,8 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
         n.forEach(datasetAndRenderer -> chart.addDataset(datasetAndRenderer.dataset(),
             datasetAndRenderer.renderer()));
 
-        // all markers are set to index 0, so we dont need to remove them if a value updates.
+        chart.getXYPlot().clearDomainMarkers(0);
+        chart.getXYPlot().clearRangeMarkers(0);
         // p-Value line
         chart.getXYPlot().addRangeMarker(0,
             new ValueMarker(-Math.log10(model.getpValue()), neutralColor, annotationStroke),
@@ -123,7 +124,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
         chart.getXYPlot().addDomainMarker(0,
             new ValueMarker(MathUtils.log(2, 0.5), neutralColor, annotationStroke),
             Layer.FOREGROUND);
-        // annotation for fold change (a/b) = 2 (double)
+        // annotation for fold change (a/b) = 2 (double) // log_2(2) = 1
         chart.getXYPlot().addDomainMarker(0, new ValueMarker(1, neutralColor, annotationStroke),
             Layer.FOREGROUND);
       });
