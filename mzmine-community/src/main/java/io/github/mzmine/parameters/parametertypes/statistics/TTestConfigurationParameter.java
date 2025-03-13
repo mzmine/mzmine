@@ -63,7 +63,7 @@ public class TTestConfigurationParameter implements
   }
 
   @Override
-  public StorableTTestConfiguration getValue() {
+  public @Nullable StorableTTestConfiguration getValue() {
     return value;
   }
 
@@ -83,6 +83,7 @@ public class TTestConfigurationParameter implements
     }
     return true;
   }
+
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
@@ -120,7 +121,7 @@ public class TTestConfigurationParameter implements
 
   @Override
   public void setValueFromComponent(TTestConfigurationComponent tTestConfigurationComponent) {
-    tTestConfigurationComponent.getValue();
+    this.value = tTestConfigurationComponent.getValue();
   }
 
   @Override

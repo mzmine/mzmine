@@ -35,7 +35,9 @@ import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import java.awt.geom.Point2D;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -48,12 +50,17 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
 
   public PCAController() {
     super(new PCAModel());
-    builder = new PCAViewBuilder(model);
+    builder = new PCAViewBuilder(model, this::onExtractRegionsPressed);
     //update on changes of these properties
     PropertyUtils.onChange(this::waitAndUpdate, model.flistsProperty(), model.domainPcProperty(),
         model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty(),
         model.scalingFunctionProperty(), model.imputationFunctionProperty(),
         model.sampleTypeFilterProperty());
+  }
+
+  private void onExtractRegionsPressed(List<List<Point2D>> regions) {
+    final var param = PCALoadingsExtractionParameters.fromPcaModel(this.model, regions);
+    MZmineCore.runMZmineModule(PCALoadingsExtractionModule.class, param);
   }
 
   @Override

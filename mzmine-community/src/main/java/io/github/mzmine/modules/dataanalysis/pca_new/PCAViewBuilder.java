@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -35,7 +36,9 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
-import io.github.mzmine.javafx.components.util.FxLayout;
+import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
+import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -45,18 +48,20 @@ import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -69,13 +74,14 @@ import org.jfree.chart.plot.ValueMarker;
 
 public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
 
-  private static final int space = 5;
-
   private final SimpleXYChart<?> scoresPlot = new SimpleXYChart<>("Scores", "PC1", "PC2");
   private final SimpleXYChart<?> loadingsPlot = new SimpleXYChart<>("Loadings", "PC1", "PC2");
+  // add the wrapper to the other accordion and not directly around the chart
+  private final Consumer<List<List<Point2D>>> onExtractRegionsPressed;
 
-  public PCAViewBuilder(PCAModel model) {
+  public PCAViewBuilder(PCAModel model, Consumer<List<List<Point2D>>> onExtractRegionsPressed) {
     super(model);
+    this.onExtractRegionsPressed = onExtractRegionsPressed;
   }
 
   @Override
@@ -94,6 +100,25 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         .addRangeMarker(new ValueMarker(0, markerColor, EStandardChartTheme.DEFAULT_MARKER_STROKE));
 
     final BorderPane pane = new BorderPane();
+    final Accordion accordion = buildControlsAccordion();
+    pane.setBottom(accordion);
+
+    scoresPlot.setMinSize(200, 200);
+    loadingsPlot.setMinSize(200, 200);
+
+    // build the plot pane after the controls pane, bc the region wrapper automatically puts the
+    // chart into it's center. to avoid the chart not showing up, set it to the plot pane afterward
+    final GridPane plotPane = createPlotPane();
+
+//    final FlowPane plots = new FlowPane(new BorderPane(scoresPlot), new BorderPane(loadingsPlot));
+    pane.setCenter(plotPane);
+
+    initDatasetListeners();
+    initChartListeners();
+    return pane;
+  }
+
+  private @NotNull Accordion buildControlsAccordion() {
     final HBox scaling = FxComboBox.createLabeledComboBox("Scaling",
         FXCollections.observableArrayList(ScalingFunctions.values()),
         model.scalingFunctionProperty());
@@ -111,39 +136,26 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         FXCollections.observableArrayList(SampleType.values()));
     sampleTypesBox.getCheckModel().clearChecks();
     sampleTypesBox.getCheckModel().check(SampleType.SAMPLE);
-    sampleTypesBox.getCheckModel().getCheckedItems()
-        .addListener(new ListChangeListener<SampleType>() {
-          @Override
-          public void onChanged(Change<? extends SampleType> c) {
-            model.setSampleTypeFilter(SampleTypeFilter.of((List<SampleType>) c.getList()));
-          }
-        });
-    final HBox sampleBox = FxLayout.newHBox(Insets.EMPTY, FxLabels.newLabel("Sample types"),
-        sampleTypesBox);
+    sampleTypesBox.getCheckModel().getCheckedItems().addListener(
+        (ListChangeListener<SampleType>) c -> model.setSampleTypeFilter(
+            SampleTypeFilter.of((List<SampleType>) c.getList())));
+    final HBox sampleBox = newHBox(Insets.EMPTY, FxLabels.newLabel("Sample types"), sampleTypesBox);
 
     final TitledPane controls = new TitledPane("Controls",
-        new FlowPane(space, space, scaling, imputation, domain, range, coloring, abundance,
-            sampleBox));
-    final Accordion accordion = new Accordion(controls);
+        newFlowPane(scaling, imputation, domain, range, coloring, abundance, sampleBox));
+    final RegionSelectionWrapper<? extends SimpleXYChart<?>> loadingsWrapper = new RegionSelectionWrapper<>(
+        loadingsPlot, onExtractRegionsPressed);
+    final Accordion accordion = new Accordion(
+        newTitledPane("Regions of interest (ROI) selection from Loadings plot",
+            loadingsWrapper.getControlPane()), controls);
     accordion.setExpandedPane(controls);
-    pane.setBottom(accordion);
-
-    scoresPlot.setMinSize(200, 200);
-    loadingsPlot.setMinSize(200, 200);
-
-    final GridPane plotPane = createPlotPane();
-
-//    final FlowPane plots = new FlowPane(new BorderPane(scoresPlot), new BorderPane(loadingsPlot));
-    pane.setCenter(plotPane);
-
-    initDatasetListeners();
-    initChartListeners();
-    return pane;
+    return accordion;
   }
 
   @NotNull
   private GridPane createPlotPane() {
     GridPane plotPane = new GridPane();
+
     plotPane.add(scoresPlot, 0, 0);
     plotPane.add(loadingsPlot, 1, 0);
     plotPane.getColumnConstraints().addAll(
@@ -161,7 +173,7 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     final Label coloringLabel = new Label("Coloring:");
     final MetadataGroupingComponent coloringSelection = new MetadataGroupingComponent();
     coloringSelection.valueProperty().bindBidirectional(model.metadataColumnProperty());
-    return new HBox(space, coloringLabel, coloringSelection);
+    return newHBox(Pos.CENTER_LEFT, coloringLabel, coloringSelection);
   }
 
   private void initDatasetListeners() {

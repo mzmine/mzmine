@@ -34,6 +34,7 @@ import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestRes
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.math3.stat.inference.TestUtils;
@@ -144,7 +145,12 @@ public final class StudentTTest<T> implements RowSignificanceTest {
   @Override
   public String toString() {
     return "StudentTTest{" + "samplingConfig=" + samplingConfig + ", column=" + column + ", groupA="
-           + groupA + ", groupB=" + groupB + ", groupedFilesA=" + groupedFilesA + ", groupedFilesB="
-           + groupedFilesB + '}';
+        + groupA + ", groupB=" + groupB + ", groupedFilesA=" + groupedFilesA + ", groupedFilesB="
+        + groupedFilesB + '}';
+  }
+
+  public StorableTTestConfiguration toConfiguration() {
+    return new StorableTTestConfiguration(samplingConfig(), column().getTitle(),
+        groupA().toString(), groupB().toString());
   }
 }

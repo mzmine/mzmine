@@ -25,6 +25,10 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import static io.github.mzmine.javafx.components.factories.FxButtons.createButton;
 import static io.github.mzmine.javafx.components.factories.FxButtons.createCancelButton;
 import static io.github.mzmine.javafx.components.factories.FxButtons.createLoadButton;
@@ -32,11 +36,6 @@ import static io.github.mzmine.javafx.components.factories.FxButtons.createSaveB
 import static io.github.mzmine.javafx.components.util.FxLayout.newAccordion;
 import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
-
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
-import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
@@ -55,7 +54,9 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -99,7 +100,8 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
   public static final String REGION_FILE_EXTENSION = "*.mzmineregionxml";
 
   private final T node;
-  private final ObservableList<RegionSelectionListener> finishedRegionSelectionListeners = FXCollections.observableArrayList();
+  private final ListProperty<RegionSelectionListener> finishedRegionSelectionListenersProperty = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
   private final Stroke roiStroke = new BasicStroke(1f);
   private final Paint roiPaint = MZmineCore.getConfiguration().getDefaultColorPalette()
       .getNegativeColorAWT();
@@ -131,21 +133,28 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     if (onExtractPressed != null) {
       final Button extractButton = FxButtons.createButton("Extract to feature list", FxIcons.FILTER,
           null, () -> onExtractPressed.accept(getFinishedRegionsAsListOfPointLists()));
+      extractButton.disableProperty()
+          .bind(finishedRegionSelectionListenersProperty().emptyProperty());
       controlPane.getChildren().add(extractButton);
     }
   }
 
-  public ObservableList<RegionSelectionListener> getFinishedRegionListeners() {
-    return finishedRegionSelectionListeners;
+
+  public ListProperty<RegionSelectionListener> finishedRegionSelectionListenersProperty() {
+    return finishedRegionSelectionListenersProperty;
+  }
+
+  public ObservableList<RegionSelectionListener> getFinishedRegionSelectionListeners() {
+    return finishedRegionSelectionListenersProperty.get();
   }
 
   public List<List<Point2D>> getFinishedRegionsAsListOfPointLists() {
-    return finishedRegionSelectionListeners.stream().map(l -> l.buildingPointsProperty().get())
-        .collect(Collectors.toList());
+    return finishedRegionSelectionListenersProperty.stream()
+        .map(l -> l.buildingPointsProperty().get()).collect(Collectors.toList());
   }
 
   public List<Path2D> getFinishedRegionsAsListOfPaths() {
-    return finishedRegionSelectionListeners.stream().map(l -> l.pathProperty().get())
+    return finishedRegionSelectionListenersProperty.stream().map(l -> l.pathProperty().get())
         .collect(Collectors.toList());
   }
 
@@ -154,7 +163,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     final Button btnFinishRegion = createButton("Finish", FxIcons.CHECK_CIRCLE, null, () -> {
       RegionSelectionListener selection = node.finishPath();
       if (selection.buildingPointsProperty().getSize() > 3) {
-        finishedRegionSelectionListeners.add(selection);
+        finishedRegionSelectionListenersProperty.add(selection);
       }
       disableFinish.set(true);
     });
@@ -174,12 +183,12 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
       final List<XYAnnotation> annotations = node.getChart().getXYPlot().getAnnotations();
       new ArrayList<>(annotations).forEach(
           a -> node.getChart().getXYPlot().removeAnnotation(a, true));
-      finishedRegionSelectionListeners.clear();
+      finishedRegionSelectionListenersProperty.clear();
       disableFinish.set(true);
     });
     btnClearRegions.setDisable(true);
 
-    finishedRegionSelectionListeners.addListener(
+    finishedRegionSelectionListenersProperty.addListener(
         (ListChangeListener<RegionSelectionListener>) c -> {
           c.next();
           if (c.wasRemoved()) {
@@ -212,7 +221,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
       for (List<Point2D> point2DS : regions) {
         final RegionSelectionListener l = new RegionSelectionListener(node);
         l.buildingPointsProperty().setValue(FXCollections.observableArrayList(point2DS));
-        finishedRegionSelectionListeners.add(l);
+        finishedRegionSelectionListenersProperty.add(l);
       }
     });
   }
@@ -249,7 +258,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
 
   private void saveRegionsToFile() {
     final RegionsParameter parameter = new RegionsParameter("Regions", "User defined regions");
-    finishedRegionSelectionListeners.forEach(
+    finishedRegionSelectionListenersProperty.forEach(
         l -> parameter.getValue().add(l.buildingPointsProperty().getValue()));
     FxThread.runLater(() -> {
       final FileChooser chooser = new FileChooser();

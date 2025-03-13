@@ -126,4 +126,11 @@ public class SampleTypeFilter {
   public boolean isEmpty() {
     return types.isEmpty();
   }
+
+  /**
+   * @return Immutable copy of the types allowed by this filter.
+   */
+  public EnumSet<SampleType> getTypes() {
+    return EnumSet.copyOf(types);
+  }
 }

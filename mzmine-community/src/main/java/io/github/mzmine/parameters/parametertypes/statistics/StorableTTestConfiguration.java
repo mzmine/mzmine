@@ -25,18 +25,20 @@
 
 package io.github.mzmine.parameters.parametertypes.statistics;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public record StorableTTestConfiguration(@NotNull TTestSamplingConfig samplingConfig, String column,
-                                         String groupA, String groupB) {
+public record StorableTTestConfiguration(@NotNull TTestSamplingConfig samplingConfig,
+                                         @Nullable String column, @Nullable String groupA,
+                                         @Nullable String groupB) {
 
   private static final Logger logger = Logger.getLogger(StorableTTestConfiguration.class.getName());
 
@@ -44,8 +46,8 @@ public record StorableTTestConfiguration(@NotNull TTestSamplingConfig samplingCo
    * @return A {@link StudentTTest} or null. The configuration is only returned if the column exists
    * and the respective values exist in that column.
    */
-  public <T> StudentTTest<T> toValidConfig() {
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
+  public @Nullable <T> StudentTTest<T> toValidConfig() {
+    final MetadataTable metadata = ProjectService.getMetadata();
 
     final MetadataColumn<T> col = (MetadataColumn<T>) metadata.getColumnByName(column);
     if (col == null) {
