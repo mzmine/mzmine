@@ -32,6 +32,8 @@ import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.main.MZmineCore;
+import java.awt.geom.Point2D;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.layout.Region;
@@ -52,10 +54,16 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> implem
     super(new VolcanoPlotModel());
 
     model.setFlists(flist != null ? List.of(flist) : null);
-    viewBuilder = new VolcanoPlotViewBuilder(model);
+    viewBuilder = new VolcanoPlotViewBuilder(model, this::onExtractRegionsPressed);
     view = viewBuilder.build();
 
     initializeListeners();
+  }
+
+  private void onExtractRegionsPressed(List<List<Point2D>> regions) {
+    VolcanoPlotRegionExtractionParameters parameters = VolcanoPlotRegionExtractionParameters.create(
+        model, regions);
+    MZmineCore.runMZmineModule(VolcanoPlotRegionExtractionModule.class, parameters);
   }
 
   private void initializeListeners() {

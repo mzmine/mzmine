@@ -47,7 +47,9 @@ import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.HPos;
@@ -75,9 +77,12 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
 
   private final SimpleXYChart<?> scoresPlot = new SimpleXYChart<>("Scores", "PC1", "PC2");
   private final SimpleXYChart<?> loadingsPlot = new SimpleXYChart<>("Loadings", "PC1", "PC2");
+  // add the wrapper to the other accordion and not directly around the chart
+  private final Consumer<List<List<Point2D>>> onExtractRegionsPressed;
 
-  public PCAViewBuilder(PCAModel model) {
+  public PCAViewBuilder(PCAModel model, Consumer<List<List<Point2D>>> onExtractRegionsPressed) {
     super(model);
+    this.onExtractRegionsPressed = onExtractRegionsPressed;
   }
 
   @Override
@@ -145,12 +150,8 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     final TitledPane controls = new TitledPane("Controls",
         new FlowPane(space, space, scaling, imputation, domain, range, coloring, abundance,
             sampleBox));
-    // add the wrapper to the other accordion and not directly around the chart
     final RegionSelectionWrapper<? extends SimpleXYChart<?>> loadingsWrapper = new RegionSelectionWrapper<>(
-        loadingsPlot, regions -> {
-      final var param = PCALoadingsExtractionParameters.fromPcaModel(model, regions);
-      MZmineCore.runMZmineModule(PCALoadingsExtractionModule.class, param);
-    });
+        loadingsPlot, onExtractRegionsPressed);
     final Accordion accordion = new Accordion(
         newTitledPane("Regions of interest (ROI) selection from Loadings plot",
             loadingsWrapper.getControlPane()), controls);

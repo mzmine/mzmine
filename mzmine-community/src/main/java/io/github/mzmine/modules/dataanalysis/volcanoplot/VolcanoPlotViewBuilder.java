@@ -35,6 +35,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
@@ -43,8 +44,10 @@ import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestRes
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import java.awt.Stroke;
+import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -76,34 +79,26 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
   private final int space = 5;
   private final Stroke annotationStroke = EStandardChartTheme.DEFAULT_MARKER_STROKE;
-  private SimpleXYChart<PlotXYDataProvider> chart;
+  private final SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>("Volcano plot",
+      "log2(fold change)", "-log10(p-Value)");
+  // region wrapper not added directly to the gui because we want to combine the two accordions
+  private final Consumer<List<List<Point2D>>> onExtractRegionsPressed;
 
-  public VolcanoPlotViewBuilder(VolcanoPlotModel model) {
+  public VolcanoPlotViewBuilder(VolcanoPlotModel model,
+      Consumer<List<List<Point2D>>> onExtractRegionsPressed) {
     super(model);
+    this.onExtractRegionsPressed = onExtractRegionsPressed;
   }
 
   @Override
   public Region build() {
 
     final BorderPane mainPane = new BorderPane();
-    chart = new SimpleXYChart<>("Volcano plot", "log2(fold change)", "-log10(p-Value)");
-    final RegionSelectionWrapper<SimpleXYChart<?>> regionWrapper = new RegionSelectionWrapper<>(
-        chart, regions -> {
-      VolcanoPlotRegionExtractionParameters parameters = VolcanoPlotRegionExtractionParameters.create(
-          model, regions);
-      MZmineCore.runMZmineModule(VolcanoPlotRegionExtractionModule.class, parameters);
-    });
-    mainPane.setCenter(regionWrapper);
+    final Accordion accordion = createControlsAccordion();
 
-    final HBox pValueBox = createPValueBox();
-    final HBox abundanceBox = createAbundanceBox();
-    final VBox pAndAbundance = new VBox(space, pValueBox, abundanceBox);
-    final Region testConfigPane = createTestParametersPane();
-
-    final TitledPane controls = new TitledPane("Settings",
-        createControlsPane(pAndAbundance, testConfigPane));
-    final Accordion accordion = new Accordion(controls);
-    accordion.setExpandedPane(controls);
+    // add the chart after the building the controls pane, bc the region wrapper automatically puts the
+    // chart into it's center. to avoid the chart not showing up, set it to the plot pane afterward
+    mainPane.setCenter(chart);
     mainPane.setBottom(accordion);
 
     chart.setDefaultRenderer(new ColoredXYShapeRenderer());
@@ -137,6 +132,24 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     addChartValueListener();
     initializeExternalSelectedRowListener();
     return mainPane;
+  }
+
+  private @NotNull Accordion createControlsAccordion() {
+    final RegionSelectionWrapper<SimpleXYChart<?>> regionWrapper = new RegionSelectionWrapper<>(
+        chart, onExtractRegionsPressed);
+
+    final HBox pValueBox = createPValueBox();
+    final HBox abundanceBox = createAbundanceBox();
+    final VBox pAndAbundance = new VBox(space, pValueBox, abundanceBox);
+    final Region testConfigPane = createTestParametersPane();
+
+    final TitledPane controls = new TitledPane("Settings",
+        createControlsPane(pAndAbundance, testConfigPane));
+    final Accordion accordion = new Accordion(
+        newTitledPane("Region of interest (ROI) selection", regionWrapper.getControlPane()),
+        controls);
+    accordion.setExpandedPane(controls);
+    return accordion;
   }
 
   @NotNull
