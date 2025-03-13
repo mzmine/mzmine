@@ -29,6 +29,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
 import io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule;
+import io.github.mzmine.modules.dataanalysis.pca_new.PCALoadingsExtractionModule;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAModule;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
@@ -328,6 +329,7 @@ public class BatchModeModulesList {
           PeakComparisonRowFilterModule.class, //
           RegionExtractionModule.class, //
           VolcanoPlotRegionExtractionModule.class, //
+          PCALoadingsExtractionModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}

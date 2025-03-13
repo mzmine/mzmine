@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -36,6 +37,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvid
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -94,6 +96,25 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         .addRangeMarker(new ValueMarker(0, markerColor, EStandardChartTheme.DEFAULT_MARKER_STROKE));
 
     final BorderPane pane = new BorderPane();
+    final Accordion accordion = buildControlsAccordion();
+    pane.setBottom(accordion);
+
+    scoresPlot.setMinSize(200, 200);
+    loadingsPlot.setMinSize(200, 200);
+
+    // build the plot pane after the controls pane, bc the region wrapper automatically puts the
+    // chart into it's center. to avoid the chart not showing up, set it to the plot pane afterward
+    final GridPane plotPane = createPlotPane();
+
+//    final FlowPane plots = new FlowPane(new BorderPane(scoresPlot), new BorderPane(loadingsPlot));
+    pane.setCenter(plotPane);
+
+    initDatasetListeners();
+    initChartListeners();
+    return pane;
+  }
+
+  private @NotNull Accordion buildControlsAccordion() {
     final HBox scaling = FxComboBox.createLabeledComboBox("Scaling",
         FXCollections.observableArrayList(ScalingFunctions.values()),
         model.scalingFunctionProperty());
@@ -124,26 +145,23 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     final TitledPane controls = new TitledPane("Controls",
         new FlowPane(space, space, scaling, imputation, domain, range, coloring, abundance,
             sampleBox));
-    final Accordion accordion = new Accordion(controls);
+    // add the wrapper to the other accordion and not directly around the chart
+    final RegionSelectionWrapper<? extends SimpleXYChart<?>> loadingsWrapper = new RegionSelectionWrapper<>(
+        loadingsPlot, regions -> {
+      final var param = PCALoadingsExtractionParameters.fromPcaModel(model, regions);
+      MZmineCore.runMZmineModule(PCALoadingsExtractionModule.class, param);
+    });
+    final Accordion accordion = new Accordion(
+        newTitledPane("Regions of interest (ROI) selection from Loadings plot",
+            loadingsWrapper.getControlPane()), controls);
     accordion.setExpandedPane(controls);
-    pane.setBottom(accordion);
-
-    scoresPlot.setMinSize(200, 200);
-    loadingsPlot.setMinSize(200, 200);
-
-    final GridPane plotPane = createPlotPane();
-
-//    final FlowPane plots = new FlowPane(new BorderPane(scoresPlot), new BorderPane(loadingsPlot));
-    pane.setCenter(plotPane);
-
-    initDatasetListeners();
-    initChartListeners();
-    return pane;
+    return accordion;
   }
 
   @NotNull
   private GridPane createPlotPane() {
     GridPane plotPane = new GridPane();
+
     plotPane.add(scoresPlot, 0, 0);
     plotPane.add(loadingsPlot, 1, 0);
     plotPane.getColumnConstraints().addAll(
