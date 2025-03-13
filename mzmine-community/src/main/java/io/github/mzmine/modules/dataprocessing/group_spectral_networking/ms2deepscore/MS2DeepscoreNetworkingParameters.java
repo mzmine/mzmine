@@ -30,6 +30,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -53,6 +54,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MS2DeepscoreNetworkingParameters extends SimpleParameterSet {
 
+  public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createGnpsSingleScanDefault();
+
   public static final IntegerParameter minSignals = new IntegerParameter("Minimum signals",
       "The minimum number of fragments for using a spectrum (minimum = 3, default = 4)", 4, 3,
       null);
@@ -72,7 +75,7 @@ public class MS2DeepscoreNetworkingParameters extends SimpleParameterSet {
      */
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html",
-        ms2deepscoreModelFile, minSignals, minScore);
+        ms2deepscoreModelFile, spectraMergeSelect, minSignals, minScore);
   }
 
   /**

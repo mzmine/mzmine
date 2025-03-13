@@ -336,9 +336,7 @@ public interface Feature {
     return null;
   }
 
-  @Nullable FeatureList getFeatureList();
-
-  void setFeatureList(@NotNull FeatureList featureList);
+  @NotNull FeatureList getFeatureList();
 
   int getNumberOfDataPoints();
 
@@ -371,5 +369,9 @@ public interface Feature {
   default PolarityType getRepresentativePolarity() {
     final Scan representativeScan = getRepresentativeScan();
     return representativeScan == null ? null : representativeScan.getPolarity();
+  }
+
+  default boolean hasMs2Fragmentation() {
+    return !getAllMS2FragmentScans().isEmpty();
   }
 }

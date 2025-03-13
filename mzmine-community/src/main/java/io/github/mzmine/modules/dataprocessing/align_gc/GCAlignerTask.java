@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,11 +27,13 @@ package io.github.mzmine.modules.dataprocessing.align_gc;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.align_common.BaseFeatureListAligner;
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner;
-import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner.ExtractMzMismatchFeatureCloner;
+import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner.SimpleFeatureCloner;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -86,14 +88,27 @@ public class GCAlignerTask extends AbstractFeatureListTask {
   @Override
   protected void process() {
 
+    // check if MS2 is available. users need to run spectral deconvolution first
+    final boolean allWithMS2 = featureLists.stream().flatMap(FeatureList::stream)
+        .allMatch(FeatureListRow::hasMs2Fragmentation);
+    if (!allWithMS2) {
+      error("There were features without pseudo MS2 spectrum. Please run %s before alignment.".formatted(
+          SpectralDeconvolutionGCModule.NAME));
+      return;
+    }
+
     logger.info(() -> "Running parallel GC aligner on " + featureLists.size() + " feature lists.");
 
     var mzTolerance = parameters.getValue(GCAlignerParameters.MZ_TOLERANCE);
-    FeatureCloner featureCloner = new ExtractMzMismatchFeatureCloner(mzTolerance);
+    // for now use a simple feature cloner that just uses the picked feature
+    // later after alignment we will find the main consensus feature in the post processor
+    FeatureCloner featureCloner = new SimpleFeatureCloner();
+    var postProcessor = new GCConsensusAlignerPostProcessor(mzTolerance);
     // create the row aligner that handles the scoring
     var rowAligner = new GcRowAlignScorer(parameters);
     listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
-        getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT);
+        getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT,
+        postProcessor);
 
     alignedFeatureList = listAligner.alignFeatureLists();
     if (alignedFeatureList == null || isCanceled()) {

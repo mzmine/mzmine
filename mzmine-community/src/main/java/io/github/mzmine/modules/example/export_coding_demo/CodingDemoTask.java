@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.example.export_coding_demo;
 
-import static java.util.Objects.requireNonNullElse;
-
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -43,6 +41,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -122,7 +121,7 @@ class CodingDemoTask extends AbstractFeatureListTask {
 
   @Override
   public String getTaskDescription() {
-    return STR."Demo task runs on \{featureList}";
+    return "Demo task runs on " + featureList;
   }
 
   @Override

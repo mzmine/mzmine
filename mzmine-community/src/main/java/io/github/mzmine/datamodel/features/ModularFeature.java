@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -88,7 +88,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   // buffert col charts and nodes
   @NotNull
-  private ModularFeatureList flist;
+  private final ModularFeatureList flist;
 
   private FeatureListRow parentRow;
 
@@ -98,7 +98,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     //
     map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
       if (change.wasAdded()) {
-        flist.addFeatureType(change.getKey());
+        this.flist.addFeatureType(change.getKey());
       }
     });
   }
@@ -422,15 +422,9 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(FeatureInformationType.class, featureInfo);
   }
 
-  @Nullable
   @Override
-  public FeatureList getFeatureList() {
+  public @NotNull FeatureList getFeatureList() {
     return flist;
-  }
-
-  @Override
-  public void setFeatureList(@NotNull FeatureList flist) {
-    this.flist = (ModularFeatureList) flist;
   }
 
   @Override

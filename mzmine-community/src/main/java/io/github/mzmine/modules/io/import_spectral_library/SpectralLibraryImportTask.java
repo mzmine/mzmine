@@ -92,7 +92,7 @@ public class SpectralLibraryImportTask extends AbstractTask {
       }
     } catch (Exception e) {
       logger.log(Level.SEVERE,
-          STR."Could not read file \{dataBaseFile}. The file/path may not exist.", e);
+          "Could not read file %s. The file/path may not exist.".formatted(dataBaseFile), e);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(e.toString());
       return;

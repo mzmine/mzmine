@@ -70,7 +70,7 @@ public class ProjectMetadataImportTask extends AbstractSimpleToolTask {
     for (File file : files) {
       if (!(file.exists() && file.canRead())) {
         setStatus(TaskStatus.ERROR);
-        final String msg = STR."Cannot read metadata file \{file}. The file/path may not exist.";
+        final String msg = "Cannot read metadata file " + file + ". The file/path may not exist.";
         error(msg);
         DesktopService.getDesktop().displayErrorMessage(msg);
         return;

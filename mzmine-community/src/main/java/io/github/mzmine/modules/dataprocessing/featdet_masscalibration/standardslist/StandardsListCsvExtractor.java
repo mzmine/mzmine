@@ -92,16 +92,17 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
         }
         extractedData.add(calibrant);
       } catch (Exception e) {
-        logger.fine(STR."Exception occurred when reading row index \{lines.indexOf(lineValues)}");
+        logger.fine(
+            "Exception occurred when reading row index %d".formatted(lines.indexOf(lineValues)));
         logger.fine(e.toString());
       }
     }
 
-    logger.info(
-        STR."Extracted \{extractedData.size()} standard molecules from \{lines.size()} rows");
+    logger.info("Extracted %d standard molecules from %d rows".formatted(extractedData.size(),
+        lines.size()));
     if (extractedData.size() < lines.size()) {
-      logger.warning(STR."Skipped \{lines.size()
-          - extractedData.size()} rows when reading standards list in csv file \{filename}");
+      logger.warning("Skipped %d rows when reading standards list in csv file %s".formatted(
+          lines.size() - extractedData.size(), filename));
     }
 
     return new StandardsList(extractedData);

@@ -9,11 +9,12 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.mzio.users.user.MZmineUser;
+import io.mzio.users.service.UserActiveService;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Options for GNPS, molecular networking, SIRIUS,
@@ -27,7 +28,7 @@ public class WorkflowDIA extends WorkflowWizardParameterFactory {
 
   @Override
   public WizardStepParameters create() {
-    return new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true, false);
+    return new WorkflowDiaWizardParameters(0.8, 5, true, true, null, true, true, false);
   }
 
   @Override
@@ -49,12 +50,13 @@ public class WorkflowDIA extends WorkflowWizardParameterFactory {
 
     return switch (ionInterface.group()) {
       case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDIA(steps);
-      case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING, DIRECT_AND_FLOW -> throw new UnsupportedWorkflowException(steps);
+      case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING, DIRECT_AND_FLOW ->
+          throw new UnsupportedWorkflowException(steps);
     };
   }
 
   @Override
-  public boolean isAvailableWithLicense(@Nullable MZmineUser user) {
-    return true;
+  public @NotNull Set<@NotNull UserActiveService> getUnlockingServices() {
+    return EnumSet.allOf(UserActiveService.class);
   }
 }

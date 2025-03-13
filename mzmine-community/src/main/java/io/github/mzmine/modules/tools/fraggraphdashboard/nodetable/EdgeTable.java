@@ -62,7 +62,8 @@ public class EdgeTable extends TableView<SubFormulaEdge> {
         formats.mzFormat(), ColumnAlignment.RIGHT, edge -> edge.larger().calculatedMzProperty());
 
     TableColumn<SubFormulaEdge, String> formulaDifference = TableColumns.createColumn(
-        "Formula\ndiff.", 85, edge -> edge.lossFormulaStringProperty().map(str -> STR."-[\{str}]"));
+        "Formula\ndiff.", 85,
+        edge -> edge.lossFormulaStringProperty().map(str -> "-[" + str + "]"));
 
     TableColumn<SubFormulaEdge, Number> massDifferenceAbs = TableColumns.createColumn(
         "Mass diff.\n(meas.)", 85, formats.mzFormat(), ColumnAlignment.RIGHT,

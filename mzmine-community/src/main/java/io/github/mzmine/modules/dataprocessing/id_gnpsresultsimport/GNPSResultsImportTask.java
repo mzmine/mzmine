@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -92,8 +92,8 @@ public class GNPSResultsImportTask extends AbstractTask {
   public static void addGNPSLibraryMatchToRow(ModularFeatureListRow row,
       GNPSLibraryMatch identity) {
     // add column first if needed
-    List<GNPSLibraryMatch> list = Objects
-        .requireNonNullElse(row.get(GNPSSpectralLibraryMatchesType.class), new ArrayList<>());
+    List<GNPSLibraryMatch> list = Objects.requireNonNullElse(
+        row.get(GNPSSpectralLibraryMatchesType.class), new ArrayList<>());
     list.add(identity);
     row.set(GNPSSpectralLibraryMatchesType.class, list);
   }
@@ -148,13 +148,13 @@ public class GNPSResultsImportTask extends AbstractTask {
     try {
       logger.info("replacing zero ids in graphml");
       Path path = Paths.get(file.getAbsolutePath());
-      Stream<String> lines = Files.lines(path);
-      List<String> replaced =
-          lines.map(line -> line.replaceAll("edge id=\"0\"", "edge")
-              .replaceAll("edge id=\"Cosine\"", "edge")).collect(Collectors.toList());
-      Files.write(path, replaced);
-      lines.close();
-      logger.info("zero ids in graphml replaces");
+      try (Stream<String> lines = Files.lines(path)) {
+        List<String> replaced = lines.map(line -> line.replaceAll("edge id=\"0\"", "edge")
+            .replaceAll("edge id=\"Cosine\"", "edge")).collect(Collectors.toList());
+        Files.write(path, replaced);
+        lines.close();
+        logger.info("zero ids in graphml replaces");
+      }
     } catch (IOException e) {
       logger.log(Level.SEVERE, "graphml NOT LOADED: " + file.getAbsolutePath(), e);
       setErrorMessage("Cannot load graphml file: " + file.getAbsolutePath());
@@ -260,8 +260,9 @@ public class GNPSResultsImportTask extends AbstractTask {
       fs = new FileSourceGraphML();
       fs.addSink(graph);
       fs.readAll(file.getAbsolutePath());
-      logger.info(() -> MessageFormat.format("GNPS results: nodes={0} edges={1}",
-          graph.getNodeCount(), graph.getEdgeCount()));
+      logger.info(
+          () -> MessageFormat.format("GNPS results: nodes={0} edges={1}", graph.getNodeCount(),
+              graph.getEdgeCount()));
     } catch (IOException e) {
       logger.log(Level.SEVERE, "graphml NOT LOADED: " + file.getAbsolutePath(), e);
       setErrorMessage("Cannot load graphml file: " + file.getAbsolutePath());

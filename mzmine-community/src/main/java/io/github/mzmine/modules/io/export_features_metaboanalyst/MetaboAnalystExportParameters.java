@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.export_features_metaboanalyst;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
@@ -55,9 +54,11 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
       AbundanceMeasure.Area);
 
   public MetaboAnalystExportParameters() {
-    super(new Parameter[]{featureLists, filename,
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/io/data-exchange-with-other-software.html#metaboanalyst-export",
+        featureLists, filename,
 //        format,
-        grouping, FEATURE_INTENSITY});
+        grouping, FEATURE_INTENSITY);
   }
 
 //  public static final ComboParameter<StatsFormat> format = new ComboParameter<>("Export format",

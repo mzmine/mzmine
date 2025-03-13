@@ -49,6 +49,7 @@ import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataTypeUtils;
@@ -306,7 +307,16 @@ public class CompoundAnnotationUtils {
       }
 
       try {
-        db.putIfNotNull((Class) dataType, value);
+        final DataType instance = DataTypes.get(dataType);
+        if (instance.getValueClass().isInstance(value)) {
+          db.putIfNotNull((Class) dataType, value);
+        } else if (instance instanceof IonTypeType && value instanceof String s) {
+          var ionType = IonTypeParser.parse(s);
+          db.putIfNotNull((Class) dataType, ionType);
+        } else {
+          logger.finest("Skipping value conversion of field\t" + field + "  for type\t"
+              + instance.getUniqueID() + " with value\t" + value);
+        }
       } catch (Exception e) {
         try {
           logger.finer(

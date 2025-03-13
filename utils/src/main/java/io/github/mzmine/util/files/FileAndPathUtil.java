@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,11 +48,16 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.apache.commons.io.FileUtils;
@@ -106,7 +111,9 @@ public class FileAndPathUtil {
    */
   public static long countLines(Path file) throws IOException {
     if (Files.exists(file) && Files.isRegularFile(file)) {
-      return Files.lines(file).count();
+      try (final var lines = Files.lines(file)) {
+        return lines.count();
+      }
     } else {
       return -1;
     }
@@ -846,6 +853,22 @@ public class FileAndPathUtil {
 
   public static void setEarlyTempFileCleanup(final boolean state) {
     FileAndPathUtil.earlyTempFileCleanup = state;
+  }
+
+  /**
+   * @param files A list of files
+   * @return The most frequently used path in the list of files. If two paths have the same number
+   * of occurrences, the result may vary as the map type of {@link Collectors#groupingBy(Function)}
+   * is a hash map.
+   */
+  public static @Nullable File getMajorityFilePath(@Nullable Collection<@Nullable File> files) {
+    if (files == null || files.isEmpty()) {
+      return null;
+    }
+
+    return files.stream().filter(Objects::nonNull)
+        .collect(Collectors.groupingBy(p -> p, Collectors.counting())).entrySet().stream()
+        .max(Entry.comparingByValue(Comparator.reverseOrder())).map(Entry::getKey).orElse(null);
   }
 
 }
