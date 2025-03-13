@@ -324,6 +324,9 @@
       <MenuItem onAction="#runModule"
         text="Calculate CCS values"
         userData="io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule"/>
+      <!--<MenuItem onAction="#runModule"
+        text="Dummy Calculation"
+        userData="io.github.mzmine.modules.dataprocessing.dummy_example.DummyFeatureListModule"/> -->
     </Menu>
 
     <Menu text="Isotopes">
@@ -460,6 +463,11 @@
         <MenuItem onAction="#runModule"
           text="Lipid Annotation"
           userData="io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule"/>
+
+        <MenuItem onAction="#runModule"
+                  text="Expert knwoledge lipid annotation"
+                  userData="io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.LipidIDExpertKnowledgeModule"/>
+
         <MenuItem text="NIST MS search" onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule"/>
         <MenuItem text="Chemical formula prediction"

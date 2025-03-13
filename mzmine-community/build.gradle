@@ -220,6 +220,12 @@ dependencies {
     // the defacto standard parser in jackson?
     implementation(libs.woodstox.core)
     implementation(libs.aalto.xml)
+
+    //Drools
+    //implementation 'org.drools:drools-core:8.41.0.Final'
+    //implementation 'org.drools:drools-compiler:8.41.0.Final'
+    //implementation 'org.kie:kie-api:8.41.0.Final'
+    //implementation 'org.kie:kie-spring:8.41.0.Final' // If using Spring Boot
 }
 
 /*
@@ -290,7 +296,6 @@ application {
             "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
     ]
 }
-
 /*
  * Build the JVM runtime using jlink
  */

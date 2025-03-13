@@ -1,0 +1,13 @@
+package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.rules;
+
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.CommonAdductPositive;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.Lipid;
+
+dialect  "mvel"
+
+rule "Detect CAR with M+H"
+when
+
+then
+
+end
