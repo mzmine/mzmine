@@ -348,7 +348,9 @@ public class MainWindowController {
   }
 
   public void setActiveWorkspace(@NotNull Workspace workspace, EnumSet<WorkspaceTags> tags) {
+    logger.fine("Setting active workspace to " + workspace.getName());
     activeWorkspace = workspace;
+    // rebuild the menu here, needed for updates after user changes
     mainPane.setTop(workspace.buildMainMenu(tags));
   }
 
