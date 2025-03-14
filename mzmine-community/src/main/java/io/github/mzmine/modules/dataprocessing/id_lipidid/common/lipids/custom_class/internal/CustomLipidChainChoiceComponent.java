@@ -110,7 +110,7 @@ class CustomLipidChainChoiceComponent extends BorderPane {
             LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN,
             LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN});
 
-    private AddLipidChainTypeParameters() {
+    public AddLipidChainTypeParameters() {
       super(lipidChainType);
     }
   }

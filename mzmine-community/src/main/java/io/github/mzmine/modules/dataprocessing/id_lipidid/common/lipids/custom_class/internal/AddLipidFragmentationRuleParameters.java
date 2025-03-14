@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  * Represents a fragmentation rule of a custom lipid class. Not intended to be used as part of a
  * module, does not support saving.
  */
-class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
+public class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
 
   private static final Logger logger = Logger.getLogger(
       AddLipidFragmentationRuleParameters.class.getName());
