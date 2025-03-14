@@ -28,18 +28,9 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidCategories;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidMainClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.internal.AddCustomLipidClassParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -67,13 +58,12 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
   // Logger.
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final ListView<CustomLipidClass> checkList = new ListView<>();
+  private final ListView<CustomLipidClass> listView = new ListView<>();
   private final FlowPane buttonsPane = new FlowPane(Orientation.HORIZONTAL);
   private final Button addButton = new Button("Add...");
   private final Button importButton = new Button("Import...");
   private final Button exportButton = new Button("Export...");
   private final Button removeButton = new Button("Remove selected");
-
   private final Button clearButton = new Button("Clear");
 
   // Filename extension.
@@ -84,31 +74,31 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
     ObservableList<CustomLipidClass> choicesList = FXCollections.observableArrayList(
         Arrays.asList(choices));
 
-    checkList.setItems(choicesList);
-    setCenter(checkList);
+    listView.setItems(choicesList);
+    setCenter(listView);
     setPrefSize(300, 200);
     setMinWidth(200);
     setMaxHeight(200);
     addButton.setOnAction(e -> {
-      final ParameterSet parameters = new AddCustomLipidClassParameters();
+      final ParameterSet parameters = new AddCustomLipidClassParameters().cloneParameterSet();
       if (parameters.showSetupDialog(true) != ExitCode.OK) {
         return;
       }
 
       // Create new custom lipid class
       CustomLipidClass customLipidClass = new CustomLipidClass(
-          parameters.getParameter(AddCustomLipidClassParameters.name).getValue(),
-          parameters.getParameter(AddCustomLipidClassParameters.abbr).getValue(),
-          parameters.getParameter(AddCustomLipidClassParameters.lipidCategory).getValue(),
-          parameters.getParameter(AddCustomLipidClassParameters.lipidMainClass).getValue(),
-          parameters.getParameter(AddCustomLipidClassParameters.backBoneFormula).getValue(),
-          parameters.getParameter(AddCustomLipidClassParameters.lipidChainTypes).getChoices(),
-          parameters.getParameter(AddCustomLipidClassParameters.customLipidClassFragmentationRules)
-              .getChoices());
+          parameters.getValue(AddCustomLipidClassParameters.name),
+          parameters.getValue(AddCustomLipidClassParameters.abbr),
+          parameters.getValue(AddCustomLipidClassParameters.lipidCategory),
+          parameters.getValue(AddCustomLipidClassParameters.lipidMainClass),
+          parameters.getValue(AddCustomLipidClassParameters.backBoneFormula),
+          parameters.getValue(AddCustomLipidClassParameters.lipidChainTypes),
+          parameters.getValue(AddCustomLipidClassParameters.customLipidClassFragmentationRules)
+      );
 
       // Add to list of choices (if not already present).
-      if (!checkList.getItems().contains(customLipidClass)) {
-        checkList.getItems().add(customLipidClass);
+      if (!listView.getItems().contains(customLipidClass)) {
+        listView.getItems().add(customLipidClass);
       }
     });
 
@@ -134,7 +124,7 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
               }.getType());
           for (CustomLipidClass customLipidClass : customLipidClasses) {
             if (customLipidClass != null) {
-              checkList.getItems().add(customLipidClass);
+              listView.getItems().add(customLipidClass);
             }
           }
         }
@@ -159,7 +149,7 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
       try {
         FileWriter fileWriter = new FileWriter(file);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        gson.toJson(checkList.getItems(), fileWriter);
+        gson.toJson(listView.getItems(), fileWriter);
         fileWriter.close();
       } catch (IOException ex) {
         final String msg = "There was a problem writing the Custom Lipid Class file.";
@@ -171,25 +161,25 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
 
     removeButton.setTooltip(new Tooltip("Remove selected custom Lipid Classes"));
     removeButton.setOnAction(e -> {
-      ObservableList<CustomLipidClass> selectedItems = checkList.getSelectionModel()
+      ObservableList<CustomLipidClass> selectedItems = listView.getSelectionModel()
           .getSelectedItems();
-      checkList.getItems().removeAll(selectedItems);
+      listView.getItems().removeAll(selectedItems);
     });
 
     clearButton.setTooltip(new Tooltip("Remove all custom Lipid Classes"));
     clearButton.setOnAction(e -> {
-      checkList.getItems().clear();
+      listView.getItems().clear();
     });
 
     buttonsPane.getChildren()
         .addAll(addButton, importButton, exportButton, removeButton, clearButton);
     setTop(buttonsPane);
 
-    checkList.setOnMouseClicked(event -> {
+    listView.setOnMouseClicked(event -> {
       if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
-        CustomLipidClass selectedCustomLipidClass = checkList.getSelectionModel().getSelectedItem();
+        CustomLipidClass selectedCustomLipidClass = listView.getSelectionModel().getSelectedItem();
 
-        final ParameterSet parameters = new AddCustomLipidClassParameters();
+        final ParameterSet parameters = new AddCustomLipidClassParameters().cloneParameterSet();
         parameters.setParameter(AddCustomLipidClassParameters.name,
             selectedCustomLipidClass.getName());
         parameters.setParameter(AddCustomLipidClassParameters.abbr,
@@ -209,125 +199,43 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
         }
 
         //remove old custom lipid class
-        checkList.getItems().remove(selectedCustomLipidClass);
+        listView.getItems().remove(selectedCustomLipidClass);
 
         // Create new custom fragmentation rule
         CustomLipidClass customLipidClass = new CustomLipidClass(
-            parameters.getParameter(AddCustomLipidClassParameters.name).getValue(),
-            parameters.getParameter(AddCustomLipidClassParameters.abbr).getValue(),
-            parameters.getParameter(AddCustomLipidClassParameters.lipidCategory).getValue(),
-            parameters.getParameter(AddCustomLipidClassParameters.lipidMainClass).getValue(),
-            parameters.getParameter(AddCustomLipidClassParameters.backBoneFormula).getValue(),
-            parameters.getParameter(AddCustomLipidClassParameters.lipidChainTypes).getChoices(),
-            parameters.getParameter(
-                AddCustomLipidClassParameters.customLipidClassFragmentationRules).getChoices());
-        int selectedIndex = checkList.getSelectionModel().getSelectedIndex();
+            parameters.getValue(AddCustomLipidClassParameters.name),
+            parameters.getValue(AddCustomLipidClassParameters.abbr),
+            parameters.getValue(AddCustomLipidClassParameters.lipidCategory),
+            parameters.getValue(AddCustomLipidClassParameters.lipidMainClass),
+            parameters.getValue(AddCustomLipidClassParameters.backBoneFormula),
+            parameters.getValue(AddCustomLipidClassParameters.lipidChainTypes),
+            parameters.getValue(
+                AddCustomLipidClassParameters.customLipidClassFragmentationRules));
+        int selectedIndex = listView.getSelectionModel().getSelectedIndex();
         if (selectedIndex >= 0) {
-          checkList.getItems()
-              .add(checkList.getSelectionModel().getSelectedIndex(), customLipidClass);
+          listView.getItems()
+              .add(listView.getSelectionModel().getSelectedIndex(), customLipidClass);
         } else {
-          checkList.getItems().add(customLipidClass);
+          listView.getItems().add(customLipidClass);
         }
 
         // Add to list of choices (if not already present).
-        if (!checkList.getItems().contains(customLipidClass)) {
-          checkList.getItems().add(customLipidClass);
+        if (!listView.getItems().contains(customLipidClass)) {
+          listView.getItems().add(customLipidClass);
         }
       }
     });
-
   }
 
   void setValue(List<CustomLipidClass> checkedItems) {
-    checkList.getSelectionModel().clearSelection();
+    listView.getSelectionModel().clearSelection();
     for (CustomLipidClass mod : checkedItems) {
-      checkList.getSelectionModel().select(mod);
+      listView.getSelectionModel().select(mod);
     }
-  }
-
-  public List<CustomLipidClass> getChoices() {
-    return checkList.getItems();
   }
 
   public List<CustomLipidClass> getValue() {
-    return checkList.getItems();
-  }
-
-  /**
-   * Represents a custom lipid class.
-   */
-  public static class AddCustomLipidClassParameters extends SimpleParameterSet {
-
-
-    public static final StringParameter name = new StringParameter("Custom lipid class name",
-        "Enter the name of the custom lipid class", "My lipid class", true);
-    public static final StringParameter abbr = new StringParameter(
-        "Custom lipid class abbreviation", "Enter a abbreviation for the custom lipid class",
-        "MyClass", true);
-    public static final StringParameter backBoneFormula = new StringParameter(
-        "Lipid backbone molecular formula",
-        "Enter the backbone molecular formula of the custom lipid class. Include all elements of the original molecular, e.g. in case of glycerol based lipid classes add C3H8O3. "
-        + "For fatty acids start with H2O, for ceramides start with C3H8", "C3H8O3", true);
-    public static final ComboParameter<LipidMainClasses> lipidMainClass = new ComboParameter<>(
-        "Lipid main class", "Enter the name of the custom lipid class", LipidMainClasses.values(),
-        LipidMainClasses.PHOSPHATIDYLCHOLINE);
-    public static final ComboParameter<LipidCategories> lipidCategory = new ComboParameter<>(
-        "Lipid category",
-        "The selected lipid category influences the calculation of the lipid class and the available fragmentation rules",
-        new LipidCategories[]{LipidCategories.FATTYACYLS, LipidCategories.GLYCEROLIPIDS,
-            LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidCategories.SPHINGOLIPIDS,
-            LipidCategories.STEROLLIPIDS}, LipidCategories.GLYCEROPHOSPHOLIPIDS);
-    public static final CustomLipidChainChoiceParameter lipidChainTypes = new CustomLipidChainChoiceParameter(
-        "Add lipid chains", "Add Lipid Chains",
-        new LipidChainType[]{LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN});
-    public static final CustomLipidClassFragmentationRulesChoiceParameters customLipidClassFragmentationRules = new CustomLipidClassFragmentationRulesChoiceParameters(
-        "Add fragmentation rules", "Add custom lipid class fragmentation rules",
-        new LipidFragmentationRule[]{
-            new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN)});
-
-    public AddCustomLipidClassParameters() {
-      super(lipidCategory, lipidMainClass, name, abbr, backBoneFormula, lipidChainTypes,
-          customLipidClassFragmentationRules);
-    }
-
-    @Override
-    public ExitCode showSetupDialog(boolean valueCheckRequired) {
-      CustomLipidClassSetupDialog dialog = new CustomLipidClassSetupDialog(valueCheckRequired,
-          this);
-      dialog.showAndWait();
-
-      if (!lipidCategory.getValue().equals(LipidCategories.SPHINGOLIPIDS) && Arrays.stream(
-          lipidChainTypes.getChoices()).anyMatch(lipidChainType ->
-          lipidChainType.equals(LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN)
-          || lipidChainType.equals(LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN)
-          || lipidChainType.equals(LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN))) {
-        MZmineCore.getDesktop().displayConfirmation("Confirmation",
-            "You are using a sphingolipid specific chain for a lipid of the category "
-            + lipidCategory.getValue()
-            + ". This may result in unexpected behaviour and is not recommended. Please select Sphingolipids as lipid category.");
-      }
-      if (!lipidCategory.getValue().equals(LipidCategories.SPHINGOLIPIDS) && Arrays.stream(
-          customLipidClassFragmentationRules.getChoices()).anyMatch(rule ->
-          rule.getLipidFragmentationRuleType()
-              .equals(LipidFragmentationRuleType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
-          || rule.getLipidFragmentationRuleType()
-              .equals(LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
-          || rule.getLipidFragmentationRuleType()
-              .equals(LipidFragmentationRuleType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
-          || rule.getLipidFragmentationRuleType().equals(
-              LipidFragmentationRuleType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT)
-          || rule.getLipidFragmentationRuleType().equals(
-              LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT)
-          || rule.getLipidFragmentationRuleType().equals(
-              LipidFragmentationRuleType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT))) {
-        MZmineCore.getDesktop().displayMessage(
-            "You are using a sphingolipid specific fragmentation rule for a lipid of the category "
-            + lipidCategory.getValue()
-            + ". This may result in unexpected behaviour and is not recommended. Please select Sphingolipids as lipid category.");
-      }
-      return dialog.getExitCode();
-    }
-
+    return listView.getItems();
   }
 
 }

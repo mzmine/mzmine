@@ -23,25 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class;
+package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.internal;
 
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.parameters.UserParameter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-public class CustomLipidChainChoiceParameter implements
+/**
+ * Not intended to be used as part of a module, does not support saving.
+ */
+class CustomLipidChainChoiceParameter implements
     UserParameter<LipidChainType[], CustomLipidChainChoiceComponent> {
 
   private final String name;
   private final String description;
-  private LipidChainType[] choices;
   private LipidChainType[] values;
 
   private CustomLipidChainChoiceComponent component;
@@ -56,13 +55,12 @@ public class CustomLipidChainChoiceParameter implements
       LipidChainType[] choices) {
     this.name = name;
     this.description = description;
-    this.choices = choices;
     this.values = choices;
   }
 
   @Override
   public CustomLipidChainChoiceComponent createEditingComponent() {
-    component = new CustomLipidChainChoiceComponent(choices);
+    component = new CustomLipidChainChoiceComponent(values);
     return component;
   }
 
@@ -71,7 +69,6 @@ public class CustomLipidChainChoiceParameter implements
       CustomLipidChainChoiceComponent customLipidChainChoiceComponent) {
     assert customLipidChainChoiceComponent == component;
     values = component.getValue().toArray(new LipidChainType[0]);
-    choices = component.getChoices().toArray(new LipidChainType[0]);
   }
 
   @Override
@@ -88,8 +85,8 @@ public class CustomLipidChainChoiceParameter implements
   @Override
   public CustomLipidChainChoiceParameter cloneParameter() {
 
-    final CustomLipidChainChoiceParameter copy =
-        new CustomLipidChainChoiceParameter(name, description, choices);
+    final CustomLipidChainChoiceParameter copy = new CustomLipidChainChoiceParameter(name,
+        description, values);
     copy.setValue(values);
     return copy;
   }
@@ -109,10 +106,6 @@ public class CustomLipidChainChoiceParameter implements
     return values;
   }
 
-  public LipidChainType[] getChoices() {
-    return choices;
-  }
-
   @Override
   public void setValue(LipidChainType[] newValue) {
     this.values = newValue;
@@ -125,28 +118,13 @@ public class CustomLipidChainChoiceParameter implements
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    NodeList items = xmlElement.getElementsByTagName("item");
-    ArrayList<LipidChainType> newValues = new ArrayList<>();
-    for (int i = 0; i < items.getLength(); i++) {
-      String itemString = items.item(i).getTextContent();
-      for (int j = 0; j < choices.length; j++) {
-        if (choices[j].toString().equals(itemString)) {
-          newValues.add(choices[j]);
-        }
-      }
-    }
-    this.values = newValues.toArray(new LipidChainType[0]);
+    throw new UnsupportedOperationException(
+        "This parameter is only intended for GUI usage and for loading and saving to an xml file.");
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (values == null)
-      return;
-    Document parentDocument = xmlElement.getOwnerDocument();
-    for (LipidChainType item : values) {
-      Element newElement = parentDocument.createElement("item");
-      newElement.setTextContent(item.toString());
-      xmlElement.appendChild(newElement);
-    }
+    throw new UnsupportedOperationException(
+        "This parameter is only intended for GUI usage and for loading and saving to an xml file.");
   }
 }

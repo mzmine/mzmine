@@ -23,52 +23,50 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class;
+package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.internal;
 
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.parameters.UserParameter;
-import java.util.ArrayList;
+import io.mzio.general.Result;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-public class CustomLipidClassFragmentationRulesChoiceParameters implements
+/**
+ * Not intended to be used as part of a module, does not support saving.
+ */
+class CustomLipidClassFragmentationRulesChoiceParameter implements
     UserParameter<LipidFragmentationRule[], CustomLipidClassFragmentationRulesChoiceComponent> {
 
   private final String name;
   private final String description;
-  private LipidFragmentationRule[] choices;
+  @Nullable
   private LipidFragmentationRule[] values;
 
   /**
    * Create the parameter.
    *
-   * @param name name of the parameter.
+   * @param name        name of the parameter.
    * @param description description of the parameter.
    */
-  public CustomLipidClassFragmentationRulesChoiceParameters(String name, String description,
-      LipidFragmentationRule[] choices) {
+  public CustomLipidClassFragmentationRulesChoiceParameter(String name, String description,
+      @Nullable LipidFragmentationRule[] choices) {
     this.name = name;
     this.description = description;
-    this.choices = choices;
     this.values = choices;
   }
 
   @Override
   public CustomLipidClassFragmentationRulesChoiceComponent createEditingComponent() {
-    return new CustomLipidClassFragmentationRulesChoiceComponent(choices);
+    return new CustomLipidClassFragmentationRulesChoiceComponent(values);
   }
 
   @Override
   public void setValueFromComponent(
       final CustomLipidClassFragmentationRulesChoiceComponent component) {
     values = component.getValue().toArray(new LipidFragmentationRule[0]);
-    choices =
-        component.getChoices().toArray(new LipidFragmentationRule[0]);
   }
 
   @Override
@@ -82,10 +80,10 @@ public class CustomLipidClassFragmentationRulesChoiceParameters implements
   }
 
   @Override
-  public CustomLipidClassFragmentationRulesChoiceParameters cloneParameter() {
+  public CustomLipidClassFragmentationRulesChoiceParameter cloneParameter() {
 
-    final CustomLipidClassFragmentationRulesChoiceParameters copy =
-        new CustomLipidClassFragmentationRulesChoiceParameters(name, description, choices);
+    final CustomLipidClassFragmentationRulesChoiceParameter copy = new CustomLipidClassFragmentationRulesChoiceParameter(
+        name, description, values);
     copy.setValue(values);
     return copy;
   }
@@ -101,48 +99,39 @@ public class CustomLipidClassFragmentationRulesChoiceParameters implements
   }
 
   @Override
+  @Nullable
   public LipidFragmentationRule[] getValue() {
     return values;
   }
 
-  public LipidFragmentationRule[] getChoices() {
-    return choices;
-  }
-
   @Override
-  public void setValue(LipidFragmentationRule[] newValue) {
+  public void setValue(@Nullable LipidFragmentationRule[] newValue) {
     this.values = newValue;
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    return true;
+    if (values == null) {
+      return true;
+    }
+
+    final List<Result> failed = Arrays.stream(values).map(LipidFragmentationRule::validate)
+        .filter(Result::notOk).toList();
+    if (!failed.isEmpty()) {
+      failed.forEach(result -> errorMessages.add(result.message()));
+    }
+    return failed.isEmpty();
   }
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    NodeList items = xmlElement.getElementsByTagName("item");
-    ArrayList<LipidFragmentationRule> newValues = new ArrayList<>();
-    for (int i = 0; i < items.getLength(); i++) {
-      String itemString = items.item(i).getTextContent();
-      for (int j = 0; j < choices.length; j++) {
-        if (choices[j].toString().equals(itemString)) {
-          newValues.add(choices[j]);
-        }
-      }
-    }
-    this.values = newValues.toArray(new LipidFragmentationRule[0]);
+    throw new UnsupportedOperationException(
+        "This parameter is only intended for GUI usage and for loading and saving to an xml file.");
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (values == null)
-      return;
-    Document parentDocument = xmlElement.getOwnerDocument();
-    for (LipidFragmentationRule item : values) {
-      Element newElement = parentDocument.createElement("item");
-      newElement.setTextContent(item.toString());
-      xmlElement.appendChild(newElement);
-    }
+    throw new UnsupportedOperationException(
+        "This parameter is only intended for GUI usage and for loading and saving to an xml file.");
   }
 }
