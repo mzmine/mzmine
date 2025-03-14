@@ -44,9 +44,9 @@ public abstract class AbstractResolverBaselineCorrector extends AbstractBaseline
   protected final MinimumSearchFeatureResolver resolver;
 
   public AbstractResolverBaselineCorrector(@Nullable final MemoryMapStorage storage,
-      final int numSamples, @NotNull final String suffix,
+      final double samplePercentage, @NotNull final String suffix,
       @Nullable final MinimumSearchFeatureResolver resolver) {
-    super(storage, numSamples, suffix);
+    super(storage, samplePercentage, suffix);
     this.resolver = resolver;
   }
 

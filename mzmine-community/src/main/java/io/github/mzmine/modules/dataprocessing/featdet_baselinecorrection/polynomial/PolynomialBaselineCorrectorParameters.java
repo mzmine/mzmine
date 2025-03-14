@@ -34,6 +34,6 @@ public class PolynomialBaselineCorrectorParameters extends AbstractBaselineCorre
       "The degree of the polynomial to fit the baseline.", 4, 1, Integer.MAX_VALUE);
 
   public PolynomialBaselineCorrectorParameters() {
-    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter(), degree);
+    super(applyPeakRemoval.cloneParameter(), samplePercentage.cloneParameter(), degree);
   }
 }
