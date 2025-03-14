@@ -171,8 +171,10 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     if (scans.length == 0) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("There are no scans satisfying filtering values. Consider updating filters "
-          + "with \"Set filters\" in the \"Scans\" parameter.");
+      setErrorMessage("""
+          There are no scans in file "%s" satisfying scan filters. Consider updating filters
+          with "Show" on the "Scan filters" parameter. Filter was: %s""".formatted(
+          dataFile.getName(), scanSelection.toShortDescription()));
       return;
     }
 
@@ -190,7 +192,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
       if (s.getRetentionTime() < prevRT) {
         setStatus(TaskStatus.ERROR);
-        final String msg = "Retention time of scan #" + s.getScanNumber()
+        final String msg =
+            "Retention time of scan #" + s.getScanNumber() + " in file " + dataFile.getName()
             + " is smaller then the retention time of the previous scan."
             + " Please make sure you only use scans with increasing retention times."
             + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
@@ -211,8 +214,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (level != scans[i].getMSLevel()) {
         DesktopService.getDesktop().displayMessage(null,
             "mzmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
-                + "This will likely produce wrong results. "
-                + "Please, set the scan filter parameter to a specific MS level");
+            + "This will likely produce wrong results. "
+            + "Please, set the scan filter parameter to a specific MS level");
         break;
       }
       if (pol != scans[i].getPolarity()) {
