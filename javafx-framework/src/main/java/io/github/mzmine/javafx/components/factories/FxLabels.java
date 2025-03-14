@@ -30,6 +30,7 @@ import io.github.mzmine.javafx.util.FxColorUtil;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.Nullable;
@@ -130,6 +131,13 @@ public class FxLabels {
 
   public static Label newLabel(String text) {
     return newLabel(Styles.REGULAR, text);
+  }
+
+  public static Label newLabelNoWrap(String text) {
+    final Label label = newLabel(Styles.REGULAR, text);
+    label.setWrapText(false);
+    label.setMinWidth(Region.USE_PREF_SIZE);
+    return label;
   }
 
   public static Label newLabel(ObservableValue<? extends String> binding) {

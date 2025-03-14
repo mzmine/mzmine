@@ -163,6 +163,7 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
@@ -458,6 +459,7 @@ public class BatchModeModulesList {
           VanKrevelenDiagramModule.class, //
           EquivalentCarbonNumberModule.class, //
           LipidAnnotationSummaryModule.class, //
+          IntegrationDashboardModule.class, //
 
           // stats
           StatsDasboardModule.class, //

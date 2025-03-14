@@ -171,4 +171,9 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
   public int hashCode() {
     return Objects.hash(title, description);
   }
+
+  @Override
+  public String toString() {
+    return getTitle();
+  }
 }
