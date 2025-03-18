@@ -401,7 +401,7 @@ class RTCorrectionTask extends AbstractTask {
       final RawDataFile file = cali.getRawDataFile();
       for (Scan scan : file.getScans()) {
         ((SimpleScan) scan).setCorrectedRetentionTime(
-            cali.getCorrectedRtLoess(scan.getRetentionTime()));
+            cali.getCorrectedRtMovAvg(scan.getRetentionTime()));
       }
     }
 
