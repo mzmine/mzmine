@@ -6,6 +6,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.util.CSVParsingUtils;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,17 +72,9 @@ public record MZmineModularCsv(Map<Column, ColumnData> data, int numRows) {
 
         // header parsing
         final String header = headers[i];
-        final String[] parts = header.split(":");
 
         // feature data
-        final Column col;
-        if ("datafile".equals(parts[0])) {
-          col = Column.forFeatureType(header, parts[2], parts[1]);
-        }
-        // rows data
-        else {
-          col = Column.forRowType(header, parts[0]);
-        }
+        final Column col = Column.forHeader(header);
         data.put(col, ColumnData.create(col, colData));
       }
 
@@ -147,13 +140,31 @@ public record MZmineModularCsv(Map<Column, ColumnData> data, int numRows) {
   record Column(@NotNull String header, @NotNull String uniqueTypeId, @Nullable DataType type,
                 @Nullable String rawFile) {
 
-    public static Column forFeatureType(final String header, final String uniqueTypeId,
-        @Nullable final String rawFile) {
-      return new Column(header, uniqueTypeId, DataTypes.getTypeForId(uniqueTypeId), rawFile);
-    }
+    public static Column forHeader(final String header) {
+      final String[] parts = header.split(":");
 
-    public static Column forRowType(final String header, final String uniqueTypeId) {
-      return new Column(header, uniqueTypeId, DataTypes.getTypeForId(uniqueTypeId), null);
+      // need to find last data type for actual data type
+      // ion_identity:size size is int
+      DataType type = null;
+      for (int i = parts.length - 1; i >= 0; i--) {
+        type = DataTypes.getTypeForId(parts[i]);
+        if (type != null) {
+          break;
+        }
+      }
+
+      if ("datafile".equals(parts[0])) {
+        // parts 0 is datafile
+        // parts 1 is the file name
+        // rest is uniqueID
+        final String uniqueID = Arrays.stream(parts, 2, parts.length)
+            .collect(Collectors.joining(":"));
+        return new Column(header, uniqueID, type, parts[1]);
+      }
+      // rows data
+      else {
+        return new Column(header, header, type, null);
+      }
     }
 
     boolean isFeatureType() {

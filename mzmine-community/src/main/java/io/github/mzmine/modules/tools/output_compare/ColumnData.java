@@ -107,12 +107,20 @@ sealed interface ColumnData<T> {
     if (idPair == null) {
       return "Row %d: ".formatted(row);
     }
-    final Object id1 = requireNonNullElse(idPair[0].getValue(row), "null");
-    final Object id2 = requireNonNullElse(idPair[1].getValue(row), "null");
-    if (Objects.equals(id1, id2)) {
-      return "Row %d with ID%s: ".formatted(row, id1);
+    Object id1 = requireNonNullElse(idPair[0].getValue(row), "null");
+    Object id2 = requireNonNullElse(idPair[1].getValue(row), "null");
+    // read as double
+    if (id1 instanceof Number n) {
+      id1 = n.intValue();
     }
-    return "Row %d with ID%s and %s: ".formatted(row, id1, id2);
+    if (id2 instanceof Number n) {
+      id2 = n.intValue();
+    }
+
+    if (Objects.equals(id1, id2)) {
+      return "Row %d with ID %s: ".formatted(row, id1);
+    }
+    return "Row %d with ID %s and %s: ".formatted(row, id1, id2);
   }
 
   Column col();
