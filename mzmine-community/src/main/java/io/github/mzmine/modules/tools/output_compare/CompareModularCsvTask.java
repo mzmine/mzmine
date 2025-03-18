@@ -1,6 +1,10 @@
 package io.github.mzmine.modules.tools.output_compare;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
+import io.github.mzmine.datamodel.features.types.networking.MolNetCommunityIdType;
+import io.github.mzmine.datamodel.features.types.networking.MolNetCommunitySizeType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.tools.output_compare.DataCheckResult.Severity;
 import io.github.mzmine.parameters.ParameterSet;
@@ -14,6 +18,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -26,8 +31,15 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
   private final String baseName = "Base table";
   private final String compareName = "Compare table";
 
+
+  // describe why it is ok that types do not equal after processing
+  private final Set<DataType> excludedTypes = Set.copyOf(DataTypes.getAll(
+      // community detection has some randomness and does not number the communities the same order
+      MolNetCommunityIdType.class, MolNetCommunitySizeType.class,
+      // parner ids in ion identity are not ordered. This could be changed but maybe better to remove this all together later
+      PartnerIdsType.class));
+
   private final List<DataCheckResult> checks = new ArrayList<>();
-  private final List<String> info = new ArrayList<>();
 
   public CompareModularCsvTask(final @NotNull Instant moduleCallDate,
       final @NotNull ParameterSet parameters) {
@@ -172,6 +184,10 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
     for (final ColumnData[] pair : pairs) {
       final ColumnData base = pair[0];
       final ColumnData compare = pair[1];
+
+      if (excludedTypes.contains(base.col().type())) {
+        continue;
+      }
 
       checks.addAll(base.checkEqual(idPair, compare, 10));
     }
