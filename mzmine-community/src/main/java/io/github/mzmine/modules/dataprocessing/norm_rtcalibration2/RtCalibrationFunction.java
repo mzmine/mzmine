@@ -4,6 +4,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.als.AlsCorrection;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayFilter;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -19,8 +21,10 @@ public class RtCalibrationFunction {
   private final RawDataFile file;
   private final @NotNull PolynomialSplineFunction loess;
   private final @NotNull PolynomialSplineFunction linear;
+  private final PolynomialSplineFunction movAvg;
   private double optimisedBandwidth = 0d;
   private final int iterations = 3;
+  private final PolynomialSplineFunction als;
 
   public RtCalibrationFunction(FeatureList flist, List<RtStandard> rtSortedStandards,
       double bandwidth) {
@@ -46,6 +50,17 @@ public class RtCalibrationFunction {
     loess = getInterpolatorIteratively(file, bandwidth, thisRtValues, calibratedRtValues);
     linear = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
         calibratedRtValues.toDoubleArray());
+
+    final double[] subtracted = AlsCorrection.subtract(calibratedRtValues.toDoubleArray(),
+        thisRtValues.toDoubleArray());
+    subtracted[0] = 0d;
+    subtracted[subtracted.length - 1] = 0d;
+
+    final double[] alsFit = AlsCorrection.asymmetricLeastSquaresBaseline(subtracted, 100, 0.01, 1);
+    als = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(), alsFit);
+
+    final double[] avg = MovingAverage.calculate(subtracted, subtracted.length / 10);
+    movAvg = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(), avg);
   }
 
   public RtCalibrationFunction(@NotNull final RawDataFile file,
@@ -85,6 +100,16 @@ public class RtCalibrationFunction {
     loess = getInterpolatorIteratively(file, bandwidth, thisRtValues, calibratedRtValues);
     linear = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
         calibratedRtValues.toDoubleArray());
+
+    final double[] subtracted = AlsCorrection.subtract(calibratedRtValues.toDoubleArray(),
+        thisRtValues.toDoubleArray());
+
+    final double[] alsFit = AlsCorrection.asymmetricLeastSquaresBaseline(subtracted, 1E5, 0.01, 3);
+    als = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(), alsFit);
+
+    final double[] sgFiltered = SavitzkyGolayFilter.convolve(subtracted,
+        SavitzkyGolayFilter.getNormalizedWeights(5));
+    movAvg = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(), sgFiltered);
   }
 
   private static void addFinalRt(@NotNull List<RtStandard> rtSortedStandards,
@@ -160,5 +185,19 @@ public class RtCalibrationFunction {
       return originalRt;
     }
     return (float) linear.value(originalRt);
+  }
+
+  public float getCorrectedRtAls(float originalRt) {
+    if (!als.isValidPoint(originalRt)) {
+      return originalRt;
+    }
+    return (float) (originalRt + als.value(originalRt));
+  }
+
+  public float getCorrectedRtMovAvg(float originalRt) {
+    if (!movAvg.isValidPoint(originalRt)) {
+      return originalRt;
+    }
+    return (float) (originalRt + movAvg.value(originalRt));
   }
 }
