@@ -25,10 +25,6 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
-import io.github.mzmine.javafx.components.factories.FxButtons;
 import static io.github.mzmine.javafx.components.factories.FxButtons.createButton;
 import static io.github.mzmine.javafx.components.factories.FxButtons.createCancelButton;
 import static io.github.mzmine.javafx.components.factories.FxButtons.createLoadButton;
@@ -36,12 +32,18 @@ import static io.github.mzmine.javafx.components.factories.FxButtons.createSaveB
 import static io.github.mzmine.javafx.components.util.FxLayout.newAccordion;
 import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
+
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
 import io.github.mzmine.util.XMLUtils;
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Stroke;
 import java.awt.geom.Path2D;
@@ -54,6 +56,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -88,13 +91,12 @@ import org.xml.sax.SAXException;
 
 
 /**
- * Wraps around a {@link AllowsRegionSelection} and adds controls to select regions of interest.
+ * Wraps around a {@link EChartViewer} and adds controls to select regions of interest.
  *
  * @param <T>
  * @author https://github.com/SteffenHeu
  */
-public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelection> extends
-    BorderPane {
+public class RegionSelectionWrapper<T extends EChartViewer> extends BorderPane {
 
   private static final Logger logger = Logger.getLogger(RegionSelectionWrapper.class.getName());
   public static final String REGION_FILE_EXTENSION = "*.mzmineregionxml";
@@ -106,6 +108,10 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
   private final Paint roiPaint = MZmineCore.getConfiguration().getDefaultColorPalette()
       .getNegativeColorAWT();
   private FlowPane controlPane;
+
+  private RegionSelectionListener currentRegionListener = null;
+  private XYShapeAnnotation currentRegionAnnotation;
+  private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
 
   public RegionSelectionWrapper(@NotNull final T node) {
     this(node, null);
@@ -139,6 +145,49 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     }
   }
 
+  /**
+   * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
+   * added to a region. Region selection can be finished by
+   * {@link SimpleXYZScatterPlot#finishPath()}.
+   */
+  public void startRegion() {
+    isDrawingRegion.set(true);
+
+    if (currentRegionListener != null) {
+      node.removeChartMouseListener(currentRegionListener);
+    }
+    currentRegionListener = new RegionSelectionListener(node);
+    currentRegionListener.pathProperty().addListener(((observable, oldValue, newValue) -> {
+      if (currentRegionAnnotation != null) {
+        node.getChart().getXYPlot().removeAnnotation(currentRegionAnnotation, false);
+      }
+      Color regionColor = new Color(0.6f, 0.6f, 0.6f, 0.4f);
+      currentRegionAnnotation = new XYShapeAnnotation(newValue, new BasicStroke(1f), regionColor,
+          regionColor);
+      node.getChart().getXYPlot().addAnnotation(currentRegionAnnotation, true);
+    }));
+    node.addChartMouseListener(currentRegionListener);
+  }
+
+  /**
+   * The {@link RegionSelectionListener} of the current selection. The path/points can be retrieved
+   * from the listener object.
+   *
+   * @return The finished listener
+   */
+  public RegionSelectionListener finishPath() {
+    if (!isDrawingRegion.get()) {
+      return null;
+    }
+    if (currentRegionAnnotation != null) {
+      node.getChart().getXYPlot().removeAnnotation(currentRegionAnnotation);
+    }
+    isDrawingRegion.set(false);
+    node.removeChartMouseListener(currentRegionListener);
+    RegionSelectionListener tempRegionListener = currentRegionListener;
+    currentRegionListener = null;
+    return tempRegionListener;
+  }
 
   public ListProperty<RegionSelectionListener> finishedRegionSelectionListenersProperty() {
     return finishedRegionSelectionListenersProperty;
@@ -161,7 +210,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
   private List<Button> createSelectionButtons() {
     final SimpleBooleanProperty disableFinish = new SimpleBooleanProperty(true);
     final Button btnFinishRegion = createButton("Finish", FxIcons.CHECK_CIRCLE, null, () -> {
-      RegionSelectionListener selection = node.finishPath();
+      RegionSelectionListener selection = finishPath();
       if (selection.buildingPointsProperty().getSize() > 3) {
         finishedRegionSelectionListenersProperty.add(selection);
       }
@@ -170,12 +219,12 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     btnFinishRegion.disableProperty().bind(disableFinish);
 
     final Button btnStartRegion = createButton("Start", FxIcons.DRAW_REGION, null, () -> {
-      node.startRegion();
+      startRegion();
       disableFinish.set(false);
     });
 
     final Button btnCancelRegion = createCancelButton(() -> {
-      node.finishPath();
+      finishPath();
       disableFinish.set(true);
     });
 
