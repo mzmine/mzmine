@@ -8,7 +8,9 @@ import io.github.mzmine.util.maths.Precision;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import static java.util.Objects.requireNonNullElse;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * ColumnData in a ModularCSV
@@ -40,11 +42,13 @@ sealed interface ColumnData<T> {
   }
 
   /**
+   * @param idPair
    * @param other     other column to compare
    * @param maxErrors maximum errors to collect before ending. -1 or 0 for unlimited issues
    * @return list of issues
    */
-  default List<DataCheckResult> checkEqual(final ColumnData other, int maxErrors) {
+  default List<DataCheckResult> checkEqual(final @Nullable ColumnData[] idPair,
+      final ColumnData other, int maxErrors) {
     List<DataCheckResult> results = new ArrayList<>();
     final var col = col();
 
@@ -70,27 +74,45 @@ sealed interface ColumnData<T> {
         results.add(
             DataCheckResult.create(col.type(), Severity.ERROR, col.header(), getTypeDescription(),
                 other.getTypeDescription(),
-                "Column types do not equal - conversion of value failed. This was %s and other was %s".formatted(
-                    getTypeDescription(), other.getTypeDescription())));
+                "%sColumn types do not equal - conversion of value failed. This was %s and other was %s".formatted(
+                    getRowDescription(idPair, row), getTypeDescription(),
+                    other.getTypeDescription())));
         return results;
       }
       if (a == null && b == null) {
         continue;
       } else if (a == null) {
         results.add(DataCheckResult.create(col.type(), Severity.ERROR, col.header(), "null", b,
-            getTypeDescription() + " value does not equal"));
+            rowValueUnequalMessage(idPair, row)));
       } else if (b == null) {
         results.add(DataCheckResult.create(col.type(), Severity.ERROR, col.header(), a, "null",
-            getTypeDescription() + " value does not equal"));
+            rowValueUnequalMessage(idPair, row)));
       } else if (!checkEqualValue(a, b)) {
         results.add(DataCheckResult.create(col.type(), Severity.ERROR, col.header(), a, b,
-            getTypeDescription() + " value does not equal"));
+            rowValueUnequalMessage(idPair, row)));
       }
       if (maxErrors > 0 && results.size() >= maxErrors) {
         return results;
       }
     }
     return results;
+  }
+
+  private @NotNull String rowValueUnequalMessage(final @Nullable ColumnData[] idPair,
+      final int row) {
+    return getRowDescription(idPair, row) + getTypeDescription() + " value does not equal";
+  }
+
+  private @NotNull String getRowDescription(@Nullable ColumnData[] idPair, int row) {
+    if (idPair == null) {
+      return "Row %d: ".formatted(row);
+    }
+    final Object id1 = requireNonNullElse(idPair[0].getValue(row), "null");
+    final Object id2 = requireNonNullElse(idPair[1].getValue(row), "null");
+    if (Objects.equals(id1, id2)) {
+      return "Row %d with ID%s: ".formatted(row, id1);
+    }
+    return "Row %d with ID%s and %s: ".formatted(row, id1, id2);
   }
 
   Column col();
@@ -107,8 +129,8 @@ sealed interface ColumnData<T> {
 
   default String getTypeDescription() {
     return switch (this) {
-      case StringColumnData _ -> "String";
-      case NumberColumnData _ -> "Number";
+      case ColumnData.StringColumnData _ -> "String";
+      case ColumnData.NumberColumnData _ -> "Number";
     };
   }
 

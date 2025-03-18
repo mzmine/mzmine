@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.tools.output_compare;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.tools.output_compare.DataCheckResult.Severity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
@@ -12,10 +13,12 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CompareModularCsvTask extends AbstractSimpleToolTask {
 
@@ -159,12 +162,25 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
   }
 
   private void compareData(final List<ColumnData[]> pairs) {
+    final String uniqueID = new IDType().getUniqueID();
+    final ColumnData[] idPair = findIdColumn(pairs);
+    if (idPair == null) {
+      checks.add(DataCheckResult.create(Severity.ERROR, "ID column missing",
+          "No row ID columns found. Should have header %s".formatted(uniqueID)));
+    }
+
     for (final ColumnData[] pair : pairs) {
       final ColumnData base = pair[0];
       final ColumnData compare = pair[1];
 
-      checks.addAll(base.checkEqual(compare, 10));
+      checks.addAll(base.checkEqual(idPair, compare, 10));
     }
+  }
+
+  private static ColumnData @Nullable [] findIdColumn(final List<ColumnData[]> pairs) {
+    final String uniqueID = new IDType().getUniqueID();
+    return pairs.stream().filter(p -> p[0] != null && Objects.equals(p[0].col().header(), uniqueID))
+        .findFirst().orElse(null);
   }
 
 
