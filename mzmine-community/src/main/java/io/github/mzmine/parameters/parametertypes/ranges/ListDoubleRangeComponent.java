@@ -117,7 +117,7 @@ public class ListDoubleRangeComponent extends GridPane {
 
       return result;
     } catch (Exception e) {
-      throw new IllegalArgumentException(STR."Error while parsing range string.\{e.getMessage()}");
+      throw new IllegalArgumentException("Error while parsing range string." + e.getMessage());
     }
   }
 
@@ -126,10 +126,9 @@ public class ListDoubleRangeComponent extends GridPane {
 
     for (Range<Double> range : ranges) {
       if (Double.compare(range.lowerEndpoint(), range.upperEndpoint()) == 0) {
-        result.append(STR."\{Double.toString(range.lowerEndpoint())},");
+        result.append(range.lowerEndpoint() + ",");
       } else {
-        result.append(STR."\{Double.toString(range.lowerEndpoint())}-\{Double.toString(
-            range.upperEndpoint())},");
+        result.append(range.lowerEndpoint() + "-" + range.upperEndpoint() + ",");
       }
     }
 

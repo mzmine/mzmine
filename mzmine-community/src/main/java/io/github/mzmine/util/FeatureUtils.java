@@ -25,8 +25,6 @@
 
 package io.github.mzmine.util;
 
-import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.getTypeValue;
-
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
@@ -64,6 +62,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.getTypeValue;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
@@ -517,9 +516,10 @@ public class FeatureUtils {
     return compoundAnnotations;
   }
 
-  public static boolean isImsFeature(Feature f) {
-    return f.getRawDataFile() instanceof IMSRawDataFile
-           && f.getFeatureData() instanceof IonMobilogramTimeSeries;
+  public static boolean isImsFeature(@Nullable Feature f) {
+
+    return f != null && f.getRawDataFile() instanceof IMSRawDataFile
+        && f.getFeatureData() instanceof IonMobilogramTimeSeries;
   }
 
   /**
@@ -845,5 +845,12 @@ public class FeatureUtils {
       }
     }
     return Optional.empty();
+  }
+
+  /**
+   * Checks if this feature has MRM data (and is not null).
+   */
+  public static boolean isMrm(@Nullable Feature f) {
+    return f instanceof ModularFeature mf && mf.isMrm();
   }
 }

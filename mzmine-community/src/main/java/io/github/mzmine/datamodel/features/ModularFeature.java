@@ -59,6 +59,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
@@ -589,5 +590,10 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public String toString() {
     return FeatureUtils.featureToString(this);
+  }
+
+  @Override
+  public boolean isMrm() {
+    return get(MrmTransitionListType.class) != null;
   }
 }

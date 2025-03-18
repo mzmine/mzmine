@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
@@ -47,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 
 public class ChromatogramPlotController extends FxController<ChromatogramPlotModel> {
@@ -151,6 +153,13 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
     });
   }
 
+  public void removeDatasets(List<? extends XYDataset> datasets) {
+    final SimpleXYChart<PlotXYDataProvider> chart = model.getChart();
+    chart.applyWithNotifyChanges(false, () -> {
+      datasets.forEach(this::removeDataset);
+    });
+  }
+
   public ObjectProperty<@Nullable PlotCursorPosition> cursorPositionProperty() {
     return model.cursorPositionProperty();
   }
@@ -188,7 +197,6 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
   }
 
   public void setTitle(String title) {
-    // todo apply chart theme
     model.setTitle(title);
   }
 
@@ -202,5 +210,33 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
 
   public void setRangeAxisStickyZero(boolean stickyZero) {
     model.getChart().setStickyZeroRangeAxis(stickyZero);
+  }
+
+  public void applyWithNotifyChanges(boolean tempState, @NotNull final Runnable r) {
+    model.getChart().applyWithNotifyChanges(tempState, r);
+  }
+
+  public Range getDomainAxisRange() {
+    return model.getChart().getXYPlot().getDomainAxis().getRange();
+  }
+
+  public Range getRangeAxisRange() {
+    return model.getChart().getXYPlot().getRangeAxis().getRange();
+  }
+
+  public void setDomainAxisRange(Range range) {
+    model.getChart().getXYPlot().getDomainAxis().setRange(range);
+  }
+
+  public void setRangeAxisRange(Range range) {
+    model.getChart().getXYPlot().getRangeAxis().setRange(range);
+  }
+
+  public void applyAutoRangeToRangeAxis() {
+    model.getChart().getXYPlot().getRangeAxis().setAutoRange(true);
+  }
+
+  public void applyAutoRangeToDomainAxis() {
+    model.getChart().getXYPlot().getDomainAxis().setAutoRange(true);
   }
 }

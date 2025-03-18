@@ -38,12 +38,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+/**
+ * Stores all information regarding custom lipid classes, including the fragmentation rules.
+ */
 public class CustomLipidClassChoiceParameter
     implements UserParameter<CustomLipidClass[], CustomLipidClassChoiceComponent> {
 
   private final String name;
   private final String description;
-  private CustomLipidClass[] choices;
+  @Nullable
   private CustomLipidClass[] values;
 
   /**
@@ -53,22 +56,20 @@ public class CustomLipidClassChoiceParameter
    * @param description description of the parameter.
    */
   public CustomLipidClassChoiceParameter(String name, String description,
-      CustomLipidClass[] choices) {
+      @Nullable CustomLipidClass[] choices) {
     this.name = name;
     this.description = description;
-    this.choices = choices;
     this.values = choices;
   }
 
   @Override
   public CustomLipidClassChoiceComponent createEditingComponent() {
-    return new CustomLipidClassChoiceComponent(choices);
+    return new CustomLipidClassChoiceComponent(values);
   }
 
   @Override
   public void setValueFromComponent(final CustomLipidClassChoiceComponent component) {
     values = component.getValue().toArray(new CustomLipidClass[0]);
-    choices = component.getChoices().toArray(new CustomLipidClass[0]);
   }
 
   @Override
@@ -83,9 +84,8 @@ public class CustomLipidClassChoiceParameter
 
   @Override
   public CustomLipidClassChoiceParameter cloneParameter() {
-
     final CustomLipidClassChoiceParameter copy =
-        new CustomLipidClassChoiceParameter(name, description, choices);
+        new CustomLipidClassChoiceParameter(name, description, values);
     copy.setValue(values);
     return copy;
   }
@@ -101,16 +101,13 @@ public class CustomLipidClassChoiceParameter
   }
 
   @Override
+  @Nullable
   public CustomLipidClass[] getValue() {
     return values;
   }
 
-  public CustomLipidClass[] getChoices() {
-    return choices;
-  }
-
   @Override
-  public void setValue(CustomLipidClass[] newValue) {
+  public void setValue(@Nullable CustomLipidClass[] newValue) {
     this.values = newValue;
   }
 
@@ -131,8 +128,7 @@ public class CustomLipidClassChoiceParameter
           }.getType());
       newValues.add(customLipidClass);
     }
-    this.values = newValues.toArray(new CustomLipidClass[0]);
-    this.choices = newValues.toArray(new CustomLipidClass[0]);
+    this.values = newValues.toArray(CustomLipidClass[]::new);
   }
 
   @Override
@@ -147,5 +143,4 @@ public class CustomLipidClassChoiceParameter
       xmlElement.appendChild(newElement);
     }
   }
-
 }

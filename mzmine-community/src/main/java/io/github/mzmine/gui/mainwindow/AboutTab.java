@@ -63,7 +63,7 @@ public class AboutTab extends SimpleTab {
     // Software + version
     contentBox.getChildren().add(FxLabels.newBoldLabel("Software Name"));
     Label softwareName = new Label(
-        STR."mzmine \{SemverVersionReader.getMZmineVersion()}, by mzio GmbH");
+        "mzmine " + SemverVersionReader.getMZmineVersion() + ", by mzio GmbH");
     contentBox.getChildren().add(softwareName);
 
     // Privacy Policy
