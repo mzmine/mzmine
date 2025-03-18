@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Group of row. Rows can be grouped by different criteria: Retention time, feature shape (intensity
@@ -157,9 +158,26 @@ public interface RowGroup extends Comparable<RowGroup> {
     return getRows().get(i);
   }
 
+  @Nullable
+  default Float calcAverageRetentionTime() {
+    int counter = 0;
+    float rt = -1;
+    for (final FeatureListRow row : getRows()) {
+      final Float rowRT = row.getAverageRT();
+      if (rowRT != null) {
+        rt += rowRT;
+        counter++;
+      }
+    }
+    return counter > 0 ? rt / counter : null;
+  }
+
   @Override
   default int compareTo(@NotNull RowGroup g) {
     return Integer.compare(this.getGroupID(), g.getGroupID());
   }
 
+  default int lowestRowId() {
+    return getRows().stream().mapToInt(FeatureListRow::getID).min().orElse(-1);
+  }
 }

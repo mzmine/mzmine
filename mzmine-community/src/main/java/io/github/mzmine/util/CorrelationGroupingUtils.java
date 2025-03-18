@@ -35,7 +35,7 @@ import io.github.mzmine.datamodel.features.correlation.RowGroupSimple;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -43,7 +43,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.collections.ObservableList;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -66,7 +65,7 @@ public class CorrelationGroupingUtils {
   /**
    * Create list of correlated rows
    *
-   * @param flist      feature list
+   * @param flist             feature list
    * @param keepExtendedStats keep extended statistics otherwise create simplified object
    * @return a list of all groups within the feature list
    */
@@ -130,8 +129,10 @@ public class CorrelationGroupingUtils {
         // report back progress
         c++;
       }
-      // sort by retention time
-      Collections.sort(groups);
+      // sort by retention time, group size and lowest row id to make sure it is stable
+      groups.sort(Comparator.comparing(RowGroup::calcAverageRetentionTime,
+              Comparator.nullsLast(Comparator.naturalOrder())).thenComparingInt(RowGroup::size)
+          .thenComparing(RowGroup::lowestRowId));
 
       // reset index
       for (int i = 0; i < groups.size(); i++) {
@@ -159,18 +160,15 @@ public class CorrelationGroupingUtils {
     }
     return FeatureList.getGroups().stream().filter(g -> g instanceof CorrelationRowGroup)
         .map(g -> ((CorrelationRowGroup) g).getCorrelation()).flatMap(Arrays::stream) // R2GCorr
-        .flatMap(r2g -> r2g.getCorrelation() == null ? null
-            : r2g.getCorrelation().stream() //
-                .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
+        .flatMap(r2g -> r2g.getCorrelation() == null ? null : r2g.getCorrelation().stream() //
+            .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
   }
 
   public static Stream<R2RCorrelationData> streamFrom(FeatureListRow[] rows) {
     return Arrays.stream(rows).map(FeatureListRow::getGroup).filter(Objects::nonNull)
         .filter(g -> g instanceof CorrelationRowGroup).distinct()
-        .map(g -> ((CorrelationRowGroup) g).getCorrelation())
-        .flatMap(Arrays::stream) // R2GCorr
-        .flatMap(r2g -> r2g.getCorrelation() == null ? null
-            : r2g.getCorrelation().stream() //
-                .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
+        .map(g -> ((CorrelationRowGroup) g).getCorrelation()).flatMap(Arrays::stream) // R2GCorr
+        .flatMap(r2g -> r2g.getCorrelation() == null ? null : r2g.getCorrelation().stream() //
+            .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
   }
 }
