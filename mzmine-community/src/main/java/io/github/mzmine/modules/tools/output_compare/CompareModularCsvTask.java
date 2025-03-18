@@ -3,8 +3,6 @@ package io.github.mzmine.modules.tools.output_compare;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
-import io.github.mzmine.datamodel.features.types.networking.MolNetCommunityIdType;
-import io.github.mzmine.datamodel.features.types.networking.MolNetCommunitySizeType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.tools.output_compare.DataCheckResult.Severity;
 import io.github.mzmine.parameters.ParameterSet;
@@ -35,7 +33,9 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
   // describe why it is ok that types do not equal after processing
   private final Set<DataType> excludedTypes = Set.copyOf(DataTypes.getAll(
       // community detection has some randomness and does not number the communities the same order
-      MolNetCommunityIdType.class, MolNetCommunitySizeType.class,
+      // actually managed to get stable community ids by sorting nodes during their creation.
+      // networks require same order of nodes and edges - but hashmaps were unordered before
+//      MolNetCommunityIdType.class, MolNetCommunitySizeType.class,
       // parner ids in ion identity are not ordered. This could be changed but maybe better to remove this all together later
       PartnerIdsType.class));
 
@@ -189,6 +189,7 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
       final ColumnData base = pair[0];
       final ColumnData compare = pair[1];
 
+      // skip columns that are known to be unstable in their values
       if (excludedTypes.contains(base.col().type())) {
         continue;
       }
