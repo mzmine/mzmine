@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.MZmineModule;
@@ -85,7 +86,8 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
       for (PCALoadingsProvider loadings : loadingProviders) {
         for (int i = 0; i < loadings.getValueCount(); i++) {
           if (region.contains(loadings.getDomainValue(i), loadings.getRangeValue(i))) {
-            rows.add(loadings.getItemObject(i));
+            rows.add(new ModularFeatureListRow(resultFlist,
+                (ModularFeatureListRow) loadings.getItemObject(i), true));
           }
         }
       }

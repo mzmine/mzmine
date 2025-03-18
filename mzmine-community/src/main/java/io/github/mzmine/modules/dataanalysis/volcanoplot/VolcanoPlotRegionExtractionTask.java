@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.MZmineModule;
@@ -99,7 +100,8 @@ public class VolcanoPlotRegionExtractionTask extends AbstractFeatureListTask {
         final int finalI = i;
         if (regions.stream().anyMatch(
             region -> region.contains(ds.getDomainValue(finalI), ds.getRangeValue(finalI)))) {
-          rows.add(testResult.row());
+          rows.add(new ModularFeatureListRow(resultFlist, (ModularFeatureListRow) testResult.row(),
+              true));
         }
       }
     }
