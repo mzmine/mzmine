@@ -116,11 +116,21 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
     // similar to CollectionUtils.argsortReversed()
 //    compareAndFixSorting
 
+    // pair row columns and find id column
+    final List<ColumnData[]> rowPairs = baseTab.pairRowColumns(compareTab);
+
+    final String uniqueID = new IDType().getUniqueID();
+    final ColumnData[] idPair = findIdColumn(rowPairs);
+    if (idPair == null) {
+      checks.add(DataCheckResult.create(Severity.ERROR, "ID column missing",
+          "No row ID columns found. Should have header %s".formatted(uniqueID)));
+    }
+
     // first compare row types
-    compareTypeColumns("row types", baseTab.pairRowColumns(compareTab));
+    compareTypeColumns("row types", rowPairs, idPair);
 
     // then compare feature types per sample
-    compareTypeColumns("feature types", baseTab.pairFeatureColumns(compareTab));
+    compareTypeColumns("feature types", baseTab.pairFeatureColumns(compareTab), idPair);
   }
 
   private void logBaseInformation(final String name, final MZmineModularCsv tab) {
@@ -139,7 +149,8 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
         String.join(", ", tab.getUniqueRawFiles())));
   }
 
-  private void compareTypeColumns(final String columnDefinition, final List<ColumnData[]> grouped) {
+  private void compareTypeColumns(final String columnDefinition, final List<ColumnData[]> grouped,
+      final ColumnData @Nullable [] idPair) {
     // singles are only present in one table pairs in both
     final List<ColumnData> singles = grouped.stream()
         .filter(p -> ObjectUtils.countNonNull((Object[]) p) == 1)
@@ -170,17 +181,10 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
     }
 
     // compare data values
-    compareData(pairs);
+    compareData(pairs, idPair);
   }
 
-  private void compareData(final List<ColumnData[]> pairs) {
-    final String uniqueID = new IDType().getUniqueID();
-    final ColumnData[] idPair = findIdColumn(pairs);
-    if (idPair == null) {
-      checks.add(DataCheckResult.create(Severity.ERROR, "ID column missing",
-          "No row ID columns found. Should have header %s".formatted(uniqueID)));
-    }
-
+  private void compareData(final List<ColumnData[]> pairs, final ColumnData[] idPair) {
     for (final ColumnData[] pair : pairs) {
       final ColumnData base = pair[0];
       final ColumnData compare = pair[1];
