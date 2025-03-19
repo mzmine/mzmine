@@ -25,14 +25,19 @@
 package integrationtest;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularParameters;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.XMLUtils;
 import java.io.File;
@@ -40,6 +45,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
@@ -57,10 +63,23 @@ public class IntegrationTestUtils {
       throw new RuntimeException("Error while loading batch file" + e);
     }
     final MZmineProcessingStep<MZmineProcessingModule> last = queue.getLast();
+
+    final File csvExportFile = new File(tempDir,
+        "modular_export_%s_%s.csv".formatted(batchFile.getName(), UUID.randomUUID().toString()));
     if (last.getModule().getName().equals(CSVExportModularModule.MODULE_NAME)) {
       final ParameterSet parameters = last.getParameterSet();
-      final File originalExportFile = parameters.getValue(CSVExportModularParameters.filename);
-
+      parameters.setParameter(CSVExportModularParameters.filename, csvExportFile);
+    } else {
+      final ParameterSet parameters = new CSVExportModularParameters().cloneParameterSet();
+      parameters.setParameter(CSVExportModularParameters.filename, csvExportFile);
+      parameters.setParameter(CSVExportModularParameters.filter, FeatureListRowsFilter.ALL);
+      parameters.setParameter(CSVExportModularParameters.omitEmptyColumns, true);
+      parameters.setParameter(CSVExportModularParameters.idSeparator, ";");
+      parameters.setParameter(CSVExportModularParameters.featureLists,
+          new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+      queue.add(
+          new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CSVExportModularModule.class),
+              parameters));
     }
 
     BatchModeModule.runBatch(project, batchFile, null, null, null, null, Instant.now());
