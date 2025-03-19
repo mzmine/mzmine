@@ -30,6 +30,9 @@ import java.util.Collection;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
+/**
+ * Selects a single group from a metadata column
+ */
 public class MetadataGroupSelectionParameter implements
     UserParameter<MetadataGroupSelection, MetadataGroupSelectionComponent> {
 
