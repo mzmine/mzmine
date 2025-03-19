@@ -1,7 +1,7 @@
 package io.github.mzmine.modules.tools.output_compare_csv;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
-import io.github.mzmine.modules.tools.output_compare_csv.DataCheckResult.Severity;
+import io.github.mzmine.modules.tools.output_compare_csv.CheckResult.Severity;
 import io.github.mzmine.modules.tools.output_compare_csv.MZmineModularCsv.Column;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.maths.Precision;
@@ -47,17 +47,16 @@ sealed interface ColumnData<T> {
    * @param maxErrors maximum errors to collect before ending. -1 or 0 for unlimited issues
    * @return list of issues
    */
-  default List<DataCheckResult> checkEqual(final @Nullable ColumnData[] idPair,
-      final ColumnData other, int maxErrors) {
-    List<DataCheckResult> results = new ArrayList<>();
+  default List<CheckResult> checkEqual(final @Nullable ColumnData[] idPair, final ColumnData other,
+      int maxErrors) {
+    List<CheckResult> results = new ArrayList<>();
     final var col = col();
 
     if (!getTypeDescription().equals(other.getTypeDescription())) {
-      results.add(
-          DataCheckResult.create(col.type(), Severity.ERROR, col.header(), getTypeDescription(),
-              other.getTypeDescription(),
-              "Column types do not equal. This was %s and other was %s".formatted(
-                  getTypeDescription(), other.getTypeDescription())));
+      results.add(CheckResult.create(col.header(), Severity.ERROR, col.type(), getTypeDescription(),
+          other.getTypeDescription(),
+          "Column types do not equal. This was %s and other was %s".formatted(getTypeDescription(),
+              other.getTypeDescription())));
       return results;
     }
 
@@ -72,7 +71,7 @@ sealed interface ColumnData<T> {
         b = (T) other.getValue(row);
       } catch (Exception e) {
         results.add(
-            DataCheckResult.create(col.type(), Severity.ERROR, col.header(), getTypeDescription(),
+            CheckResult.create(col.header(), Severity.ERROR, col.type(), getTypeDescription(),
                 other.getTypeDescription(),
                 "%sColumn types do not equal - conversion of value failed. This was %s and other was %s".formatted(
                     getRowDescription(idPair, row), getTypeDescription(),
@@ -82,13 +81,13 @@ sealed interface ColumnData<T> {
       if (a == null && b == null) {
         continue;
       } else if (a == null) {
-        results.add(DataCheckResult.create(col.type(), Severity.ERROR, col.header(), "null", b,
+        results.add(CheckResult.create(col.header(), Severity.ERROR, col.type(), "null", b,
             rowValueUnequalMessage(idPair, row)));
       } else if (b == null) {
-        results.add(DataCheckResult.create(col.type(), Severity.ERROR, col.header(), a, "null",
+        results.add(CheckResult.create(col.header(), Severity.ERROR, col.type(), a, "null",
             rowValueUnequalMessage(idPair, row)));
       } else if (!checkEqualValue(a, b)) {
-        results.add(DataCheckResult.create(col.type(), Severity.ERROR, col.header(), a, b,
+        results.add(CheckResult.create(col.header(), Severity.ERROR, col.type(), a, b,
             rowValueUnequalMessage(idPair, row)));
       }
       if (maxErrors > 0 && results.size() >= maxErrors) {

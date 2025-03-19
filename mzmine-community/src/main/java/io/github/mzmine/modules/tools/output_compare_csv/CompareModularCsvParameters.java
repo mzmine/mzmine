@@ -1,6 +1,6 @@
 package io.github.mzmine.modules.tools.output_compare_csv;
 
-import io.github.mzmine.modules.tools.output_compare_csv.DataCheckResult.Severity;
+import io.github.mzmine.modules.tools.output_compare_csv.CheckResult.Severity;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -22,7 +22,7 @@ public class CompareModularCsvParameters extends SimpleParameterSet {
           "This is file compared to the base or original file.", "modular_csv_comparison_results",
           false), false);
 
-  public static final ComboParameter<DataCheckResult.Severity> filterLevel = new ComboParameter<>(
+  public static final ComboParameter<CheckResult.Severity> filterLevel = new ComboParameter<>(
       "Filter messages",
       "Filter messages to include levels %s<%s<%s.".formatted(Severity.INFO, Severity.WARN,
           Severity.ERROR), Severity.values(), Severity.INFO);

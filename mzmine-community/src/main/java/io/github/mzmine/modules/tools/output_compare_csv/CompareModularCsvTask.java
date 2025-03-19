@@ -4,7 +4,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
-import io.github.mzmine.modules.tools.output_compare_csv.DataCheckResult.Severity;
+import io.github.mzmine.modules.tools.output_compare_csv.CheckResult.Severity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
 import io.github.mzmine.util.io.CsvWriter;
@@ -39,7 +39,7 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
       // parner ids in ion identity are not ordered. This could be changed but maybe better to remove this all together later
       PartnerIdsType.class));
 
-  private final List<DataCheckResult> checks = new ArrayList<>();
+  private final List<CheckResult> checks = new ArrayList<>();
 
   public CompareModularCsvTask(final @NotNull Instant moduleCallDate,
       final @NotNull ParameterSet parameters) {
@@ -51,9 +51,9 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
     final File baseFile = parameters.getValue(CompareModularCsvParameters.baseFile);
     final File compareFile = parameters.getValue(CompareModularCsvParameters.compareFile);
 
-    checks.add(DataCheckResult.create(Severity.INFO, "file paths", baseFile.getAbsolutePath(),
+    checks.add(CheckResult.create("file paths", Severity.INFO, baseFile.getAbsolutePath(),
         compareFile.getAbsolutePath(), "Modular CSV file paths"));
-    checks.add(DataCheckResult.create(Severity.INFO, "file names", baseFile.getName(),
+    checks.add(CheckResult.create("file names", Severity.INFO, baseFile.getName(),
         compareFile.getAbsolutePath(), "Modular CSV file names"));
 
     final MZmineModularCsv baseTab = MZmineModularCsv.parseFile(baseFile);
@@ -65,8 +65,9 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
   public void compareTablesAndLog(final MZmineModularCsv baseTab,
       final MZmineModularCsv compareTab) {
     if (baseTab == null || compareTab == null) {
-      checks.add(DataCheckResult.create(Severity.ERROR, "file parsing", baseTab == null,
-          compareTab == null, "Failed to parse file (true failed, false success)"));
+      checks.add(
+          CheckResult.create("file parsing", Severity.ERROR, baseTab == null, compareTab == null,
+              "Failed to parse file (true failed, false success)"));
       return;
     }
 
@@ -77,7 +78,7 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
     final Severity filter = parameters.getValue(CompareModularCsvParameters.filterLevel);
     filter.applyInPlace(checks);
 
-    final String csv = CsvWriter.writeToString(checks, DataCheckResult.class, ',', true);
+    final String csv = CsvWriter.writeToString(checks, CheckResult.class, ',', true);
     // log all info
     logger.info("""
         CSV table comparison:
@@ -87,7 +88,7 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
     // write to file
     parameters.getOptionalValue(CompareModularCsvParameters.outFile).ifPresent(outFile -> {
       try {
-        CsvWriter.writeToFile(outFile, checks, DataCheckResult.class, WriterOptions.REPLACE, ',');
+        CsvWriter.writeToFile(outFile, checks, CheckResult.class, WriterOptions.REPLACE, ',');
       } catch (IOException e) {
         logger.log(Level.WARNING, e.getMessage(), e);
       }
@@ -101,13 +102,11 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
 
     // different num rows
     if (baseTab.numRows() == compareTab.numRows()) {
-      checks.add(
-          DataCheckResult.create(Severity.INFO, "rows", baseTab.numRows(), compareTab.numRows(),
-              "Same number of rows"));
+      checks.add(CheckResult.create("rows", Severity.INFO, baseTab.numRows(), compareTab.numRows(),
+          "Same number of rows"));
     } else {
-      checks.add(
-          DataCheckResult.create(Severity.ERROR, "rows", baseTab.numRows(), compareTab.numRows(),
-              "Different Number of rows in both tables"));
+      checks.add(CheckResult.create("rows", Severity.ERROR, baseTab.numRows(), compareTab.numRows(),
+          "Different Number of rows in both tables"));
     }
 
     // compare sorting - it might be different
@@ -122,7 +121,7 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
     final String uniqueID = new IDType().getUniqueID();
     final ColumnData[] idPair = findIdColumn(rowPairs);
     if (idPair == null) {
-      checks.add(DataCheckResult.create(Severity.ERROR, "ID column missing",
+      checks.add(CheckResult.create("ID column missing", Severity.ERROR,
           "No row ID columns found. Should have header %s".formatted(uniqueID)));
     }
 
@@ -140,12 +139,12 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
         name, tab.numColumns(), tab.numRows(), rowTypes.size(), featureTypes.size(),
         tab.getUniqueRawFiles().size());
 
-    checks.add(DataCheckResult.create(Severity.INFO, name + ": summary", summary));
-    checks.add(DataCheckResult.create(Severity.INFO, name + ": row types",
+    checks.add(CheckResult.create(name + ": summary", Severity.INFO, summary));
+    checks.add(CheckResult.create(name + ": row types", Severity.INFO,
         rowTypes.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
-    checks.add(DataCheckResult.create(Severity.INFO, name + ": feature types",
+    checks.add(CheckResult.create(name + ": feature types", Severity.INFO,
         featureTypes.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
-    checks.add(DataCheckResult.create(Severity.INFO, name + ": raw files",
+    checks.add(CheckResult.create(name + ": raw files", Severity.INFO,
         String.join(", ", tab.getUniqueRawFiles())));
   }
 
@@ -163,21 +162,17 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
     final long colsB = grouped.stream().filter(g -> g[1] != null).count();
 
     if (singles.isEmpty()) {
-      checks.add(
-          DataCheckResult.create(Severity.INFO, columnDefinition + ": num columns", colsA, colsB,
-              "equal number of columns"));
+      checks.add(CheckResult.create(columnDefinition + ": num columns", Severity.INFO, colsA, colsB,
+          "equal number of columns"));
     } else {
       // add info
-      checks.add(
-          DataCheckResult.create(Severity.WARN, columnDefinition + ": num columns", colsA, colsB,
-              "unequal number of columns"));
+      checks.add(CheckResult.create(columnDefinition + ": num columns", Severity.WARN, colsA, colsB,
+          "unequal number of columns"));
 
       // list all single columns that will be skipped
-      checks.add(
-          DataCheckResult.create(Severity.WARN, "skip %s columns".formatted(columnDefinition),
-              "Downstream analysis will skip %d columns: %s".formatted(singles.size(),
-                  singles.stream().map(ColumnData::getIdentifier)
-                      .collect(Collectors.joining(", ")))));
+      checks.add(CheckResult.create("skip %s columns".formatted(columnDefinition), Severity.WARN,
+          "Downstream analysis will skip %d columns: %s".formatted(singles.size(),
+              singles.stream().map(ColumnData::getIdentifier).collect(Collectors.joining(", ")))));
     }
 
     // compare data values
