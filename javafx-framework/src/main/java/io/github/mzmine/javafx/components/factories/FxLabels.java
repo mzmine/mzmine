@@ -38,7 +38,8 @@ import org.jetbrains.annotations.Nullable;
 public class FxLabels {
 
   public enum Styles {
-    REGULAR, BOLD_TITLE, BOLD, ITALIC;
+    REGULAR, BOLD_TITLE, BOLD, ITALIC, // colored
+    WARNING, ERROR;
 
     public void addStyleClass(Label label) {
       var style = getStyleClass();
@@ -50,6 +51,8 @@ public class FxLabels {
     @Nullable
     public String getStyleClass() {
       return switch (this) {
+        case WARNING -> "warning-label";
+        case ERROR -> "error-label";
         case REGULAR -> null;
         case BOLD_TITLE -> "bold-title-label";
         case BOLD -> "bold-label";
