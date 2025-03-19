@@ -159,7 +159,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGeneration
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.tools.clear_project.ClearProjectModule;
 import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
-import io.github.mzmine.modules.tools.output_compare.CompareModularCsvModule;
+import io.github.mzmine.modules.tools.output_compare_csv.CompareModularCsvModule;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;

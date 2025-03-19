@@ -1,8 +1,8 @@
-package io.github.mzmine.modules.tools.output_compare;
+package io.github.mzmine.modules.tools.output_compare_csv;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
-import io.github.mzmine.modules.tools.output_compare.DataCheckResult.Severity;
-import io.github.mzmine.modules.tools.output_compare.MZmineModularCsv.Column;
+import io.github.mzmine.modules.tools.output_compare_csv.DataCheckResult.Severity;
+import io.github.mzmine.modules.tools.output_compare_csv.MZmineModularCsv.Column;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.util.ArrayList;

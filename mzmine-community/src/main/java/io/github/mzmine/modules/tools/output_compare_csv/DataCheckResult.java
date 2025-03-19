@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.tools.output_compare;
+package io.github.mzmine.modules.tools.output_compare_csv;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;

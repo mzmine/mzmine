@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.tools.output_compare;
+package io.github.mzmine.modules.tools.output_compare_csv;
 
 import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.features.types.DataType;

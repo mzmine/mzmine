@@ -1,10 +1,10 @@
-package io.github.mzmine.modules.tools.output_compare;
+package io.github.mzmine.modules.tools.output_compare_csv;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
-import io.github.mzmine.modules.tools.output_compare.DataCheckResult.Severity;
+import io.github.mzmine.modules.tools.output_compare_csv.DataCheckResult.Severity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
 import io.github.mzmine.util.io.CsvWriter;

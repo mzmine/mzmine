@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.tools.output_compare;
+package io.github.mzmine.modules.tools.output_compare_csv;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;

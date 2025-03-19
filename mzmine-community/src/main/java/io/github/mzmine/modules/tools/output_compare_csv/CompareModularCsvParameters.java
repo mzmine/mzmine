@@ -1,6 +1,6 @@
-package io.github.mzmine.modules.tools.output_compare;
+package io.github.mzmine.modules.tools.output_compare_csv;
 
-import io.github.mzmine.modules.tools.output_compare.DataCheckResult.Severity;
+import io.github.mzmine.modules.tools.output_compare_csv.DataCheckResult.Severity;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
