@@ -107,7 +107,7 @@ public class RtCalibrationCorrectionPreviewPane extends AbstractPreviewPane<List
 
       if (sampleTypeFilter.matches(file)) {
         final AnyXYProvider medianVsOriginal = new AnyXYProvider(clr,
-            file.getName() + " RT correction vs average RT", monotonousStandards.size(),
+            file.getName() + " standard shift vs average RT", monotonousStandards.size(),
             i -> (double) monotonousStandards.get(i).getMedianRt(),
             i -> (monotonousStandards.get(i).standards().get(file).getAverageRT().doubleValue()
                 - monotonousStandards.get(i).getMedianRt()));

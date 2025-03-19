@@ -2,7 +2,6 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.als.AlsCorrection;
@@ -39,7 +38,7 @@ public class RtCalibrationFunction {
 
     for (RtStandard standard : rtSortedStandards) {
       thisRtValues.add(standard.standards().get(file).getAverageRT());
-      standardRtValues.add(standard.getMedianRt());
+      standardRtValues.add(standard.getAverageRt());
     }
 
     final FeatureListRow row = rtSortedStandards.getLast().standards().get(file);
@@ -117,7 +116,7 @@ public class RtCalibrationFunction {
       final double next = standard.standards().get(nextFile).getAverageRT() * nextRunWeight;
 
       thisRtValues.add(previous + next);
-      standardRtValues.add(standard.getMedianRt());
+      standardRtValues.add(standard.getAverageRt());
     }
 
     final double previous =
@@ -140,15 +139,15 @@ public class RtCalibrationFunction {
 
     // if this changes the rt range, we need to add an additional point.
     // we keep the change after the last standard constant.
-    if (rtSortedStandards.getLast().getMedianRt() > fullRtRange.upperEndpoint()) {
-      final float medianRt = rtSortedStandards.getLast().getMedianRt();
-      final double offset = medianRt - averageRt;
+    if (rtSortedStandards.getLast().getAverageRt() > fullRtRange.upperEndpoint()) {
+      final float avgRt = rtSortedStandards.getLast().getAverageRt();
+      final double offset = avgRt - averageRt;
       final float timeToLastScan = fullRtRange.upperEndpoint() - averageRt;
 
       thisRtValues.add(fullRtRange.upperEndpoint() + offset);
       // is this correct? this would cause slightly different max rts for all files,
       // but i cannot think of a better way to calculate this
-      calibratedRtValues.add(rtSortedStandards.getLast().getMedianRt() + timeToLastScan);
+      calibratedRtValues.add(rtSortedStandards.getLast().getAverageRt() + timeToLastScan);
     } else {
       // keep the rt range of this file as it was.
       thisRtValues.add(fullRtRange.upperEndpoint());

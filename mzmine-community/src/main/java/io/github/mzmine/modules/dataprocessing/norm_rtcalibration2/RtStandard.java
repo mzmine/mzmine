@@ -3,6 +3,7 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.MathUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -34,11 +35,22 @@ public final class RtStandard {
 
   public float getMedianRt() {
     if (medianRt == null) {
+      medianRt = (float) MathUtils.calcQuantileSorted(
+          standards.values().stream().filter(Objects::nonNull)
+              .mapToDouble(FeatureListRow::getAverageRT).sorted().toArray(), 0.5);
+//      medianRt = (float) standards.values().stream().filter(Objects::nonNull)
+//              .mapToDouble(FeatureListRow::getAverageRT).average().getAsDouble();
+    }
+    return medianRt;
+  }
+
+  public float getAverageRt() {
+    if (medianRt == null) {
 //      medianRt = (float) MathUtils.calcQuantileSorted(
 //          standards.values().stream().filter(Objects::nonNull)
 //              .mapToDouble(FeatureListRow::getAverageRT).sorted().toArray(), 0.5);
       medianRt = (float) standards.values().stream().filter(Objects::nonNull)
-              .mapToDouble(FeatureListRow::getAverageRT).average().getAsDouble();
+          .mapToDouble(FeatureListRow::getAverageRT).average().getAsDouble();
     }
     return medianRt;
   }
