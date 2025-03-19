@@ -32,6 +32,7 @@ import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkController;
+import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTabOld;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerPane;
@@ -117,6 +118,9 @@ public class NetworkOverviewController {
     var mirrorScanTab = new MirrorScanWindowFXML();
     MirrorScanWindowController mirrorScanController = mirrorScanTab.getController();
 
+    LipidAnnotationMatchTabOld lipidAnnotationMatchTabOld = new LipidAnnotationMatchTabOld(
+        internalTable);
+
     // set content to panes
     // tabEdges.
 
@@ -126,9 +130,10 @@ public class NetworkOverviewController {
 
     // all content that listens to selected feature changes
     featureRowInterfaces = List.of(spectralMatchesController, compoundMatchController, allMs2Pane,
-        mirrorScanController);
+        mirrorScanController, lipidAnnotationMatchTabOld);
     // only annotation interfaces to control visibility
-    annotationInterfaces = List.of(spectralMatchesController, compoundMatchController);
+    annotationInterfaces = List.of(spectralMatchesController, compoundMatchController,
+        lipidAnnotationMatchTabOld);
     layoutAnnotations();
 
     // add callbacks
