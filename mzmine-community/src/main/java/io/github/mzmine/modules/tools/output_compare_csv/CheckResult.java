@@ -41,6 +41,14 @@ public record CheckResult(@NotNull String identifier, @NotNull Severity severity
   public enum Severity {
     INFO, WARN, ERROR;
 
+    public static Severity parse(final String str) {
+      return switch (str.toLowerCase()) {
+        case "warn", "warning" -> WARN;
+        case "error", "severe" -> ERROR;
+        default -> INFO;
+      };
+    }
+
     public void applyInPlace(final List<CheckResult> checks) {
       checks.removeIf(check -> check.severity.ordinal() < this.ordinal());
     }
