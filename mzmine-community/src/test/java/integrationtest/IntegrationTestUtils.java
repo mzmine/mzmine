@@ -91,7 +91,7 @@ public class IntegrationTestUtils {
   }
 
   @NotNull
-  private static File urlToFile(@Nullable final URL url) {
+  public static File urlToFile(@Nullable final URL url) {
     if (url == null) {
       throw new RuntimeException("URL is null");
     }
@@ -235,12 +235,8 @@ public class IntegrationTestUtils {
       final ParameterSet parameters = last.getParameterSet();
       parameters.setParameter(CSVExportModularParameters.filename, csvExportFile);
     } else {
-      final ParameterSet parameters = new CSVExportModularParameters().cloneParameterSet();
-      parameters.setParameter(CSVExportModularParameters.filename, csvExportFile);
-      parameters.setParameter(CSVExportModularParameters.filter, FeatureListRowsFilter.ALL);
-      parameters.setParameter(CSVExportModularParameters.omitEmptyColumns, true);
-      parameters.setParameter(CSVExportModularParameters.idSeparator, ";");
-      parameters.setParameter(CSVExportModularParameters.featureLists,
+      final ParameterSet parameters = CSVExportModularParameters.create(csvExportFile,
+          FeatureListRowsFilter.ALL, true, ";",
           new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
       queue.add(
           new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CSVExportModularModule.class),

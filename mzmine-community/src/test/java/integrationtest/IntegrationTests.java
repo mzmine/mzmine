@@ -24,9 +24,20 @@
 
 package integrationtest;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
+import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
+import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import java.io.File;
 import java.net.URL;
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -81,4 +92,43 @@ public class IntegrationTests {
         new File(batchFile.getFile()).getName()).size(), 40);
   }
 
+  @Test
+  void testProjectLoad(@TempDir File tempDir) {
+    final String resourcePath = "rawdatafiles/integration_tests/workshop_dataset/project.mzmine";
+    final File resourceFile = IntegrationTestUtils.urlToFile(
+        getClass().getClassLoader().getResource(resourcePath));
+    final URL expectedResultsFromProcessing = IntegrationTests.class.getClassLoader()
+        .getResource("rawdatafiles/integration_tests/workshop_dataset/expected_results.csv");
+    final URL expectedResultsFromProjectLoad = IntegrationTests.class.getClassLoader().getResource(
+        "rawdatafiles/integration_tests/workshop_dataset/expected_results_project.csv");
+
+    ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());
+
+    var parameters = (ProjectLoaderParameters) new ProjectLoaderParameters().cloneParameterSet();
+    parameters.setParameter(ProjectLoaderParameters.projectFile, resourceFile);
+    ProjectOpeningTask task = new ProjectOpeningTask(parameters, Instant.now());
+    task.run();
+
+    final MZmineProject loadedProject = ProjectService.getProject();
+
+    final FeatureList finalFlist = loadedProject.getCurrentFeatureLists().stream()
+        .max(Comparator.comparingInt(fl -> fl.getName().length())).get();
+
+    final File csvExportFile = new File(tempDir,
+        "modular_export_%s_%s.csv".formatted(resourceFile.getName(), UUID.randomUUID().toString()));
+
+    final CSVExportModularTask exportTask = new CSVExportModularTask(
+        new ModularFeatureList[]{(ModularFeatureList) finalFlist}, csvExportFile, ",", ";",
+        FeatureListRowsFilter.ALL, true, Instant.now());
+    exportTask.run();
+
+    // there should be the warning that the number of row types is not equal and 9 columns are missing
+    Assertions.assertEquals(2,
+        IntegrationTestUtils.getCsvComparisonResults(expectedResultsFromProcessing, csvExportFile,
+            resourceFile.getName()).size());
+    // saving and loading the project should be identical
+    Assertions.assertEquals(0,
+        IntegrationTestUtils.getCsvComparisonResults(expectedResultsFromProjectLoad, csvExportFile,
+            resourceFile.getName()).size());
+  }
 }

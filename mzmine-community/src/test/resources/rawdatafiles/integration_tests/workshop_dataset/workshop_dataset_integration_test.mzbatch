@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?><batch mzmine_version="4.5.35">
+<?xml version="1.0" encoding="UTF-8"?><batch mzmine_version="4.5.39">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" parameter_version="1">
         <parameter name="File names">
-            <file>F:\171103_PMA_TK_QC_04.mzML</file>
-            <file>F:\171103_PMA_TK_QC_05.mzML</file>
+            <file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_04-4to5min.mzML</file>
+            <file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_05-4to5min.mzML</file>
         </parameter>
         <parameter name="Advanced import" selected="false">
             <parameter name="Scan filters" selected="false">
@@ -72,13 +72,14 @@
             </parameter>
             <parameter name="Denormalize fragment scans (traps)">true</parameter>
         </parameter>
-        <parameter name="Metadata file" selected="true">
+        <parameter name="Metadata file" selected="false">
             <current_file>D:\OneDrive - mzio GmbH\mzio\Example data\Thermo\20 years mzmine\metadata_PA.tsv</current_file>
+            <last_file>D:\OneDrive - mzio GmbH\mzio\Example data\Thermo\20 years mzmine\metadata_PA.tsv</last_file>
         </parameter>
         <parameter name="Sort and color">true</parameter>
         <parameter name="Spectral library files">
-            <file>D:\OneDrive - mzio GmbH\mzio\Example data\other_data_libraries_metadata\Spectral libraries\subsets\massbank_nist_for_tests.msp</file>
-            <file>D:\OneDrive - mzio GmbH\mzio\Example data\other_data_libraries_metadata\Spectral libraries\subsets\MoNA-export-LC-MS-MS_Spectra.json</file>
+            <file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\massbank_nist_for_tests.msp</file>
+            <file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\MoNA-export-LC-MS-MS_Spectra.json</file>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" parameter_version="1">
@@ -221,8 +222,8 @@
             <parameter name="Merge MS/MS spectra (TIMS)">false</parameter>
             <parameter name="Minimum detections in IMS dimension">2</parameter>
             <parameter name="Advanced" selected="false">
-                <parameter name="Minimum signal intensity (absolute, TIMS)" selected="false"/>
-                <parameter name="Minimum signal intensity (relative, TIMS)" selected="false"/>
+                <parameter name="Minimum signal intensity (absolute, TIMS)" selected="false">250.0</parameter>
+                <parameter name="Minimum signal intensity (relative, TIMS)" selected="false">0.01</parameter>
             </parameter>
         </parameter>
         <parameter name="Dimension">Retention time</parameter>
@@ -595,15 +596,15 @@
             <module name="simple_merged">
                 <parameter name="Presets">representative_scans</parameter>
                 <parameter name="Merging m/z tolerance">
-                    <absolutetolerance>0.002</absolutetolerance>
-                    <ppmtolerance>10.0</ppmtolerance>
+                    <absolutetolerance>0.01</absolutetolerance>
+                    <ppmtolerance>20.0</ppmtolerance>
                 </parameter>
             </module>
             <module name="preset_merged">
                 <parameter name="Presets">representative_scans</parameter>
                 <parameter name="Merging m/z tolerance">
-                    <absolutetolerance>0.0015</absolutetolerance>
-                    <ppmtolerance>10.0</ppmtolerance>
+                    <absolutetolerance>0.01</absolutetolerance>
+                    <ppmtolerance>20.0</ppmtolerance>
                 </parameter>
                 <parameter name="Merge">
                     <selected>Across samples</selected>
