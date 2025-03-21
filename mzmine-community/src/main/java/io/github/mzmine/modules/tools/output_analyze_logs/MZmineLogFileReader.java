@@ -17,6 +17,11 @@ import java.util.regex.Pattern;
 
 class MZmineLogFileReader {
 
+  // this is repeated multiple times for exception stack trace
+  // 	at java.base/java.lang.Class.forName(Class.java:462)
+  private final String exceptionRegex = "\\s+at .*\\.java:\\d+\\)$";
+  private final Pattern exceptionPattern = Pattern.compile(exceptionRegex);
+
   // pattern is date time level class method message
   private final String regex = "(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (\\w+)\\s+([\\w.]+) (\\w+) (.*)";
   private final Pattern pattern = Pattern.compile(regex);
@@ -43,8 +48,15 @@ class MZmineLogFileReader {
         if (nextLine.isPresent()) {
           // finalize previous line - may replace message if multi line
           if (currentLine != null) {
-            logLines.add(
-                isMultiLineMessage ? currentLine.withMessage(message.toString()) : currentLine);
+            if (isMultiLineMessage) {
+              // finalize multi line message and check for exceptions
+              final String newMessage = message.toString();
+              boolean isException = newMessage.lines()
+                  .anyMatch(exceptionPattern.asMatchPredicate());
+              logLines.add(currentLine.with(newMessage, isException));
+            } else {
+              logLines.add(currentLine);
+            }
           }
           currentLine = nextLine.get();
           message = new StringBuilder(currentLine.message());
@@ -73,7 +85,9 @@ class MZmineLogFileReader {
       // find log state
       handleLogMessageState(originClass, method, message);
 
-      return Optional.of(new LogFileLine(logState, date, severity, originClass, method, message));
+      // cannot know if this is an exception - need full message for this
+      return Optional.of(
+          new LogFileLine(logState, false, date, severity, originClass, method, message));
     }
     return Optional.empty();
   }
@@ -89,13 +103,14 @@ class MZmineLogFileReader {
       logState = LogFileState.INIT_MZMINE;
 
     } else if (equalsClass(lowerClass, MZmineConfigurationImpl.class) && method.equals(
-        "loadConfiguration")) {
-      logState = LogFileState.LOAD_CONFIG;
-
-    } else if (equalsClass(lowerClass, MZmineConfigurationImpl.class) && method.equals(
         "loadConfiguration") && lowerMessage.startsWith("loaded configuration")) {
       logState = LogFileState.RUN_MANUAL;
 
+    } else if (equalsClass(lowerClass, MZmineConfigurationImpl.class) && method.equals(
+        "loadConfiguration") && lowerMessage.startsWith("loading desktop configuration")) {
+      logState = LogFileState.LOAD_CONFIG;
+
+      // MZmineConfigurationImpl loadConfiguration Loaded configuration from
     } else if (lowerMessage.startsWith("starting a batch") && equalsClass(lowerClass,
         BatchTask.class)) {
       logState = LogFileState.RUN_BATCH;

@@ -1,11 +1,43 @@
 package io.github.mzmine.modules.tools.output_analyze_logs;
 
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult.Severity;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
-class AnalyzeLogFileTaskTest {
+class MZmineLogFileReaderTest {
+
+  @Test
+  void readLogFile() throws IOException {
+    final String file = getClass().getClassLoader().getResource("outfiles/mzmine_log.log")
+        .getFile();
+
+    final MZmineLogFileReader reader = new MZmineLogFileReader();
+    final LogFile logFile = reader.readLogFile(new File(file));
+
+    assertEquals(0, logFile.count(Severity.ERROR));
+    assertEquals(22, logFile.count(Severity.WARN));
+    assertEquals(505, logFile.count(Severity.INFO));
+
+    // specialized info
+    List<LogFileLine> exceptions = logFile.findExceptions();
+    assertEquals(12, exceptions.size());
+
+    // speed of batch
+    List<LogFileLine> speed = logFile.findBatchSpeed();
+    assertEquals(1, speed.size());
+
+    // monitor states
+    assertEquals(0, logFile.count(LogFileState.PRE_INIT));
+    assertEquals(9, logFile.count(LogFileState.INIT_MZMINE));
+    assertEquals(244, logFile.count(LogFileState.LOAD_CONFIG));
+    assertEquals(206, logFile.count(LogFileState.RUN_BATCH));
+    assertEquals(68, logFile.count(LogFileState.RUN_MANUAL));
+  }
+
 
   @Test
   void parseLogLine() {
@@ -43,5 +75,4 @@ class AnalyzeLogFileTaskTest {
     assertEquals("Module Save current batch called at 2025-03-20T12:24:30.168700800Z",
         line.message()); // message
   }
-
 }
