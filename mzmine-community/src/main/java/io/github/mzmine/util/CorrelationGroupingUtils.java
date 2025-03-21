@@ -90,7 +90,9 @@ public class CorrelationGroupingUtils {
       int c = 0;
       List<RawDataFile> raw = flist.getRawDataFiles();
       // add all connections
-      for (Entry<Integer, RowsRelationship> e : corrMap.entrySet()) {
+      final List<Entry<Integer, RowsRelationship>> entries = corrMap.entrySet().stream()
+          .sorted(Comparator.comparingInt(Entry::getKey)).toList();
+      for (Entry<Integer, RowsRelationship> e : entries) {
         RowsRelationship r2r = e.getValue();
         FeatureListRow rowA = r2r.getRowA();
         FeatureListRow rowB = r2r.getRowB();
