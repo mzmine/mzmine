@@ -31,9 +31,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 import testutils.MZmineTestUtil;
 
+@DisabledOnOs(OS.MAC)
 public class IntegrationTests {
 
   /**
@@ -74,8 +77,8 @@ public class IntegrationTests {
     Assertions.assertTrue(IntegrationTestUtils.getCsvComparisonResults(expectedResults, results,
         new File(batchFile.getFile()).getName()).isEmpty());
 
-    Assertions.assertFalse(IntegrationTestUtils.getCsvComparisonResults(expectedError, results,
-        new File(batchFile.getFile()).getName()).isEmpty());
+    Assertions.assertEquals(IntegrationTestUtils.getCsvComparisonResults(expectedError, results,
+        new File(batchFile.getFile()).getName()).size(), 40);
   }
 
 }

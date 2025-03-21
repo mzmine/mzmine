@@ -55,12 +55,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.SAXException;
 
 public class IntegrationTestUtils {
+
+  private static final Logger logger = Logger.getLogger(IntegrationTestUtils.class.getName());
 
   /**
    * Executes a batch comparison process using the provided batch file.
@@ -137,11 +140,29 @@ public class IntegrationTestUtils {
     final BatchTask batchTask = BatchModeModule.runBatch(queue, project, overrideDataFiles, null,
         overrideSpectralLibraries, null, Instant.now());
 
+    printBatchStatistics(overrideDataFiles, overrideSpectralLibraries, batchFileName, project,
+        queue);
+
     if (batchTask == null || batchTask.getStatus() != TaskStatus.FINISHED) {
       throw new RuntimeException(
           "Batch task for batch file %s did not finish".formatted(batchFileName));
     }
     return csvExportFile;
+  }
+
+  private static void printBatchStatistics(@Nullable File @Nullable [] overrideDataFiles,
+      File[] overrideSpectralLibraries, String batchFileName, MZmineProject project,
+      @NotNull BatchQueue queue) {
+    logger.info("Batch task for file %s finished. Batch resulted in %d feature lists.".formatted(
+        batchFileName, project.getNumberOfFeatureLists()));
+    if (overrideDataFiles != null) {
+      logger.info("Batch task for file %s loaded %d/%d files.".formatted(batchFileName,
+          overrideDataFiles.length, project.getNumberOfDataFiles()));
+    }
+    if (overrideSpectralLibraries != null) {
+      logger.info("Batch task for file %s loaded %d/%d spectral libraries.".formatted(batchFileName,
+          overrideSpectralLibraries.length, project.getCurrentSpectralLibraries().size()));
+    }
   }
 
   /**
@@ -225,7 +246,7 @@ public class IntegrationTestUtils {
           new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CSVExportModularModule.class),
               parameters));
     }
-    csvExportFile.deleteOnExit();
+//    csvExportFile.deleteOnExit();
     return csvExportFile;
   }
 }
