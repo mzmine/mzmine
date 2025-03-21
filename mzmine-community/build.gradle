@@ -123,13 +123,13 @@ repositories {
     mavenCentral()
     // mavenLocal()
     maven { url = "https://repo.maven.apache.org/maven2" }
-    // local libraries
+    // local repo needs to be early before other repos otherwise the resolving of local libs failed
     maven { url = uri("file://" + layout.projectDirectory.dir("../local-repo")) }
     // For jmzml, etc.
     maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
     // For SIRIUS ID modules
     maven { url = "https://bio.informatik.uni-jena.de/repository/libs-oss/" }
-    maven { url = "https://jitpack.io" }
+//    maven { url = "https://jitpack.io" } // should not be used at best - better push local
     maven { url = "https://www.xypron.de/repository/" }
     // For cpdetector
 //    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
