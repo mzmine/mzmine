@@ -110,44 +110,69 @@ public class BatchModeModule implements MZmineProcessingModule {
         }
       }
 
-      // change input files and spectral libraries, e.g., by command line arguments
-      if (overrideDataFiles != null || overrideSpectralLibraryFiles != null
-          || overrideMetadataFile != null) {
-        if (!newQueue.setImportFiles(overrideDataFiles, overrideMetadataFile,
-            overrideSpectralLibraryFiles)) {
-          if (overrideDataFiles != null) {
-            logger.log(Level.SEVERE,
-                "Could not change the input files to " + Arrays.stream(overrideDataFiles)
-                    .map(file -> file != null ? file.getAbsolutePath() : "null")
-                    .collect(Collectors.joining("\n")));
-          }
-          if (overrideMetadataFile != null) {
-            logger.log(Level.SEVERE, "Could not change the import metadata file to "
-                                     + overrideMetadataFile.getAbsolutePath());
-          }
-          if (overrideSpectralLibraryFiles != null) {
-            logger.log(Level.SEVERE,
-                "Could not change the import spectral library files to " + Arrays.stream(
-                        overrideSpectralLibraryFiles)
-                    .map(file -> file != null ? file.getAbsolutePath() : "null")
-                    .collect(Collectors.joining("\n")));
-          }
-          return null;
-        }
-      }
-      if (overrideOutBaseFile != null) {
-        newQueue.setOutputBaseFile(overrideOutBaseFile);
-      }
+      return runBatch(newQueue, project, overrideDataFiles, overrideMetadataFile,
+          overrideSpectralLibraryFiles, overrideOutBaseFile, moduleCallDate);
 
-      ParameterSet parameters = new BatchModeParameters();
-      parameters.getParameter(BatchModeParameters.batchQueue).setValue(newQueue);
-      BatchTask batchTask = new BatchTask(project, parameters, moduleCallDate);
-      batchTask.run();
-      return batchTask;
     } catch (Throwable e) {
       logger.log(Level.SEVERE, "Error while running batch. " + e.getMessage(), e);
       return null;
     }
+  }
+
+  /**
+   * Run from batch file (usually in headless mode)
+   *
+   * @param overrideDataFiles            change the data import to those files if not null
+   * @param overrideMetadataFile
+   * @param overrideSpectralLibraryFiles change the spectral libraries imported
+   * @param overrideOutBaseFile          change all output files with this out path and base
+   *                                     filename
+   * @return the batch task if successful or null on error
+   */
+  public static @Nullable BatchTask runBatch(BatchQueue newQueue, @NotNull MZmineProject project,
+      @Nullable File @Nullable [] overrideDataFiles, @Nullable File overrideMetadataFile,
+      File[] overrideSpectralLibraryFiles, @Nullable String overrideOutBaseFile,
+      @NotNull Instant moduleCallDate) {
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Cannot run a second batch while the current batch is not finished.");
+      return null;
+    }
+
+    // change input files and spectral libraries, e.g., by command line arguments
+    if (overrideDataFiles != null || overrideSpectralLibraryFiles != null
+        || overrideMetadataFile != null) {
+      if (!newQueue.setImportFiles(overrideDataFiles, overrideMetadataFile,
+          overrideSpectralLibraryFiles)) {
+        if (overrideDataFiles != null) {
+          logger.log(Level.SEVERE,
+              "Could not change the input files to " + Arrays.stream(overrideDataFiles)
+                  .map(file -> file != null ? file.getAbsolutePath() : "null")
+                  .collect(Collectors.joining("\n")));
+        }
+        if (overrideMetadataFile != null) {
+          logger.log(Level.SEVERE, "Could not change the import metadata file to "
+              + overrideMetadataFile.getAbsolutePath());
+        }
+        if (overrideSpectralLibraryFiles != null) {
+          logger.log(Level.SEVERE,
+              "Could not change the import spectral library files to " + Arrays.stream(
+                      overrideSpectralLibraryFiles)
+                  .map(file -> file != null ? file.getAbsolutePath() : "null")
+                  .collect(Collectors.joining("\n")));
+        }
+        return null;
+      }
+    }
+    if (overrideOutBaseFile != null) {
+      newQueue.setOutputBaseFile(overrideOutBaseFile);
+    }
+
+    ParameterSet parameters = new BatchModeParameters();
+    parameters.getParameter(BatchModeParameters.batchQueue).setValue(newQueue);
+    BatchTask batchTask = new BatchTask(project, parameters, moduleCallDate);
+    batchTask.run();
+    return batchTask;
   }
 
   @Override
