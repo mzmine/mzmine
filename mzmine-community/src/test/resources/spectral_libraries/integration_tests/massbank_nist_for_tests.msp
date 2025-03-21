@@ -1,0 +1,61 @@
+Name: Tris(2-butoxyethyl) phosphate
+Synon: TBEP
+DB#: MSBNK-ACES_SU-AS000143
+InChI: InChI=1S/C18H39O7P/c1-4-7-10-20-13-16-23-26(19,24-17-14-21-11-8-5-2)25-18-15-22-12-9-6-3/h4-18H2,1-3H3
+SMILES: O=P(OCCOCCCC)(OCCOCCCC)OCCOCCCC
+Spectrum_type: MS2
+PrecursorMZ: 399.2512
+Instrument_type: LC-APCI-QFT
+Instrument: QExactive Orbitrap HF-X (Thermo Scientific)
+Ion_mode: POSITIVE
+Collision_energy: Ramp 20%-70% (nominal)
+Formula: C18H39O7P
+MW: 398
+ExactMass: 398.2433
+Comments: Parent=399.2512
+Splash: splash10-0002-3951000000-11ff57e3fb89d8ffc341
+Num Peaks: 14
+55.05457 96
+57.07018 243
+59.04944 18
+83.08532 98
+98.98438 73
+101.09625 275
+125.00018 22
+143.01033 56
+199.07362 999
+211.28578 27
+225.08929 26
+243.0993 33
+299.16226 685
+399.24948 169
+
+Name: Tri-isobutyl phosphate
+Synon: Triisobutyl phosphate
+Synon: tris(2-methylpropyl) phosphate
+DB#: MSBNK-CASMI_2016-SM824801
+InChIKey: HRKAMJBPFPHCSD-UHFFFAOYSA-N
+InChI: InChI=1S/C12H27O4P/c1-10(2)7-14-17(13,15-8-11(3)4)16-9-12(5)6/h10-12H,7-9H2,1-6H3
+SMILES: CC(C)COP(=O)(OCC(C)C)OCC(C)C
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 267.172
+Instrument_type: LC-ESI-QFT
+Instrument: Q Exactive Plus Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 35  (nominal)
+Formula: C12H27O4P
+MW: 266
+ExactMass: 266.16470
+Comments: Parent=267.172
+Splash: splash10-0002-9000000000-5980b2c2bbabd790ddb9
+Num Peaks: 8
+57.0701 21
+80.9738 1
+98.9842 999
+116.9948 4
+131.0104 5
+155.0468 39
+211.1095 16
+267.1721 1
+
