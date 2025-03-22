@@ -81,59 +81,60 @@ public class CorrelationGroupingUtils {
             flist.getName());
         return List.of();
       }
-      logger.info("Creating groups for " + flist.getName());
       var corrMap = opCorrMap.get();
+      logger.info(
+          "Creating groups for %s with %d edges".formatted(flist.getName(), corrMap.size()));
 
       List<RowGroup> groups = new ArrayList<>();
-      HashMap<FeatureListRow, RowGroup> used = new HashMap<>();
+      HashMap<Integer, RowGroup> used = new HashMap<>();
 
-      int c = 0;
+      int nextGroupID = 1;
       List<RawDataFile> raw = flist.getRawDataFiles();
       // add all connections
       for (Entry<Integer, RowsRelationship> e : corrMap.entrySet()) {
         RowsRelationship r2r = e.getValue();
         FeatureListRow rowA = r2r.getRowA();
         FeatureListRow rowB = r2r.getRowB();
+        // row 2749 2852
         if (r2r instanceof R2RCorrelationData) {
           // already added?
-          RowGroup group = used.get(rowA);
-          RowGroup group2 = used.get(rowB);
+          RowGroup group = used.get(rowA.getID());
+          RowGroup group2 = used.get(rowB.getID());
           // merge groups if both present
           if (group != null && group2 != null && group.getGroupID() != group2.getGroupID()) {
             // copy all to group1 and remove g2
             for (FeatureListRow r : group2.getRows()) {
               group.add(r);
-              used.put(r, group);
+              used.put(r.getID(), group);
             }
             groups.remove(group2);
           } else if (group == null && group2 == null) {
             // create new group with both rows
             if (keepExtendedStats) {
-              group = new CorrelationRowGroup(raw, groups.size());
+              group = new CorrelationRowGroup(raw, nextGroupID);
             } else {
-              group = new RowGroupSimple(groups.size(), corrMap);
+              group = new RowGroupSimple(nextGroupID, corrMap);
             }
+            // increment group - the groups are renumbered later
+            nextGroupID++;
             group.addAll(rowA, rowB);
             groups.add(group);
             // mark as used
-            used.put(rowA, group);
-            used.put(rowB, group);
+            used.put(rowA.getID(), group);
+            used.put(rowB.getID(), group);
           } else if (group2 == null) {
             group.add(rowB);
-            used.put(rowB, group);
+            used.put(rowB.getID(), group);
           } else if (group == null) {
             group2.add(rowA);
-            used.put(rowA, group2);
+            used.put(rowA.getID(), group2);
           }
         }
-        // report back progress
-        c++;
       }
       // sort by retention time, group size and lowest row id to make sure it is stable
       groups.sort(Comparator.comparing(RowGroup::calcAverageRetentionTime,
               Comparator.nullsLast(Comparator.naturalOrder())).thenComparingInt(RowGroup::size)
           .thenComparing(RowGroup::lowestRowId));
-
       // reset index
       for (int i = 0; i < groups.size(); i++) {
         groups.get(i).setGroupID(i);
