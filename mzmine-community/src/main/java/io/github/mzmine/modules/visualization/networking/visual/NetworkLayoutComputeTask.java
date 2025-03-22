@@ -83,7 +83,9 @@ public class NetworkLayoutComputeTask extends AbstractTask {
     // less precision for large networks
     double stab = size < 200 ? 0.9 : 0.75;
 
-    logger.fine("Layout of %d nodes, stabilization at %.2f".formatted(size, stab));
+    if (size > 20) {
+      logger.fine("Layout of %d nodes, stabilization at %.2f".formatted(size, stab));
+    }
 
     layout.setQuality(stab);
 
