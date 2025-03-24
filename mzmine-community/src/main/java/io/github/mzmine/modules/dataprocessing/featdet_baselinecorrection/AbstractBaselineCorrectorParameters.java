@@ -29,7 +29,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
-import org.jetbrains.annotations.Nullable;
 
 public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
 
@@ -41,7 +40,7 @@ public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
       The approximate number of samples taken from the chromatogram to fit the baseline.
       The actual number might be slightly different for each chromatogram, depending if peak removal is activated.
       Too low values may fail to approximate the baseline correctly, too high values may put
-      too much weight on chromatographic signals and distort the baseline. Default: 10%.
+      too much weight on chromatographic signals and distort the baseline. Default: 5%.
       """, 0.05);
 
   public AbstractBaselineCorrectorParameters() {
@@ -60,17 +59,4 @@ public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
     super(onlineHelpUrl, parameters);
   }
 
-  @Override
-  public int getVersion() {
-    return 2;
-  }
-
-  @Override
-  public @Nullable String getVersionMessage(int version) {
-    return switch (version) {
-      case 2 ->
-          "Baseline correction parameters were updated to use a relative percentage of sampled data points instead of an absolute number.";
-      default -> null;
-    };
-  }
 }
