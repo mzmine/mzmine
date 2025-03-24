@@ -72,7 +72,6 @@ public class SmoothingTask extends AbstractTask {
   private final MZmineProject project;
 
   private final AtomicInteger processedFeatures = new AtomicInteger(0);
-  private final SmoothingDimension dimension = SmoothingDimension.RETENTION_TIME;
 
   private final int numFeatures;
   private final ZeroHandlingType zht;
@@ -116,16 +115,13 @@ public class SmoothingTask extends AbstractTask {
       return;
     }
 
-    if (dimension != SmoothingDimension.RETENTION_TIME) {
-      return;
-    }
-
     final ModularFeatureList smoothedList = flist.createCopy(flist.getName() + " " + suffix,
         getMemoryMapStorage(), false);
     DataTypeUtils.copyTypes(flist, smoothedList, true, true);
     // init a new smoother instance, since the parameters have to be stored in the smoother itself.
     final SmoothingAlgorithm smoother = FeatureSmoothingOptions.createSmoother(parameters);
     if (smoother == null) {
+      logger.warning("Smoothing algorithm returned null");
       return;
     }
 
@@ -133,6 +129,8 @@ public class SmoothingTask extends AbstractTask {
     final FeatureDataAccess dataAccess = EfficientDataAccess.of(smoothedList,
         FeatureDataType.INCLUDE_ZEROS);
 
+    logger.info("Smoothing %d features in feature list %s.".formatted(dataAccess.getNumOfFeatures(),
+        flist.getName()));
     while (dataAccess.hasNextFeature()) {
       final ModularFeature feature = (ModularFeature) dataAccess.nextFeature();
 
@@ -147,6 +145,7 @@ public class SmoothingTask extends AbstractTask {
     }
 
     if (isCanceled()) {
+      logger.finest("Smoothing task for feature list %s canceled".formatted(flist.getName()));
       return;
     }
 
