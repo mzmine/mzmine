@@ -42,12 +42,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 import testutils.MZmineTestUtil;
 
-@DisabledOnOs(OS.MAC)
 public class IntegrationTests {
 
   /**
@@ -57,11 +54,13 @@ public class IntegrationTests {
   static void initMzmine() {
     MZmineTestUtil.startMzmineCore();
     ProjectService.getProjectManager().clearProject();
+    ProjectService.getProject().clearSpectralLibrary();
   }
 
   @AfterEach
   void clearProject() {
     ProjectService.getProjectManager().clearProject();
+    ProjectService.getProject().clearSpectralLibrary();
   }
 
   @Test
