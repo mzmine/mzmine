@@ -260,7 +260,8 @@ tasks.withType(JavaCompile) {
 
 tasks.withType(Test) {
     jvmArgs = [
-            "--enable-preview"
+            "--enable-preview",
+            "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
     ]
     useJUnitPlatform()
 
