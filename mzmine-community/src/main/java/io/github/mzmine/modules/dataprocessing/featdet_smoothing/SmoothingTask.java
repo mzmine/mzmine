@@ -83,7 +83,7 @@ public class SmoothingTask extends AbstractTask {
       @Nullable MemoryMapStorage storage, @NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
-
+    logger.info("Initializing smoothing task");
     this.flist = flist;
     this.parameters = parameters;
     this.project = project;
@@ -93,6 +93,7 @@ public class SmoothingTask extends AbstractTask {
     suffix = parameters.getParameter(SmoothingParameters.suffix).getValue();
 
     handleOriginal = parameters.getParameter(SmoothingParameters.handleOriginal).getValue();
+    logger.info("Smoothing task initialized");
   }
 
   @Override
@@ -108,6 +109,7 @@ public class SmoothingTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+    logger.info("Smoothing task started");
     if (flist.getNumberOfRawDataFiles() != 1) {
       setErrorMessage("Cannot smooth feature lists with more than one raw data file.");
       setStatus(TaskStatus.ERROR);
@@ -151,6 +153,7 @@ public class SmoothingTask extends AbstractTask {
     smoothedList.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(SmoothingModule.class, parameters, getModuleCallDate()));
 
+    logger.info("Smoothing task finished");
     // add new / remove old
     handleOriginal.reflectNewFeatureListToProject(suffix, project, smoothedList, flist);
 
