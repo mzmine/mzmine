@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
 #        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        os: [ ubuntu-latest ] # only test on ubuntu
+        os: [ windows-latest, ubuntu-latest ] # only test on windows
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
