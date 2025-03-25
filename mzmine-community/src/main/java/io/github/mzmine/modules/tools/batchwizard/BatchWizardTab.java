@@ -333,7 +333,10 @@ public class BatchWizardTab extends SimpleTab {
     // LC/GC - IMS? - MS instrument, Apply defaults
     for (final WizardPart part : WizardPart.values()) {
       var presets = FXCollections.observableArrayList(ALL_PRESETS.get(part));
-      sequenceSteps.add(presets.get(0));
+      if (presets.isEmpty()) {
+        continue;
+      }
+      sequenceSteps.add(presets.getFirst());
       if (presets.size() == 1) {
         continue;
       }
