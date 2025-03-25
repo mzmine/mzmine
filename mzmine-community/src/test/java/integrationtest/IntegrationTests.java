@@ -24,23 +24,13 @@
 
 package integrationtest;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
-import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
-import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
-import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
 import java.io.File;
 import java.net.URL;
-import java.time.Instant;
-import java.util.Comparator;
-import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -70,30 +60,22 @@ public class IntegrationTests {
 
   @Test
   void testSmallLcMsBatch(@TempDir File tempDir) {
-    final URL batchFile = IntegrationTests.class.getClassLoader().getResource(
-        "rawdatafiles/integration_tests/workshop_dataset/workshop_dataset_integration_test.mzbatch");
-    final URL qc4 = IntegrationTests.class.getClassLoader().getResource(
-        "rawdatafiles/integration_tests/workshop_dataset/171103_PMA_TK_QC_04-4to5min.mzML");
-    final URL qc5 = IntegrationTests.class.getClassLoader().getResource(
-        "rawdatafiles/integration_tests/workshop_dataset/171103_PMA_TK_QC_05-4to5min.mzML");
-    final URL expectedResults = IntegrationTests.class.getClassLoader()
-        .getResource("rawdatafiles/integration_tests/workshop_dataset/expected_results.csv");
-    final URL expectedError = IntegrationTests.class.getClassLoader()
-        .getResource("rawdatafiles/integration_tests/workshop_dataset/expected_results_error.csv");
 
-    final URL massbank = IntegrationTests.class.getClassLoader()
-        .getResource("spectral_libraries/integration_tests/massbank_nist_for_tests.msp");
-    final URL mona = IntegrationTests.class.getClassLoader()
-        .getResource("spectral_libraries/integration_tests/MoNA-export-LC-MS-MS_Spectra.json");
+    final File results = IntegrationTestUtils.runBatchGetExportedCsv(
+        "rawdatafiles/integration_tests/workshop_dataset/workshop_dataset_integration_test.mzbatch",
+        tempDir, new String[]{
+            "rawdatafiles/integration_tests/workshop_dataset/171103_PMA_TK_QC_04-4to5min.mzML",
+            "rawdatafiles/integration_tests/workshop_dataset/171103_PMA_TK_QC_05-4to5min.mzML"},
+        new String[]{"spectral_libraries/integration_tests/massbank_nist_for_tests.msp",
+            "spectral_libraries/integration_tests/MoNA-export-LC-MS-MS_Spectra.json"});
 
-    final File results = IntegrationTestUtils.runBatchGetExportedCsv(batchFile, tempDir,
-        new URL[]{qc4, qc5}, new URL[]{massbank, mona});
+    Assertions.assertTrue(IntegrationTestUtils.getCsvComparisonResults(
+        "rawdatafiles/integration_tests/workshop_dataset/expected_results.csv", results,
+        "workshop_dataset_integration_test").isEmpty());
 
-    Assertions.assertTrue(IntegrationTestUtils.getCsvComparisonResults(expectedResults, results,
-        new File(batchFile.getFile()).getName()).isEmpty());
-
-    Assertions.assertEquals(IntegrationTestUtils.getCsvComparisonResults(expectedError, results,
-        new File(batchFile.getFile()).getName()).size(), 40);
+    Assertions.assertEquals(IntegrationTestUtils.getCsvComparisonResults(
+        "rawdatafiles/integration_tests/workshop_dataset/expected_results_error.csv", results,
+        "workshop_dataset_integration_test").size(), 40);
   }
 
   @Test
@@ -107,25 +89,8 @@ public class IntegrationTests {
     final URL expectedResultsFromProjectLoad = IntegrationTests.class.getClassLoader().getResource(
         "rawdatafiles/integration_tests/workshop_dataset/expected_results_project.csv");
 
-    ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());
-
-    var parameters = (ProjectLoaderParameters) new ProjectLoaderParameters().cloneParameterSet();
-    parameters.setParameter(ProjectLoaderParameters.projectFile, resourceFile);
-    ProjectOpeningTask task = new ProjectOpeningTask(parameters, Instant.now());
-    task.run();
-
-    final MZmineProject loadedProject = ProjectService.getProject();
-
-    final FeatureList finalFlist = loadedProject.getCurrentFeatureLists().stream()
-        .max(Comparator.comparingInt(fl -> fl.getName().length())).get();
-
-    final File csvExportFile = new File(tempDir,
-        "modular_export_%s_%s.csv".formatted(resourceFile.getName(), UUID.randomUUID().toString()));
-
-    final CSVExportModularTask exportTask = new CSVExportModularTask(
-        new ModularFeatureList[]{(ModularFeatureList) finalFlist}, csvExportFile, ",", ";",
-        FeatureListRowsFilter.ALL, true, Instant.now());
-    exportTask.run();
+    final File csvExportFile = IntegrationTestUtils.loadProjectExportFeatureList(tempDir,
+        resourceFile);
 
     // there should be the warning that the number of row types is not equal and 9 columns are missing
     Assertions.assertEquals(2,
@@ -135,5 +100,25 @@ public class IntegrationTests {
     Assertions.assertEquals(0,
         IntegrationTestUtils.getCsvComparisonResults(expectedResultsFromProjectLoad, csvExportFile,
             resourceFile.getName()).size());
+  }
+
+  @Test
+  @DisabledOnOs({OS.LINUX, OS.MAC})
+  void testDiTimsMs(@TempDir File tempDir) {
+    Assertions.assertEquals(0, IntegrationTestUtils.runBatchCompareToCsv(
+        "rawdatafiles/integration_tests/timstof_ditimsms_pasef/di_tims_ms.mzbatch",
+        "rawdatafiles/integration_tests/timstof_ditimsms_pasef/expected_results.csv", tempDir,
+        new String[]{"rawdatafiles/additional/lc-tims-ms-pasef-a.d"}, null).size());
+  }
+
+  @Test
+  @Disabled
+    // currently results don't match
+  void testGcTofMs(@TempDir File tempDir) {
+    Assertions.assertEquals(0, IntegrationTestUtils.runBatchCompareToCsv(
+        "rawdatafiles/integration_tests/gc_tof_ms/gc_tof.mzbatch",
+        "rawdatafiles/integration_tests/gc_tof_ms/expected_results.csv", tempDir,
+        new String[]{"rawdatafiles/integration_tests/gc_tof_ms/019_KR8_20220715.mzML"},
+        new String[]{"spectral_libraries/integration_tests/massbank_nist_for_tests.msp"}).size());
   }
 }

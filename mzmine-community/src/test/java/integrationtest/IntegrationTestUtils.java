@@ -25,6 +25,8 @@
 package integrationtest;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -34,7 +36,10 @@ import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularParameters;
+import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
+import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
+import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult.Severity;
 import io.github.mzmine.modules.tools.output_compare_csv.CompareModularCsvParameters;
@@ -52,6 +57,7 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -64,6 +70,56 @@ import org.xml.sax.SAXException;
 public class IntegrationTestUtils {
 
   private static final Logger logger = Logger.getLogger(IntegrationTestUtils.class.getName());
+
+  /**
+   * Executes a batch comparison process using the provided batch file.
+   *
+   * @param batchFile                 the relative path string of the batch file to be executed
+   * @param baseCsvFile               the relative path string  of the base CSV file for comparison
+   * @param tempDir                   the temporary directory for intermediate files during
+   *                                  execution
+   * @param overrideDataFiles         optional array of relative path strings  for data files that
+   *                                  override batch defaults (null or empty means no overrides)
+   * @param overrideSpectralLibraries optional array of relative path strings  for spectral library
+   *                                  files that override batch defaults (null or empty means no
+   *                                  overrides)
+   * @return a list of CheckResult objects containing the comparison results; the list is empty if
+   * all comparisons are successful
+   */
+  public static List<CheckResult> runBatchCompareToCsv(String batchFile, String baseCsvFile,
+      File tempDir, @Nullable String @Nullable [] overrideDataFiles,
+      @Nullable String @Nullable [] overrideSpectralLibraries) {
+
+    final URL batch = IntegrationTestUtils.class.getClassLoader().getResource(batchFile);
+    final URL expectedResultsUrl = IntegrationTestUtils.class.getClassLoader()
+        .getResource(baseCsvFile);
+
+    final @Nullable File @Nullable [] files =
+        overrideDataFiles != null ? Arrays.stream(overrideDataFiles).filter(Objects::nonNull)
+            .map(str -> IntegrationTestUtils.class.getClassLoader().getResource(str))
+            .filter(Objects::nonNull).map(IntegrationTestUtils::urlToFile).toArray(File[]::new)
+            : null;
+
+    final @Nullable File @Nullable [] libraries =
+        overrideSpectralLibraries != null ? Arrays.stream(overrideSpectralLibraries)
+            .filter(Objects::nonNull)
+            .map(str -> IntegrationTestUtils.class.getClassLoader().getResource(str))
+            .filter(Objects::nonNull).map(IntegrationTestUtils::urlToFile).toArray(File[]::new)
+            : null;
+
+    if (Objects.requireNonNullElse(files, new File[0]).length != Objects.requireNonNullElse(
+        overrideDataFiles, new File[0]).length) {
+      throw new RuntimeException("Not all data files were found");
+    }
+
+    if (Objects.requireNonNullElse(libraries, new File[0]).length != Objects.requireNonNullElse(
+        overrideSpectralLibraries, new File[0]).length) {
+      throw new RuntimeException("Not all libraries were found");
+    }
+
+    return runBatchCompareToCsv(urlToFile(batch), urlToFile(expectedResultsUrl), tempDir, files,
+        libraries);
+  }
 
   /**
    * Executes a batch comparison process using the provided batch file.
@@ -107,6 +163,41 @@ public class IntegrationTestUtils {
         overrideSpectralLibraries);
 
     return getCsvComparisonResults(baseCsvFile, csvExportFile, batchFileName);
+  }
+
+  /**
+   * Runs a batch and returns the file of the exported modular csv file. This method can be used if
+   * multiple comparisons shall be done, e.g., a purposefully failing test.
+   */
+  public static @NotNull File runBatchGetExportedCsv(@NotNull String batchFile,
+      @NotNull File tempDir, @Nullable String @Nullable [] overrideDataFiles,
+      @Nullable String @Nullable [] overrideSpectralLibraries) {
+
+    final URL batch = IntegrationTestUtils.class.getClassLoader().getResource(batchFile);
+    final @Nullable File @Nullable [] files =
+        overrideDataFiles != null ? Arrays.stream(overrideDataFiles).filter(Objects::nonNull)
+            .map(str -> IntegrationTestUtils.class.getClassLoader().getResource(str))
+            .filter(Objects::nonNull).map(IntegrationTestUtils::urlToFile).toArray(File[]::new)
+            : null;
+
+    final @Nullable File @Nullable [] libraries =
+        overrideSpectralLibraries != null ? Arrays.stream(overrideSpectralLibraries)
+            .filter(Objects::nonNull)
+            .map(str -> IntegrationTestUtils.class.getClassLoader().getResource(str))
+            .filter(Objects::nonNull).map(IntegrationTestUtils::urlToFile).toArray(File[]::new)
+            : null;
+
+    if (Objects.requireNonNullElse(files, new File[0]).length != Objects.requireNonNullElse(
+        overrideDataFiles, new File[0]).length) {
+      throw new RuntimeException("Not all data files were found");
+    }
+
+    if (Objects.requireNonNullElse(libraries, new File[0]).length != Objects.requireNonNullElse(
+        overrideSpectralLibraries, new File[0]).length) {
+      throw new RuntimeException("Not all libraries were found");
+    }
+
+    return runBatchGetExportedCsv(urlToFile(batch), tempDir, files, libraries);
   }
 
   /**
@@ -180,6 +271,14 @@ public class IntegrationTestUtils {
     return queue;
   }
 
+  public static List<@NotNull CheckResult> getCsvComparisonResults(
+      @NotNull String expectedResultsFile, File batchExportedFile, String batchFileName) {
+
+    return getCsvComparisonResults(
+        urlToFile(IntegrationTestUtils.class.getClassLoader().getResource(expectedResultsFile)),
+        batchExportedFile, batchFileName);
+  }
+
   public static List<@NotNull CheckResult> getCsvComparisonResults(URL expectedResultsFile,
       File batchExportedFile, String batchFileName) {
     return getCsvComparisonResults(urlToFile(expectedResultsFile), batchExportedFile,
@@ -242,7 +341,32 @@ public class IntegrationTestUtils {
           new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CSVExportModularModule.class),
               parameters));
     }
-//    csvExportFile.deleteOnExit();
+    csvExportFile.deleteOnExit();
+    return csvExportFile;
+  }
+
+  static @NotNull File loadProjectExportFeatureList(File tempDir, File projectFile) {
+    // clear old porject
+    ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());
+
+    var parameters = (ProjectLoaderParameters) new ProjectLoaderParameters().cloneParameterSet();
+    parameters.setParameter(ProjectLoaderParameters.projectFile, projectFile);
+    ProjectOpeningTask task = new ProjectOpeningTask(parameters, Instant.now());
+    task.run();
+
+    // new project created in project opening task
+    final MZmineProject loadedProject = ProjectService.getProject();
+
+    final FeatureList finalFlist = loadedProject.getCurrentFeatureLists().stream()
+        .max(Comparator.comparingInt(fl -> fl.getName().length())).get();
+
+    final File csvExportFile = new File(tempDir,
+        "modular_export_%s_%s.csv".formatted(projectFile.getName(), UUID.randomUUID().toString()));
+
+    final CSVExportModularTask exportTask = new CSVExportModularTask(
+        new ModularFeatureList[]{(ModularFeatureList) finalFlist}, csvExportFile, ",", ";",
+        FeatureListRowsFilter.ALL, true, Instant.now());
+    exportTask.run();
     return csvExportFile;
   }
 }
