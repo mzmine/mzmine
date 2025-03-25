@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,14 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
 import io.github.mzmine.parameters.ParameterComponent;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import java.util.Map;
+import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Basis for parameter components with sub parameters
@@ -36,7 +40,7 @@ import javafx.scene.layout.BorderPane;
  * @param <ValueType> value of parameter
  */
 public abstract class EmbeddedParametersComponent<ValueType> extends BorderPane implements
-    ParameterComponent<ValueType> {
+    ParameterComponent<ValueType>, EmbeddedParameterComponentProvider {
 
   protected ParameterSetupPane paramPane;
 
@@ -54,6 +58,12 @@ public abstract class EmbeddedParametersComponent<ValueType> extends BorderPane 
 
   public ParameterSet updateParametersFromComponent() {
     return getEmbeddedParameters();
+  }
+
+
+  @Override
+  public @Nullable Map<String, Node> getParametersAndComponents() {
+    return paramPane != null ? paramPane.getParametersAndComponents() : null;
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import java.time.Instant;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.Node;
@@ -52,6 +53,7 @@ public class NodeGenerationThread extends AbstractTask {
   private static final Logger logger = Logger.getLogger(NodeGenerationThread.class.getName());
   private final Queue<NodeRequest<?>> nodeRequestQueue = new ConcurrentLinkedQueue<>();
   private final Queue<FinishedNodePair> finishedNodes = new ConcurrentLinkedQueue<>();
+  private final AtomicLong requestedNodesCount = new AtomicLong(0);
   private FeatureList flist;
   private double progress = 0;
 
@@ -63,7 +65,7 @@ public class NodeGenerationThread extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Creating charts for row %d rows".formatted(nodeRequestQueue.size());
+    return "Creating charts for row %d rows".formatted(requestedNodesCount.get());
   }
 
   @Override
@@ -76,59 +78,63 @@ public class NodeGenerationThread extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // if there was no chart request for this time, stop the thread
-    final Timer waitTimer = new Timer(500, () -> setStatus(TaskStatus.CANCELED));
+    final Timer waitTimer = new Timer(500, () -> setStatus(TaskStatus.FINISHED));
 
-    while (getStatus() == TaskStatus.PROCESSING) {
+    try {
+      while (getStatus() == TaskStatus.PROCESSING) {
 
-      final NodeRequest<?> request = nodeRequestQueue.poll();
-      if (request == null || !(request.type() instanceof GraphicalColumType graphicalType)) {
-        try {
-          TimeUnit.MILLISECONDS.sleep(10);
-          waitTimer.tick();
-        } catch (InterruptedException e) {
-          logger.log(Level.WARNING, e.getMessage(), e);
-          setStatus(TaskStatus.CANCELED);
-          return;
-        }
-        continue;
-      }
-
-      // There was a chart requested, so keep going
-      waitTimer.restart();
-
-      var row = request.row();
-      DataType type = request.type();
-      try {
-
-        final Node node = graphicalType.createCellContent(row, request.value(), request.raw(),
-            new AtomicDouble());
-        final Pane parentNode = request.parentNode();
-        finishedNodes.add(new FinishedNodePair(parentNode, node));
-      } catch (Exception e) {
-        // sometimes some exceptions occur during the drawing, catch them here.
-        logger.log(Level.FINE, e.getMessage(), e);
-      }
-
-      final int numFinishedNodes = finishedNodes.size();
-      progress = numFinishedNodes / (double) (numFinishedNodes + nodeRequestQueue.size());
-
-      if ((nodeRequestQueue.isEmpty() && !finishedNodes.isEmpty()) || numFinishedNodes > 10) {
-        FxThread.runLater(() -> {
-          FinishedNodePair pair = null;
-          while ((pair = finishedNodes.poll()) != null) {
-            if (pair.child() == null) {
-              return;
-            }
-
-            try {
-              pair.parent().getChildren().clear();
-              pair.parent().getChildren().add(pair.child());
-            } catch (Exception e) {
-              logger.log(Level.INFO, e.getMessage(), e);
-            }
+        final NodeRequest<?> request = nodeRequestQueue.poll();
+        if (request == null || !(request.type() instanceof GraphicalColumType graphicalType)) {
+          try {
+            TimeUnit.MILLISECONDS.sleep(10);
+            waitTimer.tick();
+          } catch (InterruptedException e) {
+            logger.log(Level.WARNING, e.getMessage(), e);
+            setStatus(TaskStatus.CANCELED);
+            return;
           }
-        });
+          continue;
+        }
+
+        // There was a chart requested, so keep going
+        waitTimer.restart();
+
+        var row = request.row();
+        DataType type = request.type();
+        try {
+
+          final Node node = graphicalType.createCellContent(row, request.value(), request.raw(),
+              new AtomicDouble());
+          final Pane parentNode = request.parentNode();
+          finishedNodes.add(new FinishedNodePair(parentNode, node));
+        } catch (Exception e) {
+          // sometimes some exceptions occur during the drawing, catch them here.
+          logger.log(Level.FINE, e.getMessage(), e);
+        }
+
+        final int numFinishedNodes = finishedNodes.size();
+        progress = numFinishedNodes / (double) (numFinishedNodes + nodeRequestQueue.size());
+
+        if ((nodeRequestQueue.isEmpty() && !finishedNodes.isEmpty()) || numFinishedNodes > 10) {
+          FxThread.runLater(() -> {
+            FinishedNodePair pair = null;
+            while ((pair = finishedNodes.poll()) != null) {
+              if (pair.child() == null) {
+                continue;
+              }
+
+              try {
+                pair.parent().getChildren().clear();
+                pair.parent().getChildren().add(pair.child());
+              } catch (Exception e) {
+                logger.log(Level.INFO, e.getMessage(), e);
+              }
+            }
+          });
+        }
       }
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, ex.getMessage(), ex);
     }
 
     setStatus(TaskStatus.FINISHED);
@@ -137,6 +143,7 @@ public class NodeGenerationThread extends AbstractTask {
   public <T> void requestNode(@NotNull ModularFeatureListRow row, DataType<T> type, T value,
       RawDataFile raw, Pane parentNode) {
     nodeRequestQueue.add(new NodeRequest<>(row, type, value, raw, parentNode));
+    requestedNodesCount.incrementAndGet();
   }
 
   private record FinishedNodePair(Pane parent, Node child) {

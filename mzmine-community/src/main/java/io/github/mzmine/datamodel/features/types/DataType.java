@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +68,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <T>
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public abstract class DataType<T> implements Comparable<DataType> {
+public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSupplier {
 
   private static final Logger logger = Logger.getLogger(DataType.class.getName());
 
@@ -155,6 +156,7 @@ public abstract class DataType<T> implements Comparable<DataType> {
    *
    * @return a unique identifier
    */
+  @Override
   @NotNull
   public abstract String getUniqueID();
 
@@ -355,9 +357,9 @@ public abstract class DataType<T> implements Comparable<DataType> {
    * modified.
    */
   @Nullable
-  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file, @Nullable DataType<?> superType,
-      @Nullable final Object value) {
+  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table,
+      @NotNull ModularFeatureListRow row, @NotNull List<RawDataFile> file,
+      @Nullable DataType<?> superType, @Nullable final Object value) {
     return null;
   }
 

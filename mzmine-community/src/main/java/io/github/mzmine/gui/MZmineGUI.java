@@ -26,19 +26,17 @@
 package io.github.mzmine.gui;
 
 
-import static io.github.mzmine.gui.WindowLocation.TAB;
-import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
-import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
-
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
+import static io.github.mzmine.gui.WindowLocation.TAB;
 import io.github.mzmine.gui.mainwindow.AboutTab;
 import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
+import io.github.mzmine.gui.mainwindow.ProjectTab;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
@@ -55,7 +53,9 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
+import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
@@ -68,6 +68,8 @@ import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
+import io.mzio.mzmine.gui.workspace.Workspace;
+import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.UsersViewState;
 import io.mzio.users.user.CurrentUserService;
@@ -77,6 +79,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -246,6 +249,16 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   }
 
+  /**
+   * Currently the {@link GroupableListView} only allows sorting by name.
+   */
+  public static void sortRawDataFilesAlphabetically(final List<RawDataFile> raws) {
+    if (mainWindowController == null) {
+      return;
+    }
+    FxThread.runLater(() -> mainWindowController.getRawDataList().sortItemObjects(raws));
+  }
+
   @NotNull
   public static List<RawDataFile> getSelectedRawDataFiles() {
     final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
@@ -336,12 +349,12 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         if (WizardSequenceIOUtils.isWizardFile(extension)) {
           boolean result = copyToUserDirectory(selectedFile);
           String resultStr = result ? "succeeded" : "failed";
-          messages.add(STR."Adding wizard file \{selectedFile.getName()} \{resultStr}");
+          messages.add("Adding wizard file %s %s".formatted(selectedFile.getName(), resultStr));
         }
         if (UserAuthStore.isUserFile(extension)) {
           var result = UserAuthStore.copyAddUserFile(selectedFile);
           String resultStr = result ? "succeeded" : "failed";
-          messages.add(STR."Adding user \{selectedFile.getName()} \{resultStr}");
+          messages.add("Adding user %s %s".formatted(selectedFile.getName(), resultStr));
           if (result) {
             askChangeUser(selectedFile.getName());
           }
@@ -360,11 +373,13 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
           logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
+                              + rawDataFiles.stream().map(File::getAbsolutePath)
+                                  .collect(Collectors.joining(", ")));
         }
         if (!libraryFiles.isEmpty()) {
           logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
-              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
+                              + libraryFiles.stream().map(File::getAbsolutePath)
+                                  .collect(Collectors.joining(", ")));
         }
 
         // set raw and library files to parameter
@@ -399,7 +414,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       }
 
       boolean changeUserResult = DialogLoggerUtil.showDialogYesNo("Changing active user",
-          STR."Switch to user \{user.getNickname()}?");
+          "Switch to user %s?".formatted(user.getNickname()));
 
       if (changeUserResult) {
         CurrentUserService.setUser(user);
@@ -543,24 +558,10 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         FxThread.runLater(() -> displayNotification("""
                 Set temp folder to a fast local drive (prefer a public folder over a user folder).
                 mzmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
-                """, "Change", MZmineCore::openTempPreferences,
+                """, "Change", ConfigService::openTempPreferences,
             () -> preferences.setParameter(MZminePreferences.showTempFolderAlert, false)));
       }
     }
-    // update the size and position of the main window
-    /*
-     * ParameterSet paramSet = configuration.getPreferences(); WindowSettingsParameter settings =
-     * paramSet .getParameter(MZminePreferences.windowSetttings);
-     * settings.applySettingsToWindow(desktop.getMainWindow());
-     */
-    // add last project menu items
-    /*
-     * if (desktop instanceof MainWindow) { ((MainWindow) desktop).createLastUsedProjectsMenu(
-     * configuration.getLastProjects()); // listen for changes
-     * configuration.getLastProjectsParameter() .addFileListChangedListener(list -> { // new list of
-     * last used projects Desktop desk = getDesktop(); if (desk instanceof MainWindow) {
-     * ((MainWindow) desk) .createLastUsedProjectsMenu(list); } }); }
-     */
 
     // Activate project - bind it to the desktop's project tree
     MZmineGUI.activateProject(ProjectService.getProject());
@@ -572,7 +573,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     nvcThread.start();
 
     // add global keys that may be added to other dialogs to receive the same key event handling
-    rootScene.addEventFilter(KeyEvent.KEY_PRESSED, GlobalKeyHandler.getInstance());
+    // key typed does not work
+    // using EventFilter instead of handler as this is a top level to get all events
+    rootScene.addEventFilter(KeyEvent.KEY_RELEASED, GlobalKeyHandler.getInstance());
 
     // register shutdown hook only if we have GUI - we don't want to
     // save configuration on exit if we only run a batch
@@ -746,7 +749,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   @Override
   public FeatureList[] getSelectedPeakLists() {
-    return getSelectedFeatureLists().toArray(new FeatureList[0]);
+    return getSelectedFeatureLists().stream().distinct().toArray(FeatureList[]::new);
   }
 
   @Override
@@ -866,5 +869,17 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       logger.log(Level.WARNING, e.getMessage(), e);
     }
     return ButtonType.NO;
+  }
+
+  public ProjectTab getSelectedProjectTab() {
+    return mainWindowController.getSelectedProjectTab();
+  }
+
+  public void setWorkspace(@NotNull Workspace workspace, @NotNull EnumSet<WorkspaceTags> tags) {
+    mainWindowController.setActiveWorkspace(workspace, tags);
+  }
+
+  public Workspace getActiveWorkspace() {
+    return mainWindowController.getActiveWorkspace();
   }
 }

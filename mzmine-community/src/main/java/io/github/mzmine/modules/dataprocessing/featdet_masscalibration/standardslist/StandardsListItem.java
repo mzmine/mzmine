@@ -52,6 +52,16 @@ public class StandardsListItem {
     this.mzRatio = mzRatio;
   }
 
+  public StandardsListItem(String formula, float rt, Double mzRatio) {
+    this.molecularFormula = formula;
+    this.retentionTime = rt;
+    if (mzRatio != null) {
+      this.mzRatio = mzRatio;
+    } else {
+      this.mzRatio = FormulaUtils.calculateMzRatio(molecularFormula);
+    }
+  }
+
   @Override
   public String toString() {
     return "StandardsListItem: " + molecularFormula + " " + name + " " + retentionTime + "rt " + mzRatio + "mz";

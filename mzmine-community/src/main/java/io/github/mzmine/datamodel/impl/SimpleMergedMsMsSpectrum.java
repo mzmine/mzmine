@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,16 +25,16 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
-import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.maths.CenterFunction;
@@ -90,7 +90,7 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
    *                      from.
    * @return The loaded spectrum.
    */
-  public static SimpleMergedMsMsSpectrum loadFromXML(XMLStreamReader reader, IMSRawDataFile file,
+  public static SimpleMergedMsMsSpectrum loadFromXML(XMLStreamReader reader, RawDataFile file,
       Collection<RawDataFile> possibleFiles) throws XMLStreamException {
     if (!reader.isStartElement() || !reader.getLocalName().equals(Scan.XML_SCAN_ELEMENT)
         || !reader.getAttributeValue(null, Scan.XML_SCAN_TYPE_ATTR).equals(XML_SCAN_TYPE)) {
@@ -98,15 +98,16 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     }
 
     final int mslevel = Integer.parseInt(reader.getAttributeValue(null, CONST.XML_MSLEVEL_ATTR));
-    final IntensityMergingType type = IntensityMergingType.valueOf(
-        reader.getAttributeValue(null, CONST.XML_INTENSITY_MERGE_TYPE_ATTR));
+    final IntensityMergingType type = IntensityMergingType.parseOrElse(
+        reader.getAttributeValue(null, CONST.XML_INTENSITY_MERGE_TYPE_ATTR), null);
     String mergingType = reader.getAttributeValue(null, CONST.XML_MERGE_TYPE_ATTR);
-    final MergingType mergeSpecType = mergingType == null ? null : MergingType.valueOf(mergingType);
+    final MergingType mergeSpecType =
+        mergingType == null ? null : MergingType.parseOrElse(mergingType, MergingType.UNKNOWN);
     assert file.getName().equals(reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT));
 
     double[] mzs = null;
     double[] intensties = null;
-    List<MobilityScan> scans = new ArrayList<>();
+    List<Scan> scans = new ArrayList<>();
     MsMsInfo info = null;
     MassList ml = null; // only saved if its not a ScanPointerMassList
 
@@ -119,30 +120,35 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
         continue;
       }
       switch (reader.getLocalName()) {
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensties = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensties = ParsingUtils.stringToDoubleArray(reader.getElementText());
         case CONST.XML_SCAN_LIST_ELEMENT -> {
           final String fileName = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
           // for old projects assume that the MS2 file is the default file and fall back to that.
           // For new projects it's a random file of the merged MS2 spectra.
           final String finalFileName = fileName != null ? fileName : file.getName();
-          final IMSRawDataFile specificFile = (IMSRawDataFile) possibleFiles.stream().filter(f -> f.getName().equals(finalFileName) && file instanceof IMSRawDataFile)
-              .findFirst().orElse(null);
+
+          final RawDataFile specificFile = possibleFiles.stream()
+              .filter(f -> f.getName().equals(finalFileName)).findFirst().orElse(null);
           if (specificFile == null) {
             throw new IllegalArgumentException(
-                "Raw file with name '%s' not present or is not an IMS file. Cannot load merged MS2 spectrum.".formatted(
+                "Raw file with name '%s' not present. Cannot load merged MS2 spectrum.".formatted(
                     fileName));
           }
-          final List<MobilityScan> tempScans = ParsingUtils.stringToMobilityScanList(reader.getElementText(), specificFile);
+          final List<Scan> tempScans = ParsingUtils.stringToScanList(reader.getElementText(),
+              specificFile);
           if (tempScans == null) {
             throw new IllegalStateException(
-                "Could not load MS2 mobility scans in MergedMsMsSpectrum, did not find specified mobility scans.");
+                "Could not load MS2 scans in MergedMsMsSpectrum, did not find specified scans.");
           }
           scans.addAll(tempScans);
         }
         // the file has already been determined before
         case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file, List.of(file));
-        case SimpleMassList.XML_ELEMENT -> SimpleMassList.loadFromXML(reader, file.getMemoryMapStorage());
+        case SimpleMassList.XML_ELEMENT ->
+            SimpleMassList.loadFromXML(reader, file.getMemoryMapStorage());
       }
     }
 
@@ -170,13 +176,30 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
 
   @Override
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    // in case we have a PseudoSpectrum in our source spectra, we save as a PseudoSpectrum, because
+    // we cannot point to the actual spectra in the raw file (PseudoSpectra do not exist in the raw,
+    // but are, e.g., generated by peak shape correlation
+    if (getSourceSpectra().stream().anyMatch(PseudoSpectrum.class::isInstance)) {
+      final PseudoSpectrum pseudo = getSourceSpectra().stream()
+          .filter(PseudoSpectrum.class::isInstance).map(PseudoSpectrum.class::cast).findFirst()
+          .get();
+
+      final SimplePseudoSpectrum spectrum = new SimplePseudoSpectrum(getDataFile(), getMSLevel(),
+          getRetentionTime(), null, DataPointUtils.getDoubleBufferAsArray(getMzValues()),
+          DataPointUtils.getDoubleBufferAsArray(getIntensityValues()), getPolarity(),
+          getScanDefinition(), pseudo.getPseudoSpectrumType());
+      spectrum.saveToXML(writer);
+      return;
+    }
+
     writer.writeStartElement(Scan.XML_SCAN_ELEMENT);
     writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleMergedMsMsSpectrum.XML_SCAN_TYPE);
 
     writer.writeAttribute(CONST.XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
-    writer.writeAttribute(CONST.XML_MERGE_TYPE_ATTR, getMergingType().name());
+    writer.writeAttribute(CONST.XML_MERGE_TYPE_ATTR, getMergingType().getUniqueID());
     writer.writeAttribute(CONST.XML_CE_ATTR, String.valueOf(getCollisionEnergy()));
-    writer.writeAttribute(CONST.XML_INTENSITY_MERGE_TYPE_ATTR, getIntensityMergingType().name());
+    writer.writeAttribute(CONST.XML_INTENSITY_MERGE_TYPE_ATTR,
+        getIntensityMergingType().getUniqueID());
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
 
     if (msMsInfo != null) {
@@ -191,18 +214,14 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     writer.writeCharacters(ParsingUtils.doubleBufferToString(getIntensityValues()));
     writer.writeEndElement();
 
-    List<MobilityScan> mobilityScans = getSourceSpectra().stream()
-        .<MobilityScan>mapMulti((s, c) -> {
-          if (s instanceof MobilityScan) {
-            c.accept((MobilityScan) s);
-          }
-        }).toList();
-
+    // in theory, it is possible that a lc-ms file was aligned to a lc-ims-ms file, which were then
+    // merged to get a spectral library match. Grouping scans by file should solve this
+    // --
     // mobility scans from multiple files may be merged into a single merged msms spectrum, in case
     // of MALDI (SIMSEF) acquisitions. Account for that here by grouping scans per file and saving
     // all scans individually. Introduced as of version 3.6.
-    final Map<RawDataFile, String> fileScansMap = ParsingUtils.mobilityScanListToStrings(
-        mobilityScans);
+    final Map<RawDataFile, String> fileScansMap = ParsingUtils.scanListToStrings(
+        getSourceSpectra().stream().filter(s -> s instanceof Scan).map(s -> (Scan) s).toList());
     for (Entry<RawDataFile, String> fileScanEntry : fileScansMap.entrySet()) {
       writer.writeStartElement(CONST.XML_SCAN_LIST_ELEMENT);
       writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, fileScanEntry.getKey().getName());

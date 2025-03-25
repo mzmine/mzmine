@@ -29,13 +29,16 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
@@ -45,6 +48,7 @@ import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ucar.ma2.Array;
 import ucar.ma2.Index;
 import ucar.ma2.IndexIterator;
@@ -55,7 +59,7 @@ import ucar.nc2.Variable;
 /**
  *
  */
-public class NetCDFImportTask extends AbstractTask {
+public class NetCDFImportTask extends AbstractTask implements RawDataImportTask {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -79,13 +83,14 @@ public class NetCDFImportTask extends AbstractTask {
   private double massValueScaleFactor = 1;
   private double intensityValueScaleFactor = 1;
 
-  public NetCDFImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+  public NetCDFImportTask(MZmineProject project, File fileToOpen,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // storage in raw data file
+      @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage) {
+    super(storage, moduleCallDate);
     this.project = project;
     this.file = fileToOpen;
-    this.newMZmineFile = newMZmineFile;
+    this.newMZmineFile = new RawDataFileImpl(file.getName(), file.getAbsolutePath(),
+        getMemoryMapStorage());
     this.parameters = parameters;
     this.module = module;
   }
@@ -452,4 +457,8 @@ public class NetCDFImportTask extends AbstractTask {
 
   }
 
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  }
 }

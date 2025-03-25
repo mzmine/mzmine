@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,20 +26,23 @@
 package io.github.mzmine.modules.visualization.pseudospectrumvisualizer;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
-import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.IsolationWindow;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -51,6 +54,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javafx.scene.paint.Color;
+import org.jetbrains.annotations.Nullable;
 
 class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
 
@@ -59,16 +64,21 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
   private final Scan pseudoScan;
   private final ModularFeature feature;
   private final MZTolerance mzTolerance;
+  @Nullable
+  private final Color featureColor;
   private ExtractMzRangesIonSeriesFunction extractFunction;
 
+
   PseudoSpectrumFeatureDataSetCalculationTask(RawDataFile dataFile, TICPlot chromPlot,
-      Scan pseudoScan, ModularFeature feature, MZTolerance mzTolerance) {
+      Scan pseudoScan, ModularFeature feature, MZTolerance mzTolerance,
+      @Nullable Color featureColor) {
     super(null, Instant.now());
     this.dataFile = dataFile;
     this.chromPlot = chromPlot;
     this.pseudoScan = pseudoScan;
     this.feature = feature;
     this.mzTolerance = mzTolerance;
+    this.featureColor = featureColor;
   }
 
   @Override
@@ -86,9 +96,6 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    ModularFeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode(),
-        null, dataFile);
-
     if (getStatus() == TaskStatus.CANCELED) {
       return;
     }
@@ -97,7 +104,29 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
     final ScanSelection selection = new ScanSelection(pseudoScan.getMSLevel(), featureRtRange);
 
     // use scans from feature list
-    List<Scan> scans = selection.streamMatchingScans(dataFile).toList();
+    List<Scan> scans = selection.streamMatchingScans(dataFile).<Scan>mapMulti((scan, c) -> {
+      // MS1 like GC-EI-MS
+      if (scan.getMSLevel() == 1) {
+        c.accept(scan);
+        return;
+      }
+
+      // SWATH / DIA PASEF etc
+      switch (scan) {
+        case Frame frame -> {
+          frame.getImsMsMsInfos().stream().map(IsolationWindow::new)
+              .filter(w -> w.contains(feature)).findAny().ifPresent(_ -> c.accept(frame));
+        }
+        default -> {
+          final MsMsInfo msMsInfo = scan.getMsMsInfo();
+          if (msMsInfo != null && msMsInfo.getIsolationWindow() != null
+              && msMsInfo.getIsolationWindow().contains(feature.getMZ())) {
+            c.accept(scan);
+          }
+        }
+      }
+    }).toList();
+
     if (scans.isEmpty()) {
       setErrorMessage(
           "scans were empty in the given RT range of feature " + FeatureUtils.featureToString(
@@ -120,18 +149,22 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
       return;
     }
 
-    var format = MZmineCore.getConfiguration().getGuiFormats();
+    var format = ConfigService.getConfiguration().getGuiFormats();
 
     List<ColoredXYDataset> datasets = new ArrayList<>();
+
+    var nextColor = featureColor != null ? featureColor
+        : (feature.getRawDataFile() != null && feature.getRawDataFile().getColor() != null)
+            ? feature.getRawDataFile().getColor()
+            : ConfigService.getConfiguration().getDefaultColorPalette().getNextColor();
 
     for (int i = 0; i < ionSeries.length; i++) {
       var builder = ionSeries[i];
       double mz = RangeUtils.rangeCenter(mzRangesSorted.get(i));
-      var nextColorAWT = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
 
       IonTimeSeries<? extends Scan> series = builder.toFullIonTimeSeries(null, scans);
       datasets.add(
-          new ColoredXYDataset(new IonTimeSeriesToXYProvider(series, format.mz(mz), nextColorAWT),
+          new ColoredXYDataset(new IonTimeSeriesToXYProvider(series, format.mz(mz), nextColor),
               RunOption.THIS_THREAD));
     }
 
@@ -139,14 +172,24 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
       if (getStatus() == TaskStatus.CANCELED) {
         return;
       }
-      chromPlot.removeAllFeatureDataSets(false);
-      chromPlot.addFeatureDataSetRandomColor(new FeatureDataSet(feature));
+      chromPlot.applyWithNotifyChanges(false, () -> {
 
-      for (var dataset : datasets) {
-        chromPlot.addDataSet(dataset);
-      }
+        chromPlot.removeAllFeatureDataSets(false);
+
+        //Build feature dataset
+        IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
+        ColoredXYDataset featureDataSet = new ColoredXYDataset(
+            new IonTimeSeriesToXYProvider(featureData, format.mz(feature.getMZ()), nextColor),
+            RunOption.THIS_THREAD);
+        chromPlot.addDataSetAndRenderer(featureDataSet, new ColoredAreaShapeRenderer());
+
+        // add other EICs
+        for (var dataset : datasets) {
+          chromPlot.addDataSetAndRenderer(dataset, new ColoredXYLineRenderer());
+        }
+
+      });
     });
-
     setStatus(TaskStatus.FINISHED);
   }
 }

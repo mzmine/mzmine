@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
@@ -42,6 +43,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -55,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
 public interface FeatureListRow extends ModularDataModel {
 
   /**
-   * Return raw data with features on this row
+   * Return unmodifiable list of all raw data files in this feature list even those without detection in this row
    */
   List<RawDataFile> getRawDataFiles();
 
@@ -102,6 +104,22 @@ public interface FeatureListRow extends ModularDataModel {
 
 
   /**
+   * Remove all features from this row
+   *
+   * @param updateByRowBindings updates values by row bindings if true. In case multiple feature
+   *                            add/remove operations are done, this option may be set to false.
+   *                            Remember to call {@link #applyRowBindings()}.
+   */
+  void clearFeatures(boolean updateByRowBindings);
+
+  /**
+   * Remove all features from this row
+   */
+  default void clearFeatures() {
+    clearFeatures(true);
+  }
+
+  /**
    * apply row bindings of the feature list (if available) to this row
    */
   default void applyRowBindings() {
@@ -114,7 +132,18 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Remove a feature
    */
-  void removeFeature(RawDataFile file);
+  default void removeFeature(RawDataFile file) {
+    removeFeature(file, true);
+  }
+
+  /**
+   * Remove a features from this row
+   *
+   * @param updateByRowBindings updates values by row bindings if true. In case multiple feature
+   *                            add/remove operations are done, this option may be set to false.
+   *                            Remember to call {@link #applyRowBindings()}.
+   */
+  void removeFeature(RawDataFile file, boolean updateByRowBindings);
 
   /**
    * Has a feature?
@@ -284,9 +313,7 @@ public interface FeatureListRow extends ModularDataModel {
    */
   IsotopePattern getBestIsotopePattern();
 
-  @Nullable FeatureList getFeatureList();
-
-  void setFeatureList(@NotNull FeatureList flist);
+  @NotNull FeatureList getFeatureList();
 
   /**
    * @return A list of all compound annotations.
@@ -448,9 +475,9 @@ public interface FeatureListRow extends ModularDataModel {
    * @return true if this row has at least 1 MS2 spectrum
    */
   default boolean hasMs2Fragmentation() {
-    // should be faster. Best fragmentation loops through all spectra to find best
-    final List<Scan> ms2 = getAllFragmentScans();
-    return ms2 != null && !ms2.isEmpty();
+    // should be faster. Best fragmentation loops through all spectra to find best  
+    // all fragment scans copies from all features
+    return streamFeatures().anyMatch(Feature::hasMs2Fragmentation);
   }
 
   /**
@@ -523,4 +550,18 @@ public interface FeatureListRow extends ModularDataModel {
    * @return preferred compound name
    */
   @Nullable String getPreferredAnnotationName();
+
+  /**
+   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()}.
+   */
+  @Nullable
+  default PolarityType getRepresentativePolarity() {
+    final Feature bestFeature = getBestFeature();
+    if (bestFeature != null && bestFeature.getRepresentativePolarity() != null) {
+      return bestFeature.getRepresentativePolarity();
+    }
+    return streamFeatures().sorted(Comparator.comparingDouble(Feature::getHeight).reversed())
+        .map(Feature::getRepresentativePolarity).filter(Objects::nonNull).findFirst().orElse(null);
+  }
+
 }

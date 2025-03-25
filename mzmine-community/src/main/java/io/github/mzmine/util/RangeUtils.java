@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.util;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import io.github.mzmine.util.maths.ArithmeticUtils;
+import io.github.mzmine.util.maths.Precision;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -126,7 +127,7 @@ public class RangeUtils {
    * @param range Range
    * @return Range length
    */
-  public static <N extends Number & Comparable<N>> N rangeLength(Range<N> range) {
+  public static <N extends Number & Comparable<?>> N rangeLength(Range<N> range) {
     return ArithmeticUtils.subtract(range.upperEndpoint(), range.lowerEndpoint());
   }
 
@@ -269,8 +270,17 @@ public class RangeUtils {
     if (jfreeRange == null || guavaRange == null) {
       return false;
     }
-    return jfreeRange.contains(guavaRange.lowerEndpoint().doubleValue()) || jfreeRange.contains(
-        guavaRange.upperEndpoint().doubleValue());
+    return Range.closed(jfreeRange.getLowerBound(), jfreeRange.getUpperBound()).isConnected(
+        Range.closed(guavaRange.lowerEndpoint().doubleValue(),
+            guavaRange.upperEndpoint().doubleValue()));
+  }
+
+  public static boolean isDefaultJFreeRange(org.jfree.data.Range jfreeRange) {
+    if (Precision.equals(0d, jfreeRange.getLowerBound(), 0.0001d) && Precision.equals(1d,
+        jfreeRange.getUpperBound(), 0.1d)) {
+      return true;
+    }
+    return false;
   }
 
   public static boolean isJFreeRangeEnclosingGuavaRange(org.jfree.data.Range jfreeRange,
@@ -380,5 +390,19 @@ public class RangeUtils {
    */
   public static boolean isBounded(final @Nullable Range<? extends Number> range) {
     return !isNullOrUnbounded(range);
+  }
+
+  /**
+   * return The wider range (determined by {@link RangeUtils#rangeLength(Range)}.
+   */
+  public static <T extends Number & Comparable<?>> Range<T> max(Range<T> a, Range<T> b) {
+    return rangeLength(a).doubleValue() > rangeLength(b).doubleValue() ? a : b;
+  }
+
+  /**
+   * @return The smaller range (determined by {@link RangeUtils#rangeLength(Range)}.
+   */
+  public static <T extends Number & Comparable<?>> Range<T> min(Range<T> a, Range<T> b) {
+    return rangeLength(a).doubleValue() < rangeLength(b).doubleValue() ? a : b;
   }
 }

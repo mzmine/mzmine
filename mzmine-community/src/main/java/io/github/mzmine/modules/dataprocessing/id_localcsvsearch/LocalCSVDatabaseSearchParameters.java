@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,14 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.MolecularClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -96,15 +103,17 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Use adducts",
       "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
       EmbeddedComponentOptions.VIEW_IN_WINDOW,
-      (IonLibraryParameterSet) new IonLibraryParameterSet().cloneParameterSet());
+      (IonLibraryParameterSet) new IonLibraryParameterSet());
   public static final OptionalModuleParameter<IsotopePatternMatcherParameters> isotopePatternMatcher = new OptionalModuleParameter<>(
       "Use isotope matcher",
       "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
-      (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters().cloneParameterSet());
-  private static final List<ImportType> importTypes = List.of(
+      (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters());
+
+  public static final List<ImportType> importTypes = List.of(
       new ImportType(true, "neutral_mass", new NeutralMassType()),
       new ImportType(true, "mz", new PrecursorMZType()), //
-      new ImportType(true, "rt", new RTType()), new ImportType(true, "formula", new FormulaType()),
+      new ImportType(true, "rt", new RTType()), //
+      new ImportType(true, "formula", new FormulaType()),
       new ImportType(true, "smiles", new SmilesStructureType()),
       new ImportType(false, "inchi", new InChIStructureType()),
       new ImportType(false, "inchi_key", new InChIKeyStructureType()),
@@ -114,7 +123,14 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(true, "comment", new CommentType()),
       new ImportType(false, "adduct", new IonTypeType()),
       new ImportType(false, "PubChemCID", new PubChemIdType()),
-      new ImportType(false, "molecular_class", new MolecularClassType()));
+      new ImportType(false, "molecular_class", new MolecularClassType()),
+      new ImportType(false, "classyfire_superclass", new ClassyFireSuperclassType()),
+      new ImportType(false, "classyfire_class", new ClassyFireClassType()),
+      new ImportType(false, "classyfire_subclass", new ClassyFireSubclassType()),
+      new ImportType(false, "classyfire_direct_parent", new ClassyFireParentType()),
+      new ImportType(false, "npclassifier_superclass", new NPClassifierSuperclassType()),
+      new ImportType(false, "npclassifier_class", new NPClassifierClassType()),
+      new ImportType(false, "npclassifier_pathway", new NPClassifierPathwayType()));
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);

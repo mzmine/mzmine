@@ -39,7 +39,7 @@ public class MultidetectorVisualizerModule extends AbstractRunnableModule {
 
   public MultidetectorVisualizerModule() {
     super("Multi detector visualizer", MultidetectorVisualizerParameters.class,
-        MZmineModuleCategory.VISUALIZATION_RAW_AND_FEATURE,
+        MZmineModuleCategory.VISUALIZATION_OTHER_DATA,
         "Visualize chromatograms of other detectors.");
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,42 +24,48 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.javafx.components.factories.FxTextFields;
+import io.github.mzmine.javafx.components.formatters.FormatDoubleStringConverter;
+import io.github.mzmine.parameters.ValuePropertyComponent;
 import java.text.NumberFormat;
+import java.util.logging.Logger;
+import javafx.beans.property.Property;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
-import javafx.util.converter.NumberStringConverter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class DoubleComponent extends FlowPane {
+public class DoubleComponent extends FlowPane implements ValuePropertyComponent<Double> {
 
+  private static final Logger logger = Logger.getLogger(DoubleComponent.class.getName());
   private final Double minimum;
   private final Double maximum;
   private final TextField textField;
+  private final TextFormatter<Double> textFormatter;
 
-  public DoubleComponent(int inputsize, Double minimum, Double maximum, NumberFormat format, Double defvalue) {
+  public DoubleComponent(int inputsize, @Nullable Double minimum, @Nullable Double maximum,
+      @NotNull NumberFormat format, @Nullable Double defvalue) {
     this.minimum = minimum;
     this.maximum = maximum;
 
     textField = new TextField();
-    textField.setTextFormatter(new TextFormatter<>(new NumberStringConverter(format)));
-    textField.setPrefWidth(inputsize);
-    textField.setText(String.valueOf(defvalue)); // why not format.format(defValue)?
+    textFormatter = new TextFormatter<>(new FormatDoubleStringConverter(format));
+    FxTextFields.attachDelayedTextFormatter(textField, textFormatter);
 
-    // Add an input verifier if any bounds are specified.
-    if (minimum != null || maximum != null) {
-      // textField.setInputVerifier(new MinMaxVerifier());
-    }
+    textField.setPrefWidth(inputsize);
+    textFormatter.setValue(defvalue);
 
     getChildren().add(textField);
   }
 
-  public void setText(String text) {
-    textField.setText(text);
-  }
-
   public String getText() {
     return textField.getText().trim();
+  }
+
+  public void setText(String text) {
+    textField.setText(text);
   }
 
   public void setToolTipText(String toolTip) {
@@ -94,9 +100,13 @@ public class DoubleComponent extends FlowPane {
    *
    * // Not a number. } return verified; } }
    */
-
   public TextField getTextField() {
     return textField;
+  }
+
+  @Override
+  public Property<Double> valueProperty() {
+    return textFormatter.valueProperty();
   }
 
   /*

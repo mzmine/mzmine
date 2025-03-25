@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
@@ -202,12 +203,12 @@ public class MZmineProjectImpl implements MZmineProject {
       if (names.contains(name)) {
         if (!MZmineCore.isHeadLessMode()) {
           MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
-              + " because a file with the same name already exists in the project. Please copy "
-              + "the file and rename it, if you want to import it twice.");
+                                                      + " because a file with the same name already exists in the project. Please copy "
+                                                      + "the file and rename it, if you want to import it twice.");
         }
         logger.warning(
             "Cannot add file with an original name that already exists in project. (filename="
-                + newFile.getName() + ")");
+            + newFile.getName() + ")");
         return;
       }
 
@@ -269,7 +270,11 @@ public class MZmineProjectImpl implements MZmineProject {
         featureList.setName(getUniqueName(featureList.getName(), names));
       }
       featureLists.add(featureList);
+      logger.finer(
+          "Added feature list with %d rows named: %s".formatted(featureList.getNumberOfRows(),
+              featureList.getName()));
       fireFeatureListsChangeEvent(List.of(featureList), Type.ADDED);
+
     } finally {
       featureLock.writeLock().unlock();
     }
@@ -309,11 +314,12 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public @Nullable RawDataFile getDataFileByName(@Nullable String name) {
-    if (name == null) {
+    if (StringUtils.isBlank(name)) {
       return null;
     }
     try {
       rawLock.readLock().lock();
+      name = name.trim();
       for (final RawDataFile raw : rawDataFiles) {
         if (name.equalsIgnoreCase(raw.getName()) || name.equalsIgnoreCase(
             FileAndPathUtil.eraseFormat(raw.getName()))) {
@@ -441,6 +447,15 @@ public class MZmineProjectImpl implements MZmineProject {
     synchronized (spectralLibraries) {
       spectralLibraries.removeAll(library);
       fireLibrariesChangeEvent(List.of(library), Type.REMOVED);
+    }
+  }
+
+  @Override
+  public void clearSpectralLibrary() {
+    synchronized (spectralLibraries) {
+      final List<SpectralLibrary> removed = List.copyOf(spectralLibraries);
+      spectralLibraries.clear();
+      fireLibrariesChangeEvent(removed, Type.REMOVED);
     }
   }
 

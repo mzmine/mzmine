@@ -1,0 +1,136 @@
+/*
+ * Copyright (c) 2004-2024 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/**
+Taken from https://github.com/JabRef/jabref
+Taken from https://docs.jabref.org/advanced/custom-themes
+*/
+
+.root {
+    -jr-theme: #3391C1;
+    -jr-accent: #156CA2;
+    -jr-accent-below-text: #1e425d;
+    /*-jr-theme: #1982C4;*/
+    /*-jr-accent: #156CA2;*/
+    -jr-selected: -jr-accent;
+    -jr-hover: #fff1;
+
+
+    -jr-red: #b71c1f;
+    -jr-light-red: #db1d2b;
+    -jr-green: #1cb631;
+    -jr-light-green: #28d93c;
+    -jr-blue: #2c2cb7;
+    -jr-light-blue: #3a3ad9;
+    -jr-purple: #b72486;
+    -jr-light-purple: #d927a8;
+    -jr-yellow: #b5b021;
+    -jr-orange: #b77620;
+
+    -jr-base: #202020;
+
+    -jr-background-alt: #242424;
+    -jr-menu-background: -jr-base;
+    -jr-toolbar: -jr-menu-background;
+    -jr-sidepane-background: #303030;
+    -jr-search-background: #2c2e3b;
+
+    -jr-sidepane-header-background: -jr-background-alt;
+    -jr-group-hits-bg: -jr-background-alt;
+    -jr-group-hits-fg: -fx-light-text-color;
+    -fx-control-inner-background: #303030;
+
+    -fx-control-inner-background-alt: -fx-control-inner-background;
+
+    -fx-dark-text-color: black;
+/*  -fx-mid-text-color: #7d8591;*/
+    -fx-mid-text-color: white;
+/*  -fx-light-text-color: #9aa3af;*/
+    -fx-light-text-color: white;
+    -jr-separator: #444444;
+    -fx-outer-border: #424758;
+
+    -jr-icon: -fx-light-text-color;
+    -jr-icon-active: derive(-fx-light-text-color, 50%);
+    -jr-icon-background-active: -jr-hover;
+    -jr-icon-background-armed: #fff2;
+
+    -jr-menu-foreground: -fx-light-text-color;
+    -jr-menu-item-foreground: -fx-light-text-color;
+    -jr-menu-forground-active: derive(-fx-light-text-color, 50%);
+
+    -jr-scrollbar-thumb: -fx-light-text-color;
+    -jr-scrollbar-track: derive(-fx-control-inner-background, -90%);
+
+    -fx-focused-text-base-color: -fx-dark-text-color;
+
+    -jr-tooltip-fg: derive(-fx-light-text-color, 50%);
+
+    -jr-drag-target: -jr-accent;
+    -jr-drag-target-hover: -jr-accent;
+}
+
+.region-match-chart-bg, .tool-bar, .status-bar {
+  -fx-background-color: -jr-menu-background;
+}
+
+#previewBody {
+    background-color: #382b38; /* -fx-control-inner-background*/
+    color: white;
+}
+
+.table-view .groupColumnBackground {
+    -fx-stroke: -jr-gray-3;
+}
+
+.code-area .lineno {
+    -fx-background-color: -jr-background-alt;
+    -fx-text-fill: -fx-mid-text-color;
+}
+
+.text-unchanged {
+    -fx-fill: -fx-light-text-color;
+}
+
+.radio-button > .radio {
+    -fx-background-color: -fx-light-text-color, -fx-control-inner-background;
+}
+
+.numberColumn > .hits:any-selected {
+    -fx-background-color: derive(-jr-gray-3, 70%);
+}
+
+.numberColumn > .hits:all-selected {
+    -fx-background-color: -jr-gray-3;
+}
+
+#preferencesContainer .tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: -jr-background;
+}
+
+/* Biblatex Source Code */
+.code-area .text {
+    -fx-font-family: monospace;
+}

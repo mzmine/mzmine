@@ -56,8 +56,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -70,7 +68,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.stage.FileChooser;
-import org.apache.commons.io.FileUtils;
 
 /**
  * The controller class for MainMenu.fxml
@@ -94,7 +91,7 @@ public class MainMenuController {
     CurrentUserService.subscribe(user -> currentUser.set(user));
     itemRemoveUser.disableProperty().bind(currentUser.map(Objects::isNull));
     itemRemoveUser.textProperty().bind(
-        currentUser.map(user -> STR."Remove user \{user.getNickname()} from local system")
+        currentUser.map(user -> "Remove user %s from local system".formatted(user.getNickname()))
             .orElse("Remove user"));
   }
 
@@ -108,22 +105,13 @@ public class MainMenuController {
 
 
   public void handleShowLogFile(Event event) {
-
-    /*
-     * There doesn't seem to be any way to obtain the log file name from the logging FileHandler, so
-     * it is hard-coded here for now
-     */
-    final Path logFilePath = Paths.get(
-        FileUtils.getUserDirectory() + File.separator + "mzmine_0_0.log");
-
+    final File logFile = ConfigService.getConfiguration().getLogFile();
     try {
       MZmineDesktop gui = MZmineCore.getDesktop();
-      gui.openWebPage(logFilePath.toUri().toURL());
+      gui.openWebPage(logFile.toPath().toUri().toURL());
     } catch (MalformedURLException e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, "Opening log file failed: " + logFile.getAbsolutePath(), e);
     }
-
-
   }
 
   public void openLink(Event event) {
@@ -306,7 +294,6 @@ public class MainMenuController {
         return;
       }
       ConfigService.getConfiguration().loadConfiguration(file, true);
-      ConfigService.getPreferences().applyConfig();
 
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot save config", ex);

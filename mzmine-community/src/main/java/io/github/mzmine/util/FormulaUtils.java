@@ -25,12 +25,16 @@
 
 package io.github.mzmine.util;
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.identities.IonUtils;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +43,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import static java.util.Objects.requireNonNullElse;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -328,8 +333,13 @@ public class FormulaUtils {
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
     IMolecularFormula molFormula;
 
-    molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
-    if (molFormula == null) {
+    try {
+      molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
+      if (molFormula == null) {
+        return false;
+      }
+    } catch (RuntimeException e) {
+      logger.info("Cannot parse formula " + formula);
       return false;
     }
 
@@ -840,6 +850,18 @@ public class FormulaUtils {
     IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(
         annotation.getFormula());
     assert molecularFormula != null;
+
+    if (annotation.getAdductType() == null && annotation instanceof CompoundDBAnnotation c
+        && annotation.getPrecursorMZ() != null && c.get(
+        NeutralMassType.class) instanceof Double neutralMass) {
+      final IonModification mod = IonModification.getBestIonModification(neutralMass,
+          annotation.getPrecursorMZ(), MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, null);
+      c.put(IonTypeType.class, new IonType(mod));
+    }
+
+    if (annotation.getAdductType() == null) {
+      return null;
+    }
     try {
       // ionize formula
       // considering both 2M etc

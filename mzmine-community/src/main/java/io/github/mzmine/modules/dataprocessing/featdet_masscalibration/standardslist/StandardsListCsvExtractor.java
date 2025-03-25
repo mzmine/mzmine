@@ -44,6 +44,7 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
   protected static final int retentionTimeColumn = 0;
   protected static final int ionFormulaColumn = 1;
   protected static final int nameColumn = 2;
+  protected static final int mzColumn = 3;
 
   protected Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -74,31 +75,34 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
       logger.fine("Using cached list");
       return new StandardsList(this.extractedData);
     }
-    this.extractedData = new ArrayList<StandardsListItem>();
+    this.extractedData = new ArrayList<>();
+    final List<String[]> lines = CSVParsingUtils.readDataAutoSeparator(new File(filename));
 
-    List<String[]> lines = CSVParsingUtils.readData(new File(filename), ";");
     for (String[] lineValues : lines) {
       try {
         String retentionTimeString = lineValues[retentionTimeColumn];
         String molecularFormula = lineValues[ionFormulaColumn];
         String name = nameColumn < lineValues.length ? lineValues[nameColumn] : null;
+        String mzStr = mzColumn < lineValues.length ? lineValues[mzColumn] : null;
         float retentionTime = (float) Double.parseDouble(retentionTimeString);
-        StandardsListItem calibrant = new StandardsListItem(molecularFormula, retentionTime);
+        Double mz = mzStr != null ? Double.parseDouble(mzStr) : null;
+        StandardsListItem calibrant = new StandardsListItem(molecularFormula, retentionTime, mz);
         if (name != null && name.trim().isEmpty() == false) {
           calibrant.setName(name);
         }
         extractedData.add(calibrant);
       } catch (Exception e) {
-        logger.fine(STR."Exception occurred when reading row index \{lines.indexOf(lineValues)}");
+        logger.fine(
+            "Exception occurred when reading row index %d".formatted(lines.indexOf(lineValues)));
         logger.fine(e.toString());
       }
     }
 
-    logger.info(
-        STR."Extracted \{extractedData.size()} standard molecules from \{lines.size()} rows");
+    logger.info("Extracted %d standard molecules from %d rows".formatted(extractedData.size(),
+        lines.size()));
     if (extractedData.size() < lines.size()) {
-      logger.warning(STR."Skipped \{lines.size()
-          - extractedData.size()} rows when reading standards list in csv file \{filename}");
+      logger.warning("Skipped %d rows when reading standards list in csv file %s".formatted(
+          lines.size() - extractedData.size(), filename));
     }
 
     return new StandardsList(extractedData);

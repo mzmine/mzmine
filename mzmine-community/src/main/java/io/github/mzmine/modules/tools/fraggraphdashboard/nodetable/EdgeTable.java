@@ -32,6 +32,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.util.Comparators;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
@@ -44,6 +45,15 @@ public class EdgeTable extends TableView<SubFormulaEdge> {
         SimpleObjectProperty::new);
     visible.setCellFactory(_ -> new CheckTableCell<>(SubFormulaEdge::visibleProperty));
 
+    final CheckBox visibleCheckbox = new CheckBox();
+    visibleCheckbox.setSelected(true);
+    visibleCheckbox.selectedProperty().addListener((_, _, n) -> {
+      for (int i = 0; i < this.getItems().size(); i++) {
+        visible.getCellData(i).visibleProperty().set(n);
+      }
+    });
+    visible.setGraphic(visibleCheckbox);
+
     NumberFormats formats = ConfigService.getGuiFormats();
     TableColumn<SubFormulaEdge, Number> signal1 = TableColumns.createColumn("Signal 1", 70,
         formats.mzFormat(), ColumnAlignment.RIGHT, edge -> edge.smaller().calculatedMzProperty());
@@ -52,7 +62,8 @@ public class EdgeTable extends TableView<SubFormulaEdge> {
         formats.mzFormat(), ColumnAlignment.RIGHT, edge -> edge.larger().calculatedMzProperty());
 
     TableColumn<SubFormulaEdge, String> formulaDifference = TableColumns.createColumn(
-        "Formula\ndiff.", 85, edge -> edge.lossFormulaStringProperty().map(str -> STR."-[\{str}]"));
+        "Formula\ndiff.", 85,
+        edge -> edge.lossFormulaStringProperty().map(str -> "-[" + str + "]"));
 
     TableColumn<SubFormulaEdge, Number> massDifferenceAbs = TableColumns.createColumn(
         "Mass diff.\n(meas.)", 85, formats.mzFormat(), ColumnAlignment.RIGHT,

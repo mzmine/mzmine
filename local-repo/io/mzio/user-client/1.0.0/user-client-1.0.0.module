@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 33903,
-          "sha512": "6f311d2a818b670d6e58ee56be8195deb2d29c4ae309909b3b63930331bbf1cdb6b01a42f45484181ab800fdb642dd983a60a5c1328dda43feab9add9331094e",
-          "sha256": "ae1b4030070620528704f0b9622bc61ad087221e4893194995ee3cf6e9b55b57",
-          "sha1": "50739a17e9c9b427b1ee26a526c3433ce6bc9726",
-          "md5": "8e049e6f53fd5df21ed411a85ca72b22"
+          "size": 33979,
+          "sha512": "6f58f166c42076f7efc8e4a4f14a342aff0b73fabec35f28e4486155f7e3419c8864bde1feee8b3d8eaeda37ac0880186502a70eaf7ced2e8bf67c39530fd06e",
+          "sha256": "34262623a2d3a101dfc470a8255485ffddc080216c0c844035da474e75d0831a",
+          "sha1": "22fd07be64684affe3d60410768141079932a87d",
+          "md5": "2f128ecf68857d67a041106f0da03805"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -92,11 +92,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 33903,
-          "sha512": "6f311d2a818b670d6e58ee56be8195deb2d29c4ae309909b3b63930331bbf1cdb6b01a42f45484181ab800fdb642dd983a60a5c1328dda43feab9add9331094e",
-          "sha256": "ae1b4030070620528704f0b9622bc61ad087221e4893194995ee3cf6e9b55b57",
-          "sha1": "50739a17e9c9b427b1ee26a526c3433ce6bc9726",
-          "md5": "8e049e6f53fd5df21ed411a85ca72b22"
+          "size": 33979,
+          "sha512": "6f58f166c42076f7efc8e4a4f14a342aff0b73fabec35f28e4486155f7e3419c8864bde1feee8b3d8eaeda37ac0880186502a70eaf7ced2e8bf67c39530fd06e",
+          "sha256": "34262623a2d3a101dfc470a8255485ffddc080216c0c844035da474e75d0831a",
+          "sha1": "22fd07be64684affe3d60410768141079932a87d",
+          "md5": "2f128ecf68857d67a041106f0da03805"
         }
       ]
     }

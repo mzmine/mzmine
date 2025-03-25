@@ -25,11 +25,21 @@
 
 package io.github.mzmine.datamodel.features.types.otherdectectors;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ChromatogramTypeType extends DataType<ChromatogramType> {
 
@@ -51,5 +61,34 @@ public class ChromatogramTypeType extends DataType<ChromatogramType> {
   @Override
   public Class<ChromatogramType> getValueClass() {
     return ChromatogramType.class;
+  }
+
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if(value == null) {
+      return;
+    }
+
+    if(value instanceof ChromatogramType type) {
+      writer.writeCharacters(type.name());
+    }
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
+        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
+      throw new IllegalStateException("Wrong element");
+    }
+
+    final String text = reader.getElementText();
+    if(text == null || text.isBlank()) {
+      return null;
+    }
+    return ChromatogramType.valueOf(text);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
@@ -58,6 +59,15 @@ import org.w3c.dom.Element;
  * Interface for feature list
  */
 public interface FeatureList {
+
+  /**
+   * Creates a dummy feature list. e.g. for creating a
+   * {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver} for
+   * an intermediate processing step. Not intended to be added to a project.
+   */
+  public static ModularFeatureList createDummy() {
+    return new ModularFeatureList("dummy flist", null, RawDataFile.createDummyFile());
+  }
 
   /**
    * @return Short descriptive name for the feature list
@@ -154,7 +164,7 @@ public interface FeatureList {
   /**
    * Returns all raw data files participating in the feature list
    */
-  public ObservableList<RawDataFile> getRawDataFiles();
+  public List<RawDataFile> getRawDataFiles();
 
   /**
    * Returns true if this feature list contains given file
@@ -221,8 +231,6 @@ public interface FeatureList {
   default Stream<FeatureListRow> stream(boolean parallel) {
     return parallel ? parallelStream() : stream();
   }
-
-  void removeRow(int rowNum, FeatureListRow row);
 
   /**
    * Creates a stream of FeatureListRows
@@ -519,6 +527,8 @@ public interface FeatureList {
     var master = getRowMaps();
     master.addAll(maps);
   }
+
+  void removeRows(Set<FeatureListRow> rowsToRemove);
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge

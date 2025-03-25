@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,11 +26,7 @@
 package io.github.mzmine.util;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -42,7 +38,6 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoImportTaskDelegator;
-import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -53,7 +48,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -84,48 +78,37 @@ public class RawDataFileUtils {
       }
 
       final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileName);
-      RawDataFile newMZmineFile;
 
       Task newTask = null;
       var scanProcessorConfig = ScanImportProcessorConfig.createDefault();
       switch (fileType) {
         case ICPMSMS_CSV:
-          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+          newTask = new IcpMsCVSImportTask(project, fileName, module, parameters, moduleCallDate,
               storage);
-          newTask = new IcpMsCVSImportTask(project, fileName, newMZmineFile, module, parameters,
-              moduleCallDate);
           break;
         case MZDATA:
-          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+          newTask = new MzDataImportTask(project, fileName, module, parameters, moduleCallDate,
               storage);
-          newTask = new MzDataImportTask(project, fileName, newMZmineFile, module, parameters,
-              moduleCallDate);
           break;
         case MZML, MZML_IMS:
           newTask = new MSDKmzMLImportTask(project, fileName, scanProcessorConfig, module,
               parameters, moduleCallDate, storage);
           break;
         case IMZML:
-          newMZmineFile = MZmineCore.createNewImagingFile(fileName.getName(),
-              fileName.getAbsolutePath(), storage);
-          newTask = new ImzMLImportTask(project, fileName, scanProcessorConfig,
-              (ImagingRawDataFile) newMZmineFile, module, parameters, moduleCallDate);
+          newTask = new ImzMLImportTask(project, fileName, scanProcessorConfig, module, parameters,
+              moduleCallDate, storage);
           break;
         case MZXML:
-          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
-              storage);
-          newTask = new MzXMLImportTask(project, fileName, newMZmineFile, scanProcessorConfig,
-              module, parameters, moduleCallDate);
+          newTask = new MzXMLImportTask(project, fileName, scanProcessorConfig,
+              module, parameters, moduleCallDate, storage);
           break;
         case NETCDF:
-          newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
+          newTask = new NetCDFImportTask(project, fileName, module, parameters, moduleCallDate,
               storage);
-          newTask = new NetCDFImportTask(project, fileName, newMZmineFile, module, parameters,
-              moduleCallDate);
           break;
         case THERMO_RAW:
-          newTask = new ThermoImportTaskDelegator(storage, moduleCallDate, fileName, scanProcessorConfig, project,
-              parameters, module);
+          newTask = new ThermoImportTaskDelegator(storage, moduleCallDate, fileName,
+              scanProcessorConfig, project, parameters, module);
           break;
 /*        case WATERS_RAW:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
@@ -233,75 +216,5 @@ public class RawDataFileUtils {
     }
 
     return null;
-  }
-
-  public static @NotNull Range<Float> findTotalRTRange(RawDataFile[] dataFiles, int msLevel) {
-    Range<Float> rtRange = null;
-    for (RawDataFile file : dataFiles) {
-      Range<Float> dfRange = file.getDataRTRange(msLevel);
-      if (dfRange == null) {
-        continue;
-      }
-      if (rtRange == null) {
-        rtRange = dfRange;
-      } else {
-        rtRange = rtRange.span(dfRange);
-      }
-    }
-    if (rtRange == null) {
-      rtRange = Range.singleton(0.0f);
-    }
-    return rtRange;
-  }
-
-  public static @NotNull Range<Double> findTotalMZRange(RawDataFile[] dataFiles, int msLevel) {
-    Range<Double> mzRange = null;
-    for (RawDataFile file : dataFiles) {
-      Range<Double> dfRange = file.getDataMZRange(msLevel);
-      if (dfRange == null) {
-        continue;
-      }
-      if (mzRange == null) {
-        mzRange = dfRange;
-      } else {
-        mzRange = mzRange.span(dfRange);
-      }
-    }
-    if (mzRange == null) {
-      mzRange = Range.singleton(0.0);
-    }
-    return mzRange;
-  }
-
-  /**
-   * Returns true if the given data file has mass lists for all MS1 scans
-   */
-  public static boolean hasMassLists(RawDataFile dataFile) {
-    List<Scan> scans = dataFile.getScanNumbers(1);
-    for (Scan scan : scans) {
-      if (scan.getMassList() == null) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  public static Scan getClosestScanNumber(RawDataFile dataFile, double rt) {
-
-    ObservableList<Scan> scanNums = dataFile.getScans();
-    if (scanNums.size() == 0) {
-      return null;
-    }
-    int best = 0;
-    double bestRt = scanNums.get(0).getRetentionTime();
-
-    for (int i = 1; i < scanNums.size(); i++) {
-      double thisRt = scanNums.get(i).getRetentionTime();
-      if (Math.abs(bestRt - rt) > Math.abs(thisRt - rt)) {
-        best = i;
-        bestRt = thisRt;
-      }
-    }
-    return scanNums.get(best);
   }
 }

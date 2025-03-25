@@ -28,8 +28,11 @@ package io.github.mzmine.javafx.components.factories;
 import io.github.mzmine.javafx.components.animations.FxFlashingAnimation;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.IconCodeSupplier;
+import java.util.Objects;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.MenuButton;
@@ -40,21 +43,45 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 public class FxIconButtonBuilder<T extends ButtonBase> {
 
+
+  public enum EventHandling {
+    /**
+     * Consume events and do not pass them to the next parent object. Great for button that is on a
+     * menu item for example
+     */
+    CONSUME_EVENTS,
+    /**
+     * Pass event to parent like default behavior
+     */
+    DEFAULT_PASS;
+  }
+
+  private final EventHandling eventHandling;
   private final FontIcon icon;
   private final T button;
   private BooleanExpression flashingProperty;
 
   public FxIconButtonBuilder(@NotNull final T button, @NotNull IconCodeSupplier iconCode) {
-    this(button, iconCode.getIconCode());
+    this(button, iconCode, EventHandling.DEFAULT_PASS);
+  }
+
+  public FxIconButtonBuilder(@NotNull final T button, @NotNull IconCodeSupplier iconCode,
+      @NotNull EventHandling eventHandling) {
+    this(button, iconCode.getIconCode(), eventHandling);
   }
 
   public FxIconButtonBuilder(@NotNull final T button, @NotNull String iconCode) {
+    this(button, iconCode, EventHandling.DEFAULT_PASS);
+  }
+
+  public FxIconButtonBuilder(@NotNull final T button, @NotNull String iconCode,
+      @NotNull EventHandling eventHandling) {
     icon = new FontIcon(iconCode);
+    this.eventHandling = eventHandling;
     icon.setIconSize(FxIconUtil.DEFAULT_ICON_SIZE);
     this.button = button;
     button.getStyleClass().add("icon-button");
   }
-
 
   public T build() {
     if (flashingProperty != null) {
@@ -67,7 +94,12 @@ public class FxIconButtonBuilder<T extends ButtonBase> {
 
   //
   public static FxIconButtonBuilder<Button> ofIconButton(IconCodeSupplier iconCode) {
-    return new FxIconButtonBuilder<>(new Button(), iconCode.getIconCode());
+    return ofIconButton(iconCode, EventHandling.DEFAULT_PASS);
+  }
+
+  public static FxIconButtonBuilder<Button> ofIconButton(IconCodeSupplier iconCode,
+      @NotNull EventHandling eventHandling) {
+    return new FxIconButtonBuilder<>(new Button(), iconCode.getIconCode(), eventHandling);
   }
 
   public static FxIconButtonBuilder<ToggleButton> ofToggleIconButton(IconCodeSupplier iconCode) {
@@ -100,7 +132,25 @@ public class FxIconButtonBuilder<T extends ButtonBase> {
 
   public FxIconButtonBuilder<T> onAction(Runnable onAction) {
     if (onAction != null) {
-      button.setOnAction(_ -> onAction.run());
+      button.setOnAction(e -> {
+        onAction.run();
+        if (Objects.requireNonNull(eventHandling) == EventHandling.CONSUME_EVENTS) {
+          e.consume();
+        }
+      });
+    }
+    return this;
+  }
+
+  public FxIconButtonBuilder<T> onAction(EventHandler<ActionEvent> onAction) {
+    if (onAction != null) {
+      if (Objects.requireNonNull(eventHandling) == EventHandling.CONSUME_EVENTS) {
+        button.setOnAction(e -> {
+          onAction.handle(e);
+          e.consume();
+        });
+      }
+      button.setOnAction(onAction);
     }
     return this;
   }

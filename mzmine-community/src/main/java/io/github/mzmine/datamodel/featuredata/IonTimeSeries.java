@@ -49,6 +49,9 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   SimpleIonTimeSeries EMPTY = new SimpleIonTimeSeries(null, new double[0], new double[0],
       List.of());
 
+  @Override
+  IonTimeSeries<T> emptySeries();
+
   /**
    * @param scan
    * @return The intensity value for the given scan or 0 if the no intensity was measured at that
@@ -77,15 +80,21 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   }
 
   @Override
-  default IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end) {
+  default IonTimeSeries<T> subSeries(MemoryMapStorage storage, float start, float end) {
     final IndexRange indexRange = BinarySearch.indexRange(Range.closed(start, end), getSpectra(),
         Scan::getRetentionTime);
-    return subSeries(storage, getSpectra().subList(indexRange.min(), indexRange.maxExclusive()));
+    if (indexRange.isEmpty()) {
+      return emptySeries();
+    }
+    return subSeries(storage, indexRange.min(), indexRange.maxExclusive());
   }
 
   @Override
-  default IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+  default IonTimeSeries<T> subSeries(MemoryMapStorage storage, int startIndexInclusive,
       int endIndexExclusive) {
+    if (endIndexExclusive - startIndexInclusive <= 0) {
+      return emptySeries();
+    }
     return subSeries(storage, getSpectra().subList(startIndexInclusive, endIndexExclusive));
   }
 
@@ -93,10 +102,17 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
   IonTimeSeries<T> subSeries(@Nullable MemoryMapStorage storage, @NotNull List<T> subset);
 
   @Override
-  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
+  IonTimeSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @NotNull double[] newIntensityValues);
+
+  @Override
+  IonTimeSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage, @NotNull double[] newMzValues,
+      @NotNull double[] newIntensityValues);
 
   /**
+   * Saves this time series to xml. The implementing class is responsible for creating the xml
+   * element and closing the xml element.
+   *
    * @param writer   The writer.
    * @param allScans All scans of the given raw data file (those are used during import). NOT the
    *                 preselected scans obtained from

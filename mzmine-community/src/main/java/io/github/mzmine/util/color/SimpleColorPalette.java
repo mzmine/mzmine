@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -127,7 +127,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     neutralColor = ColorsFX.getNeutralColor();
   }
 
-  public SimpleColorPalette(@NotNull Color[] clrs) {
+  public SimpleColorPalette(@NotNull Color... clrs) {
     this();
     for (Color clr : clrs) {
       add(clr);
@@ -200,6 +200,14 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       }
     } while (startNext != next);
     return getNextColor(); // use the color we should use originally
+  }
+
+  /**
+   * @param exclusion A color to be visually different from.
+   * @return A visually different color.
+   */
+  public synchronized java.awt.Color getNextColorAWT(@NotNull final java.awt.Color exclusion) {
+    return FxColorUtil.fxColorToAWT(getNextColor(FxColorUtil.awtColorToFX(exclusion)));
   }
 
   public java.awt.Color getNextColorAWT() {
@@ -349,6 +357,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   @Override
   public SimpleColorPalette clone() {
+    return clone(false);
+  }
+
+  public SimpleColorPalette clone(boolean resetIndex) {
     SimpleColorPalette clone = new SimpleColorPalette();
     for (Color clr : this) {
       clone.add(clr);
@@ -356,6 +368,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     clone.setName(getName());
     clone.setNegativeColor(getNegativeColor());
     clone.setPositiveColor(getPositiveColor());
+    clone.setColorCounter(resetIndex ? 0 : next);
     return clone;
   }
 
@@ -496,7 +509,23 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return delegate.remove(index);
   }
 
+  /**
+   * @param nextIndex this will be the next color index
+   */
+  public void setColorCounter(int nextIndex) {
+    next = nextIndex;
+  }
+
   public void resetColorCounter() {
-    next = 0;
+    setColorCounter(0);
+  }
+
+  /**
+   * Converts the given color to an fx color using {@link FxColorUtil#awtColorToFX(java.awt.Color)}
+   * and then searches using {@link List#indexOf(Object)}
+   */
+  public int indexOfAwt(java.awt.Color clr) {
+    final Color fxColor = FxColorUtil.awtColorToFX(clr);
+    return super.indexOf(fxColor);
   }
 }

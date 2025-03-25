@@ -43,6 +43,14 @@ BorderPane, GridPane, .tab-pane {
   -fx-background-color: -jr-sidepane-background;
 }
 
+.error-label {
+  -fx-text-fill: #e30000;
+}
+
+.warning-label {
+  -fx-text-fill: #fadd04;
+}
+
 .title-label {
   -fx-font-size: 14.0pt;
 }

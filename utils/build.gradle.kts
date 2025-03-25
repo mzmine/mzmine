@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,8 @@
 plugins {
     id("io.github.mzmine.java-library-conv")
     id("io.github.mzmine.javafx-conv")
+    id("maven-publish")
+    alias(libs.plugins.semver)
 }
 
 repositories {
@@ -35,9 +37,41 @@ repositories {
 }
 
 dependencies {
+    // jackson for json parsing
+    implementation(libs.bundles.jackson)
     implementation(libs.commons.io)
     implementation(libs.guava)
     implementation(libs.fastutil)
     implementation(libs.mzio.global.events)
     implementation(libs.semver4j)
+}
+
+semver {
+    properties = "../mzmine-community/src/main/resources/mzmineversion.properties"
+}
+
+afterEvaluate {
+    // the repositories must be set in the afterEvaluate block, because the semver plugin will
+    // not be initialised otherwise. The version of this library is bound to the mzmine community version.
+    publishing {
+        publications {
+            register<MavenPublication>("publish-utils") {
+                from(components["java"])
+                pom {
+                    group = "io.github.mzmine"
+                    artifactId = "utils"
+                    name = "mzmine-community-utils"
+                    description = "mzmine-community utils"
+                    url = "https://github.com/mzmine/mzmine"
+                    version = semver.version
+                    developers {
+                        developer {
+                            id = "mzmine"
+                            name = "mzmine"
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

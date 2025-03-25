@@ -46,6 +46,7 @@ public enum RawDataFileType {
   NETCDF(ExtensionFilters.NETCDF, false), //
   THERMO_RAW(ExtensionFilters.THERMO_RAW, false), //
   WATERS_RAW(ExtensionFilters.WATERS_RAW, true), //
+  WATERS_RAW_IMS(ExtensionFilters.WATERS_RAW, true), //
   MZML_ZIP(ExtensionFilters.MZML_ZIP_GZIP, false), //
   MZML_GZIP(ExtensionFilters.MZML_ZIP_GZIP, false), //
   ICPMSMS_CSV(ExtensionFilters.CSV, false), //
@@ -55,7 +56,8 @@ public enum RawDataFileType {
   //  AIRD, //
   SCIEX_WIFF(ExtensionFilters.WIFF, false), //
   SCIEX_WIFF2(ExtensionFilters.WIFF2, false), //
-  AGILENT_D(ExtensionFilters.AGILENT_D, true);
+  AGILENT_D(ExtensionFilters.AGILENT_D, true), //
+  AGILENT_D_IMS(ExtensionFilters.AGILENT_D, true);
 
 
   private final ExtensionFilter extensionFilter;
@@ -80,7 +82,8 @@ public enum RawDataFileType {
 
     return switch (type) {
       case MZML, MZXML, MZML_IMS, MZDATA, NETCDF, THERMO_RAW, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV,
-           BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, AGILENT_D, WATERS_RAW -> List.of();
+           BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, AGILENT_D, AGILENT_D_IMS, WATERS_RAW,
+           WATERS_RAW_IMS -> List.of();
       case IMZML -> {
         final String extension = FileAndPathUtil.getExtension(file.getName());
         yield List.of(new File(file.getParent(), file.getName().replace(extension, "ibd")));

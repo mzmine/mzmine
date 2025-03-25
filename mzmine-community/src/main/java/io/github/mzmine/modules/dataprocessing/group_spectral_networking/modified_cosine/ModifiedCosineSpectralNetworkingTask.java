@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,20 +26,14 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine;
 
 
-import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_ID;
-import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_SIZE;
-import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_ID;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarity;
-import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarityList;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
@@ -48,39 +42,42 @@ import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.CosinePairContributions;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.NetworkCluster;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalAlignmentAnnotation;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkGenerator;
 import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_ID;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_SIZE;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_ID;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.GraphStreamUtils;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.collections.StreamUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.Combinatorics;
 import io.github.mzmine.util.maths.similarity.Similarity;
+import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanMZDiffConverter;
 import io.github.mzmine.util.scans.similarity.Weights;
-import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import static java.util.Objects.requireNonNullElse;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
-import org.graphstream.algorithm.community.Community;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,18 +94,17 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
   private final MZTolerance mzTolerance;
   private final double minCosineSimilarity;
   private final int maxDPForDiff;
-  private final boolean onlyBestMS2Scan;
   private final @Nullable ModularFeatureList featureList;
   // target
   private final SpectralSignalFilter signalFilter;
   private final double maxMzDelta;
-  private final List<FeatureListRow> rows;
+  private final List<FeatureListRow> mzSortedRows;
   private long totalMaxPairs = 0;
   // this is always off for now. Could be reintroduced as separate similarity metric
-  private final boolean checkNeutralLoss;
+  private final @NotNull FragmentScanSelection scanMergeSelect;
 
   public ModifiedCosineSpectralNetworkingTask(final ParameterSet mainParameters,
-      @Nullable ModularFeatureList featureList, @NotNull Instant moduleCallDate,
+      @NotNull ModularFeatureList featureList, @NotNull Instant moduleCallDate,
       final Class<? extends MZmineModule> moduleClass) {
     this(mainParameters, featureList, featureList.getRows(), moduleCallDate, moduleClass);
   }
@@ -120,7 +116,10 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
       @Nullable ModularFeatureList featureList, List<FeatureListRow> rows,
       @NotNull Instant moduleCallDate, final Class<? extends MZmineModule> moduleClass) {
     super(null, moduleCallDate, mainParameters, moduleClass);
-    this.rows = rows;
+    // make sure to copy rows and sort them by mz
+    // copy to not change original sorting
+    this.mzSortedRows = rows.stream().sorted(FeatureListRowSorter.MZ_ASCENDING)
+        .collect(CollectionUtils.toArrayList());
     // get sub parameters of this algorithm
     var subParams = mainParameters.getEmbeddedParameterValue(
         MainSpectralNetworkingParameters.algorithms);
@@ -132,10 +131,9 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
     minMatch = subParams.getValue(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH);
     minCosineSimilarity = subParams.getValue(
         ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY);
-    onlyBestMS2Scan = subParams.getValue(
-        ModifiedCosineSpectralNetworkingParameters.ONLY_BEST_MS2_SCAN);
-    // check neutral loss similarity was removed for now. Could be turned into other score
-    checkNeutralLoss = false;
+    scanMergeSelect = subParams.getParameter(
+            ModifiedCosineSpectralNetworkingParameters.spectraMergeSelect)
+        .createFragmentScanSelection(getMemoryMapStorage());
     maxDPForDiff = 0;
     // embedded signal filters
     signalFilter = subParams.getValue(ModifiedCosineSpectralNetworkingParameters.signalFilters)
@@ -363,21 +361,15 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
   @Override
   public void process() {
     final R2RMap<RowsRelationship> mapCosineSim = new R2RMap<>();
-    final R2RMap<RowsRelationship> mapNeutralLoss = new R2RMap<>();
     try {
-      if (onlyBestMS2Scan) {
-        checkRowsBestMs2(mapCosineSim, mapNeutralLoss, rows);
-      } else {
-        checkAllFeatures(mapCosineSim, mapNeutralLoss, rows);
-      }
+      checkRows(mapCosineSim, mzSortedRows);
       logger.info(MessageFormat.format(
-          "MS2 similarity check on rows done. MS2 modified cosine similarity edges={0}, MS2 neutral loss edges={1}",
-          mapCosineSim.size(), mapNeutralLoss.size()));
+          "MS2 similarity check on rows done. MS2 modified cosine similarity edges={0}",
+          mapCosineSim.size()));
 
       if (featureList != null) {
         R2RNetworkingMaps rowMaps = featureList.getRowMaps();
         rowMaps.addAllRowsRelationships(mapCosineSim, Type.MS2_COSINE_SIM);
-        rowMaps.addAllRowsRelationships(mapNeutralLoss, Type.MS2_NEUTRAL_LOSS_SIM);
         R2RNetworkingMaps onlyCosineMap = new R2RNetworkingMaps();
         onlyCosineMap.addAllRowsRelationships(featureList.getMs2SimilarityMap().get(),
             Type.MS2_COSINE_SIM);
@@ -385,10 +377,6 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
       }
 
       logger.info("Added %d edges for %s".formatted(mapCosineSim.size(), Type.MS2_COSINE_SIM));
-      if (checkNeutralLoss) {
-        logger.info(
-            "Added %d edges for %s".formatted(mapNeutralLoss.size(), Type.MS2_NEUTRAL_LOSS_SIM));
-      }
     } catch (MissingMassListException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
       setErrorMessage(e.getMessage());
@@ -406,23 +394,26 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
 
   public static void addNetworkStatisticsToRows(@Nullable FeatureList featureList,
       R2RNetworkingMaps r2RNetworkingMaps) {
+    if (featureList == null) {
+      return;
+    }
     // set community and cluster_index
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
     var graph = generator.createNewGraph(featureList.getRows(), false, true, r2RNetworkingMaps,
         false);
-    GraphStreamUtils.detectCommunities(graph);
+    final Map<Integer, Integer> communitySizes = GraphStreamUtils.detectCommunities(graph).stream()
+        .collect(Collectors.toMap(NetworkCluster::id, NetworkCluster::size));
 
-    Object2IntMap<Object> communitySizes = GraphStreamUtils.getCommunitySizes(graph);
     // add cluster id
     GraphStreamUtils.detectClusters(graph, true);
 
     // for each node in cluster
     graph.nodes().forEach(node -> {
       if (node.getAttribute(NodeAtt.ROW.toString()) instanceof FeatureListRow row) {
-        Object communityKey = node.getAttribute(COMMUNITY_ID.toString());
+        int communityId = requireNonNullElse((Integer) node.getAttribute(COMMUNITY_ID.toString()),
+            -1);
 
-        int communityId = communityKey instanceof Community com ? com.id() : -1;
-        int communitySize = communitySizes.getOrDefault(communityKey, 0);
+        int communitySize = communitySizes.getOrDefault(communityId, 0);
         int clusterId = (int) node.getAttribute(CLUSTER_ID.toString());
         int clusterSize = (int) node.getAttribute(CLUSTER_SIZE.toString());
 
@@ -436,204 +427,91 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
   /**
    * Parallel check of all r2r similarities
    *
-   * @param mapSimilarity  map for all MS2 cosine similarity edges
-   * @param mapNeutralLoss map for all neutral loss MS2 edges
-   * @param rows           match rows
+   * @param mapSimilarity map for all MS2 cosine similarity edges
+   * @param mzSortedRows  match rows
    */
-  public void checkRowsBestMs2(R2RMap<RowsRelationship> mapSimilarity,
-      R2RMap<RowsRelationship> mapNeutralLoss, List<FeatureListRow> rows)
+  public void checkRows(R2RMap<RowsRelationship> mapSimilarity, List<FeatureListRow> mzSortedRows)
       throws MissingMassListException {
-    List<FilteredRowData> filteredRows = prepareRowBestSpectrum(rows);
-    final int numRows = filteredRows.size();
-    totalMaxPairs = Combinatorics.uniquePairs(filteredRows);
+    List<Entry<FeatureListRow, List<FilteredRowData>>> sortedFilteredRows = new ArrayList<>(
+        prepareRowSpectra(mzSortedRows).entrySet());
+    final int numRows = sortedFilteredRows.size();
+    totalMaxPairs = Combinatorics.uniquePairs(sortedFilteredRows.size());
     logger.log(Level.INFO, MessageFormat.format("Checking MS2 similarity on {0} rows", numRows));
 
-    long comparedPairs = StreamUtils.processPairs(filteredRows, this::isCanceled, true, //
-        (first, later) -> maxMzDelta < later.row.getAverageMZ() - first.row.getAverageMZ(), //
+    long comparedPairs = StreamUtils.processPairs(sortedFilteredRows, this::isCanceled, true, //
+        // stop inner loop if mz distance is too far
+        (first, later) -> maxMzDelta < later.getKey().getAverageMZ() - first.getKey()
+            .getAverageMZ(), //
         pair -> {
           // the actual processing
-          checkSpectralPair(pair.left(), pair.right(), mapSimilarity, mapNeutralLoss);
+          var row1 = pair.left().getKey();
+          var scans1 = pair.left().getValue();
+          var row2 = pair.right().getKey();
+          var scans2 = pair.right().getValue();
+          checkRowsPair(row1, scans1, row2, scans2, mapSimilarity);
           processedPairs.incrementAndGet();
         });
-
-    // try map multi for all pairs
-//    long comparedPairs = IntStream.range(0, numRows - 1).boxed()
-//        .<Pair<FilteredRowData, FilteredRowData>>mapMulti((i, consumer) -> {
-//          if (isCanceled()) {
-//            return;
-//          }
-//          FilteredRowData a = filteredRows.get(i);
-//          var mzA = a.row().getAverageMZ();
-//          for (int j = i + 1; j < numRows; j++) {
-//            FilteredRowData b = filteredRows.get(j);
-//            double deltaMz = b.row().getAverageMZ() - mzA;
-//            if (deltaMz > maxMzDelta) {
-//              return; // out of range so stop searching
-//            }
-//            // within range so add to queue
-//            consumer.accept(Pair.of(a, b));
-//          }
-//        }).parallel().mapToLong(pair -> {
-//          // need to map to ensure thread is waiting for completion
-//          checkSpectralPair(pair.left(), pair.right(), mapSimilarity, mapNeutralLoss);
-//          // count comparisons
-//          processedPairs.incrementAndGet();
-//          return 1;
-//        }).sum();
 
     logger.info("Spectral networking: Performed %d pairwise comparisons.".formatted(comparedPairs));
   }
 
-  private boolean checkSpectralPair(final FilteredRowData a, final FilteredRowData b,
-      final R2RMap<RowsRelationship> mapSimilarity, final R2RMap<RowsRelationship> mapNeutralLoss) {
-    boolean result = checkR2RMs2Similarity(mapSimilarity, a.row(), b.row(), a.data(), b.data(),
-        Type.MS2_COSINE_SIM);
+  /**
+   * Check and add {@link R2RSpectralSimilarity} to mapSimilarity.
+   *
+   * @param mapSimilarity results to be added
+   * @return true if relationship was added
+   */
+  private boolean checkRowsPair(final FeatureListRow row1, final List<FilteredRowData> scans1,
+      final FeatureListRow row2, final List<FilteredRowData> scans2,
+      final R2RMap<RowsRelationship> mapSimilarity) {
+    SpectralSimilarity best = null;
 
-    // check neutral loss similarity
-    if (checkNeutralLoss) {
-      // create mass diff array
-      DataPoint[] massDiffA = ScanMZDiffConverter.getAllMZDiff(a.data(), mzTolerance, -1,
-          maxDPForDiff);
-      DataPoint[] massDiffB = ScanMZDiffConverter.getAllMZDiff(b.data(), mzTolerance, -1,
-          maxDPForDiff);
-
-      checkR2RMs2Similarity(mapNeutralLoss, a.row(), b.row(), massDiffA, massDiffB,
-          Type.MS2_NEUTRAL_LOSS_SIM);
+    // TODO think about ways to match the same energies against each other
+    // Maybe in a +- 15 energy range
+    // currently this just matches all scans against all scans and takes the best score
+    for (final FilteredRowData a : scans1) {
+      for (final FilteredRowData b : scans2) {
+        // align and check spectra
+        var result = calcSpectralSimilarity(a.row(), b.row(), a.data(), b.data());
+        if (result != null && (best == null || result.cosine() > best.cosine())) {
+          best = result;
+        }
+      }
     }
-    return result;
+    if (best != null && best.cosine() >= minCosineSimilarity && best.overlap() >= minMatch) {
+      var r2r = new R2RSpectralSimilarity(row1, row2, Type.MS2_COSINE_SIM, best);
+      mapSimilarity.add(row1, row2, r2r);
+      return true;
+    }
+    return false;
   }
 
-  @NotNull
-  private List<FilteredRowData> prepareRowBestSpectrum(final List<FeatureListRow> rows) {
-    // required
-    rows.sort(FeatureListRowSorter.MZ_ASCENDING);
+  private Map<FeatureListRow, List<FilteredRowData>> prepareRowSpectra(
+      final List<FeatureListRow> mzSortedRows) {
     // prefilter rows: has MS2 and in case only best MS2 is considered - check minDP
     // and prepare data points
-    List<FilteredRowData> filteredRows = new ArrayList<>();
-    for (FeatureListRow row : rows) {
-      FilteredRowData data = getDataAndFilter(row, row.getMostIntenseFragmentScan(),
-          row.getAverageMZ(), minMatch);
-      if (data != null) {
-        filteredRows.add(data);
+    // retain order of mz in LinkedHashMap
+    Map<FeatureListRow, List<FilteredRowData>> filteredRows = new LinkedHashMap<>();
+    for (FeatureListRow row : mzSortedRows) {
+      List<Scan> selectedScans = scanMergeSelect.getAllFragmentSpectra(row);
+      if (selectedScans.isEmpty()) {
+        continue;
+      }
+      List<FilteredRowData> prepared = new ArrayList<>();
+
+      // prepare all scans
+      for (final Scan scan : selectedScans) {
+        FilteredRowData data = getDataAndFilter(row, scan, row.getAverageMZ(), minMatch);
+        if (data != null) {
+          prepared.add(data);
+        }
+      }
+      // add row if prepared
+      if (!prepared.isEmpty()) {
+        filteredRows.put(row, prepared);
       }
     }
     return filteredRows;
-  }
-
-  /**
-   * Parallel check of all r2r similarities
-   *
-   * @param mapSimilarity  map for all MS2 cosine similarity edges
-   * @param mapNeutralLoss map for all neutral loss MS2 edges
-   * @param rows           match rows
-   */
-  public void checkAllFeatures(R2RMap<RowsRelationship> mapSimilarity,
-      R2RMap<RowsRelationship> mapNeutralLoss, List<FeatureListRow> rows)
-      throws MissingMassListException {
-    // prefilter rows: has MS2 and in case only best MS2 is considered - check minDP
-    // and prepare data points
-    Map<Feature, FilteredRowData> mapFeatureData = new HashMap<>();
-    List<FeatureListRow> filteredRows = new ArrayList<>();
-    for (FeatureListRow row : rows) {
-      if (prepareAllMS2(mapFeatureData, row)) {
-        filteredRows.add(row);
-      }
-    }
-    int numRows = filteredRows.size();
-    totalMaxPairs = Combinatorics.uniquePairs(filteredRows);
-    logger.log(Level.INFO,
-        () -> MessageFormat.format("Checking MS2 similarity on {0} rows", numRows));
-
-    // try map multi for all pairs
-    long comparedPairs = IntStream.range(0, numRows - 1).boxed()
-        .<Pair<FeatureListRow, FeatureListRow>>mapMulti((i, consumer) -> {
-          if (isCanceled()) {
-            return;
-          }
-          FeatureListRow a = filteredRows.get(i);
-          var mzA = a.getAverageMZ();
-
-          for (int j = i + 1; j < numRows; j++) {
-            FeatureListRow b = filteredRows.get(j);
-            double deltaMz = b.getAverageMZ() - mzA;
-            if (deltaMz > maxMzDelta) {
-              return; // out of range so stop searching
-            }
-            // within range so add to queue
-            consumer.accept(Pair.of(a, b));
-          }
-        }).parallel().mapToLong(pair -> {
-          // need to map to ensure thread is waiting for completion
-          checkR2RAllFeaturesMs2Similarity(mapFeatureData, pair.left(), pair.right(), mapSimilarity,
-              mapNeutralLoss);
-          // count comparisons
-          processedPairs.incrementAndGet();
-          return 1;
-        }).sum();
-
-    logger.info(
-        "Spectral networking: Performed %d pairwise comparisons of rows.".formatted(comparedPairs));
-  }
-
-  private void checkR2RAllFeaturesMs2Similarity(Map<Feature, FilteredRowData> mapFeatureData,
-      FeatureListRow a, FeatureListRow b, final R2RMap<RowsRelationship> mapSimilarity,
-      final R2RMap<RowsRelationship> mapNeutralLoss) {
-
-    R2RSpectralSimilarityList cosineSim = new R2RSpectralSimilarityList(a, b, Type.MS2_COSINE_SIM);
-    R2RSpectralSimilarityList neutralLossSim =
-        checkNeutralLoss ? new R2RSpectralSimilarityList(a, b, Type.MS2_NEUTRAL_LOSS_SIM) : null;
-
-    DataPoint[] massDiffA = null;
-    DataPoint[] massDiffB = null;
-
-    for (Feature fa : a.getFeatures()) {
-      var filteredRowData = mapFeatureData.get(fa);
-      if (filteredRowData == null) {
-        continue; // missing ms2
-      }
-      DataPoint[] dpa = filteredRowData.data();
-      if (dpa != null) {
-        // create mass diff array
-        if (checkNeutralLoss) {
-          massDiffA = ScanMZDiffConverter.getAllMZDiff(dpa, mzTolerance, -1, maxDPForDiff);
-          Arrays.sort(massDiffA, DataPointSorter.DEFAULT_INTENSITY);
-        }
-        for (Feature fb : b.getFeatures()) {
-          var filteredRowDataB = mapFeatureData.get(fb);
-          if (filteredRowDataB == null) {
-            continue; // missing ms2
-          }
-          DataPoint[] dpb = filteredRowDataB.data();
-          if (dpb != null) {
-            // align and check spectra
-            SpectralSimilarity spectralSim = createMS2SimModificationAware(mzTolerance, dpa, dpb,
-                minMatch, SIZE_OVERLAP, fa.getMZ(), fb.getMZ());
-            if (spectralSim != null && spectralSim.cosine() >= minCosineSimilarity) {
-              cosineSim.addSpectralSim(spectralSim);
-            }
-
-            // alignment and sim of neutral losses
-            if (checkNeutralLoss) {
-              massDiffB = ScanMZDiffConverter.getAllMZDiff(dpb, mzTolerance, maxDPForDiff);
-              Arrays.sort(massDiffB, DataPointSorter.DEFAULT_INTENSITY);
-              SpectralSimilarity massDiffSim = createMS2Sim(mzTolerance, massDiffA, massDiffB,
-                  minMatch, DIFF_OVERLAP);
-
-              if (massDiffSim != null && massDiffSim.cosine() >= minCosineSimilarity) {
-                neutralLossSim.addSpectralSim(massDiffSim);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (checkNeutralLoss && neutralLossSim.size() > 0) {
-      mapNeutralLoss.add(a, b, neutralLossSim);
-    }
-    if (cosineSim.size() > 0) {
-      mapSimilarity.add(a, b, cosineSim);
-    }
   }
 
   /**
@@ -658,54 +536,10 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
   }
 
 
-  /**
-   * Checks the minimum requirements for the best MS2 for each feature in a row to be matched by MS2
-   * similarity (minimum number of data points and MS2 data availability). Results are sorted by
-   * intensity and stored in the mapRowData
-   *
-   * @param mapFeatureData the target map to store filtered and sorted data point arrays
-   * @param row            the test row
-   * @return true if the row matches all criteria, false otherwise
-   */
-  private boolean prepareAllMS2(@NotNull Map<Feature, FilteredRowData> mapFeatureData,
-      @NotNull FeatureListRow row) throws MissingMassListException {
-    if (!row.hasMs2Fragmentation()) {
-      return false;
-    }
-    boolean result = false;
-    for (Feature feature : row.getFeatures()) {
-
-      Scan ms2 = feature.getMostIntenseFragmentScan();
-      if (ms2 != null) {
-        FilteredRowData data = getDataAndFilter(row, ms2, row.getAverageMZ(), minMatch);
-        mapFeatureData.put(feature, data);
-        result = true;
-      }
-    }
-    return result;
-  }
-
-  /**
-   * @param mapSimilarity map to add new MS2 cosine similarity edges to
-   * @param a             row a
-   * @param b             row b
-   * @param simType       similarity type
-   */
-  public boolean checkR2RMs2Similarity(R2RMap<RowsRelationship> mapSimilarity, FeatureListRow a,
-      FeatureListRow b, DataPoint[] sortedA, DataPoint[] sortedB, Type simType) {
-    // align and check spectra
-    SpectralSimilarity spectralSim =
-        simType == Type.MS2_NEUTRAL_LOSS_SIM ? createMS2Sim(mzTolerance, sortedA, sortedB, minMatch,
-            SIZE_OVERLAP)
-            : createMS2SimModificationAware(mzTolerance, sortedA, sortedB, minMatch, SIZE_OVERLAP,
-                a.getAverageMZ(), b.getAverageMZ());
-
-    if (spectralSim != null && spectralSim.cosine() >= minCosineSimilarity) {
-      var r2r = new R2RSpectralSimilarity(a, b, simType, spectralSim);
-      mapSimilarity.add(a, b, r2r);
-      return true;
-    }
-    return false;
+  private @Nullable SpectralSimilarity calcSpectralSimilarity(final FeatureListRow a,
+      final FeatureListRow b, final DataPoint[] sortedA, final DataPoint[] sortedB) {
+    return createMS2SimModificationAware(mzTolerance, sortedA, sortedB, minMatch, SIZE_OVERLAP,
+        a.getAverageMZ(), b.getAverageMZ());
   }
 
   @Override
@@ -718,10 +552,4 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
     return "Check similarity of MSMS scans (mass lists)";
   }
 
-  /**
-   * the filtered data of the best MS2 scan from row
-   */
-  private record FilteredRowData(FeatureListRow row, DataPoint[] data) {
-
-  }
 }

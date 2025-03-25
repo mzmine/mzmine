@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -47,6 +46,7 @@ import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRe
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectFilter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
@@ -110,7 +110,7 @@ public class RowsFilterTask extends AbstractTask {
   private final Range<Float> rtRange;
   private final Range<Float> fwhmRange;
   private final Isotope13CFilter isotope13CFilter;
-  private final AbsoluteAndRelativeInt minSamples;
+  private AbsoluteAndRelativeInt minSamples;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
   private FeatureList filteredFeatureList;
@@ -246,10 +246,9 @@ public class RowsFilterTask extends AbstractTask {
           logger.info("Finished feature list rows filter");
         }
       } catch (Throwable t) {
-
-        setErrorMessage(t.getMessage());
-        setStatus(TaskStatus.ERROR);
+        error(t.getMessage());
         logger.log(Level.SEVERE, "Feature list row filter error", t);
+        return;
       }
     }
   }
@@ -270,16 +269,9 @@ public class RowsFilterTask extends AbstractTask {
     if (processInCurrentList) {
       newFeatureList = (ModularFeatureList) featureList;
     } else {
-      newFeatureList = new ModularFeatureList(
-          featureList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX)
-              .getValue(), getMemoryMapStorage(), featureList.getRawDataFiles());
-      // Copy previous applied methods.
-      for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
-        newFeatureList.addDescriptionOfAppliedTask(method);
-      }
-
-      featureList.getRawDataFiles().forEach(
-          file -> newFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
+      final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
+      newFeatureList = FeatureListUtils.createCopy(featureList, suffix, getMemoryMapStorage(),
+          false);
     }
 
     // Add task description to featureList.
@@ -293,6 +285,23 @@ public class RowsFilterTask extends AbstractTask {
     boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
 
     final int totalSamples = featureList.getRawDataFiles().size();
+    // check if min samples filter is valid
+    if (filterByMinFeatureCount) {
+      int numMinSamples = minSamples.getMaximumValue(totalSamples);
+      if (numMinSamples > totalSamples) {
+        var filterName = RowsFilterParameters.MIN_FEATURE_COUNT.getName();
+        var errorMessage = """
+            The "%s" parameter in the feature list rows filter step requires %d samples, but \
+            the processed feature list %s only contains %d samples. Check the feature list rows \
+            filter and adjust the minimum number of samples. Relative percentages help to scale this parameter automatically from small to large datasets.
+            The current processing step and all following will be cancelled.""".formatted(
+            filterName, numMinSamples, featureList, totalSamples);
+
+        // kill the job this is a misconfiguration that needs to be handled
+        error(errorMessage);
+        return null;
+      }
+    }
 
     // Filter rows.
     totalRows = featureList.getNumberOfRows();
@@ -312,7 +321,7 @@ public class RowsFilterTask extends AbstractTask {
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
       boolean keepRow = (keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
-          || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
+                        || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
       if (processInCurrentList) {
         if (keepRow) {
           rowsCount++;
@@ -502,15 +511,15 @@ public class RowsFilterTask extends AbstractTask {
       if (!useRemainderOfKendrickMass) {
         // calc Kendrick mass defect
         defectOrRemainder = Math.ceil(kendrickCharge * (valueMZ * kendrickMassFactor)) //
-            - kendrickCharge * (valueMZ * kendrickMassFactor);
+                            - kendrickCharge * (valueMZ * kendrickMassFactor);
       } else {
         // calc Kendrick mass remainder
         defectOrRemainder = (kendrickCharge * (divisor - Math.round(
             FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
-            / FormulaUtils.calculateExactMass(kendrickMassBase) - Math.floor(
+                            / FormulaUtils.calculateExactMass(kendrickMassBase) - Math.floor(
             (kendrickCharge * (divisor - Math.round(
                 FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
-                / FormulaUtils.calculateExactMass(kendrickMassBase));
+            / FormulaUtils.calculateExactMass(kendrickMassBase));
       }
 
       // shift Kendrick mass defect or remainder of Kendrick mass

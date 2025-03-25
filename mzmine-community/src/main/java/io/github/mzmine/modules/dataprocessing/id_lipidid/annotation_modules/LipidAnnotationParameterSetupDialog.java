@@ -74,11 +74,11 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
         updateParameterSetFromComponents();
         LipidDatabaseTableController controller = null;
         tableData.clear();
-        selectedObjects = LipidAnnotationParameters.lipidClasses.getValue();
+        selectedObjects = parameters.getValue(LipidAnnotationParameters.lipidClasses);
         this.selectedCustomLipidClasses = null;
-        if (parameters.getParameter(LipidAnnotationParameters.customLipidClasses).getValue()) {
-          this.selectedCustomLipidClasses = LipidAnnotationParameters.customLipidClasses.getEmbeddedParameters()
-              .getParameter(CustomLipidClassParameters.customLipidClassChoices).getChoices();
+        if (parameters.getValue(LipidAnnotationParameters.customLipidClasses)) {
+          this.selectedCustomLipidClasses = parameters.getEmbeddedParameterValue(LipidAnnotationParameters.customLipidClasses)
+              .getValue(CustomLipidClassParameters.customLipidClassChoices);
         }
 
         Stream<ILipidClass> selectedObjectsStream = Arrays.stream(selectedObjects)
@@ -93,8 +93,7 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
 
         LipidDatabaseCalculator lipidDatabaseCalculator = new LipidDatabaseCalculator(parameters,
             selectedLipids);
-        FXMLLoader loader = new FXMLLoader(
-            (getClass().getResource("../annotation_modules/LipidDatabaseTable.fxml")));
+        FXMLLoader loader = new FXMLLoader((getClass().getResource("LipidDatabaseTable.fxml")));
         try {
           BorderPane root = loader.load();
           LipidDatabaseTab tab = new LipidDatabaseTab("Lipid database");

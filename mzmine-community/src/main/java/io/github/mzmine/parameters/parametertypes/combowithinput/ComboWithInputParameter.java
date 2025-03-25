@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
@@ -118,9 +119,15 @@ public abstract class ComboWithInputParameter<EnumType, ValueType extends ComboW
       return;
     }
     for (EnumType option : choices) {
-      if (option.toString().equals(selectedAttr)) {
-        setValue(createValue(option, embeddedParameter));
-        break;
+      if (option instanceof UniqueIdSupplier uid) {
+        if (uid.getUniqueID().equals(selectedAttr)) {
+          setValue(createValue(option, embeddedParameter));
+        }
+      } else {
+        if (option.toString().equals(selectedAttr)) {
+          setValue(createValue(option, embeddedParameter));
+          break;
+        }
       }
     }
   }
@@ -130,7 +137,11 @@ public abstract class ComboWithInputParameter<EnumType, ValueType extends ComboW
     if (value == null) {
       return;
     }
-    xmlElement.setAttribute("selected", value.getSelectedOption().toString());
+    if (value instanceof UniqueIdSupplier uniqueId) {
+      xmlElement.setAttribute("selected", uniqueId.getUniqueID());
+    } else {
+      xmlElement.setAttribute("selected", value.getSelectedOption().toString());
+    }
     embeddedParameter.saveValueToXML(xmlElement);
   }
 

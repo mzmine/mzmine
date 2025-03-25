@@ -27,6 +27,7 @@ package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.javafx.components.NumberTextField;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.text.NumberFormat;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -36,6 +37,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.NotNull;
@@ -146,5 +148,24 @@ public class FxTextFields {
 
     return FxLayout.newHBox(Insets.EMPTY, passwordField,
         FxButtons.createButton(buttonLabel, tooltip, clearAfterHandler));
+  }
+
+  /**
+   * Wait for updates by user and then commit the value. Otherwise TextFormatter will wait for user
+   * to commit the value or change focus to another control. After formatting the value might change
+   * but the caret will stay at the same index. Maybe in the future put it between the same
+   * characters?
+   *
+   * @return the input TextFormatter for convenience
+   */
+  public static <T> TextFormatter<T> attachDelayedTextFormatter(final TextField textField,
+      final TextFormatter<T> textFormatter) {
+    textField.setTextFormatter(textFormatter);
+    PropertyUtils.onChangeDelayedSubscription(() -> {
+      int caretPosition = textField.getCaretPosition();
+      textField.commitValue();
+      textField.positionCaret(Math.min(caretPosition, textField.getLength()));
+    }, PropertyUtils.DEFAULT_TEXT_FIELD_DELAY, textField.textProperty());
+    return textFormatter;
   }
 }

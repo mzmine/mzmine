@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,19 +35,22 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
-import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,10 +80,10 @@ public class FeatureDataUtils {
    * @return The RT range or null, if there are no scans in the series.
    */
   @Nullable
-  public static Range<Float> getRtRange(IonTimeSeries<? extends Scan> series) {
-    final List<? extends Scan> scans = series.getSpectra();
-    return scans.isEmpty() ? null : Range.closed(scans.get(0).getRetentionTime(),
-        scans.get(scans.size() - 1).getRetentionTime());
+  public static Range<Float> getRtRange(IntensityTimeSeries series) {
+    final int numValues = series.getNumberOfValues();
+    return numValues == 0 ? null
+        : Range.closed(series.getRetentionTime(0), series.getRetentionTime(numValues - 1));
   }
 
   /**
@@ -98,7 +101,7 @@ public class FeatureDataUtils {
         for (int i = 0; i < mobilogram.getNumberOfValues(); i++) {
           final double mz = mobilogram.getMZ(i);
           // we add flanking 0 intensities with 0d mz during building, don't count those
-          if (mz < min && Double.compare(mz, 0d) == 1) {
+          if (mz < min && Double.compare(mz, 0d) > 0) {
             min = mz;
           }
           if (mz > max) {
@@ -114,7 +117,7 @@ public class FeatureDataUtils {
       for (int i = 0; i < series.getNumberOfValues(); i++) {
         final double mz = series.getMZ(i);
         // we add flanking 0 intesities with 0d mz during building, don't count those
-        if (mz < min && Double.compare(mz, 0d) == 1) {
+        if (mz < min && Double.compare(mz, 0d) > 0) {
           min = mz;
         }
         if (mz > max) {
@@ -122,7 +125,7 @@ public class FeatureDataUtils {
         }
       }
     }
-    if (min == max) {
+    if (Double.compare(min, max) == 0) {
       return Range.singleton(min);
     }
     return min < max ? Range.closed(min, max) : null;
@@ -154,6 +157,18 @@ public class FeatureDataUtils {
       return Range.singleton((float) min);
     }
     return min < max ? Range.closed((float) min, (float) max) : null;
+  }
+
+  /**
+   * Caclualtes the highest point of the intensity series. Usually, this method is not needed
+   * because {@link #getIntensityRange(IntensitySeries)} returns more information.
+   */
+  public static float getHeight(IntensitySeries series) {
+    final Range<Float> range = getIntensityRange(series);
+    if (range == null) {
+      return 0f;
+    }
+    return range.upperEndpoint();
   }
 
   /**
@@ -211,17 +226,16 @@ public class FeatureDataUtils {
    * @return The area of the given series in retention time dimension (= for
    * {@link IonMobilogramTimeSeries}, the intensities in one frame are summed.).
    */
-  public static float calculateArea(IonTimeSeries<? extends Scan> series) {
+  public static float calculateArea(IntensityTimeSeries series) {
     if (series.getNumberOfValues() <= 1) {
       return 0f;
     }
     float area = 0f;
-    List<? extends Scan> scans = series.getSpectra();
     double lastIntensity = series.getIntensity(0);
-    float lastRT = scans.get(0).getRetentionTime();
+    float lastRT = series.getRetentionTime(0);
     for (int i = 1; i < series.getNumberOfValues(); i++) {
       final double thisIntensity = series.getIntensity(i);
-      final float thisRT = scans.get(i).getRetentionTime();
+      final float thisRT = series.getRetentionTime(i);
       area += (thisRT - lastRT) * ((float) (thisIntensity + lastIntensity)) / 2.0;
       lastIntensity = thisIntensity;
       lastRT = thisRT;
@@ -265,6 +279,26 @@ public class FeatureDataUtils {
    */
   public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature) {
     recalculateIonSeriesDependingTypes(feature, DEFAULT_CENTER_FUNCTION, true);
+  }
+
+  public static void recalculateIntensityTimeSeriesDependingTypes(@NotNull OtherFeature feature) {
+    final OtherTimeSeries featureData = feature.getFeatureData();
+    if (featureData == null) {
+      return;
+    }
+
+    feature.set(OtherFileType.class, featureData.getOtherDataFile());
+    feature.set(ChromatogramTypeType.class, featureData.getChromatoogramType());
+
+    final int mostIntenseIndex = getMostIntenseIndex(featureData);
+    var intensityRange = getIntensityRange(featureData);
+    feature.set(IntensityRangeType.class, intensityRange);
+    feature.set(AreaType.class, calculateArea(featureData));
+    if (mostIntenseIndex >= 0) {
+      feature.set(HeightType.class, (float) featureData.getIntensity(mostIntenseIndex));
+      feature.set(RTType.class, featureData.getRetentionTime(mostIntenseIndex));
+    }
+    feature.set(RTRangeType.class, getRtRange(featureData));
   }
 
   /**
@@ -350,6 +384,20 @@ public class FeatureDataUtils {
       double[] mzBuffer = new double[series.getNumberOfValues()];
       series.getMzValues(mzBuffer);
       smallestDelta = ArrayUtils.smallestDelta(mzBuffer);
+    }
+
+    return smallestDelta;
+  }
+
+  public static double getSmallestRtDelta(@NotNull final TimeSeries series) {
+    if (series.getNumberOfValues() <= 1) {
+      return 0d;
+    }
+    double smallestDelta = Double.POSITIVE_INFINITY;
+
+    for (int i = 1; i < series.getNumberOfValues(); i++) {
+      final float delta = Math.abs(series.getRetentionTime(i) - series.getRetentionTime(i - 1));
+      smallestDelta = Math.min(delta, smallestDelta);
     }
 
     return smallestDelta;

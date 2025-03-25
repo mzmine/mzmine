@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.scans.FragmentScanSelection;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -75,12 +76,13 @@ public class LipidAnnotationTask extends AbstractTask {
   private final int minDoubleBonds;
   private final Boolean onlySearchForEvenChains;
   private final MZTolerance mzTolerance;
-  private MZTolerance mzToleranceMS2;
+  private final MZTolerance mzToleranceMS2;
   private final Boolean searchForMSMSFragments;
   private final Boolean keepUnconfirmedAnnotations;
   private double minMsMsScore;
   private final IonizationType[] ionizationTypesToIgnore;
   private final ParameterSet parameters;
+  private final FragmentScanSelection scanMergeSelect;
 
   public LipidAnnotationTask(ParameterSet parameters, FeatureList featureList,
       @NotNull Instant moduleCallDate) {
@@ -101,31 +103,34 @@ public class LipidAnnotationTask extends AbstractTask {
     this.onlySearchForEvenChains = parameters.getParameter(
             LipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
         .getParameter(LipidAnnotationChainParameters.onlySearchForEvenChainLength).getValue();
-    this.mzToleranceMS2 = parameters.getParameter(LipidAnnotationParameters.searchForMSMSFragments)
-        .getEmbeddedParameters().getParameter(LipidAnnotationMSMSParameters.mzToleranceMS2)
-        .getValue();
     this.mzTolerance = parameters.getParameter(LipidAnnotationParameters.mzTolerance).getValue();
     Object[] selectedObjects = parameters.getParameter(LipidAnnotationParameters.lipidClasses)
         .getValue();
     this.searchForMSMSFragments = parameters.getParameter(
         LipidAnnotationParameters.searchForMSMSFragments).getValue();
     if (searchForMSMSFragments.booleanValue()) {
-      this.mzToleranceMS2 = parameters.getParameter(
-              LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .getParameter(LipidAnnotationMSMSParameters.mzToleranceMS2).getValue();
-      this.keepUnconfirmedAnnotations = parameters.getParameter(
-              LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .getParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations).getValue();
-      this.minMsMsScore = (parameters.getParameter(LipidAnnotationParameters.searchForMSMSFragments)
-          .getEmbeddedParameters().getParameter(LipidAnnotationMSMSParameters.minimumMsMsScore)
+      var ms2Params = parameters.getParameter(LipidAnnotationParameters.searchForMSMSFragments)
+          .getEmbeddedParameters();
+      this.mzToleranceMS2 = ms2Params.getParameter(LipidAnnotationMSMSParameters.mzToleranceMS2)
+          .getValue();
+      this.keepUnconfirmedAnnotations = ms2Params.getParameter(
+          LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations).getValue();
+      this.minMsMsScore = (ms2Params.getParameter(LipidAnnotationMSMSParameters.minimumMsMsScore)
           .getValue());
+
+      this.scanMergeSelect = ms2Params.getParameter(
+              LipidAnnotationMSMSParameters.spectraMergeSelect)
+          .createFragmentScanSelection(getMemoryMapStorage());
     } else {
-      this.keepUnconfirmedAnnotations = true;
+      this.mzToleranceMS2 = MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA; // should not be used but still set
+      this.keepUnconfirmedAnnotations = true; // keep old default
+      scanMergeSelect = FragmentScanSelection.createAllInputFragmentScansSelect(
+          getMemoryMapStorage()); // all input scans was and is the default
     }
     this.selectedCustomLipidClasses = null;
-    if (parameters.getParameter(LipidAnnotationParameters.customLipidClasses).getValue()) {
-      this.selectedCustomLipidClasses = LipidAnnotationParameters.customLipidClasses.getEmbeddedParameters()
-          .getParameter(CustomLipidClassParameters.customLipidClassChoices).getChoices();
+    if (parameters.getValue(LipidAnnotationParameters.customLipidClasses)) {
+      this.selectedCustomLipidClasses = parameters.getEmbeddedParameterValue(LipidAnnotationParameters.customLipidClasses)
+          .getParameter(CustomLipidClassParameters.customLipidClassChoices).getValue();
     }
 
     // Convert Objects to LipidClasses
@@ -205,7 +210,8 @@ public class LipidAnnotationTask extends AbstractTask {
           LipidAnnotationUtils.findPossibleLipid(sortedLipidDatabase.get(i), row, parameters,
               mzTolerance, mzToleranceMS2, searchForMSMSFragments, minMsMsScore,
               keepUnconfirmedAnnotations,
-              sortedLipidDatabase.get(i).lipidAnnotation().getLipidClass().getCoreClass());
+              sortedLipidDatabase.get(i).lipidAnnotation().getLipidClass().getCoreClass(),
+              scanMergeSelect);
 
           if (upperEdge < sortedLipidDatabase.get(i).mz()) {
             break;
@@ -228,7 +234,7 @@ public class LipidAnnotationTask extends AbstractTask {
   @NotNull
   private Set<PolarityType> getPolarityTypes() {
     Set<PolarityType> polarityTypes = new HashSet<>();
-    ObservableList<RawDataFile> rawDataFiles = featureList.getRawDataFiles();
+    List<RawDataFile> rawDataFiles = featureList.getRawDataFiles();
     for (RawDataFile raw : rawDataFiles) {
       List<PolarityType> dataPolarity = raw.getDataPolarity();
       polarityTypes.addAll(dataPolarity);

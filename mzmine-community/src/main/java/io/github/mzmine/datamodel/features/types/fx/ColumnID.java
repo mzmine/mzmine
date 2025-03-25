@@ -188,7 +188,7 @@ public class ColumnID {
       @Nullable String childUniqueId) {
     String featPre = type == ColumnType.FEATURE_TYPE ? "Feature:" : "";
     if (childUniqueId != null && !childUniqueId.isBlank()) {
-      return STR."\{featPre}\{parentUniqueId}:\{childUniqueId}";
+      return "%s%s:%s".formatted(featPre, parentUniqueId, childUniqueId);
     }
     return featPre + parentUniqueId;
   }

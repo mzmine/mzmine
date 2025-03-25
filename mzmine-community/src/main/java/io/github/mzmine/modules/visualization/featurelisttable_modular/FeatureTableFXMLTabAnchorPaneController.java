@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,9 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
+import static io.github.mzmine.javafx.components.factories.FxLabels.newLabelNoWrap;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -47,6 +50,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
@@ -82,9 +86,9 @@ public class FeatureTableFXMLTabAnchorPaneController {
     param = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
 
     // Filters hbox
-    HBox filtersRow = new HBox();
+    HBox filtersRow = newHBox(new Insets(0));
+    filtersRow.setSpacing(0);
     filtersRow.setAlignment(Pos.CENTER_LEFT);
-    filtersRow.setSpacing(10.0);
     Separator separator = new Separator(Orientation.VERTICAL);
 
     // Filter icon
@@ -97,11 +101,12 @@ public class FeatureTableFXMLTabAnchorPaneController {
     mzSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     rtSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     idSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
-    HBox mzFilter = new HBox(new Label("m/z: "), mzSearchField);
+
+    HBox mzFilter = newHBox(newLabelNoWrap("m/z:"), mzSearchField);
     mzFilter.setAlignment(filtersRow.getAlignment());
-    HBox rtFilter = new HBox(new Label("RT: "), rtSearchField);
+    HBox rtFilter = newHBox(newLabelNoWrap("RT:"), rtSearchField);
     rtFilter.setAlignment(filtersRow.getAlignment());
-    HBox idFilter = new HBox(new Label("ID: "), idSearchField);
+    HBox idFilter = newHBox(newLabelNoWrap("ID:"), idSearchField);
     idFilter.setAlignment(filtersRow.getAlignment());
 
     filtersRow.getChildren().addAll(filterIcon, idFilter, mzFilter, separator, rtFilter);
@@ -306,5 +311,13 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
   public void close() {
     featureTable.closeTable();
+  }
+
+  public void setRtFilterString(String filterString) {
+    rtSearchField.setText(filterString);
+  }
+
+  public void setMzFilterString(String filterString) {
+    mzSearchField.setText(filterString);
   }
 }

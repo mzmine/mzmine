@@ -33,8 +33,10 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.MZmineDesktop;
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -43,7 +45,6 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SimpleSorter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -69,6 +70,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.entity.ChartEntity;
@@ -84,16 +86,16 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 public class TICVisualizerTab extends MZmineTab {
 
   // Icons.
-  private static final Image SHOW_SPECTRUM_ICON =
-      FxIconUtil.loadImageFromResources("icons/spectrumicon.png");
-  private static final Image DATA_POINTS_ICON =
-      FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
-  private static final Image ANNOTATIONS_ICON =
-      FxIconUtil.loadImageFromResources("icons/annotationsicon.png");
+  private static final Image SHOW_SPECTRUM_ICON = FxIconUtil.loadImageFromResources(
+      "icons/spectrumicon.png");
+  private static final Image DATA_POINTS_ICON = FxIconUtil.loadImageFromResources(
+      "icons/datapointsicon.png");
+  private static final Image ANNOTATIONS_ICON = FxIconUtil.loadImageFromResources(
+      "icons/annotationsicon.png");
   private static final Image AXES_ICON = FxIconUtil.loadImageFromResources("icons/axesicon.png");
   private static final Image LEGEND_ICON = FxIconUtil.loadImageFromResources("icons/legendkey.png");
-  private static final Image BACKGROUND_ICON =
-      FxIconUtil.loadImageFromResources("icons/bgicon.png");
+  private static final Image BACKGROUND_ICON = FxIconUtil.loadImageFromResources(
+      "icons/bgicon.png");
 
   // CSV extension.
   private static final String CSV_EXTENSION = "*.csv";
@@ -119,9 +121,9 @@ public class TICVisualizerTab extends MZmineTab {
   /**
    * Constructor for total ion chromatogram visualizer
    */
-  public TICVisualizerTab(RawDataFile dataFiles[], TICPlotType plotType,
+  public TICVisualizerTab(RawDataFile[] dataFiles, TICPlotType plotType,
       ScanSelection scanSelection, Range<Double> mzRange, List<? extends Feature> features,
-      Map<Feature, String> featureLabels) {
+      Map<Feature, String> featureLabels, final @Nullable Integer ticMaxSamples) {
     super("TIC Visualizer", true, false);
 
     assert mzRange != null;
@@ -166,13 +168,11 @@ public class TICVisualizerTab extends MZmineTab {
       }
     });
 
-
     Button datapointsBtn = new Button(null, new ImageView(DATA_POINTS_ICON));
     datapointsBtn.setTooltip(new Tooltip("Toggle displaying of data points"));
     datapointsBtn.setOnAction(e -> {
       ticPlot.switchDataPointsVisible();
     });
-
 
     Button annotationsBtn = new Button(null, new ImageView(ANNOTATIONS_ICON));
     annotationsBtn.setTooltip(new Tooltip("Toggle displaying of peak labels"));
@@ -180,12 +180,11 @@ public class TICVisualizerTab extends MZmineTab {
       ticPlot.switchItemLabelsVisible();
     });
 
-
     Button axesBtn = new Button(null, new ImageView(AXES_ICON));
     axesBtn.setTooltip(new Tooltip("Setup ranges for axes"));
+    final XYPlot plot = ticPlot.getXYPlot();
     axesBtn.setOnAction(e -> {
-      AxesSetupDialog dialog = new AxesSetupDialog(getTabPane().getScene().getWindow(),
-          ticPlot.getXYPlot());
+      AxesSetupDialog dialog = new AxesSetupDialog(getTabPane().getScene().getWindow(), plot);
       dialog.show();
     });
 
@@ -201,30 +200,45 @@ public class TICVisualizerTab extends MZmineTab {
       ticPlot.switchBackground();
     });
 
-    toolBar.getItems().addAll(showSpectrumBtn, datapointsBtn, annotationsBtn, axesBtn, legendBtn,
-        backgroundBtn);
+    toolBar.getItems()
+        .addAll(showSpectrumBtn, datapointsBtn, annotationsBtn, axesBtn, legendBtn, backgroundBtn);
     mainPane.setRight(toolBar);
 
-    // add all features
-    if (features != null) {
+    // avoid very long legends - check later how many datasets were added
+    ticPlot.setLegendVisible(false);
 
-      for (Feature feature : features) {
-        if (featureLabels != null && featureLabels.containsKey(feature)) {
+    ChartLogicsFX.setAutoRangeAxis(ticPlot.getChart(), false);
 
-          final String label = featureLabels.get(feature);
-          ticPlot.addLabelledPeakDataSet(new FeatureDataSet(feature, label), label);
+    ticPlot.applyWithNotifyChanges(false, () -> {
+      // add all features
+      if (features != null) {
+        for (Feature feature : features) {
+          if (featureLabels != null && featureLabels.containsKey(feature)) {
 
-        } else {
+            final String label = featureLabels.get(feature);
+            ticPlot.addLabelledPeakDataSet(new FeatureDataSet(feature, label), label);
 
-          ticPlot.addFeatureDataSet(new FeatureDataSet(feature));
+          } else {
+
+            ticPlot.addFeatureDataSet(new FeatureDataSet(feature));
+          }
+        }
+
+      }
+
+      // add all data files
+      if(ticMaxSamples==null || dataFiles.length<=ticMaxSamples) {
+        for (RawDataFile dataFile : dataFiles) {
+          addRawDataFile(dataFile);
         }
       }
-    }
 
-    // add all data files
-    for (RawDataFile dataFile : dataFiles) {
-      addRawDataFile(dataFile);
-    }
+      // only display if short enough. User can still activate the legend in the UI
+      if (ticPlot.getDatasetCount() < 50) {
+        ticPlot.setLegendVisible(true);
+      }
+    });
+
 
     // Add the Windows menu
 //    WindowsMenu.addWindowsMenu(mainScene);
@@ -232,8 +246,8 @@ public class TICVisualizerTab extends MZmineTab {
     // pack();
 
     // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(ChromatogramVisualizerModule.class);
+    ParameterSet paramSet = MZmineCore.getConfiguration()
+        .getModuleParameters(ChromatogramVisualizerModule.class);
 //    WindowSettingsParameter settings =
 //        paramSet.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
 
@@ -267,8 +281,8 @@ public class TICVisualizerTab extends MZmineTab {
           // Select or deselect dataset
           Font font = new Font("Helvetica", Font.BOLD, 11);
           BasicStroke stroke = new BasicStroke(4);
-          if (renderer.getDefaultLegendTextFont() != null
-              && renderer.getDefaultLegendTextFont().isBold()) {
+          if (renderer.getDefaultLegendTextFont() != null && renderer.getDefaultLegendTextFont()
+              .isBold()) {
             font = new Font("Helvetica", Font.PLAIN, 11);
             stroke = new BasicStroke(1);
           }
@@ -300,6 +314,7 @@ public class TICVisualizerTab extends MZmineTab {
       }
     });
 
+    ChartLogicsFX.autoAxes(ticPlot);
   }
 
   void updateTitle() {
@@ -340,8 +355,8 @@ public class TICVisualizerTab extends MZmineTab {
       }
     }
 
-    mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint()) + " - "
-        + mzFormat.format(mzRange.upperEndpoint()));
+    mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat.format(
+        mzRange.upperEndpoint()));
 
     ChromatogramCursorPosition pos = getCursorPosition();
 
@@ -362,8 +377,9 @@ public class TICVisualizerTab extends MZmineTab {
     RawDataFile files[] = ticDataSets.keySet().toArray(new RawDataFile[0]);
     Arrays.sort(files, new SimpleSorter());
     String dataFileNames = Joiner.on(",").join(files);
-    setText("Chromatogram: [" + dataFileNames + "; " + mzFormat.format(mzRange.lowerEndpoint())
-        + " - " + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
+    setText(
+        "Chromatogram: [" + dataFileNames + "; " + mzFormat.format(mzRange.lowerEndpoint()) + " - "
+        + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
 
     // update plot title
     ticPlot.setTitle(mainTitle.toString(), subTitle.toString());
@@ -382,6 +398,7 @@ public class TICVisualizerTab extends MZmineTab {
   }
 
   /**
+   *
    */
   public void setRTRange(Range<Double> rtRange) {
     ticPlot.getXYPlot().getDomainAxis().setRange(rtRange.lowerEndpoint(), rtRange.upperEndpoint());
@@ -443,8 +460,7 @@ public class TICVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
@@ -496,8 +512,8 @@ public class TICVisualizerTab extends MZmineTab {
       final File exportFile = exportChooser.showSaveDialog(getTabPane().getScene().getWindow());
       if (exportFile != null) {
 
-        MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile,
-            Instant.now()));
+        MZmineCore.getTaskController()
+            .addTask(new ExportChromatogramTask(dataSet, exportFile, Instant.now()));
       }
     }
   }
@@ -518,8 +534,7 @@ public class TICVisualizerTab extends MZmineTab {
           mz = dataSet.getZValue(0, index);
         }
         ChromatogramCursorPosition pos = new ChromatogramCursorPosition(selectedRT, mz, selectedIT,
-            dataSet.getDataFile(),
-            dataSet.getScan(index));
+            dataSet.getDataFile(), dataSet.getScan(index));
         return pos;
       }
     }
@@ -577,7 +592,6 @@ public class TICVisualizerTab extends MZmineTab {
     }
 
   }
-
 
 
   public TICPlot getTICPlot() {

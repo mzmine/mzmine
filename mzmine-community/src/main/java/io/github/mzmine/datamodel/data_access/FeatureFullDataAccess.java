@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.data_access;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Arrays;
@@ -142,8 +143,8 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
 
   /**
    * Set the data to the next feature, if available. Returns the feature for additional data access.
-   * retention time and intensity values should be accessed from this data class via {@link
-   * #getRetentionTime(int)} and {@link #getIntensity(int)}
+   * retention time and intensity values should be accessed from this data class via
+   * {@link #getRetentionTime(int)} and {@link #getIntensity(int)}
    *
    * @return the feature or null
    */
@@ -172,6 +173,10 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
           break;
         }
       }
+      if (detectedIndex != detectedScans.size()) {
+        throw new IllegalStateException(
+            "Less scans added than actually detected in Full Feature data access. This may point to wrong sorting of scans between detected and all scans of a feature list.");
+      }
       currentNumberOfDataPoints = allScans.size();
     } else {
       // clear
@@ -180,35 +185,23 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
     return feature;
   }
 
-  /**
-   * Usage of this method is strongly discouraged because it returns the internal buffer of this
-   * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
-   * access might be necessary to avoid copying arrays. Since the chromatograms might originate from
-   * different raw data files, the number of data points in that raw file might be different from
-   * the length of this buffer, which is set to the longest XIC. The current number of data points
-   * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
-   * <p></p>
-   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getIntensity(int)} (int)} is more appropriate.
-   *
-   * @return The intensity buffer of this data access.
-   */
+  @Override
+  public int getMaxNumberOfValues() {
+    return mzs.length;
+  }
+
+  @Override
   public double[] getIntensityValues() {
     return intensities;
   }
 
-  /**
-   * Usage of this method is strongly discouraged because it returns the internal buffer of this
-   * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
-   * access might be necessary to avoid copying arrays. Since the chromatograms might originate from
-   * different raw data files, the number of data points in that raw file might be different from
-   * the length of this buffer, which is set to the longest XIC. The current number of data points
-   * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
-   * <p></p>
-   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getMZ(int)} is more appropriate.
-   *
-   * @return The m/z buffer of this data access.
-   */
+  @Override
   public double[] getMzValues() {
     return mzs;
+  }
+
+  @Override
+  public IonTimeSeries<Scan> emptySeries() {
+    return featureData.emptySeries();
   }
 }

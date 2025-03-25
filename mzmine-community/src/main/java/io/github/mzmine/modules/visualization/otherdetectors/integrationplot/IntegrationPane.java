@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
@@ -61,7 +61,7 @@ public class IntegrationPane extends BorderPane {
   private final NumberFormats formats = ConfigService.getGuiFormats();
   private ObjectProperty<@Nullable RawDataFile> rawFile = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable OtherDataFile> otherFile = new SimpleObjectProperty<>();
-  private ObjectProperty<@Nullable OtherFeature> rawTrace = new SimpleObjectProperty<>();
+  private ObjectProperty<@Nullable OtherFeature> preprocessedTrace = new SimpleObjectProperty<>();
   private final IntegrationPlotController plot = new IntegrationPlotController();
   private final BooleanProperty saveAllowedProperty = new SimpleBooleanProperty(false);
 
@@ -82,8 +82,8 @@ public class IntegrationPane extends BorderPane {
 //    otherFileCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
 //    timeSeriesCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
 
-    vbox.minWidth(250);
-    vbox.maxWidth(250);
+    vbox.setMinWidth(250);
+    vbox.setMaxWidth(250);
 
     final Region plotView = plot.buildView();
     setCenter(plotView);
@@ -99,13 +99,15 @@ public class IntegrationPane extends BorderPane {
         return;
       }
       saveAllowedProperty.set(false);
-      if (rawTrace.get() != null) {
-        var data = rawTrace.get().getFeatureData().getTimeSeriesData();
-        data.replaceProcessedFeaturesForTrace(rawTrace.get(),
+      if (preprocessedTrace.get() != null) {
+        var data = preprocessedTrace.get().getFeatureData().getTimeSeriesData();
+        data.replaceProcessedFeaturesForTrace(
+            preprocessedTrace.get().get(RawTraceType.class) != null ? preprocessedTrace.get()
+                .get(RawTraceType.class) : preprocessedTrace.get(),
             plot.getIntegratedFeatures().stream().filter(ts -> ts instanceof OtherTimeSeries)
                 .map(ts -> {
-                  final OtherFeature integrated = rawTrace.get().createSubFeature();
-                  integrated.set(OtherFeatureDataType.class, (OtherTimeSeries) ts);
+                  final OtherFeature integrated = preprocessedTrace.get()
+                      .createSubFeature((OtherTimeSeries) ts);
                   return integrated;
                 }).toList());
       }
@@ -117,7 +119,7 @@ public class IntegrationPane extends BorderPane {
   }
 
   private boolean isPlotFeaturesMatchSavedFeatures() {
-    final OtherFeature series = rawTrace.get();
+    final OtherFeature series = preprocessedTrace.get();
     if (series == null) {
       return false;
     }
@@ -141,9 +143,9 @@ public class IntegrationPane extends BorderPane {
     setOtherFile(otherFile);
   }
 
-  public IntegrationPane(@NotNull OtherFeature rawTrace) {
+  public IntegrationPane(@NotNull OtherFeature preprocessedTrace) {
     this();
-    setRawTrace(rawTrace);
+    setPreprocessedTrace(preprocessedTrace);
   }
 
   private @NotNull ComboBox<@Nullable OtherDataFile> createOtherFileCombo() {
@@ -168,7 +170,7 @@ public class IntegrationPane extends BorderPane {
 
   private @NotNull ComboBox<@Nullable OtherFeature> createTimeSeriesCombo() {
     final ComboBox<@Nullable OtherFeature> timeSeriesCombo = FxComboBox.createComboBox(
-        "Select a chromatogram.", List.of(), rawTrace);
+        "Select a chromatogram.", List.of(), preprocessedTrace);
     timeSeriesCombo.setConverter(new StringConverter<>() {
       @Override
       public String toString(OtherFeature object) {
@@ -203,8 +205,8 @@ public class IntegrationPane extends BorderPane {
 
     otherFile.addListener((_, _, otherFile) -> {
       if (otherFile != null) {
-        timeSeriesCombo.setItems(
-            FXCollections.observableList(otherFile.getOtherTimeSeries().getRawTraces()));
+        timeSeriesCombo.setItems(FXCollections.observableList(
+            otherFile.getOtherTimeSeriesData().getPreprocessedTraces()));
         if (!timeSeriesCombo.getItems().isEmpty()) {
           timeSeriesCombo.getSelectionModel().selectFirst();
         }
@@ -220,13 +222,13 @@ public class IntegrationPane extends BorderPane {
       }
     });
 
-    rawTrace.addListener((_, _, timeSeries) -> {
+    preprocessedTrace.addListener((_, _, timeSeries) -> {
       if (timeSeries != null && timeSeries.get(OtherFileType.class) != otherFile.get()) {
         setOtherFile(timeSeries.get(OtherFileType.class));
       }
     });
 
-    rawTrace.addListener((_, _, ts) -> {
+    preprocessedTrace.addListener((_, _, ts) -> {
       plot.setIntegratedFeatures(List.of());
       if (ts != null) {
         plot.setOtherTimeSeries(ts.getFeatureData());
@@ -266,15 +268,15 @@ public class IntegrationPane extends BorderPane {
     return otherFile;
   }
 
-  public @Nullable OtherFeature getRawTrace() {
-    return rawTrace.get();
+  public @Nullable OtherFeature getPreprocessedTrace() {
+    return preprocessedTrace.get();
   }
 
-  public void setRawTrace(@Nullable OtherFeature rawTrace) {
-    this.rawTrace.set(rawTrace);
+  public void setPreprocessedTrace(@Nullable OtherFeature preprocessedTrace) {
+    this.preprocessedTrace.set(preprocessedTrace);
   }
 
-  public ObjectProperty<@Nullable OtherFeature> rawTraceProperty() {
-    return rawTrace;
+  public ObjectProperty<@Nullable OtherFeature> preprocessedTraceProperty() {
+    return preprocessedTrace;
   }
 }

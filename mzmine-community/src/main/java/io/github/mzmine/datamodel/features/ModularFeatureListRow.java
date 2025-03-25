@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -110,7 +110,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   private final Map<RawDataFile, ModularFeature> features;
   @NotNull
-  private ModularFeatureList flist;
+  private final ModularFeatureList flist;
 
   /**
    * Creates an empty row
@@ -123,7 +123,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
       if (change.wasAdded()) {
-        flist.addRowType(change.getKey());
+        this.flist.addRowType(change.getKey());
       }
     });
 
@@ -212,9 +212,9 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public Stream<ModularFeature> streamFeatures() {
-    return this.getFeatures().stream().map(ModularFeature.class::cast).filter(Objects::nonNull);
+    return features.values().stream()
+        .filter(f -> f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN);
   }
-
 
   // Helper methods
   @Override
@@ -232,8 +232,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     // TODO remove features object - not always do we have features
     // FeaturesType creates an empty ListProperty for that
     // return FXCollections.observableArrayList(get(FeaturesType.class).values());
-    return features.values().stream().filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN)
-        .toList();
+    return streamFeatures().toList();
   }
 
   @Override
@@ -245,7 +244,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-                                         + "row. Create feature with the correct feature list as an argument.");
+          + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -253,7 +252,6 @@ public class ModularFeatureListRow implements FeatureListRow {
 
 //    logger.log(Level.FINEST, "ADDING FEATURE");
     ModularFeature oldFeature = features.put(raw, modularFeature);
-    modularFeature.setFeatureList(flist);
     modularFeature.setRow(this);
 
     if (!Objects.equals(oldFeature, modularFeature)) {
@@ -280,8 +278,22 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void removeFeature(RawDataFile file) {
-    this.features.remove(file);
+  public void removeFeature(RawDataFile file, boolean updateByRowBindings) {
+    final ModularFeature removed = this.features.remove(file);
+    if (removed != null) {
+      // reflect changes by updating all row bindings
+      getFeatureList().fireFeatureChangedEvent(this, null, null, updateByRowBindings);
+    }
+  }
+
+  @Override
+  public void clearFeatures(final boolean updateByRowBindings) {
+    final  boolean changed = !features.isEmpty();
+    this.features.clear();
+    if (changed) {
+      // reflect changes by updating all row bindings
+      getFeatureList().fireFeatureChangedEvent(this, null, null, updateByRowBindings);
+    }
   }
 
   @Override
@@ -332,8 +344,12 @@ public class ModularFeatureListRow implements FeatureListRow {
     return get(AreaType.class);
   }
 
+  /**
+   *
+   * @return unmodifiable list of all raw data files - even if there is no feature
+   */
   @Override
-  public ObservableList<RawDataFile> getRawDataFiles() {
+  public List<RawDataFile> getRawDataFiles() {
     return flist.getRawDataFiles();
   }
 
@@ -367,19 +383,9 @@ public class ModularFeatureListRow implements FeatureListRow {
     return f != null && f.getFeatureStatus().equals(FeatureStatus.UNKNOWN) ? null : f;
   }
 
-  @Nullable
   @Override
-  public ModularFeatureList getFeatureList() {
+  public @NotNull ModularFeatureList getFeatureList() {
     return flist;
-  }
-
-  @Override
-  public void setFeatureList(@NotNull FeatureList flist) {
-    if (!(flist instanceof ModularFeatureList)) {
-      throw new IllegalArgumentException(
-          "Cannot set non-modular feature list to modular feature list row.");
-    }
-    this.flist = (ModularFeatureList) flist;
   }
 
   @Override
@@ -501,11 +507,12 @@ public class ModularFeatureListRow implements FeatureListRow {
   public void addCompoundAnnotation(CompoundDBAnnotation id) {
     synchronized (getMap()) {
       List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
-      if (matches == null) {
-        matches = new ArrayList<>();
+      List<CompoundDBAnnotation> newList = new ArrayList<>();
+      if (matches != null) {
+        newList.addAll(matches);
       }
-      matches.add(id);
-      set(CompoundDatabaseMatchesType.class, matches);
+      newList.add(id);
+      set(CompoundDatabaseMatchesType.class, newList);
     }
   }
 
@@ -534,7 +541,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   public boolean isIdentified() {
     for (Entry<DataType, Object> entry : getMap().entrySet()) {
       final DataType dt = entry.getKey();
-      if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType) {
+      if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType
+          && !(dt instanceof IonIdentityListType)) {
         final List<?> list = get(listType);
         if (list != null && !list.isEmpty()) {
           return true;
@@ -679,7 +687,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public IsotopePattern getBestIsotopePattern() {
     return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight))
         .map(ModularFeature::getIsotopePattern).orElse(null);
   }

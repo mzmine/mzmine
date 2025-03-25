@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -82,13 +82,14 @@ public class MatchedLipid implements FeatureAnnotation {
 
   public MatchedLipid(ILipidAnnotation lipidAnnotation, Double accurateMz,
       IonizationType ionizationType, Set<LipidFragment> matchedFragments, Double msMsScore,
-      MatchedLipidStatus status) {
+      @NotNull MatchedLipidStatus status) {
     this.lipidAnnotation = lipidAnnotation;
     this.accurateMz = accurateMz;
     this.ionizationType = ionizationType;
     this.matchedFragments = matchedFragments;
     this.msMsScore = msMsScore;
     this.status = status;
+    this.comment = status.getComment();
   }
 
   public static MatchedLipid loadFromXML(XMLStreamReader reader,
@@ -145,10 +146,14 @@ public class MatchedLipid implements FeatureAnnotation {
             }
           }
         }
-        case XML_STATUS -> status = MatchedLipidStatus.valueOf(reader.getElementText());
+        case XML_STATUS -> status = MatchedLipidStatus.parseOrElse(reader.getElementText(),
+            MatchedLipidStatus.UNCONFIRMED);
         default -> {
         }
       }
+    }
+    if (status == null) {
+      status = MatchedLipidStatus.UNCONFIRMED; // should always load
     }
 
     MatchedLipid matchedLipid = new MatchedLipid(lipidAnnotation, accurateMz, ionizationType,
@@ -323,7 +328,7 @@ public class MatchedLipid implements FeatureAnnotation {
     try {
       return IonTypeParser.parse(getIonizationType().toString());
     } catch (Exception e) {
-      logger.fine(() -> STR."Error parsing ion type \{getIonizationType().toString()}");
+      logger.fine(() -> "Error parsing ion type " + getIonizationType().toString());
       return null;
     }
   }

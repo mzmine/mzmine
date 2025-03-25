@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,9 @@ import org.jfree.chart.ui.Size2D;
 
 public class DimensionUnitUtil {
 
+  public static final float MM_PER_PIXEL = 0.352778f;
+  public static final float PIXEL_PER_INCH = 72f;
+
   /**
    * Converts a pixel size to the given unit
    *
@@ -39,8 +42,8 @@ public class DimensionUnitUtil {
   public static float getSizeInUnit(float pixel, DimUnit unit) {
     return switch (unit) { // values derived from unitconverters.net
       case CM -> getSizeInUnit(pixel, DimUnit.MM) / 10;
-      case MM -> (float) (pixel / 0.352778);
-      case INCH -> (float) (pixel / 0.0138889);
+      case MM -> pixel * MM_PER_PIXEL;
+      case INCH -> pixel / PIXEL_PER_INCH;
       case PX, PT -> pixel;
     };
   }
@@ -89,8 +92,8 @@ public class DimensionUnitUtil {
     // convert to pt
     return switch (unit) { // values derived from unitconverters.net
       case CM -> toPixel(value * 10, DimUnit.MM);
-      case MM -> value * 2.83465f;
-      case INCH -> value * 72f;
+      case MM -> value / MM_PER_PIXEL;
+      case INCH -> value * PIXEL_PER_INCH;
       case PX, PT -> value;
     };
   }

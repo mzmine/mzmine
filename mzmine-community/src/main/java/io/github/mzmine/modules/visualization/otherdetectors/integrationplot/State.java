@@ -27,11 +27,4 @@ package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 enum State {
   SETTING_LEFT, SETTING_RIGHT, NOT_INTEGRATING;
-
-  boolean isIntegrating() {
-    return switch (this) {
-      case SETTING_LEFT, SETTING_RIGHT -> true;
-      case NOT_INTEGRATING -> false;
-    };
-  }
 }

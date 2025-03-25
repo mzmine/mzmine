@@ -62,7 +62,7 @@ public class SubFormulaEdgeGenerator {
   }
 
   private void generateEdges() {
-    logger.finest(() -> STR."Generating edges for \{peaks.size()} signals.");
+    logger.finest(() -> "Generating edges for " + peaks.size() + " signals.");
     for (int i = 0; i < peaks.size() - 1; i++) {
       SignalFormulaeModel larger = peaks.get(i);
       // check all smaller formulae only
@@ -76,7 +76,8 @@ public class SubFormulaEdgeGenerator {
       }
     }
     logger.finest(
-        () -> STR."Finished edge generation. Generated \{edges.size()} edges for \{peaks.size()} signals.");
+        () -> "Finished edge generation. Generated " + edges.size() + " edges for " + peaks.size()
+            + " signals.");
   }
 
   public List<SubFormulaEdge> getEdges() {

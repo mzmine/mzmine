@@ -25,8 +25,10 @@
 
 package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
 
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.util.ExitCode;
+import org.jetbrains.annotations.NotNull;
 
 public class MultidetectorVisualizerParameters extends SimpleParameterSet {
 
@@ -37,5 +39,10 @@ public class MultidetectorVisualizerParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     return ExitCode.OK;
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }
