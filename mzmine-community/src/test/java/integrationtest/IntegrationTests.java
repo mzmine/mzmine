@@ -41,7 +41,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -96,7 +95,6 @@ public class IntegrationTests {
   }
 
   @Test
-  @Disabled
   void testProjectLoad(@TempDir File tempDir) {
     final String resourcePath = "rawdatafiles/integration_tests/workshop_dataset/project.mzmine";
     final File resourceFile = IntegrationTestUtils.urlToFile(
