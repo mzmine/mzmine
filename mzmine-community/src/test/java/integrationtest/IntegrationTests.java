@@ -121,7 +121,6 @@ public class IntegrationTests {
   }
 
   @Test
-  @Disabled
   void testMseMs(@TempDir File tempDir) {
     Assertions.assertEquals(0, IntegrationTestUtils.runBatchCompareToCsv(
         "rawdatafiles/integration_tests/mse/mse_batch.mzbatch",
@@ -131,7 +130,7 @@ public class IntegrationTests {
   }
 
   @Test
-  @Disabled
+  @DisabledOnOs({OS.LINUX, OS.MAC})
   void testMseMsProject(@TempDir File tempDir) {
     final File exportedFlist = IntegrationTestUtils.loadProjectExportFeatureList(tempDir,
         "rawdatafiles/integration_tests/mse/mse_project.mzmine");
