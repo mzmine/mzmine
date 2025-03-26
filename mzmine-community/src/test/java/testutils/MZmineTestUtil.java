@@ -224,7 +224,7 @@ public class MZmineTestUtil {
 
   public static void startMzmineCore() {
     try {
-      MZmineCore.main(new String[]{"-r", "-m", "all"});
+      MZmineCore.main(new String[]{"-r", "-m", "all", "-pref", "null"});
     } catch (Exception ex) {
       // might be already initialized
       logger.log(Level.INFO,

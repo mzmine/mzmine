@@ -345,6 +345,17 @@ public class IntegrationTestUtils {
     return csvExportFile;
   }
 
+  /**
+   *
+   * @param tempDir
+   * @param projectFile relative file path to the project in the resources folder.
+   * @return The exported feature list.
+   */
+  static @NotNull File loadProjectExportFeatureList(File tempDir, String projectFile) {
+    final URL resource = IntegrationTestUtils.class.getClassLoader().getResource(projectFile);
+    return loadProjectExportFeatureList(tempDir, urlToFile(resource));
+  }
+
   static @NotNull File loadProjectExportFeatureList(File tempDir, File projectFile) {
     // clear old porject
     ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());

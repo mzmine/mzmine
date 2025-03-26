@@ -80,26 +80,24 @@ public class IntegrationTests {
 
   @Test
   @DisabledOnOs({OS.LINUX, OS.MAC})
-  void testProjectLoad(@TempDir File tempDir) {
-    final String resourcePath = "rawdatafiles/integration_tests/workshop_dataset/project.mzmine";
-    final File resourceFile = IntegrationTestUtils.urlToFile(
-        getClass().getClassLoader().getResource(resourcePath));
+    // windows paths don't work on linux/mac
+  void testProjectLoadLcms(@TempDir File tempDir) {
     final URL expectedResultsFromProcessing = IntegrationTests.class.getClassLoader()
         .getResource("rawdatafiles/integration_tests/workshop_dataset/expected_results.csv");
     final URL expectedResultsFromProjectLoad = IntegrationTests.class.getClassLoader().getResource(
         "rawdatafiles/integration_tests/workshop_dataset/expected_results_project.csv");
 
     final File csvExportFile = IntegrationTestUtils.loadProjectExportFeatureList(tempDir,
-        resourceFile);
+        "rawdatafiles/integration_tests/workshop_dataset/project.mzmine");
 
     // there should be the warning that the number of row types is not equal and 9 columns are missing
     Assertions.assertEquals(2,
         IntegrationTestUtils.getCsvComparisonResults(expectedResultsFromProcessing, csvExportFile,
-            resourceFile.getName()).size());
+            "project_load_lcms").size());
     // saving and loading the project should be identical
     Assertions.assertEquals(0,
         IntegrationTestUtils.getCsvComparisonResults(expectedResultsFromProjectLoad, csvExportFile,
-            resourceFile.getName()).size());
+            "project_load_lcms").size());
   }
 
   @Test
@@ -120,5 +118,30 @@ public class IntegrationTests {
         "rawdatafiles/integration_tests/gc_tof_ms/expected_results.csv", tempDir,
         new String[]{"rawdatafiles/integration_tests/gc_tof_ms/019_KR8_20220715.mzML"},
         new String[]{"spectral_libraries/integration_tests/massbank_nist_for_tests.msp"}).size());
+  }
+
+  @Test
+  @Disabled
+  void testMseMs(@TempDir File tempDir) {
+    Assertions.assertEquals(0, IntegrationTestUtils.runBatchCompareToCsv(
+        "rawdatafiles/integration_tests/mse/mse_batch.mzbatch",
+        "rawdatafiles/integration_tests/mse/expected_results.csv", tempDir,
+        new String[]{"rawdatafiles/integration_tests/mse/mse_20180205_0125.mzML"},
+        new String[]{"spectral_libraries/integration_tests/massbank_eu_nist_for_mse.msp"}).size());
+  }
+
+  @Test
+  @Disabled
+  void testMseMsProject(@TempDir File tempDir) {
+    final File exportedFlist = IntegrationTestUtils.loadProjectExportFeatureList(tempDir,
+        "rawdatafiles/integration_tests/mse/mse_project.mzmine");
+
+    Assertions.assertEquals(0, IntegrationTestUtils.getCsvComparisonResults(
+        "rawdatafiles/integration_tests/mse/expected_results_project.csv", exportedFlist,
+        "mse_project.mzmine").size());
+
+    Assertions.assertEquals(2, IntegrationTestUtils.getCsvComparisonResults(
+        "rawdatafiles/integration_tests/mse/expected_results.csv", exportedFlist,
+        "mse_project.mzmine").size());
   }
 }
