@@ -1,6 +1,5 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -8,7 +7,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.*;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -20,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Instant;
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class LipidIDExpertKnowledgeTask extends AbstractTask{
 
@@ -76,19 +73,12 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask{
     public void run() {
         //set status to processing
         setStatus(TaskStatus.PROCESSING);
-
+        //The user chooses the feature list (should be Aligned Feature List after metaCorrelate)
         logger.info("Annotating in "+featureList);
 
         List<FeatureListRow> rows = featureList.getRows();
         if(featureList instanceof ModularFeatureList){
             featureList.addRowType(new LipidMatchListType());
-        }
-        //TODO finish this: make metaCorrelate a requisite before this maybe with the featurelist description or something similar
-        //Checks if the row has any lipid matches (it only alerts, but it doesn't matter, we will check later when comparing both lists)
-        for (FeatureListRow r : rows){
-            if (r.getLipidMatches().isEmpty()){
-                //System.out.println("Row "+ r.getID() +" does not have any previous lipid matches");
-            }
         }
 
         totalSteps = rows.size();
@@ -103,7 +93,6 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask{
             commonAdductsISF.addAll(Arrays.asList(CommonAdductNegative.values()));
             commonAdductsISF.addAll(Arrays.asList(CommonISFPositive.values()));
             commonAdductsISF.addAll(Arrays.asList(CommonISFNegative.values()));
-            commonAdductsISF.sort(Comparator.comparingDouble(ExpertKnowledge::getMz));
         } else if (polarityTypes.contains(PolarityType.POSITIVE)) {
             commonAdductsISF.addAll(Arrays.asList(CommonAdductPositive.values()));
             commonAdductsISF.addAll(Arrays.asList(CommonISFPositive.values()));
@@ -111,33 +100,38 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask{
             commonAdductsISF.addAll(Arrays.asList(CommonAdductNegative.values()));
             commonAdductsISF.addAll(Arrays.asList(CommonISFNegative.values()));
         }
+        //sort by mz
+        commonAdductsISF.sort(Comparator.comparingDouble(ExpertKnowledge::getMz));
 
-        //TODO albertos' comments idk if i'll do it:
-
-        // grouped features by RT, find adduct relationships, then provide the evidence (positive or negative). In comments maybe?
-        // hacer una implementación de FeatureListRow que incluya un score? Valorar
-        // List<GroupedFeaturesListRow>
 
         //Iterate through each row
         rows.parallelStream().forEach(row -> {
+            //The module will only work if the row has annotations, if not, it won't run
+            if (row.getLipidMatches().isEmpty()) {
+                //nothing
+            } else {
 
-            //findAdducts function in Utils
-            List<DetectedAdduct> foundAdductsISF = LipidIDExpertKnowledgeUtils.findAdductsPos(commonAdductsISF, row, mzTolerance.getMzTolerance());
+                //findAdducts function in Utils
+                List<FoundAdduct> foundAdductsISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, row, mzTolerance.getMzTolerance());
 
-            //TODO findLipids function
-            // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
-            List<MatchedLipid> matchedLipids = row.getLipidMatches();
-            for (MatchedLipid mL : matchedLipids){
-                //Abbreviation of the matched lipid
-                String abbreviation = mL.getLipidAnnotation().getLipidClass().getAbbr();
+                //1: Based on polarity re-direct to specific rules
+                if(polarityTypes.contains(PolarityType.POSITIVE)) {
+                    List<FoundLipid> detectedLipids = LipidIDExpertKnowledgeSearch.findLipidsPositive(row, foundAdductsISF);
+                } else if (polarityTypes.contains(PolarityType.NEGATIVE)) {
+                    List<FoundLipid> detectedLipids = LipidIDExpertKnowledgeSearch.findLipidsNegative(row, foundAdductsISF);
+                } else if (polarityTypes.contains(PolarityType.POSITIVE) && polarityTypes.contains(PolarityType.NEGATIVE)) {
+                    List<FoundLipid> detectedLipidsPos = LipidIDExpertKnowledgeSearch.findLipidsPositive(row, foundAdductsISF);
+                    List<FoundLipid> detectedLipidsNeg = LipidIDExpertKnowledgeSearch.findLipidsNegative(row, foundAdductsISF);
+                    List<FoundLipid> detectedLipids = new ArrayList<>();
+                    detectedLipids.addAll(detectedLipidsNeg);
+                    detectedLipids.addAll(detectedLipidsPos);
+                }
 
+                finishedSteps++;
             }
-            //List<Lipid> detectedLipids = LipidIDExpertKnowledgeUtils.findLipids(foundAdductsISF);
-
-
-            finishedSteps++;
         });
 
+        //TODO print detectedLipids in the GUI feature list
         // Add task description to featureList
         (featureList).addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
                 "Lipid annotation with expert knowledge", LipidIDExpertKnowledgeModule.class,

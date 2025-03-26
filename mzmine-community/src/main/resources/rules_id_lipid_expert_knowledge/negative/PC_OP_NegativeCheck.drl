@@ -1,0 +1,167 @@
+package rules_id_lipid_expert_knowledge.negative;
+
+       import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.CommonAdductPositive;
+       import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.FoundLipid;
+       import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.FoundAdduct;
+
+       // Declare the global list
+       global java.util.List<FoundLipid> detectedLipids;
+       global FoundLipid lipid;
+
+       rule "Presence [M+CH3COO]-"
+       when
+           $adduct: FoundAdduct(adductName == "[M+CH3COO]-")
+       then
+           
+           lipid.setScore(1);
+           lipid.setDescrCorrect("Contains [M+CH3COO]-; ");
+           //detectedLipids.add(lipid);
+       end
+
+       rule "Presence [M+CH3COO+(CH3COONa)]-"
+       when
+           $adduct: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
+       then
+           
+           lipid.setScore(1);
+           lipid.setDescrCorrect("Contains [M+CH3COO+(CH3COONa)]-; ");
+           //detectedLipids.add(lipid);
+       end
+
+       rule "Presence [M+CH3COO+(CH3COONa)2]-"
+       when
+           $adduct: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)2]-")
+       then
+           
+           lipid.setScore(1);
+           lipid.setDescrCorrect("Contains [M+CH3COO+(CH3COONa)2]-; ");
+           //detectedLipids.add(lipid);
+       end
+
+       rule "Presence [M+CH3COO+(CH3COONa)3]-"
+       when
+           $adduct: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)3]-")
+       then
+           
+           lipid.setScore(1);
+           lipid.setDescrCorrect("Contains [M+CH3COO+(CH3COONa)3]-; ");
+           //detectedLipids.add(lipid);
+       end
+
+       rule "Presence [M+HCOO]-"
+       when
+           $adduct: FoundAdduct(adductName == "[M+HCOO]-")
+       then
+           
+           lipid.setScore(1);
+           lipid.setDescrCorrect("Contains [M+HCOO]-; ");
+           //detectedLipids.add(lipid);
+       end
+
+       rule "Presence [M+HCOO+(CH3COONa)]-"
+       when
+           $adduct: FoundAdduct(adductName == "[M+HCOO+(CH3COONa)]-")
+       then
+           
+           lipid.setScore(1);
+           lipid.setDescrCorrect("Contains [M+HCOO+(CH3COONa)]-; ");
+           //detectedLipids.add(lipid);
+       end
+
+       rule "Presence [M+Cl]-"
+       when
+           $adduct: FoundAdduct(adductName == "[M+Cl]-")
+       then
+           
+           lipid.setScore(1);
+           lipid.setDescrCorrect("Contains [M+Cl]-; ");
+           //detectedLipids.add(lipid);
+       end
+
+       rule "Presence [M+CH3COO-CH3COOCH3]-"
+       when
+           $adduct: FoundAdduct(adductName == "[M+CH3COO-CH3COOCH3]-")
+       then
+           
+           lipid.setScore(1);
+           lipid.setDescrCorrect("Contains [M+CH3COO-CH3COOCH3]-; ");
+           //detectedLipids.add(lipid);
+       end
+
+       rule "Intensity [M+CH3COO]- > [M+CH3COO+(CH3COONa)]-"
+       when
+           $adduct1: FoundAdduct(adductName == "[M+CH3COO]-")
+           $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
+
+           eval($adduct1.getIntensity() > $adduct2.getIntensity())
+       then
+           
+           lipid.setScore(1);
+           lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M+CH3COO+(CH3COONa)]-; ");
+           //detectedLipids.add(lipid);
+       end
+
+       rule "Intensity [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)2]-"
+       when
+           $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
+           $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)2]-")
+
+           eval($adduct1.getIntensity() > $adduct2.getIntensity())
+       then
+           
+           lipid.setScore(1);
+           lipid.setDescrCorrect("Intensity OK [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)2]-; ");
+           //detectedLipids.add(lipid);
+       end
+
+       rule "Intensity [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)3]-"
+       when
+           $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
+           $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)3]-")
+
+           eval($adduct1.getIntensity() > $adduct2.getIntensity())
+       then
+           
+           lipid.setScore(1);
+           lipid.setDescrCorrect("Intensity OK [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)3]-; ");
+           //detectedLipids.add(lipid);
+       end
+
+       rule "Intensity [M+CH3COO]- < [M+CH3COO+(CH3COONa)]-"
+              when
+                  $adduct1: FoundAdduct(adductName == "[M+CH3COO]-")
+                  $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
+
+                  eval($adduct1.getIntensity() < $adduct2.getIntensity())
+              then
+                  
+                  lipid.setScore(-1);
+                  lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M+CH3COO+(CH3COONa)]-; ");
+                  //detectedLipids.add(lipid);
+              end
+
+              rule "Intensity [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)2]-"
+              when
+                  $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
+                  $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)2]-")
+
+                  eval($adduct1.getIntensity() < $adduct2.getIntensity())
+              then
+                  
+                  lipid.setScore(-1);
+                  lipid.setDescrIncorrect("Intensity OK [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)2]-; ");
+                  //detectedLipids.add(lipid);
+              end
+
+              rule "Intensity [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)3]-"
+              when
+                  $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
+                  $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)3]-")
+
+                  eval($adduct1.getIntensity() < $adduct2.getIntensity())
+              then
+                  
+                  lipid.setScore(-1);
+                  lipid.setDescrIncorrect("Intensity OK [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)3]-; ");
+                  //detectedLipids.add(lipid);
+              end

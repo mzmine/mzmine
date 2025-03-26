@@ -1,0 +1,92 @@
+package rules_id_lipid_exPErt_knowledge.negative;
+
+ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.CommonAdductPositive;
+ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.FoundLipid;
+ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.FoundAdduct;
+
+ // Declare the global list
+ global java.util.List<FoundLipid> detectedLipids;
+ global FoundLipid lipid;
+
+ rule "Presence [M+CH3COO]-"
+ when
+     $adduct: FoundAdduct(adductName == "[M+CH3COO]-")
+ then
+     
+     lipid.setScore(1);
+     lipid.setDescrCorrect("Contains [M+CH3COO]-; ");
+     //detectedLipids.add(lipid);
+ end
+
+ rule "Presence [M+HCOO]-"
+ when
+     $adduct: FoundAdduct(adductName == "[M+HCOO]-")
+ then
+     
+     lipid.setScore(1);
+     lipid.setDescrCorrect("Contains [M+HCOO]-; ");
+     //detectedLipids.add(lipid);
+ end
+
+rule "Presence [M+Cl]-"
+ when
+     $adduct: FoundAdduct(adductName == "[M+Cl]-")
+ then
+     
+     lipid.setScore(1);
+     lipid.setDescrCorrect("Contains [M+Cl]-; ");
+     //detectedLipids.add(lipid);
+ end
+
+
+rule "Intensity [M+CH3COO]- > [M+Cl]-"
+when
+    $adduct1: FoundAdduct(adductName == "[M+CH3COO]-")
+    $adduct2: FoundAdduct(adductName == "[M+Cl]-")
+
+    eval($adduct1.getIntensity() > $adduct2.getIntensity())
+then
+    
+    lipid.setScore(1);
+    lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M+Cl]-; ");
+    //detectedLipids.add(lipid);
+end
+
+rule "Intensity [M+Cl]- > [M+HCOO]-"
+when
+    $adduct1: FoundAdduct(adductName == "[M+Cl]-")
+    $adduct2: FoundAdduct(adductName == "[M+HCOO]-")
+
+    eval($adduct1.getIntensity() > $adduct2.getIntensity())
+then
+    
+    lipid.setScore(1);
+    lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M+HCOO]-; ");
+    //detectedLipids.add(lipid);
+end
+
+rule "Intensity [M+CH3COO]- < [M+Cl]-"
+when
+    $adduct1: FoundAdduct(adductName == "[M+CH3COO]-")
+    $adduct2: FoundAdduct(adductName == "[M+Cl]-")
+
+    eval($adduct1.getIntensity() < $adduct2.getIntensity())
+then
+    
+    lipid.setScore(-1);
+    lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M+Cl]-; ");
+    //detectedLipids.add(lipid);
+end
+
+rule "Intensity [M+Cl]- < [M+HCOO]-"
+when
+    $adduct1: FoundAdduct(adductName == "[M+Cl]-")
+    $adduct2: FoundAdduct(adductName == "[M+HCOO]-")
+
+    eval($adduct1.getIntensity() > $adduct2.getIntensity())
+then
+    
+    lipid.setScore(-1);
+    lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M+HCOO]-; ");
+    //detectedLipids.add(lipid);
+end

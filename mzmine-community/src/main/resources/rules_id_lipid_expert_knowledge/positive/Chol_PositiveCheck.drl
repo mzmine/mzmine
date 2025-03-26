@@ -1,0 +1,61 @@
+package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.rules;
+
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.CommonAdductPositive;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.FoundLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.FoundAdduct;
+
+// Declare the global list
+global java.util.List<FoundLipid> detectedLipids;
+global FoundLipid lipid;
+
+
+rule "Presence [M+H]+"
+when
+    $adduct: FoundAdduct(adductName == "[M+H]+")
+then
+    lipid.setScore(1);
+    lipid.setDescrCorrect("Contains [M+H]+; ");
+    //detectedLipids.add(lipid);
+end
+
+rule "Presence [M+NH4]+"
+when
+    $adduct: FoundAdduct(adductName == "[M+NH4]+")
+then
+    lipid.setScore(1);
+    lipid.setDescrCorrect("Contains [M+NH4]+; ");
+    //detectedLipids.add(lipid);
+end
+
+rule "Presence [cholestadiene ion]+"
+when
+    $adduct: FoundAdduct(adductName == "[C27H44]+")
+then
+    lipid.setScore(1);
+    lipid.setDescrCorrect("Contains [cholestadiene ion]+; ");
+    //detectedLipids.add(lipid);
+end
+
+rule "Intensity [M+NH4]+ > [M+H]+"
+when
+    $adduct1: FoundAdduct(adductName == "[M+NH4]+")
+    $adduct2: FoundAdduct(adductName == "[M+H]+")
+
+    eval($adduct1.getIntensity() > $adduct2.getIntensity())
+then
+    lipid.setScore(1);
+    lipid.setDescrCorrect("Intensity OK [M+NH4]+ > [M+H]+; ");
+    //detectedLipids.add(lipid);
+end
+
+rule "Intensity [M+NH4]+ < [M+H]+"
+when
+    $adduct1: FoundAdduct(adductName == "[M+NH4]+")
+    $adduct2: FoundAdduct(adductName == "[M+H]+")
+
+    eval($adduct1.getIntensity() < $adduct2.getIntensity())
+then
+    lipid.setScore(-1);
+    lipid.setDescrIncorrect("Intensity NOT OK [M+NH4]+ < [M+H]+; ");
+    //detectedLipids.add(lipid);
+end

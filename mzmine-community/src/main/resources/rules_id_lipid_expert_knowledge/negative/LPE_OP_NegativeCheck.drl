@@ -1,0 +1,29 @@
+package rules_id_lipid_expert_knowledge.negative;
+
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.CommonAdductPositive;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.FoundLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.FoundAdduct;
+
+// Declare the global list
+global java.util.List<FoundLipid> detectedLipids;
+global FoundLipid lipid;
+
+rule "Presence [M-H]-"
+when
+    $adduct: FoundAdduct(adductName == "[M-H]-")
+then
+    
+    lipid.setScore(1);
+    lipid.setDescrCorrect("Contains [M-H]-; ");
+    //detectedLipids.add(lipid);
+end
+
+rule "Presence [M-H+(CH3COONa)]-"
+when
+    $adduct: FoundAdduct(adductName == "[M-H+(CH3COONa)]-")
+then
+    
+    lipid.setScore(1);
+    lipid.setDescrCorrect("Contains [M-H+(CH3COONa)]-; ");
+    //detectedLipids.add(lipid);
+end
