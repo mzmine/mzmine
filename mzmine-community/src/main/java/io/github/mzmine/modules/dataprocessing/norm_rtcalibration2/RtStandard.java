@@ -14,6 +14,7 @@ public final class RtStandard {
 
   private final HashMap<@NotNull RawDataFile, @Nullable FeatureListRow> standards; // must be a hash map. supports null values.
   private Float medianRt = null;
+  private Float avgRt = null;
 
   public RtStandard(HashMap<RawDataFile, FeatureListRow> standards) {
     this.standards = standards;
@@ -45,14 +46,14 @@ public final class RtStandard {
   }
 
   public float getAverageRt() {
-    if (medianRt == null) {
+    if (avgRt == null) {
 //      medianRt = (float) MathUtils.calcQuantileSorted(
 //          standards.values().stream().filter(Objects::nonNull)
 //              .mapToDouble(FeatureListRow::getAverageRT).sorted().toArray(), 0.5);
-      medianRt = (float) standards.values().stream().filter(Objects::nonNull)
+      avgRt = (float) standards.values().stream().filter(Objects::nonNull)
           .mapToDouble(FeatureListRow::getAverageRT).average().getAsDouble();
     }
-    return medianRt;
+    return avgRt;
   }
 
   public HashMap<RawDataFile, FeatureListRow> standards() {

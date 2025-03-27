@@ -1,8 +1,8 @@
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
-import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.findStandards;
-import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.interpolateMissingCalibrations;
-import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.removeNonMonotonousStandards;
+import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionTask.findStandards;
+import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionTask.interpolateMissingCalibrations;
+import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionTask.removeNonMonotonousStandards;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -32,17 +32,16 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RtCalibrationCorrectionPreviewPane extends AbstractPreviewPane<List<FeatureList>> {
+public class ScanRtCorrectionMedianPreviewPane extends AbstractPreviewPane<List<FeatureList>> {
 
-  private static final Logger logger = Logger.getLogger(
-      RtCalibrationCorrectionPreviewPane.class.getName());
+  private static final Logger logger = Logger.getLogger(ScanRtCorrectionMedianPreviewPane.class.getName());
 
   /**
    * sets chart to the center of this pane.
    *
    * @param parameters
    */
-  public RtCalibrationCorrectionPreviewPane(ParameterSet parameters) {
+  public ScanRtCorrectionMedianPreviewPane(ParameterSet parameters) {
     super(parameters);
   }
 
@@ -50,8 +49,7 @@ public class RtCalibrationCorrectionPreviewPane extends AbstractPreviewPane<List
   public @NotNull SimpleXYChart<PlotXYDataProvider> createChart() {
     final NumberFormats formats = ConfigService.getGuiFormats();
     final SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>(
-        formats.unit("Original RT", "min"), formats.unit("RT shift", "min"));
-    chart.setStickyZeroRangeAxis(false);
+        formats.unit("Original RT", "min"), formats.unit("Median/Corrected RT", "min"));
     return chart;
   }
 
@@ -103,35 +101,21 @@ public class RtCalibrationCorrectionPreviewPane extends AbstractPreviewPane<List
     for (RtCalibrationFunction cali : allCalibrations) {
       final RawDataFile file = cali.getRawDataFile();
 
-      final var clr = ConfigService.getDefaultColorPalette().getNextColorAWT();
-
       if (sampleTypeFilter.matches(file)) {
-        final AnyXYProvider medianVsOriginal = new AnyXYProvider(clr,
-            file.getName() + " standard shift vs average RT", monotonousStandards.size(),
-            i -> (double) monotonousStandards.get(i).getMedianRt(),
-            i -> (monotonousStandards.get(i).standards().get(file).getAverageRT().doubleValue()
-                - monotonousStandards.get(i).getMedianRt()));
+        final AnyXYProvider medianVsOriginal = new AnyXYProvider(file.getColorAWT(),
+            file.getName() + " Median RT vs original RT", monotonousStandards.size(),
+            i -> monotonousStandards.get(i).standards().get(file).getAverageRT().doubleValue(),
+            i -> (double) monotonousStandards.get(i).getMedianRt());
         datasets.add(
             new DatasetAndRenderer(new ColoredXYDataset(medianVsOriginal, RunOption.THIS_THREAD),
                 new ColoredXYShapeRenderer(true)));
       }
 
-//      final AnyXYProvider fitDataset = new AnyXYProvider(/*file.getColorAWT()*/clr,
-//          file.getName() + " correction at RT vs original RTs", file.getNumOfScans(),
-//          i -> (double) file.getScan(i).getRetentionTime(),
-//          i -> (double) cali.getCorrectedRtLoess(file.getScan(i).getRetentionTime()) - file.getScan(
-//              i).getRetentionTime());
-
-      final AnyXYProvider avgFitDataset = new AnyXYProvider(/*file.getColorAWT()*/clr,
-          file.getName() + " fitted shift at RT vs original RTs", file.getNumOfScans(),
+      final AnyXYProvider fitDataset = new AnyXYProvider(file.getColorAWT(),
+          file.getName() + " corrected RTs", file.getNumOfScans(),
           i -> (double) file.getScan(i).getRetentionTime(),
-          i -> (double) -(cali.getCorrectedRtMovAvg(file.getScan(i).getRetentionTime())
-              - file.getScan(i).getRetentionTime()));
-
-//      datasets.add(new DatasetAndRenderer(new ColoredXYDataset(fitDataset, RunOption.THIS_THREAD),
-//          new ColoredXYLineRenderer()));
-
-      datasets.add(new DatasetAndRenderer(new ColoredXYDataset(avgFitDataset, RunOption.THIS_THREAD),
+          i -> (double) cali.getCorrectedRtMovAvg(file.getScan(i).getRetentionTime()));
+      datasets.add(new DatasetAndRenderer(new ColoredXYDataset(fitDataset, RunOption.THIS_THREAD),
           new ColoredXYLineRenderer()));
     }
 

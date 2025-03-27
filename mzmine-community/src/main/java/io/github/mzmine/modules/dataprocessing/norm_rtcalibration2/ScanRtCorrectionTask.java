@@ -33,7 +33,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod.RtRawFileCorrectionModule;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
@@ -62,9 +63,9 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class RTCorrectionTask extends AbstractTask {
+class ScanRtCorrectionTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(RTCorrectionTask.class.getName());
+  private static final Logger logger = Logger.getLogger(ScanRtCorrectionTask.class.getName());
 
   private final MZmineProject project;
   private final List<FeatureList> flists;
@@ -76,7 +77,7 @@ class RTCorrectionTask extends AbstractTask {
   private final ParameterSet parameters;
   private int processedRows, totalRows;
 
-  public RTCorrectionTask(MZmineProject project, ParameterSet parameters,
+  public ScanRtCorrectionTask(MZmineProject project, ParameterSet parameters,
       @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
@@ -115,17 +116,17 @@ class RTCorrectionTask extends AbstractTask {
         .map(flist -> new RtCalibrationFunction(flist, monotonousStandards, bandwidth))
         .collect(Collectors.toMap(RtCalibrationFunction::getRawDataFile, cali -> cali));
 
-    // the rt calibration automatically increases the bandwidth if the function is not monotonous
-    final double iterativeBandwidth = referenceCalibrations.values().stream()
-        .mapToDouble(RtCalibrationFunction::getOptimisedBandwidth).max().orElse(bandwidth);
-    if (iterativeBandwidth > bandwidth) {
-      // if the bandwidth had to be increased, re-run all calibrations with the new bandwidth to make them comparable
-      logger.info(
-          "While calibrating on reference files files, the bandwidth had to be increased to create a monotonous calibration. Rerunning with bandwidth %.3f".formatted(
-              iterativeBandwidth));
-      return interpolateMissingCalibrations(referenceFlists, allFeatureLists, metadata,
-          monotonousStandards, iterativeBandwidth);
-    }
+//    // the rt calibration automatically increases the bandwidth if the function is not monotonous
+//    final double iterativeBandwidth = referenceCalibrations.values().stream()
+//        .mapToDouble(RtCalibrationFunction::getOptimisedBandwidth).max().orElse(bandwidth);
+//    if (iterativeBandwidth > bandwidth) {
+//      // if the bandwidth had to be increased, re-run all calibrations with the new bandwidth to make them comparable
+//      logger.info(
+//          "While calibrating on reference files files, the bandwidth had to be increased to create a monotonous calibration. Rerunning with bandwidth %.3f".formatted(
+//              iterativeBandwidth));
+//      return interpolateMissingCalibrations(referenceFlists, allFeatureLists, metadata,
+//          monotonousStandards, iterativeBandwidth);
+//    }
 
     final List<RtCalibrationFunction> allCalibrations = new ArrayList<>(
         referenceCalibrations.values());
@@ -166,17 +167,17 @@ class RTCorrectionTask extends AbstractTask {
       allCalibrations.add(newCali);
     }
 
-    // the rt calibration automatically increases the bandwidth if the function is not monotonous
-    final double allCalisIterativeBandwidth = allCalibrations.stream()
-        .mapToDouble(RtCalibrationFunction::getOptimisedBandwidth).max().orElse(bandwidth);
-    if (allCalisIterativeBandwidth > bandwidth) {
-      logger.info(
-          "After transferring calibrations to all files, the bandwidth had to be increased to create a monotonous calibration. Rerunning with bandwidth %.3f".formatted(
-              allCalisIterativeBandwidth));
-      // if the bandwidth had to be increased, re-run all calibrations with the new bandwidth to make them comparable
-      return interpolateMissingCalibrations(referenceFlists, allFeatureLists, metadata,
-          monotonousStandards, allCalisIterativeBandwidth);
-    }
+//    // the rt calibration automatically increases the bandwidth if the function is not monotonous
+//    final double allCalisIterativeBandwidth = allCalibrations.stream()
+//        .mapToDouble(RtCalibrationFunction::getOptimisedBandwidth).max().orElse(bandwidth);
+//    if (allCalisIterativeBandwidth > bandwidth) {
+//      logger.info(
+//          "After transferring calibrations to all files, the bandwidth had to be increased to create a monotonous calibration. Rerunning with bandwidth %.3f".formatted(
+//              allCalisIterativeBandwidth));
+//      // if the bandwidth had to be increased, re-run all calibrations with the new bandwidth to make them comparable
+//      return interpolateMissingCalibrations(referenceFlists, allFeatureLists, metadata,
+//          monotonousStandards, allCalisIterativeBandwidth);
+//    }
 
     return allCalibrations;
   }
@@ -397,17 +398,15 @@ class RTCorrectionTask extends AbstractTask {
         referenceFlistsByNumRows, flists, project.getProjectMetadata(), monotonousStandards,
         bandwidth);
 
-    for (RtCalibrationFunction cali : allCalibrations) {
-      final RawDataFile file = cali.getRawDataFile();
-      for (Scan scan : file.getScans()) {
-        ((SimpleScan) scan).setCorrectedRetentionTime(
-            cali.getCorrectedRtMovAvg(scan.getRetentionTime()));
-      }
-    }
+    RtRawFileCorrectionModule.applyOnThisThread(allCalibrations);
 
     for (FeatureList flist : flists) {
       flist.streamFeatures().forEach(FeatureDataUtils::recalculateIonSeriesDependingTypes);
     }
+
+    flists.forEach(flist -> flist.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(ScanRtCorrectionModule.class, parameters,
+            getModuleCallDate())));
 
     setStatus(TaskStatus.FINISHED);
   }

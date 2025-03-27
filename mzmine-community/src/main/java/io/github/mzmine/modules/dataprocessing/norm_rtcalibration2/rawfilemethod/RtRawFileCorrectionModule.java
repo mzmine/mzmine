@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,50 +22,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
+package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtCalibrationFunction;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class RTCorrectionModule2 implements MZmineProcessingModule {
-
-  private static final String MODULE_NAME = "Retention time correction2";
-  private static final String MODULE_DESCRIPTION = "The retention time correction module attempts to reduce the deviation of retention times between feature lists, by searching for common features in these lists and using them as correction standards.";
-
-  @Override
-  public @NotNull String getName() {
-    return MODULE_NAME;
-  }
+public class RtRawFileCorrectionModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getDescription() {
-    return MODULE_DESCRIPTION;
+    return """
+        This module applies retention time corrections calclulated by the %s module to taw data files. 
+        This module is only here to ensure reproducibility in project files.""".formatted(
+        ScanRtCorrectionModule.MODULE_NAME);
   }
 
   @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    final List<String> errors = new ArrayList<>();
-    if (!parameters.checkParameterValues(errors)) {
-      String msg = MODULE_NAME + "\nPlease check parameter values:\n" + String.join("\n", errors);
-      MZmineCore.getDesktop().displayErrorMessage(msg);
-    } else {
-      RTCorrectionTask newTask = new RTCorrectionTask(project, parameters,
-          MemoryMapStorage.forFeatureList(), moduleCallDate);
-      tasks.add(newTask);
-    }
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
+    tasks.add(new RtRawFileCorrectionTask(null, moduleCallDate, parameters,
+        RtRawFileCorrectionModule.class));
     return ExitCode.OK;
   }
 
@@ -76,8 +63,21 @@ public class RTCorrectionModule2 implements MZmineProcessingModule {
   }
 
   @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return RTCorrectionParameters.class;
+  public @NotNull String getName() {
+    return "RTCorr (for project load only)";
   }
 
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return RtRawFileCorrectionParameters.class;
+  }
+
+  public static void applyOnThisThread(List<RtCalibrationFunction> calis) {
+    final RtRawFileCorrectionParameters param = RtRawFileCorrectionParameters.create(
+        calis);
+
+    final RtRawFileCorrectionTask task = new RtRawFileCorrectionTask(null,
+        Instant.now(), param, RtRawFileCorrectionModule.class);
+    task.run();
+  }
 }

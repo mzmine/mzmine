@@ -26,8 +26,8 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
-import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.createMoreThanOneFileMessage;
-import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionTask.createUnsatisfiedSampleFilterMessage;
+import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionTask.createMoreThanOneFileMessage;
+import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionTask.createUnsatisfiedSampleFilterMessage;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -118,7 +118,7 @@ public class RTCorrectionParameters extends SimpleParameterSet {
       return ExitCode.OK;
     }
     final ParameterSetupDialog dialog = new ParameterDialogWithPreviewPanes(valueCheckRequired,
-        this, RtCalibrationCorrectionPreviewPane::new);
+        this, ScanRtCorrectionPreviewPane::new);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
