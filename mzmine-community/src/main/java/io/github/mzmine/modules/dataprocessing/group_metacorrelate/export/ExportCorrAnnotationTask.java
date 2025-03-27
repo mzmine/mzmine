@@ -52,18 +52,15 @@ import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javafx.collections.ObservableList;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -133,9 +130,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     NumberFormat mzForm = formats.mzFormat();
     NumberFormat corrForm = formats.scoreFormat();
     try {
-      List<FeatureListRow> rows = featureList.getRows();
-      Collections.sort(rows,
-          new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
+      // copy of list to not sort the original
+      List<FeatureListRow> rows = new ArrayList<>(featureList.getRows());
+      rows.sort(new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
       StringBuilder ann = createHeader();
 
       AtomicInteger added = new AtomicInteger(0);
@@ -152,26 +149,28 @@ public class ExportCorrAnnotationTask extends AbstractTask {
         int rowID = r.getID();
 
         //
-        if (r.hasIonIdentity()) {
-          r.getIonIdentities().forEach(adduct -> {
-            ConcurrentHashMap<FeatureListRow, IonIdentity> links = adduct.getPartner();
-
-            // add all connection for ids>rowID to avoid duplicates
-            links.entrySet().stream().filter(Objects::nonNull)
-                .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
-                  FeatureListRow link = e.getKey();
-                  if (filter.accept(link)) {
-                    IonIdentity id = e.getValue();
-                    double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
-                    // the data
-                    exportEdge(ann, "MS1 annotation", rowID, e.getKey().getID(),
-                        corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
-                        id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
-                    added.incrementAndGet();
-                  }
-                });
-          });
+        final List<IonIdentity> ions = r.getIonIdentities();
+        if (ions == null) {
+          continue;
         }
+        ions.forEach(adduct -> {
+          final IonNetwork network = adduct.getNetwork();
+
+          // add all connection for ids>rowID to avoid duplicates
+          network.entrySet().stream().filter(Objects::nonNull)
+              .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
+                FeatureListRow link = e.getKey();
+                if (filter.accept(link)) {
+                  IonIdentity id = e.getValue();
+                  double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
+                  // the data
+                  exportEdge(ann, "MS1 annotation", rowID, e.getKey().getID(),
+                      corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
+                      id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
+                  added.incrementAndGet();
+                }
+              });
+        });
       }
 
       LOG.log(Level.INFO, "Annotation edges exported {0}", added.get());
@@ -531,9 +530,8 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       AtomicInteger added = new AtomicInteger(0);
 
       for (FeatureList pkl : featureLists) {
-        ObservableList<FeatureListRow> rows = pkl.getRows();
-        Collections.sort(rows,
-            new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
+        List<FeatureListRow> rows = new ArrayList<>(pkl.getRows());
+        rows.sort(new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
 
         // for all rows
         for (FeatureListRow r : rows) {
@@ -548,31 +546,33 @@ public class ExportCorrAnnotationTask extends AbstractTask {
           int rowID = r.getID();
 
           //
-          if (r.hasIonIdentity()) {
-            r.getIonIdentities().forEach(adduct -> {
-              ConcurrentHashMap<FeatureListRow, IonIdentity> links = adduct.getPartner();
-
-              // add all connection for ids>rowID
-              links.entrySet().stream().filter(Objects::nonNull)
-                  .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
-                    FeatureListRow link = e.getKey();
-                    if (!limitToMSMS || link.getMostIntenseFragmentScan() != null) {
-                      IonIdentity id = e.getValue();
-                      double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
-
-                      // convert ids for merging
-                      Integer id1 = renumbered.get(getRowMapKey(r));
-                      Integer id2 = renumbered.get(getRowMapKey(e.getKey()));
-
-                      // the data
-                      exportEdge(ann, "MS1 annotation", id1, id2,
-                          corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
-                          id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
-                      added.incrementAndGet();
-                    }
-                  });
-            });
+          final List<IonIdentity> ions = r.getIonIdentities();
+          if (ions == null) {
+            continue;
           }
+          ions.forEach(adduct -> {
+            final IonNetwork network = adduct.getNetwork();
+
+            // add all connection for ids>rowID
+            network.entrySet().stream().filter(Objects::nonNull)
+                .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
+                  FeatureListRow link = e.getKey();
+                  if (!limitToMSMS || link.getMostIntenseFragmentScan() != null) {
+                    IonIdentity id = e.getValue();
+                    double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
+
+                    // convert ids for merging
+                    Integer id1 = renumbered.get(getRowMapKey(r));
+                    Integer id2 = renumbered.get(getRowMapKey(e.getKey()));
+
+                    // the data
+                    exportEdge(ann, "MS1 annotation", id1, id2,
+                        corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
+                        id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
+                    added.incrementAndGet();
+                  }
+                });
+          });
         }
 
         LOG.info("Annotation edges exported " + added.get());

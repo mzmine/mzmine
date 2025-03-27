@@ -30,6 +30,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Abstra
 public class SplineBaselineCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
   public SplineBaselineCorrectorParameters() {
-    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter());
+    super(applyPeakRemoval.cloneParameter(), samplePercentage.cloneParameter());
   }
 }

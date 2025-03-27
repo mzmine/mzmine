@@ -128,9 +128,9 @@ public class LipidAnnotationTask extends AbstractTask {
           getMemoryMapStorage()); // all input scans was and is the default
     }
     this.selectedCustomLipidClasses = null;
-    if (parameters.getParameter(LipidAnnotationParameters.customLipidClasses).getValue()) {
-      this.selectedCustomLipidClasses = LipidAnnotationParameters.customLipidClasses.getEmbeddedParameters()
-          .getParameter(CustomLipidClassParameters.customLipidClassChoices).getChoices();
+    if (parameters.getValue(LipidAnnotationParameters.customLipidClasses)) {
+      this.selectedCustomLipidClasses = parameters.getEmbeddedParameterValue(LipidAnnotationParameters.customLipidClasses)
+          .getParameter(CustomLipidClassParameters.customLipidClassChoices).getValue();
     }
 
     // Convert Objects to LipidClasses

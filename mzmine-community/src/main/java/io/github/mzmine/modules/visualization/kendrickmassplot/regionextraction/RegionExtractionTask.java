@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotParameters;
@@ -85,34 +85,33 @@ public class RegionExtractionTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    KendrickMassPlotXYZDataset dataset = new KendrickMassPlotXYZDataset(kendrickParameters,
+    final ModularFeatureList flist = kendrickParameters.getValue(
+        KendrickMassPlotParameters.featureList).getMatchingFeatureLists()[0];
+    final ModularFeatureList filtered = new ModularFeatureList(flist.getName() + " " + suffix,
+        flist.getMemoryMapStorage(), flist.getRawDataFiles().stream().toList());
+
+    final KendrickMassPlotXYZDataset dataset = new KendrickMassPlotXYZDataset(kendrickParameters,
         xAxisDivisior, xAxisCharge, yAxisDivisor, yAxisCharge);
     dataset.run();
 
-    final List<FeatureListRow> rows = IntStream.range(0, dataset.getItemCount(0)).filter(
+    final List<ModularFeatureListRow> rows = IntStream.range(0, dataset.getItemCount(0)).filter(
             index -> regions.stream().anyMatch(region -> region.contains(
                 new Point2D.Double(dataset.getXValue(0, index), dataset.getYValue(0, index)))))
-        .mapToObj(dataset::getItemObject).toList();
+        .mapToObj(dataset::getItemObject)
+        .map(row -> new ModularFeatureListRow(filtered, (ModularFeatureListRow) row, true))
+        .toList();
 
     if (isCanceled()) {
       return;
     }
 
-    final ModularFeatureList flist = kendrickParameters.getValue(
-        KendrickMassPlotParameters.featureList).getMatchingFeatureLists()[0];
-
-    final ModularFeatureList filtered = new ModularFeatureList(flist.getName() + " " + suffix,
-        flist.getMemoryMapStorage(), flist.getRawDataFiles().stream().toList());
     DataTypeUtils.copyTypes(flist, filtered, true, true);
     rows.forEach(filtered::addRow);
 
-    filtered.getAppliedMethods().
-
-        addAll(flist.getAppliedMethods());
-    filtered.addDescriptionOfAppliedTask(new
-
-        SimpleFeatureListAppliedMethod(RegionExtractionModule.class, parameters,
-        getModuleCallDate()));
+    filtered.getAppliedMethods().addAll(flist.getAppliedMethods());
+    filtered.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(RegionExtractionModule.class, parameters,
+            getModuleCallDate()));
 
     if (!isCanceled()) {
       project.addFeatureList(filtered);

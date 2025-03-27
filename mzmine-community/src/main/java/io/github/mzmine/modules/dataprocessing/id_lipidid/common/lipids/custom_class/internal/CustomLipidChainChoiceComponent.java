@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class;
+package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.internal;
 
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.parameters.ParameterSet;
@@ -41,7 +41,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 
-public class CustomLipidChainChoiceComponent extends BorderPane {
+class CustomLipidChainChoiceComponent extends BorderPane {
 
   private final ListView<LipidChainType> checkList = new ListView<>();
   private final FlowPane buttonsPane = new FlowPane(Orientation.HORIZONTAL);
@@ -96,7 +96,8 @@ public class CustomLipidChainChoiceComponent extends BorderPane {
   }
 
   /**
-   * Represents a fragmentation rule of a custom lipid class.
+   * Represents a fragmentation rule of a custom lipid class. Not intended to be used as part of a
+   * module, does not support saving.
    */
   private static class AddLipidChainTypeParameters extends SimpleParameterSet {
 
@@ -109,7 +110,7 @@ public class CustomLipidChainChoiceComponent extends BorderPane {
             LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN,
             LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN});
 
-    private AddLipidChainTypeParameters() {
+    public AddLipidChainTypeParameters() {
       super(lipidChainType);
     }
   }
