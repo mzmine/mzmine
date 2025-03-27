@@ -19,11 +19,7 @@ public class RtCalibrationFunction {
   private static final Logger logger = Logger.getLogger(RtCalibrationFunction.class.getName());
 
   private final RawDataFilePlaceholder filePlaceholder;
-  //  private final @NotNull PolynomialSplineFunction loess;
-//  private final @NotNull PolynomialSplineFunction linear;
   private final PolynomialSplineFunction movAvg;
-//  private double optimisedBandwidth = 0d;
-//  private final int iterations = 3;
 
   public RtCalibrationFunction(RawDataFile file, PolynomialSplineFunction function) {
     this.filePlaceholder = new RawDataFilePlaceholder(file);
@@ -51,10 +47,6 @@ public class RtCalibrationFunction {
     final FeatureListRow row = rtSortedStandards.getLast().standards().get(file);
     final float averageRT = row.getAverageRT();
     addFinalRt(rtSortedStandards, fullRtRange, averageRT, thisRtValues, standardRtValues);
-
-//    loess = getInterpolatorIteratively(file, bandwidth, thisRtValues, standardRtValues);
-//    linear = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
-//        standardRtValues.toDoubleArray());
 
     movAvg = getInterpolatorIteratively(bandwidth, standardRtValues, thisRtValues);
   }
@@ -93,9 +85,6 @@ public class RtCalibrationFunction {
 
     addFinalRt(rtSortedStandards, fullRtRange, lastStandardRt, thisRtValues, standardRtValues);
 
-//    loess = getInterpolatorIteratively(file, bandwidth, thisRtValues, standardRtValues);
-//    linear = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
-//        standardRtValues.toDoubleArray());
     movAvg = getInterpolatorIteratively(bandwidth, standardRtValues, thisRtValues);
   }
 
@@ -103,7 +92,6 @@ public class RtCalibrationFunction {
   private PolynomialSplineFunction getInterpolatorIteratively(double initialBandwidth,
       DoubleArrayList calibratedRtValues, DoubleArrayList thisRtValues) {
     final RawDataFile file = filePlaceholder.getMatchingFile();
-    boolean isMonotonous = false;
     PolynomialSplineFunction movAvg = null;
     final double[] subtracted = AlsCorrection.subtract(calibratedRtValues.toDoubleArray(),
         thisRtValues.toDoubleArray());
@@ -163,60 +151,11 @@ public class RtCalibrationFunction {
     }
   }
 
-  /*private PolynomialSplineFunction getInterpolatorIteratively(@NotNull RawDataFile file,
-      double bandwidth, DoubleArrayList thisRtValues, DoubleArrayList calibratedRtValues) {
-    @NotNull PolynomialSplineFunction loess = null;
-    for (double bw = bandwidth; bw < 1; bw += 0.01) {
-      LoessInterpolator loessInterpolator = new LoessInterpolator(bw, iterations);
-      var tempLoess = loessInterpolator.interpolate(thisRtValues.toDoubleArray(),
-          calibratedRtValues.toDoubleArray());
-      boolean fail = false;
-      for (int i = 1; i < file.getNumOfScans(); i++) {
-        if (tempLoess.value(file.getScan(i - 1).getRetentionTime()) >= tempLoess.value(
-            file.getScan(i).getRetentionTime())) {
-          logger.warning(
-              "Cannot find monotonous calibration for file %s with bandwidth %.3f. Increasing by 0.01.".formatted(
-                  file.getName(), bw));
-          fail = true;
-          break;
-        }
-      }
-      if (!fail) {
-        loess = tempLoess;
-        this.optimisedBandwidth = bw;
-        break;
-      }
-    }
-    if (loess == null) {
-      throw new InvalidRtCalibrationParametersException(bandwidth, file, calibratedRtValues.size());
-    }
-
-    return loess;
-  }*/
-
-//  public float getCorrectedRtLoess(float originalRt) {
-//    if (!loess.isValidPoint(originalRt)) {
-//      return originalRt;
-//    }
-//    return (float) loess.value(originalRt);
-//  }
-
   @Nullable
   public RawDataFile getRawDataFile() {
     final RawDataFile file = filePlaceholder.getMatchingFile();
     return file;
   }
-
-//  public double getOptimisedBandwidth() {
-//    return optimisedBandwidth;
-//  }
-
-//  public float getCorrectedRtLinear(float originalRt) {
-//    if (!linear.isValidPoint(originalRt)) {
-//      return originalRt;
-//    }
-//    return (float) linear.value(originalRt);
-//  }
 
   public float getCorrectedRtMovAvg(float originalRt) {
     if (!movAvg.isValidPoint(originalRt)) {

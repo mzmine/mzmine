@@ -116,18 +116,6 @@ class ScanRtCorrectionTask extends AbstractTask {
         .map(flist -> new RtCalibrationFunction(flist, monotonousStandards, bandwidth))
         .collect(Collectors.toMap(RtCalibrationFunction::getRawDataFile, cali -> cali));
 
-//    // the rt calibration automatically increases the bandwidth if the function is not monotonous
-//    final double iterativeBandwidth = referenceCalibrations.values().stream()
-//        .mapToDouble(RtCalibrationFunction::getOptimisedBandwidth).max().orElse(bandwidth);
-//    if (iterativeBandwidth > bandwidth) {
-//      // if the bandwidth had to be increased, re-run all calibrations with the new bandwidth to make them comparable
-//      logger.info(
-//          "While calibrating on reference files files, the bandwidth had to be increased to create a monotonous calibration. Rerunning with bandwidth %.3f".formatted(
-//              iterativeBandwidth));
-//      return interpolateMissingCalibrations(referenceFlists, allFeatureLists, metadata,
-//          monotonousStandards, iterativeBandwidth);
-//    }
-
     final List<RtCalibrationFunction> allCalibrations = new ArrayList<>(
         referenceCalibrations.values());
     // calculate calibrations for other files
@@ -166,18 +154,6 @@ class ScanRtCorrectionTask extends AbstractTask {
           previousCali, previousWeight, nextCali, nextRunWeight, bandwidth);
       allCalibrations.add(newCali);
     }
-
-//    // the rt calibration automatically increases the bandwidth if the function is not monotonous
-//    final double allCalisIterativeBandwidth = allCalibrations.stream()
-//        .mapToDouble(RtCalibrationFunction::getOptimisedBandwidth).max().orElse(bandwidth);
-//    if (allCalisIterativeBandwidth > bandwidth) {
-//      logger.info(
-//          "After transferring calibrations to all files, the bandwidth had to be increased to create a monotonous calibration. Rerunning with bandwidth %.3f".formatted(
-//              allCalisIterativeBandwidth));
-//      // if the bandwidth had to be increased, re-run all calibrations with the new bandwidth to make them comparable
-//      return interpolateMissingCalibrations(referenceFlists, allFeatureLists, metadata,
-//          monotonousStandards, allCalisIterativeBandwidth);
-//    }
 
     return allCalibrations;
   }

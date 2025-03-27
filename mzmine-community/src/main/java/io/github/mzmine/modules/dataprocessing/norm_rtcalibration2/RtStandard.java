@@ -39,17 +39,12 @@ public final class RtStandard {
       medianRt = (float) MathUtils.calcQuantileSorted(
           standards.values().stream().filter(Objects::nonNull)
               .mapToDouble(FeatureListRow::getAverageRT).sorted().toArray(), 0.5);
-//      medianRt = (float) standards.values().stream().filter(Objects::nonNull)
-//              .mapToDouble(FeatureListRow::getAverageRT).average().getAsDouble();
     }
     return medianRt;
   }
 
   public float getAverageRt() {
     if (avgRt == null) {
-//      medianRt = (float) MathUtils.calcQuantileSorted(
-//          standards.values().stream().filter(Objects::nonNull)
-//              .mapToDouble(FeatureListRow::getAverageRT).sorted().toArray(), 0.5);
       avgRt = (float) standards.values().stream().filter(Objects::nonNull)
           .mapToDouble(FeatureListRow::getAverageRT).average().getAsDouble();
     }
