@@ -110,14 +110,12 @@ public class IntegrationTests {
   }
 
   @Test
-  @Disabled
-    // currently results don't match
   void testGcTofMs(@TempDir File tempDir) {
     Assertions.assertEquals(0, IntegrationTestUtils.runBatchCompareToCsv(
         "rawdatafiles/integration_tests/gc_tof_ms/gc_tof.mzbatch",
         "rawdatafiles/integration_tests/gc_tof_ms/expected_results.csv", tempDir,
         new String[]{"rawdatafiles/integration_tests/gc_tof_ms/019_KR8_20220715.mzML"},
-        new String[]{"spectral_libraries/integration_tests/massbank_nist_for_tests.msp"}).size());
+        new String[]{"spectral_libraries/integration_tests/GC_HRMS_Archeology.json"}).size());
   }
 
   @Test
@@ -142,5 +140,13 @@ public class IntegrationTests {
     Assertions.assertEquals(2, IntegrationTestUtils.getCsvComparisonResults(
         "rawdatafiles/integration_tests/mse/expected_results.csv", exportedFlist,
         "mse_project.mzmine").size());
+  }
+
+  @Test
+  void testLibToFlist(@TempDir File tempDir) {
+    Assertions.assertEquals(0, IntegrationTestUtils.runBatchCompareToCsv(
+        "rawdatafiles/integration_tests/library_to_flist/lib_batch.mzbatch",
+        "rawdatafiles/integration_tests/library_to_flist/expected_results.csv", tempDir, null,
+        new String[]{"spectral_libraries/integration_tests/lib_to_flist.json"}).size());
   }
 }
