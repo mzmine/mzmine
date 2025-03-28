@@ -176,6 +176,11 @@ public class MZmineTestUtil {
     ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());
   }
 
+  public static void clearProjectAndLibraries() {
+    ProjectService.getProjectManager().clearProject();
+    ProjectService.getProject().clearSpectralLibrary();
+  }
+
 
   public static TaskResult importFiles(final List<String> fileNames, long timeoutSeconds)
       throws InterruptedException {

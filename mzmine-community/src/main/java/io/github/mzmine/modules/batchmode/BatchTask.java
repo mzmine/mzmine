@@ -446,11 +446,9 @@ public class BatchTask extends AbstractTask {
     final TaskStatus status;
     // create ThreadPool
     if (currentStepTasks.size() > 1) {
-      logger.finest(() -> "Processing " + currentStepTasks.size() + " tasks in the thread pool.");
       status = runInTaskPool(method, currentStepTasks);
     } else {
       // Submit the tasks to the task controller for processing
-      logger.finest(() -> "Processing " + currentStepTasks.size() + " tasks individually.");
       status = runTasksIndividually(currentStepTasks);
     }
 

@@ -62,7 +62,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
-import javax.validation.constraints.Null;
 import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,6 +70,14 @@ import org.xml.sax.SAXException;
 public class IntegrationTestUtils {
 
   private static final Logger logger = Logger.getLogger(IntegrationTestUtils.class.getName());
+
+  @NotNull
+  public static File urlToFile(@Nullable final URL url) {
+    if (url == null) {
+      throw new RuntimeException("URL is null");
+    }
+    return new File(url.getFile());
+  }
 
   /**
    * Executes a batch comparison process using the provided batch file.
@@ -125,39 +132,6 @@ public class IntegrationTestUtils {
   /**
    * Executes a batch comparison process using the provided batch file.
    *
-   * @param batchFile                 the URL of the batch file to be executed
-   * @param baseCsvFile               the URL of the base CSV file for comparison
-   * @param tempDir                   the temporary directory for intermediate files during
-   *                                  execution
-   * @param overrideDataFiles         optional array of URLs for data files that override batch
-   *                                  defaults (null or empty means no overrides)
-   * @param overrideSpectralLibraries optional array of URLs for spectral library files that
-   *                                  override batch defaults (null or empty means no overrides)
-   * @return a list of CheckResult objects containing the comparison results; the list is empty if
-   * all comparisons are successful
-   */
-  public static List<CheckResult> runBatchCompareToCsv(URL batchFile, URL baseCsvFile, File tempDir,
-      @Nullable URL[] overrideDataFiles, @Nullable URL[] overrideSpectralLibraries) {
-
-    return runBatchCompareToCsv(urlToFile(batchFile), urlToFile(baseCsvFile), tempDir,
-        overrideDataFiles != null ? Arrays.stream(overrideDataFiles).filter(Objects::nonNull)
-            .map(IntegrationTestUtils::urlToFile).toArray(File[]::new) : null,
-        overrideSpectralLibraries != null ? Arrays.stream(overrideSpectralLibraries)
-            .filter(Objects::nonNull).map(IntegrationTestUtils::urlToFile).toArray(File[]::new)
-            : null);
-  }
-
-  @NotNull
-  public static File urlToFile(@Nullable final URL url) {
-    if (url == null) {
-      throw new RuntimeException("URL is null");
-    }
-    return new File(url.getFile());
-  }
-
-  /**
-   * Executes a batch comparison process using the provided batch file.
-   *
    * @param batchFile                 the batch file to be executed
    * @param baseCsvFile               the base CSV file for comparison
    * @param tempDir                   the temporary directory for intermediate files during
@@ -171,13 +145,22 @@ public class IntegrationTestUtils {
    */
   public static List<CheckResult> runBatchCompareToCsv(File batchFile, File baseCsvFile,
       File tempDir, @Nullable File @Nullable [] overrideDataFiles,
-      File[] overrideSpectralLibraries) {
+      @Nullable File @Nullable [] overrideSpectralLibraries) {
 
     final String batchFileName = batchFile.getName();
     final File csvExportFile = runBatchGetExportedCsv(batchFile, tempDir, overrideDataFiles,
         overrideSpectralLibraries);
 
     return getCsvComparisonResults(baseCsvFile, csvExportFile, batchFileName);
+  }
+
+
+  public static List<CheckResult> runBatchCompareToCsv(@NotNull final IntegrationTest test,
+      String expectedResultsFullPath) {
+    final URL resource = IntegrationTestUtils.class.getClassLoader().getResource(expectedResultsFullPath);
+    return runBatchCompareToCsv(test.batchFile(),
+        urlToFile(resource), test.tempDir(),
+        test.rawFiles(), test.specLibs());
   }
 
   /**
@@ -215,18 +198,9 @@ public class IntegrationTestUtils {
     return runBatchGetExportedCsv(urlToFile(batch), tempDir, files, libraries);
   }
 
-  /**
-   * Runs a batch and returns the file of the exported modular csv file. This method can be used if
-   * multiple comparisons shall be done, e.g., a purposefully failing test.
-   */
-  public static @NotNull File runBatchGetExportedCsv(URL batchFile, File tempDir,
-      @Nullable URL @Nullable [] overrideDataFiles, URL[] overrideSpectralLibraries) {
-    return runBatchGetExportedCsv(urlToFile(batchFile), tempDir,
-        overrideDataFiles != null ? Arrays.stream(overrideDataFiles).filter(Objects::nonNull)
-            .map(IntegrationTestUtils::urlToFile).toArray(File[]::new) : null,
-        overrideSpectralLibraries != null ? Arrays.stream(overrideSpectralLibraries)
-            .filter(Objects::nonNull).map(IntegrationTestUtils::urlToFile).toArray(File[]::new)
-            : null);
+  public static File runBatchGetExportedCsv(@NotNull final IntegrationTest test) {
+    return runBatchGetExportedCsv(test.batchFile(), test.tempDir(), test.rawFiles(),
+        test.specLibs());
   }
 
   /**
@@ -243,10 +217,11 @@ public class IntegrationTestUtils {
     final BatchQueue queue = loadBatchFromFile(batchFile);
     final File csvExportFile = addOrModifyModularCsvExportStep(batchFileName, tempDir, queue);
 
-    final BatchTask batchTask = BatchModeModule.runBatch(queue, project, overrideDataFiles, null,
-        overrideSpectralLibraries, null, Instant.now());
+    final BatchTask batchTask = BatchModeModule.runBatchQueue(queue, project, overrideDataFiles,
+        null, overrideSpectralLibraries, null, Instant.now());
 
-    printBatchStatistics(overrideDataFiles, overrideSpectralLibraries, batchFileName, project);
+    checkImportedFilesAndLibraries(overrideDataFiles, overrideSpectralLibraries, batchFileName,
+        project);
 
     if (batchTask == null || batchTask.getStatus() != TaskStatus.FINISHED) {
       throw new RuntimeException(
@@ -255,18 +230,21 @@ public class IntegrationTestUtils {
     return csvExportFile;
   }
 
-  private static void printBatchStatistics(@Nullable File @Nullable [] overrideDataFiles,
+  private static void checkImportedFilesAndLibraries(@Nullable File @Nullable [] overrideDataFiles,
       @Nullable File @Nullable [] overrideSpectralLibraries, @NotNull String batchFileName,
       @NotNull MZmineProject project) {
     logger.info("Batch task for file %s finished. Batch resulted in %d feature lists.".formatted(
         batchFileName, project.getNumberOfFeatureLists()));
-    if (overrideDataFiles != null) {
-      logger.info("Batch task for file %s loaded %d/%d files.".formatted(batchFileName,
-          overrideDataFiles.length, project.getNumberOfDataFiles()));
+    if (overrideDataFiles != null && overrideDataFiles.length != project.getNumberOfDataFiles()) {
+      throw new RuntimeException(
+          "Batch task for file %s loaded %d/%d files.".formatted(batchFileName,
+              overrideDataFiles.length, project.getNumberOfDataFiles()));
     }
-    if (overrideSpectralLibraries != null) {
-      logger.info("Batch task for file %s loaded %d/%d spectral libraries.".formatted(batchFileName,
-          overrideSpectralLibraries.length, project.getCurrentSpectralLibraries().size()));
+    if (overrideSpectralLibraries != null
+        && overrideSpectralLibraries.length != project.getNumberOfLibraries()) {
+      throw new RuntimeException(
+          "Batch task for file %s loaded %d/%d spectral libraries.".formatted(batchFileName,
+              overrideSpectralLibraries.length, project.getCurrentSpectralLibraries().size()));
     }
   }
 
@@ -286,31 +264,17 @@ public class IntegrationTestUtils {
   }
 
   /**
-   *
-   * @param expectedResultsFile relative path string to the expected results.
-   * @param batchExportedFile the exported csv file.
-   * @param batchFileName the batch name for logging.
+   * @param expectedResultsFullPath path string to the expected results.
+   * @param batchExportedFile   the exported csv file.
+   * @param batchFileName       the batch name for logging.
    * @return A list of check results. empty if everything was ok.
    */
   public static List<@NotNull CheckResult> getCsvComparisonResults(
-      @NotNull String expectedResultsFile, File batchExportedFile, String batchFileName) {
+      @NotNull String expectedResultsFullPath, File batchExportedFile, String batchFileName) {
 
     return getCsvComparisonResults(
-        urlToFile(IntegrationTestUtils.class.getClassLoader().getResource(expectedResultsFile)),
+        urlToFile(IntegrationTestUtils.class.getClassLoader().getResource(expectedResultsFullPath)),
         batchExportedFile, batchFileName);
-  }
-
-  /**
-   *
-   * @param expectedResultsFile url to the expected results.
-   * @param batchExportedFile the exported csv file.
-   * @param batchFileName the batch name for logging.
-   * @return A list of check results. empty if everything was ok.
-   */
-  public static List<@NotNull CheckResult> getCsvComparisonResults(URL expectedResultsFile,
-      File batchExportedFile, String batchFileName) {
-    return getCsvComparisonResults(urlToFile(expectedResultsFile), batchExportedFile,
-        batchFileName);
   }
 
   /**
@@ -363,7 +327,7 @@ public class IntegrationTestUtils {
       parameters.setParameter(CSVExportModularParameters.filename, csvExportFile);
     } else {
       final ParameterSet parameters = CSVExportModularParameters.create(csvExportFile,
-          FeatureListRowsFilter.ALL, true, ";",
+          FeatureListRowsFilter.ALL, true, ";", ",",
           new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
       queue.add(
           new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CSVExportModularModule.class),

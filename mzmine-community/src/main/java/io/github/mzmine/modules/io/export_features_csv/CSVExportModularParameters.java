@@ -89,13 +89,14 @@ public class CSVExportModularParameters extends SimpleParameterSet {
   }
 
   public static CSVExportModularParameters create(File csvExportFile,
-      FeatureListRowsFilter rowsFilter, boolean omitEmpty, String idSeparator,
+      FeatureListRowsFilter rowsFilter, boolean omitEmpty, String idSeparator, String fieldSep,
       FeatureListsSelection featureListsSelection) {
     final ParameterSet parameters = new CSVExportModularParameters().cloneParameterSet();
     parameters.setParameter(CSVExportModularParameters.filename, csvExportFile);
     parameters.setParameter(CSVExportModularParameters.filter, rowsFilter);
     parameters.setParameter(CSVExportModularParameters.omitEmptyColumns, omitEmpty);
     parameters.setParameter(CSVExportModularParameters.idSeparator, idSeparator);
+    parameters.setParameter(CSVExportModularParameters.fieldSeparator, fieldSep);
     parameters.setParameter(CSVExportModularParameters.featureLists, featureListsSelection);
     return (CSVExportModularParameters) parameters;
   }

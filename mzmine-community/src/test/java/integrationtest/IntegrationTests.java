@@ -24,13 +24,11 @@
 
 package integrationtest;
 
-import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.net.URL;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -48,44 +46,39 @@ public class IntegrationTests {
   @BeforeAll
   static void initMzmine() {
     MZmineTestUtil.startMzmineCore();
-    ProjectService.getProjectManager().clearProject();
-    ProjectService.getProject().clearSpectralLibrary();
+    MZmineTestUtil.clearProjectAndLibraries();
   }
 
   @AfterEach
   void clearProject() {
-    ProjectService.getProjectManager().clearProject();
-    ProjectService.getProject().clearSpectralLibrary();
+    MZmineTestUtil.clearProjectAndLibraries();
   }
 
   @Test
   void testSmallLcMsBatch(@TempDir File tempDir) {
 
-    final File results = IntegrationTestUtils.runBatchGetExportedCsv(
-        "rawdatafiles/integration_tests/workshop_dataset/workshop_dataset_integration_test.mzbatch",
-        tempDir, new String[]{
-            "rawdatafiles/integration_tests/workshop_dataset/171103_PMA_TK_QC_04-4to5min.mzML",
-            "rawdatafiles/integration_tests/workshop_dataset/171103_PMA_TK_QC_05-4to5min.mzML"},
-        new String[]{"spectral_libraries/integration_tests/massbank_nist_for_tests.msp",
-            "spectral_libraries/integration_tests/MoNA-export-LC-MS-MS_Spectra.json"});
+    final File results = IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset",
+            "workshop_dataset_integration_test.mzbatch").tempDir(tempDir)
+        .rawFiles("171103_PMA_TK_QC_04-4to5min.mzML", "171103_PMA_TK_QC_05-4to5min.mzML")
+        .specLibsFullPath("spectral_libraries/integration_tests/massbank_nist_for_tests.msp",
+            "spectral_libraries/integration_tests/MoNA-export-LC-MS-MS_Spectra.json").build()
+        .runBatchGetCsvFile();
 
     Assertions.assertTrue(IntegrationTestUtils.getCsvComparisonResults(
         "rawdatafiles/integration_tests/workshop_dataset/expected_results.csv", results,
         "workshop_dataset_integration_test").isEmpty());
 
-    Assertions.assertEquals(IntegrationTestUtils.getCsvComparisonResults(
+    Assertions.assertEquals(40, IntegrationTestUtils.getCsvComparisonResults(
         "rawdatafiles/integration_tests/workshop_dataset/expected_results_error.csv", results,
-        "workshop_dataset_integration_test").size(), 40);
+        "workshop_dataset_integration_test").size());
   }
 
   @Test
   @DisabledOnOs({OS.LINUX, OS.MAC})
     // windows paths don't work on linux/mac
   void testProjectLoadLcms(@TempDir File tempDir) {
-    final URL expectedResultsFromProcessing = IntegrationTests.class.getClassLoader()
-        .getResource("rawdatafiles/integration_tests/workshop_dataset/expected_results.csv");
-    final URL expectedResultsFromProjectLoad = IntegrationTests.class.getClassLoader().getResource(
-        "rawdatafiles/integration_tests/workshop_dataset/expected_results_project.csv");
+    final String expectedResultsFromProcessing = "rawdatafiles/integration_tests/workshop_dataset/expected_results.csv";
+    final String expectedResultsFromProjectLoad = "rawdatafiles/integration_tests/workshop_dataset/expected_results_project.csv";
 
     final File csvExportFile = IntegrationTestUtils.loadProjectExportFeatureList(tempDir,
         "rawdatafiles/integration_tests/workshop_dataset/project.mzmine");
@@ -103,28 +96,36 @@ public class IntegrationTests {
   @Test
   @DisabledOnOs({OS.LINUX, OS.MAC})
   void testDiTimsMs(@TempDir File tempDir) {
-    Assertions.assertEquals(0, IntegrationTestUtils.runBatchCompareToCsv(
-        "rawdatafiles/integration_tests/timstof_ditimsms_pasef/di_tims_ms.mzbatch",
-        "rawdatafiles/integration_tests/timstof_ditimsms_pasef/expected_results.csv", tempDir,
-        new String[]{"rawdatafiles/additional/lc-tims-ms-pasef-a.d"}, null).size());
+    Assertions.assertEquals(0,
+        IntegrationTest.builder("rawdatafiles/integration_tests/timstof_ditimsms_pasef",
+                "di_tims_ms.mzbatch") //
+            .rawFilesFullPath("rawdatafiles/additional/lc-tims-ms-pasef-a.d").tempDir(tempDir)
+            .build()//
+            .runBatchGetCheckResults(
+                "rawdatafiles/integration_tests/timstof_ditimsms_pasef/expected_results.csv")
+            .size());
   }
 
   @Test
   void testGcTofMs(@TempDir File tempDir) {
-    Assertions.assertEquals(0, IntegrationTestUtils.runBatchCompareToCsv(
-        "rawdatafiles/integration_tests/gc_tof_ms/gc_tof.mzbatch",
-        "rawdatafiles/integration_tests/gc_tof_ms/expected_results.csv", tempDir,
-        new String[]{"rawdatafiles/integration_tests/gc_tof_ms/019_KR8_20220715.mzML"},
-        new String[]{"spectral_libraries/integration_tests/GC_HRMS_Archeology.json"}).size());
+    Assertions.assertEquals(0,
+        IntegrationTest.builder("rawdatafiles/integration_tests/gc_tof_ms", "gc_tof.mzbatch")
+            .rawFiles("019_KR8_20220715.mzML")
+            .specLibsFullPath("spectral_libraries/integration_tests/GC_HRMS_Archeology.json")
+            .tempDir(tempDir).build() //
+            .runBatchGetCheckResults(
+                "rawdatafiles/integration_tests/gc_tof_ms/expected_results.csv").size());
   }
 
   @Test
   void testMseMs(@TempDir File tempDir) {
-    Assertions.assertEquals(0, IntegrationTestUtils.runBatchCompareToCsv(
-        "rawdatafiles/integration_tests/mse/mse_batch.mzbatch",
-        "rawdatafiles/integration_tests/mse/expected_results.csv", tempDir,
-        new String[]{"rawdatafiles/integration_tests/mse/mse_20180205_0125.mzML"},
-        new String[]{"spectral_libraries/integration_tests/massbank_eu_nist_for_mse.msp"}).size());
+    Assertions.assertEquals(0,
+        IntegrationTest.builder("rawdatafiles/integration_tests/mse", "mse_batch.mzbatch")
+            .tempDir(tempDir).rawFiles("mse_20180205_0125.mzML")
+            .specLibsFullPath("spectral_libraries/integration_tests/massbank_eu_nist_for_mse.msp")
+            .build()
+            .runBatchGetCheckResults("rawdatafiles/integration_tests/mse/expected_results.csv")
+            .size());
   }
 
   @Test
@@ -144,9 +145,11 @@ public class IntegrationTests {
 
   @Test
   void testLibToFlist(@TempDir File tempDir) {
-    Assertions.assertEquals(0, IntegrationTestUtils.runBatchCompareToCsv(
-        "rawdatafiles/integration_tests/library_to_flist/lib_batch.mzbatch",
-        "rawdatafiles/integration_tests/library_to_flist/expected_results.csv", tempDir, null,
-        new String[]{"spectral_libraries/integration_tests/lib_to_flist.json"}).size());
+    Assertions.assertEquals(0,
+        IntegrationTest.builder("rawdatafiles/integration_tests/library_to_flist",
+                "lib_batch.mzbatch").tempDir(tempDir)
+            .specLibsFullPath("spectral_libraries/integration_tests/lib_to_flist.json").build()
+            .runBatchGetCheckResults(
+                "rawdatafiles/integration_tests/library_to_flist/expected_results.csv").size());
   }
 }

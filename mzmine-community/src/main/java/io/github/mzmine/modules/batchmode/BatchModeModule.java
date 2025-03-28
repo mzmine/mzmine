@@ -60,18 +60,6 @@ public class BatchModeModule implements MZmineProcessingModule {
   /**
    * Run from batch file (usually in headless mode)
    *
-   * @param batchFile local file
-   * @return the batch task if successful or null on error
-   */
-  @Nullable
-  public static BatchTask runBatch(@NotNull MZmineProject project, File batchFile,
-      @NotNull Instant moduleCallDate) {
-    return runBatch(project, batchFile, null, null, null, null, moduleCallDate);
-  }
-
-  /**
-   * Run from batch file (usually in headless mode)
-   *
    * @param batchFile                    local file
    * @param overrideDataFiles            change the data import to those files if not null
    * @param overrideMetadataFile
@@ -81,7 +69,7 @@ public class BatchModeModule implements MZmineProcessingModule {
    * @return the batch task if successful or null on error
    */
   @Nullable
-  public static BatchTask runBatch(@NotNull MZmineProject project, File batchFile,
+  public static BatchTask runBatchFile(@NotNull MZmineProject project, File batchFile,
       @Nullable File[] overrideDataFiles, @Nullable final File overrideMetadataFile,
       final File[] overrideSpectralLibraryFiles, @Nullable final String overrideOutBaseFile,
       @NotNull Instant moduleCallDate) {
@@ -110,7 +98,7 @@ public class BatchModeModule implements MZmineProcessingModule {
         }
       }
 
-      return runBatch(newQueue, project, overrideDataFiles, overrideMetadataFile,
+      return runBatchQueue(newQueue, project, overrideDataFiles, overrideMetadataFile,
           overrideSpectralLibraryFiles, overrideOutBaseFile, moduleCallDate);
 
     } catch (Throwable e) {
@@ -129,7 +117,7 @@ public class BatchModeModule implements MZmineProcessingModule {
    *                                     filename
    * @return the batch task if successful or null on error
    */
-  public static @Nullable BatchTask runBatch(BatchQueue newQueue, @NotNull MZmineProject project,
+  public static @Nullable BatchTask runBatchQueue(BatchQueue newQueue, @NotNull MZmineProject project,
       @Nullable File @Nullable [] overrideDataFiles, @Nullable File overrideMetadataFile,
       File[] overrideSpectralLibraryFiles, @Nullable String overrideOutBaseFile,
       @NotNull Instant moduleCallDate) {

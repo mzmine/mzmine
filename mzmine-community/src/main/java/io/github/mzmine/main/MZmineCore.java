@@ -249,7 +249,7 @@ public final class MZmineCore {
       final File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
 
       // run batch file
-      batchTask = BatchModeModule.runBatch(ProjectService.getProject(), batchFile,
+      batchTask = BatchModeModule.runBatchFile(ProjectService.getProject(), batchFile,
           overrideDataFiles, overrideMetadataFile, overrideSpectralLibraryFiles, outBaseFile,
           Instant.now());
     }
