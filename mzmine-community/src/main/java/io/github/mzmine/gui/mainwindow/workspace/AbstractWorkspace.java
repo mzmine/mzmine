@@ -25,12 +25,7 @@
 
 package io.github.mzmine.gui.mainwindow.workspace;
 
-import static io.github.mzmine.util.javafx.FxMenuUtil.addMenuItem;
-import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItem;
-import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItems;
-import static io.github.mzmine.util.javafx.FxMenuUtil.addRadioMenuItem;
-import static io.github.mzmine.util.javafx.FxMenuUtil.addSeparator;
-
+import io.github.mzmine.datamodel.identities.fx.IonTypeCreatorModule;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.WindowLocation;
@@ -134,6 +129,11 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 import io.github.mzmine.util.javafx.FxMenuUtil;
+import static io.github.mzmine.util.javafx.FxMenuUtil.addMenuItem;
+import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItem;
+import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItems;
+import static io.github.mzmine.util.javafx.FxMenuUtil.addRadioMenuItem;
+import static io.github.mzmine.util.javafx.FxMenuUtil.addSeparator;
 import io.github.mzmine.util.javafx.ModuleMenuItem;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import io.mzio.links.MzioMZmineLinks;
@@ -350,7 +350,8 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Tools");
     addMenuItem(menu, "Quick search", ModuleQuickSelectDialog::openQuickSearch, KeyCode.F,
         KeyCombination.SHORTCUT_DOWN);
-    addModuleMenuItems(menu, IsotopePatternPreviewModule.class, QualityParametersModule.class);
+    addModuleMenuItems(menu, IonTypeCreatorModule.class, IsotopePatternPreviewModule.class,
+        QualityParametersModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryAnalysisCSVExportModule.class,
         MsMsQualityExportModule.class);
     addModuleMenuItems(menu, "timsTOF fleX", TimsTOFMaldiAcquisitionModule.class,
