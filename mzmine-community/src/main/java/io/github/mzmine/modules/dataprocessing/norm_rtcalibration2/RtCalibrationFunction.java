@@ -153,8 +153,7 @@ public class RtCalibrationFunction {
 
   @Nullable
   public RawDataFile getRawDataFile() {
-    final RawDataFile file = filePlaceholder.getMatchingFile();
-    return file;
+    return filePlaceholder.getMatchingFile();
   }
 
   public float getCorrectedRtMovAvg(float originalRt) {

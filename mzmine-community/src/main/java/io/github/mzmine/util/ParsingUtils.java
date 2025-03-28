@@ -522,7 +522,7 @@ public class ParsingUtils {
     final Element element = (Element) parent.getElementsByTagName("polynomialsplinefunction")
         .item(0);
 
-    final Element polynomialsElement = (Element) element.getElementsByTagName("polynomial").item(0);
+    final Element polynomialsElement = (Element) element.getElementsByTagName("polynomials").item(0);
     final String polynomialsText = polynomialsElement.getTextContent();
     final PolynomialFunction[] parsedPolynomials = Arrays.stream(
             polynomialsText.split(SEPARATOR + SEPARATOR)).map(ParsingUtils::stringToDoubleArray)

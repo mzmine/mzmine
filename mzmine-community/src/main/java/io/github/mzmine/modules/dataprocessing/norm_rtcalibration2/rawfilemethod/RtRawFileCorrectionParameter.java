@@ -29,6 +29,7 @@ import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtCalibrationFunction;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ public class RtRawFileCorrectionParameter implements
 
   @Override
   public void setValueToComponent(Label label, @Nullable List<RtCalibrationFunction> newValue) {
-
+    // empty
   }
 
   @Override
@@ -103,7 +104,7 @@ public class RtRawFileCorrectionParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    return false;
+    return calibrationFunctions != null;
   }
 
   @Override
@@ -116,10 +117,7 @@ public class RtRawFileCorrectionParameter implements
     for (int i = 0; i < calibrationFunctionsList.getLength(); i++) {
       final Element calibrationFunction = (Element) calibrationFunctionsList.item(i);
       final String fileName = calibrationFunction.getAttribute(CONST.XML_RAW_FILE_ELEMENT);
-      final RawDataFile file = ProjectService.getProject().getDataFileByName(fileName);
-      if (file == null) {
-        continue;
-      }
+      final RawDataFile file = new RawDataFilePlaceholder(fileName, null, null);
 
       try {
         final PolynomialSplineFunction polynomialSplineFunction = ParsingUtils.loadSplineFunctionFromParentXmlElement(
