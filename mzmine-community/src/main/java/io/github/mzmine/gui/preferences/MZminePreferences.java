@@ -207,7 +207,7 @@ public class MZminePreferences extends SimpleParameterSet {
       "Image paint scale transformation", "Transforms the paint scale for images.",
       PaintScaleTransform.values(), PaintScaleTransform.LINEAR);
 
-  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
+  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.######"),
       new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
       new DecimalFormat("0.###"), UnitFormat.DIVIDE);
