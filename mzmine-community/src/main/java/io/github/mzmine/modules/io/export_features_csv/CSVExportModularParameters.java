@@ -27,15 +27,20 @@ package io.github.mzmine.modules.io.export_features_csv;
 
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class CSVExportModularParameters extends SimpleParameterSet {
 
@@ -55,10 +60,9 @@ public class CSVExportModularParameters extends SimpleParameterSet {
   );
   public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
       "Filename", "Name of the output CSV file. "
-                  + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-                  + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-                  + "If the file already exists, it will be overwritten.", extensions,
-      "full_feature_table");
+      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+      + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
+      + "If the file already exists, it will be overwritten.", extensions, "full_feature_table");
 
 
   public CSVExportModularParameters() {
@@ -82,5 +86,23 @@ public class CSVExportModularParameters extends SimpleParameterSet {
     }
 
     return superCheck && errorMessages.isEmpty();
+  }
+
+  public static CSVExportModularParameters create(File csvExportFile,
+      FeatureListRowsFilter rowsFilter, boolean omitEmpty, String idSeparator, String fieldSep,
+      FeatureListsSelection featureListsSelection) {
+    final ParameterSet parameters = new CSVExportModularParameters().cloneParameterSet();
+    parameters.setParameter(CSVExportModularParameters.filename, csvExportFile);
+    parameters.setParameter(CSVExportModularParameters.filter, rowsFilter);
+    parameters.setParameter(CSVExportModularParameters.omitEmptyColumns, omitEmpty);
+    parameters.setParameter(CSVExportModularParameters.idSeparator, idSeparator);
+    parameters.setParameter(CSVExportModularParameters.fieldSeparator, fieldSep);
+    parameters.setParameter(CSVExportModularParameters.featureLists, featureListsSelection);
+    return (CSVExportModularParameters) parameters;
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

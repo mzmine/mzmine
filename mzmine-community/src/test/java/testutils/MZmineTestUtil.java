@@ -48,8 +48,6 @@ package testutils;/*
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import static io.mzio.testing.MZmineTestInitializer.init;
-
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -66,9 +64,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.FeatureListRowSorter;
-import io.mzio.users.client.UserAuthStore;
-import io.mzio.users.user.CurrentUserService;
-import io.mzio.users.user.UserFileReader;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -181,6 +176,11 @@ public class MZmineTestUtil {
     ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());
   }
 
+  public static void clearProjectAndLibraries() {
+    ProjectService.getProjectManager().clearProject();
+    ProjectService.getProject().clearSpectralLibrary();
+  }
+
 
   public static TaskResult importFiles(final List<String> fileNames, long timeoutSeconds)
       throws InterruptedException {
@@ -229,33 +229,7 @@ public class MZmineTestUtil {
 
   public static void startMzmineCore() {
     try {
-      init();
-
-      try {
-        logger.fine("Trying to find TESTRUNNER_USER env");
-        String testRunner = System.getenv("TESTRUNNER_USER");
-        if (testRunner != null && !testRunner.isBlank()) {
-          logger.info("Loaded TESTRUNNER_USER from env var");
-        } else {
-          logger.info("Unable to load test user from env variable.");
-        }
-        var user = UserFileReader.parseUser(testRunner);
-        if (user != null) {
-          logger.info("Test user TESTRUNNER_USER loaded successfully");
-          CurrentUserService.setUser(user);
-        }
-      } catch (Exception ex) {
-        logger.fine("Cannot find testrunner user, set environment variable with license code");
-      }
-      if (!CurrentUserService.isValid()) {
-        // load testrunner user from users dir / e.g. on github actions
-        var file = UserAuthStore.resolveInUsersPath("testrunner.mzuserstr");
-        var user = UserFileReader.readUserFile(file);
-        if (user != null) {
-          CurrentUserService.setUser(user);
-        }
-      }
-      MZmineCore.main(new String[]{"-r", "-m", "all"});
+      MZmineCore.main(new String[]{"-r", "-m", "all", "-pref", "null"});
     } catch (Exception ex) {
       // might be already initialized
       logger.log(Level.INFO,

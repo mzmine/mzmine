@@ -137,6 +137,10 @@ class ArgsToConfigUtils {
     // override preferences file by command line argument pref
     final File prefFile = Objects.requireNonNullElse(argsParser.getPreferencesFile(),
         MZmineConfiguration.CONFIG_FILE);
+    if("null".equals(prefFile.getName())){
+      logger.info("Preference file was set to null, not loading configuration.");
+      return;
+    }
 
     // Load configuration
     if (prefFile.exists() && prefFile.canRead()) {
