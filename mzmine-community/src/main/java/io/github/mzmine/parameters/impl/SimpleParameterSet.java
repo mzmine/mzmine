@@ -262,7 +262,7 @@ public class SimpleParameterSet implements ParameterSet {
     for (Parameter<?> p : parameters) {
       // this is done in batch mode where no data is loaded when the parameters are checked
       if (skipRawDataAndFeatureListParameters && (p instanceof RawDataFilesParameter
-                                                  || p instanceof FeatureListsParameter)) {
+          || p instanceof FeatureListsParameter)) {
         continue;
       }
 
@@ -317,24 +317,21 @@ public class SimpleParameterSet implements ParameterSet {
           "This module has not been tested with ion mobility data files. This could lead to unexpected results.");
       if (showMsg) {
         return MZmineCore.getDesktop()
-                   .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
-                       "This module has not been tested with ion mobility data files. This could lead "
-                       + "to unexpected results. Do you want to continue anyway?",
-                       "Do not show again",
-                       optOut -> showMsgMap.put(this.getClass().getName(), !optOut))
-               == ButtonType.YES;
+            .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
+                "This module has not been tested with ion mobility data files. This could lead "
+                    + "to unexpected results. Do you want to continue anyway?", "Do not show again",
+                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
       }
       return true;
     } else if (containsImsFile && getIonMobilitySupport() == IonMobilitySupport.RESTRICTED) {
       logger.warning(
           "This module has certain restrictions when processing ion mobility data files. This"
-          + " could lead to unexpected results");
+              + " could lead to unexpected results");
       if (showMsg) {
         return MZmineCore.getDesktop()
-                   .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
-                       getRestrictedIonMobilitySupportMessage(), "Do not show again",
-                       optOut -> showMsgMap.put(this.getClass().getName(), !optOut))
-               == ButtonType.YES;
+            .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
+                getRestrictedIonMobilitySupportMessage(), "Do not show again",
+                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
       }
     } else if (!onlyImsFiles && getIonMobilitySupport() == IonMobilitySupport.ONLY) {
       logger.warning(
@@ -349,7 +346,7 @@ public class SimpleParameterSet implements ParameterSet {
 
       boolean returnVal = DialogLoggerUtil.showDialogYesNo("Untested IMS support",
           "This module does not support ion mobility data. This will lead to unexpected "
-          + "results. Do you want to continue anyway?");
+              + "results. Do you want to continue anyway?");
       if (!returnVal) {
         errorMessages.addAll(nonImsFilesList);
       }
@@ -368,7 +365,7 @@ public class SimpleParameterSet implements ParameterSet {
    */
   public String getRestrictedIonMobilitySupportMessage() {
     return "This module has certain restrictions when processing ion mobility data files. This "
-           + "could lead to unexpected results. Do you want to continue anyway?";
+        + "could lead to unexpected results. Do you want to continue anyway?";
   }
 
   /**
