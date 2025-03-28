@@ -307,6 +307,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule"/>
       <MenuItem onAction="#runModule" text="Assign MALDI MS2 to features"
         userData="io.github.mzmine.modules.dataprocessing.filter_maldigroupms2.MaldiGroupMS2Module"/>
+      <MenuItem onAction="#runModule" text="Ion type analysis"
+                userData="io.github.mzmine.modules.dataprocessing.id_ion_type.IonTypeAnalysisModule"/>
       <MenuItem onAction="#runModule" text="Refine IMS-MS2 spectra"
         userData="io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement.ImsMs2RefinementModule"/>
       <MenuItem onAction="#runModule" text="Refine fragmentation scans of features"
