@@ -26,10 +26,12 @@
 package io.github.mzmine.datamodel.identities;
 
 import io.github.mzmine.util.FormulaUtils;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class IonParts {
@@ -135,5 +137,32 @@ public class IonParts {
     // just create with unknown values
 
     return IonPart.unknown(nameOrFormula, count);
+  }
+
+
+  /**
+   * merges duplicate parts (all matching properties excluding the count)
+   *
+   * @param parts may contain duplicates
+   * @return unmodifiable list of ion parts
+   */
+  public static List<IonPart> mergeDuplicates(IonPart... parts) {
+    return mergeDuplicates(List.of(parts));
+  }
+
+  /**
+   * merges duplicate parts (all matching properties excluding the count)
+   *
+   * @param parts may contain duplicates
+   * @return unmodifiable list of ion parts
+   */
+  public static List<IonPart> mergeDuplicates(Collection<IonPart> parts) {
+    // use trick to create a copy with count 1 to group all parts based on the other properties but not count
+    final Collection<List<IonPart>> groupedDuplicates = parts.stream().filter(Objects::nonNull)
+        .collect(Collectors.groupingBy(type -> type.withCount(1))).values();
+    // merge duplicates into one and return new list
+    //noinspection DataFlowIssue,OptionalGetWithoutIsPresent
+    return groupedDuplicates.stream()
+        .map(duplicates -> duplicates.stream().reduce(IonPart::merge).get()).toList();
   }
 }

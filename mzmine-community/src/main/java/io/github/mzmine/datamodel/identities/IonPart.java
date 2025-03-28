@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,6 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import static java.util.Objects.requireNonNullElse;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -42,6 +40,7 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.util.Comparator;
 import java.util.Objects;
+import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.xml.stream.XMLStreamException;
@@ -60,8 +59,8 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * @param absSingleMass absolute (positive) mass of a single item of this type which is multiplied
  *                      by count to get total mass.
  * @param singleCharge  signed charge of a single item which is multiplied by count to get total
- *                      charge
- * @param count         the singed multiplier of this single item, non-zero. e.g., 2 for 2Na and -1
+ *                      charge. Both H+ and 2H+ would be single charge +1. See count.
+ * @param count         the singed multiplier of this single item, non-zero. e.g., 2 for +2Na and -1
  *                      for -H
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -225,7 +224,7 @@ public record IonPart(@NotNull String name,
       case SIMPLE_NO_CHARGE -> base;
       case SIMPLE_WITH_CHARGE -> "[%s]%s".formatted(base, IonUtils.getChargeString(totalCharge()));
       case FULL -> "[%s]%s (%s Da)".formatted(base, IonUtils.getChargeString(totalCharge()),
-          ConfigService.getExportFormats().mz(absSingleMass()));
+          ConfigService.getExportFormats().mz(totalMass()));
     };
   }
 
@@ -335,6 +334,9 @@ public record IonPart(@NotNull String name,
     return !isCharged();
   }
 
+  /**
+   * @return the type of this ion part
+   */
   @JsonIgnore
   public Type type() {
     if (isCharged()) {
@@ -387,6 +389,7 @@ public record IonPart(@NotNull String name,
     int result = name.hashCode();
     result = 31 * result + Objects.hashCode(singleFormula);
     result = 31 * result + Double.hashCode(absSingleMass);
+    result = 31 * result + count;
     result = 31 * result + singleCharge;
     return result;
   }

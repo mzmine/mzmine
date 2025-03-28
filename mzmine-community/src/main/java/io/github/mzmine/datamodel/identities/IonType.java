@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,6 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import static java.util.function.Predicate.not;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.mzmine.datamodel.PolarityType;
@@ -36,9 +34,9 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import static java.util.function.Predicate.not;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.stream.XMLStreamException;
@@ -79,13 +77,8 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
 
   public static IonType create(@NotNull List<@NotNull IonPart> parts, int molecules) {
     // requires to merge all the same IonParts into single objects by adding up their count multiplier
-    HashMap<IonPart, IonPart> unique = HashMap.newHashMap(parts.size());
-    for (final IonPart part : parts) {
-      unique.merge(part, part, IonPart::merge);
-    }
-
     // sort so that name will be correct
-    parts = unique.values().stream().sorted(IonPart.DEFAULT_NAME_SORTER).toList();
+    parts = IonParts.mergeDuplicates(parts).stream().sorted(IonPart.DEFAULT_NAME_SORTER).toList();
 
     double totalMass = 0;
     int totalCharge = 0;

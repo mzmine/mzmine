@@ -91,4 +91,5 @@ public enum IonTypes {
   public static final List<IonType> DEFAULT_VALUES_NEGATIVE = Stream.of(M_MINUS, H_MINUS,
           NA2_MINUS_H, CL, BR, FORMATE_FA, ACETATE_AC, NA).map(IonTypes::asIonType)
       .sorted(IonType.DEFAULT_ION_ADDUCT_SORTER).toList();
+
 }
