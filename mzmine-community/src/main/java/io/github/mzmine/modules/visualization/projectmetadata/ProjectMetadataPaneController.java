@@ -152,7 +152,7 @@ public class ProjectMetadataPaneController {
     if (result.isPresent() && result.get() == ButtonType.OK) {
       MetadataColumn<?> columnToDelete = metadataTable.getColumnByName(columnName);
       if (columnToDelete != null) {
-        tableModel.removeColumn(columnToDelete, tableView);
+        tableModel.removeColumn(columnToDelete);
       }
     }
   }

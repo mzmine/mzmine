@@ -8,7 +8,6 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTabl
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
@@ -89,6 +88,9 @@ public class MetadataTableModel {
     createAndAddColumnToTableView(column);
   }
 
+  /**
+   * Creates the java fx column from an existing metadata column
+   */
   private @NotNull TableColumn<MetadataRow, String> createColumn(MetadataColumn<?> metaColumn) {
     // Create a JavaFX TableColumn for each MetadataColumn
     TableColumn<MetadataRow, String> fxColumn = new TableColumn<>(metaColumn.getTitle());
@@ -131,6 +133,10 @@ public class MetadataTableModel {
     return fxColumn;
   }
 
+  /**
+   * The data file column is the index of the {@link MetadataTable} and thus not a real column. need
+   * to add manually.
+   */
   private @NotNull TableColumn<MetadataRow, String> createDataFileColumn() {
     final TableColumn<MetadataRow, String> fxColumn = new TableColumn<>(
         MetadataColumn.FILENAME_HEADER);
@@ -186,7 +192,10 @@ public class MetadataTableModel {
     };
   }
 
-  public void removeColumn(MetadataColumn<?> metaColumn, TableView<MetadataRow> tableView) {
+  /**
+   * Removes a column from the view and the underlying table.
+   */
+  public void removeColumn(MetadataColumn<?> metaColumn) {
     tableView.getColumns().removeIf(col -> col.getText().equalsIgnoreCase(metaColumn.getTitle()));
     metadataTable.removeColumn(metaColumn);
   }
