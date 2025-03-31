@@ -1,10 +1,14 @@
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
+import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 
 public class GroupMs2AdvancedParameters extends SimpleParameterSet {
@@ -22,18 +26,33 @@ public class GroupMs2AdvancedParameters extends SimpleParameterSet {
               + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
               + "MS/MS mobility scans need to be merged together.", 0.01d), true);
 
+  public static final OptionalParameter<MetadataGroupingParameter> iterativeMs2Column = new OptionalParameter<>(
+      new MetadataGroupingParameter("Group iterative MS2s", """
+          Allows selection of a metadata column that contains the file name of a raw data file to which the scans of a MS2 file shall be paired to.
+          For example, the column name is %s then that column name must be listed here.
+          For three files A_main, B_MS2, and C_MS2, of which A_main contains MS1 and and MS2 scans,
+          and where B_MS2 and C_MS2 only contain MS2 scans, the files B_MS2 and C_MS2 must list 
+          %s in the column %s. The MS2 scans of file B and C are then paired to the features of file A.
+          """.formatted(inQuotes(GroupMS2Processor.DEFAULT_QUANT_FILE_COLUMN_NAME),
+          inQuotes("A_main"), inQuotes(GroupMS2Processor.DEFAULT_QUANT_FILE_COLUMN_NAME)),
+          GroupMS2Processor.DEFAULT_QUANT_FILE_COLUMN_NAME));
+
   public GroupMs2AdvancedParameters() {
-    super(outputNoiseLevel, outputNoiseLevelRelative);
+    super(outputNoiseLevel, outputNoiseLevelRelative, iterativeMs2Column);
   }
 
   public static GroupMs2AdvancedParameters create(@Nullable Double outputNoiseLevel,
-      @Nullable Double outputNoiseLevelRelative) {
+      @Nullable Double outputNoiseLevelRelative, @Nullable String iterativeMs2ColumnName) {
     final GroupMs2AdvancedParameters param = (GroupMs2AdvancedParameters) new GroupMs2AdvancedParameters().cloneParameterSet();
 
     param.setParameter(GroupMs2AdvancedParameters.outputNoiseLevel, outputNoiseLevel != null,
         outputNoiseLevel);
     param.setParameter(GroupMs2AdvancedParameters.outputNoiseLevelRelative,
         outputNoiseLevelRelative != null, outputNoiseLevelRelative);
+
+    param.setParameter(GroupMs2AdvancedParameters.iterativeMs2Column,
+        iterativeMs2ColumnName != null, Objects.requireNonNullElse(iterativeMs2ColumnName,
+            GroupMS2Processor.DEFAULT_QUANT_FILE_COLUMN_NAME));
 
     return param;
   }
