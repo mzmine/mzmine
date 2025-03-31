@@ -36,8 +36,42 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <T> datatype of the project parameter
  */
-public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, DoubleMetadataColumn,
-    DateMetadataColumn {
+public abstract sealed class MetadataColumn<T> implements Comparable<MetadataColumn<T>> permits
+    StringMetadataColumn, DoubleMetadataColumn, DateMetadataColumn {
+
+  @Override
+  public int compareTo(@NotNull MetadataColumn<T> o) {
+    if (o == this) {
+      return 0;
+    }
+
+    // filename first
+    if (this.getTitle().equals(FILENAME_HEADER)) {
+      return -1;
+    }
+    if (o.getTitle().equals(FILENAME_HEADER)) {
+      return 1;
+    }
+
+    // then run data
+    if (this.getTitle().equalsIgnoreCase(DATE_HEADER)) {
+      return -1;
+    }
+    if (o.getTitle().equalsIgnoreCase(DATE_HEADER)) {
+      return 1;
+    }
+
+    // then sample type
+    if (this.getTitle().equalsIgnoreCase(SAMPLE_TYPE_HEADER)) {
+      return -1;
+    }
+    if (o.getTitle().equalsIgnoreCase(SAMPLE_TYPE_HEADER)) {
+      return 1;
+    }
+
+    // then alphabetical order
+    return this.getTitle().toLowerCase().compareTo(o.getTitle().toLowerCase());
+  }
 
   public static final String FILENAME_HEADER = "filename";
   public static final String DATE_HEADER = "run_date";
@@ -176,4 +210,5 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
   public String toString() {
     return getTitle();
   }
+
 }
