@@ -39,40 +39,6 @@ import org.jetbrains.annotations.Nullable;
 public abstract sealed class MetadataColumn<T> implements Comparable<MetadataColumn<T>> permits
     StringMetadataColumn, DoubleMetadataColumn, DateMetadataColumn {
 
-  @Override
-  public int compareTo(@NotNull MetadataColumn<T> o) {
-    if (o == this) {
-      return 0;
-    }
-
-    // filename first
-    if (this.getTitle().equals(FILENAME_HEADER)) {
-      return -1;
-    }
-    if (o.getTitle().equals(FILENAME_HEADER)) {
-      return 1;
-    }
-
-    // then run data
-    if (this.getTitle().equalsIgnoreCase(DATE_HEADER)) {
-      return -1;
-    }
-    if (o.getTitle().equalsIgnoreCase(DATE_HEADER)) {
-      return 1;
-    }
-
-    // then sample type
-    if (this.getTitle().equalsIgnoreCase(SAMPLE_TYPE_HEADER)) {
-      return -1;
-    }
-    if (o.getTitle().equalsIgnoreCase(SAMPLE_TYPE_HEADER)) {
-      return 1;
-    }
-
-    // then alphabetical order
-    return this.getTitle().toLowerCase().compareTo(o.getTitle().toLowerCase());
-  }
-
   public static final String FILENAME_HEADER = "filename";
   public static final String DATE_HEADER = "run_date";
   // renamed this from sample_type to mz_sample_type because too standard name that may be overwritten by users metadata
@@ -198,12 +164,12 @@ public abstract sealed class MetadataColumn<T> implements Comparable<MetadataCol
     if (!(o instanceof MetadataColumn<?> that)) {
       return false;
     }
-    return title.equals(that.title) && description.equals(that.description);
+    return Objects.equals(title, that.title);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(title, description);
+    return Objects.hash(title);
   }
 
   @Override
@@ -211,4 +177,37 @@ public abstract sealed class MetadataColumn<T> implements Comparable<MetadataCol
     return getTitle();
   }
 
+  @Override
+  public int compareTo(@NotNull MetadataColumn<T> o) {
+    if (o == this) {
+      return 0;
+    }
+
+    // filename first
+    if (this.getTitle().equals(FILENAME_HEADER)) {
+      return -1;
+    }
+    if (o.getTitle().equals(FILENAME_HEADER)) {
+      return 1;
+    }
+
+    // then run data
+    if (this.getTitle().equalsIgnoreCase(DATE_HEADER)) {
+      return -1;
+    }
+    if (o.getTitle().equalsIgnoreCase(DATE_HEADER)) {
+      return 1;
+    }
+
+    // then sample type
+    if (this.getTitle().equalsIgnoreCase(SAMPLE_TYPE_HEADER)) {
+      return -1;
+    }
+    if (o.getTitle().equalsIgnoreCase(SAMPLE_TYPE_HEADER)) {
+      return 1;
+    }
+
+    // then alphabetical order
+    return this.getTitle().toLowerCase().compareTo(o.getTitle().toLowerCase());
+  }
 }
