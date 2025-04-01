@@ -78,6 +78,7 @@ public class FxSpinners {
       ObjectProperty<Integer> valueProperty, @Nullable String tooltip) {
     final Spinner<Integer> spinner = newSpinner(min, max, valueProperty, tooltip);
     spinner.setValueFactory(new NonZeroIntegerSpinnerValueFactory(min, max));
+    spinner.getValueFactory().valueProperty().bindBidirectional(valueProperty);
     return spinner;
   }
 
