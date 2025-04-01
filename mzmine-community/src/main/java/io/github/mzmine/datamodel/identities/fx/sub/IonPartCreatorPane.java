@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.identities.fx.sub;
 
+import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.IonPart.IonStringFlavor;
 import static io.github.mzmine.javafx.components.factories.FxButtons.createDisabledButton;
 import static io.github.mzmine.javafx.components.factories.FxButtons.disableIf;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
@@ -34,19 +36,16 @@ import static io.github.mzmine.javafx.components.factories.FxSpinners.newSpinner
 import static io.github.mzmine.javafx.components.factories.FxTextFields.applyToField;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newNumberField;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
 import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
+import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.main.ConfigService;
 import static io.github.mzmine.util.FormulaUtils.getFormulaString;
+import io.github.mzmine.util.StringUtils;
 import static io.github.mzmine.util.StringUtils.isBlank;
 import static io.github.mzmine.util.StringUtils.requireValueOrElse;
 import static io.github.mzmine.util.components.FormulaTextField.newFormulaTextField;
-
-import io.github.mzmine.datamodel.identities.IonPart;
-import io.github.mzmine.datamodel.identities.IonPart.IonStringFlavor;
-import io.github.mzmine.javafx.components.util.FxLayout;
-import io.github.mzmine.javafx.properties.PropertyUtils;
-import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.util.StringUtils;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
@@ -89,9 +88,9 @@ public class IonPartCreatorPane extends BorderPane {
     setLeft(leftListPane);
     var mzFormat = ConfigService.getExportFormats().mzFormat();
 
-    var txtParsedIonPart = newTextField(8, this.parsedIonPart,
+    var txtParsedIonPart = newTextField(8, this.parsedIonPart, "Format: +Cu+2",
         "Use formula to parse ion parts name and charge, e.g., Fe+2 for doubly charged iron");
-    var btnParseIonPart = createDisabledButton("Parse formula",
+    var btnParseIonPart = createDisabledButton("Parse",
         "Parse ion part from formula and set other fields based on it, e.g., +Fe+3 or -2Cl-",
         this.parsedIonPart.isEmpty(), () -> parsePartStringFillFields(this.parsedIonPart.get()));
     var txtName = newTextField(8, name, "Name, often the formula");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,9 @@
 
 package io.github.mzmine.datamodel.identities.fx.sub;
 
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonTypeParser;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
@@ -32,10 +35,6 @@ import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
 import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newGrid2Col;
 import static io.github.mzmine.javafx.components.util.FxTabs.newTab;
-
-import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonTypeParser;
-import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
@@ -79,7 +78,8 @@ public class IonTypeCreatorPane extends BorderPane {
 
   private Node createIonTypeByStringPane() {
     return newBorderPane(newGrid2Col( //
-        newLabel("Ion type:"), newTextField(10, parsedIonTypeString, "Format: [M-H2O+2H]+2",
+        newLabel("Ion type:"),
+        newTextField(10, parsedIonTypeString, "Format: [M-H2O+2H]+2 or M+ACN+H",
             "Enter ion types like adducts, in source fragments, and clusters"), //
         gridRow(FxButtons.createDisabledButton("Add", "Add new ion type based on formatted entry",
             parsedIonType.isNull(), () -> addIonType(parsedIonType.get())))
