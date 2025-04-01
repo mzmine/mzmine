@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.javafx.components.formatters.NonZeroIntegerSpinnerValueFactory;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.Spinner;
@@ -65,6 +66,18 @@ public class FxSpinners {
     if (tooltip != null) {
       spinner.setTooltip(new Tooltip(tooltip));
     }
+    return spinner;
+  }
+
+  public static Spinner<Integer> newNonZeroSpinner(ObjectProperty<Integer> valueProperty,
+      @Nullable String tooltip) {
+    return newNonZeroSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, valueProperty, tooltip);
+  }
+
+  public static Spinner<Integer> newNonZeroSpinner(int min, int max,
+      ObjectProperty<Integer> valueProperty, @Nullable String tooltip) {
+    final Spinner<Integer> spinner = newSpinner(min, max, valueProperty, tooltip);
+    spinner.setValueFactory(new NonZeroIntegerSpinnerValueFactory(min, max));
     return spinner;
   }
 

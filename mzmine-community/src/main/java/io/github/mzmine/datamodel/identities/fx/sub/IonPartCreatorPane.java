@@ -37,6 +37,7 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import io.github.mzmine.javafx.components.factories.FxListViews;
+import static io.github.mzmine.javafx.components.factories.FxSpinners.newNonZeroSpinner;
 import static io.github.mzmine.javafx.components.factories.FxSpinners.newSpinner;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.applyToField;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newNumberField;
@@ -44,7 +45,6 @@ import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextF
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxLayout.Position;
 import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
-import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.main.ConfigService;
 import static io.github.mzmine.util.FormulaUtils.getFormulaString;
@@ -69,6 +69,7 @@ import javafx.scene.Node;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 import net.synedra.validatorfx.Validator;
@@ -93,7 +94,7 @@ public class IonPartCreatorPane extends BorderPane {
 
   // parsed from fields
   private final ReadOnlyObjectWrapper<IonPart> part = new ReadOnlyObjectWrapper<>();
-  private final Validator currentPartValidator;
+  private final Validator currentPartValidator = new Validator();
 
   // additional properties for the list view
   private final ObjectProperty<IonSorting> listSorting = new SimpleObjectProperty<>(
@@ -101,21 +102,46 @@ public class IonPartCreatorPane extends BorderPane {
 
 
   public IonPartCreatorPane(ObservableList<IonPart> parts) {
-    // avoid 0 value for count
-    count.subscribe((ov, nv) -> {
-      if (nv == 0) {
-        if (ov > 0) {
-          count.set(-1);
-        } else if (ov < 0) {
-          count.set(1);
-        }
-      }
-    });
+    setTop(newBoldTitle("List of ion building blocks"));
 
     partListView = createListView(parts);
-    var leftListPane = newBorderPane(partListView);
-    leftListPane.setTop(newBoldTitle("List of ion building blocks"));
-    setLeft(leftListPane);
+
+    partListView.setRight(createIonPartCreationPane());
+    setCenter(partListView);
+  }
+
+  private @NotNull FilterableListView<IonPart> createListView(final ObservableList<IonPart> parts) {
+    // create a list view with addtional controls for sorting and filtering
+    // sorting:
+    final HBox sortingCombo = FxComboBox.createLabeledComboBox("Sort by:",
+        FXCollections.observableList(List.of(IonSorting.values())), listSorting);
+
+    final CheckComboBox<Type> filterTypeCombo = FxComboBox.createCheckComboBox(
+        "Show only elements that match the selected types.", List.of(Type.values()));
+
+    final List<Node> additionalNodes = List.of(sortingCombo, filterTypeCombo);
+    final List<MenuControls> stdButtons = List.of(MenuControls.CLEAR_BTN, MenuControls.REMOVE_BTN);
+
+    // create the list view
+    final FilterableListView<IonPart> partListView = FxListViews.newFilterableListView(parts, true,
+        SelectionMode.MULTIPLE, Position.TOP, Pos.CENTER_LEFT, stdButtons, additionalNodes);
+
+    // set comparator and filter
+    listSorting.subscribe(
+        nv -> partListView.sortingComparatorProperty().set(nv.createIonPartComparator()));
+
+    // apply filter now:
+    filterTypeCombo.getCheckModel().getCheckedItems().addListener(
+        (ListChangeListener<? super Type>) _ -> applyFilter(filterTypeCombo, partListView));
+    applyFilter(filterTypeCombo, partListView);
+
+    return partListView;
+  }
+
+  /**
+   * Grid that allows creation of new ion parts
+   */
+  private Node createIonPartCreationPane() {
     var mzFormat = ConfigService.getExportFormats().mzFormat();
 
     var txtParsedIonPart = newTextField(8, this.parsedIonPart, "Format: +Cu+2",
@@ -126,7 +152,7 @@ public class IonPartCreatorPane extends BorderPane {
     var txtName = newTextField(8, name, "Name, often the formula");
     var txtFormula = applyToField(newFormulaTextField(false, false, formula), 8,
         "Formula or empty if unknown");
-    var spinCount = newSpinner(count, "Multiplier to add (>0) or remove (<0) parts.");
+    var spinCount = newNonZeroSpinner(count, "Multiplier to add (>0) or remove (<0) parts.");
     var spinCharge = newSpinner(charge,
         "The charge of a single ion part. +2Cl- has charge -1 because Cl has single charge.");
     var txtMass = disableIf(
@@ -143,7 +169,7 @@ public class IonPartCreatorPane extends BorderPane {
         () -> addPart(true));
 
     // layout in grid
-    setCenter(FxLayout.newGrid2Col(
+    final GridPane ionCreationGrid = FxLayout.newGrid2Col(
         // parse formula and set other fields with button. Button disabled if formula invalid
         newBoldLabel("Ion part: "), new HBox(txtParsedIonPart, btnParseIonPart),
         // spacer
@@ -158,7 +184,7 @@ public class IonPartCreatorPane extends BorderPane {
         newLabel("Result:"), lbParsingResult,
         // add
         gridRow(btnAdd, btnAddAndClear) //
-    ));
+    );
 
     // on any change - update part
     PauseTransition partUpdateDelay = new PauseTransition(Duration.millis(500));
@@ -176,7 +202,6 @@ public class IonPartCreatorPane extends BorderPane {
         }).decorates(txtParsedIonPart).immediate();
 
     // validate creation of ion part from all fields
-    currentPartValidator = new Validator();
     currentPartValidator.createCheck().dependsOn("count", count) //
         .withMethod(c -> {
           Integer value = c.get("count");
@@ -208,35 +233,7 @@ public class IonPartCreatorPane extends BorderPane {
                 Mass input is only available if formula field is empty.""");
           }
         }).decorates(txtFormula).decorates(txtMass).immediate();
-
-  }
-
-  private @NotNull FilterableListView<IonPart> createListView(final ObservableList<IonPart> parts) {
-    // create a list view with addtional controls for sorting and filtering
-    // sorting:
-    final HBox sortingCombo = FxComboBox.createLabeledComboBox("Sort by:",
-        FXCollections.observableList(List.of(IonSorting.values())), listSorting);
-
-    final CheckComboBox<Type> filterTypeCombo = FxComboBox.createCheckComboBox(
-        "Show only elements that match the selected types.", List.of(Type.values()));
-
-    final List<Node> additionalNodes = List.of(sortingCombo, filterTypeCombo);
-    final List<MenuControls> stdButtons = List.of(MenuControls.CLEAR_BTN, MenuControls.REMOVE_BTN);
-
-    // create the list view
-    final FilterableListView<IonPart> partListView = FxListViews.newFilterableListView(parts, true,
-        SelectionMode.MULTIPLE, Position.TOP, Pos.CENTER_LEFT, stdButtons, additionalNodes);
-
-    // set comparator and filter
-    listSorting.subscribe(
-        nv -> partListView.sortingComparatorProperty().set(nv.createIonPartComparator()));
-
-    // apply filter now:
-    filterTypeCombo.getCheckModel().getCheckedItems().addListener(
-        (ListChangeListener<? super Type>) _ -> applyFilter(filterTypeCombo, partListView));
-    applyFilter(filterTypeCombo, partListView);
-
-    return partListView;
+    return ionCreationGrid;
   }
 
   private void applyFilter(final CheckComboBox<Type> filterTypeCombo,
