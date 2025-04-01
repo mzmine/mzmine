@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,7 +65,6 @@ import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -104,12 +103,13 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
   private GroupedMs2RefinementProcessor refineTask;
   private @NotNull String description = "";
 
+
   /**
    * Defines the column name that contains the file name of the data file that MS2s from other files
    * shall be assigned to. Eg. File A would be a MS1 only file and files B and C would be MS2 only
    * files. Files B and C would contain "File A" in their row in the mainQuantFileColumn.
    */
-  private final String mainQuantFileColumnName = DEFAULT_QUANT_FILE_COLUMN_NAME;
+  private final String otherFileMs2MetadataColumnTitle;
 
 
   /**
@@ -144,6 +144,10 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
     final ParameterSet advancedParam = parameterSet.getEmbeddedParameterValue(
         GroupMS2Parameters.advancedParameters);
     final Boolean advancedSelected = parameterSet.getValue(GroupMS2Parameters.advancedParameters);
+
+    otherFileMs2MetadataColumnTitle =
+        advancedSelected ? advancedParam.getEmbeddedParameterValueIfSelectedOrElse(
+            GroupMs2AdvancedParameters.iterativeMs2Column, null) : null;
 
     minMs2IntensityAbs = advancedSelected ? advancedParam.getEmbeddedParameterValueIfSelectedOrElse(
         GroupMs2AdvancedParameters.outputNoiseLevel, null) : null;
@@ -268,17 +272,18 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
     }
     final MetadataTable metadata = ProjectService.getMetadata();
     final MetadataColumn<String> mainQuantFileCol = (MetadataColumn<String>) metadata.getColumnByName(
-        mainQuantFileColumnName);
+        otherFileMs2MetadataColumnTitle);
     if (mainQuantFileCol == null) {
       return Stream.empty();
     }
+    // compare without format
+    final String mainFileNameNoFormat = FileAndPathUtil.eraseFormat(mainFile.getName());
 
     final Map<String, List<RawDataFile>> filesByQuantFileNames = metadata.groupFilesByColumn(
         mainQuantFileCol);
     final List<RawDataFile> ms2Files = filesByQuantFileNames.entrySet().stream()
         .filter((quantFileEntry) -> {
           final String quantFileNameNoFormat = FileAndPathUtil.eraseFormat(quantFileEntry.getKey());
-          final String mainFileNameNoFormat = FileAndPathUtil.eraseFormat(mainFile.getName());
           return quantFileNameNoFormat.equalsIgnoreCase(mainFileNameNoFormat);
         }).flatMap(e -> e.getValue().stream()).toList();
 
@@ -336,7 +341,7 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
       precursorMZ = Objects.requireNonNullElse(scan.getPrecursorMz(), 0d);
     }
     return rtFilter.accept(feature, scan.getRetentionTime()) && precursorMZ != 0
-        && mzTol.checkWithinTolerance(feature.getMZ(), precursorMZ);
+           && mzTol.checkWithinTolerance(feature.getMZ(), precursorMZ);
   }
 
 
