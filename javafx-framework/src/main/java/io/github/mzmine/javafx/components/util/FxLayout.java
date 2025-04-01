@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -338,5 +338,21 @@ public class FxLayout {
    */
   public static GridRow gridRow(Node... children) {
     return new GridRow(children);
+  }
+
+
+  public static BorderPane addNode(BorderPane borderPane, Node node, Position position) {
+    switch (position) {
+      case TOP -> borderPane.setTop(node);
+      case BOTTOM -> borderPane.setBottom(node);
+      case LEFT -> borderPane.setLeft(node);
+      case RIGHT -> borderPane.setRight(node);
+      case CENTER -> borderPane.setCenter(node);
+    }
+    return borderPane;
+  }
+
+  public enum Position {
+    CENTER, TOP, LEFT, BOTTOM, RIGHT
   }
 }

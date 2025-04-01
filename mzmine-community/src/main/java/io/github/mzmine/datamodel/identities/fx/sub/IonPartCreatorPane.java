@@ -27,16 +27,22 @@ package io.github.mzmine.datamodel.identities.fx.sub;
 
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonPart.IonStringFlavor;
+import io.github.mzmine.datamodel.identities.IonPart.Type;
+import io.github.mzmine.javafx.components.FilterableListView;
+import io.github.mzmine.javafx.components.FilterableListView.MenuControls;
 import static io.github.mzmine.javafx.components.factories.FxButtons.createDisabledButton;
 import static io.github.mzmine.javafx.components.factories.FxButtons.disableIf;
+import io.github.mzmine.javafx.components.factories.FxComboBox;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
+import io.github.mzmine.javafx.components.factories.FxListViews;
 import static io.github.mzmine.javafx.components.factories.FxSpinners.newSpinner;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.applyToField;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newNumberField;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.components.util.FxLayout.Position;
 import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
 import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
 import io.github.mzmine.javafx.properties.PropertyUtils;
@@ -46,20 +52,28 @@ import io.github.mzmine.util.StringUtils;
 import static io.github.mzmine.util.StringUtils.isBlank;
 import static io.github.mzmine.util.StringUtils.requireValueOrElse;
 import static io.github.mzmine.util.components.FormulaTextField.newFormulaTextField;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.scene.control.ListView;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 import net.synedra.validatorfx.Validator;
+import org.controlsfx.control.CheckComboBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -67,7 +81,7 @@ public class IonPartCreatorPane extends BorderPane {
 
   private static final Logger logger = Logger.getLogger(IonPartCreatorPane.class.getName());
 
-  private final ListView<IonPart> partListView;
+  private final FilterableListView<IonPart> partListView;
   private final StringProperty parsedIonPart = new SimpleStringProperty();
 
   // creating a new IonPart
@@ -81,10 +95,26 @@ public class IonPartCreatorPane extends BorderPane {
   private final ReadOnlyObjectWrapper<IonPart> part = new ReadOnlyObjectWrapper<>();
   private final Validator currentPartValidator;
 
+  // additional properties for the list view
+  private final ObjectProperty<IonSorting> listSorting = new SimpleObjectProperty<>(
+      IonSorting.CHARGE_THEN_MASS);
+
+
   public IonPartCreatorPane(ObservableList<IonPart> parts) {
-    partListView = new ListView<>(parts);
+    // avoid 0 value for count
+    count.subscribe((ov, nv) -> {
+      if (nv == 0) {
+        if (ov > 0) {
+          count.set(-1);
+        } else if (ov < 0) {
+          count.set(1);
+        }
+      }
+    });
+
+    partListView = createListView(parts);
     var leftListPane = newBorderPane(partListView);
-    leftListPane.setTop(newBoldTitle("Global ion parts"));
+    leftListPane.setTop(newBoldTitle("List of ion building blocks"));
     setLeft(leftListPane);
     var mzFormat = ConfigService.getExportFormats().mzFormat();
 
@@ -115,7 +145,7 @@ public class IonPartCreatorPane extends BorderPane {
     // layout in grid
     setCenter(FxLayout.newGrid2Col(
         // parse formula and set other fields with button. Button disabled if formula invalid
-        gridRow(txtParsedIonPart, btnParseIonPart),
+        newBoldLabel("Ion part: "), new HBox(txtParsedIonPart, btnParseIonPart),
         // spacer
         new Separator(),
         // other fields
@@ -133,7 +163,7 @@ public class IonPartCreatorPane extends BorderPane {
     // on any change - update part
     PauseTransition partUpdateDelay = new PauseTransition(Duration.millis(500));
     partUpdateDelay.setOnFinished(_ -> updateCurrentPart());
-    PropertyUtils.onChange(partUpdateDelay::playFromStart, name, formula, charge, mass);
+    PropertyUtils.onChange(partUpdateDelay::playFromStart, name, formula, charge, count, mass);
 
     // add validations
     Validator partParserValidator = new Validator();
@@ -164,7 +194,7 @@ public class IonPartCreatorPane extends BorderPane {
           if (isBlank(name) && formula == null) {
             c.error("Enter a name or a valid formula");
           }
-        }).decorates(txtFormula).decorates(txtName);
+        }).decorates(txtFormula).decorates(txtName).immediate();
 
     currentPartValidator.createCheck() //
         .dependsOn("formula", formula) //
@@ -177,8 +207,44 @@ public class IonPartCreatorPane extends BorderPane {
                 Enter a valid formula or mass.
                 Mass input is only available if formula field is empty.""");
           }
-        }).decorates(txtFormula).decorates(txtMass);
+        }).decorates(txtFormula).decorates(txtMass).immediate();
+
   }
+
+  private @NotNull FilterableListView<IonPart> createListView(final ObservableList<IonPart> parts) {
+    // create a list view with addtional controls for sorting and filtering
+    // sorting:
+    final HBox sortingCombo = FxComboBox.createLabeledComboBox("Sort by:",
+        FXCollections.observableList(List.of(IonSorting.values())), listSorting);
+
+    final CheckComboBox<Type> filterTypeCombo = FxComboBox.createCheckComboBox(
+        "Show only elements that match the selected types.", List.of(Type.values()));
+
+    final List<Node> additionalNodes = List.of(sortingCombo, filterTypeCombo);
+    final List<MenuControls> stdButtons = List.of(MenuControls.CLEAR_BTN, MenuControls.REMOVE_BTN);
+
+    // create the list view
+    final FilterableListView<IonPart> partListView = FxListViews.newFilterableListView(parts, true,
+        SelectionMode.MULTIPLE, Position.TOP, Pos.CENTER_LEFT, stdButtons, additionalNodes);
+
+    // set comparator and filter
+    listSorting.subscribe(
+        nv -> partListView.sortingComparatorProperty().set(nv.createIonPartComparator()));
+
+    // apply filter now:
+    filterTypeCombo.getCheckModel().getCheckedItems().addListener(
+        (ListChangeListener<? super Type>) _ -> applyFilter(filterTypeCombo, partListView));
+    applyFilter(filterTypeCombo, partListView);
+
+    return partListView;
+  }
+
+  private void applyFilter(final CheckComboBox<Type> filterTypeCombo,
+      final FilterableListView<IonPart> partListView) {
+    var included = Set.copyOf(filterTypeCombo.getCheckModel().getCheckedItems());
+    partListView.filterPredicateProperty().set(part -> included.contains(part.type()));
+  }
+
 
   /**
    * Intermediate parsing step to validate and set part property
@@ -186,6 +252,7 @@ public class IonPartCreatorPane extends BorderPane {
   private void updateCurrentPart() {
     try {
       if (!currentPartValidator.validate()) {
+        part.set(null);
         return;
       }
       IMolecularFormula formula = this.formula.get();
@@ -219,17 +286,24 @@ public class IonPartCreatorPane extends BorderPane {
     var part = this.part.get();
 
     if (clearInputs) {
-      name.set("");
-      mass.set(0);
-      formula.set(null);
+      clearInputs();
     }
     if (part == null) {
       return;
     }
-    var items = partListView.getItems();
+    var items = partListView.getOriginalItems();
     if (!items.contains(part)) {
       items.add(part);
     }
+  }
+
+  private void clearInputs() {
+    name.set("");
+    mass.set(0);
+    formula.set(null);
+    count.set(1);
+    charge.set(0);
+    this.part.set(null);
   }
 
   /**
@@ -257,10 +331,6 @@ public class IonPartCreatorPane extends BorderPane {
     } catch (Exception ex) {
       return false;
     }
-  }
-
-  public ReadOnlyObjectProperty<IonPart> selectedPartProperty() {
-    return partListView.getSelectionModel().selectedItemProperty();
   }
 
 }

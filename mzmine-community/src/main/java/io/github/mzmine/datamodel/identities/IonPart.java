@@ -87,7 +87,7 @@ public record IonPart(@NotNull String name,
 
   // may have charge defined or not
   // -2Cl or +Fe+2
-  public static final Pattern PART_PATTERN = Pattern.compile("([+-]\\d*)(\\w+)([+-]\\d*)?");
+  public static final Pattern PART_PATTERN = Pattern.compile("([+-]\\d*)?(\\w+)([+-]\\d*)?");
 
 
   @JsonCreator
@@ -470,8 +470,16 @@ public record IonPart(@NotNull String name,
     /**
      * positive mass, no charge
      */
-    CLUSTER
+    CLUSTER;
 
+    @Override
+    public String toString() {
+      return switch (this) {
+        case ADDUCT -> "Adduct";
+        case IN_SOURCE_FRAGMENT -> "In-source fragment";
+        case CLUSTER -> "Cluster";
+      };
+    }
   }
 
   public enum IonStringFlavor {
