@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,6 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import static io.github.mzmine.modules.tools.batchwizard.WizardPart.DATA_IMPORT;
-import static io.github.mzmine.modules.tools.batchwizard.WizardPart.FILTER;
-import static io.github.mzmine.modules.tools.batchwizard.WizardPart.WORKFLOW;
-import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getOrElse;
-import static io.github.mzmine.util.StringUtils.inQuotes;
-
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -40,6 +34,10 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import static io.github.mzmine.modules.tools.batchwizard.WizardPart.DATA_IMPORT;
+import static io.github.mzmine.modules.tools.batchwizard.WizardPart.FILTER;
+import static io.github.mzmine.modules.tools.batchwizard.WizardPart.WORKFLOW;
+import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getOrElse;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
@@ -57,6 +55,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
+import static io.github.mzmine.util.StringUtils.inQuotes;
 import java.io.File;
 import java.text.MessageFormat;
 import java.time.LocalDate;
@@ -291,7 +290,9 @@ public class BatchWizardTab extends SimpleTab {
       LocalDate now = LocalDate.now();
       String formatPath = "icons/wizard/{0}wizard_icons_{1}.png";
       // load aprils fools day resources
-      String specialSet = (now.getMonthValue() == 4 && now.getDayOfMonth() == 1) ? "april/" : "";
+//      String specialSet = (now.getMonthValue() == 4 && now.getDayOfMonth() == 1) ? "april/" : "";
+      // for now remove the special sets
+      String specialSet = "";
       final Image icon = FxIconUtil.loadImageFromResources(
           MessageFormat.format(formatPath, specialSet, parent));
       ImageView view = new ImageView(icon);
