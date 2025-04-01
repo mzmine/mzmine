@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.*;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
@@ -585,5 +586,10 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public String toString() {
     return FeatureUtils.featureToString(this);
+  }
+
+  @Override
+  public boolean isMrm() {
+    return get(MrmTransitionListType.class) != null;
   }
 }

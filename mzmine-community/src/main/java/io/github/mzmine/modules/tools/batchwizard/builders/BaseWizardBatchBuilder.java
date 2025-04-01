@@ -1382,6 +1382,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new LipidAnnotationChainParameters());
     param.setParameter(LipidAnnotationParameters.mzTolerance, mzTolInterSample);
     param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, true);
+    param.setParameter(LipidAnnotationParameters.customLipidClasses, false);
     var ms2Param = param.getParameter(LipidAnnotationParameters.searchForMSMSFragments)
         .getEmbeddedParameters();
     // all input scans as default to avoid to many chimeric merged spectra in lipids

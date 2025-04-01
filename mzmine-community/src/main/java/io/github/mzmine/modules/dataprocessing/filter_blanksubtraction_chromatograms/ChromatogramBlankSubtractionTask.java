@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms;
 
-import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_TYPE_HEADER;
-
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -44,6 +42,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerTask;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_TYPE_HEADER;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -204,6 +203,8 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
           if (maxBlankIntensity > 0) {
             intensities[i] = Math.max(data.getIntensity(i) - maxBlankIntensity, 0);
             changed = true;
+          } else {
+            intensities[i] = data.getIntensity(i);
           }
           // Only for testing:
           // this is only for testing and seeing results in feature list
