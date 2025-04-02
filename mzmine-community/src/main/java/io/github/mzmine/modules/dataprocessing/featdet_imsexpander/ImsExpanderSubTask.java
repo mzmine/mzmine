@@ -40,6 +40,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.text.NumberFormat;
 import java.time.Instant;
@@ -137,8 +138,13 @@ public class ImsExpanderSubTask extends AbstractTask {
           final MobilityScan mobilityScan = access.nextMobilityScan();
 
           int traceIndex = 0;
-          for (int dpIndex = 0; dpIndex < access.getNumberOfDataPoints() && traceIndex < numTraces;
+          // jump to the closest data point of the first trace for each mobility scan
+          final double lowerMz = expandingTraces.getFirst().getMzRange().lowerEndpoint();
+          final int start = Math.max(access.binarySearch(lowerMz, DefaultTo.CLOSEST_VALUE), 0);
+
+          for (int dpIndex = start; dpIndex < access.getNumberOfDataPoints() && traceIndex < numTraces;
               dpIndex++) {
+
             final double mz = access.getMzValue(dpIndex);
             final double intensity = access.getIntensityValue(dpIndex);
 
@@ -161,6 +167,8 @@ public class ImsExpanderSubTask extends AbstractTask {
                 && !expandingTraces.get(traceIndex).offerDataPoint(access, dpIndex)
                 && traceIndex < numTraces - 1) {
               traceIndex++;
+              final double traceLowerMz = expandingTraces.get(traceIndex).getMzRange().lowerEndpoint();
+              dpIndex = Math.max(access.binarySearch(traceLowerMz, DefaultTo.CLOSEST_VALUE) - 1, 0);
             }
           }
         }
