@@ -383,7 +383,7 @@ public class BatchWizardTab extends SimpleTab {
     schemaPane.setAlignment(Pos.CENTER);
 
     final ButtonBase help = FxIconUtil.newIconButton(FxIcons.QUESTIONMARK,
-        100, "Open the mzwizard documentation", () -> DesktopService.getDesktop()
+        50, "Open the mzwizard documentation", () -> DesktopService.getDesktop()
             .openWebPage(MzioMZmineLinks.WIZARD_DOCUMENTATION.getUrl()));
     final StackPane schemaHelpStack = new StackPane(schemaPane, help);
     StackPane.setAlignment(help, Pos.TOP_RIGHT);
