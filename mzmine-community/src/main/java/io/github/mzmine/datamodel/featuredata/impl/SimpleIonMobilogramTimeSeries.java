@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.IntStream;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
@@ -65,14 +66,12 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
   public static final String XML_ELEMENT = "simpleionmobilogramtimeseries";
 
-  protected final List<IonMobilitySeries> mobilograms;
   protected final List<Frame> frames;
   protected final SummedIntensityMobilitySeries summedMobilogram;
   // all segments contain doubles
   protected final MemorySegment intensityValues;
   protected final MemorySegment mzValues;
-  protected MemorySegment mobilogramMzValues;
-  protected MemorySegment mobilogramIntensityValues;
+  protected final StoredMobilograms mobilograms;
 
   /**
    * Creates a new {@link SimpleIonMobilogramTimeSeries}. For more convenient usage, see
@@ -108,12 +107,9 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
     }
 
-    var stored = IonMobilogramTimeSeriesFactory.storeMobilograms(this, storage, mobilograms);
-    this.mobilograms = stored.storedMobilograms();
-    mobilogramIntensityValues = stored.storedIntensityValues();
-    mobilogramMzValues = stored.storedMzValues();
     this.frames = frames;
     this.summedMobilogram = summedMobilogram;
+    this.mobilograms = IonMobilogramTimeSeriesFactory.storeMobilograms(this, storage, mobilograms);
 
     mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzs);
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
@@ -156,12 +152,9 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     this.intensityValues = intensityValues;
     this.mzValues = mzValues;
-    var stored = IonMobilogramTimeSeriesFactory.storeMobilograms(this, storage, mobilograms);
-    this.mobilograms = stored.storedMobilograms();
-    mobilogramIntensityValues = stored.storedIntensityValues();
-    mobilogramMzValues = stored.storedMzValues();
     this.frames = frames;
     this.summedMobilogram = summedMobilogram;
+    this.mobilograms = IonMobilogramTimeSeriesFactory.storeMobilograms(this, storage, mobilograms);
   }
 
   @Override
@@ -213,7 +206,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     }
 
     List<IonMobilitySeries> subMobilograms = new ArrayList<>(subset.size());
-    for (IonMobilitySeries mobilogram : mobilograms) {
+    for (IonMobilitySeries mobilogram : mobilograms.storedMobilograms()) {
       if (subset.contains(mobilogram.getSpectrum(0).getFrame())) {
         subMobilograms.add(mobilogram);
       }
@@ -231,8 +224,8 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       return IonMobilogramTimeSeries.EMPTY;
     }
 
-    final List<IonMobilitySeries> mobilograms = this.mobilograms.subList(startIndexInclusive,
-        endIndexExclusive);
+    final List<IonMobilitySeries> mobilograms = IntStream.range(startIndexInclusive,
+        endIndexExclusive).mapToObj(this::getMobilogram).toList();
     mobilogramBinning.setMobilogram(mobilograms);
 
     return new SimpleIonMobilogramTimeSeries(
@@ -262,15 +255,15 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
   @Override
   public List<IonMobilitySeries> getMobilograms() {
-    return Collections.unmodifiableList(mobilograms);
+    return Collections.unmodifiableList(mobilograms.storedMobilograms());
   }
 
   @Override
   public IonMobilogramTimeSeries copy(@Nullable MemoryMapStorage storage) {
     double[][] data = DataPointUtils.getDataPointsAsDoubleArray(getMZValueBuffer(),
         getIntensityValueBuffer());
-    return IonMobilogramTimeSeriesFactory.of(storage, data[0], data[1], mobilograms, frames,
-        summedMobilogram.copy(storage));
+    return IonMobilogramTimeSeriesFactory.of(storage, data[0], data[1],
+        mobilograms.storedMobilograms(), frames, summedMobilogram.copy(storage));
   }
 
   @Override
@@ -283,15 +276,15 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       @NotNull final double[] newIntensityValues) {
     MemorySegment intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
         newIntensityValues);
-    return new SimpleIonMobilogramTimeSeries(mzValues, intensityValues, storage, mobilograms,
-        frames, summedMobilogram);
+    return new SimpleIonMobilogramTimeSeries(mzValues, intensityValues, storage,
+        mobilograms.storedMobilograms(), frames, summedMobilogram);
   }
 
   @Override
   public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
-    return IonMobilogramTimeSeriesFactory.of(storage, newMzValues, newIntensityValues, mobilograms,
-        this.frames, summedMobilogram.copy(storage));
+    return IonMobilogramTimeSeriesFactory.of(storage, newMzValues, newIntensityValues,
+        mobilograms.storedMobilograms(), this.frames, summedMobilogram.copy(storage));
   }
 
   /**
@@ -308,13 +301,13 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     return new SimpleIonMobilogramTimeSeries(storage,
         DataPointUtils.getDoubleBufferAsArray(mzValues),
-        DataPointUtils.getDoubleBufferAsArray(intensityValues), mobilograms, this.frames,
-        summedMobilogram);
+        DataPointUtils.getDoubleBufferAsArray(intensityValues), mobilograms.storedMobilograms(),
+        this.frames, summedMobilogram);
   }
 
 
   private boolean checkRawFileIntegrity(@NotNull List<IonMobilitySeries> mobilograms) {
-    if(mobilograms.isEmpty()) {
+    if (mobilograms.isEmpty()) {
       return true;
     }
     RawDataFile file = null;
@@ -330,30 +323,31 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
   protected MemorySegment getMobilogramMzValues(
       StorableIonMobilitySeries mobilogram/*, double[] dst*/) {
-    return StorageUtils.sliceDoubles(mobilogramMzValues, mobilogram.getStorageOffset(),
+    return StorageUtils.sliceDoubles(mobilograms.storedMzValues(), mobilogram.getStorageOffset(),
         mobilogram.getStorageOffset() + mobilogram.getNumberOfValues());
   }
 
   protected MemorySegment getMobilogramIntensityValues(
       StorableIonMobilitySeries mobilogram/*, double[] dst*/) {
-    return StorageUtils.sliceDoubles(mobilogramIntensityValues, mobilogram.getStorageOffset(),
+    return StorageUtils.sliceDoubles(mobilograms.storedIntensityValues(),
+        mobilogram.getStorageOffset(),
         mobilogram.getStorageOffset() + mobilogram.getNumberOfValues());
   }
 
   protected double getMobilogramMzValue(StorableIonMobilitySeries mobilogram, int index) {
     assert index < mobilogram.getNumberOfValues();
-    return mobilogramMzValues.getAtIndex(OfDouble.JAVA_DOUBLE,
-        mobilogram.getStorageOffset() + index);
+    return mobilograms.storedMzValues()
+        .getAtIndex(OfDouble.JAVA_DOUBLE, mobilogram.getStorageOffset() + index);
   }
 
   protected double getMobilogramIntensityValue(StorableIonMobilitySeries mobilogram, int index) {
     assert index < mobilogram.getNumberOfValues();
-    return mobilogramIntensityValues.getAtIndex(OfDouble.JAVA_DOUBLE,
-        mobilogram.getStorageOffset() + index);
+    return mobilograms.storedIntensityValues()
+        .getAtIndex(OfDouble.JAVA_DOUBLE, mobilogram.getStorageOffset() + index);
   }
 
   public List<IonMobilitySeries> getMobilogramsModifiable() {
-    return mobilograms;
+    return mobilograms.storedMobilograms();
   }
 
   @Override
@@ -367,7 +361,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     summedMobilogram.saveValueToXML(writer);
 
-    for (IonMobilitySeries mobilogram : mobilograms) {
+    for (IonMobilitySeries mobilogram : mobilograms.storedMobilograms()) {
       IonMobilitySeries.saveMobilogramToXML(writer, mobilogram,
           mobilogram.getSpectrum(0).getFrame().getMobilityScans());
     }
@@ -387,14 +381,16 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     return Objects.equals(getMobilograms(), that.getMobilograms()) && Objects.equals(frames,
         that.frames) && contentEquals(intensityValues, that.intensityValues) && contentEquals(
         mzValues, that.mzValues) && Objects.equals(getSummedMobilogram(),
-        that.getSummedMobilogram()) && contentEquals(mobilogramMzValues, that.mobilogramMzValues)
-        && contentEquals(mobilogramIntensityValues, that.mobilogramIntensityValues);
+        that.getSummedMobilogram()) && contentEquals(mobilograms.storedMzValues(),
+        that.mobilograms.storedMzValues()) && contentEquals(mobilograms.storedIntensityValues(),
+        that.mobilograms.storedIntensityValues());
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(getMobilograms(), frames, intensityValues.byteSize(), mzValues.byteSize(),
-        getSummedMobilogram(), mobilogramMzValues.byteSize(), mobilogramIntensityValues.byteSize());
+        getSummedMobilogram(), mobilograms.storedMzValues().byteSize(),
+        mobilograms.storedIntensityValues().byteSize());
   }
 
   @Override
