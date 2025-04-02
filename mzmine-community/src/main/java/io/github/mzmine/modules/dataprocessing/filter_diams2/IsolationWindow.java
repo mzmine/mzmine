@@ -29,6 +29,7 @@ package io.github.mzmine.modules.dataprocessing.filter_diams2;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.RangeUtils;
@@ -40,14 +41,18 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
 
   private static final NumberFormats formats = ConfigService.getExportFormats();
 
-  boolean containsMobility(MobilityScan scan) {
+  public IsolationWindow(IonMobilityMsMsInfo info) {
+    this(info.getIsolationWindow(), info.getMobilityRange());
+  }
+
+  public boolean containsMobility(MobilityScan scan) {
     if (mobilityIsolation != null && !mobilityIsolation.contains((float) scan.getMobility())) {
       return false;
     }
     return true;
   }
 
-  boolean contains(Feature f) {
+  public boolean contains(Feature f) {
     final Double mz = f.getMZ();
     final Float mobility = f.getMobility();
 
@@ -104,7 +109,7 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
     return overlap;
   }
 
-  IsolationWindow merge(IsolationWindow other) {
+  public IsolationWindow merge(IsolationWindow other) {
     Range<Double> mz = null;
     if (mzIsolation != null && other.mzIsolation() != null) {
       mz = mzIsolation.span(other.mzIsolation());
@@ -118,7 +123,7 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
 
   @Override
   public String toString() {
-    return "IsolationWindow{" + "mz=" + formats.mz(mzIsolation) + ", mobility="
-        + formats.mobility(mobilityIsolation) + '}';
+    return "IsolationWindow{" + "mz=" + formats.mz(mzIsolation) + ", mobility=" + formats.mobility(
+        mobilityIsolation) + '}';
   }
 }

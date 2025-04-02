@@ -72,13 +72,24 @@ public class TTestConfigurationComponent extends GridPane implements
     // todo check if this actually works or throws type exceptions.
     groupACombo = new ComboBox<>();
     groupBCombo = new ComboBox<>();
+    metadataCombo.setEditable(true);
+    groupACombo.setEditable(true);
+    groupBCombo.setEditable(true);
 
     metadataCombo.getSelectionModel().selectedItemProperty().addListener((obs, o, newColName) -> {
       final MetadataTable meta = MZmineCore.getProjectMetadata();
       var col = meta.getColumnByName(newColName);
       if (col == null) {
+        final String a = groupACombo.getSelectionModel().getSelectedItem();
+        final String b = groupBCombo.getSelectionModel().getSelectedItem();
+        groupACombo.getSelectionModel().clearSelection();
+        groupBCombo.getSelectionModel().clearSelection();
         groupACombo.setItems(FXCollections.observableList(List.of()));
         groupBCombo.setItems(FXCollections.observableList(List.of()));
+        // this keeps the selection if an invalid metadata column was selected, but removes all the other choices
+        // necessary for the batch mode if no metadata was imported yet
+        groupACombo.getSelectionModel().select(a);
+        groupBCombo.getSelectionModel().select(b);
         return;
       }
       final List<?> distinctColumnValues = meta.getDistinctColumnValues(col);
@@ -112,18 +123,11 @@ public class TTestConfigurationComponent extends GridPane implements
   }
 
   private void updateValueProperty() {
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
     final String columnName = metadataCombo.getValue();
-    final MetadataColumn<?> column = metadata.getColumnByName(columnName);
-    if (column == null || !metadata.getColumns().contains(column)) {
-      valueProperty.set(null);
-      return;
-    }
-
-    var sampling = samplingCombo.getValue();
     final String a = groupACombo.getValue();
     final String b = groupBCombo.getValue();
-    if (a == null || sampling == null || b == null) {
+    var sampling = samplingCombo.getValue();
+    if (columnName == null || a == null || sampling == null || b == null) {
       return;
     }
 
@@ -131,6 +135,7 @@ public class TTestConfigurationComponent extends GridPane implements
   }
 
   public StorableTTestConfiguration getValue() {
+    updateValueProperty();
     return valueProperty.get();
   }
 

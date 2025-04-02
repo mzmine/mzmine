@@ -331,11 +331,6 @@ public interface Feature {
   void setFeatureInformation(FeatureInformation featureInfo);
   // End dulab Edit
 
-  @Nullable
-  default Integer getParentChromatogramRowID() {
-    return null;
-  }
-
   @NotNull FeatureList getFeatureList();
 
   int getNumberOfDataPoints();
@@ -370,4 +365,10 @@ public interface Feature {
     final Scan representativeScan = getRepresentativeScan();
     return representativeScan == null ? null : representativeScan.getPolarity();
   }
+
+  default boolean hasMs2Fragmentation() {
+    return !getAllMS2FragmentScans().isEmpty();
+  }
+
+  boolean isMrm();
 }

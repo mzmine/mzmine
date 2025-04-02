@@ -30,13 +30,16 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -48,7 +51,7 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class IcpMsCVSImportTask extends AbstractTask {
+public class IcpMsCVSImportTask extends AbstractTask implements RawDataImportTask {
 
   private Logger logger = Logger.getLogger(IcpMsCVSImportTask.class.getName());
 
@@ -62,13 +65,14 @@ public class IcpMsCVSImportTask extends AbstractTask {
 
   private int totalScans, parsedScans;
 
-  public IcpMsCVSImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+  public IcpMsCVSImportTask(MZmineProject project, File fileToOpen,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // storage in raw data file
+      @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage) {
+    super(storage, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
-    this.newMZmineFile = newMZmineFile;
+    this.newMZmineFile = new RawDataFileImpl(file.getName(), file.getAbsolutePath(),
+        getMemoryMapStorage());
     this.parameters = parameters;
     this.module = module;
   }
@@ -216,4 +220,8 @@ public class IcpMsCVSImportTask extends AbstractTask {
     return acquisitionDate;
   }
 
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  }
 }

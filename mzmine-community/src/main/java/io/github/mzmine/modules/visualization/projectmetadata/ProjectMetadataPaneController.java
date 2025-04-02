@@ -27,9 +27,9 @@
 package io.github.mzmine.modules.visualization.projectmetadata;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
@@ -47,19 +47,11 @@ import io.github.mzmine.util.ExitCode;
 import java.net.URL;
 import java.util.Optional;
 import java.util.logging.Logger;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Stage;
 
 public class ProjectMetadataPaneController {
@@ -69,17 +61,17 @@ public class ProjectMetadataPaneController {
       .getCurrentProject();
   private final MetadataTable metadataTable = currentProject.getProjectMetadata();
   private Stage currentStage;
-  private RawDataFile[] fileList;
 
   @FXML
-  private TableView<ObservableList<StringProperty>> parameterTable;
+  private TableView<MetadataRow> tableView;
+  private MetadataTableModel tableModel;
 
   @FXML
   private void initialize() {
-    parameterTable.setEditable(true);
-    parameterTable.getSelectionModel().setCellSelectionEnabled(true);
+    tableView.setEditable(true);
+    tableView.getSelectionModel().setCellSelectionEnabled(true);
 
-    updateParametersToTable();
+    tableModel = new MetadataTableModel(metadataTable, tableView);
   }
 
   public void setStage(Stage stage) {
@@ -87,125 +79,9 @@ public class ProjectMetadataPaneController {
     stage.setOnCloseRequest(we -> logger.info("Parameters are not updated"));
   }
 
-  /**
-   * Render the table using the data from the project parameters structure.
-   */
-  private void updateParametersToTable() {
-    // get copy of new list of files
-    fileList = currentProject.getDataFiles();
-
-    parameterTable.getItems().clear();
-    parameterTable.getColumns().clear();
-
-    int columnsNumber = metadataTable.getColumns().size();
-    if (columnsNumber == 0) {
-      return;
-    }
-
-    // display the columns
-    TableColumn[] tableColumns = new TableColumn[columnsNumber + 1];
-    tableColumns[0] = createColumn(0, MetadataColumn.FILENAME_HEADER,
-        "These are the names of the RawDataFiles");
-    var columns = metadataTable.getColumns();
-    int columnId = 1;
-    for (var col : columns) {
-      tableColumns[columnId] = createColumn(columnId, col.getTitle(), col.getDescription());
-      columnId++;
-    }
-    parameterTable.getColumns().addAll(tableColumns);
-
-    // display each row of the table
-    ObservableList<ObservableList<StringProperty>> tableRows = FXCollections.observableArrayList();
-    for (RawDataFile rawFile : fileList) {
-      ObservableList<StringProperty> fileParametersValue = FXCollections.observableArrayList();
-      fileParametersValue.add(new SimpleStringProperty(rawFile.getName()));
-      for (MetadataColumn<?> column : columns) {
-        // either convert parameter value to string or display an empty string in case if it's unset
-        Object value = metadataTable.getValue(column, rawFile);
-        fileParametersValue.add(new SimpleStringProperty(value == null ? "" : value.toString()));
-      }
-      tableRows.add(fileParametersValue);
-    }
-    parameterTable.getItems().addAll(tableRows);
-  }
-
-  private TableColumn<ObservableList<StringProperty>, String> createColumn(final int columnIndex,
-      String columnTitle, String columnDescription) {
-    // validate the column title (assign the default value in case if it's empty)
-    TableColumn<ObservableList<StringProperty>, String> column = new TableColumn<>();
-    String title;
-    if (columnTitle == null || columnTitle.trim().length() == 0) {
-      title = "Column " + (columnIndex + 1);
-    } else {
-      title = columnTitle;
-    }
-
-    // add the tooltips
-    Label descriptionLabel = new Label(title);
-    descriptionLabel.setTooltip(new Tooltip(columnDescription));
-    descriptionLabel.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-    column.setGraphic(descriptionLabel);
-
-    // define what the cell value would be
-    column.setCellValueFactory(cellDataFeatures -> {
-      ObservableList<StringProperty> values = cellDataFeatures.getValue();
-      if (columnIndex >= values.size()) {
-        return new SimpleStringProperty("");
-      } else {
-        return cellDataFeatures.getValue().get(columnIndex);
-      }
-    });
-
-    // won't be applied for the first column, because it contains the file name
-    if (columnIndex != 0) {
-      column.setCellFactory(TextFieldTableCell.forTableColumn());
-      column.setOnEditCommit(event -> {
-        String parameterValueNew = event.getNewValue();
-        // this complication in extracting the value is caused by using labels as the cells values
-        String parameterName = ((Label) event.getTableColumn().getGraphic()).getText();
-        MetadataColumn parameter = metadataTable.getColumnByName(parameterName);
-
-        // define RawDataFile name
-        int rowNumber = parameterTable.getSelectionModel().selectedIndexProperty().get();
-        String fileName = parameterTable.getItems().get(rowNumber).get(0).getValue();
-        RawDataFile rawDataFile = null;
-        for (RawDataFile file : fileList) {
-          if (file.getName().equals(fileName)) {
-            rawDataFile = file;
-            break;
-          }
-        }
-
-        // if the parameter value is in the right format then save it to the metadata table,
-        // otherwise show alert dialog
-        Object convertedParameterInput = parameter.convertOrElse(parameterValueNew,
-            parameter.defaultValue());
-        // the first check allows us to unset an already set parameter's value
-        if ((convertedParameterInput == null && parameterValueNew.isBlank())
-            || parameter.checkInput(convertedParameterInput)) {
-          metadataTable.setValue(parameter, rawDataFile, convertedParameterInput);
-        } else {
-          Alert alert = new Alert(Alert.AlertType.INFORMATION);
-          alert.setTitle("Wrong parameter value format");
-          alert.setHeaderText(null);
-          alert.setContentText(
-              "Please respect the " + parameter.getType() + " parameter value format, e.g. "
-              + parameter.exampleValue());
-          alert.showAndWait();
-        }
-        // need to render
-        updateParametersToTable();
-      });
-    }
-
-    column.setMinWidth(175.0);
-
-    return column;
-  }
-
   @FXML
   public void addParameter(ActionEvent actionEvent) {
-    ProjectMetadataColumnParameters projectMetadataColumnParameters = new ProjectMetadataColumnParameters();
+    ProjectMetadataColumnParameters projectMetadataColumnParameters = (ProjectMetadataColumnParameters) new ProjectMetadataColumnParameters().cloneParameterSet();
     ExitCode exitCode = projectMetadataColumnParameters.showSetupDialog(true);
 
     StringParameter parameterTitle = projectMetadataColumnParameters.getParameter(
@@ -230,16 +106,12 @@ public class ProjectMetadataPaneController {
       String parameterDescriptionVal = parameterDescription.getValue().replace("\t", " ");
 
       // add the new column to the parameters table
-      switch (parameterType.getValue()) {
-        case TEXT -> metadataTable.addColumn(
-            new StringMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
-        case NUMBER -> metadataTable.addColumn(
-            new DoubleMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
-        case DATETIME -> metadataTable.addColumn(
-            new DateMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal));
-      }
-      // need to render
-      updateParametersToTable();
+      MetadataColumn<?> col = switch (parameterType.getValue()) {
+        case TEXT -> new StringMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal);
+        case NUMBER -> new DoubleMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal);
+        case DATETIME -> new DateMetadataColumn(parameterTitle.getValue(), parameterDescriptionVal);
+      };
+      tableModel.createAndAddNewColumn(col);
     }
   }
 
@@ -248,7 +120,7 @@ public class ProjectMetadataPaneController {
     final ExitCode exitCode = MZmineCore.setupAndRunModule(ProjectMetadataImportModule.class,
         () -> {
           logger.info("Successfully imported parameters from file");
-          FxThread.runLater(this::updateParametersToTable);
+          FxThread.runLater(() -> tableModel.createAndSetExistingColumns());
         }, () -> logger.warning("Importing parameters from file failed"));
     if (exitCode == ExitCode.ERROR) {
       logger.warning("Setup of metadata import failed");
@@ -262,35 +134,26 @@ public class ProjectMetadataPaneController {
 
   @FXML
   public void removeParameters(ActionEvent ev) {
-    TableColumn column = parameterTable.getFocusModel().getFocusedCell().getTableColumn();
+    final var column = tableView.getFocusModel().getFocusedCell().getTableColumn();
     if (column == null) {
-      Alert alert = new Alert(Alert.AlertType.INFORMATION);
-      alert.setTitle("No cell selected");
-      alert.setHeaderText(null);
-      alert.setContentText("Please select at least one cell.");
-      alert.showAndWait();
+      DialogLoggerUtil.showMessageDialog("No cell selected.", "Please select at least one cell");
       return;
     }
-    String parameterName = ((Label) column.getGraphic()).getText();
-    if (parameterName.equals(MetadataColumn.FILENAME_HEADER)) {
-      Alert alert = new Alert(Alert.AlertType.INFORMATION);
-      alert.setTitle("Cannot remove Raw Data File Column");
-      alert.setHeaderText(null);
-      alert.setContentText("Please select cell from another column.");
-      alert.showAndWait();
+    String columnName = column.getText();
+    if (columnName.equals(MetadataColumn.FILENAME_HEADER)) {
+      DialogLoggerUtil.showErrorDialog("Cannot remove Raw Data File Column",
+          "Cannot remove Raw Data File Column");
       return;
     }
-    Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Remove parameter " + parameterName);
+    Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Remove parameter " + columnName);
     alert.setTitle("Remove Parameter?");
     alert.setHeaderText(null);
     Optional<ButtonType> result = alert.showAndWait();
     if (result.isPresent() && result.get() == ButtonType.OK) {
-      MetadataColumn<?> tbdParameter = metadataTable.getColumnByName(
-          parameterName);//ToBeDeletedParameter
-      if (tbdParameter != null) {
-        metadataTable.removeColumn(tbdParameter);
+      MetadataColumn<?> columnToDelete = metadataTable.getColumnByName(columnName);
+      if (columnToDelete != null) {
+        tableModel.removeColumn(columnToDelete);
       }
-      updateParametersToTable();
     }
   }
 
@@ -304,6 +167,6 @@ public class ProjectMetadataPaneController {
   }
 
   public void reload(final ActionEvent ev) {
-    updateParametersToTable();
+    tableModel.createAndSetExistingColumns();
   }
 }

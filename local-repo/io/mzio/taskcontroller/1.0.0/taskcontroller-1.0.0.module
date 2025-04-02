@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 36955,
-          "sha512": "282d1525421b286d46d7e95291f167d201a9edcc42e8f03b5453933585a398e2ab89b54ee493cc0db7e0df452733c864fb42b3bf9ac3ee246c926db0d665a37c",
-          "sha256": "ce4d77c50334118d04c9826e0b9e62e3464c5e09d141c19ff868f14ce75c5767",
-          "sha1": "8893801947d703a128b554d775900b1f88001837",
-          "md5": "1513505896b0cb54b2e5562a521d1eaf"
+          "size": 34980,
+          "sha512": "6c1b012acc1bf80c6dda7b66ddb9def30a5f48585b04dd87648535e8ac2bb0b81241c2a3cf6a2efc89ccf6f9460a67a38ffb5e208e9aa5f76a104c88e1629463",
+          "sha256": "e90f009bd11c633863466da2edc881aa42959a9f0b589514edf1d38047d842e2",
+          "sha1": "10ee952d92fae0688aa73a9afd7f427c2d3b2315",
+          "md5": "386d6aac1f9e8c976833bbf1f4832131"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -89,14 +89,14 @@
         },
         {
           "group": "io.mzio",
-          "module": "user-management",
+          "module": "global-events",
           "version": {
             "requires": "1.0.0"
           }
         },
         {
           "group": "io.mzio",
-          "module": "global-events",
+          "module": "user-management",
           "version": {
             "requires": "1.0.0"
           }
@@ -120,42 +120,42 @@
           "group": "org.openjfx",
           "module": "javafx-base",
           "version": {
-            "requires": "21"
+            "requires": "23.0.2"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-graphics",
           "version": {
-            "requires": "21"
+            "requires": "23.0.2"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-controls",
           "version": {
-            "requires": "21"
+            "requires": "23.0.2"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-fxml",
           "version": {
-            "requires": "21"
+            "requires": "23.0.2"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-swing",
           "version": {
-            "requires": "21"
+            "requires": "23.0.2"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-web",
           "version": {
-            "requires": "21"
+            "requires": "23.0.2"
           }
         }
       ],
@@ -163,11 +163,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 36955,
-          "sha512": "282d1525421b286d46d7e95291f167d201a9edcc42e8f03b5453933585a398e2ab89b54ee493cc0db7e0df452733c864fb42b3bf9ac3ee246c926db0d665a37c",
-          "sha256": "ce4d77c50334118d04c9826e0b9e62e3464c5e09d141c19ff868f14ce75c5767",
-          "sha1": "8893801947d703a128b554d775900b1f88001837",
-          "md5": "1513505896b0cb54b2e5562a521d1eaf"
+          "size": 34980,
+          "sha512": "6c1b012acc1bf80c6dda7b66ddb9def30a5f48585b04dd87648535e8ac2bb0b81241c2a3cf6a2efc89ccf6f9460a67a38ffb5e208e9aa5f76a104c88e1629463",
+          "sha256": "e90f009bd11c633863466da2edc881aa42959a9f0b589514edf1d38047d842e2",
+          "sha1": "10ee952d92fae0688aa73a9afd7f427c2d3b2315",
+          "md5": "386d6aac1f9e8c976833bbf1f4832131"
         }
       ]
     }

@@ -119,7 +119,7 @@ public class JoinAlignerTask extends AbstractFeatureListTask {
     // create the row aligner that handles the scoring
     var rowAligner = new JoinRowAlignScorer(parameters);
     return new BaseFeatureListAligner(parentTask, featureLists, featureListName, storage,
-        rowAligner, featureCloner, MZ_ASCENDING);
+        rowAligner, featureCloner, MZ_ASCENDING, null);
   }
 
   @Override

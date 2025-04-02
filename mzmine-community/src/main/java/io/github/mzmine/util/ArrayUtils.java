@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,6 +34,8 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
+import javax.validation.constraints.Null;
+import org.jetbrains.annotations.Nullable;
 
 public class ArrayUtils {
 
@@ -348,5 +351,14 @@ public class ArrayUtils {
       }
     }
     return Optional.of(max);
+  }
+
+  /**
+   * Combines multiple arrays into a single array, filtering nulls that were passed as array and
+   * null array elements.
+   */
+  public static File[] combine(final @Nullable File[]... arrays) {
+    return Arrays.stream(arrays).filter(Objects::nonNull).flatMap(Arrays::stream)
+        .filter(Objects::nonNull).toArray(File[]::new);
   }
 }

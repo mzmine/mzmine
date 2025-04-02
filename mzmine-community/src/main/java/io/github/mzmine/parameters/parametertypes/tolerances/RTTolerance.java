@@ -64,26 +64,30 @@ public class RTTolerance {
 
   public Range<Float> getToleranceRange(final float rtValue) {
     // rtValue is given in minutes
-    float absoluteTolerance = switch (unit) {
+    float absoluteTolerance = getToleranceInMinutes(rtValue);
+    return Range.closed(rtValue - absoluteTolerance, rtValue + absoluteTolerance);
+  }
+
+  public float getToleranceInMinutes(float rtValue) {
+    return switch (unit) {
       case MINUTES -> tolerance;
       case SECONDS -> tolerance / 60;
       case PERCENT -> rtValue * (tolerance / 100);
     };
-    return Range.closed(rtValue - absoluteTolerance, rtValue + absoluteTolerance);
   }
 
   public float getToleranceInMinutes() {
     return switch (unit) {
       case SECONDS -> tolerance / 60;
       case PERCENT -> 5f * 60f * (tolerance
-          / 100); // having getToleranceMethod is inconsistent with the unit percent being there...
+                                  / 100); // having getToleranceMethod is inconsistent with the unit percent being there...
       case MINUTES -> tolerance;
     };
   }
 
   public boolean checkWithinTolerance(final float rt1, final float rt2) {
-
-    return getToleranceRange(rt1).contains(rt2);
+    // rtValue is given in minutes
+    return Math.abs(rt1 - rt2) <= getToleranceInMinutes(rt1);
   }
 
   @Override

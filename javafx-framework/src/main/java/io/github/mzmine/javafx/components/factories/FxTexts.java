@@ -49,6 +49,10 @@ public class FxTexts {
     return styledText(content, Styles.ITALIC.getStyleClass());
   }
 
+  public static Text styledText(String content, Styles style) {
+    return styledText(content, style.getStyleClass());
+  }
+
   public static Text styledText(String content, String styleClass) {
     final Text text = new Text(content);
     text.getStyleClass().add(styleClass);

@@ -40,11 +40,9 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
-import sun.misc.Unsafe;
 
 public class TmpFileCleanup implements Runnable {
 
-  private static Unsafe theUnsafe;
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final File[] tempDirs;
@@ -88,9 +86,9 @@ public class TmpFileCleanup implements Runnable {
       // Find all temporary files with the mask mzmine*.scans
       File[] remainingTmpFiles = Arrays.stream(tempDirs).map(f -> f.listFiles((dir, name) -> {
         if (name.matches("mzmine.*\\.tmp") || name.matches(
-            STR."(.)*\{RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER}(.)*") || name.matches(
-            STR."(.)*\{FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER}(.)*") || name.matches(
-            STR."(.)*\{ThermoRawImportTask.THERMO_RAW_PARSER_DIR}(.)*")) {
+            "(.)*%s(.)*".formatted(RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER))
+            || name.matches("(.)*%s(.)*".formatted(FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER))
+            || name.matches("(.)*%s(.)*".formatted(ThermoRawImportTask.THERMO_RAW_PARSER_DIR))) {
           return true;
         }
         return false;
@@ -110,7 +108,8 @@ public class TmpFileCleanup implements Runnable {
               FileUtils.deleteDirectory(remainingTmpFile);
             } catch (DirectoryNotEmptyException e) {
               logger.info(
-                  () -> STR."Unable to delete directory \{remainingTmpFile}, it might be used by another mzmine instance.");
+                  () -> "Unable to delete directory %s, it might be used by another mzmine instance.".formatted(
+                      remainingTmpFile));
             }
             continue;
           }
@@ -145,5 +144,4 @@ public class TmpFileCleanup implements Runnable {
       logger.log(Level.WARNING, "Error while checking for old temporary files", e);
     }
   }
-
 }

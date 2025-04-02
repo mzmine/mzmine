@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,6 +51,8 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
+import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
+import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
@@ -68,6 +70,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
@@ -348,7 +351,9 @@ public class MainWindowController {
   }
 
   public void setActiveWorkspace(@NotNull Workspace workspace, EnumSet<WorkspaceTags> tags) {
+    logger.fine("Setting active workspace to " + workspace.getName());
     activeWorkspace = workspace;
+    // rebuild the menu here, needed for updates after user changes
     mainPane.setTop(workspace.buildMainMenu(tags));
   }
 
@@ -905,8 +910,15 @@ public class MainWindowController {
     }
   }
 
-  public void handleShowScatterPlot(Event event) {
-    // TODO
+  public void handleShowIntegrationDashboard(Event event) {
+    final List<FeatureList> selected = getFeatureListsList().getSelectedValues().stream().distinct()
+        .toList();
+    if (!selected.isEmpty()) {
+      final ParameterSet param = new IntegrationDashboardParameters().cloneParameterSet();
+      param.setParameter(IntegrationDashboardParameters.flists,
+          new FeatureListsSelection((ModularFeatureList) selected.getFirst()));
+      MZmineCore.runMZmineModule(IntegrationDashboardModule.class, param);
+    }
   }
 
   public void handleRenameFeatureList(Event event) {
@@ -939,6 +951,8 @@ public class MainWindowController {
       new Thread(() -> {
         logger.info("Freeing unused memory");
         System.gc();
+        logger.fine("Used heap memory after manual GC: %.2f GB".formatted(
+            ConfigService.getConfiguration().getUsedMemoryGB()));
         // temporary logs
 //        var raws = ProjectService.getProject().getCurrentRawDataFiles();
 //        var total = raws.stream().map(RawDataFile::getScans).flatMap(Collection::stream)

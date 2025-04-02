@@ -40,7 +40,7 @@ public class TryCatch {
     try {
       return tryBlock.get();
     } catch (NullPointerException e) {
-      logger.fine(() -> STR."Expected exception occurred. \{e.getMessage()}");
+      logger.fine(() -> "Expected exception occurred. " + e.getMessage());
       return defaultValue;
     }
   }

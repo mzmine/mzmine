@@ -88,7 +88,7 @@ public class TextParameter implements UserParameter<String, TextArea> {
 
   @Override
   public TextParameter cloneParameter() {
-    TextParameter copy = new TextParameter(name, description);
+    TextParameter copy = new TextParameter(name, description, value, valueRequired);
     copy.setValue(this.getValue());
     return copy;
   }

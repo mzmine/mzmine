@@ -26,15 +26,12 @@
 package io.github.mzmine.gui;
 
 
-import static io.github.mzmine.gui.WindowLocation.TAB;
-import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
-import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
-
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
+import static io.github.mzmine.gui.WindowLocation.TAB;
 import io.github.mzmine.gui.mainwindow.AboutTab;
 import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
@@ -56,7 +53,9 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
+import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
@@ -350,12 +349,12 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         if (WizardSequenceIOUtils.isWizardFile(extension)) {
           boolean result = copyToUserDirectory(selectedFile);
           String resultStr = result ? "succeeded" : "failed";
-          messages.add(STR."Adding wizard file \{selectedFile.getName()} \{resultStr}");
+          messages.add("Adding wizard file %s %s".formatted(selectedFile.getName(), resultStr));
         }
         if (UserAuthStore.isUserFile(extension)) {
           var result = UserAuthStore.copyAddUserFile(selectedFile);
           String resultStr = result ? "succeeded" : "failed";
-          messages.add(STR."Adding user \{selectedFile.getName()} \{resultStr}");
+          messages.add("Adding user %s %s".formatted(selectedFile.getName(), resultStr));
           if (result) {
             askChangeUser(selectedFile.getName());
           }
@@ -374,11 +373,13 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
           logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
+                              + rawDataFiles.stream().map(File::getAbsolutePath)
+                                  .collect(Collectors.joining(", ")));
         }
         if (!libraryFiles.isEmpty()) {
           logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
-              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
+                              + libraryFiles.stream().map(File::getAbsolutePath)
+                                  .collect(Collectors.joining(", ")));
         }
 
         // set raw and library files to parameter
@@ -413,7 +414,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       }
 
       boolean changeUserResult = DialogLoggerUtil.showDialogYesNo("Changing active user",
-          STR."Switch to user \{user.getNickname()}?");
+          "Switch to user %s?".formatted(user.getNickname()));
 
       if (changeUserResult) {
         CurrentUserService.setUser(user);
@@ -572,7 +573,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     nvcThread.start();
 
     // add global keys that may be added to other dialogs to receive the same key event handling
-    rootScene.addEventFilter(KeyEvent.KEY_PRESSED, GlobalKeyHandler.getInstance());
+    // key typed does not work
+    // using EventFilter instead of handler as this is a top level to get all events
+    rootScene.addEventFilter(KeyEvent.KEY_RELEASED, GlobalKeyHandler.getInstance());
 
     // register shutdown hook only if we have GUI - we don't want to
     // save configuration on exit if we only run a batch
@@ -746,7 +749,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   @Override
   public FeatureList[] getSelectedPeakLists() {
-    return getSelectedFeatureLists().toArray(new FeatureList[0]);
+    return getSelectedFeatureLists().stream().distinct().toArray(FeatureList[]::new);
   }
 
   @Override

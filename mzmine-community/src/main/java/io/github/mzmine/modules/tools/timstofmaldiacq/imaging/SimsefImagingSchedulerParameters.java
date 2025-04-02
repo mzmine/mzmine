@@ -52,8 +52,8 @@ import org.jetbrains.annotations.NotNull;
 public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
-  public static final DirectoryParameter savePathDir = new DirectoryParameter("Data location",
-      "Path to where acquired measurements shall be saved.");
+  public static final DirectoryParameter savePathDir = new DirectoryParameter("Export directory",
+      "Path to where the MS2 schedules will be exported to. The MS2 spectra will saved into the same folder.");
   public static final FileNameParameter acquisitionControl = new FileNameParameter(
       "Path to SIMSEF executable",
       "Path to the SIMSEF executable to automatically launch MS2 acquisition after scheduling.\n"
@@ -122,6 +122,7 @@ public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
     nameParameterMap.put("Minimum distance of MS/MS spectra", getParameter(minimumDistance));
     nameParameterMap.put("Number of MS/MS spectra", getParameter(numMsMs));
     nameParameterMap.put("Path to msmsmaldi.exe", getParameter(acquisitionControl));
+    nameParameterMap.put("Data location", getParameter(savePathDir));
     return nameParameterMap;
   }
 
