@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -69,13 +69,40 @@ public enum IonTypes {
   H3_PLUS(IonParts.H3_PLUS), //
   NA_H(IonParts.NA, IonParts.H), //
   NH4_H(IonParts.NH4, IonParts.H), //
-  K_H(IonParts.K, IonParts.H) //
+  K_H(IonParts.K, IonParts.H), //
+
+  // 2M only the major adducts
+  M2_H(H.ion.withMolecules(2)), //
+  M2_H_H2O(H_H2O.ion.withMolecules(2)), //
+  M2_NA(NA.ion.withMolecules(2)), //
+  M2_NH4(NH4.ion.withMolecules(2)), //
+  M2_H_MINUS(H_MINUS.ion.withMolecules(2)), //
+  M2_CL(CL.ion.withMolecules(2)), //
+
+  M2_2H_PLUS(H2_PLUS.ion.withMolecules(2)), //
+  M2_NA2_MINUS_H(NA2_MINUS_H.ion.withMolecules(2)), //
+
+  // 3M
+  M3_H(H.ion.withMolecules(3)), //
+  M3_H_H2O(H_H2O.ion.withMolecules(3)), //
+  M3_NA(NA.ion.withMolecules(3)), //
+  M3_NH4(NH4.ion.withMolecules(3)), //
+  M3_H_MINUS(H_MINUS.ion.withMolecules(3)), //
+  M3_CL(CL.ion.withMolecules(3)), //
   ;
 
   private final IonType ion;
 
   IonTypes(final IonPart... parts) {
-    ion = IonType.create(parts);
+    this(IonType.create(parts));
+  }
+
+  IonTypes(final int molecules, final IonPart... parts) {
+    this(IonType.create(List.of(parts), molecules));
+  }
+
+  IonTypes(IonType ion) {
+    this.ion = ion;
   }
 
   public IonType asIonType() {

@@ -28,8 +28,9 @@ package io.github.mzmine.datamodel.identities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.identities.IonPart.IonStringFlavor;
+import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.ArrayList;
@@ -71,6 +72,10 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
   public static final Comparator<IonType> DEFAULT_ION_ADDUCT_SORTER = Comparator.comparingDouble(
       IonType::totalCharge).thenComparingDouble(IonType::totalMass);
 
+  public IonType withMolecules(final int molecules) {
+    return IonType.create(parts, molecules);
+  }
+
   public static IonType create(@NotNull IonPart... parts) {
     return create(List.of(parts), 1);
   }
@@ -88,16 +93,32 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
     }
 
     // generate name
-    String ionParts = parts.stream().map(p -> p.toString(IonStringFlavor.SIMPLE_NO_CHARGE))
+    String ionParts = parts.stream().map(p -> p.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE))
         .collect(Collectors.joining());
     String M = molecules > 1 ? molecules + "M" : "M";
     String name = "[" + M + ionParts + "]" + IonUtils.getChargeString(totalCharge);
     return new IonType(name, parts, totalMass, totalCharge, molecules);
   }
 
+  /**
+   * Creates the final part string with mass and charge see {@link #toString(IonTypeStringFlavor)}
+   * with {@link IonTypeStringFlavor#FULL_WITH_MASS}
+   *
+   * @return sign count name charge (mass)
+   */
   @Override
   public String toString() {
-    return name;
+    return toString(IonTypeStringFlavor.SIMPLE_DEFAULT);
+  }
+
+  public String toString(IonTypeStringFlavor flavor) {
+    return switch (flavor) {
+      case SIMPLE_DEFAULT -> name;
+      case FULL_WITH_MASS ->
+          "%s (%s Da)".formatted(name, ConfigService.getExportFormats().mz(totalMass()));
+      case FOR_ALPHABETICAL_SORTING -> "%dM%s".formatted(molecules,
+          parts.stream().map(IonPart::name).collect(Collectors.joining()));
+    };
   }
 
   @JsonIgnore
@@ -296,5 +317,43 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
    */
   public Stream<IonPart> stream(boolean includeSilentCharges) {
     return includeSilentCharges ? stream() : stream().filter(not(IonPart::isSilentCharge));
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (!(o instanceof final IonType ionType)) {
+      return false;
+    }
+
+    return molecules == ionType.molecules && totalCharge == ionType.totalCharge
+           && Double.compare(totalMass, ionType.totalMass) == 0 && name.equals(ionType.name)
+           && parts.equals(ionType.parts);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name.hashCode();
+    result = 31 * result + parts.hashCode();
+    result = 31 * result + Double.hashCode(totalMass);
+    result = 31 * result + totalCharge;
+    result = 31 * result + molecules;
+    return result;
+  }
+
+  public enum IonTypeStringFlavor {
+    /**
+     * [M-H2O+Na]+
+     */
+    SIMPLE_DEFAULT,
+    /**
+     * including mass: [M-H2O+Na]+ (totalMass Da)
+     */
+    FULL_WITH_MASS,
+    /**
+     * ONLY for alphabetic order
+     */
+    FOR_ALPHABETICAL_SORTING;
+
+
   }
 }

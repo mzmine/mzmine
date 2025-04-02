@@ -204,17 +204,17 @@ public record IonPart(@NotNull String name,
   }
 
   /**
-   * Creates the final part string with mass and charge see {@link #toString(IonStringFlavor)} with
-   * {@link IonStringFlavor#FULL}
+   * Creates the final part string with mass and charge see {@link #toString(IonPartStringFlavor)}
+   * with {@link IonPartStringFlavor#FULL_WITH_MASS}
    *
    * @return sign count name charge (mass)
    */
   @Override
   public String toString() {
-    return toString(IonStringFlavor.FULL);
+    return toString(IonPartStringFlavor.FULL_WITH_MASS);
   }
 
-  public String toString(IonStringFlavor flavor) {
+  public String toString(IonPartStringFlavor flavor) {
     if (name.isBlank()) {
       // e,g, {@link IonParts#}
       return "";
@@ -223,8 +223,9 @@ public record IonPart(@NotNull String name,
     return switch (flavor) {
       case SIMPLE_NO_CHARGE -> base;
       case SIMPLE_WITH_CHARGE -> "[%s]%s".formatted(base, IonUtils.getChargeString(totalCharge()));
-      case FULL -> "[%s]%s (%s Da)".formatted(base, IonUtils.getChargeString(totalCharge()),
-          ConfigService.getExportFormats().mz(totalMass()));
+      case FULL_WITH_MASS ->
+          "[%s]%s (%s Da)".formatted(base, IonUtils.getChargeString(totalCharge()),
+              ConfigService.getExportFormats().mz(totalMass()));
     };
   }
 
@@ -482,12 +483,12 @@ public record IonPart(@NotNull String name,
     }
   }
 
-  public enum IonStringFlavor {
+  public enum IonPartStringFlavor {
 
     /**
-     * including count, name, charge, mass: +2Na+ (absSingleMass Da)
+     * including count, name, charge, mass: +2Na+ (totalMass Da)
      */
-    FULL,
+    FULL_WITH_MASS,
     /**
      * count and name: +2Na
      */

@@ -23,26 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.fx;
+package io.github.mzmine.javafx.components;
 
-import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.mvci.FxInteractor;
-import javafx.collections.FXCollections;
+import java.util.function.Function;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.control.ListCell;
 
-public class IonTypeCreatorInteractor extends FxInteractor<IonTypeCreatorModel> {
+public class MappingListCell<T> extends ListCell<T> {
 
-  protected IonTypeCreatorInteractor(IonTypeCreatorModel model) {
-    super(model);
-    updateModel();
-  }
+  private final ObservableValue<String> mappedValue;
 
-  @Override
-  public void updateModel() {
-    final IonLibrary global = IonLibrary.getGlobalLibrary();
-    FxThread.runLater(() -> {
-      model.partsProperty().set(FXCollections.observableList(global.parts()));
-      model.ionTypesProperty().set(FXCollections.observableList(global.ionTypes()));
-    });
+  public MappingListCell(Function<T, String> mappingFunction) {
+    super();
+    mappedValue = itemProperty().map(mappingFunction);
+    textProperty().bind(mappedValue);
   }
 }

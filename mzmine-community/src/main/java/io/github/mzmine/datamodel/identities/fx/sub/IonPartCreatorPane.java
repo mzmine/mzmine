@@ -26,7 +26,7 @@
 package io.github.mzmine.datamodel.identities.fx.sub;
 
 import io.github.mzmine.datamodel.identities.IonPart;
-import io.github.mzmine.datamodel.identities.IonPart.IonStringFlavor;
+import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.IonPart.Type;
 import io.github.mzmine.javafx.components.FilterableListView;
 import io.github.mzmine.javafx.components.FilterableListView.MenuControls;
@@ -43,6 +43,7 @@ import static io.github.mzmine.javafx.components.factories.FxTextFields.applyToF
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newNumberField;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
 import io.github.mzmine.javafx.components.util.FxLayout.Position;
 import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
 import io.github.mzmine.javafx.properties.PropertyUtils;
@@ -98,23 +99,25 @@ public class IonPartCreatorPane extends BorderPane {
 
   // additional properties for the list view
   private final ObjectProperty<IonSorting> listSorting = new SimpleObjectProperty<>(
-      IonSorting.CHARGE_THEN_MASS);
+      IonSorting.getIonPartDefault());
 
 
   public IonPartCreatorPane(ObservableList<IonPart> parts) {
     setTop(newBoldTitle("List of ion building blocks"));
 
     partListView = createListView(parts);
-
-    partListView.setRight(createIonPartCreationPane());
+    partListView.setCenter(createIonPartCreationPane());
+    partListView.setLeft(partListView.getListView());
     setCenter(partListView);
   }
 
   private @NotNull FilterableListView<IonPart> createListView(final ObservableList<IonPart> parts) {
+
+    setPadding(DEFAULT_PADDING_INSETS);
     // create a list view with addtional controls for sorting and filtering
     // sorting:
     final HBox sortingCombo = FxComboBox.createLabeledComboBox("Sort by:",
-        FXCollections.observableList(List.of(IonSorting.values())), listSorting);
+        FXCollections.observableList(IonSorting.valuesForIonTypes()), listSorting);
 
     final CheckComboBox<Type> filterTypeCombo = FxComboBox.createCheckComboBox(
         "Show only elements that match the selected types.", List.of(Type.values()));
@@ -160,7 +163,7 @@ public class IonPartCreatorPane extends BorderPane {
         formula.isNotNull());
 
     var lbParsingResult = newBoldLabel(
-        part.map(p -> p.toString(IonStringFlavor.FULL)).orElse("Cannot parse input"));
+        part.map(p -> p.toString(IonPartStringFlavor.FULL_WITH_MASS)).orElse("Cannot parse input"));
 
     var btnAdd = createDisabledButton("Add", "Add new ion part based on name, formula, and charge",
         part.isNull(), () -> addPart(false));

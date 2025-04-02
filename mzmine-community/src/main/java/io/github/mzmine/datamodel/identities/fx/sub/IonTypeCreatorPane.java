@@ -26,27 +26,40 @@
 package io.github.mzmine.datamodel.identities.fx.sub;
 
 import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.IonTypeParser;
+import io.github.mzmine.javafx.components.FilterableListView;
+import io.github.mzmine.javafx.components.FilterableListView.MenuControls;
+import io.github.mzmine.javafx.components.MappingListCell;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxComboBox;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
+import io.github.mzmine.javafx.components.factories.FxListViews;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
+import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
+import io.github.mzmine.javafx.components.util.FxLayout.Position;
 import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
 import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newGrid2Col;
 import static io.github.mzmine.javafx.components.util.FxTabs.newTab;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import java.util.List;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 
 public class IonTypeCreatorPane extends BorderPane {
 
@@ -54,26 +67,57 @@ public class IonTypeCreatorPane extends BorderPane {
     STRING, COMBINED
   }
 
-  private final ListView<IonType> typesListView;
+  private final FilterableListView<IonType> typesListView;
   private final StringProperty parsedIonTypeString = new SimpleStringProperty();
   private final ObjectProperty<IonType> parsedIonType = new SimpleObjectProperty<>();
 
-  public IonTypeCreatorPane(ObservableList<IonType> types) {
+  // additional properties for the list view
+  private final ObjectProperty<IonSorting> listSorting = new SimpleObjectProperty<>(
+      IonSorting.getIonTypeDefault());
 
-    typesListView = new ListView<>(types);
-    var leftListPane = newBorderPane(typesListView);
-    setLeft(leftListPane);
-    setTop(newBoldTitle("Global ion types: Adducts, in source fragments, and clusters"));
-    setCenter(new TabPane( //
+  public IonTypeCreatorPane(ObservableList<IonType> types) {
+    setPadding(DEFAULT_PADDING_INSETS);
+
+    setTop(newBoldTitle("Ion types: Global list"));
+
+    typesListView = createIonTypeListView(types);
+    typesListView.setCenter(new TabPane( //
         newTab("Specify format", createIonTypeByStringPane()), //
         newTab("Combine parts", createIonTypeByStringPane()) //
     ));
+    typesListView.setLeft(typesListView.getListView());
+    setCenter(typesListView);
 
     // on any change - update part
     PauseTransition updateDelay = new PauseTransition(Duration.millis(500));
     updateDelay.setOnFinished(_ -> updateCurrentType());
     PropertyUtils.onChange(updateDelay::playFromStart, parsedIonTypeString);
     // 
+  }
+
+  private @NotNull FilterableListView<IonType> createIonTypeListView(
+      final ObservableList<IonType> types) {
+    // create a list view with addtional controls for sorting and filtering
+    // sorting:
+    final HBox sortingCombo = FxComboBox.createLabeledComboBox("Sort by:",
+        FXCollections.observableList(List.of(IonSorting.values())), listSorting);
+
+    final List<Node> additionalNodes = List.of(sortingCombo);
+    final List<MenuControls> stdButtons = List.of(MenuControls.CLEAR_BTN, MenuControls.REMOVE_BTN);
+
+    // create the list view
+    final FilterableListView<IonType> typeListView = FxListViews.newFilterableListView(types, true,
+        SelectionMode.MULTIPLE, Position.TOP, Pos.CENTER_LEFT, stdButtons, additionalNodes);
+
+    typeListView.getListView().setCellFactory(
+        param -> new MappingListCell<>(ion -> ion.toString(IonTypeStringFlavor.FULL_WITH_MASS)));
+
+    // set comparator and filter
+    listSorting.subscribe(
+        nv -> typeListView.sortingComparatorProperty().set(nv.createIonTypeComparator()));
+
+    // apply filter now:
+    return typeListView;
   }
 
   private Node createIonTypeByStringPane() {
@@ -90,6 +134,7 @@ public class IonTypeCreatorPane extends BorderPane {
   private void updateCurrentType() {
     String ionStr = parsedIonTypeString.get();
     IonType ion = IonTypeParser.parse(ionStr);
+
     parsedIonType.set(ion);
   }
 
@@ -97,7 +142,7 @@ public class IonTypeCreatorPane extends BorderPane {
     if (type == null) {
       return;
     }
-    ObservableList<IonType> items = typesListView.getItems();
+    ObservableList<IonType> items = typesListView.getOriginalItems();
     if (!items.contains(type)) {
       items.add(type);
     }

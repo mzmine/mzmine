@@ -152,7 +152,7 @@ public class FilterableListView<T> extends BorderPane {
    * only clears the filtered items currently visible
    */
   public void clearFilteredItems() {
-    sortedFilteredItems.clear();
+    originalItems.removeAll(sortedFilteredItems);
   }
 
   public ListView<T> getListView() {

@@ -27,16 +27,32 @@ package io.github.mzmine.datamodel.identities.fx.sub;
 
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import java.util.Comparator;
+import java.util.List;
 
 public enum IonSorting {
-  ALPHABETICAL, CHARGE_THEN_MASS, MASS;
+  ALPHABETICAL, CHARGE_THEN_MASS, MOLECULES_THEN_CHARGE_THEN_MASS, MASS;
+
+  public static IonSorting getIonPartDefault() {
+    return CHARGE_THEN_MASS;
+  }
+
+  public static IonSorting getIonTypeDefault() {
+    return MOLECULES_THEN_CHARGE_THEN_MASS;
+  }
+
+
+  public static List<IonSorting> valuesForIonTypes() {
+    return List.of(ALPHABETICAL, CHARGE_THEN_MASS, MASS);
+  }
 
   @Override
   public String toString() {
     return switch (this) {
       case ALPHABETICAL -> "alphabetic";
       case CHARGE_THEN_MASS -> "charge, Δmass";
+      case MOLECULES_THEN_CHARGE_THEN_MASS -> "molecules, charge, Δmass";
       case MASS -> "Δmass";
     };
   }
@@ -46,7 +62,7 @@ public enum IonSorting {
       case ALPHABETICAL ->
           Comparator.comparing(IonPart::name).thenComparingInt(IonPart::totalCharge)
               .thenComparingDouble(IonPart::totalMass);
-      case CHARGE_THEN_MASS ->
+      case CHARGE_THEN_MASS, MOLECULES_THEN_CHARGE_THEN_MASS ->
           Comparator.comparingInt(IonPart::totalCharge).thenComparingDouble(IonPart::totalMass);
       case MASS ->
           Comparator.comparingDouble(IonPart::totalMass).thenComparing(IonPart::totalCharge);
@@ -55,10 +71,14 @@ public enum IonSorting {
 
   public Comparator<IonType> createIonTypeComparator() {
     return switch (this) {
-      case ALPHABETICAL ->
-          Comparator.comparing(IonType::name).thenComparingInt(IonType::totalCharge);
+      case ALPHABETICAL -> Comparator.comparingInt(IonType::molecules)
+          .thenComparing(ion -> ion.toString(IonTypeStringFlavor.FOR_ALPHABETICAL_SORTING))
+          .thenComparingInt(IonType::totalCharge).thenComparingDouble(IonType::totalMass);
       case CHARGE_THEN_MASS ->
           Comparator.comparingInt(IonType::totalCharge).thenComparingDouble(IonType::totalMass);
+      case MOLECULES_THEN_CHARGE_THEN_MASS ->
+          Comparator.comparingInt(IonType::molecules).thenComparingInt(IonType::totalCharge)
+              .thenComparingDouble(IonType::totalMass);
       case MASS ->
           Comparator.comparingDouble(IonType::totalMass).thenComparing(IonType::totalCharge);
     };
