@@ -323,10 +323,10 @@ public class BatchWizardTab extends SimpleTab {
     return spacer;
   }
 
-  private VBox createTopMenu() {
-    VBox vbox = new VBox(4);
-    vbox.setAlignment(Pos.CENTER);
-    VBox.setMargin(vbox, new Insets(5));
+  private Region createTopMenu() {
+    VBox controlSchemaPane = new VBox(4);
+    controlSchemaPane.setAlignment(Pos.CENTER);
+    VBox.setMargin(controlSchemaPane, new Insets(5));
 
     var topPane = new FlowPane(4, 4);
     topPane.setAlignment(Pos.CENTER);
@@ -381,15 +381,15 @@ public class BatchWizardTab extends SimpleTab {
 
     schemaPane = new HBox(0);
     schemaPane.setAlignment(Pos.CENTER);
+    controlSchemaPane.getChildren().addAll(topPane, schemaPane);
 
     final ButtonBase help = FxIconUtil.newIconButton(FxIcons.QUESTIONMARK,
         50, "Open the mzwizard documentation", () -> DesktopService.getDesktop()
             .openWebPage(MzioMZmineLinks.WIZARD_DOCUMENTATION.getUrl()));
-    final StackPane schemaHelpStack = new StackPane(schemaPane, help);
+    final StackPane stackPane = new StackPane(controlSchemaPane, help);
     StackPane.setAlignment(help, Pos.TOP_RIGHT);
 
-    vbox.getChildren().addAll(topPane, schemaHelpStack);
-    return vbox;
+    return stackPane;
   }
 
   /**
