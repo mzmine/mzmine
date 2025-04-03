@@ -93,9 +93,9 @@ public class IonPartCreatorPane extends BorderPane {
   private final ObjectProperty<Number> mass = new SimpleObjectProperty<>(0);
   private final ObjectProperty<@Nullable IMolecularFormula> formula = new SimpleObjectProperty<>();
 
+  private final Validator currentPartValidator = new Validator();
   // parsed from fields
   private final ReadOnlyObjectWrapper<IonPart> part = new ReadOnlyObjectWrapper<>();
-  private final Validator currentPartValidator = new Validator();
 
   // additional properties for the list view
   private final ObjectProperty<IonSorting> listSorting = new SimpleObjectProperty<>(
@@ -294,6 +294,8 @@ public class IonPartCreatorPane extends BorderPane {
     var items = partListView.getOriginalItems();
     if (!items.contains(part)) {
       items.add(part);
+      partListView.getListView().getSelectionModel().select(part);
+      partListView.getListView().scrollTo(part);
     }
   }
 

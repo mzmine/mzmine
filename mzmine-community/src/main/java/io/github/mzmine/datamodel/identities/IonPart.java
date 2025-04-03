@@ -53,7 +53,8 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 /**
  * A single part in an IonType: like 2Na or -H
  *
- * @param name          clear name - often derived from formula or from alternative names
+ * @param name          clear name - often derived from formula or from alternative names. Empty
+ *                      name is only supported for {@link IonParts#SILENT_CHARGE}
  * @param singleFormula uncharged formula without multiplier formula may be null if unknown. Formula
  *                      of a single item - so the count multiplier is not added
  * @param absSingleMass absolute (positive) mass of a single item of this type which is multiplied
@@ -200,7 +201,10 @@ public record IonPart(@NotNull String name,
 
   @JsonIgnore
   public boolean isUnknown() {
-    return singleFormula == null && absSingleMass == 0d;
+    // name is blank for silent charge - so it is reserved
+    // for example for [M]+ (already charged and not -e-)
+    // do not treat silent charge as unknown
+    return !name.isBlank() && singleFormula == null && absSingleMass == 0d;
   }
 
   /**
@@ -451,11 +455,11 @@ public record IonPart(@NotNull String name,
   }
 
   /**
-   * @return silent charge is the only blank name with charge 1
+   * @return silent charge is the only blank name
    */
   @JsonIgnore
   public boolean isSilentCharge() {
-    return name.isBlank() && singleFormula == null && singleCharge == 1;
+    return name.isBlank() && singleFormula == null && absSingleMass == 0d;
   }
 
 

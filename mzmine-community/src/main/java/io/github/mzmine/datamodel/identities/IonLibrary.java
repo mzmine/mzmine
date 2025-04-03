@@ -186,15 +186,18 @@ public record IonLibrary(List<IonPart> parts, List<IonType> ionTypes) {
     for (final IonPart part : second) {
       final IonPart potentialConflict = existingNameMap.get(
           part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE));
-      if (potentialConflict != null && !Objects.equals(potentialConflict, part)) {
-        // TODO conflict resolution
-        boolean massDiff = Precision.equalDoubleSignificance(part.totalMass(),
-            potentialConflict.totalMass());
+      if (potentialConflict != null) {
+        if (!Objects.equals(potentialConflict, part)) {
+          // TODO conflict resolution
+          boolean massDiff = Precision.equalDoubleSignificance(part.totalMass(),
+              potentialConflict.totalMass());
 
-        logger.warning(
-            "Detected conflict between two ion parts: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
-                part.toString(IonPartStringFlavor.FULL_WITH_MASS),
-                potentialConflict.toString(IonPartStringFlavor.FULL_WITH_MASS), massDiff));
+          logger.warning(
+              "Detected conflict between two ion parts: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
+                  part.toString(IonPartStringFlavor.FULL_WITH_MASS),
+                  potentialConflict.toString(IonPartStringFlavor.FULL_WITH_MASS), massDiff));
+        }
+        // otherwise its equal and nothing to do then
       } else {
         merged.add(part);
       }
@@ -227,15 +230,18 @@ public record IonLibrary(List<IonPart> parts, List<IonType> ionTypes) {
     // add those from second list check for conflicts
     for (IonType ion : second) {
       final IonType potentialConflict = existingNameMap.get(ion.name());
-      if (potentialConflict != null && !Objects.equals(potentialConflict, ion)) {
-        // TODO conflict resolution
-        boolean massDiff = Precision.equalDoubleSignificance(ion.totalMass(),
-            potentialConflict.totalMass());
+      if (potentialConflict != null) {
+        // otherwise its equal, nothing to do then
+        if (!Objects.equals(potentialConflict, ion)) {
+          // TODO conflict resolution
+          boolean massDiff = Precision.equalDoubleSignificance(ion.totalMass(),
+              potentialConflict.totalMass());
 
-        logger.warning(
-            "Detected conflict between two ion types: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
-                ion.toString(IonTypeStringFlavor.FULL_WITH_MASS),
-                potentialConflict.toString(IonTypeStringFlavor.FULL_WITH_MASS), massDiff));
+          logger.warning(
+              "Detected conflict between two ion types: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
+                  ion.toString(IonTypeStringFlavor.FULL_WITH_MASS),
+                  potentialConflict.toString(IonTypeStringFlavor.FULL_WITH_MASS), massDiff));
+        }
       } else {
         merged.add(ion);
       }
