@@ -388,6 +388,9 @@ public class BinarySearch {
    */
   public static int binarySearch(double value, @NotNull DefaultTo noMatchDefault, int fromIndex,
       int toIndexExclusive, IntToDoubleFunction valueAtIndexProvider) {
+    if (fromIndex >= toIndexExclusive) {
+      return -1;
+    }
     if (toIndexExclusive <= 0) {
       return -1;
     }
@@ -435,9 +438,11 @@ public class BinarySearch {
     if (index >= toIndexExclusive) {
       return toIndexExclusive - 1;
     }
-    if (index < fromIndex) {
-      return fromIndex;
-    }
+
+    // should not happen because index is never below fromIndex
+//    if (index < fromIndex) {
+//      return -1;
+//    }
     // might be higher or lower
     final double adjacentValue = valueAtIndexProvider.applyAsDouble(index);
     // check for closest distance to value
@@ -455,10 +460,15 @@ public class BinarySearch {
 
   private static int lessEquals(final double value, final int fromIndex, final int toIndex,
       final IntToDoubleFunction valueAtIndexProvider, final int index) {
-    // toIndex exclusive
+    // index might be above toIndex
     if (index >= toIndex) {
       return toIndex - 1;  // last value
     }
+
+    // should not happen because index is never below fromIndex
+//    if (index < fromIndex) {
+//      return -1;
+//    }
     // might be higher or lower
     final double adjacentValue = valueAtIndexProvider.applyAsDouble(index);
     if (adjacentValue <= value) {
@@ -472,12 +482,15 @@ public class BinarySearch {
 
   private static int greaterEquals(final double value, final int fromIndex, final int toIndex,
       final IntToDoubleFunction valueAtIndexProvider, final int index) {
+    // should not happen because index is never below fromIndex
     if (index >= toIndex) {
       return -1;
     }
-    if (index < fromIndex) {
-      return fromIndex;
-    }
+    
+    // should not happen because index is never below fromIndex
+//    if (index < fromIndex) {
+//      return -1;
+//    }
     // might be higher or lower
     final double adjacentValue = valueAtIndexProvider.applyAsDouble(index);
     if (adjacentValue >= value) {

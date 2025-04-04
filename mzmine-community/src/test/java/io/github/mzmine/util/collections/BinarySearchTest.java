@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.collections;
 
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -70,6 +71,79 @@ class BinarySearchTest {
     assertEquals(lower, range.min());
     assertEquals(upper, range.maxInclusive());
     assertEquals(upper + 1, range.maxExclusive());
+  }
+
+  @Test
+  void differentSizeBinarySearch() {
+
+    for (int i = 0; i < 6; i++) {
+      final double[] data = IntStream.range(0, i + 1).mapToDouble(v -> (double) v).toArray();
+
+      // check to find each element +- 2
+      for (int item = -2; item < i + 2; item++) {
+        int expectedClosest = MathUtils.withinBounds(item, 0, i + 1);
+        int expectedGREQ = item > i ? -1 : MathUtils.withinBounds(item, 0, i + 1);
+        int expectedLEQ = item < 0 ? -1 : MathUtils.withinBounds(item, 0, i + 1);
+        // will test smaller than item
+        int expectedInsertionPoint = switch (item) {
+          case int d when d <= 0 -> -1;
+          case int d when d > data.length -> -(data.length + 1);
+          default -> -(item + 1);
+        };
+
+        assertEquals(expectedClosest,
+            BinarySearch.binarySearch(data, item + 0.1, DefaultTo.CLOSEST_VALUE));
+        assertEquals(expectedClosest,
+            BinarySearch.binarySearch(data, item - 0.1, DefaultTo.CLOSEST_VALUE));
+        assertEquals(expectedGREQ,
+            BinarySearch.binarySearch(data, item - 0.5d, DefaultTo.GREATER_EQUALS));
+        assertEquals(expectedLEQ,
+            BinarySearch.binarySearch(data, item + 0.5d, DefaultTo.LESS_EQUALS));
+
+        assertEquals(expectedInsertionPoint,
+            BinarySearch.binarySearch(data, item - 0.1, DefaultTo.MINUS_INSERTION_POINT),
+            "for value %f".formatted(item - 0.1));
+
+        // search within range
+        int min = 1;
+        int max = 2;
+        if (data.length >= max) {
+          int expectedGREQ2 = item >= max ? -1 : MathUtils.withinBounds(item, min, max);
+          int expectedLEQ2 = item < min ? -1 : MathUtils.withinBounds(item, min, max);
+          assertEquals(MathUtils.withinBounds(expectedClosest, min, max),
+              BinarySearch.binarySearch(data, item + 0.1, DefaultTo.CLOSEST_VALUE, min, max),
+              "for value %f".formatted(item + 0.1));
+          assertEquals(MathUtils.withinBounds(expectedClosest, min, max),
+              BinarySearch.binarySearch(data, item - 0.1, DefaultTo.CLOSEST_VALUE, min, max),
+              "for value %f".formatted(item - 0.1));
+          assertEquals(expectedGREQ2,
+              BinarySearch.binarySearch(data, item - 0.5d, DefaultTo.GREATER_EQUALS, min, max),
+              "for value %f".formatted(item - 0.5));
+          assertEquals(expectedLEQ2,
+              BinarySearch.binarySearch(data, item + 0.5d, DefaultTo.LESS_EQUALS, min, max),
+              "for value %f".formatted(item + 0.5));
+        }
+
+        min = 2;
+        max = 4;
+        if (data.length >= max) {
+          int expectedGREQ2 = item >= max ? -1 : MathUtils.withinBounds(item, min, max);
+          int expectedLEQ2 = item < min ? -1 : MathUtils.withinBounds(item, min, max);
+          assertEquals(MathUtils.withinBounds(expectedClosest, min, max),
+              BinarySearch.binarySearch(data, item + 0.1, DefaultTo.CLOSEST_VALUE, min, max),
+              "for value %f".formatted(item + 0.1));
+          assertEquals(MathUtils.withinBounds(expectedClosest, min, max),
+              BinarySearch.binarySearch(data, item - 0.1, DefaultTo.CLOSEST_VALUE, min, max),
+              "for value %f".formatted(item - 0.1));
+          assertEquals(expectedGREQ2,
+              BinarySearch.binarySearch(data, item - 0.5d, DefaultTo.GREATER_EQUALS, min, max),
+              "for value %f".formatted(item - 0.5));
+          assertEquals(expectedLEQ2,
+              BinarySearch.binarySearch(data, item + 0.5d, DefaultTo.LESS_EQUALS, min, max),
+              "for value %f".formatted(item + 0.5));
+        }
+      }
+    }
   }
 
   @Test
