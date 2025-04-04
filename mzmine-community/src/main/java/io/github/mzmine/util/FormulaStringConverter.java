@@ -25,14 +25,44 @@
 
 package io.github.mzmine.util;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import static java.util.Objects.requireNonNullElse;
 import org.openscience.cdk.config.Elements;
+import org.openscience.cdk.config.Isotopes;
+import org.openscience.cdk.interfaces.IElement;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaStringConverter {
+
+  private static String[] generateOrderEle_Hill_NoCarbons() {
+    return new String[]{"Ac", "Ag", "Al", "Am", "Ar", "As", "At", "Au", "B", "Ba", "Be", "Bh", "Bi",
+        "Bk", "Br", "C", "Ca", "Cd", "Ce", "Cf", "Cl", "Cm", "Cn", "Co", "Cr", "Cs", "Cu", "Db",
+        "Ds", "Dy", "Er", "Es", "Eu", "F", "Fe", "Fm", "Fr", "Ga", "Gd", "Ge", "H", "He", "Hf",
+        "Hg", "Ho", "Hs", "I", "In", "Ir", "K", "Kr", "La", "Li", "Lr", "Lu", "Md", "Mg", "Mn",
+        "Mo", "Mt", "N", "Na", "Nb", "Nd", "Ne", "Ni", "No", "Np", "O", "Os", "P", "Pa", "Pb", "Pd",
+        "Pm", "Po", "Pr", "Pt", "Pu", "Ra", "Rb", "Re", "Rf", "Rg", "Rh", "Rn", "Ru", "S", "Sb",
+        "Sc", "Se", "Sg", "Si", "Sm", "Sn", "Sr", "Ta", "Tb", "Tc", "Te", "Th", "Ti", "Tl", "Tm",
+        "U", "V", "W", "Xe", "Y", "Yb", "Zn", "Zr",
+        // unspecified
+        "R"};
+  }
+
+  private static String[] generateOrderEle_Hill_WithCarbons() {
+    return new String[]{"C", "H", "Ac", "Ag", "Al", "Am", "Ar", "As", "At", "Au", "B", "Ba", "Be",
+        "Bh", "Bi", "Bk", "Br", "Ca", "Cd", "Ce", "Cf", "Cl", "Cm", "Cn", "Co", "Cr", "Cs", "Cu",
+        "Db", "Ds", "Dy", "Er", "Es", "Eu", "F", "Fe", "Fm", "Fr", "Ga", "Gd", "Ge", "He", "Hf",
+        "Hg", "Ho", "Hs", "I", "In", "Ir", "K", "Kr", "La", "Li", "Lr", "Lu", "Md", "Mg", "Mn",
+        "Mo", "Mt", "N", "Na", "Nb", "Nd", "Ne", "Ni", "No", "Np", "O", "Os", "P", "Pa", "Pb", "Pd",
+        "Pm", "Po", "Pr", "Pt", "Pu", "Ra", "Rb", "Re", "Rf", "Rg", "Rh", "Rn", "Ru", "S", "Sb",
+        "Sc", "Se", "Sg", "Si", "Sm", "Sn", "Sr", "Ta", "Tb", "Tc", "Te", "Th", "Ti", "Tl", "Tm",
+        "U", "V", "W", "Xe", "Y", "Yb", "Zn", "Zr",
+        // unspecified
+        "R"};
+  }
 
   /**
    *
@@ -47,56 +77,68 @@ public class FormulaStringConverter {
 //  public static String getString(IMolecularFormula formula) {
 //    return getString(formula, false);
 //  }
-  public static String getString(IMolecularFormula formula, boolean setMassNumber) {
+  public static String getString(IMolecularFormula formula) {
+    return getString(formula, true);
+  }
+
+  public static String getString(IMolecularFormula formula, boolean skipMajorMassNumber) {
+    return getString(formula, skipMajorMassNumber, 0.6);
+  }
+
+  public static String getString(IMolecularFormula formula, boolean skipMajorMassNumber,
+      double skipMassNumberForMajorPercent) {
+
+    if (skipMassNumberForMajorPercent < 0.5) {
+      throw new IllegalArgumentException(
+          "Cannot skip mass number for major percent less than 0.5 because this may include more than one isotope");
+    }
+
     String[] orderElements = getElementOrder(formula);
-    boolean setOne = false;
 
     StringBuilder stringMF = new StringBuilder();
     List<IIsotope> isotopesList = MolecularFormulaManipulator.putInOrder(orderElements, formula);
-    Integer q = formula.getCharge();
-    if (q != null && q != 0) {
+    Integer charge = formula.getCharge();
+    if (charge != null && charge != 0) {
       stringMF.append('[');
     }
 
-    if (!setMassNumber) {
-      int count = 0;
-      int prev = -1;
+    for (IIsotope isotope : isotopesList) {
+      final IIsotope major;
+      try {
+        major = Isotopes.getInstance().getMajorIsotope(isotope.getAtomicNumber());
+      } catch (IOException e) {
+        // should not happen
+        throw new RuntimeException(e);
+      }
 
-      for (IIsotope isotope : isotopesList) {
-        if (!Objects.equals(isotope.getAtomicNumber(), prev)) {
-          if (count != 0) {
-            appendElement(stringMF, (Integer) null, prev, !setOne && count == 1 ? 0 : count);
-          }
+      int count = formula.getIsotopeCount(isotope);
+      // replace with major number if missing
+      Integer massNumber = requireNonNullElse(isotope.getMassNumber(), major.getMassNumber());
 
-          prev = isotope.getAtomicNumber();
-          count = formula.getIsotopeCount(isotope);
-        } else {
-          count += formula.getIsotopeCount(isotope);
+      // always showing mass number for elements different from major
+      // may skip major if percent >
+      if (skipMajorMassNumber && Objects.equals(major.getMassNumber(), massNumber)) {
+        // abundance is in 100% not 1.0
+        final Double abundance = major.getNaturalAbundance();
+        if (abundance != null && skipMassNumberForMajorPercent <= abundance / 100d) {
+          massNumber = null;
         }
       }
 
-      if (count != 0) {
-        appendElement(stringMF, (Integer) null, prev, !setOne && count == 1 ? 0 : count);
-      }
-    } else {
-      for (IIsotope isotope : isotopesList) {
-        int count = formula.getIsotopeCount(isotope);
-        appendElement(stringMF, isotope.getMassNumber(), isotope.getAtomicNumber(),
-            !setOne && count == 1 ? 0 : count);
-      }
+      appendElement(stringMF, massNumber, isotope.getAtomicNumber(), count == 1 ? 0 : count);
     }
 
-    if (q != null && q != 0) {
+    if (charge != null && charge != 0) {
       stringMF.append(']');
-      if (q > 0) {
-        if (q > 1) {
-          stringMF.append(q);
+      if (charge > 0) {
+        if (charge > 1) {
+          stringMF.append(charge);
         }
 
         stringMF.append('+');
       } else {
-        if (q < -1) {
-          stringMF.append(-q);
+        if (charge < -1) {
+          stringMF.append(-charge);
         }
 
         stringMF.append('-');
@@ -107,10 +149,11 @@ public class FormulaStringConverter {
   }
 
   private static String[] getElementOrder(final IMolecularFormula formula) {
-//    MolecularFormulaManipulator.containsElement(formula,
-//        (IElement) formula.getBuilder().newInstance(IElement.class, new Object[]{"C"})) ? getString(
-//        formula, MolecularFormulaManipulator.generateOrderEle_Hill_WithCarbons()) :
-    return null;
+    if (MolecularFormulaManipulator.containsElement(formula,
+        formula.getBuilder().newInstance(IElement.class, "C"))) {
+      return generateOrderEle_Hill_WithCarbons();
+    }
+    return generateOrderEle_Hill_NoCarbons();
   }
 
   private static void appendElement(StringBuilder sb, Integer mass, int elem, int count) {

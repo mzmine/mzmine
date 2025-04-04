@@ -128,18 +128,7 @@ public class FormulaUtils {
     if (formula == null) {
       return null;
     }
-    return MolecularFormulaManipulator.getString(formula, false, true);
-
-//    if (showCharge) {
-//      return string;
-//    } else {
-//       only charged formulas are within []
-//      final int index = string.lastIndexOf("\\]");
-//      if (index == -1) {
-//        return string;
-//      }
-//      return string.substring(1, index);
-//    }
+    return FormulaStringConverter.getString(formula);
   }
 
   /**

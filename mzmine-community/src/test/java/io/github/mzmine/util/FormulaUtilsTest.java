@@ -190,6 +190,10 @@ class FormulaUtilsTest {
     // with isotopes
     assertEquals("[[13]C]2-", FormulaUtils.getFormulaString(formula("[[13C]]2-"), true));
     assertEquals("[13]C", FormulaUtils.getFormulaString(formula("[[13C]]2-"), false));
+    assertEquals("C2[13]C[79]BrCl[158]Gd",
+        FormulaUtils.getFormulaString(formula("[[13]CC2BrClGd]2-"), false));
+    assertEquals("[C2[13]C[79]BrCl[158]Gd]2-",
+        FormulaUtils.getFormulaString(formula("[[13]CC2BrClGd]2-"), true));
   }
 
   @Test
