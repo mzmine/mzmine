@@ -84,20 +84,22 @@ public class ExpandingTrace {
    * @return true if the data points is added to this trace.
    */
   public boolean offerDataPoint(@NotNull MobilityScanDataAccess access, int index) {
-    if (!rtRange.contains(access.getRetentionTime()) || !mzRange.contains(
-        access.getMzValue(index))) {
+    final float rt = access.getRetentionTime();
+    final double mz = access.getMzValue(index);
+
+    if (!rtRange.contains(rt) || !mzRange.contains(mz)) {
       return false;
     }
 
-    final DataPoint dp = new SimpleDataPoint(access.getMzValue(index),
+    final DataPoint dp = new SimpleDataPoint(mz,
         access.getIntensityValue(index));
 
     // keep the data point that has the lowest deviation to the mz of this row
     return dataPoints.merge(access.getCurrentMobilityScan(), dp, (oldDp, newDp) -> {
-      if (Math.abs(f.getAverageMZ() - oldDp.getMZ()) < Math.abs(f.getAverageMZ() - newDp.getMZ())) {
-        return oldDp;
+      if (Math.abs(centerMz - oldDp.getMZ()) > Math.abs(centerMz - newDp.getMZ())) {
+        return newDp;
       }
-      return newDp;
+      return oldDp;
     }) == dp;
   }
 
