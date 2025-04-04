@@ -114,6 +114,20 @@ class BinarySearchTest {
     assertEquals(3,
         BinarySearch.binarySearch(data2, 155.10211608911706, DefaultTo.CLOSEST_VALUE, 3, 5));
 
+    assertEquals(2,
+        BinarySearch.binarySearch(data2, 155.10211608911706, DefaultTo.GREATER_EQUALS, 2, 3));
+    assertEquals(0,
+        BinarySearch.binarySearch(data2, 155.10211608911706, DefaultTo.GREATER_EQUALS, 0, 3));
+    assertEquals(3,
+        BinarySearch.binarySearch(data2, 155.10211608911706, DefaultTo.GREATER_EQUALS, 3, 5));
+
+    assertEquals(2,
+        BinarySearch.binarySearch(data2, 1550.10211608911706, DefaultTo.LESS_EQUALS, 2, 3));
+    assertEquals(2,
+        BinarySearch.binarySearch(data2, 1550.10211608911706, DefaultTo.LESS_EQUALS, 0, 3));
+    assertEquals(4,
+        BinarySearch.binarySearch(data2, 1505.10211608911706, DefaultTo.LESS_EQUALS, 3, 5));
+
   }
 
   @Test
