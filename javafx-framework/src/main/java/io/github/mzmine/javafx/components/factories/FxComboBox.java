@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SearchableComboBox;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,6 +52,25 @@ public class FxComboBox {
     return hBox;
   }
 
+  /**
+   * Creates CheckComboBox and selects all values
+   */
+  public static <T> CheckComboBox<T> createCheckComboBox(String tooltip,
+      @NotNull Collection<T> values) {
+    return createCheckComboBox(tooltip, values, values);
+  }
+
+  public static <T> CheckComboBox<T> createCheckComboBox(String tooltip,
+      @NotNull Collection<T> values, @NotNull Collection<T> selected) {
+    CheckComboBox<T> combo = new CheckComboBox<>(makeObservable(values));
+    combo.setShowCheckedCount(true);
+    combo.setTooltip(new Tooltip(tooltip));
+    for (final T sel : selected) {
+      combo.getCheckModel().check(sel);
+    }
+    return combo;
+  }
+
   public static <T> ComboBox<T> createComboBox(String tooltip, Collection<T> values,
       Property<T> selectedItem) {
     return addContent(tooltip, values, selectedItem, new ComboBox<T>());
@@ -58,16 +78,20 @@ public class FxComboBox {
 
   private static <T, COMBO extends ComboBox<T>> @NotNull COMBO addContent(final String tooltip,
       final Collection<T> values, final Property<T> selectedItem, final COMBO combo) {
-    if (values instanceof ObservableList<T> ov) {
-      combo.setItems(ov);
-    } else if (values instanceof List<T> list) {
-      combo.setItems(FXCollections.observableList(list));
-    } else {
-      combo.setItems(FXCollections.observableList(List.copyOf(values)));
-    }
+    combo.setItems(makeObservable(values));
     combo.valueProperty().bindBidirectional(selectedItem);
     combo.setTooltip(new Tooltip(tooltip));
     return combo;
+  }
+
+  private static <T> ObservableList<T> makeObservable(final Collection<T> values) {
+    if (values instanceof ObservableList<T> ov) {
+      return ov;
+    } else if (values instanceof List<T> list) {
+      return FXCollections.observableList(list);
+    } else {
+      return FXCollections.observableList(List.copyOf(values));
+    }
   }
 
   public static <T> SearchableComboBox<T> newSearchableComboBox(@NotNull String tooltip,

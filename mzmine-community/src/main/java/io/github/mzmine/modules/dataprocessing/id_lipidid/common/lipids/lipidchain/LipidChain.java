@@ -138,7 +138,9 @@ public class LipidChain implements ILipidChain {
         String elementName = reader.getLocalName();
         switch (elementName) {
           case "chainAnnotation" -> chainAnnotation = reader.getElementText();
-          case "chainFormula" -> molecularFormula = FormulaUtils.createMajorIsotopeMolFormula(reader.getElementText());
+          case "chainFormula" ->
+              molecularFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+                  reader.getElementText());
           case "numberOfCarbons" -> numberOfCarbons = Integer.parseInt(reader.getElementText());
           case "numberOfDBEs" -> numberOfDBEs = Integer.parseInt(reader.getElementText());
           case "chainType" -> lipidChainType = LipidChainType.valueOf(reader.getElementText());
@@ -148,7 +150,8 @@ public class LipidChain implements ILipidChain {
       }
     }
 
-    if (chainAnnotation == null || molecularFormula == null || numberOfCarbons == null || numberOfDBEs == null || lipidChainType == null) {
+    if (chainAnnotation == null || molecularFormula == null || numberOfCarbons == null
+        || numberOfDBEs == null || lipidChainType == null) {
       throw new XMLStreamException("Missing data in lipid chain XML.");
     }
 
