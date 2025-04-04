@@ -1,6 +1,6 @@
-package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils;
+package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts;
 
-public enum CommonISFNegative implements  ExpertKnowledge{
+public enum CommonISFNegative implements ExpertKnowledge {
     // ESI(-) In-source fragmentation
     M_PLUS_CH3COO_MINUS_CH3COOCH3("[M+CH3COO-CH3COOCH3]-", -15.01090);
 

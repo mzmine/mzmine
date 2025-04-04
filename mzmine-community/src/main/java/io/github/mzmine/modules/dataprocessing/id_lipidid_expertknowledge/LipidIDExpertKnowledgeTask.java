@@ -8,6 +8,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.*;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.*;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -107,36 +109,41 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask{
         //Iterate through each row
         rows.parallelStream().forEach(row -> {
             //The module will only work if the row has annotations, if not, it won't run
+            List<FoundLipid> detectedLipids = new ArrayList<>();
+
             if (row.getLipidMatches().isEmpty()) {
                 //nothing
             } else {
-
                 //findAdducts function in Utils
                 List<FoundAdduct> foundAdductsISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, row, mzTolerance.getMzTolerance());
 
                 //1: Based on polarity re-direct to specific rules
                 if(polarityTypes.contains(PolarityType.POSITIVE)) {
-                    List<FoundLipid> detectedLipids = LipidIDExpertKnowledgeSearch.findLipidsPositive(row, foundAdductsISF);
+                    detectedLipids = LipidIDExpertKnowledgeSearch.findLipidsPositive(row, foundAdductsISF);
                 } else if (polarityTypes.contains(PolarityType.NEGATIVE)) {
-                    List<FoundLipid> detectedLipids = LipidIDExpertKnowledgeSearch.findLipidsNegative(row, foundAdductsISF);
+                    detectedLipids = LipidIDExpertKnowledgeSearch.findLipidsNegative(row, foundAdductsISF);
                 } else if (polarityTypes.contains(PolarityType.POSITIVE) && polarityTypes.contains(PolarityType.NEGATIVE)) {
                     List<FoundLipid> detectedLipidsPos = LipidIDExpertKnowledgeSearch.findLipidsPositive(row, foundAdductsISF);
                     List<FoundLipid> detectedLipidsNeg = LipidIDExpertKnowledgeSearch.findLipidsNegative(row, foundAdductsISF);
-                    List<FoundLipid> detectedLipids = new ArrayList<>();
+
                     detectedLipids.addAll(detectedLipidsNeg);
                     detectedLipids.addAll(detectedLipidsPos);
                 }
 
                 finishedSteps++;
             }
+            //TODO check if this works when I have sample data
+            for (FoundLipid fl : detectedLipids){
+                if(fl != null) {
+                    row.addLipidValidation(fl);
+                }
+            }
         });
 
-        //TODO print detectedLipids in the GUI feature list
         // Add task description to featureList
         (featureList).addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
                 "Lipid annotation with expert knowledge", LipidIDExpertKnowledgeModule.class,
                         parameters, getModuleCallDate()));
-
 
         setStatus(TaskStatus.FINISHED);
         logger.info("Finished on: " + featureList);

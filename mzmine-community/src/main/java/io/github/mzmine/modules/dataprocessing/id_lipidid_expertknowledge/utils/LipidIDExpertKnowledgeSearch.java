@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.ExpertKnowledge;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.Lipid;
 import org.kie.api.KieServices;
 import org.kie.api.io.Resource;
 import org.kie.api.runtime.KieSession;

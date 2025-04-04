@@ -45,6 +45,7 @@ plugins {
     // https://github.com/ethauvin/semver-gradle
     alias(libs.plugins.semver)
     alias(libs.plugins.licensereport)
+
 }
 
 // save version to main resources
@@ -222,12 +223,13 @@ dependencies {
     implementation(libs.aalto.xml)
 
     //Drools
-    //implementation 'org.drools:drools-core:8.41.0.Final'
-    //implementation 'org.drools:drools-compiler:8.41.0.Final'
-    //implementation 'org.kie:kie-api:8.41.0.Final'
-    //implementation 'org.kie:kie-spring:8.41.0.Final' // If using Spring Boot
+    // https://mvnrepository.com/artifact/org.drools/drools-core
+    implementation group: 'org.drools', name: 'drools-core', version: '10.0.0'
+    // https://mvnrepository.com/artifact/org.drools/drools-compiler
+    implementation group: 'org.drools', name: 'drools-compiler', version: '10.0.0'
+    // https://mvnrepository.com/artifact/org.kie/kie-api
+    implementation group: 'org.kie', name: 'kie-api', version: '10.0.0'
 }
-
 /*
  * Remove the xml-apis dependencies to avoid a compilation error in Eclipse.
  * The org.w3c.dom package is present in the java.xml module as well as in these dependencies.

@@ -29,7 +29,6 @@ public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule{
         return "Lipid Annotation Expert Knowledge is only applied on MS1 data, and it uses theoretical expert knowledge on common adducts found in lipids. It requires the Lipid Annotation to be run first.";
     }
 
-    //TODO set the LipidAnnotation as a mandatory step before using this tool
     @Override
     public @NotNull ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
         FeatureList[] featureLists = parameters.getParameter(parameters.getParameter(LipidIDExpertKnowledgeParameters.featureLists)).getValue().getMatchingFeatureLists();

@@ -1,4 +1,9 @@
-package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils;
+package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids;
+
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.CommonAdductNegative;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.CommonAdductPositive;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.CommonISFNegative;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.CommonISFPositive;
 
 import java.util.HashMap;
 import java.util.Map;

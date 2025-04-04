@@ -1,6 +1,6 @@
-package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils;
+package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts;
 
-public enum CommonAdductNegative implements ExpertKnowledge{
+public enum CommonAdductNegative implements ExpertKnowledge {
     // ESI(-) adducts
     M_MINUS_H("[M-H]-", -1.007276),
     M_MINUS_H_PLUS_CH3COONa("[M-H+(CH3COONa)]-", 80.995794),

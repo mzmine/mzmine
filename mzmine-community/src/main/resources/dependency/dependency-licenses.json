@@ -1281,6 +1281,19 @@
             ]
         },
         {
+            "moduleName": "org.antlr:antlr-runtime",
+            "moduleVersion": "3.5.2",
+            "moduleUrls": [
+                "http://www.antlr.org"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "BSD licence",
+                    "moduleLicenseUrl": "http://antlr.org/license.html"
+                }
+            ]
+        },
+        {
             "moduleName": "org.apache.commons:commons-collections4",
             "moduleVersion": "4.4",
             "moduleUrls": [
@@ -1934,6 +1947,126 @@
             ]
         },
         {
+            "moduleName": "org.drools:drools-base",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-compiler",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-core",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-drl-ast",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-drl-extensions",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-drl-parser",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-ecj",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-io",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-kiesession",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-util",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-wiring-api",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-wiring-static",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.eclipse.angus:angus-activation",
             "moduleVersion": "1.0.0",
             "moduleUrls": [
@@ -1951,6 +2084,19 @@
                 {
                     "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
                     "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.eclipse.jdt:ecj",
+            "moduleVersion": "3.33.0",
+            "moduleUrls": [
+                "https://projects.eclipse.org/projects/eclipse.jdt"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Eclipse Public License - v 2.0",
+                    "moduleLicenseUrl": "https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt"
                 }
             ]
         },
@@ -2521,6 +2667,56 @@
             ]
         },
         {
+            "moduleName": "org.kie:kie-api",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.kie:kie-internal",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.kie:kie-memory-compiler",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.kie:kie-util-maven-support",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.kie:kie-util-xml",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.kordamp.ikonli:ikonli-bootstrapicons-pack",
             "moduleVersion": "12.3.1",
             "moduleUrls": [
@@ -2857,11 +3053,16 @@
         },
         {
             "moduleName": "org.slf4j:slf4j-api",
-            "moduleVersion": "1.7.36",
+            "moduleVersion": "2.0.6",
             "moduleUrls": [
+                "http://www.qos.ch",
                 "http://www.slf4j.org"
             ],
             "moduleLicenses": [
+                {
+                    "moduleLicense": null,
+                    "moduleLicenseUrl": "http://www.opensource.org/licenses/mit-license.php"
+                },
                 {
                     "moduleLicense": "MIT License",
                     "moduleLicenseUrl": "https://opensource.org/licenses/MIT"

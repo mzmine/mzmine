@@ -1,8 +1,10 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge;
 
-import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameterSetupDialog;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhaseParameter;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleTypeParameter;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleTypes;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -19,12 +21,17 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
 
     public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-    //TODO this depends on the tool, make it parametrizable, i think this is the default
     public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
             ToleranceType.SCAN_TO_SCAN, 0.002, 10);
 
+    public static final MobilePhaseParameter<Object> mobilePhaseParameter = new MobilePhaseParameter(
+            "Mobile phases", "Selection of mobile phases", MobilePhases.getListOfMobilePhases().toArray());
+
+    public static final SampleTypeParameter<Object> sampleTypeParameter = new SampleTypeParameter(
+            "Sample types", "Selection of sample type", SampleTypes.getListOfMobilePhases().toArray());
+
     public LipidIDExpertKnowledgeParameters() {
-        super(new Parameter[]{featureLists, mzTolerance});
+        super(new Parameter[]{featureLists, mzTolerance, mobilePhaseParameter, sampleTypeParameter});
     }
 
     @Override

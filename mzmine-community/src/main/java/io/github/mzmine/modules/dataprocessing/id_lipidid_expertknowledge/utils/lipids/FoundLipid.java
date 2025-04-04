@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils;
+package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids;
 
 public class FoundLipid {
 
@@ -15,7 +15,7 @@ public class FoundLipid {
         this.descrIncorrect = "INCORRECT, please verify: " + lipid.getName();
     }
 
-    public int getScore() {
+    public Integer getScore() {
         return score;
     }
 

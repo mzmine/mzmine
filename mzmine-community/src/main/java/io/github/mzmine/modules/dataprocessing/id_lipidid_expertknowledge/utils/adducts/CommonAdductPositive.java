@@ -1,11 +1,11 @@
-package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils;
+package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts;
 
 /**
  * This enum contains the most common adducts found in lipids according to a CEMBIO paper:
  * Martínez, S., Fernández-García, M., Londoño-Osorio, S., Barbas, C., & Gradillas, A. (2024). Highly reliable LC-MS lipidomics database for efficient human plasma profiling based on NIST SRM 19501. Journal of Lipid Research, 65(11), 100671. https://doi.org/10.1016/j.jlr.2024.100671
  * It has two attributes, the name (formula) and the m/z difference.
  */
-public enum CommonAdductPositive implements ExpertKnowledge{
+public enum CommonAdductPositive implements ExpertKnowledge {
     // ESI(+)
     M_PLUS_H("[M+H]+", 1.007276),
     M_PLUS_NA("[M+Na]+", 22.989218),

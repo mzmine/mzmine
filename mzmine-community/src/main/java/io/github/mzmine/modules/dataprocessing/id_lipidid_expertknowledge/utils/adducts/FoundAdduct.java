@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils;
+package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts;
 
 public class FoundAdduct {
     private String adductName;
