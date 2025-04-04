@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,9 @@
 
 package io.github.mzmine.util.collections;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.util.stream.IntStream;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -71,6 +70,64 @@ class BinarySearchTest {
     assertEquals(lower, range.min());
     assertEquals(upper, range.maxInclusive());
     assertEquals(upper + 1, range.maxExclusive());
+  }
+
+  @Test
+  void binarySearchSize1() {
+    double[] data = new double[]{5.5};
+    assertEquals(0, BinarySearch.binarySearch(data, 5.5, DefaultTo.CLOSEST_VALUE));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.6, DefaultTo.CLOSEST_VALUE));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.4, DefaultTo.CLOSEST_VALUE));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.5, DefaultTo.LESS_EQUALS));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.6, DefaultTo.LESS_EQUALS));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.5, DefaultTo.GREATER_EQUALS));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.4, DefaultTo.GREATER_EQUALS));
+    assertEquals(-1, BinarySearch.binarySearch(data, 5.4, DefaultTo.LESS_EQUALS));
+    assertEquals(-1, BinarySearch.binarySearch(data, 5.6, DefaultTo.GREATER_EQUALS));
+  }
+
+  @Test
+  void binarySearchSizeMultiList() {
+    // three concat lists of 1,5,10   3   2,4,6
+    double[] data = new double[]{1d, 5d, 10d, 3d, 2d, 4d, 6d};
+    assertEquals(3, BinarySearch.binarySearch(data, 3, DefaultTo.GREATER_EQUALS, 3, 4));
+    assertEquals(3, BinarySearch.binarySearch(data, 2, DefaultTo.GREATER_EQUALS, 3, 4));
+    assertEquals(3, BinarySearch.binarySearch(data, 4, DefaultTo.LESS_EQUALS, 3, 4));
+    assertEquals(3, BinarySearch.binarySearch(data, 4, DefaultTo.CLOSEST_VALUE, 3, 4));
+    assertEquals(3, BinarySearch.binarySearch(data, 2, DefaultTo.CLOSEST_VALUE, 3, 4));
+    assertEquals(3, BinarySearch.binarySearch(data, 3, DefaultTo.CLOSEST_VALUE, 3, 4));
+    assertEquals(-1, BinarySearch.binarySearch(data, 2, DefaultTo.LESS_EQUALS, 3, 4));
+    assertEquals(-1, BinarySearch.binarySearch(data, 4, DefaultTo.GREATER_EQUALS, 3, 4));
+    // empty from to range
+    assertEquals(-1, BinarySearch.binarySearch(data, 2, DefaultTo.GREATER_EQUALS, 3, 3));
+
+    final double[] data2 = new double[]{
+        // first list
+        381.4514740245013, 643.5060908298985, 1048.4363122015466,
+        // second list
+        356.21185091105644, 1237.2631353228137};
+
+    assertEquals(2,
+        BinarySearch.binarySearch(data2, 155.10211608911706, DefaultTo.CLOSEST_VALUE, 2, 3));
+    assertEquals(0,
+        BinarySearch.binarySearch(data2, 155.10211608911706, DefaultTo.CLOSEST_VALUE, 0, 3));
+    assertEquals(3,
+        BinarySearch.binarySearch(data2, 155.10211608911706, DefaultTo.CLOSEST_VALUE, 3, 5));
+
+    assertEquals(2,
+        BinarySearch.binarySearch(data2, 155.10211608911706, DefaultTo.GREATER_EQUALS, 2, 3));
+    assertEquals(0,
+        BinarySearch.binarySearch(data2, 155.10211608911706, DefaultTo.GREATER_EQUALS, 0, 3));
+    assertEquals(3,
+        BinarySearch.binarySearch(data2, 155.10211608911706, DefaultTo.GREATER_EQUALS, 3, 5));
+
+    assertEquals(2,
+        BinarySearch.binarySearch(data2, 1550.10211608911706, DefaultTo.LESS_EQUALS, 2, 3));
+    assertEquals(2,
+        BinarySearch.binarySearch(data2, 1550.10211608911706, DefaultTo.LESS_EQUALS, 0, 3));
+    assertEquals(4,
+        BinarySearch.binarySearch(data2, 1505.10211608911706, DefaultTo.LESS_EQUALS, 3, 5));
+
   }
 
   @Test
