@@ -75,13 +75,13 @@ class BinarySearchTest {
   @Test
   void binarySearchSize1() {
     double[] data = new double[]{5.5};
-    assertEquals(5.5, BinarySearch.binarySearch(data, 5.5, DefaultTo.CLOSEST_VALUE));
-    assertEquals(5.5, BinarySearch.binarySearch(data, 5.6, DefaultTo.CLOSEST_VALUE));
-    assertEquals(5.5, BinarySearch.binarySearch(data, 5.4, DefaultTo.CLOSEST_VALUE));
-    assertEquals(5.5, BinarySearch.binarySearch(data, 5.5, DefaultTo.LESS_EQUALS));
-    assertEquals(5.5, BinarySearch.binarySearch(data, 5.6, DefaultTo.LESS_EQUALS));
-    assertEquals(5.5, BinarySearch.binarySearch(data, 5.5, DefaultTo.GREATER_EQUALS));
-    assertEquals(5.5, BinarySearch.binarySearch(data, 5.4, DefaultTo.GREATER_EQUALS));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.5, DefaultTo.CLOSEST_VALUE));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.6, DefaultTo.CLOSEST_VALUE));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.4, DefaultTo.CLOSEST_VALUE));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.5, DefaultTo.LESS_EQUALS));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.6, DefaultTo.LESS_EQUALS));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.5, DefaultTo.GREATER_EQUALS));
+    assertEquals(0, BinarySearch.binarySearch(data, 5.4, DefaultTo.GREATER_EQUALS));
     assertEquals(-1, BinarySearch.binarySearch(data, 5.4, DefaultTo.LESS_EQUALS));
     assertEquals(-1, BinarySearch.binarySearch(data, 5.6, DefaultTo.GREATER_EQUALS));
   }
