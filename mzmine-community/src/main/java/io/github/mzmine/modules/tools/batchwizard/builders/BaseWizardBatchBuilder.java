@@ -1069,9 +1069,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(ImsExpanderParameters.useRawData, isNativeIms);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
-    param.setParameter(ImsExpanderParameters.mzTolerance, true);
-    param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
-        .setValue(mzTolScans);
+    param.setParameter(ImsExpanderParameters.mzTolerance, mzTolScans);
     param.setParameter(ImsExpanderParameters.mobilogramBinWidth, false);
     param.setParameter(ImsExpanderParameters.maxNumTraces, false);
 

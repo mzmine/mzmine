@@ -244,9 +244,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
     final ParameterSet expanderParameters = ConfigService.getConfiguration()
         .getModuleParameters(ImsExpanderModule.class).cloneParameterSet();
     expanderParameters.setParameter(ImsExpanderParameters.useRawData, false);
-    expanderParameters.getParameter(ImsExpanderParameters.mzTolerance).setValue(true);
-    expanderParameters.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
-        .setValue(mzTolerance);
+    expanderParameters.getParameter(ImsExpanderParameters.mzTolerance).setValue(mzTolerance);
     return expanderParameters;
   }
 

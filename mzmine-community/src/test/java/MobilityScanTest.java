@@ -42,6 +42,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
@@ -240,6 +241,9 @@ public class MobilityScanTest {
 
           Assertions.assertEquals(expectedMz, actualMz);
           Assertions.assertEquals(expectedIntensity, actualIntensity);
+
+          Assertions.assertEquals(mobScan.binarySearch(expectedMz, DefaultTo.CLOSEST_VALUE),
+              access.binarySearch(expectedMz, DefaultTo.CLOSEST_VALUE));
         }
       }
     }

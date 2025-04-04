@@ -24,8 +24,15 @@
 
 package integrationtest;
 
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
+import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.net.URL;
+import java.util.List;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,6 +46,8 @@ import testutils.MZmineTestUtil;
 
 @ExtendWith(MockitoExtension.class)
 public class IntegrationTests {
+
+  private static final Logger logger = Logger.getLogger(IntegrationTests.class.getName());
 
   /**
    * Tests must be run sequentially and mzmine core must be initialised.
@@ -151,5 +160,32 @@ public class IntegrationTests {
             .specLibsFullPath("spectral_libraries/integration_tests/lib_to_flist.json").build()
             .runBatchGetCheckResults(
                 "rawdatafiles/integration_tests/library_to_flist/expected_results.csv").size());
+  }
+
+  @Test
+  @DisabledOnOs({OS.LINUX, OS.MAC})
+  void timsFullBatch(@TempDir File tempDir) {
+    // only run the test on local machines
+    if (!new File("D:\\OneDrive - mzio GmbH").exists()) {
+      logger.info("Skipping tims full batch integration test.");
+      return;
+    }
+    Assertions.assertEquals(0,
+        IntegrationTest.builder("rawdatafiles/integration_tests/lc_tims", "lc_tims_local.mzbatch")
+            .tempDir(tempDir).build()
+            .runBatchGetCheckResults("rawdatafiles/integration_tests/lc_tims/expected_results.csv")
+            .size());
+
+//    ConfigService.getPreferences().setParameter(MZminePreferences.numOfThreads, 4);
+//    final File first = IntegrationTest.builder("rawdatafiles/integration_tests/lc_tims",
+//        "lc_tims_local_ims.mzbatch").tempDir(tempDir).build().runBatchGetCsvFile();
+//    ProjectService.getProject().removeFeatureLists(ProjectService.getProject()
+//        .getCurrentFeatureLists());
+//    ConfigService.getPreferences().setParameter(MZminePreferences.numOfThreads, 2);
+//    final File second = IntegrationTest.builder("rawdatafiles/integration_tests/lc_tims",
+//        "lc_tims_local_ims.mzbatch").tempDir(tempDir).build().runBatchGetCsvFile();
+//    final List<@NotNull CheckResult> results = IntegrationTestUtils.getCsvComparisonResults(first,
+//        second, "ims");
+//    Assertions.assertEquals(0, results.size());
   }
 }
