@@ -1152,7 +1152,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     groupMs2Params.setParameter(GroupMS2Parameters.minImsRawSignals, 2);
 
     final GroupMs2AdvancedParameters advanced = GroupMs2AdvancedParameters.create(
-        hasTims ? massDetectorOption.getMsnNoiseLevel() * 2 : null, hasTims ? 0.01 : null);
+        hasTims ? massDetectorOption.getMsnNoiseLevel() * 2 : null, hasTims ? 0.01 : null, null);
 
     groupMs2Params.setParameter(GroupMS2Parameters.advancedParameters, false);
     groupMs2Params.getParameter(GroupMS2Parameters.advancedParameters)
