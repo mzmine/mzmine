@@ -27,12 +27,14 @@ package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standard
 
 import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.util.CSVParsingUtils;
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -48,18 +50,9 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
   protected Logger logger = Logger.getLogger(this.getClass().getName());
 
   protected String filename;
+  private final InputStream inputStream;
 
   protected ArrayList<StandardsListItem> extractedData;
-
-  /**
-   * Creates the extractor
-   *
-   * @param filename csv filename
-   * @throws IOException exception thrown when issues opening given file occur
-   */
-  public UniversalCalibrantsListCsvExtractor(String filename) throws IOException {
-    this.filename = filename;
-  }
 
   /**
    * Creates the extractor
@@ -68,9 +61,11 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
    * @param inputStream input stream to use.
    * @throws IOException exception thrown when issues opening given file occur
    */
-  public UniversalCalibrantsListCsvExtractor(String filename, InputStream inputStream)
+  public UniversalCalibrantsListCsvExtractor(String filename, @NotNull InputStream inputStream)
       throws IOException {
     this.filename = filename;
+
+    this.inputStream = inputStream;
   }
 
   /**
@@ -88,30 +83,34 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
     }
     this.extractedData = new ArrayList<>();
 
-    List<String[]> lines = CSVParsingUtils.readData(new File(filename), ",");
-    for (String[] lineValues : lines) {
-      try {
-        String mzRatioString = lineValues[mzRatioColumn];
-        String name = nameColumn < lineValues.length ? lineValues[nameColumn] : null;
-        double mzRatio = Double.valueOf(mzRatioString);
-        StandardsListItem calibrant = new StandardsListItem(mzRatio);
-        if (name != null && name.trim().isEmpty() == false) {
-          calibrant.setName(name);
+    try (final BufferedReader bufferedReader = new BufferedReader(
+        new InputStreamReader(inputStream))) {
+      List<String[]> lines = CSVParsingUtils.readData(bufferedReader, ",");
+      for (String[] lineValues : lines) {
+        try {
+          String mzRatioString = lineValues[mzRatioColumn];
+          String name = nameColumn < lineValues.length ? lineValues[nameColumn] : null;
+          double mzRatio = Double.valueOf(mzRatioString);
+          StandardsListItem calibrant = new StandardsListItem(mzRatio);
+          if (name != null && name.trim().isEmpty() == false) {
+            calibrant.setName(name);
+          }
+          extractedData.add(calibrant);
+        } catch (Exception e) {
+          logger.fine(
+              "Exception occurred when reading row index %d. Will skip this row and continue parsing.".formatted(
+                  lines.indexOf(lineValues)));
+          logger.fine(e.toString());
         }
-        extractedData.add(calibrant);
-      } catch (Exception e) {
-        logger.fine(STR."Exception occurred when reading row index \{lines.indexOf(lineValues)}");
-        logger.fine(e.toString());
       }
-    }
 
-    logger.info(
-        STR."Extracted \{extractedData.size()} standard molecules from \{lines.size()} rows");
-    if (extractedData.size() < lines.size()) {
-      logger.warning(STR."Skipped \{lines.size()
-          - extractedData.size()} rows when reading standards list in csv file \{filename}");
+      logger.info("Extracted " + extractedData.size() + " standard molecules from " + lines.size()
+          + " rows");
+      if (extractedData.size() < lines.size()) {
+        logger.warning("Skipped " + (lines.size() - extractedData.size())
+            + " rows when reading standards list in csv file " + filename);
+      }
+      return new StandardsList(extractedData);
     }
-
-    return new StandardsList(extractedData);
   }
 }

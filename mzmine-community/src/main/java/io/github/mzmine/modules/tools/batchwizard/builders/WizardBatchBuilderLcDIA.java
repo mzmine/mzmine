@@ -72,7 +72,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
   private final Integer minCorrelatedPoints;
   private final Boolean exportAnnotationGraphics;
 
-  protected WizardBatchBuilderLcDIA(WizardSequence steps) {
+  public WizardBatchBuilderLcDIA(WizardSequence steps) {
     super(steps);
 
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.ION_INTERFACE);
@@ -133,12 +133,14 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddIinStep(q);
 
     // annotation
+    makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
     makeAndAddLipidAnnotationStep(q);
     // export
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
-        exportAnnotationGraphics);
+        exportAnnotationGraphics, mzTolScans);
+    makeAndAddBatchExportStep(q, isExportActive, exportPath);
     return q;
   }
 
@@ -152,8 +154,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     param.setParameter(DiaMs2CorrParameters.ms2ScanToScanAccuracy, mzTolScans);
     param.setParameter(DiaMs2CorrParameters.minMs1Intensity, minFeatureHeight);
     param.setParameter(DiaMs2CorrParameters.numCorrPoints, minCorrelatedPoints);
-    param.setParameter(DiaMs2CorrParameters.minMs2Intensity, Math.max(minFeatureHeight * 0.1,
-        massDetectorOption.getMs1NoiseLevel()));
+    param.setParameter(DiaMs2CorrParameters.minMs2Intensity,
+        Math.max(minFeatureHeight * 0.1, massDetectorOption.getMs1NoiseLevel()));
     param.setParameter(DiaMs2CorrParameters.ms2ScanSelection,
         new ScanSelection(MsLevelFilter.of(2)));
 
@@ -205,6 +207,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
 
   /**
    * Specific for dia wizard: use ms1 and ms2
+   *
    * @param q
    */
   protected void makeAndAddMobilityScanMergerStep(final BatchQueue q) {
@@ -213,7 +216,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
         .getModuleParameters(MobilityScanMergerModule.class).cloneParameterSet();
 
     param.setParameter(MobilityScanMergerParameters.mzTolerance, mzTolScans);
-    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection(MsLevelFilter.ALL_LEVELS));
+    param.setParameter(MobilityScanMergerParameters.scanSelection,
+        new ScanSelection(MsLevelFilter.ALL_LEVELS));
     param.setParameter(MobilityScanMergerParameters.noiseLevel,
         0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
     param.setParameter(MobilityScanMergerParameters.mergingType, IntensityMergingType.SUMMED);

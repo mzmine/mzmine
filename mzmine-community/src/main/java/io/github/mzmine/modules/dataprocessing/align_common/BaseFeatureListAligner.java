@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -68,6 +68,7 @@ public class BaseFeatureListAligner {
   private final String featureListName;
   private final MemoryMapStorage storage;
   private final FeatureRowAlignScorer rowAligner;
+  private final FeatureAlignmentPostProcessor postProcessor;
   private final FeatureCloner featureCloner;
   private final FeatureListRowSorter baseRowSorter;
   private final TotalFinishedItemsProgress progress = new TotalFinishedItemsProgress();
@@ -76,7 +77,7 @@ public class BaseFeatureListAligner {
   public BaseFeatureListAligner(final Task parentTask, final List<FeatureList> featureLists,
       final String featureListName, final @Nullable MemoryMapStorage storage,
       final FeatureRowAlignScorer rowAligner, final FeatureCloner featureCloner,
-      final FeatureListRowSorter baseRowSorter) {
+      final FeatureListRowSorter baseRowSorter, final @Nullable FeatureAlignmentPostProcessor postProcessor) {
 
     this.parentTask = parentTask;
     this.featureLists = featureLists;
@@ -85,6 +86,7 @@ public class BaseFeatureListAligner {
     this.rowAligner = rowAligner;
     this.featureCloner = featureCloner;
     this.baseRowSorter = baseRowSorter;
+    this.postProcessor = postProcessor;
   }
 
   /**
@@ -107,7 +109,7 @@ public class BaseFeatureListAligner {
 
     // Create a new aligned feature list based on the baseList and renumber IDs
     var alignedFeatureList = new ModularFeatureList(featureListName, storage, allDataFiles);
-    FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists);
+    FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists, true);
     FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
     FeatureListUtils.copyPeakListAppliedMethods(featureLists.getFirst(), alignedFeatureList);
     return alignedFeatureList;
@@ -134,6 +136,9 @@ public class BaseFeatureListAligner {
           final RawDataFile dataFile = feature.getRawDataFile();
           if (!alignedRow.hasFeature(dataFile)) {
             var newFeature = featureCloner.cloneFeature(feature, alignedFeatureList, alignedRow);
+            // very important to not trigger row bindings - GC-EI currently has features with different mz
+            // this is resolved later by a GCConsensunsPostProcessor
+            // row bindings are then updated at last
             alignedRow.addFeature(dataFile, newFeature, false);
             alignedRowsMap.put(row, true);
             alignedRows.getAndIncrement();
@@ -213,12 +218,18 @@ public class BaseFeatureListAligner {
       iteration++;
     }
 
-    // sort by RT and reset IDs
-    FeatureListUtils.sortByDefaultRT(alignedFeatureList, true);
+    // apply special handling - like GC-EI consensus feature finding
+    if (postProcessor != null) {
+      postProcessor.handlePostAlignment(alignedFeatureList);
+    }
 
-    // update row bindings
+    // first update row bindings
     alignedFeatureList.parallelStream().filter(row -> row.getNumberOfFeatures() > 1)
         .forEach(FeatureListRow::applyRowBindings);
+
+    // then sort by RT and reset IDs
+    FeatureListUtils.sortByDefaultRT(alignedFeatureList, true);
+
 
     // score alignment by the number of features that fall within the mz, RT, mobility range
     // do not apply all the advanced filters to keep it simple

@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarity;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
@@ -42,6 +43,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.similarity.impl.ms2deepscore.MS2DeepscoreModel;
 import java.io.File;
 import java.io.IOException;
@@ -64,6 +66,7 @@ public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
   private final double minScore;
   private final File ms2deepscoreModelFile;
   private final File ms2deepscoreSettingsFile;
+  private final FragmentScanSelection scanMergeSelect;
   private String description;
 
   /**
@@ -78,6 +81,10 @@ public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
     super(storage, moduleCallDate, mainParameters, moduleClass);
     var subParams = mainParameters.getEmbeddedParameterValue(
         MainSpectralNetworkingParameters.algorithms);
+
+    this.scanMergeSelect = subParams.getParameter(
+            MS2DeepscoreNetworkingParameters.spectraMergeSelect)
+        .createFragmentScanSelection(getMemoryMapStorage());
 
     this.featureLists = featureLists;
     // Get parameter values for easier use
@@ -116,17 +123,10 @@ public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
     List<FeatureListRow> featureListRows = new ArrayList<>();
 
     for (FeatureListRow row : featureList.getRows()) {
-      Scan scan = row.getMostIntenseFragmentScan();
-      if (scan == null) {
-        continue;
-      }
-      if (scan.getMassList() == null) {
-        throw new MissingMassListException(scan);
-      }
-
-      if (scan.getMassList().getNumberOfDataPoints() >= minSignals) {
-        // add scan here because the model needs precursor mz and scan polarity
-        // later it will extract mass list again for signals
+      // add scan here because the model needs precursor mz and scan polarity
+      // later it will extract mass list again for signals
+      final Scan scan = getScanAndApplyPrechecks(row, scanMergeSelect, minSignals);
+      if (scan != null) {
         scanList.add(scan);
         featureListRows.add(row);
       }
@@ -141,7 +141,7 @@ public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
     description = "Calculate MS2Deepscore similarity";
 //    Convert the similarity matrix to a R2RMap
     R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows,
-        similarityMatrix);
+        similarityMatrix, minScore, Type.MS2Deepscore);
     R2RNetworkingMaps rowMaps = featureList.getRowMaps();
     rowMaps.addAllRowsRelationships(relationsMap, Type.MS2Deepscore);
     // stats are currently only available for modified cosine
@@ -149,8 +149,32 @@ public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
 
   }
 
-  public R2RMap<R2RSimpleSimilarity> convertMatrixToR2RMap(List<FeatureListRow> featureListRow,
-      float[][] similarityMatrix) {
+  @Nullable
+  public static Scan getScanAndApplyPrechecks(final @NotNull FeatureListRow row,
+      final @NotNull FragmentScanSelection scanMergeSelect, final int minSignals) {
+    List<Scan> scans = scanMergeSelect.getAllFragmentSpectra(row);
+    if (scans.isEmpty()) {
+      return null;
+    }
+    // currently we are only considering one scan per row. otherwise the matrix operations need to be changed
+    final Scan scan = scans.getFirst();
+    if (scan.getPrecursorMz() == null) {
+      return null;
+    }
+
+    if (scan.getMassList() == null) {
+      throw new MissingMassListException(scan);
+    }
+
+    if (scan.getMassList().getNumberOfDataPoints() >= minSignals) {
+      return scan;
+    }
+    return null;
+  }
+
+  public static R2RMap<R2RSimpleSimilarity> convertMatrixToR2RMap(
+      List<FeatureListRow> featureListRow, float[][] similarityMatrix, double minScore,
+      RowsRelationship.Type rowsRelationshipType) {
     final R2RMap<R2RSimpleSimilarity> relationsMap = new R2RMap<>();
     for (int i = 0; i < featureListRow.size(); i++) {
       for (int j = 0; j < featureListRow.size(); j++) {
@@ -158,7 +182,7 @@ public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
           float similarityScore = similarityMatrix[i][j];
           if (similarityScore > minScore) {
             var r2r = new R2RSimpleSimilarity(featureListRow.get(i), featureListRow.get(j),
-                Type.MS2Deepscore, similarityScore);
+                rowsRelationshipType, similarityScore);
             relationsMap.add(featureListRow.get(i), featureListRow.get(j), r2r);
           }
         }

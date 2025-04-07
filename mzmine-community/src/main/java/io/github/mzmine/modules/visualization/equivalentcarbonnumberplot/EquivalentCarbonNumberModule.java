@@ -50,9 +50,8 @@ import org.jetbrains.annotations.Nullable;
  * This module is designed to plot Equivalent Carbon Number (ECN) models for feature lists after
  * they were annotated using
  * {@link
- * io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule}.
- * The ECN plot provides a visualization of lipid annotations based on their equivalent carbon
- * number.
+ * io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule}. The
+ * ECN plot provides a visualization of lipid annotations based on their equivalent carbon number.
  * <p>
  * The module extracts lipid annotations from the provided feature lists, groups them by lipid class
  * and number of DBEs and creates ECN plots for each group. If no lipid annotations are present, it
@@ -66,7 +65,7 @@ public class EquivalentCarbonNumberModule implements MZmineRunnableModule {
 
   @Override
   public @NotNull String getName() {
-    return "ECN Plot";
+    return "Lipid ECN (Equivalent Carbon Number) plot";
   }
 
   @Override
@@ -81,13 +80,16 @@ public class EquivalentCarbonNumberModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    FeatureList[] featureLists = parameters.getParameter(parameters.getParameter(LipidAnnotationParameters.featureLists)).getValue()
+    FeatureList[] featureLists = parameters.getParameter(
+            parameters.getParameter(LipidAnnotationParameters.featureLists)).getValue()
         .getMatchingFeatureLists();
     for (FeatureList featureList : featureLists) {
-      List<FeatureListRow> rowsWithLipidID = featureList.getRows().stream().filter(this::rowHasMatchedLipidSignals).toList();
+      List<FeatureListRow> rowsWithLipidID = featureList.getRows().stream()
+          .filter(this::rowHasMatchedLipidSignals).toList();
       if (!rowsWithLipidID.isEmpty()) {
         MZmineTab tab = new EquivalentCarbonNumberTab("ECN models for " + featureList.getName(),
             parameters, featureList);
@@ -95,7 +97,8 @@ public class EquivalentCarbonNumberModule implements MZmineRunnableModule {
       } else {
         Alert alert = new Alert(AlertType.WARNING);
         alert.setTitle("No Lipid Annotations found in " + featureList.getName());
-        alert.setContentText("No Lipid Annotations found in " + featureList.getName() + ". Did you run the Lipid Annotation module?");
+        alert.setContentText("No Lipid Annotations found in " + featureList.getName()
+                             + ". Did you run the Lipid Annotation module?");
         alert.showAndWait();
       }
     }

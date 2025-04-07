@@ -79,9 +79,8 @@ public class SubFormulaEdge {
       this.b = a;
     }
 
-    id = STR."\{nodeNameFormatter.format(
-        a.getPeakWithFormulae().peak().getMZ())}-\{nodeNameFormatter.format(
-        b.getPeakWithFormulae().peak().getMZ())}";
+    id = "%s-%s".formatted(nodeNameFormatter.format(a.getPeakWithFormulae().peak().getMZ()),
+        nodeNameFormatter.format(b.getPeakWithFormulae().peak().getMZ()));
 
 //    if (FormulaUtils.isSubFormula(a.getSelectedFormulaWithMz(), b.getSelectedFormulaWithMz())) {
 //      valid.set(true);
@@ -284,6 +283,6 @@ public class SubFormulaEdge {
 
   @Override
   public String toString() {
-    return STR."SubFormulaEdge{id='\{id}\{'\''}\{'}'}";
+    return "SubFormulaEdge{id='%s'}".formatted(id);
   }
 }

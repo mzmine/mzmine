@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
-          "size": 10466,
-          "sha512": "26a6e2ea8212c961a7ca8ef2b66436007d9a5df6ec2c8a148a029813e0fbeb46ec68524442ee347abfe68037b137bd014c21b520aa6e0aac14fb1ab4fa1d712e",
-          "sha256": "0c161b1a4cf854c803d52ecc42c567a6060c9d58ae52dcba427a65275910dcb6",
-          "sha1": "5394f2d8fbddc2d3c201de1a99ee90b67e95b471",
-          "md5": "1d0cb86958eaef8e63259b24e9976174"
+          "size": 13285,
+          "sha512": "340c6d8642281164bd0b30a846ddec5b7cfd537e2d31c34146e3b99a5957ad7322ec8ea2b569984773b4972eba2b37f0e3043cb475b70d65f8d37272379f2c95",
+          "sha256": "6ac96852f472d1374f7f96fee9dfa61278f956a7cf2121c0d2897a38b876aa0e",
+          "sha1": "c82c30cba496533c19c5c753e65fb3ecc60e727b",
+          "md5": "f993b632c6df5e32c6bc14cdf6e69ea2"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -50,6 +50,34 @@
           "module": "annotations",
           "version": {
             "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "org.controlsfx",
+          "module": "controlsfx",
+          "version": {
+            "requires": "11.1.1"
+          }
+        },
+        {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-javafx",
+          "version": {
+            "requires": "12.3.1"
+          }
+        },
+        {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-bootstrapicons-pack",
+          "version": {
+            "requires": "12.3.1"
+          }
+        },
+        {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-lineawesome-pack",
+          "version": {
+            "requires": "12.3.1"
           }
         },
         {
@@ -83,17 +111,59 @@
         {
           "group": "io.github.mzmine",
           "module": "utils"
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-base",
+          "version": {
+            "requires": "23.0.2"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-graphics",
+          "version": {
+            "requires": "23.0.2"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-controls",
+          "version": {
+            "requires": "23.0.2"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-fxml",
+          "version": {
+            "requires": "23.0.2"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-swing",
+          "version": {
+            "requires": "23.0.2"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-web",
+          "version": {
+            "requires": "23.0.2"
+          }
         }
       ],
       "files": [
         {
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
-          "size": 10466,
-          "sha512": "26a6e2ea8212c961a7ca8ef2b66436007d9a5df6ec2c8a148a029813e0fbeb46ec68524442ee347abfe68037b137bd014c21b520aa6e0aac14fb1ab4fa1d712e",
-          "sha256": "0c161b1a4cf854c803d52ecc42c567a6060c9d58ae52dcba427a65275910dcb6",
-          "sha1": "5394f2d8fbddc2d3c201de1a99ee90b67e95b471",
-          "md5": "1d0cb86958eaef8e63259b24e9976174"
+          "size": 13285,
+          "sha512": "340c6d8642281164bd0b30a846ddec5b7cfd537e2d31c34146e3b99a5957ad7322ec8ea2b569984773b4972eba2b37f0e3043cb475b70d65f8d37272379f2c95",
+          "sha256": "6ac96852f472d1374f7f96fee9dfa61278f956a7cf2121c0d2897a38b876aa0e",
+          "sha1": "c82c30cba496533c19c5c753e65fb3ecc60e727b",
+          "md5": "f993b632c6df5e32c6bc14cdf6e69ea2"
         }
       ]
     }

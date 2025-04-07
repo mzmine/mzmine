@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -46,6 +46,8 @@ public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters 
       "Minimum number of correlated points between MS1 and MS2 ions for pearson correlation.", 5, 3,
       Integer.MAX_VALUE);
 
+  public static final BooleanParameter applySpectralNetworking = WorkflowDdaWizardParameters.applySpectralNetworking.cloneParameter();
+
   public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
       true);
   public static final BooleanParameter exportGnps = new BooleanParameter(
@@ -62,19 +64,21 @@ public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters 
 
 
   public WorkflowDiaWizardParameters() {
-    super(WorkflowWizardParameterFactory.DIA,
+    super(new WorkflowDIA(),
         // actual parameters
-        minPearson, minCorrelatedPoints, exportPath, exportGnps, exportSirius,
-        exportAnnotationGraphics);
+        minPearson, minCorrelatedPoints, applySpectralNetworking, exportPath, exportGnps,
+        exportSirius, exportAnnotationGraphics);
   }
 
 
   public WorkflowDiaWizardParameters(final double minPearsonCorrelation, final int minPoints,
-      final boolean exportActive, final File exportBasePath, final boolean exportGnpsActive,
-      boolean exportSiriusActive, boolean exportAnnotationGraphicsActive) {
+      final boolean applyNetworking, final boolean exportActive, final File exportBasePath,
+      final boolean exportGnpsActive, boolean exportSiriusActive,
+      boolean exportAnnotationGraphicsActive) {
     this();
     setParameter(minPearson, minPearsonCorrelation);
     setParameter(minCorrelatedPoints, minPoints);
+    setParameter(applySpectralNetworking, applyNetworking);
     setParameter(exportPath, exportActive);
     getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
     setParameter(exportGnps, exportGnpsActive);

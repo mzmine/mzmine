@@ -28,8 +28,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.io;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 
@@ -56,9 +55,9 @@ public class ProjectMetadataExportParameters extends SimpleParameterSet {
     }
   }
 
-  public static final FileNameParameter fileName = new FileNameParameter("Metadata file", """
-      CSV or TSV file to save metadata to.""", ExtensionFilters.CSV_TSV_EXPORT,
-      FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter fileName = new FileNameSuffixExportParameter(
+      "Metadata file", """
+      CSV or TSV file to save metadata to.""", ExtensionFilters.CSV_TSV_EXPORT, "metadata");
 
   public static final ComboParameter<MetadataFileFormat> format = new ComboParameter<>("Format",
       "Format to export the metadata in", MetadataFileFormat.values(), MetadataFileFormat.DEFAULT);
@@ -67,9 +66,14 @@ public class ProjectMetadataExportParameters extends SimpleParameterSet {
     super(fileName, format);
   }
 
-  public static ParameterSet create(final File file, final MetadataFileFormat mFormat) {
+  public static ParameterSet create(final File file, final boolean appendSuffix,
+      final MetadataFileFormat mFormat) {
     ParameterSet params = new ProjectMetadataExportParameters().cloneParameterSet();
-    params.setParameter(fileName, file);
+    if (appendSuffix) {
+      params.getParameter(fileName).setValueAppendSuffix(file, null);
+    } else {
+      params.setParameter(fileName, file);
+    }
     params.setParameter(format, mFormat);
     return params;
   }

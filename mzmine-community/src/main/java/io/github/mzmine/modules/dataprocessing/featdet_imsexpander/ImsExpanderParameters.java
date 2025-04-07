@@ -41,16 +41,17 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import java.util.Collection;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ImsExpanderParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final OptionalParameter<MZToleranceParameter> mzTolerance = new OptionalParameter<>(
-      new MZToleranceParameter("m/z tolerance",
-          "m/z tolerance for peaks in the mobility dimension. If enabled, the given "
-              + "tolerance will be applied to the feature m/z. If disabled, the m/z range of the "
-              + "feature's data points will be used as a tolerance range."));
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
+      """
+          m/z tolerance for peaks in the mobility dimension. The given tolerance will be applied to the feature m/z.
+          Default = 0.005 m/z and 20 ppm.
+          """, 0.005, 20);
 
   public static final OptionalParameter<DoubleParameter> useRawData = new OptionalParameter<>(
       new DoubleParameter("Raw data instead of thresholded",
@@ -66,7 +67,6 @@ public class ImsExpanderParameters extends SimpleParameterSet {
               + "The mobility binning width in scans. (high mobility resolutions "
               + "in TIMS might require a higher bin width to achieve a constant ion current for a "
               + "mobilogram.", 1, true), false);
-
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = //
       new OriginalFeatureListHandlingParameter(false);
@@ -122,7 +122,21 @@ public class ImsExpanderParameters extends SimpleParameterSet {
   public Map<String, Parameter<?>> getNameParameterMap() {
 
     final Map<String, Parameter<?>> map = super.getNameParameterMap();
-    map.put("Override default mobility bin witdh (scans)", ImsExpanderParameters.mobilogramBinWidth);
+    map.put("Override default mobility bin witdh (scans)",
+        getParameter(ImsExpanderParameters.mobilogramBinWidth));
     return map;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 -> "The previously optional m/z range parameter in the IMS expander is not optional anymore and must be specified now.";
+      default -> null;
+    };
   }
 }

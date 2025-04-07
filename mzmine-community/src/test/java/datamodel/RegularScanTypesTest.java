@@ -74,6 +74,7 @@ import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpec
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -245,7 +246,7 @@ public class RegularScanTypesTest {
     Map<DBEntryField, Object> map = Map.of(DBEntryField.ENTRY_ID, "123swd", DBEntryField.CAS,
         "468-531-21", DBEntryField.DATA_COLLECTOR, "Dr. Xy", DBEntryField.CHARGE, 1);
 
-    SpectralLibraryEntry entry = SpectralLibraryEntry.create(null, map,
+    SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(null, map,
         ScanUtils.extractDataPoints(library));
 
     SpectralSimilarity similarity = simFunc.getSimilarity(new MZTolerance(0.005, 15), 0,

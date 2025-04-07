@@ -29,6 +29,7 @@ import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsSpectrumType;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -37,6 +38,7 @@ import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -63,6 +65,8 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorEl
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
+import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -304,7 +308,7 @@ public class ConversionUtils {
     Double isolationMz = null;
     Double precursorMz = null;
     Integer charge = null;
-    Float colissionEnergy = null;
+    Float collissionEnergy = null;
     for (MzMLPrecursorElement precursorElement : precursorList.getPrecursorElements()) {
       Optional<MzMLPrecursorSelectedIonList> selectedIonList = precursorElement.getSelectedIonList();
       if (selectedIonList.isPresent()) {
@@ -341,24 +345,23 @@ public class ConversionUtils {
       if (activation != null) {
         for (MzMLCVParam param : activation.getCVParamsList()) {
           if (param.getAccession().equals(MzMLCV.cvActivationEnergy)) {
-            colissionEnergy = Float.parseFloat(param.getValue().get());
+            collissionEnergy = Float.parseFloat(param.getValue().get());
           }
         }
       }
-      if (lowerWindow != null && upperWindow != null && isolationMz != null
-          && colissionEnergy != null) {
+      if (lowerWindow != null && upperWindow != null && isolationMz != null) {
         boolean infoFound = false;
         for (BuildingImsMsMsInfo buildingInfo : buildingInfos) {
           if (Double.compare(Objects.requireNonNullElse(precursorMz, isolationMz),
-              buildingInfo.getPrecursorMz()) == 0
-              && Float.compare(colissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
+              buildingInfo.getPrecursorMz()) == 0 && collisionEnergyCheck(buildingInfo,
+              collissionEnergy)) {
             buildingInfo.setLastSpectrumNumber(currentScanNumber);
             infoFound = true;
           }
         }
         if (!infoFound) {
           BuildingImsMsMsInfo info = new BuildingImsMsMsInfo(
-              Objects.requireNonNullElse(precursorMz, isolationMz), colissionEnergy,
+              Objects.requireNonNullElse(precursorMz, isolationMz), collissionEnergy,
               Objects.requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
               currentScanNumber);
           info.setLowerIsolationMz(isolationMz - lowerWindow);
@@ -367,6 +370,20 @@ public class ConversionUtils {
         }
       }
     }
+  }
+
+  private static boolean collisionEnergyCheck(BuildingImsMsMsInfo buildingInfo,
+      Float collissionEnergy) {
+    if (collissionEnergy == null && buildingInfo.getCollisionEnergy() == null) {
+      return true;
+    }
+    if (collissionEnergy == null || buildingInfo.getCollisionEnergy() == null) {
+      return false;
+    }
+    if (Float.compare(collissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -403,15 +420,19 @@ public class ConversionUtils {
         for (MzMLChromatogram chrom : unitChromEntry.getValue()) {
           if (chrom.getNumberOfDataPoints() == 0) {
             // drop empty chromatograms
-            logger.finest(
-                () -> "%s: Empty chromatogram %s imported. Will be skipped.".formatted(
-                    file.getName(), chrom.getId()));
+            logger.finest(() -> "%s: Empty chromatogram %s imported. Will be skipped.".formatted(
+                file.getName(), chrom.getId()));
             continue;
           }
 
+          // intermediate filtering to remove duplicates from traces. Why is this even necessary?
+          final List<DataPoint> dps = removeDuplicateRtDataPoints(file, chrom);
+
           final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
-              file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
-              chrom.getId(), timeSeriesData);
+              file.getMemoryMapStorage(), ConversionUtils.convertDoublesToFloats(
+              dps.stream().mapToDouble(DataPoint::getMZ).toArray()),
+              dps.stream().mapToDouble(DataPoint::getIntensity).toArray(), chrom.getId(),
+              timeSeriesData);
 
           final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
           timeSeriesData.addRawTrace(otherFeature);
@@ -434,6 +455,28 @@ public class ConversionUtils {
     }
 
     return otherFiles;
+  }
+
+  /**
+   * Apparently it is not guaranteed that data points are unique or sorted. So we do that here.
+   */
+  private static @NotNull List<DataPoint> removeDuplicateRtDataPoints(RawDataFile file,
+      MzMLChromatogram chrom) {
+    final List<DataPoint> dps = new ArrayList<>();
+    final float[] rts = chrom.getRetentionTimes();
+    final double[] intensities = chrom.getIntensities();
+    for (int i = 0; i < chrom.getNumberOfDataPoints(); i++) {
+      dps.add(new SimpleDataPoint(rts[i], intensities[i]));
+    }
+    dps.sort(DataPointSorter.DEFAULT_MZ_ASCENDING);
+    final int before = dps.size();
+    CollectionUtils.dropDuplicatesRetainOrder(dps);
+    if (before != dps.size()) {
+      logger.info(
+          "%s - dropped %d duplicate values from chromatogram trace %s".formatted(file.getName(),
+              dps.size(), chrom.getId()));
+    }
+    return dps;
   }
 
   /**

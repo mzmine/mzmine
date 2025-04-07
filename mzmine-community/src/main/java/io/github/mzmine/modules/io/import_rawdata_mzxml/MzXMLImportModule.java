@@ -27,7 +27,6 @@ package io.github.mzmine.modules.io.import_rawdata_mzxml;
 
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -38,11 +37,9 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -112,21 +109,10 @@ public class MzXMLImportModule implements MZmineProcessingModule {
         newName = fileNames[i].getName();
       }
 
-      try {
-        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName,
-            fileNames[i].getAbsolutePath(), storage);
-        Task newTask = new MzXMLImportTask(project, fileNames[i], newMZmineFile,
-            ScanImportProcessorConfig.createDefault(), MzXMLImportModule.class, parameters,
-            moduleCallDate, storage);
-        tasks.add(newTask);
-      } catch (IOException e) {
-        e.printStackTrace();
-        MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e);
-        logger.log(Level.SEVERE, "Could not create a new temporary file ", e);
-        return ExitCode.ERROR;
-      }
-
-
+      Task newTask = new MzXMLImportTask(project, fileNames[i],
+          ScanImportProcessorConfig.createDefault(), MzXMLImportModule.class, parameters,
+          moduleCallDate, storage);
+      tasks.add(newTask);
     }
 
     return ExitCode.OK;

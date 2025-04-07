@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_all;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -35,15 +36,16 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This import task wraps other data import tasks that do not support application of mass detection
  * during data import. This task calls the data import and applies mass detection afterwards.
  */
-public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
+public class MsDataImportAndMassDetectWrapperTask extends AbstractTask implements
+    RawDataImportTask {
 
-  private final RawDataFile newMZmineFile;
-  private final AbstractTask importTask;
+  private final RawDataImportTask importTask;
   private final ScanImportProcessorConfig scanProcessorConfig;
 
   private int totalScans = 1;
@@ -56,24 +58,21 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
    *
    * @param storageMassLists    data storage for mass lists (usually different to that of the data
    *                            file
-   * @param newMZmineFile       the resulting data file
    * @param importTask          the data import task (that does not support the advanced import
    *                            option to directly centroid/threshold)
    * @param scanProcessorConfig control processing
    */
   public MsDataImportAndMassDetectWrapperTask(MemoryMapStorage storageMassLists,
-      RawDataFile newMZmineFile, AbstractTask importTask,
+      RawDataImportTask importTask,
       @NotNull ScanImportProcessorConfig scanProcessorConfig, @NotNull Instant moduleCallDate) {
     super(storageMassLists, moduleCallDate);
-    this.newMZmineFile = newMZmineFile;
     this.importTask = importTask;
     this.scanProcessorConfig = scanProcessorConfig;
   }
 
   @Override
   public String getTaskDescription() {
-    return importTask.isFinished() || importTask.isCanceled() ? "Applying mass detection on "
-                                                                + newMZmineFile.getName()
+    return importTask.isFinished() || importTask.isCanceled() ? "Applying mass detection."
         : importTask.getTaskDescription();
   }
 
@@ -98,7 +97,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
 
       // should be in the new data file
       if (importTask.isFinished()) {
-        totalScans = newMZmineFile.getNumOfScans();
+        totalScans = importTask.getImportedRawDataFile().getNumOfScans();
 
         if (!applyMassDetection()) {
           // cancelled
@@ -126,9 +125,10 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
       return true;
     }
 
-    totalScans = newMZmineFile.getNumOfScans();
+    final RawDataFile importedFile = importTask.getImportedRawDataFile();
+    totalScans = importedFile.getNumOfScans();
 
-    for (Scan scan : newMZmineFile.getScans()) {
+    for (Scan scan : importedFile.getScans()) {
       if (isCanceled() || (importTask != null && importTask.isCanceled())) {
         return false;
       }
@@ -145,4 +145,8 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
   }
 
 
+  @Override
+  public @Nullable RawDataFile getImportedRawDataFile() {
+    return importTask.getImportedRawDataFile();
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,13 +50,14 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.collections.StreamUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.Combinatorics;
 import java.text.MessageFormat;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -167,17 +168,12 @@ public class NoPrecursorCosineSpectralNetworkingTask extends AbstractFeatureList
 
   @NotNull
   private List<FilteredRowData> prepareRowBestSpectrum(final List<FeatureListRow> rows) {
-    // required
-    rows.sort(FeatureListRowSorter.MZ_ASCENDING);
+    // sorting required but use stream to leave original row order
     // prefilter rows: has MS2 and in case only best MS2 is considered - check minDP
     // and prepare data points
-    List<FilteredRowData> filteredRows = new ArrayList<>();
-    for (FeatureListRow row : rows) {
-      FilteredRowData data = getDataAndFilter(row, row.getMostIntenseFragmentScan(), minMatch);
-      if (data != null) {
-        filteredRows.add(data);
-      }
-    }
+    List<FilteredRowData> filteredRows = rows.stream().sorted(FeatureListRowSorter.MZ_ASCENDING)
+        .map(row -> getDataAndFilter(row, row.getMostIntenseFragmentScan(), minMatch))
+        .filter(Objects::nonNull).collect(CollectionUtils.toArrayList());
     return filteredRows;
   }
 

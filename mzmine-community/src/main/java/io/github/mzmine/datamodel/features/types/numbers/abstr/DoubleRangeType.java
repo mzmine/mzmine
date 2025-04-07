@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,7 +50,7 @@ public abstract class DoubleRangeType extends NumberRangeType<Double> {
 
   @Override
   public Class<Range<Double>> getValueClass() {
-    return (Class)Range.class;
+    return (Class) Range.class;
   }
 
   @Override
@@ -64,8 +64,8 @@ public abstract class DoubleRangeType extends NumberRangeType<Double> {
       writer.writeCharacters(ParsingUtils.rangeToString(r));
     } else {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
-              .getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+          + value.getClass());
     }
   }
 
@@ -106,7 +106,7 @@ public abstract class DoubleRangeType extends NumberRangeType<Double> {
               if (sum == null) {
                 sum = range;
               } else {
-                sum.span(range);
+                sum = sum.span(range);
               }
             }
           }

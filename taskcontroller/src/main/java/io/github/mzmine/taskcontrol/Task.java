@@ -25,7 +25,6 @@
 
 package io.github.mzmine.taskcontrol;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -39,6 +38,7 @@ public interface Task extends Runnable {
 
   TaskStatus getStatus();
 
+  void setStatus(TaskStatus newStatus);
 
   /**
    * Convenience method for determining if this task has been canceled. Also returns true if the
@@ -70,7 +70,7 @@ public interface Task extends Runnable {
     this.error(message, null);
   }
 
-  void error(@NotNull String message, @Nullable Exception exceptionToLog);
+  void error(@Nullable String message, @Nullable Exception exceptionToLog);
 
   String getErrorMessage();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -502,6 +502,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     if (flist == null) {
       return;
     }
+
+    // useful for debugging and seeing how many cells are empty / full
+    // logTableFillingRatios(flist);
+
     //    logger.info("Adding columns to table");
     // for all data columns available in "data"
     assert flist instanceof ModularFeatureList : "Feature list is not modular";
@@ -533,6 +537,26 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       addColumn(rowCol, DataTypes.get(FeaturesType.class));
     }
 
+  }
+
+  private static void logTableFillingRatios(final FeatureList flist) {
+    long rowValues = flist.getRowTypes().stream().mapToLong(
+        type -> flist.stream().map(row -> row.get(type)).filter(Objects::nonNull).count()).sum();
+    long featureValues = flist.getFeatureTypes().stream().mapToLong(
+            type -> flist.streamFeatures().map(f -> f.get(type)).filter(Objects::nonNull).count())
+        .sum();
+
+    long totalRowCells = (long) flist.getRowTypes().size() * flist.getNumberOfRows();
+    long totalFeatureCells = (long) flist.getFeatureTypes().size() * flist.streamFeatures().count();
+
+    logger.fine("""
+        Fill stats:
+        Row cells (%d types): %d / %d (%.1f)
+        Feature cells (%d types): %d / %d (%.1f)""".formatted( //
+        flist.getRowTypes().size(), rowValues, totalRowCells,
+        (rowValues / (double) totalRowCells) * 100, //
+        flist.getFeatureTypes().size(), featureValues, totalFeatureCells,
+        (featureValues / (double) totalFeatureCells) * 100));
   }
 
   private void sortColumn(final TreeTableColumn<ModularFeatureListRow, String> parentColumn) {
@@ -914,7 +938,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     Set<ModularFeature> features = new LinkedHashSet<>();
     selectedCells.forEach(cell -> {
       // get file of the selected column
-      if(cell == null) {
+      if (cell == null) {
         return;
       }
       ColumnID id = newColumnMap.get(cell.getTableColumn());

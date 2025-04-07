@@ -40,17 +40,17 @@ import java.util.Optional;
 
 public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
 
-  private final Range<Double> cropRtRange;
-  private final RTTolerance intraSampleRtTol;
-  private final RTTolerance interSampleRtTol;
-  private final Integer minRtDataPoints;
-  private final Integer maxIsomersInRt;
-  private final RTTolerance rtFwhm;
-  private final Boolean stableIonizationAcrossSamples;
-  private final Boolean rtSmoothing;
-  private final Boolean applySpectralNetworking;
-  private final File exportPath;
-  private final boolean isExportActive;
+  protected final Range<Double> cropRtRange;
+  protected final RTTolerance intraSampleRtTol;
+  protected final RTTolerance interSampleRtTol;
+  protected final Integer minRtDataPoints;
+  protected final Integer maxIsomersInRt;
+  protected final RTTolerance rtFwhm;
+  protected final Boolean stableIonizationAcrossSamples;
+  protected final Boolean rtSmoothing;
+  protected final Boolean applySpectralNetworking;
+  protected final File exportPath;
+  protected final boolean isExportActive;
 
   public WizardBatchBuilderLcDDA(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -120,7 +120,8 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     }
 
     // export
-    makeAndAddDdaExportSteps(q, steps);
+    makeAndAddDdaExportSteps(q, steps, mzTolScans);
+    makeAndAddBatchExportStep(q, isExportActive, exportPath);
     return q;
   }
 

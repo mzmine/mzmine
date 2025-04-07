@@ -67,7 +67,6 @@ public class NetworkOverviewController {
   public ToggleSwitch cbBindToExternalTable;
   public BorderPane pnNetwork;
   public Tab tabAnnotations;
-  public Tab tabLipidAnnotations;
   public Tab tabSimilarity;
   public Tab tabAllMs2;
   public Tab tabNodes;
@@ -114,24 +113,24 @@ public class NetworkOverviewController {
     // create annotations tab
     spectralMatchesController = new SpectraIdentificationResultsWindowFX(internalTable);
     CompoundDatabaseMatchTab compoundMatchController = new CompoundDatabaseMatchTab(internalTable);
-    LipidAnnotationMatchTabOld lipidAnnotationMatchTabOld = new LipidAnnotationMatchTabOld(
-        internalTable);
 
     // create mirror scan tab
     var mirrorScanTab = new MirrorScanWindowFXML();
     MirrorScanWindowController mirrorScanController = mirrorScanTab.getController();
+
+    LipidAnnotationMatchTabOld lipidAnnotationMatchTabOld = new LipidAnnotationMatchTabOld(
+        internalTable);
 
     // set content to panes
     // tabEdges.
 
     tabSimilarity.setContent(mirrorScanController.getMainPane());
     tabAnnotations.setContent(gridAnnotations);
-    tabLipidAnnotations.setContent(lipidAnnotationMatchTabOld.getContent());
     tabAllMs2.setContent(allMs2Pane);
 
     // all content that listens to selected feature changes
-    featureRowInterfaces = List.of(spectralMatchesController, compoundMatchController,
-        lipidAnnotationMatchTabOld, allMs2Pane, mirrorScanController);
+    featureRowInterfaces = List.of(spectralMatchesController, compoundMatchController, allMs2Pane,
+        mirrorScanController, lipidAnnotationMatchTabOld);
     // only annotation interfaces to control visibility
     annotationInterfaces = List.of(spectralMatchesController, compoundMatchController,
         lipidAnnotationMatchTabOld);
@@ -139,8 +138,7 @@ public class NetworkOverviewController {
 
     // add callbacks
     weak.addListChangeListener(networkController,
-        networkController.getNetworkPane().getSelectedNodes(),
-        c -> handleSelectedNodesChanged(c));
+        networkController.getNetworkPane().getSelectedNodes(), c -> handleSelectedNodesChanged(c));
 
     // set focussed rows last
     if (focussedRows != null) {
@@ -154,11 +152,11 @@ public class NetworkOverviewController {
     gridAnnotations.getChildren().clear();
     List<RowConstraints> rows = new ArrayList<>();
     for (final FeatureRowInterfaceFx inter : annotationInterfaces) {
-      if (inter.isEmptyContent()) {
+      if (inter.isEmptyContent() || !(inter instanceof Tab tab)) {
         continue;
       }
 
-      gridAnnotations.add(spectralMatchesController.getContent(), 0, rows.size());
+      gridAnnotations.add(tab.getContent(), 0, rows.size());
       RowConstraints row = new RowConstraints();
       row.setFillHeight(true);
       row.setVgrow(Priority.SOMETIMES);
@@ -190,14 +188,14 @@ public class NetworkOverviewController {
     var tabController = tempTab.getController();
     weak.addListChangeListener(networkController,
         networkController.getNetworkPane().getVisibleRows(), c -> {
-      if (weak.isDisposed()) {
-        return;
-      }
-      ObservableList<? extends FeatureListRow> visible = c.getList();
-      tabController.getIdSearchField().setText(
-          visible.stream().map(FeatureListRow::getID).map(Object::toString)
-              .collect(Collectors.joining(",")));
-    });
+          if (weak.isDisposed()) {
+            return;
+          }
+          ObservableList<? extends FeatureListRow> visible = c.getList();
+          tabController.getIdSearchField().setText(
+              visible.stream().map(FeatureListRow::getID).map(Object::toString)
+                  .collect(Collectors.joining(",")));
+        });
   }
 
 

@@ -39,6 +39,7 @@ public class ExtensionFilters {
   public static final ExtensionFilter MZ_BATCH = new ExtensionFilter("mzmine batch", "*.mzbatch");
   public static final ExtensionFilter MZ_WIZARD = new ExtensionFilter("mzmine mzwizard",
       "*.mzmwizard");
+  public static final ExtensionFilter MZ_LOG = new ExtensionFilter("mzmine log file", "*.log");
 
   /**
    * PyTorch DJL specific
