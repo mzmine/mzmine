@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,24 +25,15 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
-import org.jetbrains.annotations.NotNull;
-
-import java.text.NumberFormat;
-import java.util.List;
-
 import static io.github.mzmine.datamodel.features.types.DataTypes.get;
-import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.AVERAGE;
 import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.MIN;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Retention index type
- * This is frequently rounded, because everyone uses rounded versions
- * Rounding is therefore necessary for the endpoints of ranges to be placed at integer values
  */
 public class RIMinType extends RIType {
 
@@ -50,20 +41,18 @@ public class RIMinType extends RIType {
   @Override
   public String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "ri_min";
+    return "retention_index_min";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Min RI";
+    return "RI (min)";
   }
 
   @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
-    return List.of(
-      new SimpleRowBinding(this, get(RIType.class), MIN)
-    );
+    return List.of(new SimpleRowBinding(this, get(RIType.class), MIN));
   }
 
 

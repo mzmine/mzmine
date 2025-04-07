@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,43 +25,29 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
+import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.AVERAGE;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
-import org.jetbrains.annotations.NotNull;
-
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.*;
-import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.MIN;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Retention index type
- * This is frequently rounded, because everyone uses rounded versions
- * Rounding is therefore necessary for the endpoints of ranges to be placed at integer values
  */
 public class RIType extends FloatType {
 
   public RIType() {
-    super(new DecimalFormat("0"));
+    super(new DecimalFormat("0.##"));
   }
 
   @NotNull
   @Override
   public String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "ri";
+    return "retention_index";
   }
 
   @Override
@@ -90,28 +76,4 @@ public class RIType extends FloatType {
     return true;
   }
 
-  @Override
-  public Object evaluateBindings(@NotNull BindingsType bindingsType, @NotNull List<? extends ModularDataModel> models) {
-    switch (bindingsType) {
-      case AVERAGE: {
-        // calc average center of ranges
-        float mean = 0.0f;
-        int c = 0;
-        for (var model : models) {
-          Float value = model.get(this);
-          if (value != null) {
-            mean += value;
-            c++;
-          }
-        }
-        return c == 0 ? null : mean / (float) c;
-      }
-      case RANGE:
-        Float max = (Float) evaluateBindings(MAX, models);
-        Float min = (Float) evaluateBindings(MIN, models);
-        return (max != null && min != null) ? max - min : null;
-      default:
-        return super.evaluateBindings(bindingsType, models);
-    }
-  }
 }

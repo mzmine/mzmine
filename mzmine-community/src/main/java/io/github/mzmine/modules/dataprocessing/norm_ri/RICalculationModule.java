@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,42 +26,31 @@
 package io.github.mzmine.modules.dataprocessing.norm_ri;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationParameters;
-import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationTask;
 import io.github.mzmine.modules.impl.TaskPerFeatureListModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Instant;
-
-/**
- * A Module creates tasks which are then added queue
- * <p>
- * 1. add your module to the io.github.mzmine.gui.mainwindow.MainMenu.fmxl
- * <p>
- * 2. for access in batch mode, put your module in the BatchModeModulesList in the package:
- * io.github.mzmine.main
- */
 public class RICalculationModule extends TaskPerFeatureListModule {
 
   public RICalculationModule() {
-    super("Retention index calculation", RICalculationParameters.class, MZmineModuleCategory.NORMALIZATION,
-        false,
+    super("Retention index calculation", RICalculationParameters.class,
+        MZmineModuleCategory.NORMALIZATION, false,
         "This module calculates the Kovats retention indices for gas chromatography.");
   }
 
   @Override
   public @NotNull Task createTask(final @NotNull MZmineProject project,
-                                  final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
-                                  @Nullable final MemoryMapStorage storage, @NotNull final FeatureList featureList) {
-    return new RICalculationTask(project, storage, moduleCallDate, parameters, (ModularFeatureList) featureList, this.getClass());
+      final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
+      @Nullable final MemoryMapStorage storage, @NotNull final FeatureList featureList) {
+    return new RICalculationTask(project, storage, moduleCallDate, parameters,
+        (ModularFeatureList) featureList, this.getClass());
   }
 
 }

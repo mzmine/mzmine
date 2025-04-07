@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,16 +26,15 @@
 package io.github.mzmine.modules.dataprocessing.norm_ri;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.opencsv.CSVReader;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.annotations.RIScaleType;
-import io.github.mzmine.datamodel.features.types.numbers.RIMinType;
-import io.github.mzmine.datamodel.features.types.numbers.RIMaxType;
 import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
+import io.github.mzmine.datamodel.features.types.numbers.RIMaxType;
+import io.github.mzmine.datamodel.features.types.numbers.RIMinType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
@@ -47,17 +46,20 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.date.LocalDateParser;
 import io.github.mzmine.util.io.CsvReader;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
-import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -81,8 +83,8 @@ public class RICalculationTask extends AbstractFeatureListTask {
 
 
   public RICalculationTask(MZmineProject project, @Nullable MemoryMapStorage storage,
-                           @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
-                           @NotNull ModularFeatureList featureList, @NotNull Class<? extends MZmineModule> moduleClass) {
+      @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
+      @NotNull ModularFeatureList featureList, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.project = project;
     this.metadataTable = project.getProjectMetadata();
@@ -95,40 +97,37 @@ public class RICalculationTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    linearScales = new ArrayList<>(Arrays.stream(parameters.getValue(RICalculationParameters.alkaneFiles))
-        .sequential()
-        .map(this::processLadder)
-        .filter(Objects::nonNull)
-        .toList());
+    linearScales = new ArrayList<>(
+        Arrays.stream(parameters.getValue(RICalculationParameters.alkaneFiles)).sequential()
+            .map(this::processLadder).filter(Objects::nonNull).toList());
     linearScales.sort(Comparator.comparing(RIScale::date).reversed());
 
     ModularFeatureList processedList = processFeatureList(featureList);
 
-    handleOriginal.reflectNewFeatureListToProject(suffix, project, processedList,
-        featureList);
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, processedList, featureList);
     setStatus(TaskStatus.FINISHED);
 
   }
 
   record RIScaleEntry(@JsonProperty("Carbon #") int nCarbons, @JsonProperty("RT") float rt) {
+
   }
 
   protected RIScale processLadder(File file) {
     if (file.exists() && file.canRead()) {
       try {
         String fileName = file.getAbsolutePath();
-        LocalDate date = LocalDateParser.parseAnyEndingDate(FilenameUtils.removeExtension(fileName));
+        LocalDate date = LocalDateParser.parseAnyEndingDate(
+            FilenameUtils.removeExtension(fileName));
 
         if (date == null || fileName == null) {
           return null;
         }
-        final List<RIScaleEntry> entries = CsvReader.readToList(file,
-            RIScaleEntry.class, ',');
+        final List<RIScaleEntry> entries = CsvReader.readToList(file, RIScaleEntry.class, ',');
 
         PolynomialSplineFunction interpolator = new LinearInterpolator().interpolate(
             entries.stream().mapToDouble(entry -> (double) entry.rt()).toArray(),
-            entries.stream().mapToDouble(entry -> (double) entry.nCarbons() * 100).toArray()
-        );
+            entries.stream().mapToDouble(entry -> (double) entry.nCarbons() * 100).toArray());
 
         return new RIScale(date, fileName, interpolator);
       } catch (Exception e) {
@@ -140,22 +139,29 @@ public class RICalculationTask extends AbstractFeatureListTask {
 
   protected ModularFeatureList processFeatureList(final ModularFeatureList featureList) {
     if (featureList != null && featureList.hasFeatureType(RTType.class)) {
-      ModularFeatureList outputList = featureList.createCopy(featureList.getName() + " with retention index", null, false);
+      ModularFeatureList outputList = featureList.createCopy(
+          featureList.getName() + " with retention index", null, false);
 
       outputList.addFeatureType(new RIType());
       if (shouldAddSummary) {
-        outputList.addFeatureType(new RIMaxType());
-        outputList.addFeatureType(new RIMinType());
-        outputList.addFeatureType(new RIDiffType());
+        // the file is set directly
         outputList.addFeatureType(new RIScaleType());
+
+        // values below are calculated as row bindings from the RIType - so just add the row binding
+        // this automatically adds the types as row types instead of feature types
+        outputList.addRowBinding(new RIDiffType().createDefaultRowBindings());
+        outputList.addRowBinding(new RIMinType().createDefaultRowBindings());
+        outputList.addRowBinding(new RIMaxType().createDefaultRowBindings());
       }
 
-
       for (RawDataFile file : outputList.getRawDataFiles()) {
-        LocalDate sampleDate = metadataTable.getValue(metadataTable.getRunDateColumn(), file).toLocalDate();
+        LocalDate sampleDate = metadataTable.getValue(metadataTable.getRunDateColumn(), file)
+            .toLocalDate();
         for (RIScale riScale : linearScales) {
-          if (sampleDate != null && sampleDate.isAfter(riScale.date()) || sampleDate.isEqual(riScale.date())) {
-            outputList.getFeatures(file).stream().parallel().forEach(f -> processFeature(f, riScale));
+          if (sampleDate != null && sampleDate.isAfter(riScale.date()) || sampleDate.isEqual(
+              riScale.date())) {
+            outputList.getFeatures(file).stream().parallel()
+                .forEach(f -> processFeature(f, riScale));
             break;
           }
         }
@@ -178,7 +184,8 @@ public class RICalculationTask extends AbstractFeatureListTask {
     if (rt >= knots[0] && rt <= knots[knots.length - 1]) {
       ri = (float) riScale.interpolator().value(rt);
     } else if (shouldExtrapolate && rt > knots[knots.length - 1]) {
-      ri = (float) riScale.interpolator().getPolynomials()[riScale.interpolator().getPolynomials().length - 1].value(rt - knots[knots.length - 1]);
+      ri = (float) riScale.interpolator().getPolynomials()[
+          riScale.interpolator().getPolynomials().length - 1].value(rt - knots[knots.length - 1]);
     } else if (shouldExtrapolate && rt < knots[0]) {
       ri = (float) riScale.interpolator().getPolynomials()[0].value(rt - knots[0]);
     }
