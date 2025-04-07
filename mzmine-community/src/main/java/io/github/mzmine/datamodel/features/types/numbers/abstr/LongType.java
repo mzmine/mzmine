@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -84,7 +84,7 @@ public abstract class LongType extends NumberType<Long> {
     if (!(value instanceof Long)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
+          + value.getClass());
     }
     writer.writeCharacters(String.valueOf(value));
   }
@@ -140,7 +140,7 @@ public abstract class LongType extends NumberType<Long> {
               if (range == null) {
                 range = Range.singleton(value);
               } else {
-                range.span(Range.singleton(value));
+                range = range.span(Range.singleton(value));
               }
             }
           }
