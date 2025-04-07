@@ -157,6 +157,22 @@ public abstract class LongType extends NumberType<Long> {
           }
           return min;
         }
+        case DIFFERENCE: {
+          Long min = null;
+          Long max = null;
+          for (var model : models) {
+            Long value = model.get(this);
+            if (value != null) {
+              if (max == null || value > max) {
+                max = value;
+              }
+              if (min == null || value < min) {
+                min = value;
+              }
+            }
+          }
+          return min == null ? null : max - min;
+        }
         case MAX: {
           // calc average center of ranges
           Long max = null;

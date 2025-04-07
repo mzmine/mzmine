@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,6 @@ package io.github.mzmine.datamodel.features.types.modifiers;
 
 public enum BindingsType {
 
-  AVERAGE, SUM, MIN, MAX, COUNT, RANGE, CONSENSUS, LIST;
+  AVERAGE, SUM, MIN, MAX, DIFFERENCE, COUNT, RANGE, CONSENSUS, LIST;
 
 }
