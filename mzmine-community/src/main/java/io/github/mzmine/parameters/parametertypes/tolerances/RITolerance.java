@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,10 +30,7 @@ import io.github.mzmine.util.RIColumn;
 import io.github.mzmine.util.RIRecord;
 
 /**
- * RTTolerance allows specifying retention time tolerance it is either absolute (seconds or minutes)
- * or relative (percent) but as rest of MZmine codebase, it assumes that rt values (other than the
- * tolerance given in constructor) are in minutes in methods such as getToleranceRange or
- * checkWithinTolerance
+ * RITolerance is an absolute tolerance based on a specific RIColumn
  */
 public class RITolerance {
 
@@ -56,7 +53,8 @@ public class RITolerance {
   public Range<Float> getToleranceRange(final Float riValue) {
     // riValue may not exist depending on alkane scales
     //   Also, averaged RI is zero when riValues do not exist
-    return riValue != null && riValue != 0 ? Range.closed(riValue - tolerance, riValue + tolerance) : Range.all();
+    return riValue != null && riValue != 0 ? Range.closed(riValue - tolerance, riValue + tolerance)
+        : Range.all();
   }
 
   public boolean checkWithinTolerance(Float ri, RIRecord libRI) {
