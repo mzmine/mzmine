@@ -7,17 +7,13 @@ import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult.Severity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
-import io.github.mzmine.util.io.CsvWriter;
-import io.github.mzmine.util.io.WriterOptions;
 import io.github.mzmine.util.objects.ObjectUtils;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -76,23 +72,10 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
 
     // filter checks
     final Severity filter = parameters.getValue(CompareModularCsvParameters.filterLevel);
-    filter.applyInPlace(checks);
+    final File outFile = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        CompareModularCsvParameters.outFile, null);
 
-    final String csv = CsvWriter.writeToString(checks, CheckResult.class, ',', true);
-    // log all info
-    logger.info("""
-        CSV table comparison:
-        
-        %s""".formatted(csv));
-
-    // write to file
-    parameters.getOptionalValue(CompareModularCsvParameters.outFile).ifPresent(outFile -> {
-      try {
-        CsvWriter.writeToFile(outFile, checks, CheckResult.class, WriterOptions.REPLACE, ',');
-      } catch (IOException e) {
-        logger.log(Level.WARNING, e.getMessage(), e);
-      }
-    });
+    CheckResultWriter.filterAndLogResults(filter, outFile, checks);
   }
 
   private void compareTables(final MZmineModularCsv baseTab, final MZmineModularCsv compareTab) {
@@ -203,5 +186,9 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
   @Override
   public String getTaskDescription() {
     return "Comparing two modular CSV output files";
+  }
+
+  public List<CheckResult> getChecks() {
+    return checks;
   }
 }

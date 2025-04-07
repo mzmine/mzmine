@@ -269,7 +269,12 @@ public class StringUtils {
     return values.stream().map(mapper::apply).collect(Collectors.joining(delimiter));
   }
 
-  public static Double parseDoubleOrElse(final String s, final @Nullable Double defaultValue) {
+  @Nullable
+  public static Double parseDoubleOrElse(final @Nullable String s,
+      final @Nullable Double defaultValue) {
+    if (s == null) {
+      return defaultValue;
+    }
     try {
       return Double.parseDouble(s);
     } catch (Exception ex) {

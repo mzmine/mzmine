@@ -27,11 +27,11 @@
         {
           "name": "mzmine-test-utils-1.0.0.jar",
           "url": "mzmine-test-utils-1.0.0.jar",
-          "size": 2669,
-          "sha512": "44201328275e3f5eeec7700759e893d2a05166aa021feb4e95e91b0e73a8b15d83d4cd17d5053ae3526f160cf41b58bfdcfb6b21df1bd10900d8c5acbebda782",
-          "sha256": "aa04edb902bbb061c3c9a398ea569804bd14a0e36370072ab3bd01c0b55ceb2d",
-          "sha1": "debaa75f3c04dd61655dd8332e91083e2dd2e9a4",
-          "md5": "cde09c7133fb6d0a37e24b551b6480f5"
+          "size": 1137,
+          "sha512": "0ab5aa336fc683bc928c6d339405b9c284020447b2d5c080816243c5d1f559382d4ae05cf317f8f1532baa57aeddd6c75f6be06e40c85276f21d6b57f1d3e223",
+          "sha256": "311747af0e14b198cad07863405c9eb055356316d5fcf81ecd1f402ce5ed7294",
+          "sha1": "f81fa4f6b78b19d465314e877e195cdd8c7c2a7c",
+          "md5": "bb3541abcb1205fd21a951ff6af591da"
         }
       ]
     },
@@ -75,11 +75,11 @@
         {
           "name": "mzmine-test-utils-1.0.0.jar",
           "url": "mzmine-test-utils-1.0.0.jar",
-          "size": 2669,
-          "sha512": "44201328275e3f5eeec7700759e893d2a05166aa021feb4e95e91b0e73a8b15d83d4cd17d5053ae3526f160cf41b58bfdcfb6b21df1bd10900d8c5acbebda782",
-          "sha256": "aa04edb902bbb061c3c9a398ea569804bd14a0e36370072ab3bd01c0b55ceb2d",
-          "sha1": "debaa75f3c04dd61655dd8332e91083e2dd2e9a4",
-          "md5": "cde09c7133fb6d0a37e24b551b6480f5"
+          "size": 1137,
+          "sha512": "0ab5aa336fc683bc928c6d339405b9c284020447b2d5c080816243c5d1f559382d4ae05cf317f8f1532baa57aeddd6c75f6be06e40c85276f21d6b57f1d3e223",
+          "sha256": "311747af0e14b198cad07863405c9eb055356316d5fcf81ecd1f402ce5ed7294",
+          "sha1": "f81fa4f6b78b19d465314e877e195cdd8c7c2a7c",
+          "md5": "bb3541abcb1205fd21a951ff6af591da"
         }
       ]
     }

@@ -147,15 +147,18 @@ public class FeatureListsSelection implements Cloneable {
     newSelection.selectionType = selectionType;
     newSelection.specificFeatureLists = specificFeatureLists;
     newSelection.namePattern = namePattern;
+    newSelection.batchLastFeatureLists = batchLastFeatureLists;
     return newSelection;
   }
 
   public String toString() {
     StringBuilder str = new StringBuilder();
+    str.append(selectionType).append(", ");
     FeatureList pls[] = getMatchingFeatureLists();
     for (int i = 0; i < pls.length; i++) {
-      if (i > 0)
-        str.append("\n");
+      if (i > 0) {
+        str.append(", ");
+      }
       str.append(pls[i].getName());
     }
     return str.toString();

@@ -44,8 +44,8 @@ public class LightAndDarkModeIcon extends HBox {
   }
 
   public static LightAndDarkModeIcon mzwizardImage(int maxWidth, int maxHeight) {
-    return new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzwizard.png",
-        "icons/introductiontab/logos_mzio_mzwizard_light.png", maxWidth, maxHeight);
+    return new LightAndDarkModeIcon("icons/introductiontab/logo_mzwizard_click.png",
+        "icons/introductiontab/logo_mzwizard_light_click.png", maxWidth, maxHeight);
   }
 
   public static LightAndDarkModeIcon mzwizardImageTab(int maxWidth, int maxHeight) {

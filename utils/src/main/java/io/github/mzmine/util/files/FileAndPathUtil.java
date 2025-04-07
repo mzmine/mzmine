@@ -25,11 +25,6 @@
 
 package io.github.mzmine.util.files;
 
-import static java.nio.file.StandardOpenOption.CREATE_NEW;
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.SPARSE;
-import static java.nio.file.StandardOpenOption.WRITE;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -45,6 +40,10 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.SPARSE;
+import static java.nio.file.StandardOpenOption.WRITE;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -445,7 +444,8 @@ public class FileAndPathUtil {
   public static File[] findFilesInDirFlat(File dir, ExtensionFilter fileFilter,
       boolean searchSubdir) {
     return findFilesInDir(dir, new FileTypeFilter(fileFilter, ""), searchSubdir, false).stream()
-        .flatMap(Arrays::stream).toArray(File[]::new);
+        .flatMap(Arrays::stream).filter(Objects::nonNull)
+        .sorted(Comparator.comparing(File::getAbsolutePath)).toArray(File[]::new);
   }
 
   /**

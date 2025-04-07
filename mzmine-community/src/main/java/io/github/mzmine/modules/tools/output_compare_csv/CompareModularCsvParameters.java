@@ -7,20 +7,23 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.util.files.ExtensionFilters;
+import java.util.List;
 
 
 public class CompareModularCsvParameters extends SimpleParameterSet {
 
   public static final FileNameParameter baseFile = new FileNameParameter("Base file",
-      "This is the csv base or original file that is used as base truth.", FileSelectionType.OPEN,
-      false);
+      "This is the csv base or original file that is used as base truth.",
+      List.of(ExtensionFilters.CSV), FileSelectionType.OPEN, false);
   public static final FileNameParameter compareFile = new FileNameParameter("Compare file",
-      "This is csv file compared to the base file.", FileSelectionType.OPEN, false);
+      "This is csv file compared to the base file.", List.of(ExtensionFilters.CSV),
+      FileSelectionType.OPEN, false);
 
   public static final OptionalParameter<FileNameParameter> outFile = new OptionalParameter<>(
       new FileNameSuffixExportParameter("Results file",
-          "This is file compared to the base or original file.", "modular_csv_comparison_results",
-          false), false);
+          "This is file compared to the base or original file.", List.of(ExtensionFilters.CSV),
+          "modular_csv_comparison_results", false), false);
 
   public static final ComboParameter<CheckResult.Severity> filterLevel = new ComboParameter<>(
       "Filter messages",
