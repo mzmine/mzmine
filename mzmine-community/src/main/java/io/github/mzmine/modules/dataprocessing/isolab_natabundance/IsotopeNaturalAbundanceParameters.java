@@ -28,6 +28,8 @@ package io.github.mzmine.modules.dataprocessing.isolab_natabundance;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -36,38 +38,55 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import java.text.NumberFormat;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class IsotopeNaturalAbundanceParameters extends SimpleParameterSet {
 
-  public static final String ChooseTopIntensity = "Most intense";
-  public static final String ChooseLowestMZ = "Lowest m/z";
-
-  public static final String[] representativeIsotopeValues = {ChooseTopIntensity, ChooseLowestMZ};
-
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
   public static final StringParameter suffix = new StringParameter("Name suffix",
-      "Suffix to be added to feature list name", "deisotoped");
+      "Suffix to be added to feature list name", "corrected");
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
-      ToleranceType.INTRA_SAMPLE);
+      ToleranceType.SCAN_TO_SCAN);
 
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
+
+  public static final IntegerParameter charge = new IntegerParameter("Charge",
+      "Charge of the measured ion, usually 1 or -1.");
+
+  // tracer purity as an array of double values
+  public static final DoubleParameter tracerPurity = new DoubleParameter("Tracer purity",
+      "Purity of the tracer isotope as a ratio of 0 to 1.", NumberFormat.getNumberInstance(), 1.00);
 
   public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerace = new OptionalParameter<>(
       new MobilityToleranceParameter("Mobility tolerance",
           "If enabled (and mobility dimension was recorded), "
               + "isotopic peaks will only be grouped if they fit within the given tolerance."));
 
+  // set background value to replace 0 values
+  public static final OptionalParameter<DoubleParameter> backgroundValue = new OptionalParameter<>(
+      new DoubleParameter("Background value",
+          "If enabled, the background value will be replaced by the given value.",
+          NumberFormat.getNumberInstance(), null));
+
+  public static final StringParameter tracerIsotope = new StringParameter("Tracer isotope",
+      "Tracer isotope name", "13C");
+
+  // correct for natural abundance of the tracer isotope
+  //public static final OptionalParameter<BooleanParameter> correct_NA_tracer = new OptionalParameter<>(
+  //    new BooleanParameter("Tracer isotope correction",
+  //        "If enabled, the natural abundance of the tracer isotope will be corrected.", true));
+
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       true);
 
   public IsotopeNaturalAbundanceParameters() {
-    super(new Parameter[]{peakLists, suffix, mzTolerance, rtTolerance, mobilityTolerace,
-            handleOriginal},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_filter/isotope_filter.html");
+    super(new Parameter[]{peakLists, suffix, mzTolerance, rtTolerance, charge, tracerPurity,
+            mobilityTolerace, backgroundValue, tracerIsotope, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation");
   }
 
   @Override

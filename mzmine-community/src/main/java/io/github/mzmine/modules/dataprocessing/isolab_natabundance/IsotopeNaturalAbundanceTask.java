@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.modules.dataprocessing.isolab_natabundance.LowResMetaboliteCorrector.CorrectedResult;
 import io.github.mzmine.modules.dataprocessing.isolab_targeted.IsotopeLabelingTargetedTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -48,9 +49,10 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,6 +76,11 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
   private final String suffix;
   private final MZTolerance mzTolerance;
   private final MobilityTolerance mobilityTolerance;
+  private final Double backgroundValue;
+  private final Boolean correct_NA_tracer;
+  private final Integer charge;
+  private final double[] tracerPurity;
+  private final String tracerIsotope;
   private final ParameterSet parameters;
   private final OriginalFeatureListOption handleOriginal;
   // peaks counter
@@ -91,12 +98,24 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
     this.featureList = featureList;
     this.parameters = parameters;
 
-    // Get parameter values for easier use
     suffix = parameters.getParameter(IsotopeNaturalAbundanceParameters.suffix).getValue();
     handleOriginal = parameters.getValue(IsotopeNaturalAbundanceParameters.handleOriginal);
     mobilityTolerance = parameters.getParameter(IsotopeNaturalAbundanceParameters.mobilityTolerace)
         .getEmbeddedParameter().getValue();
     mzTolerance = parameters.getParameter(IsotopeNaturalAbundanceParameters.mzTolerance).getValue();
+    if (parameters.getParameter(IsotopeNaturalAbundanceParameters.backgroundValue).getValue()) {
+      this.backgroundValue = parameters.getParameter(
+          IsotopeNaturalAbundanceParameters.backgroundValue).getEmbeddedParameter().getValue();
+    } else {
+      this.backgroundValue = null;
+    }
+    correct_NA_tracer = true; // parameters.getParameter(IsotopeNaturalAbundanceParameters.correct_NA_tracer).getValue();
+    charge = parameters.getParameter(IsotopeNaturalAbundanceParameters.charge).getValue();
+    tracerPurity = new double[]{
+        1 - parameters.getParameter(IsotopeNaturalAbundanceParameters.tracerPurity).getValue(),
+        parameters.getParameter(IsotopeNaturalAbundanceParameters.tracerPurity).getValue()};
+    tracerIsotope = parameters.getParameter(IsotopeNaturalAbundanceParameters.tracerIsotope)
+        .getValue();
   }
 
   @Override
@@ -146,7 +165,7 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
 
     for (FeatureListRow row : rowsFeatureList) {
       if (row.getPreferredAnnotationName() == null || !row.getPreferredAnnotationName()
-          .startsWith("13C")) {
+          .startsWith(tracerIsotope)) {
         unlabeledRows.add(row);
       }
     }
@@ -158,7 +177,8 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
 
       for (FeatureListRow row : rowsFeatureList) {
         if (row.getPreferredAnnotationName() != null && row.getPreferredAnnotationName()
-            .startsWith("13C") && row.getPreferredAnnotationName().contains("-" + compoundName)) {
+            .startsWith(tracerIsotope) && row.getPreferredAnnotationName()
+            .contains("-" + compoundName)) {
           labeledRows.add(row);
         }
       }
@@ -169,17 +189,20 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
 
       // Calculate resolution using Dalton tolerance
       double resolutionDalton = calculateResolutionFromDalton(mzValue, deltaMDalton);
-      // System.out.println("Resolution (from Dalton): " + resolutionDalton);
 
       // Calculate resolution using ppm tolerance
       double resolutionPPM = calculateResolutionFromPPM(mzValue, ppmTolerance);
-      //System.out.println("Resolution (from ppm): " + resolutionPPM);
       // check how many carbon atoms are in the unlabeled compound. Each carbon atom that does not have a measured isotope peak will be replaced by a 0 in the array.
       // get the formula of the compound
-      String formula = Arrays.toString(
-          CompoundAnnotationUtils.streamFeatureAnnotations(unlabeledRow)
-              .map(FeatureAnnotation::getFormula).toArray());
-      int carbonNumber = IsotopeLabelingTargetedTask.getAtomCount(formula, "C");
+      java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("([A-Z][a-z]*)");
+      java.util.regex.Matcher matcher = pattern.matcher(tracerIsotope);
+      if (!matcher.find()) {
+        throw new IllegalArgumentException("Invalid tracer format: " + tracerIsotope);
+      }
+      String tracerElement = matcher.group(1);
+      String formula = CompoundAnnotationUtils.streamFeatureAnnotations(unlabeledRow)
+          .map(FeatureAnnotation::getFormula).collect(Collectors.joining());
+      int carbonNumber = IsotopeLabelingTargetedTask.getAtomCount(formula, tracerElement);
 
       // create an array of measurement for the unlabeled compound and the measurements for the labeled compounds. If a compound does not have a measured isotope peak, the corresponding value in the array will be 0.
       double[] measurements = new double[carbonNumber + 1];
@@ -190,34 +213,68 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
             labeledRow.getPreferredAnnotationName().split("-")[0].substring(3));
         if (index != counter) {
           for (int i = counter; i < index; i++) {
-            measurements[i] = 0.0;
+            if (backgroundValue == null || backgroundValue < 0.0) {
+              measurements[i] = 0.0;
+            } else {
+              measurements[i] = backgroundValue;
+            }
           }
         } else {
-          measurements[index] = labeledRow.getMaxArea();
+          if (labeledRow.getMaxArea() == 0.0) {
+            measurements[index] = backgroundValue;
+          } else {
+            measurements[index] = labeledRow.getMaxArea();
+          }
         }
+
         counter++;
       }
-      // print everything to the console to check if the code is working as expected
-      System.out.println("Unlabeled compound: " + compoundName);
-      System.out.println("Carbon number: " + carbonNumber);
-      for (double measurement : measurements) {
-        System.out.println(measurement);
-      }
-      // create a new row for each unlabeled compound, change the value that you can access with .getMaxArea() to 0.0 and overwrite the corresponding row in rowsFeatureList
-      //RawDataFile file : unlabeledRow.getRawDataFiles();
-      //Feature originalFeature = unlabeledRow.getFeature(file);
-      //if (originalFeature != null) {
-      ModularFeature normalizedFeature = new ModularFeature(correctedFeatureList,
-          unlabeledRow.getFeature(unlabeledRow.getRawDataFiles().get(0)));
-      //}
-      float normalizedHeight = 1000000;
-      float normalizedArea = 1000000;
-      normalizedFeature.setHeight(normalizedHeight);
-      normalizedFeature.setArea(normalizedArea);
 
-      unlabeledRow.getFeatures().get(0).setHeight(normalizedHeight);
-      unlabeledRow.getFeatures().get(0).setArea(normalizedArea);
-      rowsFeatureList.set(rowsFeatureList.indexOf(unlabeledRow), unlabeledRow);
+      double[] correctedMeasurements = new double[carbonNumber + 1];
+      // create a corrector object
+      MetaboliteCorrectorFactory factory = new MetaboliteCorrectorFactory();
+      // define the options for the corrector
+      HashMap options = new HashMap<>();
+      // options.put("resolution", resolutionDalton);
+      // options.put("mzOfResolution", 440.0);
+      options.put("charge", charge);
+      options.put("tracerPurity", tracerPurity);
+      options.put("correct_NA_tracer", correct_NA_tracer);
+      MetaboliteCorrector corrector = factory.createCorrector(formula, tracerIsotope, options);
+      // correct the measurements
+      CorrectedResult result = corrector.correct(measurements);
+      correctedMeasurements = result.getCorrectedMeasurements();
+      double[] isotopologueFraction = result.getIsotopologueFraction();
+      double[] meanEnrichment = new double[]{result.getMeanEnrichment()};
+      double[] residuum = result.getResiduum();
+
+      // set the new values for each row
+      for (int i = 0; i < correctedMeasurements.length; i++) {
+        if (i == 0) {
+          // set the new value for the unlabeled compound
+          ModularFeature unlabeledFeature = new ModularFeature(correctedFeatureList,
+              unlabeledRow.getFeature(unlabeledRow.getRawDataFiles().get(0)));
+          unlabeledFeature.setHeight((float) correctedMeasurements[i]);
+          unlabeledFeature.setArea((float) correctedMeasurements[i]);
+          unlabeledRow.getFeatures().get(0).setHeight((float) correctedMeasurements[i]);
+          unlabeledRow.getFeatures().get(0).setArea((float) correctedMeasurements[i]);
+          rowsFeatureList.set(rowsFeatureList.indexOf(unlabeledRow), unlabeledRow);
+        } else {
+          // set the new value for each isotopologue
+          String labeledCompoundName = tracerIsotope + i + "-" + compoundName;
+          for (FeatureListRow labeledRow : rowsFeatureList) {
+            if (labeledCompoundName.equals(labeledRow.getPreferredAnnotationName())) {
+              ModularFeature labeledFeature = new ModularFeature(correctedFeatureList,
+                  labeledRow.getFeature(labeledRow.getRawDataFiles().get(0)));
+              labeledFeature.setHeight((float) correctedMeasurements[i]);
+              labeledFeature.setArea((float) correctedMeasurements[i]);
+              labeledRow.getFeatures().get(0).setHeight((float) correctedMeasurements[i]);
+              labeledRow.getFeatures().get(0).setArea((float) correctedMeasurements[i]);
+              rowsFeatureList.set(rowsFeatureList.indexOf(labeledRow), labeledRow);
+            }
+          }
+        }
+      }
     }
 
     // Loop through all peaks
@@ -247,6 +304,5 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
     return candidateMobility == null || mobilityTolerance.checkWithinTolerance(mainMobility,
         candidateMobility);
   }
-
 }
 
