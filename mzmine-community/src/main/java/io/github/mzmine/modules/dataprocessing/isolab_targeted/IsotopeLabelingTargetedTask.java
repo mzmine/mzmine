@@ -428,10 +428,6 @@ public class IsotopeLabelingTargetedTask extends AbstractTask {
         row[1] = String.valueOf(annotation.getPrecursorMZ() + (i * 1.00335));
         row[2] = String.valueOf(annotation.getRT());
         row[3] = labeledFormula;
-        System.out.println("Entire row: ");
-        for (String s : row) {
-          System.out.println(s.toString());
-        }
         labeledEntries.add(row);
       }
     }
