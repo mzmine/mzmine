@@ -31,6 +31,9 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Allows setting a metadata column.
+ */
 public class MetadataGroupingParameter extends StringValueParameter<MetadataGroupingComponent> {
 
   private final List<AvailableTypes> types;

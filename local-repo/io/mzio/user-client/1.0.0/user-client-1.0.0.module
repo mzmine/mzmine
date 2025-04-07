@@ -27,11 +27,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 33979,
-          "sha512": "c971e30c51aa8b996042cd9ba17487ab04516ab5b27014ba8df310e364c9cd49c3c834ded05035067c90f990bcb8f6350145e07851f211d62f0108f9122a8967",
-          "sha256": "346219f90287e6841f33dbdac7f3c0c22e4237ea93ef3828ac8131dc154fcacd",
-          "sha1": "7a8543f653cd224271e36c71de73d7618d1d2eef",
-          "md5": "2bf062792a5e19f26f819b2b78596163"
+          "size": 34032,
+          "sha512": "804104fa62d19fe0229470ba9a6f755bc49ea6be6e9b62f062b2a839d8160d12e445a6e21bd0ed3c0c429c53392fc2b2d20af4514f85f7ba71f411686ce53ffa",
+          "sha256": "4aa8941f9a9a8f4b864d918e0c1eccf6001ec65f762687090855188dd27761af",
+          "sha1": "41837f1fddc8d44c321bb31a84fe6c6dab2d93d5",
+          "md5": "d362581f3652fedc7845120921ff1294"
         }
       ]
     },
@@ -92,11 +92,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 33979,
-          "sha512": "c971e30c51aa8b996042cd9ba17487ab04516ab5b27014ba8df310e364c9cd49c3c834ded05035067c90f990bcb8f6350145e07851f211d62f0108f9122a8967",
-          "sha256": "346219f90287e6841f33dbdac7f3c0c22e4237ea93ef3828ac8131dc154fcacd",
-          "sha1": "7a8543f653cd224271e36c71de73d7618d1d2eef",
-          "md5": "2bf062792a5e19f26f819b2b78596163"
+          "size": 34032,
+          "sha512": "804104fa62d19fe0229470ba9a6f755bc49ea6be6e9b62f062b2a839d8160d12e445a6e21bd0ed3c0c429c53392fc2b2d20af4514f85f7ba71f411686ce53ffa",
+          "sha256": "4aa8941f9a9a8f4b864d918e0c1eccf6001ec65f762687090855188dd27761af",
+          "sha1": "41837f1fddc8d44c321bb31a84fe6c6dab2d93d5",
+          "md5": "d362581f3652fedc7845120921ff1294"
         }
       ]
     }
