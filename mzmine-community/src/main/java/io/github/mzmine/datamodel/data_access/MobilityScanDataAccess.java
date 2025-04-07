@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -222,8 +223,8 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   /**
-   * Sets the next frame. The mobility scan index is reset to -1, therefore {@link
-   * #nextMobilityScan} has to be called before accessing new scan data.
+   * Sets the next frame. The mobility scan index is reset to -1, therefore
+   * {@link #nextMobilityScan} has to be called before accessing new scan data.
    *
    * @return the next Frame.
    */
@@ -356,10 +357,10 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   private int getMaxNumberOfDataPoints(List<Frame> frames) {
     return switch (type) {
-      case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max()
-          .orElse(0);
-      case MASS_LIST -> frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max()
-          .orElse(0);
+      case RAW ->
+          frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max().orElse(0);
+      case MASS_LIST ->
+          frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max().orElse(0);
     };
   }
 
@@ -448,5 +449,26 @@ public class MobilityScanDataAccess implements MobilityScan {
   @Override
   public @Nullable Float getInjectionTime() {
     return currentMobilityScan.getInjectionTime();
+  }
+
+  @Override
+  public int binarySearch(double mz, @NotNull BinarySearch.DefaultTo noMatchDefault) {
+    return this.binarySearch(mz, noMatchDefault, 0, currentNumberOfDataPoints);
+  }
+
+  @Override
+  public int binarySearch(double mz, @NotNull BinarySearch.DefaultTo noMatchDefault, int fromIndex,
+      int toIndex) {
+
+    if (fromIndex > currentNumberOfDataPoints || toIndex > currentNumberOfDataPoints) {
+      throw new IndexOutOfBoundsException(
+          Math.max(fromIndex, toIndex) + " out of bounds for " + currentNumberOfDataPoints);
+    }
+
+    final int from = currentSpectrumDatapointIndexOffset + fromIndex;
+    final int to = currentSpectrumDatapointIndexOffset + toIndex;
+
+    final int index = BinarySearch.binarySearch(mz, noMatchDefault, from, to, i -> mzs[i]);
+    return index == -1 ? -1 : index - currentSpectrumDatapointIndexOffset;
   }
 }
