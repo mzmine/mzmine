@@ -55,6 +55,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderMo
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderSubTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -244,12 +245,14 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
     final ParameterSet expanderParameters = ConfigService.getConfiguration()
         .getModuleParameters(ImsExpanderModule.class).cloneParameterSet();
     expanderParameters.setParameter(ImsExpanderParameters.useRawData, false);
-    expanderParameters.getParameter(ImsExpanderParameters.mzTolerance).setValue(true);
-    expanderParameters.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
-        .setValue(mzTolerance);
+    expanderParameters.setParameter(ImsExpanderParameters.mzTolerance, mzTolerance);
+    expanderParameters.setParameter(ImsExpanderParameters.mobilogramBinWidth, false);
+    expanderParameters.setParameter(ImsExpanderParameters.maxNumTraces, false);
+    expanderParameters.setParameter(ImsExpanderParameters.handleOriginal,
+        OriginalFeatureListOption.KEEP);
+
     return expanderParameters;
   }
-
   /**
    * Set up a range map of the expanding traces for the respective modular feature list.
    */
