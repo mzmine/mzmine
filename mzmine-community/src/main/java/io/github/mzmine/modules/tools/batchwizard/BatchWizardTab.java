@@ -92,6 +92,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -118,6 +119,7 @@ public class BatchWizardTab extends SimpleTab {
   private boolean listenersActive = true;
   private TabPane tabPane;
   private HBox schemaPane;
+  private final int helpButtonSize = 50;
 
   public BatchWizardTab() {
     super("mzwizard");
@@ -378,13 +380,15 @@ public class BatchWizardTab extends SimpleTab {
         .addAll(createSpacer(), new Label("="), createSpacer(), createBatch, save, load,
             localPresetsButton);
 
-
     schemaPane = new HBox(0);
     schemaPane.setAlignment(Pos.CENTER);
-    controlSchemaPane.getChildren().addAll(topPane, schemaPane);
+    // add a wrapper around the top pane with combo boxes and buttons so the help button does not overlap
+    final HBox topPaneWrapper = FxLayout.newHBox(new Insets(0, helpButtonSize, 0, helpButtonSize), topPane);
+    HBox.setHgrow(topPane, Priority.ALWAYS);
+    controlSchemaPane.getChildren().addAll(topPaneWrapper, schemaPane);
 
-    final ButtonBase help = FxIconUtil.newIconButton(FxIcons.QUESTIONMARK,
-        50, "Open the mzwizard documentation", () -> DesktopService.getDesktop()
+    final ButtonBase help = FxIconUtil.newIconButton(FxIcons.QUESTIONMARK, 50,
+        "Open the mzwizard documentation", () -> DesktopService.getDesktop()
             .openWebPage(MzioMZmineLinks.WIZARD_DOCUMENTATION.getUrl()));
     final StackPane stackPane = new StackPane(controlSchemaPane, help);
     StackPane.setAlignment(help, Pos.TOP_RIGHT);
