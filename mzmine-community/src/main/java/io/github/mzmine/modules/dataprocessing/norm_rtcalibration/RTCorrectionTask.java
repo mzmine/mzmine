@@ -282,7 +282,7 @@ class RTCorrectionTask extends AbstractTask {
 
     if (standards.length == 1) {
       return originalRT + (normalizedStdRTs[0] - standards[0].getAverageRT());
-    } else if (prevStdIndex == nextStdIndex) {
+    } else if (prevStdIndex == nextStdIndex && prevStdIndex != -1) {
       return normalizedStdRTs[prevStdIndex];
     } else if (prevStdIndex != -1 && nextStdIndex != -1) {
       double weight = (originalRT - standards[prevStdIndex].getAverageRT()) / (

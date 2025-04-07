@@ -25,6 +25,9 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import static io.github.mzmine.main.ConfigService.getPreference;
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -32,7 +35,6 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
-import static io.github.mzmine.main.ConfigService.getPreference;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -68,7 +70,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import static java.util.Objects.requireNonNullElse;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -260,7 +261,7 @@ public class BatchTask extends AbstractTask {
               setStatus(TaskStatus.ERROR);
               setErrorMessage(
                   "Could not set data files in advanced batch mode. Will cancel all jobs. "
-                  + datasetName);
+                      + datasetName);
               return;
             }
           }
@@ -392,7 +393,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFiles == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-                          + "Missing parameter value for " + p.getName());
+              + "Missing parameter value for " + p.getName());
           return;
         }
         selectedFiles.setBatchLastFiles(createdFiles);
@@ -416,9 +417,12 @@ public class BatchTask extends AbstractTask {
 
     List<Task> currentStepTasks = new ArrayList<>();
     Instant moduleCallDate = Instant.now();
-    logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString());
+    logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString()
+        + " with parameters " + batchStepParameters.cloneParameterSet().toString());
     ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks,
         moduleCallDate);
+    logger.finest(
+        () -> "Module " + method.getName() + " created " + currentStepTasks.size() + " tasks");
 
     if (exitCode != ExitCode.OK) {
       setStatus(TaskStatus.ERROR);
@@ -523,7 +527,7 @@ public class BatchTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
             "Wanted to set the last batch files from raw data import but failed because less data files were imported than expected.\n"
-            + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
+                + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
                 createdDataFiles.size()));
       }
     }
@@ -546,7 +550,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFeatureLists == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-                          + "Missing parameter value for " + p.getName());
+              + "Missing parameter value for " + p.getName());
           return false;
         }
         selectedFeatureLists.setBatchLastFeatureLists(createdFlists);

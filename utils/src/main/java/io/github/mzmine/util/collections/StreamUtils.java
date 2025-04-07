@@ -200,4 +200,14 @@ public class StreamUtils {
   public static <I, R> Function<I, R> castingIdentity() {
     return i -> (R) i;
   }
+
+  /**
+   * Casting types without check
+   *
+   * @param <I> input type and result type
+   */
+  @SuppressWarnings("unchecked")
+  public static <I> Function<I, I> identity() {
+    return i -> (I) i;
+  }
 }

@@ -27,11 +27,11 @@
         {
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
-          "size": 29895,
-          "sha512": "47245037593ba58bc7344a8a74d82ffcacda65f43f278ca9e1771f71fa0c53bc1585b9949a0649580cdc486d4ddf4d9679038103af7bdfa6bc92fe00932d55a1",
-          "sha256": "781ea888e4debbfd9bbc53b2e0e5064837c90565a687b4b220215e0b89c77d9c",
-          "sha1": "ba74a748fb4cfe11efd67a2b3bf85371aaa256fe",
-          "md5": "7a0a5509a49d8f14d9312459ffe14323"
+          "size": 34596,
+          "sha512": "4493b33f737e1518662f54cfe02374b71c5dc057a25364cd66d4d86a84d71cb481e2cbc417a0785db54094093b8017e211f1c3c43446f73091033a0547ace1d4",
+          "sha256": "78105e727ff0913f3c4c4e6fc4949dd75f2d9d97dd207d8603664a5e3e41bfad",
+          "sha1": "8c95c0ca402186470083014b077d3d588b376649",
+          "md5": "22b1fc641d543c53af1c2fb645d7eb50"
         }
       ]
     },
@@ -53,6 +53,13 @@
           }
         },
         {
+          "group": "io.mzio",
+          "module": "global-events",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
           "group": "com.javax0.license3j",
           "module": "license3j",
           "version": {
@@ -71,11 +78,11 @@
         {
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
-          "size": 29895,
-          "sha512": "47245037593ba58bc7344a8a74d82ffcacda65f43f278ca9e1771f71fa0c53bc1585b9949a0649580cdc486d4ddf4d9679038103af7bdfa6bc92fe00932d55a1",
-          "sha256": "781ea888e4debbfd9bbc53b2e0e5064837c90565a687b4b220215e0b89c77d9c",
-          "sha1": "ba74a748fb4cfe11efd67a2b3bf85371aaa256fe",
-          "md5": "7a0a5509a49d8f14d9312459ffe14323"
+          "size": 34596,
+          "sha512": "4493b33f737e1518662f54cfe02374b71c5dc057a25364cd66d4d86a84d71cb481e2cbc417a0785db54094093b8017e211f1c3c43446f73091033a0547ace1d4",
+          "sha256": "78105e727ff0913f3c4c4e6fc4949dd75f2d9d97dd207d8603664a5e3e41bfad",
+          "sha1": "8c95c0ca402186470083014b077d3d588b376649",
+          "md5": "22b1fc641d543c53af1c2fb645d7eb50"
         }
       ]
     }

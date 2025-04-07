@@ -27,11 +27,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 36948,
-          "sha512": "ff7da44385c2370ca1c6468db99b9fd5a6f4ee72abe1216d7dbde203c104377de2a084a56ae66daf65bdabf179b81eae7bc260d5a4bcf8614fc82eb50c9497fa",
-          "sha256": "18e4fc5cf03629a8ad3ca212d318098bdba250e23272b2cc36afa66f23844e56",
-          "sha1": "d32646b0d3b602c02bba17de5ef14aeea9e1b976",
-          "md5": "1c63ebcd93ff23ef2af03761d3e66ed7"
+          "size": 34980,
+          "sha512": "a3cb4870d7f8aca4e651756ca0f7e31717d1ddaacb4de7d084f1537521d564a63b0ecef3566152a7dde3a67e0394ecb1eef9d31064e9a4bf3e6aa85904c72f4d",
+          "sha256": "84cf69a2ea550e8ff94b826d551bc0d302b8f546f26a2589c618071750aa28ac",
+          "sha1": "5faa75fcae2c130fd3014919cdcf3f87a88674ad",
+          "md5": "fad4a07c1cdbb458dc4200e129db7573"
         }
       ]
     },
@@ -89,14 +89,14 @@
         },
         {
           "group": "io.mzio",
-          "module": "user-management",
+          "module": "global-events",
           "version": {
             "requires": "1.0.0"
           }
         },
         {
           "group": "io.mzio",
-          "module": "global-events",
+          "module": "user-management",
           "version": {
             "requires": "1.0.0"
           }
@@ -163,11 +163,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 36948,
-          "sha512": "ff7da44385c2370ca1c6468db99b9fd5a6f4ee72abe1216d7dbde203c104377de2a084a56ae66daf65bdabf179b81eae7bc260d5a4bcf8614fc82eb50c9497fa",
-          "sha256": "18e4fc5cf03629a8ad3ca212d318098bdba250e23272b2cc36afa66f23844e56",
-          "sha1": "d32646b0d3b602c02bba17de5ef14aeea9e1b976",
-          "md5": "1c63ebcd93ff23ef2af03761d3e66ed7"
+          "size": 34980,
+          "sha512": "a3cb4870d7f8aca4e651756ca0f7e31717d1ddaacb4de7d084f1537521d564a63b0ecef3566152a7dde3a67e0394ecb1eef9d31064e9a4bf3e6aa85904c72f4d",
+          "sha256": "84cf69a2ea550e8ff94b826d551bc0d302b8f546f26a2589c618071750aa28ac",
+          "sha1": "5faa75fcae2c130fd3014919cdcf3f87a88674ad",
+          "md5": "fad4a07c1cdbb458dc4200e129db7573"
         }
       ]
     }
