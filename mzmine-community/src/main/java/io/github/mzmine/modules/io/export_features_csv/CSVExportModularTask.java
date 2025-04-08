@@ -343,7 +343,6 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
           first = entry;
         }
 
-        // todo check if this only adds types that have a value or if it also adds all types from the getSubCol...
         switch (first) {
           case ModularDataModel modular -> typesList.addAll(modular.getTypes());
           case SimpleCompoundDBAnnotation annotation -> typesList.addAll(annotation.getTypes());
