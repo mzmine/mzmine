@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-@Deprecated(forRemoval = true)
+@Deprecated
 public class CombinedIonModification extends IonModification {
 
   /**

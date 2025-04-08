@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-@Deprecated(forRemoval = true)
+@Deprecated
 public class IonNetwork extends HashMap<FeatureListRow, IonIdentity> implements
     Comparable<IonNetwork> {
 

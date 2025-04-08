@@ -55,7 +55,7 @@ import org.jetbrains.annotations.NotNull;
  * Networking workflow on https://gnps.ucsd.edu/, which is accessible through
  * {@link GnpsFbmnExportAndSubmitModule}.
  */
-@Deprecated(forRemoval = true)
+@Deprecated
 public class IonIdentity implements Comparable<IonIdentity> {
 
   private static final NumberFormat netIDForm = new DecimalFormat("#000");

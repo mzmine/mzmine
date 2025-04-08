@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
 
-@Deprecated(forRemoval = true)
+@Deprecated
 public class IonNetworkLogic {
 
   private static final Logger LOG = Logger.getLogger(IonNetworkLogic.class.getName());

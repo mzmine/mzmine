@@ -50,7 +50,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-@Deprecated(forRemoval = true)
+@Deprecated
 public class IonType extends NeutralMolecule implements Comparable<IonType> {
 
   public static final String XML_ELEMENT = "iontype";

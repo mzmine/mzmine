@@ -50,7 +50,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@Deprecated(forRemoval = true)
+@Deprecated
 public class IonModification extends NeutralMolecule implements Comparable<IonModification>,
     StringMapParser<IonModification> {
 

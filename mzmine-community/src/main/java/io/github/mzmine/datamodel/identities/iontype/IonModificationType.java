@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Type of ion modification.
  */
-@Deprecated(forRemoval = true)
+@Deprecated
 public enum IonModificationType {
   ADDUCT, UNDEFINED_ADDUCT, NEUTRAL_LOSS, CLUSTER, ISOTOPE, UNKNOWN, MIXED;
 

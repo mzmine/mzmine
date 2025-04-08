@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Parses strings to {@link IonType}
  */
-@Deprecated(forRemoval = true)
+@Deprecated
 public class IonTypeParser {
 
   private static final Logger logger = Logger.getLogger(IonTypeParser.class.getName());
