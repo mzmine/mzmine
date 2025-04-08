@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Retention index type
  */
-public class RIMaxType extends IntegerType {
+public class RIMaxType extends RIType {
 
   @NotNull
   @Override

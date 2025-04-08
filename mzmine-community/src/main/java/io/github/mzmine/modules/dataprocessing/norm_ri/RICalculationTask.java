@@ -149,9 +149,10 @@ public class RICalculationTask extends AbstractFeatureListTask {
 
         // values below are calculated as row bindings from the RIType - so just add the row binding
         // this automatically adds the types as row types instead of feature types
-        outputList.addRowBinding(new RIDiffType().createDefaultRowBindings());
-        outputList.addRowBinding(new RIMinType().createDefaultRowBindings());
-        outputList.addRowBinding(new RIMaxType().createDefaultRowBindings());
+        outputList.addFeatureType(new RIMinType());
+        outputList.addFeatureType(new RIMaxType());
+        outputList.addFeatureType(new RIDiffType());
+
       }
 
       for (RawDataFile file : outputList.getRawDataFiles()) {
