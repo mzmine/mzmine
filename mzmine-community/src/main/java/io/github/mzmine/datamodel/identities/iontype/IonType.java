@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,6 +50,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
+@Deprecated(forRemoval = true)
 public class IonType extends NeutralMolecule implements Comparable<IonType> {
 
   public static final String XML_ELEMENT = "iontype";
@@ -363,8 +364,8 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    */
   public boolean isModificationOf(IonType parent) {
     if (!hasMods() || !(parent.getModCount() < getModCount() && mass != parent.mass
-        && adduct.equals(parent.adduct) && molecules == parent.molecules
-        && charge == parent.charge)) {
+                        && adduct.equals(parent.adduct) && molecules == parent.molecules
+                        && charge == parent.charge)) {
       return false;
     } else if (!parent.hasMods()) {
       return true;

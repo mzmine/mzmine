@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
+@Deprecated(forRemoval = true)
 public class CombinedIonModification extends IonModification {
 
   /**
@@ -109,8 +110,8 @@ public class CombinedIonModification extends IonModification {
 
   @Override
   public IonModification createOpposite() {
-    IonModification[] mod =
-        Arrays.stream(mods).map(IonModification::createOpposite).toArray(IonModification[]::new);
+    IonModification[] mod = Arrays.stream(mods).map(IonModification::createOpposite)
+        .toArray(IonModification[]::new);
     return CombinedIonModification.create(mod);
   }
 
@@ -130,7 +131,7 @@ public class CombinedIonModification extends IonModification {
     int lastNonElectronIndex = 0;
     for (; lastNonElectronIndex < mods.length; lastNonElectronIndex++) {
       String cs = mods[lastNonElectronIndex].getName();
-      if("e".equals(cs)){
+      if ("e".equals(cs)) {
         break; // electrons are always at the end
       }
       if (s == null) {
