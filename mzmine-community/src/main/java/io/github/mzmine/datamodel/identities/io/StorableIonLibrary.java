@@ -23,26 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.fx;
+package io.github.mzmine.datamodel.identities.io;
 
-import io.github.mzmine.datamodel.identities.GlobalIonLibrary;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.mvci.FxInteractor;
-import javafx.collections.FXCollections;
 
-public class IonTypeCreatorInteractor extends FxInteractor<IonTypeCreatorModel> {
+import io.github.mzmine.datamodel.identities.IonPartNocount;
+import java.util.List;
 
-  protected IonTypeCreatorInteractor(IonTypeCreatorModel model) {
-    super(model);
-    updateModel();
-  }
+/**
+ * Only used for storage
+ *
+ * @param parts            all part definitions without count just name, formula, charge, mass
+ * @param fullNameIonTypes the full name of ion types to parse and find the correct part definition.
+ *                         Like [M+2(H+)+(Fe+3)]+
+ */
+record StorableIonLibrary(List<IonPartNocount> parts, List<String> fullNameIonTypes) {
 
-  @Override
-  public void updateModel() {
-    final GlobalIonLibrary global = GlobalIonLibrary.getGlobalLibrary();
-    FxThread.runLater(() -> {
-//      model.partsProperty().set(FXCollections.observableList(global.parts()));
-      model.ionTypesProperty().set(FXCollections.observableList(global.ionTypes()));
-    });
-  }
 }

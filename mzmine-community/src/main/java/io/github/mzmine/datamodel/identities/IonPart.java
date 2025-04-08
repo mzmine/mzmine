@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -36,13 +38,10 @@ import io.github.mzmine.datamodel.identities.io.IMolecularFormulaSerializer;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
-import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.maths.Precision;
-import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
-import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -73,22 +72,6 @@ public record IonPart(@NotNull String name,
 
   private static final Logger logger = Logger.getLogger(IonPart.class.getName());
   public static final String XML_ELEMENT = "ionpart";
-  /**
-   * non charged then charged modifications. Each sorted by name. Used to create the name of
-   * {@link IonType}
-   */
-  public static final Comparator<IonPart> DEFAULT_NAME_SORTER = Comparator.comparing(
-      IonPart::isCharged).thenComparing(IonPart::name);
-
-  /**
-   * sort by charge and then mass
-   */
-  public static final Comparator<IonPart> DEFAULT_CHARGE_MASS_SORTER = Comparator.comparing(
-      IonPart::singleCharge).thenComparing(IonPart::absSingleMass);
-
-  // may have charge defined or not
-  // -2Cl or +Fe+2
-  public static final Pattern PART_PATTERN = Pattern.compile("([+-]\\d*)?(\\w+)([+-]\\d*)?");
 
 
   @JsonCreator
@@ -162,40 +145,19 @@ public record IonPart(@NotNull String name,
         count);
   }
 
+  public static List<IonPart> parseMultiple(final String input) {
+    return IonPartParser.parseMultiple(input);
+  }
 
   @Nullable
   public static IonPart parse(@NotNull String part) {
-    // mod is +Na or -H so with sign and multiplier -2H
-    var matcher = PART_PATTERN.matcher(part);
-    if (!matcher.matches()) {
-      return null;
-    }
-
-    // need +H or -H2O to get the correct part
-    String sign = StringUtils.orDefault(matcher.group(1), "+").trim();
-    int count = sign.length() == 1 ? (sign.equals("-") ? -1 : 1) : Integer.parseInt(sign);
-
-    String name = StringUtils.orDefault(matcher.group(2), "").trim();
-
-    String chargeStr = StringUtils.orDefault(matcher.group(3), "").trim();
-
-    // try to find predefined parts by name
-    var ionPart = IonParts.findPartByNameOrFormula(name, count);
-    if (StringUtils.hasValue(chargeStr)) {
-      Integer charge = StringUtils.parseSignAndIntegerOrElse(chargeStr, true, null);
-      if (charge != null && charge != ionPart.singleCharge) {
-        return ionPart.withSingleCharge(charge);
-      }
-    }
-    return ionPart;
+    return IonPartParser.parse(part);
   }
 
   /**
    * @param signedCount - or + count here to see if this is a loss or addition
    */
   public static IonPart unknown(final String name, final int signedCount) {
-    // need to add a tiny mass difference to allow - or + in toString
-    //
     return new IonPart(name, null, 0d, 0, signedCount);
   }
 
@@ -223,12 +185,16 @@ public record IonPart(@NotNull String name,
       // e,g, {@link IonParts#}
       return "";
     }
-    String base = IonUtils.getSignedNumberOmit1(count) + name;
+    String base = IonUtils.getSignedNumberOmit1(count);
     return switch (flavor) {
-      case SIMPLE_NO_CHARGE -> base;
-      case SIMPLE_WITH_CHARGE -> "[%s]%s".formatted(base, IonUtils.getChargeString(totalCharge()));
+      case SIMPLE_NO_CHARGE -> base + name;
+      case SIMPLE_WITH_CHARGE ->
+        // use single charge here to allow saving loading in json
+        // use charge as in +2 or - with trailing number
+          "%s(%s%s)".formatted(base, name, IonUtils.getSignedNumberOmit1(singleCharge()));
       case FULL_WITH_MASS ->
-          "[%s]%s (%s Da)".formatted(base, IonUtils.getChargeString(totalCharge()),
+        // use single charge here
+          "%s(%s%s) (%s Da)".formatted(base, name, IonUtils.getSignedNumberOmit1(singleCharge()),
               ConfigService.getExportFormats().mz(totalMass()));
     };
   }
@@ -272,13 +238,12 @@ public record IonPart(@NotNull String name,
     return new IonPart(name, singleFormula, absSingleMass, singleCharge, count);
   }
 
-  private IonPart withSingleCharge(final Integer singleCharge) {
+  public IonPart withSingleCharge(final Integer singleCharge) {
     if (this.singleCharge == singleCharge) {
       return this;
     }
     return new IonPart(name, singleFormula, absSingleMass, singleCharge, count);
   }
-
 
   @JsonIgnore
   public int totalCharge() {
@@ -300,7 +265,11 @@ public record IonPart(@NotNull String name,
    */
   @JsonIgnore
   public PolarityType totalChargePolarity() {
-    return totalCharge() < 0 ? PolarityType.NEGATIVE : PolarityType.POSITIVE;
+    return switch (singleCharge) {
+      case int c when c < 0 -> PolarityType.NEGATIVE;
+      case int c when c > 0 -> PolarityType.POSITIVE;
+      default -> PolarityType.NEUTRAL;
+    };
   }
 
   @JsonIgnore
@@ -350,7 +319,6 @@ public record IonPart(@NotNull String name,
     return isLoss() ? Type.IN_SOURCE_FRAGMENT : Type.CLUSTER;
   }
 
-
   /**
    * Exclude count from equals and hash so that duplicate elements can be more easily merged
    *
@@ -398,7 +366,6 @@ public record IonPart(@NotNull String name,
     result = 31 * result + singleCharge;
     return result;
   }
-
 
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
@@ -462,7 +429,6 @@ public record IonPart(@NotNull String name,
     return name.isBlank() && singleFormula == null && absSingleMass == 0d;
   }
 
-
   public enum Type {
     /**
      * has charge, positive or negative mass
@@ -490,7 +456,7 @@ public record IonPart(@NotNull String name,
   public enum IonPartStringFlavor {
 
     /**
-     * including count, name, charge, mass: +2Na+ (totalMass Da)
+     * including count, name, charge, mass: +2(Na+) (totalMass Da)
      */
     FULL_WITH_MASS,
     /**
@@ -498,7 +464,7 @@ public record IonPart(@NotNull String name,
      */
     SIMPLE_NO_CHARGE,
     /**
-     * count, name, charge: +2Na+
+     * count, name, charge: +2(Na+)
      */
     SIMPLE_WITH_CHARGE
 

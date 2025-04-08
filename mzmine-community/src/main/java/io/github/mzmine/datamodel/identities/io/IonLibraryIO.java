@@ -23,26 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.fx;
+package io.github.mzmine.datamodel.identities.io;
 
-import io.github.mzmine.datamodel.identities.GlobalIonLibrary;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.mvci.FxInteractor;
-import javafx.collections.FXCollections;
+public class IonLibraryIO {
 
-public class IonTypeCreatorInteractor extends FxInteractor<IonTypeCreatorModel> {
 
-  protected IonTypeCreatorInteractor(IonTypeCreatorModel model) {
-    super(model);
-    updateModel();
-  }
-
-  @Override
-  public void updateModel() {
-    final GlobalIonLibrary global = GlobalIonLibrary.getGlobalLibrary();
-    FxThread.runLater(() -> {
-//      model.partsProperty().set(FXCollections.observableList(global.parts()));
-      model.ionTypesProperty().set(FXCollections.observableList(global.ionTypes()));
-    });
-  }
 }

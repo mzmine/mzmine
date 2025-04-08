@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,10 @@ import org.jetbrains.annotations.NotNull;
 public class IonUtils {
 
   public static final double ELECTRON_MASS = 5.4857990927E-4;
+
+  // needs to escape \\# in case comments are used in regex
+  public static final String SMILES_CHARACTERS_SET_FULL = "[A-Za-z0-9=\\#$:%()*@\\[\\].+-]";
+  public static final String SMILES_CHARACTERS_SET_BONDS = "[A-Za-z0-9=\\#-$:%*@.]";
 
   /**
    * Add or remove electron masses depending on charge

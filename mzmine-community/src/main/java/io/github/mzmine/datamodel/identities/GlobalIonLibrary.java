@@ -47,25 +47,37 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @param parts
+ * @param parts    key: simple name like +Fe might have multiple options like Fe+2 and Fe+3, which
+ *                 are put into a list of potential ion parts resolved for this simple name in
+ *                 definitions like [M+Fe-H]+ to find the correct charge state
  * @param ionTypes
  */
-public record IonLibrary(List<IonPart> parts, List<IonType> ionTypes) {
+public record GlobalIonLibrary(Map<String, List<IonPartNocount>> parts, List<IonType> ionTypes) {
 
-  private static final Logger logger = Logger.getLogger(IonLibrary.class.getName());
+  private static final Logger logger = Logger.getLogger(GlobalIonLibrary.class.getName());
 
   /**
    * Track the last modified state of the loaded global library to see if changes need to be loaded
    */
-  private static IonLibrary globalLibrary;
+  private static GlobalIonLibrary globalLibrary;
   private static final AtomicLong globalFileLastModified = new AtomicLong(-1);
+
+  public GlobalIonLibrary(List<IonPart> parts, List<IonType> ionTypes) {
+    final Map<String, List<IonPartNocount>> map = HashMap.newHashMap(parts.size());
+    for (final IonPart part : parts) {
+      final String key = part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE);
+      List<IonPartNocount> values = map.computeIfAbsent(key, p -> new ArrayList<>(1));
+      values.add(IonPartNocount.of(part));
+    }
+    this(map, ionTypes);
+  }
 
   /**
    * Makes sure that the global library is read from file, also if the file has since changed.
    *
    * @return global ion library
    */
-  public static @NotNull IonLibrary getGlobalLibrary() {
+  public static @NotNull GlobalIonLibrary getGlobalLibrary() {
     File file = getGlobalFile();
     if (globalLibrary == null || (file.exists()
                                   && file.lastModified() != globalFileLastModified.get())) {
@@ -73,6 +85,14 @@ public record IonLibrary(List<IonPart> parts, List<IonType> ionTypes) {
     }
 
     return globalLibrary;
+  }
+
+  /**
+   * @param name the name without count, like Fe for +2Fe
+   * @return
+   */
+  public List<IonPartNocount> findPartsByName(String name) {
+    return parts.get(name);
   }
 
 
@@ -85,13 +105,13 @@ public record IonLibrary(List<IonPart> parts, List<IonType> ionTypes) {
    *
    * @return a global ion library
    */
-  private static synchronized IonLibrary loadGlobalIonLibrary() {
+  private static synchronized GlobalIonLibrary loadGlobalIonLibrary() {
     // maybe already initialized - then no need to add mzmine internal ions
     // just check if reload of file is needed
     boolean alreadyInitialized = globalFileLastModified.get() != -1;
 
     File file = getGlobalFile();
-    IonLibrary global = null;
+    GlobalIonLibrary global = null;
     if (file.exists() && file.lastModified() != globalFileLastModified.get()) {
       try {
         global = loadJson(file);
@@ -104,18 +124,18 @@ public record IonLibrary(List<IonPart> parts, List<IonType> ionTypes) {
     }
 
     // use already initialzied one or new
-    final IonLibrary internalLibrary;
+    final GlobalIonLibrary internalLibrary;
     if (alreadyInitialized) {
       internalLibrary = globalLibrary;
     } else {
       // might also have new internal ion types defined in mzmine - combine these into a new library
       var types = Arrays.stream(IonTypes.values()).map(IonTypes::asIonType)
           .collect(Collectors.toCollection(ArrayList::new));
-      internalLibrary = new IonLibrary(new ArrayList<>(IonParts.PREDEFINED_PARTS), types);
+      internalLibrary = new GlobalIonLibrary(new ArrayList<>(IonParts.PREDEFINED_PARTS), types);
     }
 
     // merge both libraries: from file and internal
-    IonLibrary merged = IonLibrary.merge(global, internalLibrary);
+    GlobalIonLibrary merged = GlobalIonLibrary.merge(global, internalLibrary);
 
     // if changed then save
     if (global == null || merged.numIonTypes() != global.numIonTypes()
@@ -147,8 +167,8 @@ public record IonLibrary(List<IonPart> parts, List<IonType> ionTypes) {
    * @return merges two non-null libraries into a new instance. Or null if both are null or returns
    * the original instance that is non-null
    */
-  public static IonLibrary merge(final @Nullable IonLibrary first,
-      final @Nullable IonLibrary second) {
+  public static GlobalIonLibrary merge(final @Nullable GlobalIonLibrary first,
+      final @Nullable GlobalIonLibrary second) {
     if (first == null && second == null) {
       return null;
     }
@@ -159,10 +179,11 @@ public record IonLibrary(List<IonPart> parts, List<IonType> ionTypes) {
       return first;
     }
 
-    List<IonPart> mergedParts = mergeParts(first.parts(), second.parts());
+    // TODO load simplified.
+//    List<IonPart> mergedParts = mergeParts(first.parts(), second.parts());
     List<IonType> ionTypes = mergeTypes(first.ionTypes(), second.ionTypes());
 
-    return new IonLibrary(mergedParts, ionTypes);
+    return new GlobalIonLibrary(List.of(), ionTypes);
   }
 
   private static List<IonPart> mergeParts(final List<IonPart> first, final List<IonPart> second) {
@@ -256,8 +277,8 @@ public record IonLibrary(List<IonPart> parts, List<IonType> ionTypes) {
   }
 
   @NotNull
-  public static IonLibrary loadJson(final @NotNull File file) throws IOException {
-    return new ObjectMapper().readValue(file, IonLibrary.class);
+  public static GlobalIonLibrary loadJson(final @NotNull File file) throws IOException {
+    return new ObjectMapper().readValue(file, GlobalIonLibrary.class);
   }
 
   public void saveGlobalLibrary() throws IOException {

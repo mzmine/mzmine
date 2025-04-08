@@ -49,9 +49,6 @@ public class IonTypeParser {
    */
   private static final Pattern PART_PATTERN_OLD = Pattern.compile("([+-])(\\d*)(\\w+)");
 
-
-  public static final Pattern PART_PATTERN = Pattern.compile("([+-]?\\d*)(\\w+)");
-
   @Nullable
   public static IonType parse(final @Nullable String str) {
     if (str == null || str.isBlank()) {

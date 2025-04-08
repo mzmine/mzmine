@@ -25,10 +25,13 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import static java.util.function.Predicate.not;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
+import io.github.mzmine.datamodel.identities.fx.sub.IonSorting;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
@@ -37,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import static java.util.function.Predicate.not;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.stream.XMLStreamException;
@@ -83,7 +85,8 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
   public static IonType create(@NotNull List<@NotNull IonPart> parts, int molecules) {
     // requires to merge all the same IonParts into single objects by adding up their count multiplier
     // sort so that name will be correct
-    parts = IonParts.mergeDuplicates(parts).stream().sorted(IonPart.DEFAULT_NAME_SORTER).toList();
+    parts = IonParts.mergeDuplicates(parts).stream()
+        .sorted(IonSorting.getIonPartDefault().createIonPartComparator()).toList();
 
     double totalMass = 0;
     int totalCharge = 0;
