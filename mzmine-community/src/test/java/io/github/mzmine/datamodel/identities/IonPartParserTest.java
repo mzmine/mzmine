@@ -55,21 +55,26 @@ class IonPartParserTest {
 
   @Test
   public void testParseSmiles() {
-    final List<String> names = List.of("C#C-C", "CH2-OH", "CH2=O");
+    final List<String> smiles = List.of("C#C-C", "C-OH", "C=O");
+    final List<String> names = List.of("C3H4", "CH4O", "CH2O");
     final var charges = List.of(0, 2, -1);
     final var counts = List.of(-1, 1, 2);
 
-    var input = IntStream.range(0, counts.size()).mapToObj(
-        i -> new IonPart(names.get(i), null, 0d, charges.get(i), counts.get(i)).toString(
-            IonPartStringFlavor.SIMPLE_WITH_CHARGE)).collect(Collectors.joining(""));
+    final List<IonPart> ions = IntStream.range(0, counts.size())
+        .mapToObj(i -> new IonPart(smiles.get(i), charges.get(i), counts.get(i))).toList();
+    var input = ions.stream().map(ion -> ion.toString(IonPartStringFlavor.SIMPLE_WITH_CHARGE))
+        .collect(Collectors.joining(""));
 
     var parts = IonPartParser.parseMultiple(input);
     assertEquals(3, parts.size());
     for (int i = 0; i < parts.size(); i++) {
+      final String message =
+          "For part: " + ions.get(i).toString(IonPartStringFlavor.SIMPLE_WITH_CHARGE);
+
       final IonPart part = parts.get(i);
-      assertEquals(charges.get(i), part.singleCharge());
-      assertEquals(names.get(i), part.name());
-      assertEquals(counts.get(i), part.count());
+      assertEquals(charges.get(i), part.singleCharge(), message);
+      assertEquals(names.get(i), part.name(), message);
+      assertEquals(counts.get(i), part.count(), message);
     }
   }
 

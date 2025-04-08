@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -34,6 +36,9 @@ import io.github.mzmine.datamodel.identities.IonUtils;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.structures.SimpleMolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureInputType;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,7 +48,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import static java.util.Objects.requireNonNullElse;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -399,9 +403,19 @@ public class FormulaUtils {
       int overwriteCharge) {
     var f = createMajorIsotopeMolFormulaWithCharge(formula);
     if (f == null) {
-      return null;
+      // try to parse as smiles
+      // useful for formulas given as CH3-OH
+      final SimpleMolecularStructure structure = StructureParser.silent()
+          .parseStructure(formula, StructureInputType.SMILES);
+      if (structure != null) {
+        f = structure.formula();
+        logger.finer(() -> "Formula %s was parsed as SMILES %s".formatted(formula,
+            structure.formulaString()));
+      }
     }
-    f.setCharge(overwriteCharge);
+    if (f != null) {
+      f.setCharge(overwriteCharge);
+    }
     return f;
   }
 
