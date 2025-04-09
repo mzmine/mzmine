@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2024 The mzmine Development Team
+  ~ Copyright (c) 2004-2025 The mzmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -122,8 +122,8 @@
         <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="45" text="MSn" minWidth="40"
           maxWidth="60"/>
 <!--          precursor mz column has no max width as pasef frames contain multiple precursors -->
-        <TableColumn fx:id="precursorMzColumn" editable="false" prefWidth="90" minWidth="80"
-          text="Precursor m/z"/>
+        <TableColumn fx:id="precursorMzColumn" editable="false" prefWidth="90" minWidth="80" text="Precursor m/z"/>
+        <TableColumn fx:id="fragMethodColumn" editable="false" prefWidth="90" minWidth="80" text="Fragmentation"/>
         <TableColumn fx:id="mzRangeColumn" editable="false" prefWidth="115" maxWidth="130"
           text="m/z range"/>
         <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="90.0" minWidth="35"
