@@ -26,7 +26,7 @@
 package io.github.mzmine.datamodel.identities.io;
 
 
-import io.github.mzmine.datamodel.identities.IonPartNocount;
+import io.github.mzmine.datamodel.identities.IonPartNoCount;
 import java.util.List;
 
 /**
@@ -36,6 +36,6 @@ import java.util.List;
  * @param fullNameIonTypes the full name of ion types to parse and find the correct part definition.
  *                         Like [M+2(H+)+(Fe+3)]+
  */
-record StorableIonLibrary(List<IonPartNocount> parts, List<String> fullNameIonTypes) {
+record StorableIonLibrary(List<IonPartNoCount> parts, List<String> fullNameIonTypes) {
 
 }
