@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -92,14 +92,19 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     Double precursorMz = null;
     Integer charge = null;
     Float energy = null;
+    // this energy should be preferred over the also defined CID energy in EAD which is used to transfer the ions
+    Float energyEAD = null;
     ActivationMethod method = ActivationMethod.UNKNOWN;
 
     MzMLPrecursorActivation activation = precursorElement.getActivation();
     for (MzMLCVParam mzMLCVParam : activation.getCVParamsList()) {
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationEnergy) || mzMLCVParam.getAccession()
           .equals(MzMLCV.cvPercentCollisionEnergy) || mzMLCVParam.getAccession()
-          .equals(MzMLCV.cvActivationEnergy2)) {
+              .equals(MzMLCV.cvActivationEnergy2)) {
         energy = Float.parseFloat(mzMLCVParam.getValue().get());
+      }
+      if (mzMLCVParam.getAccession().equals(MzMLCV.cvElectronBeamEnergyEAD)) {
+        energyEAD = Float.parseFloat(mzMLCVParam.getValue().get());
       }
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationCID)) {
         method = ActivationMethod.CID;
@@ -113,6 +118,12 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvLowEnergyCID)) {
         method = ActivationMethod.CID;
       }
+    }
+
+    if (energyEAD != null) {
+      // the regular energy is only used for ion transfer?
+      energy = energyEAD;
+      method = ActivationMethod.EAD;
     }
 
     List<MzMLCVParam> cvParamsList = list.get().getSelectedIonList().get(0).getCVParamsList();
@@ -205,8 +216,8 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
     return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
         scanIndex != null && scanIndex != -1 && file != null ? file.getScan(scanIndex) : null,
-        parentScanIndex != null && parentScanIndex != -1 && file != null ? file.getScan(parentScanIndex) : null, msLevel, method,
-        isolationWindow);
+        parentScanIndex != null && parentScanIndex != -1 && file != null ? file.getScan(
+            parentScanIndex) : null, msLevel, method, isolationWindow);
   }
 
   @Override
@@ -311,16 +322,23 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     }
     DDAMsMsInfoImpl that = (DDAMsMsInfoImpl) o;
     return Double.compare(that.getIsolationMz(), getIsolationMz()) == 0
-        && getMsLevel() == that.getMsLevel() && Objects.equals(charge, that.charge)
-        && Objects.equals(getActivationEnergy(), that.getActivationEnergy()) && (
-        Objects.equals(getMsMsScan(), that.getMsMsScan()) || (getMsMsScan() != null
-            && that.getMsMsScan() != null && getMsMsScan().getScanNumber() == that.getMsMsScan()
-            .getScanNumber())) && (Objects.equals(getParentScan(), that.getParentScan())
-        || Objects.equals(getMsMsScan(), that.getMsMsScan()) || (getParentScan() != null
-        && that.getParentScan() != null && getParentScan().getScanNumber() == that.getParentScan()
-        .getScanNumber())
+           && getMsLevel() == that.getMsLevel() && Objects.equals(charge, that.charge)
+           && Objects.equals(getActivationEnergy(), that.getActivationEnergy()) && (
+               Objects.equals(getMsMsScan(), that.getMsMsScan()) || (getMsMsScan() != null
+                                                                     && that.getMsMsScan() != null
+                                                                     &&
+                                                                     getMsMsScan().getScanNumber()
+                                                                     == that.getMsMsScan()
+                                                                         .getScanNumber())) && (
+               Objects.equals(getParentScan(), that.getParentScan()) || Objects.equals(
+                   getMsMsScan(), that.getMsMsScan()) || (getParentScan() != null
+                                                          && that.getParentScan() != null
+                                                          && getParentScan().getScanNumber()
+                                                             == that.getParentScan()
+                                                                 .getScanNumber())
 
-    ) && method == that.method && Objects.equals(getIsolationWindow(), that.getIsolationWindow());
+           ) && method == that.method && Objects.equals(getIsolationWindow(),
+        that.getIsolationWindow());
   }
 
   @Override
@@ -332,9 +350,9 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   @Override
   public String toString() {
     return "DDAMsMsInfoImpl{" + "isolationMz=" + isolationMz + ", charge=" + charge
-        + ", activationEnergy=" + activationEnergy + ", msLevel=" + msLevel + ", method=" + method
-        + ", isolationWindow=" + isolationWindow + ", parentScan=" + parentScan + ", msMsScan="
-        + msMsScan + '}';
+           + ", activationEnergy=" + activationEnergy + ", msLevel=" + msLevel + ", method="
+           + method + ", isolationWindow=" + isolationWindow + ", parentScan=" + parentScan
+           + ", msMsScan=" + msMsScan + '}';
   }
 
   @Override
