@@ -52,6 +52,14 @@ public class IsotopeNaturalAbundanceParameters extends SimpleParameterSet {
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       ToleranceType.SCAN_TO_SCAN);
 
+  public static final OptionalParameter<DoubleParameter> resolution = new OptionalParameter<>(
+      new DoubleParameter("Resolution",
+          "Resolution at which the data was originally measured. Will trigger high resolution correction."));
+
+  public static final OptionalParameter<DoubleParameter> mzOfResolution = new OptionalParameter<>(
+      new DoubleParameter("mz of the resolution",
+          "mz at which the resolution has been determined. Required to trigger high resolution correction."));
+
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
   public static final IntegerParameter charge = new IntegerParameter("Charge",
@@ -84,8 +92,8 @@ public class IsotopeNaturalAbundanceParameters extends SimpleParameterSet {
       true);
 
   public IsotopeNaturalAbundanceParameters() {
-    super(new Parameter[]{peakLists, suffix, mzTolerance, rtTolerance, charge, tracerPurity,
-            mobilityTolerace, backgroundValue, tracerIsotope, handleOriginal},
+    super(new Parameter[]{peakLists, suffix, mzTolerance, resolution, mzOfResolution, rtTolerance,
+            charge, tracerPurity, mobilityTolerace, backgroundValue, tracerIsotope, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation");
   }
 

@@ -75,6 +75,8 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
   // parameter values
   private final String suffix;
   private final MZTolerance mzTolerance;
+  private final Double resolution;
+  private final Double mzOfResolution;
   private final MobilityTolerance mobilityTolerance;
   private final Double backgroundValue;
   private final Boolean correct_NA_tracer;
@@ -116,6 +118,10 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
         parameters.getParameter(IsotopeNaturalAbundanceParameters.tracerPurity).getValue()};
     tracerIsotope = parameters.getParameter(IsotopeNaturalAbundanceParameters.tracerIsotope)
         .getValue();
+    resolution = parameters.getParameter(IsotopeNaturalAbundanceParameters.resolution)
+        .getEmbeddedParameter().getValue();
+    mzOfResolution = parameters.getParameter(IsotopeNaturalAbundanceParameters.mzOfResolution)
+        .getEmbeddedParameter().getValue();
   }
 
   @Override
@@ -237,6 +243,31 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
       HashMap options = new HashMap<>();
       // options.put("resolution", resolutionDalton);
       // options.put("mzOfResolution", 440.0);
+
+      // compare the measurement resolution with the calculated dalton and ppm resolution to check which one is the lowest of the three.
+      if (resolution != null && mzOfResolution != null) {
+        options.put("mzOfResolution", mzOfResolution);
+        if (resolution > 0 && mzOfResolution > 0) {
+          // compare resolution with the others
+          double lowestCalculatedResolution = Math.min(resolutionDalton, resolutionPPM);
+          if (resolution < lowestCalculatedResolution) {
+            options.put("resolution", resolution);
+          } else {
+            options.put("resolution", lowestCalculatedResolution);
+            // notify the user that the tolerance parameters decreased the resolution below the measurement resolution
+            logger.warning(
+                "The tolerance parameters decreased the resolution below the measurement resolution. "
+                    + "The resolution will be set to " + lowestCalculatedResolution);
+          }
+        } else {
+          // notify the user that the input was invalid and that the fallback low resulution correction is applied
+          logger.warning(
+              "The input resolution was invalid. The low resolution correction will be applied.");
+        }
+      } else {
+        // notify the user that the low resolution correction is applied
+        logger.warning("The low resolution correction is applied.");
+      }
       options.put("charge", charge);
       options.put("tracerPurity", tracerPurity);
       options.put("correct_NA_tracer", correct_NA_tracer);
