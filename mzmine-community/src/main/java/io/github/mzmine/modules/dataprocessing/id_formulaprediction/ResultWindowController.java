@@ -31,17 +31,24 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.Comparators;
+import io.github.mzmine.util.FeatureListUtils;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.Toolkit;
@@ -167,8 +174,24 @@ public class ResultWindowController {
       return;
     }
 
-    SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(formula.getFormulaAsString());
-    featureListRow.addFeatureIdentity(newIdentity, false);
+    // make the formula column visible in the feature table
+    final Integer result = ((MZmineDesktop) DesktopService.getDesktop()).getAllTabs().stream()
+        .filter(tab -> tab instanceof FeatureTableTab).map(FeatureTableTab.class::cast)
+        .filter(tab -> tab.getFeatureList() == featureListRow.getFeatureList())
+        .map(FeatureTableTab::getFeatureTable).findFirst().map(table -> {
+          if (!table.getFeatureList().getFeatureTypes().contains(FormulaListType.class)) {
+            final FormulaListType type = DataTypes.get(FormulaListType.class);
+            table.getFeatureList().addRowType(type);
+            table.getRowTypesParameter().setDataTypeVisible(type.getUniqueID(), true);
+            table.getRowTypesParameter()
+                .setDataTypeVisible(type.getUniqueID() + ":" + type.getUniqueID(), true);
+            table.rebuild();
+            table.refresh();
+          }
+          return 1;
+        }).get();
+
+    featureListRow.addFormula(formula, true);
 
     dispose();
   }
@@ -239,8 +262,8 @@ public class ResultWindowController {
 
     RawDataFile dataFile = peak.getRawDataFile();
     Scan scanNumber = peak.getRepresentativeScan();
-    SpectraVisualizerModule
-        .addNewSpectrumTab(dataFile, scanNumber, null, peak.getIsotopePattern(), predictedPattern);
+    SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null, peak.getIsotopePattern(),
+        predictedPattern);
   }
 
   @FXML
@@ -251,8 +274,8 @@ public class ResultWindowController {
       return;
     }
 
-    logger
-        .finest("Showing isotope pattern mirror match for formula " + formula.getFormulaAsString());
+    logger.finest(
+        "Showing isotope pattern mirror match for formula " + formula.getFormulaAsString());
     IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
     if (predictedPattern == null) {
@@ -263,9 +286,9 @@ public class ResultWindowController {
     final IsotopePattern detectedPattern = peak.getIsotopePattern().getRelativeIntensityCopy();
 
     final UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
-    EChartViewer mirrorChart = MirrorChartFactory
-        .createMirrorChartViewer(detectedPattern, predictedPattern,
-            uf.format("Detected pattern", "%"), uf.format("Predicted pattern", "%"), false, true);
+    EChartViewer mirrorChart = MirrorChartFactory.createMirrorChartViewer(detectedPattern,
+        predictedPattern, uf.format("Detected pattern", "%"), uf.format("Predicted pattern", "%"),
+        false, true);
 
     SimpleTab tab = new SimpleTab("Isotope mirror");
     tab.setContent(mirrorChart);
@@ -304,8 +327,8 @@ public class ResultWindowController {
       return;
     }
 
-    SpectraVisualizerTab msmsPlot = SpectraVisualizerModule
-        .addNewSpectrumTab(dataFile, msmsScanNumber);
+    SpectraVisualizerTab msmsPlot = SpectraVisualizerModule.addNewSpectrumTab(dataFile,
+        msmsScanNumber);
 
     if (msmsPlot == null) {
       return;
