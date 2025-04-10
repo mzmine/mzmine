@@ -40,6 +40,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
@@ -69,6 +70,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 
 
@@ -80,6 +82,7 @@ public class ResultWindowController {
   private final NumberFormat ppmFormat = new DecimalFormat("0.0");
 
   private final ObservableList<ResultFormula> formulas = FXCollections.observableArrayList();
+  public BorderPane rootPane;
 
   @FXML
   private TableView<ResultFormula> resultTable;
@@ -105,6 +108,9 @@ public class ResultWindowController {
 
   @FXML
   private void initialize() {
+
+    ConfigService.getConfiguration().getTheme().apply(rootPane.getStylesheets());
+
     Formula.setCellValueFactory(cell -> {
       String formula = cell.getValue().getFormulaAsString();
       String cellVal = "";
@@ -173,23 +179,6 @@ public class ResultWindowController {
       MZmineCore.getDesktop().displayMessage(null, "Select one result to add as compound identity");
       return;
     }
-
-    // make the formula column visible in the feature table
-    final Integer result = ((MZmineDesktop) DesktopService.getDesktop()).getAllTabs().stream()
-        .filter(tab -> tab instanceof FeatureTableTab).map(FeatureTableTab.class::cast)
-        .filter(tab -> tab.getFeatureList() == featureListRow.getFeatureList())
-        .map(FeatureTableTab::getFeatureTable).findFirst().map(table -> {
-          if (!table.getFeatureList().getFeatureTypes().contains(FormulaListType.class)) {
-            final FormulaListType type = DataTypes.get(FormulaListType.class);
-            table.getFeatureList().addRowType(type);
-            table.getRowTypesParameter().setDataTypeVisible(type.getUniqueID(), true);
-            table.getRowTypesParameter()
-                .setDataTypeVisible(type.getUniqueID() + ":" + type.getUniqueID(), true);
-            table.rebuild();
-            table.refresh();
-          }
-          return 1;
-        }).get();
 
     featureListRow.addFormula(formula, true);
 
