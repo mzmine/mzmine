@@ -476,9 +476,7 @@ public class MZminePreferences extends SimpleParameterSet {
         MZminePreferences.defaultColorPalette).getPalettes();
     // check if an inverted palette already exists. if not, use the inverted one.
     final Optional<SimpleColorPalette> match = palettes.stream().filter(p -> p.equals(cloned, false)).findFirst();
-    match.ifPresentOrElse(colors -> setParameter(MZminePreferences.defaultColorPalette, colors),
-        () -> setParameter(MZminePreferences.defaultColorPalette, cloned));
-
+    setParameter(MZminePreferences.defaultColorPalette, match.orElse(cloned));
   }
 
   private void updateGuiFormat() {
