@@ -24,15 +24,8 @@
 
 package integrationtest;
 
-import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
-import io.github.mzmine.project.ProjectService;
 import java.io.File;
-import java.net.URL;
-import java.util.List;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
