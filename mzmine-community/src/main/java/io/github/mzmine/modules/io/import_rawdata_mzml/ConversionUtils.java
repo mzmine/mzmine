@@ -170,16 +170,14 @@ public class ConversionUtils {
     final Map<String, DetectorCVs> accessions = Arrays.stream(DetectorCVs.values())
         .collect(Collectors.toMap(DetectorCVs::getAccession, v -> v));
 
-    scans.stream().filter(Objects::nonNull);
     final Map<DetectorCVs, List<BuildingMzMLMsScan>> accessionToScansMap = accessions.keySet()
-        .stream().collect(Collectors.toMap(accession -> accessions.get(accession), accession -> {
-          return scans.stream().<BuildingMzMLMsScan>mapMulti((scan, c) -> {
-            if (scan.getCVParams().getCVParamsList().stream()
-                .anyMatch(cvParam -> cvParam.getAccession().equals(accession))) {
-              c.accept(scan);
-            }
-          }).toList();
-        }));
+        .stream().collect(Collectors.toMap(accession -> accessions.get(accession),
+            accession -> scans.stream().<BuildingMzMLMsScan>mapMulti((scan, c) -> {
+              if (scan.getCVParams().getCVParamsList().stream()
+                  .anyMatch(cvParam -> cvParam.getAccession().equals(accession))) {
+                c.accept(scan);
+              }
+            }).toList()));
 
     if (accessionToScansMap.isEmpty()) {
       logger.finest(() -> "No other detectors found in file %s".formatted(file.getName()));
@@ -188,6 +186,9 @@ public class ConversionUtils {
 
     List<OtherDataFile> otherDataFiles = new ArrayList<>();
     for (Entry<DetectorCVs, List<BuildingMzMLMsScan>> accessionScansEntry : accessionToScansMap.entrySet()) {
+      if (accessionScansEntry.getValue() == null || accessionScansEntry.getValue().isEmpty()) {
+        continue;
+      }
       switch (accessionScansEntry.getKey()) { // add more detectors here
         case UV_SPECTRUM -> {
           final OtherDataFile uvFile = createUvFile(file, accessionScansEntry.getValue());

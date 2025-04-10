@@ -52,6 +52,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -203,15 +205,17 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
       return null;
     }
 
-    final String cmdLine[] = new String[]{ //
-        thermoRawFileParserCommand, // program to run
-        "-s", // output mzML to stdout
-        "-p", // no peak picking
-        "-z", // no zlib compression (higher speed)
-        "-f=1", // no index, https://github.com/compomics/ThermoRawFileParser/issues/118
-        "-i", // input RAW file name coming next
-        fileToOpen.getPath() // input RAW file name
-    };
+    final List<String> cmdLine = new ArrayList<>(); //
+    cmdLine.add(thermoRawFileParserCommand); // program to run
+    cmdLine.add("-s"); // output mzML to stdout
+    if(!ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)) {
+      cmdLine.add("-p"); // no peak picking
+    }
+    cmdLine.add("-z"); // no zlib compression (higher speed)
+    cmdLine.add("-f=1"); // no index, https://github.com/compomics/ThermoRawFileParser/issues/118
+    cmdLine.add("--allDetectors"); // include all detector data
+    cmdLine.add("-i"); // input RAW file name coming next
+    cmdLine.add(fileToOpen.getPath()); // input RAW file name
 
     // Create a separate process and execute ThermoRawFileParser.
     // Use thermoRawFileParserDir as working directory; this is essential, otherwise the process will fail.
