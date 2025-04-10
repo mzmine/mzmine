@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.dan2097.jnainchi.InchiKeyOutput;
 import io.github.dan2097.jnainchi.InchiKeyStatus;
 import io.github.dan2097.jnainchi.InchiStatus;
 import io.github.dan2097.jnainchi.JnaInchi;
+import io.github.mzmine.util.FormulaUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.exception.CDKException;
@@ -172,7 +173,11 @@ public class StructureUtils {
 
   @NotNull
   public static IMolecularFormula getFormula(@NotNull IAtomContainer structure) {
-    return MolecularFormulaManipulator.getMolecularFormula(structure);
+    IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(structure);
+    if (formula != null) {
+      formula = FormulaUtils.replaceAllIsotopesWithoutExactMass(formula, true);
+    }
+    return formula;
   }
 
   public static double getMonoIsotopicMass(IAtomContainer structure) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,23 +25,21 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.utility;
 
-import java.util.logging.Logger;
-import org.openscience.cdk.formula.MolecularFormulaRange;
-import org.openscience.cdk.interfaces.IIsotope;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.IsotopePatternUtils;
+import java.util.logging.Logger;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IIsotope;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * Used to calculate parameter values based on the results of data point processing modules.
- * 
- * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
 public class DynamicParameterUtils {
 
@@ -72,39 +70,43 @@ public class DynamicParameterUtils {
    * lowerElementBoundaryPercentage and upperElementBoundaryPercentage values of this utility class.
    * These values can be set via {@link #setLowerElementBoundaryPercentage} and
    * {@link #setUpperElementBoundaryPercentage}. The elements contained in
-   * 
-   * @param dp The data point to build a parameter for.
+   *
+   * @param dp  The data point to build a parameter for.
    * @param def The default set of parameters.
    * @return The built ElementsCompositionRangeParameter
    */
   public static MolecularFormulaRange buildFormulaRangeOnIsotopePatternResults(
       ProcessedDataPoint dp, MolecularFormulaRange def) {
 
-    DPPIsotopePatternResult result =
-        (DPPIsotopePatternResult) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN);
-    if (result == null)
+    DPPIsotopePatternResult result = (DPPIsotopePatternResult) dp.getFirstResultByType(
+        ResultType.ISOTOPEPATTERN);
+    if (result == null) {
       return def;
+    }
 
-    if (!(result.getValue() instanceof SimpleIsotopePattern))
+    if (!(result.getValue() instanceof SimpleIsotopePattern)) {
       return def;
+    }
 
     SimpleIsotopePattern pattern = (SimpleIsotopePattern) result.getValue();
     String form = IsotopePatternUtils.makePatternSuggestion(pattern.getIsotopeCompositions());
 
     MolecularFormulaRange range = new MolecularFormulaRange();
 
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(form);
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(form);
     if (formula == null) {
       logger.finest("could not generate formula for m/z " + dp.getMZ() + " " + form);
       return def;
     }
 
-    for (IIsotope isotope : def.isotopes())
+    for (IIsotope isotope : def.isotopes()) {
       range.addIsotope(isotope, def.getIsotopeCountMin(isotope), def.getIsotopeCountMax(isotope));
+    }
 
     for (IIsotope isotope : formula.isotopes()) {
-      if (range.contains(isotope))
+      if (range.contains(isotope)) {
         continue;
+      }
 
       int count = formula.getIsotopeCount(isotope);
 

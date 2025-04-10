@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -231,6 +231,10 @@ public class StringUtils {
     return str == null || str.isBlank();
   }
 
+  public static String requireValueOrElse(@Nullable String str, @Nullable String defaultValue) {
+    return isBlank(str) ? defaultValue : str;
+  }
+
   public static String inQuotes(String str) {
     return "\"" + str + "\"";
   }
@@ -276,5 +280,12 @@ public class StringUtils {
     } catch (Exception ex) {
       return defaultValue;
     }
+  }
+
+  /**
+   * Removes all that match \\s+ white space like tab and space
+   */
+  public static String removeAllWhiteSpace(final String input) {
+    return input.replaceAll("\\s+", "");
   }
 }

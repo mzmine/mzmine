@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.datamodel.identities.fx.IonTypeCreatorTab;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
@@ -312,6 +313,10 @@ public class MainMenuController {
 
   public void openUserAccountConsole(final ActionEvent e) {
     DesktopService.getDesktop().openWebPage(MzioMZmineLinks.USER_CONSOLE.getUrl());
+  }
+
+  public void showDefineIonLibraries(final ActionEvent e) {
+    IonTypeCreatorTab.showTab();
   }
 }
 

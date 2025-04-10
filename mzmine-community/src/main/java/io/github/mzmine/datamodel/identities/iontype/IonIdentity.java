@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,11 +50,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * IonIdentities are connected to {@link IonNetwork}s and represent different ion species (M+H,
  * M+Na, 2M+H, ...) for the same molecule. Typically {@link CorrelateGroupingTask} is performed
- * before identifying ion identities. They can be used to predict molecular formulas in {@link
- * FormulaPredictionIonNetworkModule} and they are part of the Ion Idententity Molecular Networking
- * workflow on https://gnps.ucsd.edu/, which is accessible through {@link
- * GnpsFbmnExportAndSubmitModule}.
+ * before identifying ion identities. They can be used to predict molecular formulas in
+ * {@link FormulaPredictionIonNetworkModule} and they are part of the Ion Idententity Molecular
+ * Networking workflow on https://gnps.ucsd.edu/, which is accessible through
+ * {@link GnpsFbmnExportAndSubmitModule}.
  */
+@Deprecated
 public class IonIdentity implements Comparable<IonIdentity> {
 
   private static final NumberFormat netIDForm = new DecimalFormat("#000");
