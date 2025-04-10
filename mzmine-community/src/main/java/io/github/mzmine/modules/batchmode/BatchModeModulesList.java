@@ -217,15 +217,15 @@ public class BatchModeModulesList {
            * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAIMPORT}
            */
           AllSpectralDataImportModule.class, //
-          TDFImportModule.class, //
-          ImzMLImportModule.class, //
-          MzDataImportModule.class, //
-          MSDKmzMLImportModule.class, //
-          MzXMLImportModule.class, //
-          NetCDFImportModule.class, //
-          ThermoRawImportModule.class, //
+//          TDFImportModule.class, //
+//          ImzMLImportModule.class, //
+//          MzDataImportModule.class, //
+//          MSDKmzMLImportModule.class, //
+//          MzXMLImportModule.class, //
+//          NetCDFImportModule.class, //
+//          ThermoRawImportModule.class, //
 //      WatersRawImportModule.class, //
-          ZipImportModule.class, //
+//          ZipImportModule.class, //
           SpectralLibraryImportModule.class, //
           SpectralLibraryToFeatureListModule.class, //
 

@@ -36,6 +36,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.download.AssetGroup;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -95,6 +96,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
     this.parameters = parameters;
     this.module = module;
     this.scanProcessorConfig = scanProcessorConfig;
+    assert parameters instanceof AllSpectralDataImportParameters;
   }
 
   @Override
@@ -208,7 +210,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
     final List<String> cmdLine = new ArrayList<>(); //
     cmdLine.add(thermoRawFileParserCommand); // program to run
     cmdLine.add("-s"); // output mzML to stdout
-    if(!ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)) {
+    if(!parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding)) {
       cmdLine.add("-p"); // no peak picking
     }
     cmdLine.add("-z"); // no zlib compression (higher speed)
