@@ -35,6 +35,7 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -48,6 +49,7 @@ import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionInfo;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,10 +87,11 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     this.project = project;
     this.module = module;
     this.parameters = parameters;
+    assert parameters instanceof AllSpectralDataImportParameters;
   }
 
   public static @NotNull List<String> buildCommandLine(File filePath, File msConvertPath,
-      boolean convertToFile) {
+      boolean convertToFile, boolean applyVendorCentroiding) {
     final File mzMLFile = getMzMLFileName(filePath);
     final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(filePath);
 
@@ -98,8 +101,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     )); // vendor peak-picking
 
     if (convertToFile) {
-      cmdLine.addAll(List.of(
-          "--outdir", inQuotes(mzMLFile.getParent()), // need to set dir here
+      cmdLine.addAll(List.of("--outdir", inQuotes(mzMLFile.getParent()), // need to set dir here
           "--outfile", inQuotes(mzMLFile.getName()))); // only file name here
     } else {
       cmdLine.addAll(List.of("-o", "-")); /* to stdout */
@@ -115,8 +117,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       cmdLine.addAll(List.of("--combineIonMobilitySpectra"));
     }
 
-    if (ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)
-        && isPeakPickingSupported(fileType)) {
+    if (applyVendorCentroiding && isPeakPickingSupported(fileType)) {
       cmdLine.addAll(List.of("--filter", "\"peakPicking vendor msLevel=1-\""));
     }
 
@@ -240,6 +241,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       }
       // return to start of file and skip ahead to the index where the mzml starts
       mzMLStream.reset();
+      mzMLStream.mark(0);
       mzMLStream.skipNBytes(headerStartOffset + headerStartIndex);
     }
   }
@@ -288,7 +290,8 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       return;
     }
 
-    final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath, convertToFile);
+    final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath, convertToFile, parameters.getValue(
+        AllSpectralDataImportParameters.applyVendorCentroiding));
 
     if (convertToFile) {
       ProcessBuilder builder = new ProcessBuilder(cmdLine);
@@ -361,7 +364,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     if (parsedScans != totalScans) {
       throw (new RuntimeException(
           "MSConvert process crashed before all scans were extracted (" + parsedScans + " out of "
-          + totalScans + ")"));
+              + totalScans + ")"));
     }
     msdkTask.addAppliedMethodAndAddToProject(dataFile);
   }
@@ -406,7 +409,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       if (parsedScans != totalScans) {
         throw (new RuntimeException(
             "ThermoRawFileParser/MSConvert process crashed before all scans were extracted ("
-            + parsedScans + " out of " + totalScans + ")"));
+                + parsedScans + " out of " + totalScans + ")"));
       }
 
       msdkTask.addAppliedMethodAndAddToProject(dataFile);

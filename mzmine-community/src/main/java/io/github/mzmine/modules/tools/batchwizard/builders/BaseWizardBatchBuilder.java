@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -953,22 +954,18 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   }
 
   protected void makeAndAddImportTask(final BatchQueue q) {
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
-    param.setParameter(AllSpectralDataImportParameters.sortAndRecolor, true);
-    param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(dataFiles);
-    param.setParameter(AllSpectralDataImportParameters.metadataFile, metadataFile.active(),
-        metadataFile.value());
-    param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(libraries);
-    // turn advanced off but still set the noise levels etc
-    param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(false);
 
+    // turn advanced off but still set the noise levels etc
     boolean denormalize = massDetectorOption.getValueType() == FACTOR_OF_LOWEST_SIGNAL;
     var advancedParameters = AdvancedSpectraImportParameters.create(
         massDetectorOption.getValueType(), getNoiseLevelForMsLevel(1), getNoiseLevelForMsLevel(2),
         null, ScanSelection.ALL_SCANS, denormalize);
-    param.getParameter(AllSpectralDataImportParameters.advancedImport)
-        .setEmbeddedParameters(advancedParameters);
+
+    final var param = AllSpectralDataImportParameters.create(
+        ConfigService.isApplyVendorCentroiding(), dataFiles,
+        metadataFile.active() ? metadataFile.value() : null, libraries, advancedParameters);
+
+    param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param));

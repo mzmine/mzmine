@@ -76,12 +76,13 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
   private final TDFDataColumn<Long> msLevelCol = new TDFDataColumn<>(
       BafAcqusitionKeysTable.MsLevelCol);
 
+  private final boolean importProfile;
   private MassSpectrumType spectrumType = MassSpectrumType.CENTROIDED;
 
 
-  public SpectraAcquisitionStepsTable() {
-
+  public SpectraAcquisitionStepsTable(boolean importProfileIfPossible) {
     super(spectraAcquisitionTable, BafSpectraTable.ID_COL);
+    this.importProfile = importProfileIfPossible;
 
     idCol = (TDFDataColumn<Long>) getColumn(BafSpectraTable.ID_COL);
     columns.addAll(
@@ -133,10 +134,10 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     final boolean b = super.executeQuery(connection);
 
     if (b) {
-      if (containsCentroidData()) {
-        spectrumType = MassSpectrumType.CENTROIDED;
-      } else if (containsProfileData()) {
+      if (containsProfileData() && importProfile) {
         spectrumType = MassSpectrumType.PROFILE;
+      } else if (containsCentroidData()) {
+        spectrumType = MassSpectrumType.CENTROIDED;
       } else {
         throw new RuntimeException(
             "No valid spectrum type found. (File contains neither centroid nor profile data.)");

@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
@@ -109,6 +110,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
     frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
 
     setDescription("Importing " + rawDataFileName + ": Waiting.");
+    assert parameters instanceof AllSpectralDataImportParameters;
   }
 
   @Override
@@ -141,9 +143,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
     try {
       tsfUtils = new TSFUtils();
     } catch (IOException e) {
-      e.printStackTrace();
-      setErrorMessage(e.getMessage());
-      setStatus(TaskStatus.ERROR);
+      error("Could not initialise tsf reader.", e);
       return;
     }
 
@@ -182,7 +182,8 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
-    final boolean tryProfile = ConfigService.isTsfProfile();
+    final boolean tryProfile = !parameters.getValue(
+        AllSpectralDataImportParameters.applyVendorCentroiding);
     final MassSpectrumType importSpectrumType =
         tryProfile && metaDataTable.hasProfileSpectra() ? MassSpectrumType.PROFILE
             : MassSpectrumType.CENTROIDED;
@@ -376,7 +377,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
       final float ce = frameMsMsInfoTable.getCe().get(frameMsMsTableIndex).floatValue();
       final DIAMsMsInfoImpl diaMsMsInfo = new DIAMsMsInfoImpl(ce, scan, scan.getMSLevel(),
           ActivationMethod.CID, mzRange);
-      ((SimpleScan)scan).setMsMsInfo(diaMsMsInfo);
+      ((SimpleScan) scan).setMsMsInfo(diaMsMsInfo);
     }
   }
 

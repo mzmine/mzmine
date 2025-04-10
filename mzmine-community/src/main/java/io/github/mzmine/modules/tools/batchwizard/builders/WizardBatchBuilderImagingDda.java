@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
@@ -148,8 +149,6 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     // todo make auto mass detector work, so we can use it here.
 
     if (isImsActive && imsInstrumentType == MobilityType.TIMS) {
-      final ParameterSet param = MZmineCore.getConfiguration()
-          .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
       final AdvancedSpectraImportParameters advancedParam = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
 
       // set value first and then parameters 
@@ -161,14 +160,9 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
       detectorParams.setParameter(CentroidMassDetectorParameters.noiseLevel,
           massDetectorOption.getMs1NoiseLevel());
 
-      param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(true);
-      param.getParameter(AllSpectralDataImportParameters.advancedImport)
-          .setEmbeddedParameters(advancedParam);
-      param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(dataFiles);
-      param.setParameter(AllSpectralDataImportParameters.metadataFile, metadataFile.active(),
-          metadataFile.value());
-      param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(libraries);
-      param.setParameter(AllSpectralDataImportParameters.sortAndRecolor, true);
+      final var param = AllSpectralDataImportParameters.create(
+          ConfigService.isApplyVendorCentroiding(), dataFiles,
+          metadataFile.active() ? metadataFile.value() : null, libraries, advancedParam);
 
       q.add(new MZmineProcessingStepImpl<>(
           MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param));
