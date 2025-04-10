@@ -106,7 +106,7 @@ public class TICVisualizerTab extends MZmineTab {
   private final TICPlot ticPlot;
 
   // Data sets
-  private Hashtable<RawDataFile, TICDataSet> ticDataSets;
+  private final Hashtable<RawDataFile, TICDataSet> ticDataSets = new Hashtable<>();
 
   private TICPlotType plotType;
   private ScanSelection scanSelection;
@@ -132,7 +132,6 @@ public class TICVisualizerTab extends MZmineTab {
 
     this.desktop = MZmineCore.getDesktop();
     this.plotType = plotType;
-    this.ticDataSets = new Hashtable<RawDataFile, TICDataSet>();
     this.scanSelection = scanSelection;
     this.mzRange = mzRange;
 
@@ -163,7 +162,7 @@ public class TICVisualizerTab extends MZmineTab {
     showSpectrumBtn.setTooltip(new Tooltip("Show spectrum of selected scan"));
     showSpectrumBtn.setOnAction(e -> {
       ChromatogramCursorPosition pos = getCursorPosition();
-      if (pos != null) {
+      if (pos != null || (pos = ticPlot.getCursorPosition()) != null) {
         SpectraVisualizerModule.addNewSpectrumTab(pos.getDataFile(), pos.getScan());
       }
     });
@@ -391,10 +390,6 @@ public class TICVisualizerTab extends MZmineTab {
    */
   TICPlotType getPlotType() {
     return plotType;
-  }
-
-  TICDataSet[] getAllDataSets() {
-    return ticDataSets.values().toArray(new TICDataSet[0]);
   }
 
   /**

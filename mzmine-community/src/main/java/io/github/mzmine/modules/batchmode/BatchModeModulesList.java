@@ -37,6 +37,7 @@ import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotModule;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotRegionExtractionModule;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
+import io.github.mzmine.modules.dataprocessing.align_lcimage.LcImageAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adap3d.ADAP3DModule;
@@ -308,6 +309,7 @@ public class BatchModeModulesList {
 //      HierarAlignerGcModule.class, // not MIT compatible license
           PathAlignerModule.class, //
           RansacAlignerModule.class, //
+          LcImageAlignerModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
