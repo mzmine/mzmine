@@ -75,6 +75,7 @@ import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
+import io.github.mzmine.modules.dataprocessing.isolab_targeted.IsotopeLabelingTargetedModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
@@ -231,7 +232,7 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultLcMsSubMenu() {
     return addModuleMenuItems("LC-MS", ModularADAPChromatogramBuilderModule.class,
-        TargetedFeatureDetectionModule.class);
+        TargetedFeatureDetectionModule.class, IsotopeLabelingTargetedModule.class);
   }
 
   protected Menu buildDefaultGcMsSubMenu() {
