@@ -33,6 +33,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 import java.util.List;
 
+@Deprecated
 public class MzTabmImportParameters extends SimpleParameterSet {
 
   private static final List<ExtensionFilter> filters =
