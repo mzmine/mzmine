@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.DIAImsMsMsInfoImpl;
@@ -40,7 +42,7 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
@@ -65,6 +67,7 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
@@ -76,6 +79,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -88,7 +92,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author https://github.com/SteffenHeu
  */
-public class TDFImportTask extends AbstractTask {
+public class TDFImportTask extends AbstractTask implements RawDataImportTask {
 
   private static final Logger logger = Logger.getLogger(TDFImportTask.class.getName());
   private final MZmineProject project;
@@ -109,7 +113,7 @@ public class TDFImportTask extends AbstractTask {
   private TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
   private DiaFrameMsMsWindowTable diaFrameMsMsWindowTable;
   private DiaFrameMsMsInfoTable diaFrameMsMsInfoTable;
-  private IMSRawDataFile newMZmineFile;
+  private IMSRawDataFile newMZmineFile = null;
   private boolean isMaldi;
   private String description;
   private double finishedPercentage;
@@ -253,7 +257,7 @@ public class TDFImportTask extends AbstractTask {
     // collect average spectra for each frame
     List<SimpleFrame> frames = new ArrayList<>();
 
-    final boolean importProfile = MZmineCore.getInstance().isTdfPseudoProfile();
+    final boolean importProfile = ConfigService.isTdfPseudoProfile();
 
     try {
       for (int i = 0; i < numFrames; i++) {
@@ -307,6 +311,7 @@ public class TDFImportTask extends AbstractTask {
     constructMsMsInfo(newMZmineFile, framePrecursorTable);
     assignDiaMsMsInfo(newMZmineFile, diaFrameMsMsWindowTable, diaFrameMsMsInfoTable);
     assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
+    assignTimsAutoMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable);
 
     tdfUtils.close();
 
@@ -504,13 +509,39 @@ public class TDFImportTask extends AbstractTask {
         // set the parent frame
         final Set<IonMobilityMsMsInfo> newInfos = infos.stream()
             .<IonMobilityMsMsInfo>mapMulti((info, c) -> {
-              final IonMobilityMsMsInfo copy = info.createCopy();
+              final IonMobilityMsMsInfo copy = !isMaldi ? info.createCopy()
+                  : Objects.requireNonNullElse(mapToPasefInfo(info), info.createCopy());
               copy.setMsMsScan(frame);
               c.accept(copy);
             }).collect(Collectors.toSet());
+
         ((SimpleFrame) frame).setPrecursorInfos(newInfos);
       }
     }
+  }
+
+  /**
+   * With timsControl > 6.1 the SIMSEF data is saved as DIA window. We have to map it to a regular
+   * MS2 info.
+   */
+  private static @Nullable PasefMsMsInfo mapToPasefInfo(IonMobilityMsMsInfo i) {
+    return switch (i) {
+      case PasefMsMsInfo pasef -> pasef;
+      case DIAImsMsMsInfoImpl dia -> {
+        if (dia.getIsolationWindow() == null) {
+          yield null;
+        }
+        final double isoWidth = RangeUtils.rangeLength(dia.getIsolationWindow()).doubleValue();
+        if (isoWidth
+            <= 5) { // is arbitrarily chosen as a cutoff for what can be deemed as a SIMSEF dda MS2.
+          yield new PasefMsMsInfoImpl(RangeUtils.rangeCenter(dia.getIsolationWindow()),
+              dia.getSpectrumNumberRange(), dia.getActivationEnergy(), null, null,
+              dia.getMsMsFrame(), dia.getIsolationWindow());
+        }
+        yield null;
+      }
+      default -> null;
+    };
   }
 
   /**
@@ -547,6 +578,37 @@ public class TDFImportTask extends AbstractTask {
     }
   }
 
+  /**
+   * timsTOF classic only supports auto msms and not pasef.
+   */
+  private void assignTimsAutoMsMsInfo(IMSRawDataFile newMZmineFile, TDFFrameTable frameTable,
+      TDFFrameMsMsInfoTable frameMsMsInfoTable) {
+    List<? extends Frame> frames = newMZmineFile.getFrames();
+
+    final int firstFrameId = (int) frameTable.getFirstFrameNumber();
+
+    for (int i = 0; i < frames.size(); i++) {
+      Frame frame = frames.get(i);
+      final int frameTableIndex = frame.getFrameId() - firstFrameId;
+
+      if (frameTable.getScanModeColumn().get(frameTableIndex).intValue()
+          != BrukerScanMode.AUTO_MSMS.getNum()
+          || frameTable.getMsMsTypeColumn().get(frameTableIndex).intValue() != 2) {
+        continue;
+      }
+
+      final int frameMsMsTableIndex = BinarySearch.binarySearch(frameMsMsInfoTable.getFrameId(),
+          (double) frame.getFrameId(), DefaultTo.MINUS_INSERTION_POINT, Long::doubleValue);
+      if (frameMsMsTableIndex < 0) {
+        continue;
+      }
+
+      final PasefMsMsInfo ddaImsMsMsInfo = frameMsMsInfoTable.getImsAutoMsMsInfo(
+          frameMsMsTableIndex, frame, null);
+      frame.getImsMsMsInfos().add(ddaImsMsMsInfo);
+    }
+  }
+
   @Nullable
   private Frame getParentFrame(IMSRawDataFile file, Integer parentFrameNumber) {
     if (parentFrameNumber == null) {
@@ -556,6 +618,11 @@ public class TDFImportTask extends AbstractTask {
         .filter(f -> f.getFrameId() == parentFrameNumber).findFirst();
     Frame parentFrame = optionalFrame.orElseGet(() -> null);
     return parentFrame;
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
   }
 
  /*private void compareMobilities(IMSRawDataFile rawDataFile) {

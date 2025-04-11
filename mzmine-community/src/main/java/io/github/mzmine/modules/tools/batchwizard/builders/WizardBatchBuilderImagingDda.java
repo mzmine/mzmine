@@ -118,6 +118,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, null);
     makeAndAddLipidAnnotationStep(q);
+    makeAndAddBatchExportStep(q, true, null);
     return q;
   }
 
@@ -187,9 +188,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     param.setParameter(ImsExpanderParameters.useRawData, false);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter()
         .setValue(massDetectorOption.getMs1NoiseLevel());
-    param.setParameter(ImsExpanderParameters.mzTolerance, true);
-    param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
-        .setValue(mzTolScans);
+    param.setParameter(ImsExpanderParameters.mzTolerance, mzTolScans);
     param.setParameter(ImsExpanderParameters.mobilogramBinWidth, false);
     param.setParameter(ImsExpanderParameters.maxNumTraces, true, 5);
 

@@ -25,6 +25,8 @@
 
 package io.github.mzmine.javafx.components.util;
 
+import java.util.List;
+import java.util.stream.IntStream;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -45,6 +47,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -277,5 +280,30 @@ public class FxLayout {
 
   public enum GridColumnGrow {
     LEFT, RIGHT, BOTH, NONE
+  }
+
+  public static ColumnConstraints newFillWidthColumn() {
+    final ColumnConstraints cc = new ColumnConstraints();
+    setGrowColumn(cc);
+    return cc;
+  }
+
+  public static List<ColumnConstraints> newFillWidthColumns(int numColumns) {
+    return IntStream.range(0, numColumns).mapToObj(i -> newFillWidthColumn()).toList();
+  }
+
+  public static RowConstraints newFillHeightRow() {
+    final RowConstraints rc = new RowConstraints();
+    setFillHeightRow(rc);
+    return rc;
+  }
+
+  public static List<RowConstraints> newFillHeightRows(int numRows) {
+    return IntStream.range(0, numRows).mapToObj(i -> newFillHeightRow()).toList();
+  }
+
+  private static void setFillHeightRow(RowConstraints rc) {
+    rc.setFillHeight(true);
+    rc.setVgrow(Priority.ALWAYS);
   }
 }

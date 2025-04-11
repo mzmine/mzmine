@@ -45,6 +45,7 @@ import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.utils.TaskResultSummary.ErrorMessageHandling;
 import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -129,35 +130,16 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     new AllTasksFinishedListener(tasks, true,
         // succeed
         l -> {
-          logger.info(
-              "All sub tasks of multithreaded gap-filling have finished. Finalising results.");
-
-          // Add task description to peakList
-          processedPeakList.addDescriptionOfAppliedTask(
-              new SimpleFeatureListAppliedMethod("Gap filling ", MultiThreadPeakFinderModule.class,
-                  parameters, getModuleCallDate()));
-
-          // update all rows by row bindings (average values)
-          // this needs to be done after all tasks finish because values were not updated when
-          // adding features
-          processedPeakList.applyRowBindings();
-
-          // add / remove or rename the new feature list in project
-          originalFeatureListOption.reflectNewFeatureListToProject(suffix, project,
-              processedPeakList, peakList);
-
-          logger.info("Completed: Multithreaded gap-filling successfull");
-
-          if (thistask.getStatus() == TaskStatus.PROCESSING) {
-            thistask.setStatus(TaskStatus.FINISHED);
+          // do nothing on success here - needs to happen on main task thread
+        },
+        // on error
+        lerror -> {
+          setErrorMessage("Error in gap filling");
+          thistask.setStatus(TaskStatus.ERROR);
+          for (AbstractTask task : tasks) {
+            task.setStatus(TaskStatus.ERROR);
           }
-        }, lerror -> {
-      setErrorMessage("Error in gap filling");
-      thistask.setStatus(TaskStatus.ERROR);
-      for (AbstractTask task : tasks) {
-        task.setStatus(TaskStatus.ERROR);
-      }
-    },
+        },
         // cancel if one was cancelled
         listCancelled -> cancel()) {
       @Override
@@ -173,6 +155,37 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     // start
     var wrappedTasks = MZmineCore.getTaskController().addTasks(tasks.toArray(AbstractTask[]::new));
     TaskUtils.waitForTasksToFinish(thistask, wrappedTasks);
+
+    // make sure tasks all finished successfully
+    var worstResult = TaskUtils.findWorstResult(ErrorMessageHandling.COMBINE_UNIQUE, wrappedTasks);
+    // error or cancel may be applied here if the listener was to slow
+    worstResult.applyToTask(thistask);
+
+    if (isCanceled()) {
+      return;
+    }
+
+    logger.info("All sub tasks of multithreaded gap-filling have finished. Finalising results.");
+
+    // Add task description to peakList
+    processedPeakList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Gap filling ", MultiThreadPeakFinderModule.class,
+            parameters, getModuleCallDate()));
+
+    // update all rows by row bindings (average values)
+    // this needs to be done after all tasks finish because values were not updated when
+    // adding features
+    processedPeakList.applyRowBindings();
+
+    // add / remove or rename the new feature list in project
+    originalFeatureListOption.reflectNewFeatureListToProject(suffix, project, processedPeakList,
+        peakList);
+
+    logger.info("Completed: Multithreaded gap-filling successfull");
+
+    if (thistask.getStatus() == TaskStatus.PROCESSING) {
+      thistask.setStatus(TaskStatus.FINISHED);
+    }
 
     long afterGapFill = peakList.stream().mapToLong(FeatureListRow::getNumberOfFeatures).sum();
     System.gc();

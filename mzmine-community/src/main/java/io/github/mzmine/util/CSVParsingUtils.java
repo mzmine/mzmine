@@ -31,6 +31,7 @@ import com.opencsv.CSVWriterBuilder;
 import com.opencsv.ICSVWriter;
 import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.exceptions.CsvException;
+import com.opencsv.exceptions.CsvValidationException;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
@@ -45,6 +46,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import static io.github.mzmine.util.StringUtils.inQuotes;
 import io.github.mzmine.util.exceptions.MissingColumnException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CSVUtils;
@@ -58,6 +60,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.SimpleStringProperty;
@@ -146,10 +150,10 @@ public class CSVParsingUtils {
     if (!nullMappings.isEmpty()) {
       // no header found at all. may indicate wrong separator
       boolean noHeaderFound = lines.size() == nullMappings.size();
-      final String error = STR."Did not find specified column \{Arrays.toString(
-          nullMappings.stream().map(ImportType::getCsvColumnName).toArray())} in file.\{
+      final String error = "Did not find specified column " + Arrays.toString(
+          nullMappings.stream().map(ImportType::getCsvColumnName).toArray()) + " in file." + (
           noHeaderFound
-              ? "\nNo column title was found. Did you specify the correct column separator?" : ""}";
+              ? "\nNo column title was found. Did you specify the correct column separator?" : "");
       logger.warning(() -> error);
       errorMessage.set(error);
       return null;
@@ -222,7 +226,7 @@ public class CSVParsingUtils {
 
     if (!peakListFile.exists()) {
       return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
-          STR."Input file \{peakListFile.getAbsolutePath()} does not exist.");
+          "Input file " + peakListFile.getAbsolutePath() + " does not exist.");
     }
 
     List<String[]> peakListValues = null;
@@ -231,7 +235,7 @@ public class CSVParsingUtils {
 
       if (peakListValues.isEmpty()) {
         return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
-            STR."File \{peakListFile.getAbsolutePath()} did not contain any content.");
+            "File " + peakListFile.getAbsolutePath() + " did not contain any content.");
       }
     } catch (IOException | CsvException e) {
       throw new RuntimeException(e);
@@ -285,21 +289,117 @@ public class CSVParsingUtils {
       throws IOException, CsvException {
     try (var reader = Files.newBufferedReader(file.toPath())) {
 
-      // some users/programs save csv files with an encoding prefix in the first few bytes. This
-      // prefix is equal to the char code \uFEFF and means that the file is utf-8 encoded. However,
-      // most UTF-8 files don't come with this prefix (=BOM, byte order marker). If it is there,
-      // we want to skip it, otherwise the first csv field may be mis-recognised as a string with a
-      // different encoding.
-      // see: https://stackoverflow.com/questions/4897876/reading-utf-8-bom-marker
-      reader.mark(1);
-      final char[] possibleBom = new char[1];
-      final int read = reader.read(possibleBom);
-      if (read == 1 && possibleBom[0] != '\uFEFF') {
-        reader.reset(); // no BOM found, don't skip
-      }
+      skipOptionalBom(reader);
 
       return readData(reader, separator);
     }
+  }
+
+  public static List<String[]> readDataAutoSeparator(final File file)
+      throws IOException, CsvException {
+    final Character sep = autoDetermineSeparatorDefaultFallback(file);
+
+    try (var reader = Files.newBufferedReader(file.toPath())) {
+      skipOptionalBom(reader);
+
+      return readData(reader, sep.toString());
+    }
+  }
+
+  /**
+   * some users/programs save csv files with an encoding prefix in the first few bytes. This prefix
+   * is equal to the char code \uFEFF and means that the file is utf-8 encoded. However, most UTF-8
+   * files don't come with this prefix (=BOM, byte order marker). If it is there, we want to skip
+   * it, otherwise the first csv field may be mis-recognised as a string with a different encoding.
+   * see: https://stackoverflow.com/questions/4897876/reading-utf-8-bom-marker
+   */
+  private static void skipOptionalBom(BufferedReader reader) throws IOException {
+    reader.mark(1);
+    final char[] possibleBom = new char[1];
+    final int read = reader.read(possibleBom);
+    if (read == 1 && possibleBom[0] != '\uFEFF') {
+      reader.reset(); // no BOM found, don't skip
+    }
+  }
+
+  /**
+   * Attempts to automatically determine the file separator of a tabular text file by the first two
+   * lines.
+   * <p></p>
+   * Fallback criteria:
+   * <p></p>
+   * .tsv or .txt files -> \t
+   * <p></p>
+   * .csv -> ,
+   *
+   * @return The determined separator.
+   */
+  public static @Nullable Character autoDetermineSeparator(@NotNull File file) {
+    Character bestSeparator = null;
+    int maxCols = 1;
+
+    final List<Character> possibleSeparators = List.of('\t', ',', ';');
+    for (Character sep : possibleSeparators) {
+      try (var reader = Files.newBufferedReader(file.toPath())) {
+        skipOptionalBom(reader);
+        // the split line must have more than one entry to auto-determine,
+        // bc otherwise we may think we found the separator, but we just have an array of length 1.
+        // in that case, we default to the most likely option from the file ending
+
+        try (CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(
+            new RFC4180ParserBuilder().withSeparator(sep).build()).build()) {
+
+          final String[] splitHeader = csvReader.readNext();
+          final String[] splitLine = csvReader.readNext();
+
+          // first and second line must be the same length if we auto-determine the separator
+          if (splitHeader.length != splitLine.length) {
+            logger.finest(
+                "Line length mismatch for separator %s. header %d, first line %d in file %s.".formatted(
+                    inQuotes(sep.toString()), splitHeader.length, splitLine.length,
+                    file.getName()));
+            continue;
+          }
+
+          if (splitHeader.length > maxCols) {
+            maxCols = splitHeader.length;
+            bestSeparator = sep;
+          }
+        } catch (CsvValidationException e) {
+          throw new RuntimeException(e);
+        }
+      } catch (IOException | NullPointerException e) {
+        // this may happen if the file has less than two lines.
+        logger.log(Level.FINE,
+            "Cannot auto determine file separator for %s. File may be empty or has less than two lines.".formatted(
+                file));
+      }
+    }
+
+    return bestSeparator;
+  }
+
+  public static @NotNull Character autoDetermineSeparatorOrElse(@NotNull File file,
+      Function<File, Character> fallback) {
+    final Character sep = autoDetermineSeparator(file);
+    if (sep == null) {
+      final Character fb = fallback.apply(file);
+      logger.finest(
+          "Could not automatically determine separator for file %s. Falling back to %s".formatted(
+              file, fb.equals('\t') ? "tab" : fb));
+      return fb;
+    }
+
+    logger.finest("Automatically determined separator for file %s to be %s".formatted(file,
+        sep.equals('\t') ? "tab" : sep));
+    return sep;
+  }
+
+  public static @NotNull Character autoDetermineSeparatorDefaultFallback(@NotNull File file) {
+    // the default file ending for excel export to tab-separated is .txt, so we catch here if the
+    // user did not rename.
+    return autoDetermineSeparatorOrElse(file,
+        f -> f.getName().endsWith(".tsv") || file.getName().endsWith(".txt") ? '\t' : ',');
   }
 
   /**

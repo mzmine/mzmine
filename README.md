@@ -1,11 +1,11 @@
 ![logo300_mzmine.png](mzmine-community%2Flogo%2Flogo300_mzmine.png)
 
-![GitHub all releases](https://img.shields.io/github/downloads/mzmine/mzmine3/total)
-![GitHub all releases](https://img.shields.io/github/downloads/mzmine/mzmine3/latest/total)
-![GitHub contributors](https://img.shields.io/github/contributors/mzmine/mzmine3)
-[![Development Build Release](https://github.com/mzmine/mzmine3/actions/workflows/dev_build_release.yml/badge.svg)](https://github.com/mzmine/mzmine3/actions/workflows/dev_build_release.yml)
-![Static Badge](https://img.shields.io/badge/JDK%20version-22-blue)
-![Static Badge](https://img.shields.io/badge/JavaFX%20version-22-%2391219c)
+![GitHub all releases](https://img.shields.io/github/downloads/mzmine/mzmine/total)
+![GitHub all releases](https://img.shields.io/github/downloads/mzmine/mzmine/latest/total)
+![GitHub contributors](https://img.shields.io/github/contributors/mzmine/mzmine)
+[![Development Build Release](https://github.com/mzmine/mzmine/actions/workflows/dev_build_release.yml/badge.svg)](https://github.com/mzmine/mzmine/actions/workflows/dev_build_release.yml)
+![Static Badge](https://img.shields.io/badge/JDK%20version-23-blue)
+![Static Badge](https://img.shields.io/badge/JavaFX%20version-23-%2391219c)
 
 mzmine is an open-source software for mass-spectrometry data processing. The goals of the project is
 to provide a user-friendly, flexible and easily extendable software with a complete set of modules

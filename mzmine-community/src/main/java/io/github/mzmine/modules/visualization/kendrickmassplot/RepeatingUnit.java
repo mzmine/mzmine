@@ -45,7 +45,7 @@ public record RepeatingUnit(FormulaWithExactMz formula, double massError) {
   @Override
   public String toString() {
     var format = ConfigService.getGuiFormats();
-    return STR."\{formula.formulaString()}, \{format.mz(formula.mz())} Da (Δ\{format.mz(
-        massError)} Da)";
+    return formula.formulaString() + ", " + format.mz(formula.mz()) + " Da (Δ" + format.mz(
+        massError) + " Da)";
   }
 }

@@ -31,6 +31,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -94,12 +95,12 @@ public class NistMspParser extends SpectralDBTextParser {
             if (isData) {
               // empty row after data
               // add entry and reset
-              SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), fields,
-                  dps.toArray(new DataPoint[dps.size()]));
+              SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(),
+                  fields, dps.toArray(new DataPoint[dps.size()]));
               // add and push
               addLibraryEntry(entry);
               // reset
-              fields = new EnumMap<>(fields);
+              fields.clear();
               dps.clear();
               isData = false;
             }
@@ -108,7 +109,7 @@ public class NistMspParser extends SpectralDBTextParser {
           logger.log(Level.WARNING, "Error for entry", ex);
           // reset on error
           isData = false;
-          fields = new EnumMap<>(fields);
+          fields.clear();
           dps.clear();
         }
         processedLines.incrementAndGet();

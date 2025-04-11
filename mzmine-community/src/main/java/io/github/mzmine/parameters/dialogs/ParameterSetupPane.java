@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
 import io.github.mzmine.parameters.FullColumnComponent;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -68,7 +69,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  */
 @SuppressWarnings("rawtypes")
-public class ParameterSetupPane extends BorderPane {
+public class ParameterSetupPane extends BorderPane implements EmbeddedParameterComponentProvider {
 
   public static final Logger logger = Logger.getLogger(ParameterSetupPane.class.getName());
   protected final URL helpURL;
@@ -222,8 +223,9 @@ public class ParameterSetupPane extends BorderPane {
       mainPane.setTop(pane);
     }
 
+    // do not set min height - this works badly with {@link ModuleOptionsEnumComponent}
+    // which then does not scale well or when too small crunches multiple components above each other
     setMinWidth(300.0);
-    setMinHeight(100);
   }
 
   /**
@@ -238,7 +240,9 @@ public class ParameterSetupPane extends BorderPane {
         false) {
       @Override
       protected void parametersChanged() {
-        onParametersChanged.run();
+        if (onParametersChanged != null) {
+          onParametersChanged.run();
+        }
       }
     };
   }
@@ -247,6 +251,8 @@ public class ParameterSetupPane extends BorderPane {
     return centerPane;
   }
 
+  @Override
+  @NotNull
   public Map<String, Node> getParametersAndComponents() {
     return parametersAndComponents;
   }
@@ -291,6 +297,9 @@ public class ParameterSetupPane extends BorderPane {
      * content's size preferences and constraints.
      */
     ColumnConstraints column1 = new ColumnConstraints();
+    column1.setHgrow(Priority.SOMETIMES);
+    column1.setMinWidth(USE_PREF_SIZE);
+    column1.setPrefWidth(Region.USE_COMPUTED_SIZE);
     ColumnConstraints column2 = new ColumnConstraints();
     column2.setFillWidth(true);
     column2.setHgrow(Priority.ALWAYS);
@@ -351,6 +360,8 @@ public class ParameterSetupPane extends BorderPane {
 
       RowConstraints rowConstraints = new RowConstraints();
       rowConstraints.setVgrow(up.getComponentVgrowPriority());
+      rowConstraints.setMinHeight(USE_PREF_SIZE);
+      rowConstraints.setPrefHeight(USE_COMPUTED_SIZE);
       if (comp instanceof FullColumnComponent) {
         paramsPane.add(comp, 0, rowCounter, 2, 1);
 //        rowConstraints.setVgrow(Priority.NEVER);
@@ -454,6 +465,10 @@ public class ParameterSetupPane extends BorderPane {
       listview.getItems().addListener((ListChangeListener) change -> parametersChanged());
     } else if (node instanceof ModuleOptionsEnumComponent<?> options) {
       options.addSubParameterChangedListener(this::parametersChanged);
+    } else if (node instanceof EmbeddedParameterComponentProvider prov) {
+      for (final Node child : prov.getComponents()) {
+        addListenersToNode(child);
+      }
     } else if (node instanceof Region panelComp) {
       for (final Node child : panelComp.getChildrenUnmodifiable()) {
         addListenersToNode(child);
@@ -487,4 +502,5 @@ public class ParameterSetupPane extends BorderPane {
     // this way its always right next to OK button
     ButtonBar.setButtonData(btnCheck, ButtonData.OK_DONE);
   }
+
 }

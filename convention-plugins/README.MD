@@ -11,3 +11,8 @@ https://docs.gradle.org/current/samples/sample_building_java_applications_multi_
 https://docs.gradle.org/current/samples/sample_convention_plugins.html
 
 https://docs.gradle.org/current/samples/sample_sharing_convention_plugins_with_build_logic.html
+
+
+## Version
+
+The version of this project is bound to the mzmine community version.

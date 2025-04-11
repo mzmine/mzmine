@@ -27,17 +27,17 @@ package io.github.mzmine.javafx.util;
 
 public enum FxIcons implements IconCodeSupplier {
   // status
-  CHECK_CIRCLE, X, X_CIRCLE, EXCLAMATION_TRIANGLE,
+  CHECK_CIRCLE, X, X_CIRCLE, EXCLAMATION_TRIANGLE, EXCLAMATION_CIRCLE,
 
   // control flow
-  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, PLUS, ADD, EDIT,
+  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, PLUS, ADD, EDIT, QUESTIONMARK,
 
   // UI
   DARK_MODE_SWITCH, BATCH,
 
   //
   USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, TOOL, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, //
-  ROCKET, LIGHTBULB,
+  ROCKET, LIGHTBULB, METADATA_TABLE, TABLE, SPREADSHEET,
 
   // ACTIONS
   SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD;
@@ -50,6 +50,7 @@ public enum FxIcons implements IconCodeSupplier {
       case X -> "bi-x";
       case X_CIRCLE -> "bi-x-circle";
       case EXCLAMATION_TRIANGLE -> "bi-exclamation-triangle";
+      case EXCLAMATION_CIRCLE -> "bi-exclamation-circle";
       case DARK_MODE_SWITCH -> "bi-mask";
       case USER -> "bi-person-circle";
       case BUG -> "bi-bug";
@@ -66,6 +67,9 @@ public enum FxIcons implements IconCodeSupplier {
       case BOOK -> "bi-book";
       case DOCUMENTATION -> "bi-book";
       case ROCKET -> "las-rocket";
+      case METADATA_TABLE -> "bi-grid-3x2-gap";
+      case SPREADSHEET -> "bi-file-spreadsheet"; // or bi-file-earmark-spreadsheet
+      case TABLE -> "bi-grid-3x2"; // maybe bi-grid-3x3  or  bi-table
       case SAVE -> "bi-box-arrow-down";
       case LOAD -> "bi-box-arrow-in-up";
       case CANCEL -> "bi-x-circle";
@@ -80,6 +84,7 @@ public enum FxIcons implements IconCodeSupplier {
       case DOWNLOAD -> "bi-download";
       case PLUS -> "bi-plus";
       case LIGHTBULB -> "bi-lightbulb";
+      case QUESTIONMARK -> "bi-question-circle";
     };
   }
 }

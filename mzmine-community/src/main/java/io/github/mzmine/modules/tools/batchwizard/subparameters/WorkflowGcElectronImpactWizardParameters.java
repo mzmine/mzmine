@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -62,7 +62,7 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
 
 
   public WorkflowGcElectronImpactWizardParameters() {
-    super(WorkflowWizardParameterFactory.DECONVOLUTION,
+    super(new WorkflowDeconvolution(),
         // actual parameters
         MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA, applySpectralNetworking, exportPath, exportGnps,
         exportMsp, exportAnnotationGraphics);

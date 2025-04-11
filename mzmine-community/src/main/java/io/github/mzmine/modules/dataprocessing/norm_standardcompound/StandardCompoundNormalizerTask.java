@@ -59,7 +59,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
   private final AbundanceMeasure abundanceMeasure;
   private final double MZvsRTBalance;
   private final FeatureListRow[] standardRows;
-  private ParameterSet parameters;
+  private final ParameterSet parameters;
 
   public StandardCompoundNormalizerTask(MZmineProject project, FeatureList featureList,
       ParameterSet parameters, @Nullable MemoryMapStorage storage,
@@ -79,7 +79,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
     handleOriginal = parameters.getValue(StandardCompoundNormalizerParameters.handleOriginal);
     standardRows = parameters.getParameter(StandardCompoundNormalizerParameters.standardCompounds)
         .getMatchingRows(featureList);
-
+    this.parameters = parameters;
   }
 
   public double getFinishedPercentage() {

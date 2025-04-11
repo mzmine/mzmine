@@ -42,12 +42,14 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Database
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataTypeUtils;
@@ -63,6 +65,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -211,6 +215,13 @@ public class CompoundAnnotationUtils {
         .map(FeatureAnnotation.class::cast);
   }
 
+  /**
+   * First FeatureAnnotation in {@link #streamFeatureAnnotations(FeatureListRow)}
+   */
+  public static Optional<FeatureAnnotation> getBestFeatureAnnotation(final FeatureListRow row) {
+    return CompoundAnnotationUtils.streamFeatureAnnotations(row).findFirst();
+  }
+
   public static void calculateBoundTypes(CompoundDBAnnotation annotation, FeatureListRow row) {
     ConnectedTypeCalculation.LIST.forEach(calc -> calc.calculateIfAbsent(row, annotation));
   }
@@ -256,6 +267,34 @@ public class CompoundAnnotationUtils {
   }
 
   /**
+   * @return usually the signed charge if present. Either from adduct or from charge type
+   */
+  public static OptionalInt extractCharge(@Nullable final FeatureAnnotation annotation) {
+    if (annotation == null) {
+      return OptionalInt.empty();
+    }
+
+    IonType adduct = annotation.getAdductType();
+    if (adduct != null) {
+      return OptionalInt.of(adduct.getCharge());
+    }
+
+    Integer annCharge = getTypeValue(annotation, ChargeType.class);
+    if (annCharge != null) {
+      return OptionalInt.of(annCharge);
+    }
+
+    return OptionalInt.empty();
+  }
+
+  /**
+   * @return absolute charge if present
+   */
+  public static OptionalInt extractAbsCharge(@Nullable final FeatureAnnotation annotation) {
+    return extractCharge(annotation).stream().map(Math::abs).findFirst();
+  }
+
+  /**
    * Convert spectral library entry to compound DB entry. Tries to copy over all fields
    */
   @NotNull
@@ -268,7 +307,16 @@ public class CompoundAnnotationUtils {
       }
 
       try {
-        db.putIfNotNull((Class) dataType, value);
+        final DataType instance = DataTypes.get(dataType);
+        if (instance.getValueClass().isInstance(value)) {
+          db.putIfNotNull((Class) dataType, value);
+        } else if (instance instanceof IonTypeType && value instanceof String s) {
+          var ionType = IonTypeParser.parse(s);
+          db.putIfNotNull((Class) dataType, ionType);
+        } else {
+          logger.finest("Skipping value conversion of field\t" + field + "  for type\t"
+              + instance.getUniqueID() + " with value\t" + value);
+        }
       } catch (Exception e) {
         try {
           logger.finer(

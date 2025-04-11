@@ -25,8 +25,11 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.color;
 
+import com.google.common.collect.Lists;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.Themes;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
@@ -42,6 +45,7 @@ import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -100,9 +104,19 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
     // #882255
 //    Color qcColor = Color.web("#770940");
 //    Color qcColor = Color.web("#8e1be1");
-    Color qcColor = colors.getLast(); // positive, negative, or last color?
+    // use the last color that is not dark or light (to keep previous behaviour in mose cases)
+    Color qcColor = Lists.reverse(colors).stream()
+        .filter(clr -> !ColorUtils.isDark(clr) && !ColorUtils.isLight(clr)).findFirst()
+        .orElse(Color.web("#bf2c84")); // positive, negative, or last color?
     List<RawDataFile> qcs = SampleTypeFilter.qc().filterFiles(raws);
     colorFadeLighter(qcs, qcColor, brightnessPercentRange);
+
+    final Themes theme = ConfigService.getPreferences().getValue(MZminePreferences.theme);
+    // exclude light colors in light mode and dark colors in dark mode
+    final List<Color> excluded = colors.stream().filter(
+        clr -> (theme.isDark() && ColorUtils.isDark(clr)) || (!theme.isDark() && ColorUtils.isLight(
+            clr))).toList();
+    usedColors.addAll(excluded);
 
     // color samples by metadata - this may recolor blanks and QC if they are listed
     if (colorColumn != null) {

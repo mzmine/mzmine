@@ -37,14 +37,19 @@
 
 package io.github.mzmine.modules.io.export_features_sirius;
 
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
-
-import io.github.mzmine.javafx.components.factories.ArticleReferences;
-import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
+import io.github.mzmine.modules.tools.msmsspectramerge.MergeMode;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -54,10 +59,14 @@ import io.github.mzmine.parameters.parametertypes.IntensityNormalizerOptions;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
+import io.github.mzmine.util.scans.merging.SampleHandling;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
@@ -65,10 +74,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class SiriusExportParameters extends SimpleParameterSet {
 
-  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
-      "Merge MS/MS",
-      "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.",
-      new MsMsSpectraMergeParameters(), true);
+  public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createSiriusExportAllDefault();
 
   // SIRIUS is compatible with scientific format and this format better captures all numbers
   public static final IntensityNormalizerComboParameter NORMALIZE = new IntensityNormalizerComboParameter(
@@ -92,15 +98,23 @@ public class SiriusExportParameters extends SimpleParameterSet {
       new ExtensionFilter("mgf format for SIRIUS that contains MS1 and MS2 data", "*.mgf") //
   );
   public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
-      "Filename", STR."""
-      Name of the output MGF file. Use pattern "\{SiriusExportTask.MULTI_NAME_PATTERN}" in the file name
-      to substitute with feature list name. (i.e. "prefix_\{SiriusExportTask.MULTI_NAME_PATTERN}_suffix.mgf" would
-      become "prefix_SourceFeatureListName_suffix.mgf"). If the file already exists, it will be overwritten.""",
-      extensions, "sirius" // suffix
+      "Filename", """
+      Name of the output MGF file. Use pattern "%s" in the file name
+      to substitute with feature list name. (i.e. "prefix_%s_suffix.mgf" would
+      become "prefix_SourceFeatureListName_suffix.mgf"). If the file already exists, it will be overwritten.""".formatted(
+      SiriusExportTask.MULTI_NAME_PATTERN, SiriusExportTask.MULTI_NAME_PATTERN), extensions,
+      "sirius" // suffix
   );
 
+
+  // legacy parameters that were replaced are private
+  private final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
+      "Merge MS/MS",
+      "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.",
+      new MsMsSpectraMergeParameters(), true);
+
   public SiriusExportParameters() {
-    super(FEATURE_LISTS, FILENAME, NORMALIZE, MERGE_PARAMETER, MZ_TOL, NEED_ANNOTATION,
+    super(FEATURE_LISTS, FILENAME, NORMALIZE, spectraMergeSelect, MZ_TOL, NEED_ANNOTATION,
         EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS);
   }
 
@@ -129,13 +143,50 @@ public class SiriusExportParameters extends SimpleParameterSet {
         FILENAME).getName().contains(SiriusExportTask.MULTI_NAME_PATTERN)) {
       errorMessages.add(
           "More than one feature list selected but \"" + SiriusExportTask.MULTI_NAME_PATTERN
-          + "\" pattern not found in name."
-          + "Please add the name pattern to create individual files.");
+              + "\" pattern not found in name."
+              + "Please add the name pattern to create individual files.");
       superCheck = false;
     }
 
     return superCheck;
   }
+
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map = super.getNameParameterMap();
+    map.put(MERGE_PARAMETER.getName(), MERGE_PARAMETER);
+    return map;
+  }
+
+  @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+    if (loadedParams.containsKey(MERGE_PARAMETER.getName())) {
+      boolean merge = MERGE_PARAMETER.getValue();
+      if (!merge) {
+        getParameter(spectraMergeSelect).setUseInputScans(SelectInputScans.ALL_SCANS);
+      } else {
+        final var mergeParams = MERGE_PARAMETER.getEmbeddedParameters();
+        MZTolerance mzTol = mergeParams.getValue(MsMsSpectraMergeParameters.MASS_ACCURACY);
+        var mode = mergeParams.getValue(MsMsSpectraMergeParameters.MERGE_MODE);
+        var sampleMode = mode == MergeMode.ACROSS_SAMPLES ? SampleHandling.ACROSS_SAMPLES
+            : SampleHandling.SAME_SAMPLE;
+
+        // across samples use simple
+        if (sampleMode == SampleHandling.ACROSS_SAMPLES) {
+          // one merged scan
+          getParameter(spectraMergeSelect).setSimplePreset(
+              SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, mzTol);
+        } else {
+          // one for each sample
+          getParameter(spectraMergeSelect).setAdvancedPreset(
+              SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, mzTol, IntensityMergingType.MAXIMUM,
+              List.of(MergedSpectraFinalSelectionTypes.EACH_SAMPLE));
+        }
+      }
+    }
+  }
+
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
@@ -152,7 +203,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
     return switch (version) {
       case 2 -> """
           Up to mzmine version ≤ 4.4.3 the intensities were exported normalized to the highest signal as 100%. \
-          mzmine versions > 4.4.3 add options to control normalization. The default changed to original intensities exported in scientific notation (e.g., 1.05E5).""";
+          mzmine versions > 4.4.3 add options to control normalization. The default changed to original intensities exported in scientific notation (e.g., 1.05E5).
+          Selection and merging of fragmentation spectra was also harmonized throughout various modules.""";
       default -> null;
     };
   }

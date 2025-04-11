@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
@@ -54,6 +55,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
@@ -98,7 +100,8 @@ public class ModularFeatureList implements FeatureList {
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
   // unmodifiable list
-  private final ObservableList<RawDataFile> dataFiles;
+  private final List<RawDataFile> dataFiles;
+  private final List<RawDataFile> readOnlyRawDataFiles; // keep one copy in case it is used somewhere
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
 
   private NodeGenerationThread nodeThread;
@@ -146,7 +149,8 @@ public class ModularFeatureList implements FeatureList {
     dataFiles = new ArrayList<>(dataFiles);
     dataFiles.sort(Comparator.comparing(RawDataFile::getName));
     ((ArrayList) dataFiles).trimToSize();
-    this.dataFiles = FXCollections.observableList(dataFiles);
+    this.dataFiles = dataFiles;
+    this.readOnlyRawDataFiles = Collections.unmodifiableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
@@ -422,11 +426,11 @@ public class ModularFeatureList implements FeatureList {
   /**
    * Returns all raw data files participating in the alignment
    *
-   * @return the raw data files for this list
+   * @return an unmodifiable list raw data files for this list
    */
   @Override
-  public ObservableList<RawDataFile> getRawDataFiles() {
-    return dataFiles;
+  public List<RawDataFile> getRawDataFiles() {
+    return readOnlyRawDataFiles;
   }
 
   @Override
@@ -543,7 +547,7 @@ public class ModularFeatureList implements FeatureList {
           "Can not add non-modular feature list row to modular feature list");
     }
 
-    ObservableList<RawDataFile> myFiles = this.getRawDataFiles();
+    List<RawDataFile> myFiles = this.getRawDataFiles();
     for (RawDataFile testFile : modularRow.getRawDataFiles()) {
       if (!myFiles.contains(testFile)) {
         throw (new IllegalArgumentException(
@@ -796,31 +800,7 @@ public class ModularFeatureList implements FeatureList {
    */
   public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage,
       List<RawDataFile> dataFiles, boolean renumberIDs) {
-    ModularFeatureList flist = new ModularFeatureList(title, storage, dataFiles);
-
-    // key is original row and value is copied row
-    Map<FeatureListRow, ModularFeatureListRow> mapCopied = new HashMap<>();
-    // copy all rows and features
-    int id = 0;
-    for (FeatureListRow row : this.getRows()) {
-      id = renumberIDs ? id + 1 : row.getID();
-      ModularFeatureListRow copyRow = new ModularFeatureListRow(flist, id,
-          (ModularFeatureListRow) row, true);
-      flist.addRow(copyRow);
-      mapCopied.put(row, copyRow);
-    }
-
-    // todo copy all row to row relationships and exchange row references in datatypes
-
-    // change references in IIN
-
-    // Load previous applied methods
-    for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
-      flist.addDescriptionOfAppliedTask(proc);
-    }
-
-    selectedScans.forEach(flist::setSelectedScans);
-    return flist;
+    return FeatureListUtils.createCopy(this, title, null, storage, true, dataFiles, renumberIDs);
   }
 
   @Nullable
@@ -888,7 +868,7 @@ public class ModularFeatureList implements FeatureList {
 
     nodeThreadLock.writeLock().lock();
     try {
-      if (nodeThread == null || nodeThread.isFinished()) {
+      if (nodeThread == null || nodeThread.isFinished() || nodeThread.isCanceled()) {
         nodeThread = new NodeGenerationThread(null, Instant.now(), this);
         logger.finest("Starting new node thread.");
         MZmineCore.getTaskController().addTask(nodeThread);

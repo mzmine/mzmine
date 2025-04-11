@@ -30,11 +30,13 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -65,7 +67,7 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TSFImportTask extends AbstractTask {
+public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
   private static Logger logger = Logger.getLogger(TSFImportTask.class.getName());
 
@@ -86,6 +88,7 @@ public class TSFImportTask extends AbstractTask {
   private File tsf_bin;
   private int totalScans = 1;
   private int processedScans = 0;
+  private RawDataFile newMZmineFile = null;
 
   public TSFImportTask(MZmineProject project, File fileName, @Nullable MemoryMapStorage storage,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -155,7 +158,6 @@ public class TSFImportTask extends AbstractTask {
     setDescription("Importing " + rawDataFileName + ": Reading metadata");
     readMetadata();
 
-    final RawDataFile newMZmineFile;
     try {
       if (isMaldi) {
         newMZmineFile = MZmineCore.createNewImagingFile(rawDataFileName, dirPath.getAbsolutePath(),
@@ -180,7 +182,7 @@ public class TSFImportTask extends AbstractTask {
 
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
-    final boolean tryProfile = MZmineCore.getInstance().isTsfProfile();
+    final boolean tryProfile = ConfigService.isTsfProfile();
     final MassSpectrumType importSpectrumType =
         tryProfile && metaDataTable.hasProfileSpectra() ? MassSpectrumType.PROFILE
             : MassSpectrumType.CENTROIDED;
@@ -376,5 +378,10 @@ public class TSFImportTask extends AbstractTask {
           ActivationMethod.CID, mzRange);
       ((SimpleScan)scan).setMsMsInfo(diaMsMsInfo);
     }
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
   }
 }

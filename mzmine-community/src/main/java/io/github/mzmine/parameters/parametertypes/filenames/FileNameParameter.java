@@ -255,4 +255,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
     return true;
   }
 
+  public FileSelectionType getType() {
+    return type;
+  }
 }

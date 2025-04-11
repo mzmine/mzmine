@@ -1,6 +1,6 @@
 [versions]
-jdk = { strictly = "22" }
-javafx = { strictly = "22.0.1" }
+jdk = { strictly = "23" }
+javafx = { strictly = "23.0.2" }
 javafx-plugin = "0.1.0"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
@@ -12,14 +12,14 @@ msdk = "0.0.27"
 cdk = "2.9"
 swagger = "1.5.22"
 okhttp = "2.7.5"
-slf4j = '1.7.32'
+slf4j = '1.7.36'
 poi = '5.0.0'
 batik = '1.17'
 controlsfx = '11.1.1'
 jmzTabm = "1.0.6"
 jna = '5.12.1'
-junit = '5.10.0'
-mockito = '5.8.0'
+junit = '5.12.0'
+mockito = '5.16.0'
 jackson = '2.18.0'
 ikonli = "12.3.1"
 graphstream = "2.0"

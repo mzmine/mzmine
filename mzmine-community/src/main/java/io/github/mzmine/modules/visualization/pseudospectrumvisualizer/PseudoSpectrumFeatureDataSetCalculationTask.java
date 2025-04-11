@@ -26,13 +26,14 @@
 package io.github.mzmine.modules.visualization.pseudospectrumvisualizer;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
@@ -41,6 +42,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRende
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.IsolationWindow;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -94,9 +96,6 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    ModularFeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode(),
-        null, dataFile);
-
     if (getStatus() == TaskStatus.CANCELED) {
       return;
     }
@@ -105,7 +104,29 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
     final ScanSelection selection = new ScanSelection(pseudoScan.getMSLevel(), featureRtRange);
 
     // use scans from feature list
-    List<Scan> scans = selection.streamMatchingScans(dataFile).toList();
+    List<Scan> scans = selection.streamMatchingScans(dataFile).<Scan>mapMulti((scan, c) -> {
+      // MS1 like GC-EI-MS
+      if (scan.getMSLevel() == 1) {
+        c.accept(scan);
+        return;
+      }
+
+      // SWATH / DIA PASEF etc
+      switch (scan) {
+        case Frame frame -> {
+          frame.getImsMsMsInfos().stream().map(IsolationWindow::new)
+              .filter(w -> w.contains(feature)).findAny().ifPresent(_ -> c.accept(frame));
+        }
+        default -> {
+          final MsMsInfo msMsInfo = scan.getMsMsInfo();
+          if (msMsInfo != null && msMsInfo.getIsolationWindow() != null
+              && msMsInfo.getIsolationWindow().contains(feature.getMZ())) {
+            c.accept(scan);
+          }
+        }
+      }
+    }).toList();
+
     if (scans.isEmpty()) {
       setErrorMessage(
           "scans were empty in the given RT range of feature " + FeatureUtils.featureToString(

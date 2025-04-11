@@ -28,7 +28,9 @@ package io.github.mzmine.util.javafx;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination.Modifier;
@@ -61,6 +63,17 @@ public class FxMenuUtil {
       item.setAccelerator(new KeyCodeCombination(mainKey));
     }
 
+    menu.getItems().add(item);
+    return item;
+  }
+
+  public static RadioMenuItem addRadioMenuItem(@NotNull Menu menu, @NotNull ToggleGroup grp,
+      @NotNull String text, @Nullable Runnable onClick) {
+    final RadioMenuItem item = new RadioMenuItem(text);
+    item.setToggleGroup(grp);
+    if(onClick != null) {
+      item.setOnAction(_ -> onClick.run());
+    }
     menu.getItems().add(item);
     return item;
   }

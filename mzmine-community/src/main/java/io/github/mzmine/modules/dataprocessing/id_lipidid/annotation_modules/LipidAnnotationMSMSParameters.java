@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules;
 
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
+
+  public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createLipidSearchAllSpectraDefault();
 
   public static final MZToleranceParameter mzToleranceMS2 = new MZToleranceParameter(
       "m/z tolerance MS2 level:",
@@ -45,7 +48,7 @@ public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
       false);
 
   public LipidAnnotationMSMSParameters() {
-    super(mzToleranceMS2, minimumMsMsScore, keepUnconfirmedAnnotations);
+    super(spectraMergeSelect, mzToleranceMS2, minimumMsMsScore, keepUnconfirmedAnnotations);
   }
 
   @Override

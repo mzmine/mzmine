@@ -92,7 +92,7 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
 
     TICVisualizerTab ticVisualizerTab = new TICVisualizerTab(new RawDataFile[]{rawDataFile},
         TICPlotType.BASEPEAK, new ScanSelection(pseudoScan.getMSLevel()),
-        mzTolerance.getToleranceRange(selectedFeature.getMZ()), null, null);
+        mzTolerance.getToleranceRange(selectedFeature.getMZ()), null, null, null);
 
     ticPlot = ticVisualizerTab.getTICPlot();
     ticPlot.removeAllDataSets();
