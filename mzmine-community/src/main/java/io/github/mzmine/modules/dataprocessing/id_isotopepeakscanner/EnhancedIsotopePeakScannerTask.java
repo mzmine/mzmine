@@ -16,6 +16,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
   private MobilityTolerance mobTolerance;
   private io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance rtTolerance;
   private double minPatternIntensity;
-  private String element, suffix;
+  private String patternFormulas, suffix;
   private int charge;
   private PolarityType polarityType;
   private double minIsotopePatternScore;
@@ -50,14 +51,6 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(
       EnhancedIsotopePeakScannerTask.class.getName());
-
-//  /**
-//   * Scanning for characteristic isotope pattern and their monoisotopic mass
-//   *
-//   * @param rows            apply to all rows
-//   * @param mzTolerance     tolerance for signal matching
-//   * @param minIntensity    minimum isotope intensity for prediction
-//   */
 
   EnhancedIsotopePeakScannerTask(MZmineProject project, FeatureList peakList,
       ParameterSet parameters, @Nullable MemoryMapStorage storage,
@@ -72,7 +65,7 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     mobTolerance = parameters.getParameter(IsotopePeakScannerParameters.mobTolerance).getValue();
     minPatternIntensity = parameters.getParameter(IsotopePeakScannerParameters.minPatternIntensity)
         .getValue();
-    element = parameters.getParameter(IsotopePeakScannerParameters.element).getValue();
+    patternFormulas = parameters.getParameter(IsotopePeakScannerParameters.formula).getValue();
     suffix = parameters.getParameter(IsotopePeakScannerParameters.suffix).getValue();
     charge = parameters.getParameter(IsotopePeakScannerParameters.charge).getValue();
     resultPeakList = new ModularFeatureList(peakList.getName() + " " + suffix,
@@ -106,7 +99,7 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     ObservableList<FeatureListRow> rows = peakList.getRows();
     PeakListHandler featureMap = new PeakListHandler();
     Map<Integer, IsotopePattern> detectedIsotopePattern = new HashMap<>();
-    List<FeatureListRow> rowsWithIPs = new ArrayList <>();
+    List<FeatureListRow> rowsWithIPs = new ArrayList<>();
     Map<Integer, Double> scores = new HashMap<>();
     PeakListHandler finalMap;
     IsotopePatternCalculator ipCalculator = new IsotopePatternCalculator();
@@ -123,7 +116,6 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     //In case of multiple scores for different charges, only the isotope pattern with the highest
     // score is stored as "detectedIsotopePattern.
 
-    String[] elements;
     int[] charges = new int[charge];
     for (int i = 0; i < charges.length; i++) {
       charges[i] = i + 1;
@@ -134,23 +126,23 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
 //      elements = new String[1];
 //      elements[0] = element;
 //    }
-      elements = element.split(",");
+    String[] formulas = patternFormulas.split(",");
 
-    for (String element : elements) {
+    for (String formula : formulas) {
       for (int charge : charges) {
 
         for (FeatureListRow row : rows) {
 
-          IsotopePattern calculatedPattern = ipCalculator.calculateIsotopePattern(row,element,
-              minPatternIntensity, mzTolerance, charge);
-          IsotopePattern detectedPattern = isotopePeakFinder.detectedIsotopePattern(peakList, row,
-              ipCalculator.calculatedPatternDPs, mzTolerance, minHeight,
+          final IsotopePattern calculatedPattern = ipCalculator.calculateIsotopePattern(row,
+              formula.trim(), minPatternIntensity, mzTolerance, charge);
+          final IsotopePattern detectedPattern = isotopePeakFinder.detectedIsotopePattern(peakList,
+              row, ipCalculator.calculatedPatternDPs, mzTolerance, minHeight,
               calculatedPattern.getDataPointMZRange(), resolvedByMobility, charge);
-          double score = scoring.calculateIsotopeScore(detectedPattern,
-              calculatedPattern, mzTolerance, minHeight);
+          final double score = scoring.calculateIsotopeScore(detectedPattern, calculatedPattern,
+              mzTolerance, minHeight);
 
           if (score >= minIsotopePatternScore) {
-            if (scores.get(row.getID()) != null && scores.get(row.getID()) > score){
+            if (scores.get(row.getID()) != null && scores.get(row.getID()) > score) {
               continue;
             }
             detectedIsotopePattern.put(row.getID(), detectedPattern);
@@ -165,10 +157,10 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
       //A tolerance range of 0.01 was applied to avoid excluding isotopic patterns with very similar score values.
 
       if (onlyMonoisotopic) {
-        majorIsotopeIdentifier.findMajorIsotopes(rowsWithIPs,scores,detectedIsotopePattern,
-            rtTolerance,mobTolerance, resolvedByMobility);
+        majorIsotopeIdentifier.findMajorIsotopes(rowsWithIPs, scores, detectedIsotopePattern,
+            rtTolerance, mobTolerance, resolvedByMobility);
       } else {
-       majorIsotopeIdentifier.findAllIsotopes(rowsWithIPs,scores,detectedIsotopePattern);
+        majorIsotopeIdentifier.findAllIsotopes(rowsWithIPs, scores, detectedIsotopePattern);
       }
       rowsWithIPs.clear();
       detectedIsotopePattern.clear();
@@ -177,8 +169,9 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
 
     // Reduction of features to those with the best similarity values of all considered element combinations.
     if (bestScores) {
-      majorIsotopeIdentifier.findMajorIsotopesWithBestScores(rtTolerance,mobTolerance,resolvedByMobility);
-      finalMap= majorIsotopeIdentifier.resultMapOfMajorIsotopesWithBestScores;
+      majorIsotopeIdentifier.findMajorIsotopesWithBestScores(rtTolerance, mobTolerance,
+          resolvedByMobility);
+      finalMap = majorIsotopeIdentifier.resultMapOfMajorIsotopesWithBestScores;
     } else {
       finalMap = majorIsotopeIdentifier.resultMapOfIsotopes;
     }
@@ -192,20 +185,8 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  //
-//  /**
-//   * Apply isotope scoring to filter for monoisotopic masses.
-//   *
-//   * @param row             apply to this row
-//   * @param mzTolerance     tolerance for signal matching
-//   * @param minIntensity    minimum isotope intensity for prediction
-//   * @param minIsotopeScore minimum isotope score to retain annotations
-//   */
-
   private PolarityType getPeakListPolarity(FeatureList peakList) {
-    return peakList.getRawDataFiles().stream()
-        .map(raw -> raw.getDataPolarity().stream().findFirst().orElse(PolarityType.UNKNOWN))
-        .findFirst().orElse(PolarityType.UNKNOWN);
+    return FeatureListUtils.getPolarity(peakList);
   }
 
   /**

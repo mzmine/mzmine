@@ -141,7 +141,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
     mergeWidth = parameters.getParameter(IsotopePeakScannerParameters.mergeWidth).getValue();
     minPatternIntensity =
         parameters.getParameter(IsotopePeakScannerParameters.minPatternIntensity).getValue();
-    element = parameters.getParameter(IsotopePeakScannerParameters.element).getValue();
+    element = parameters.getParameter(IsotopePeakScannerParameters.formula).getValue();
     suffix = parameters.getParameter(IsotopePeakScannerParameters.suffix).getValue();
 //    checkRT = parameters.getParameter(IsotopePeakScannerParameters.checkRT).getValue();
     minHeight = parameters.getParameter(IsotopePeakScannerParameters.minHeight).getValue();

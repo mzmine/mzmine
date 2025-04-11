@@ -41,7 +41,6 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.util.FormulaUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.text.DecimalFormat;
@@ -143,7 +142,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     previewWrapperPane.setCenter(pnlPreview);
 
     // get parameters
-    pElement = parameterSet.getParameter(IsotopePeakScannerParameters.element);
+    pElement = parameterSet.getParameter(IsotopePeakScannerParameters.formula);
     pMinIntensity = parameterSet.getParameter(IsotopePeakScannerParameters.minPatternIntensity);
     pCharge = parameterSet.getParameter(IsotopePeakScannerParameters.charge);
     pMergeWidth = parameterSet.getParameter(IsotopePeakScannerParameters.mergeWidth);

@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -37,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import java.util.Map;
 
 
 public class IsotopePatternMatcherParameters extends SimpleParameterSet {
@@ -50,19 +52,33 @@ public class IsotopePatternMatcherParameters extends SimpleParameterSet {
   public static final RTToleranceParameter isotopeRtTolerance = new RTToleranceParameter(
       "Isotope rt tolerance",
       "", new RTTolerance( true, (float)0.0));
+
   public static final PercentParameter minIntensity = new PercentParameter(
       "Minimum isotope intensity (%)",
       "Minimum intensity percentage (%) that the isotopes must have in order to apply to the isotope pattern.", 0.05);
+
   public static final DoubleParameter minIsotopeScore = new DoubleParameter("Minimum isotope score",
       "Minimum isotope pattern score that the detected isotope pattern must have in order to apply to the database hits",
       MZmineCore.getConfiguration().getScoreFormat(), 0.0);
-  public static final StringParameter suffix = new StringParameter("Name suffix",
-      "Suffix to be added to feature list name. If \"auto\" then this module will create a suffix.",
-      "auto");
-  public static final BooleanParameter removeIsotopes = new BooleanParameter(
+
+  public static final OptionalParameter<StringParameter> suffix = new OptionalParameter<>(new StringParameter("Name suffix",
+      "Removes the Isotopes expect the monoisotopic signal from the feature list.\n"
+          + "Suffix to be added to feature list name. If \"auto\" then this module will create a suffix.",
+      "auto"), false);
+
+  private final BooleanParameter removeIsotopes = new BooleanParameter(
       "Remove Isotopes", "Removes the Isotopes expect the monoisotopic signal from the feature list.", true);
 
   public IsotopePatternMatcherParameters() {
-    super(new Parameter[]{isotopeMzTolerance,isotopeRtTolerance, minIntensity, minIsotopeScore,removeIsotopes,suffix});
+    super(new Parameter[]{isotopeMzTolerance,isotopeRtTolerance, minIntensity, minIsotopeScore,suffix});
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
+    super.handleLoadedParameters(loadedParams);
+
+    Parameter<?> removeIsos = loadedParams.get(removeIsotopes.getName());
+    getParameter(suffix).setSelected((Boolean)removeIsos.getValue());
+
   }
 }

@@ -74,13 +74,12 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(
       DatabaseIsotopeRefinerScanBased.class.getName());
+
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
    *                       stored in ram. For now, one storage should be created per module call in
-   *                       {@link
-   *                       MZmineRunnableModule(MZmineProject,
-   *                       ParameterSet, Instant)}.
+   *                       {@link MZmineRunnableModule(MZmineProject, ParameterSet, Instant)}.
    * @param moduleCallDate
    */
   protected DatabaseIsotopeRefinerScanBased(@Nullable MemoryMapStorage storage,
@@ -92,11 +91,14 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
   public Instant getModuleCallDate() {
     return super.getModuleCallDate();
   }
+
   public class ModuleDate {
-    public void getModuleCallDate (){
+
+    public void getModuleCallDate() {
       getModuleCallDate();
     }
   }
+
   private final ModuleDate date = new ModuleDate();
 
 
@@ -120,31 +122,34 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
 
   public void refineAnnotationsByIsotopesDifferentResolutions(ParameterSet parameters,
       MZmineProject project, FeatureList peakList, List<FeatureListRow> rows,
-      MZTolerance mzTolerance, io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance rtTolerance, double minIntensity, double minIsotopeScore, boolean removeIsotopes, String suffix) {
+      MZTolerance mzTolerance,
+      io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance rtTolerance,
+      double minIntensity, double minIsotopeScore, boolean removeIsotopes, String suffix) {
     TreeMap<Integer, FeatureListRow> reducedList = new TreeMap<>();
     Map<IMolecularFormula, Map<Double, IsotopePattern>> ionIsotopePatternMap = new HashMap<>();
-    for ( FeatureListRow row : rows){
-      reducedList.put(row.getID(),row);
+    for (FeatureListRow row : rows) {
+      reducedList.put(row.getID(), row);
     }
 
-    for ( FeatureListRow row : rows) {
+    for (FeatureListRow row : rows) {
       refineAnnotationsByIsotopesDifferentResolutions(row, mzTolerance, minIntensity,
           minIsotopeScore, ionIsotopePatternMap);
     }
-    for ( FeatureListRow row : rows) {
-      if (removeIsotopes){
+    for (FeatureListRow row : rows) {
+      if (removeIsotopes) {
         reducedList = removeIsotopes(reducedList, row, rtTolerance);
       }
     }
-    ModularFeatureList resultPeakList = new ModularFeatureList(peakList.getName() + " " + suffix,getMemoryMapStorage(),peakList.getRawDataFiles() );
+    ModularFeatureList resultPeakList = new ModularFeatureList(peakList.getName() + " " + suffix,
+        getMemoryMapStorage(), peakList.getRawDataFiles());
     for (Integer key : reducedList.keySet()) {
-      ModularFeatureListRow bestRow = new ModularFeatureListRow(resultPeakList, key, (ModularFeatureListRow) reducedList.get(key), true);
+      ModularFeatureListRow bestRow = new ModularFeatureListRow(resultPeakList, key,
+          (ModularFeatureListRow) reducedList.get(key), true);
       resultPeakList.addRow(bestRow);
     }
     addResultToProject(resultPeakList, project, parameters);
 
   }
-
 
 
   /**
@@ -365,17 +370,20 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
 
   // Removes the features of the isotopic signals from database matches, so that only the
   // monoisotopic signals of the found components are listed
-  public static TreeMap <Integer, FeatureListRow> removeIsotopes  (TreeMap <Integer, FeatureListRow> rows, FeatureListRow row, RTTolerance RTTolerance) {
-    TreeMap <Integer, FeatureListRow > newList = new TreeMap <>();
+  public static TreeMap<Integer, FeatureListRow> removeIsotopes(
+      TreeMap<Integer, FeatureListRow> rows, FeatureListRow row, RTTolerance RTTolerance) {
+    TreeMap<Integer, FeatureListRow> newList = new TreeMap<>();
 
-    if(row.getBestFeature().getIsotopePattern() ==null || row.getCompoundAnnotations().isEmpty()){
+    if (row.getBestFeature().getIsotopePattern() == null || row.getCompoundAnnotations()
+        .isEmpty()) {
       return rows;
     }
 
-    for (int actualRow: rows.keySet()){
-      if (row.getBestFeature().getIsotopePattern().getDataPointMZRange().contains(rows.get(actualRow).getAverageMZ())&&
-          RTTolerance.checkWithinTolerance(rows.get(actualRow).getAverageRT(), row.getAverageRT())&& rows.get(actualRow).getCompoundAnnotations().isEmpty()
-      ) {
+    for (int actualRow : rows.keySet()) {
+      if (row.getBestFeature().getIsotopePattern().getDataPointMZRange()
+          .contains(rows.get(actualRow).getAverageMZ()) && RTTolerance.checkWithinTolerance(
+          rows.get(actualRow).getAverageRT(), row.getAverageRT()) && rows.get(actualRow)
+          .getCompoundAnnotations().isEmpty()) {
         continue;
       }
       newList.put(actualRow, rows.get(actualRow));
@@ -414,6 +422,7 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
   public void run() {
 
   }
+
   public MemoryMapStorage getMemoryMapStorage() {
     return storage;
   }

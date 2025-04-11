@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.mzmine.parameters.OptionalParameterContainer;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import java.text.DecimalFormat;
@@ -34,7 +33,6 @@ import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.autocarbon.
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -69,7 +67,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
   public static final MobilityToleranceParameter mobTolerance = new MobilityToleranceParameter();
 
-  public static final StringParameter element = new StringParameter("Chemical formula",
+  public static final StringParameter formula = new StringParameter("Chemical formula",
       "Elements (combinations) whose isotope pattern to be searched for. "
           + "Separate individual Elements (combinations) by \",\". Please enter the two letter Symbol."
           + " (e.g. \"Gd\", \"Cl2BrS\")",
@@ -112,7 +110,8 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
       new AutoCarbonParameters());
 
   public IsotopePeakScannerParameters() {
-    super(new Parameter[]{PEAK_LISTS, mzTolerance, onlyMonoisotopic,bestScores,resolvedByMobility,rtTolerance,mobTolerance, element, autoCarbonOpt,
+    super(new Parameter[]{PEAK_LISTS, mzTolerance, onlyMonoisotopic,bestScores,resolvedByMobility,rtTolerance,mobTolerance,
+            formula, autoCarbonOpt,
         charge, minPatternIntensity,minIsotopePatternScore, mergeWidth, minHeight,suffix},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_peak_scanner/isotope_peak_scanner.html");
   }
