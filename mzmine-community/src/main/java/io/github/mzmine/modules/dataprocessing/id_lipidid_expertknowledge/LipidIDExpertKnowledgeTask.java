@@ -1,15 +1,24 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge;
 
+import com.lowagie.text.Row;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.lipidexpertknowledge.LipidValidationListType;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClassParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.*;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.*;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhaseParameter;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleTypeParameter;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleTypes;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -21,13 +30,17 @@ import java.time.Instant;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class LipidIDExpertKnowledgeTask extends AbstractTask{
+public class LipidIDExpertKnowledgeTask extends AbstractTask {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
     private double finishedSteps;
     private double totalSteps;
     private final ParameterSet parameters;
     private MZTolerance mzTolerance;
+    //TODO this is new, to differentiate between the rules! (when we get them)
+    private List<MobilePhases> mobilePhase;
+    private SampleTypes sampleType;
+
     private final FeatureList featureList;
 
 
@@ -36,6 +49,12 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask{
         this.featureList = featureList;
         this.parameters = parameters;
         this.mzTolerance = parameters.getParameter(LipidIDExpertKnowledgeParameters.mzTolerance).getValue();
+        //Convert Objects to MobilePhases
+        Object[] selectedMP = parameters.getParameter(LipidIDExpertKnowledgeParameters.mobilePhaseParameter).getValue();
+        this.mobilePhase = new ArrayList<>(Arrays.stream(selectedMP).filter(o -> o instanceof MobilePhases).map(o -> (MobilePhases) o).toList());
+        //Convert Object to SampleType
+        Object[] selectedST = parameters.getParameter(LipidIDExpertKnowledgeParameters.sampleTypeParameter).getValue();
+        this.sampleType = Arrays.stream(selectedST).filter(o -> o instanceof SampleTypes).map(o -> (SampleTypes) o).findFirst().orElse(null);
     }
 
     @Override
@@ -76,11 +95,12 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask{
         //set status to processing
         setStatus(TaskStatus.PROCESSING);
         //The user chooses the feature list (should be Aligned Feature List after metaCorrelate)
-        logger.info("Annotating in "+featureList);
+        logger.info("Annotating in " + featureList);
 
+        //Adds the columns with the output info
         List<FeatureListRow> rows = featureList.getRows();
-        if(featureList instanceof ModularFeatureList){
-            featureList.addRowType(new LipidMatchListType());
+        if (featureList instanceof ModularFeatureList) {
+            featureList.addRowType(new LipidValidationListType());
         }
 
         totalSteps = rows.size();
@@ -90,7 +110,7 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask{
         //Combined list with all the adducts and ISFs, later sorted by mz
         //It will search in different lists depending on polarity of our data (+) || (-) || (+-)
         List<ExpertKnowledge> commonAdductsISF = new ArrayList<>();
-        if(polarityTypes.contains(PolarityType.POSITIVE) && polarityTypes.contains(PolarityType.NEGATIVE)) {
+        if (polarityTypes.contains(PolarityType.POSITIVE) && polarityTypes.contains(PolarityType.NEGATIVE)) {
             commonAdductsISF.addAll(Arrays.asList(CommonAdductPositive.values()));
             commonAdductsISF.addAll(Arrays.asList(CommonAdductNegative.values()));
             commonAdductsISF.addAll(Arrays.asList(CommonISFPositive.values()));
@@ -105,45 +125,70 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask{
         //sort by mz
         commonAdductsISF.sort(Comparator.comparingDouble(ExpertKnowledge::getMz));
 
+        //Group by GroupID of metaCorrelate
+        Set<RowGroup> groupRows = new HashSet<>();
+        for (FeatureListRow row : rows) {
+            RowGroup group = row.getGroup();
+            if (group != null) {
+                groupRows.add(group);
+            }
+        }
+        //TODO delete this, its just to check
+        for (RowGroup r : groupRows) {
+            System.out.println("GROUP IDS: " + r.getGroupID() + " rows:" + r.size());
+        }
 
-        //Iterate through each row
-        rows.parallelStream().forEach(row -> {
+        //Iterate through each row group
+        for (RowGroup group : groupRows) {
             //The module will only work if the row has annotations, if not, it won't run
             List<FoundLipid> detectedLipids = new ArrayList<>();
 
-            if (row.getLipidMatches().isEmpty()) {
+            //findAdducts function in Utils
+            List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, group, mzTolerance.getMzTolerance());
+
+            if (foundAdductsAndISF.isEmpty()) {
                 //nothing
             } else {
-                //findAdducts function in Utils
-                List<FoundAdduct> foundAdductsISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, row, mzTolerance.getMzTolerance());
-
-                //1: Based on polarity re-direct to specific rules
-                if(polarityTypes.contains(PolarityType.POSITIVE)) {
-                    detectedLipids = LipidIDExpertKnowledgeSearch.findLipidsPositive(row, foundAdductsISF);
-                } else if (polarityTypes.contains(PolarityType.NEGATIVE)) {
-                    detectedLipids = LipidIDExpertKnowledgeSearch.findLipidsNegative(row, foundAdductsISF);
-                } else if (polarityTypes.contains(PolarityType.POSITIVE) && polarityTypes.contains(PolarityType.NEGATIVE)) {
-                    List<FoundLipid> detectedLipidsPos = LipidIDExpertKnowledgeSearch.findLipidsPositive(row, foundAdductsISF);
-                    List<FoundLipid> detectedLipidsNeg = LipidIDExpertKnowledgeSearch.findLipidsNegative(row, foundAdductsISF);
-
-                    detectedLipids.addAll(detectedLipidsNeg);
+                //TODO separar en positive y negative adducts para distribuir a rules
+                /*List<FoundAdduct> positiveAdductsAndISF = new ArrayList<>();
+                List<FoundAdduct> negativeAdductsAndISF = new ArrayList<>();
+                for (FoundAdduct adduct : foundAdductsAndISF) {
+                    if (adduct.getCharge() == 1) {
+                        positiveAdductsAndISF.add(adduct);
+                    } else if (adduct.getCharge() == -1) {
+                        negativeAdductsAndISF.add(adduct);
+                    }
+                }*/
+                //Based on polarity re-direct to specific rules
+                if (polarityTypes.contains(PolarityType.POSITIVE) && polarityTypes.contains(PolarityType.NEGATIVE)) {
+                    List<FoundLipid> detectedLipidsPos = LipidIDExpertKnowledgeSearch.findLipidsPositive(group, foundAdductsAndISF);
+                    List<FoundLipid> detectedLipidsNeg = LipidIDExpertKnowledgeSearch.findLipidsNegative(group, foundAdductsAndISF);
+                    detectedLipids = new ArrayList<>();
                     detectedLipids.addAll(detectedLipidsPos);
+                    detectedLipids.addAll(detectedLipidsNeg);
+                } else if (polarityTypes.contains(PolarityType.POSITIVE)) {
+                    detectedLipids = LipidIDExpertKnowledgeSearch.findLipidsPositive(group, foundAdductsAndISF);
+                } else if (polarityTypes.contains(PolarityType.NEGATIVE)) {
+                    detectedLipids = LipidIDExpertKnowledgeSearch.findLipidsNegative(group, foundAdductsAndISF);
                 }
 
                 finishedSteps++;
-            }
-            //TODO check if this works when I have sample data
-            for (FoundLipid fl : detectedLipids){
-                if(fl != null) {
-                    row.addLipidValidation(fl);
+
+
+                for (FoundLipid fl : detectedLipids) {
+                    if (fl != null) {
+                        for (FeatureListRow row : group.getRows()) {
+                            row.addLipidValidation(fl);
+                        }
+                    }
                 }
             }
-        });
+        }
 
         // Add task description to featureList
         (featureList).addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
                 "Lipid annotation with expert knowledge", LipidIDExpertKnowledgeModule.class,
-                        parameters, getModuleCallDate()));
+                parameters, getModuleCallDate()));
 
         setStatus(TaskStatus.FINISHED);
         logger.info("Finished on: " + featureList);

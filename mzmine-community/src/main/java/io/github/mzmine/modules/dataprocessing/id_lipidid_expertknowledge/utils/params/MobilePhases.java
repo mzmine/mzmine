@@ -3,6 +3,9 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Mobile phases
+ */
 public enum MobilePhases {
 
     CH3COO ("Acetate"),

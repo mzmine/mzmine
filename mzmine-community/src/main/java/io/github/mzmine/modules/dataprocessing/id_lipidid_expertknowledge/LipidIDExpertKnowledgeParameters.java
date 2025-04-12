@@ -17,6 +17,11 @@ import javafx.scene.layout.Region;
 
 import static io.github.mzmine.javafx.components.factories.FxTexts.*;
 
+/**
+ * Parameters for Lipid Annotation Expert Knowledge module
+ *
+ * @author Blanca Pueche Granados (blancapueche@gmail.com)
+ */
 public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
 
     public static final FeatureListsParameter featureLists = new FeatureListsParameter();
@@ -40,7 +45,7 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
         //TODO dejar esto!?
         final Region message = FxTextFlows.newTextFlowInAccordion("Authors Note",
                 boldText("Blanca Pueche Granados:\n"),
-                text("This module was created as part of the authors' Bachelor Thesis project."));
+                text("This module requires Lipid Annotation to be run first."));
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
         dialog.showAndWait();

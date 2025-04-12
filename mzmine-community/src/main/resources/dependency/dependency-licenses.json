@@ -2037,6 +2037,16 @@
             ]
         },
         {
+            "moduleName": "org.drools:drools-mvel",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.drools:drools-util",
             "moduleVersion": "10.0.0",
             "moduleLicenses": [
@@ -2048,6 +2058,16 @@
         },
         {
             "moduleName": "org.drools:drools-wiring-api",
+            "moduleVersion": "10.0.0",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.drools:drools-wiring-dynamic",
             "moduleVersion": "10.0.0",
             "moduleLicenses": [
                 {
@@ -2782,6 +2802,20 @@
             ]
         },
         {
+            "moduleName": "org.mvel:mvel2",
+            "moduleVersion": "2.5.1.Final",
+            "moduleUrls": [
+                "http://mvel.codehaus.org/",
+                "http://www.jboss.org/"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.openscience.cdk:cdk-atomtype",
             "moduleVersion": "2.9",
             "moduleLicenses": [
@@ -3053,15 +3087,14 @@
         },
         {
             "moduleName": "org.slf4j:slf4j-api",
-            "moduleVersion": "2.0.6",
+            "moduleVersion": "2.0.17",
             "moduleUrls": [
-                "http://www.qos.ch",
                 "http://www.slf4j.org"
             ],
             "moduleLicenses": [
                 {
                     "moduleLicense": null,
-                    "moduleLicenseUrl": "http://www.opensource.org/licenses/mit-license.php"
+                    "moduleLicenseUrl": "https://opensource.org/license/mit"
                 },
                 {
                     "moduleLicense": "MIT License",
@@ -3076,6 +3109,23 @@
                 "http://www.slf4j.org"
             ],
             "moduleLicenses": [
+                {
+                    "moduleLicense": "MIT License",
+                    "moduleLicenseUrl": "https://opensource.org/licenses/MIT"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.slf4j:slf4j-simple",
+            "moduleVersion": "2.0.17",
+            "moduleUrls": [
+                "http://www.slf4j.org"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": null,
+                    "moduleLicenseUrl": "https://opensource.org/license/mit"
+                },
                 {
                     "moduleLicense": "MIT License",
                     "moduleLicenseUrl": "https://opensource.org/licenses/MIT"

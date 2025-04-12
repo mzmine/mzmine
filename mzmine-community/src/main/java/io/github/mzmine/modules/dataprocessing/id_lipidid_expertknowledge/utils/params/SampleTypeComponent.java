@@ -8,6 +8,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Component for the sample types
+ */
 public class SampleTypeComponent extends BorderPane {
 
     private final ToggleGroup toggleGroup = new ToggleGroup();
@@ -41,10 +44,17 @@ public class SampleTypeComponent extends BorderPane {
     public Object[] getValue() {
         RadioButton selectedRadioButton = (RadioButton) toggleGroup.getSelectedToggle();
         if (selectedRadioButton != null) {
-            return new SampleTypes[]{SampleTypes.valueOf(selectedRadioButton.getText())};
+            String label = selectedRadioButton.getText();
+            for (SampleTypes type : SampleTypes.values()) {
+                if (type.getName().equalsIgnoreCase(label.trim())) {
+                    return new SampleTypes[]{type};
+                }
+            }
+            throw new IllegalArgumentException("Unknown sample type label: " + label);
         }
         return null;
     }
+
 
     public void setValue(@Nullable final Object[] value) {
         toggleGroup.selectToggle(null); // Clear current selection

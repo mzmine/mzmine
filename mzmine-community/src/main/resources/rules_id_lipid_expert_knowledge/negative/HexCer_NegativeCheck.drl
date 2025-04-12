@@ -1,8 +1,7 @@
-package rules_id_lipid_exPErt_knowledge.negative;
-
-import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.CommonAdductPositive;
-import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.FoundLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.FoundAdduct;
+package rules_id_lipid_expert_knowledge.negative;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.CommonAdductNegative;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
 
 
 // Declare the global list

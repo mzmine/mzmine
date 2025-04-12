@@ -134,7 +134,7 @@ ext {
     swaggerVersion = "1.5.22"
     okhttpVersion = "2.7.5"
     guavaVersion = "30.1-jre"
-    slf4jVersion = '1.7.32'
+    slf4jVersion = '2.0.17'
     poiVersion = '5.0.0'
     batikVersion = '1.14'
     controlsfxVersion = '11.1.1'
@@ -229,6 +229,10 @@ dependencies {
     implementation group: 'org.drools', name: 'drools-compiler', version: '10.0.0'
     // https://mvnrepository.com/artifact/org.kie/kie-api
     implementation group: 'org.kie', name: 'kie-api', version: '10.0.0'
+    implementation group: 'org.drools', name: 'drools-mvel', version: '10.0.0'
+
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"  // SLF4J API
+    implementation "org.slf4j:slf4j-simple:$slf4jVersion"  // SLF4J Simple Logger
 }
 /*
  * Remove the xml-apis dependencies to avoid a compilation error in Eclipse.

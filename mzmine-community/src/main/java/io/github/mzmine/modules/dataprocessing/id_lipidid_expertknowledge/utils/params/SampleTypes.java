@@ -3,20 +3,14 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Sample types
+ */
 public enum SampleTypes {
 
     PLASMA ("Plasma"),
-    BRAIN_TISSUE("Brain tissue"),
     BLOOD("Blood"),
-    URINE("Urine"),
-    LIVER_TISSUE("Liver tissue"),
-    MUSCLE_TISSUE("Muscle tissue"),
-    CEREBROSPINAL_FLUID("Cerebrospinal fluid"),
-    SALIVA("Saliva"),
-    KIDNEY_TISSUE("Kidney tissue"),
-    LUNG_TISSUE("Lung tissue");
-
-    //TODO add more
+    CEREBROSPINAL_FLUID("Cerebrospinal fluid");
 
     private final String name;
 
@@ -27,7 +21,8 @@ public enum SampleTypes {
     public static List<SampleTypes> getListOfMobilePhases(){
         List<SampleTypes> list = new ArrayList<>();
         list.add(SampleTypes.PLASMA);
-        list.add(SampleTypes.BRAIN_TISSUE);
+        list.add(SampleTypes.BLOOD);
+        list.add(SampleTypes.CEREBROSPINAL_FLUID);
         return list;
     }
 

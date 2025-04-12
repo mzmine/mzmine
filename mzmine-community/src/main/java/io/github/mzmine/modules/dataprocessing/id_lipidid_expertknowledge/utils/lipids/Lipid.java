@@ -7,8 +7,11 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.
 
 import java.util.HashMap;
 import java.util.Map;
-
-public enum Lipid implements ILipid {
+/**
+ * This enum contains the most common lipids according to a CEMBIO paper:
+ * Martínez, S., Fernández-García, M., Londoño-Osorio, S., Barbas, C., & Gradillas, A. (2024). Highly reliable LC-MS lipidomics database for efficient human plasma profiling based on NIST SRM 19501. Journal of Lipid Research, 65(11), 100671. https://doi.org/10.1016/j.jlr.2024.100671
+ */
+public enum Lipid {
     CAR("Carnitines", "CAR", true, true,
             new HashMap<>() {{
                 // ESI+ Adducts
@@ -482,39 +485,11 @@ public enum Lipid implements ILipid {
         this.negativeISF = negativeISF;
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
-    @Override
     public String getAbbr() {
         return abbr;
-    }
-
-    @Override
-    public boolean getContainsNitrogen() {
-        return containsNitrogen;
-    }
-
-    @Override
-    public boolean getIsPolar() {
-        return isPolar;
-    }
-
-    public Map<CommonAdductPositive, Integer> getPositiveAdducts() {
-        return positiveAdducts;
-    }
-
-    public Map<CommonAdductNegative, Integer> getNegativeAdducts() {
-        return negativeAdducts;
-    }
-
-    public Map<CommonISFPositive, Integer> getPositiveISF() {
-        return positiveISF;
-    }
-
-    public Map<CommonISFNegative, Integer> getNegativeISF() {
-        return negativeISF;
     }
 }

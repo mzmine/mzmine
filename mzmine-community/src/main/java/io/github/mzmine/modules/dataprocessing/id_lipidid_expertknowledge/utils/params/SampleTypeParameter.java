@@ -11,6 +11,10 @@ import org.w3c.dom.NodeList;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * Parameters for the sample types
+ * @param <ValueType>
+ */
 public class SampleTypeParameter<ValueType> implements UserParameter<ValueType[], SampleTypeComponent>  {
 
     private final String name;

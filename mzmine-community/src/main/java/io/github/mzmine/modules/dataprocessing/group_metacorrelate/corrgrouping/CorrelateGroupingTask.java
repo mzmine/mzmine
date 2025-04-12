@@ -31,6 +31,7 @@ import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -266,6 +267,12 @@ public class CorrelateGroupingTask extends AbstractTask {
 
         // add to project
         handleOriginal.reflectNewFeatureListToProject(suffix, project, groupedPKL, featureList);
+
+        /*System.out.println(groupedPKL.getRow(1).getAverageMZ());
+        String name = project.getCurrentFeatureLists().getLast().getName();
+        System.out.println(name);
+        FeatureList fl = project.getFeatureList(name);
+        System.out.println("la de project: " + fl.getRow(1).getAverageMZ());*/
 
         // Done.
         setStatus(TaskStatus.FINISHED);

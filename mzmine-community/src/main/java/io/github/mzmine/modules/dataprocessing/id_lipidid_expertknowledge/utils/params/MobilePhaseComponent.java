@@ -9,6 +9,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Component for the choosing of the movile phases of the samples
+ */
 public class MobilePhaseComponent extends BorderPane {
 
     private final CheckBoxTreeItem<Object> rootItem = new CheckBoxTreeItem<>("Root");
@@ -22,7 +25,7 @@ public class MobilePhaseComponent extends BorderPane {
 
         // Add MobilePhases enum items
         for (MobilePhases phase : MobilePhases.values()) {
-            CheckBoxTreeItem<Object> phaseItem = new CheckBoxTreeItem<>(phase.name());
+            CheckBoxTreeItem<Object> phaseItem = new CheckBoxTreeItem<>(phase);
             classToItemMap.put(phase, phaseItem);
             rootItem.getChildren().add(phaseItem);
         }
@@ -61,7 +64,7 @@ public class MobilePhaseComponent extends BorderPane {
 
         var checkedItems = mobilePhases.getCheckModel().getCheckedItems();
         return checkedItems.stream()
-                .filter(item -> item != null && item.getValue() instanceof LipidClasses)
+                .filter(item -> item != null && item.getValue() instanceof MobilePhases)
                 .map(TreeItem::getValue).toList().toArray();
 
     }

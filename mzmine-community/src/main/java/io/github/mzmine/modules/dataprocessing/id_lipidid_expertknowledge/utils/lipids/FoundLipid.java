@@ -1,5 +1,8 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids;
 
+/**
+ * Class that represents the lipids found in my features
+ */
 public class FoundLipid {
 
     private Lipid lipid;
@@ -11,8 +14,8 @@ public class FoundLipid {
     public FoundLipid() {
         this.lipid = null;
         this.score = 0; // Default score
-        this.descrCorrect = "Correct: " + lipid.getName();
-        this.descrIncorrect = "INCORRECT, please verify: " + lipid.getName();
+        this.descrCorrect = "Correct: ";
+        this.descrIncorrect = "INCORRECT, please verify: ";
     }
 
     public Integer getScore() {

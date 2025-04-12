@@ -11,6 +11,10 @@ import org.w3c.dom.NodeList;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * Parameters for the mobile phases of the samples
+ * @param <ValueType>
+ */
 public class MobilePhaseParameter<ValueType> implements UserParameter<ValueType[], MobilePhaseComponent>  {
 
     private final String name;

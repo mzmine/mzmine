@@ -48,6 +48,7 @@ import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationTyp
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
+import io.github.mzmine.datamodel.features.types.annotations.lipidexpertknowledge.LipidValidationListType;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
@@ -65,6 +66,7 @@ import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
@@ -754,4 +756,20 @@ public class ModularFeatureListRow implements FeatureListRow {
   public String toString() {
     return FeatureUtils.rowToString(this);
   }
+
+
+  @Override
+  public void addLipidValidation(FoundLipid lipid) {
+    // add column first if needed
+    List<FoundLipid> matches = get(LipidValidationListType.class);
+    if (matches == null) {
+      matches = List.of(lipid);
+    } else {
+      matches = new ArrayList<>(matches);
+      matches.add(lipid);
+    }
+    set(LipidValidationListType.class, matches);
+  }
+
+
 }
