@@ -609,7 +609,7 @@ public class MainWindowController {
 
   public void selectTab(String title) {
     final Optional<Tab> first = mainTabPane.getTabs().stream()
-        .filter(f -> f.getText().equals(title)).findFirst();
+        .filter(f -> MZmineTab.getText(f).equals(title)).findFirst();
     first.ifPresent(tab -> mainTabPane.getSelectionModel().select(tab));
   }
 
