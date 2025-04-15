@@ -25,12 +25,13 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,12 +46,16 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
   public static final PercentParameter boundaryThreshold = new PercentParameter(
       "Boundary detection", "", 0.05);
 
-  public static final IntegerParameter maxWidthPoints = new IntegerParameter("Max data points", "",
-      30, 0, Integer.MAX_VALUE);
+  public static final DoubleParameter maxScale = new DoubleParameter("Max Scale", "",
+      new DecimalFormat("#.###"), 0.8, 0d, Double.MAX_VALUE);
+
+  public static final DoubleParameter minScale = new DoubleParameter("Min Scale", "",
+      new DecimalFormat("#.###"), 0.8, 0d, Double.MAX_VALUE);
 
   public WaveletResolverParameters() {
     super(GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
-        GeneralResolverParameters.groupMS2Parameters, snr, boundaryThreshold, maxWidthPoints,
+        GeneralResolverParameters.groupMS2Parameters, snr, boundaryThreshold, minScale, maxScale,
+        minHeight,
 
         GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS, GeneralResolverParameters.SUFFIX,
         GeneralResolverParameters.handleOriginal);
@@ -58,6 +63,18 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
 
   @Override
   public @Nullable Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
-    return null;
+//    return new WaveletResolver(new int[]{5, 10, 15, 20, 30}, parameterSet.getValue(snr),
+//        parameterSet.getValue(minHeight), parameterSet.getValue(boundaryThreshold),
+//        parameterSet.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS),
+//        parameterSet.getValue(maxWidthPoints), parameterSet, flist);
+    return new WaveletResolver2(parameterSet, flist);
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    final FeatureResolverSetupDialog dialog = new FeatureResolverSetupDialog(valueCheckRequired,
+        this, null);
+    dialog.showAndWait();
+    return dialog.getExitCode();
   }
 }
