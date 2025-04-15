@@ -44,7 +44,7 @@ public class WaveletResolverModule extends FeatureResolverModule {
   @Nullable
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return MinimumSearchFeatureResolverParameters.class;
+    return WaveletResolverParameters.class;
   }
 
   @NotNull
