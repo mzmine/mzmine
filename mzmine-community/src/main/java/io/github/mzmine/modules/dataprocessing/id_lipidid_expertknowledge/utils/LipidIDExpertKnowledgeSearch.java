@@ -7,13 +7,16 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidAnnotationResolver;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.*;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.Lipid;
@@ -49,6 +52,14 @@ public class LipidIDExpertKnowledgeSearch {
         if (!annotatedFeatures.isEmpty()) {
             System.out.println("-----G: " + group.getGroupID() + " has lipid matches: " + annotatedFeatures.size());
             IonizationType annotatedAdduct = annotatedFeatures.getFirst().getLipidMatches().getLast().getIonizationType();
+            //TODO preguntar esto
+            /*List<IonizationType> allAdductsAnnotated = new ArrayList<>();
+            for (FeatureListRow row : annotatedFeatures){
+                if (!row.getLipidMatches().isEmpty()) {
+
+                }
+            }*/
+
             String adductName = annotatedAdduct.getAdductName(); //Returns name. eg: [M+H]+
             Double adductMZ = 0.00;
             Double neutralMass = 0.00;
@@ -158,16 +169,17 @@ public class LipidIDExpertKnowledgeSearch {
         return foundAdducts;
     }
 
-    public static List<FoundLipid> findLipidsPositive(RowGroup group, List<FoundAdduct> found) {
+    public static void findLipidsPositive(RowGroup group, List<FoundAdduct> found) {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
 
         for (FeatureListRow row : group.getRows()) {
             List<MatchedLipid> lipidMatched = row.getLipidMatches();
-            FoundLipid lipid_ExpertKnowledge = new FoundLipid();
+            detectedLipids.clear();
 
-            if(!lipidMatched.isEmpty()) {
+            if (!lipidMatched.isEmpty()) {
                 for (MatchedLipid lipid : lipidMatched) {
+                    FoundLipid lipid_ExpertKnowledge = new FoundLipid(lipid);
                     String name = lipid.getLipidAnnotation().getLipidClass().getName();
                     String abbr = lipid.getLipidAnnotation().getLipidClass().getAbbr();
                     String path = null;
@@ -259,23 +271,31 @@ public class LipidIDExpertKnowledgeSearch {
                         kSession.fireAllRules();
                         kSession.dispose();
                         //Only lipids that have been matched to a rule are added to detectedLipids
-                        System.out.println("------------LIPID: " + detectedLipids.get(0).getLipid().getName() + " row: " + row.getAverageMZ() + " group: " + group.getGroupID());
+                        System.out.println("------------LIPID: " + detectedLipids.getLast().getLipid().getName() + " row: " + row.getAverageMZ() + " group: " + group.getGroupID());
+                    }
+
+                }
+                if (!detectedLipids.isEmpty()){
+                    for (FoundLipid foundLipid : detectedLipids) {
+                        if (foundLipid != null) {
+                            row.addLipidValidation(foundLipid);
+                        }
                     }
                 }
             }
         }
-        return detectedLipids;
     }
 
-    public static List<FoundLipid> findLipidsNegative(RowGroup group, List<FoundAdduct> found) {
+    public static void findLipidsNegative(RowGroup group, List<FoundAdduct> found) {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
         for (FeatureListRow row : group.getRows()) {
             List<MatchedLipid> lipidMatched = row.getLipidMatches();
-            FoundLipid lipid_ExpertKnowledge = new FoundLipid();
+            detectedLipids.clear();
 
             if (!lipidMatched.isEmpty()) {
                 for (MatchedLipid lipid : lipidMatched) {
+                    FoundLipid lipid_ExpertKnowledge = new FoundLipid(lipid);
                     String abbr = lipid.getLipidAnnotation().getLipidClass().getAbbr();
                     String name = lipid.getLipidAnnotation().getLipidClass().getName();
                     String path = null;
@@ -330,6 +350,8 @@ public class LipidIDExpertKnowledgeSearch {
                         path = "rules_id_lipid_expert_knowledge/negative/FA_NegativeCheck.drl";
                     }
 
+                    detectedLipids.add(lipid_ExpertKnowledge);
+
                     if (path != null) {
                         // Initialize KieServices
                         KieServices ks = KieServices.Factory.get();
@@ -354,10 +376,17 @@ public class LipidIDExpertKnowledgeSearch {
                         kSession.fireAllRules();
                         kSession.dispose();
                     }
+
+                }
+                if (!detectedLipids.isEmpty()){
+                    for (FoundLipid foundLipid : detectedLipids) {
+                        if (foundLipid != null) {
+                            row.addLipidValidation(foundLipid);
+                        }
+                    }
                 }
             }
         }
-        return detectedLipids;
     }
 }
 

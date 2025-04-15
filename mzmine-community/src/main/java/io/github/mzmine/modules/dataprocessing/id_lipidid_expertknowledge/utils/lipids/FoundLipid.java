@@ -1,5 +1,7 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids;
 
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+
 /**
  * Class that represents the lipids found in my features
  */
@@ -7,14 +9,16 @@ public class FoundLipid {
 
     private Lipid lipid;
     //To store the score and description assigned by the rules
+    private MatchedLipid annotatedLipid;
     private Integer score;
     private String descrCorrect;
     private String descrIncorrect;
 
-    public FoundLipid() {
+    public FoundLipid(MatchedLipid lipid) {
         this.lipid = null;
         this.score = 0; // Default score
-        this.descrCorrect = "Correct: ";
+        this.annotatedLipid = lipid;
+        this.descrCorrect = lipid.getLipidAnnotation().getLipidClass().getAbbr() + "-Correct: ";
         this.descrIncorrect = "INCORRECT, please verify: ";
     }
 
@@ -46,7 +50,21 @@ public class FoundLipid {
         return descrIncorrect;
     }
 
+    public MatchedLipid getAnnotatedLipid() {
+        return annotatedLipid;
+    }
+
+    public void setAnnotatedLipid(MatchedLipid annotatedLipid) {
+        this.annotatedLipid = annotatedLipid;
+    }
+
     public void setDescrIncorrect(String descrIncorrect) {
         this.descrIncorrect = this.descrIncorrect + descrIncorrect;
+    }
+
+    @Override
+    public String toString() {
+        return  "[" + annotatedLipid +
+                ']';
     }
 }
