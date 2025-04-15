@@ -1,6 +1,21 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Class that represents the lipids found in my features
@@ -13,6 +28,7 @@ public class FoundLipid {
     private Integer score;
     private String descrCorrect;
     private String descrIncorrect;
+    private List<FoundAdduct> adducts;
 
     public FoundLipid(MatchedLipid lipid) {
         this.lipid = null;
@@ -20,13 +36,22 @@ public class FoundLipid {
         this.annotatedLipid = lipid;
         this.descrCorrect = lipid.getLipidAnnotation().getLipidClass().getAbbr() + "-Correct: ";
         this.descrIncorrect = "INCORRECT, please verify: ";
+        this.adducts = new ArrayList<>();
+    }
+
+    public String getAdducts() {
+        String stringAdducts = this.adducts.toString();
+        return stringAdducts;
+    }
+
+    public void setAdducts(List<FoundAdduct> adducts) {
+        this.adducts = adducts;
     }
 
     public Integer getScore() {
         return score;
     }
 
-    // Setters (to modify score and description dynamically)
     public void setScore(int score) {
         this.score = this.score + score;
     }

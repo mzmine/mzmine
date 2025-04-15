@@ -3,14 +3,12 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge;
 import com.lowagie.text.Row;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.*;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.lipidexpertknowledge.LipidValidationListType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClassParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.*;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.*;
@@ -24,6 +22,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.collections.ObservableList;
+import javafx.css.Match;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
@@ -151,13 +150,29 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
             //sort by mz
             commonAdductsISF.sort(Comparator.comparingDouble(ExpertKnowledge::getMz));
 
-            //findAdducts function in Utils
-            List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, group, mzTolerance.getMzTolerance());
+            //Find rows that are annotated in the group
+            List<FeatureListRow> annotatedRows = LipidIDExpertKnowledgeSearch.findAnnotatedRows(group);
+            //Find relevant data to find adducts
+            RowInfo rowInfo = LipidIDExpertKnowledgeSearch.findRowInfo(group);
+
+            for (FeatureListRow row :annotatedRows) {
+                List<MatchedLipid> lipidsMatched = row.getLipidMatches();
+                System.out.print("-----Row:" + row.getAverageMZ() + " has lipid matches: " + lipidsMatched);
+                for (MatchedLipid matchedLipid : lipidsMatched) {
+                    List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, matchedLipid);
+
+                    if (polarityType.equals(PolarityType.POSITIVE)) {
+                        LipidIDExpertKnowledgeSearch.findLipidsPositive(row, matchedLipid, foundAdductsAndISF);
+                    } else if (polarityType.equals(PolarityType.NEGATIVE)) {
+                        LipidIDExpertKnowledgeSearch.findLipidsNegative(row, matchedLipid, foundAdductsAndISF);
+                    }
+                }
+            }
 
             //TODO this if does not make sense, check
-            if (foundAdductsAndISF.isEmpty()) {
+            //if (foundAdductsAndISF.isEmpty()) {
                 //nothing
-            } else {
+            //} else {
                 //TODO separar en positive y negative adducts para distribuir a rules
                 /*List<FoundAdduct> positiveAdductsAndISF = new ArrayList<>();
                 List<FoundAdduct> negativeAdductsAndISF = new ArrayList<>();
@@ -180,22 +195,14 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                 } else if (polarityTypes.contains(PolarityType.NEGATIVE)) {
                     detectedLipids = LipidIDExpertKnowledgeSearch.findLipidsNegative(group, foundAdductsAndISF);
                 }*/
-                if (polarityType.equals(PolarityType.POSITIVE)){
+                /*if (polarityType.equals(PolarityType.POSITIVE)){
                     LipidIDExpertKnowledgeSearch.findLipidsPositive(group, foundAdductsAndISF);
                 } else if (polarityType.equals(PolarityType.NEGATIVE)) {
                     LipidIDExpertKnowledgeSearch.findLipidsNegative(group, foundAdductsAndISF);
-                }
+                }*/
 
                 finishedSteps++;
-
-                /*for (FoundLipid fl : detectedLipids) {
-                    if (fl != null) {
-                        for (FeatureListRow row : group.getRows()) {
-                            row.addLipidValidation(fl);
-                        }
-                    }
-                }*/
-            }
+            //}
         }
 
         // Add task description to featureList

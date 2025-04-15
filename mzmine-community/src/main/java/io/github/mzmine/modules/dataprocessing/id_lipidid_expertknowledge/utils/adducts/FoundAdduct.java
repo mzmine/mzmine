@@ -49,4 +49,10 @@ public class FoundAdduct {
     public int hashCode() {
         return Objects.hash(adductName, mzFeature, intensity, rt, charge);
     }
+
+    @Override
+    public String toString() {
+        return "" + adductName +
+                ';';
+    }
 }

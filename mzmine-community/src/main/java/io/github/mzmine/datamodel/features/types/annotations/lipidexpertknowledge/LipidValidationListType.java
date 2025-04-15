@@ -25,7 +25,8 @@ public class LipidValidationListType extends ListWithSubsType<FoundLipid> implem
             new LipidValidationListType(),
             new LipidValidationScoreType(),
             new LipidValidationCorrectDescriptionType(),
-            new LipidValidationIncorrectDescriptionType()
+            new LipidValidationIncorrectDescriptionType(),
+            new LipidValidationAdductsType()
             );
 
     @Override
@@ -53,6 +54,8 @@ public class LipidValidationListType extends ListWithSubsType<FoundLipid> implem
             return (K) lipid.getDescrCorrect();
         } else if (subType instanceof LipidValidationIncorrectDescriptionType) {
             return (K) lipid.getDescrIncorrect();
+        }else if (subType instanceof LipidValidationAdductsType)  {
+            return (K) lipid.getAdducts();
         } else {
             throw new UnsupportedOperationException(
                     "DataType %s is not covered in map".formatted(subType.toString())
