@@ -43,19 +43,19 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
   public static final DoubleParameter minHeight = new DoubleParameter("Minimum height", "",
       new DecimalFormat("#.#"), 1E3, 0d, Double.MAX_VALUE);
 
-  public static final PercentParameter boundaryThreshold = new PercentParameter(
-      "Boundary detection", "", 0.05);
+  public static final DoubleParameter LOCAL_NOISE_WINDOW_FACTOR = new DoubleParameter(
+      "LOCAL_NOISE_WINDOW_FACTOR", "", new DecimalFormat("#.###"), 3.0);
 
-  public static final DoubleParameter maxScale = new DoubleParameter("Max Scale", "",
-      new DecimalFormat("#.###"), 0.8, 0d, Double.MAX_VALUE);
+  public static final DoubleParameter WAVELET_KERNEL_RADIUS_FACTOR = new DoubleParameter(
+      "WAVELET_KERNEL_RADIUS_FACTOR", "", new DecimalFormat("#.###"), 0.8, 0d, Double.MAX_VALUE);
 
-  public static final DoubleParameter minScale = new DoubleParameter("Min Scale", "",
+  public static final DoubleParameter mergeProximity = new DoubleParameter("Merge proximity", "",
       new DecimalFormat("#.###"), 0.8, 0d, Double.MAX_VALUE);
 
   public WaveletResolverParameters() {
     super(GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
-        GeneralResolverParameters.groupMS2Parameters, snr, boundaryThreshold, minScale, maxScale,
-        minHeight,
+        GeneralResolverParameters.groupMS2Parameters, snr, WAVELET_KERNEL_RADIUS_FACTOR,
+        mergeProximity, minHeight, LOCAL_NOISE_WINDOW_FACTOR,
 
         GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS, GeneralResolverParameters.SUFFIX,
         GeneralResolverParameters.handleOriginal);
@@ -67,7 +67,11 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
 //        parameterSet.getValue(minHeight), parameterSet.getValue(boundaryThreshold),
 //        parameterSet.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS),
 //        parameterSet.getValue(maxWidthPoints), parameterSet, flist);
-    return new WaveletResolver2(parameterSet, flist);
+
+    return new WaveletPeakDetector(new double[]{2, 3, 4, 5, 6, 8, 10},
+        parameterSet.getValue(snr), parameterSet.getValue(minHeight),
+        parameterSet.getValue(mergeProximity), parameterSet.getValue(WAVELET_KERNEL_RADIUS_FACTOR),
+        parameterSet.getValue(LOCAL_NOISE_WINDOW_FACTOR).intValue(), flist, parameterSet);
   }
 
   @Override
