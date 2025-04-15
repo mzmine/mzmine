@@ -29,9 +29,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.MZmineWindow;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.util.FxLayout;
-import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import java.util.Collection;
 import java.util.logging.Logger;
@@ -52,7 +53,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -92,15 +92,16 @@ public abstract class MZmineTab extends Tab {
       graphic.setLeft(cbUpdateOnSelection);
       BorderPane.setAlignment(cbUpdateOnSelection, Pos.CENTER);
     }
-    graphic.setMaxWidth(200);
-    subTitleText.setMaxWidth(200);
+    graphic.setMaxWidth(230);
+    subTitleText.setMaxWidth(230);
 
     titleText.setText(title);
     final VBox textWrapper = FxLayout.newVBox(Pos.CENTER_LEFT, titleText);
     textWrapper.setSpacing(0);
 
     final BooleanBinding showSubTitle = Bindings.createBooleanBinding(
-        () -> subTitleText.getText() != null && !subTitleText.getText().isEmpty(),
+        () -> ConfigService.getPreference(MZminePreferences.useTabSubtitles)
+            && subTitleText.getText() != null && !subTitleText.getText().isEmpty(),
         subTitleText.textProperty());
     showSubTitle.subscribe(show -> {
       if (show) {
