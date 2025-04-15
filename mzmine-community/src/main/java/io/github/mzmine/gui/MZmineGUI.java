@@ -304,7 +304,6 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
    *
    * @param event - DragEvent
    */
-
   public static void activateSetOnDragDropped(DragEvent event) {
     List<String> messages = new ArrayList<>();
 
@@ -431,7 +430,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     }
 
     if (loc == TAB && MZmineCore.getDesktop().getAllTabs().stream()
-        .anyMatch(t -> t.getText().equals("Tasks")) || (loc != TAB && Objects.equals(loc,
+        .anyMatch(t -> MZmineTab.getText(t).equals("Tasks")) || (loc != TAB && Objects.equals(loc,
         currentTaskManagerLocation))) {
       // only return if we have that tab
       return;

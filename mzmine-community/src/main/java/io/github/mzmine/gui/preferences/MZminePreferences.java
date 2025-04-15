@@ -142,6 +142,9 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
+  public static final BooleanParameter useTabSubtitles = new BooleanParameter("Show tab sub titles",
+      "If enabled, the name of feature lists or raw data files will be displayed in the tab header, e.g., in for the feature list tab.", true);
+
   public static final ColorPaletteParameter defaultColorPalette = new ColorPaletteParameter(
       "Default color palette",
       "Defines the default color palette used to create charts throughout MZmine");
@@ -269,7 +272,7 @@ public class MZminePreferences extends SimpleParameterSet {
         // other preferences
         defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
         imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
-        windowSetttings,
+        windowSetttings, useTabSubtitles,
         // silent parameters without controls
         showTempFolderAlert, username,
         //
@@ -303,7 +306,7 @@ public class MZminePreferences extends SimpleParameterSet {
         /*, applyTimsPressureCompensation*/);
     dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
         intensityFormat, ppmFormat, scoreFormat, unitFormat);
-    dialog.addParameterGroup("Visuals", defaultColorPalette, defaultPaintScale, chartParam, theme,
+    dialog.addParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale, chartParam, theme,
         presentationMode, showPrecursorWindow, imageTransformation, imageNormalization);
     dialog.addParameterGroup("MS data import", msConvertPath, keepConvertedFile, applyPeakPicking,
         watersLockmass, thermoRawFileParserPath, thermoImportChoice);
@@ -475,7 +478,8 @@ public class MZminePreferences extends SimpleParameterSet {
     final List<SimpleColorPalette> palettes = getParameter(
         MZminePreferences.defaultColorPalette).getPalettes();
     // check if an inverted palette already exists. if not, use the inverted one.
-    final Optional<SimpleColorPalette> match = palettes.stream().filter(p -> p.equals(cloned, false)).findFirst();
+    final Optional<SimpleColorPalette> match = palettes.stream()
+        .filter(p -> p.equals(cloned, false)).findFirst();
     setParameter(MZminePreferences.defaultColorPalette, match.orElse(cloned));
   }
 

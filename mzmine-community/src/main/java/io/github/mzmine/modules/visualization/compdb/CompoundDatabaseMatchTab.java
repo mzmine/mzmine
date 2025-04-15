@@ -122,6 +122,7 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
       pane.add(new Separator(Orientation.HORIZONTAL), 0, j++);
     }
     scrollPane.setContent(pane);
+    setSubTitle(selectedRow.getFeatureList().getName() + " " + FeatureUtils.rowToString(selectedRow));
   }
 
   @Override

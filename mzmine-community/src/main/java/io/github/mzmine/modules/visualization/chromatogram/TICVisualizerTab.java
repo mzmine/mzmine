@@ -60,6 +60,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
@@ -447,6 +448,8 @@ public class TICVisualizerTab extends MZmineTab {
     rawDataFiles.forEach(r -> addRawDataFile(r));
     getTICPlot().getChart().setNotify(true);
     getTICPlot().getChart().fireChartChanged();
+
+    setSubTitle(MZmineTab.getRawDataFilesSubtitle(filesToProcess));
   }
 
   @Override

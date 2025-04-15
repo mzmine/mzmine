@@ -41,6 +41,7 @@ public class IntegrationDashboardTab extends SimpleTab {
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
+    super.onFeatureListSelectionChanged(featureLists);
     controller.setFeatureList(featureLists.isEmpty() ? null
         : (ModularFeatureList) featureLists.stream().toList().getFirst());
   }
