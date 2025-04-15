@@ -25,6 +25,8 @@
 
 package io.github.mzmine.main;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -37,6 +39,8 @@ import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.dialogs.NotificationService;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -52,13 +56,17 @@ import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.io.SemverVersionReader;
+import io.github.mzmine.util.system.notifications.SystemNotifications;
 import io.github.mzmine.util.web.ProxyChangedEvent;
 import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
+import io.mzio.links.MzioMZmineLinks;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
+import io.mzio.users.service.UserType;
 import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -70,11 +78,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,17 +128,56 @@ public final class MZmineCore {
    * called.
    */
   public void startUp(@NotNull final MZmineCoreArgumentParser argsParser) {
+    SystemNotifications.initialize("mzmineIcon.png", "mzmine");
+
     ArgsToConfigUtils.applyArgsToConfig(argsParser);
 
     CurrentUserService.subscribe(user -> {
       var nickname = user == null ? null : user.getNickname();
       ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
+
+      checkUserRemainingDays(user);
     });
 
     addUserRequiredListener();
 
     // after loading the config and numCores
     TaskService.init(ConfigService.getConfiguration().getNumOfThreads());
+  }
+
+  public static void checkUserRemainingDays(MZmineUser user) {
+    if (user != null) {
+      final EventHandler<ActionEvent> openUserTabAction = _ -> UsersTab.showTab();
+
+      final long remainingDays = user.getRemainingDaysActive();
+      if (remainingDays <= 10) {
+        final boolean isAcademic = user.getUserType() == UserType.ACADEMIC;
+        if (isAcademic) {
+          String daysStr =
+              remainingDays <= 0 ? "Please" : "In %d days, please".formatted(remainingDays);
+
+          NotificationService.show(NotificationType.INFO, "mzmine user needs attention", """
+              %s re-login to mzmine, update your profile, and to revalidate your \
+              academic email address to renew your free subscription. \
+              If you have already done so, please login to update your user. \
+              If your employment status has changed, please reach out via %s or by email to info@mzio.io to inquire mzmine PRO service options.""".formatted(
+              daysStr, MzioMZmineLinks.CONTACT.getUrl()), openUserTabAction);
+        } else if (user.getUserType() == UserType.TRIAL_PRO) {
+          String daysStr =
+              remainingDays <= 0 ? "ended" : "ends in %d days".formatted(remainingDays);
+          NotificationService.show(NotificationType.INFO, "mzmine trial user needs attention", """
+              Your mzmine trial %s. If you have already updated your mzmine subscription, then re-login to mzmine to update your user. \
+              Otherwise, please reach out via %s or by email to info@mzio.io to inquire extended mzmine PRO service options.""".formatted(
+              daysStr, MzioMZmineLinks.CONTACT.getUrl()), openUserTabAction);
+        } else if (user.getUserType() == UserType.PRO) {
+          String daysStr = remainingDays <= 0 ? "" : " in %d days".formatted(remainingDays);
+          NotificationService.show(NotificationType.INFO, "mzmine trial user needs attention", """
+              Your mzmine user requires an update%s. Please re-login to mzmine to receive your latest user status and validity period. \
+              Regarding any questions, reach out to our support email address.""".formatted(
+              daysStr), openUserTabAction);
+        }
+      }
+    }
   }
 
   /**
