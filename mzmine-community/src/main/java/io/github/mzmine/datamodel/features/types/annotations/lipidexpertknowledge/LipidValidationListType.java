@@ -64,40 +64,45 @@ public class LipidValidationListType extends ListWithSubsType<FoundLipid> implem
     }
 
 
+    @Override
     public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
                           @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
                           @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
         if (value == null) {
             return;
         }
+
         if (!(value instanceof List<?> list)) {
             throw new IllegalArgumentException(
-                    "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-                            + value.getClass());
+                    "Wrong value type for data type: " + this.getClass().getName() +
+                            " value class: " + value.getClass());
         }
 
         for (Object o : list) {
-            if (!(o instanceof MatchedLipid id)) {
+            if (!(o instanceof FoundLipid foundLipid)) {
                 continue;
             }
 
-            id.saveToXML(writer, flist, row);
+            foundLipid.saveToXML(writer, flist, row);
         }
     }
+
 
     @Override
     public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
                               @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
                               @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
 
+        // Ensure the current element matches the expected data type
         if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
                 && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
-            throw new IllegalStateException("Wrong element");
+            throw new IllegalStateException("Wrong element or invalid data type ID");
         }
 
-        List<MatchedLipid> ids = new ArrayList<>();
-        final List<RawDataFile> currentRawDataFiles = project.getCurrentRawDataFiles();
+        // List to hold FoundLipid objects
+        List<FoundLipid> foundLipids = new ArrayList<>();
 
+        // Process XML and add FoundLipid elements to the list
         while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
                 .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
             reader.next();
@@ -105,17 +110,15 @@ public class LipidValidationListType extends ListWithSubsType<FoundLipid> implem
                 continue;
             }
 
-            if (reader.getLocalName().equals(MatchedLipid.XML_ELEMENT) || (
-                    reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)
-                            && MatchedLipid.XML_ELEMENT.equals(
-                            reader.getAttributeValue(null, FeatureAnnotation.XML_TYPE_ATTR)))) {
-                MatchedLipid id = MatchedLipid.loadFromXML(reader, currentRawDataFiles);
-                ids.add(id);
+            if (reader.getLocalName().equals(FoundLipid.XML_ELEMENT)) {
+                // Load a FoundLipid object from XML (without needing `getPossibleFiles` from flist)
+                FoundLipid foundLipid = FoundLipid.loadFromXML(reader, project.getCurrentRawDataFiles());
+                foundLipids.add(foundLipid);
             }
         }
 
-        // never return null, if this type was saved we even need empty lists.
-        return ids;
+        // Ensure to never return null, even if no items were found
+        return foundLipids;
     }
 
     @Override
