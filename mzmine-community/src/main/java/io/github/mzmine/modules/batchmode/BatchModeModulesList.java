@@ -183,6 +183,7 @@ import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizer
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.LipidIDExpertKnowledgeModule;
 import java.util.List;
 
 public class BatchModeModulesList {
@@ -365,6 +366,7 @@ public class BatchModeModulesList {
       PrecursorDBSearchModule.class, //
       SpectralLibrarySearchModule.class, //
       BioTransformerModule.class, //
+      LipidIDExpertKnowledgeModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_IO}
