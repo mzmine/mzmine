@@ -16,7 +16,14 @@ then
     
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M-H]-; ");
-    //detectedLipids.add(lipid);
+end
+rule "No presence [M-H]-"
+when
+    not FoundAdduct(adductName == "[M-H]-")
+then
+
+    lipid.setScore(-1);
+    lipid.setDescrIncorrect("Missing [M-H]-; ");
 end
 
 rule "Presence [M-H+(CH3COONa)]-"
@@ -26,7 +33,14 @@ then
     
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M-H+(CH3COONa)]-; ");
-    //detectedLipids.add(lipid);
+end
+rule "No presence [M-H+(CH3COONa)]-"
+when
+    not FoundAdduct(adductName == "[M-H+(CH3COONa)]-")
+then
+
+    lipid.setScore(-1);
+    lipid.setDescrIncorrect("Missing [M-H+(CH3COONa)]-; ");
 end
 
 rule "Intensity [M-H]- > [M-H+(CH3COONa)]-"
@@ -37,9 +51,8 @@ when
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     
-    lipid.setScore(1);
+    lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M-H]- > [M-H+(CH3COONa)]-; ");
-    //detectedLipids.add(lipid);
 end
 
 rule "Intensity [M-H]- < [M-H+(CH3COONa)]-"
@@ -50,7 +63,6 @@ when
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     
-    lipid.setScore(-1);
+    lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M-H]- < [M-H+(CH3COONa)]-; ");
-    //detectedLipids.add(lipid);
 end

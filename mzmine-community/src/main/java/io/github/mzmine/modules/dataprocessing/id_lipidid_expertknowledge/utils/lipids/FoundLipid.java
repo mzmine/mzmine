@@ -25,18 +25,27 @@ public class FoundLipid {
     private Lipid lipid;
     //To store the score and description assigned by the rules
     private MatchedLipid annotatedLipid;
-    private Integer score;
+    private Double score;
     private String descrCorrect;
     private String descrIncorrect;
     private List<FoundAdduct> adducts;
 
     public FoundLipid(MatchedLipid lipid) {
         this.lipid = null;
-        this.score = 0; // Default score
+        this.score = 0.00; // Default score
         this.annotatedLipid = lipid;
         this.descrCorrect = lipid.getLipidAnnotation().getLipidClass().getAbbr() + "-Correct: ";
-        this.descrIncorrect = "INCORRECT, please verify: ";
+        this.descrIncorrect = "Verify: ";
         this.adducts = new ArrayList<>();
+    }
+
+    public FoundLipid(List<FoundAdduct> foundAdducts) {
+        this.lipid = null;
+        this.score = 0.00;
+        this.annotatedLipid = null;
+        this.descrCorrect = "No matched lipids found";
+        this.descrIncorrect = "Found adducts are assumptions!";
+        this.adducts = foundAdducts;
     }
 
     public String getAdducts() {
@@ -48,11 +57,11 @@ public class FoundLipid {
         this.adducts = adducts;
     }
 
-    public Integer getScore() {
+    public Double getScore() {
         return score;
     }
 
-    public void setScore(int score) {
+    public void setScore(double score) {
         this.score = this.score + score;
     }
 
@@ -92,4 +101,10 @@ public class FoundLipid {
         return  "[" + annotatedLipid +
                 ']';
     }
+
+    public double normalizeScore(double rawScore, double maxScore) {
+        return Math.max(0.0, Math.min(2.0, ((double)(rawScore + maxScore) / (2.0 * maxScore)) * 2.0));
+    }
+
+    public void setFinalScore(double score) { this.score = score; }
 }

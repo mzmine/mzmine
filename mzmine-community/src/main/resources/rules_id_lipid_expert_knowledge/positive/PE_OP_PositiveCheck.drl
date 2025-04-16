@@ -15,7 +15,13 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H]+; ");
-    //detectedLipids.add(lipid);
+end
+rule "No presence [M+H]+"
+when
+    not FoundAdduct(adductName == "[M+H]+")
+then
+    lipid.setScore(-1);
+    lipid.setDescrIncorrect("Missing [M+H]+; ");
 end
 
 rule "Presence [M+Na]+"
@@ -24,7 +30,13 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+Na]+; ");
-    //detectedLipids.add(lipid);
+end
+rule "No presence [M+Na]+"
+when
+    not FoundAdduct(adductName == "[M+Na]+")
+then
+    lipid.setScore(-1);
+    lipid.setDescrIncorrect("Missing [M+Na]+; ");
 end
 
 rule "Presence [M+K]+"
@@ -33,7 +45,13 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+K]+; ");
-    //detectedLipids.add(lipid);
+end
+rule "No presence [M+K]+"
+when
+    not FoundAdduct(adductName == "[M+K]+")
+then
+    lipid.setScore(-1);
+    lipid.setDescrIncorrect("Missing [M+K]+; ");
 end
 
 rule "Presence [M+C2H7N2]+"
@@ -42,7 +60,13 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+C2H7N2]+; ");
-    //detectedLipids.add(lipid);
+end
+rule "No presence [M+C2H7N2]+"
+when
+    not FoundAdduct(adductName == "[M+C2H7N2]+")
+then
+    lipid.setScore(-1);
+    lipid.setDescrIncorrect("Missing [M+C2H7N2]+; ");
 end
 
 rule "Intensity [M+H]+ > [M+Na]+"
@@ -52,9 +76,8 @@ when
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
-    lipid.setScore(1);
+    lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+H]+ > [M+Na]+; ");
-    //detectedLipids.add(lipid);
 end
 
 rule "Intensity [M+Na]+ > [M+K]+"
@@ -64,9 +87,8 @@ when
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
-    lipid.setScore(1);
+    lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+Na]+ > [M+K]+; ");
-    //detectedLipids.add(lipid);
 end
 
 rule "Intensity [M+Na]+ > [M+C2H7N2]+"
@@ -76,9 +98,8 @@ when
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
-    lipid.setScore(1);
+    lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+Na]+ > [M+C2H7N2]+; ");
-    //detectedLipids.add(lipid);
 end
 
 rule "Intensity [M+H]+ < [M+Na]+"
@@ -88,9 +109,8 @@ when
 
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
-    lipid.setScore(-1);
+    lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+H]+ < [M+Na]+; ");
-    //detectedLipids.add(lipid);
 end
 
 rule "Intensity [M+Na]+ < [M+K]+"
@@ -100,9 +120,8 @@ when
 
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
-    lipid.setScore(-1);
+    lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+Na]+ < [M+K]+; ");
-    //detectedLipids.add(lipid);
 end
 
 rule "Intensity [M+Na]+ < [M+C2H7N2]+"
@@ -112,7 +131,6 @@ when
 
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
-    lipid.setScore(-1);
+    lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+Na]+ < [M+C2H7N2]+; ");
-    //detectedLipids.add(lipid);
 end

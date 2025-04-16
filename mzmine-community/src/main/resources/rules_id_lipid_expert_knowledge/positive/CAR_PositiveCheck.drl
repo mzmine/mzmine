@@ -15,5 +15,11 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H]+; ");
-    //detectedLipids.add(lipid);
+end
+rule "No presence [M+H]+"
+when
+    not FoundAdduct(adductName == "[M+H]+")
+then
+    lipid.setScore(-1);
+    lipid.setDescrIncorrect("Missing [M+H]+; ");
 end
