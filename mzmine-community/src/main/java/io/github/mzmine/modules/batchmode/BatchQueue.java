@@ -326,7 +326,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       }
 
       ParameterSet parameters = AllSpectralDataImportParameters.create(
-          // use the last set value, not the preference - todo is that what we want?
+          // use the last set value, not the preference
           ConfigService.getConfiguration().getModuleParameters(AllSpectralDataImportModule.class)
               .getValue(AllSpectralDataImportParameters.applyVendorCentroiding), //
           allDataFiles, metadataFile, allLibraryFiles);
