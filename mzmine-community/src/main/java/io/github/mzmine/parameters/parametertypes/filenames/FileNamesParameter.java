@@ -59,20 +59,28 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   private File[] value;
   private final List<ExtensionFilter> filters;
 
+  @Nullable
+  protected final String dragPrompt;
+
   public FileNamesParameter(String name) {
-    this(name, "", List.of());
+    this(name, "", List.of(), null);
   }
 
   public FileNamesParameter(String name, String description, List<ExtensionFilter> filters) {
-    this(name, description, filters, null, null);
+    this(name, description, filters, null, null, null);
+  }
+
+  public FileNamesParameter(String name, String description, List<ExtensionFilter> filters, @Nullable String dragPrompt) {
+    this(name, description, filters, null, null, dragPrompt);
   }
 
   public FileNamesParameter(String name, String description, List<ExtensionFilter> filters,
-      Path defaultDir, @Nullable File[] defaultFiles) {
+      Path defaultDir, @Nullable File[] defaultFiles, @Nullable String dragPrompt) {
     this.name = name;
     this.description = description;
     this.filters = ImmutableList.copyOf(filters);
     this.defaultDir = defaultDir;
+    this.dragPrompt = dragPrompt;
     setValue(defaultFiles);
   }
 
@@ -102,7 +110,7 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
 
   @Override
   public FileNamesComponent createEditingComponent() {
-    return new FileNamesComponent(filters, defaultDir);
+    return new FileNamesComponent(filters, defaultDir, dragPrompt);
   }
 
   @Override
@@ -118,7 +126,7 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
 
   @Override
   public FileNamesParameter cloneParameter() {
-    FileNamesParameter copy = new FileNamesParameter(name, description, filters);
+    FileNamesParameter copy = new FileNamesParameter(name, description, filters, dragPrompt);
     copy.setValue(this.getValue());
     return copy;
   }

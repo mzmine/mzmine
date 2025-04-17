@@ -59,7 +59,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       AllSpectralDataImportParameters.class.getName());
 
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
-      ExtensionFilters.MS_RAW_DATA);
+      ExtensionFilters.MS_RAW_DATA, "Drag & drop your MS data files here.");
 
   public static final OptionalModuleParameter<AdvancedSpectraImportParameters> advancedImport = new OptionalModuleParameter<>(
       "Advanced import",
