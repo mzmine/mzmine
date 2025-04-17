@@ -62,7 +62,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       AllSpectralDataImportParameters.class.getName());
 
   public static final ComponentWrapperParameter<Boolean, BooleanParameter> applyVendorCentroiding = new ComponentWrapperParameter<>(
-      new BooleanParameter("Vendor centroiding (if supported)",
+      new BooleanParameter("Try vendor centroiding",
           "Vendor centroiding will be applied to the imported raw data if this option is selected and cetroiding is supported.",
           true), () -> FxButtons.createButton(null, FxIcons.GEAR_PREFERENCES,
       "Open the preference dialog, which controls this parameter for the drag & drop import and the mzwizard.",
