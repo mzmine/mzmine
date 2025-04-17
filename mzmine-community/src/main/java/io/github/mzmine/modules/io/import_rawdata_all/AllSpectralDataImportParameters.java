@@ -63,11 +63,11 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
   public static final ComponentWrapperParameter<Boolean, BooleanParameter> applyVendorCentroiding = new ComponentWrapperParameter<>(
       new BooleanParameter("Vendor centroiding (if supported)",
-          "Vendor centroiding will be applied to the imported raw data if this option is selected and cetroiding is supported.", true),
-      () -> FxButtons.createButton(null, FxIcons.GEAR_PREFERENCES,
-          "Open the preference dialog, which controls this parameter for the drag & drop import and the mzwizard.",
-          () -> ConfigService.getPreferences()
-              .showSetupDialog(true, MZminePreferences.applyVendorCentroiding.getName())));
+          "Vendor centroiding will be applied to the imported raw data if this option is selected and cetroiding is supported.",
+          true), () -> FxButtons.createButton(null, FxIcons.GEAR_PREFERENCES,
+      "Open the preference dialog, which controls this parameter for the drag & drop import and the mzwizard.",
+      () -> ConfigService.getPreferences()
+          .showSetupDialog(true, MZminePreferences.applyVendorCentroiding.getName())));
 
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
       ExtensionFilters.MS_RAW_DATA);
@@ -86,8 +86,8 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       ColorByMetadataModule.MODULE_NAME), true);
 
   public AllSpectralDataImportParameters() {
-    super(new Parameter[]{applyVendorCentroiding, //
-            fileNames, //
+    super(new Parameter[]{fileNames, //
+            applyVendorCentroiding, //
             advancedImport, // directly process masslists
             metadataFile, // metadata import
             sortAndRecolor, // sort and recolor
@@ -97,16 +97,19 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   }
 
 
-  public static ParameterSet create(final boolean applyVendorCentroiding, @NotNull final File[] allDataFiles,
-      @Nullable final File metadata, @Nullable final File[] allLibraryFiles) {
+  public static ParameterSet create(final boolean applyVendorCentroiding,
+      @NotNull final File[] allDataFiles, @Nullable final File metadata,
+      @Nullable final File[] allLibraryFiles) {
     return create(applyVendorCentroiding, allDataFiles, metadata, allLibraryFiles, null);
   }
 
-  public static ParameterSet create(final boolean applyVendorCentroiding, @NotNull final File[] allDataFiles,
-      @Nullable final File metadata, @Nullable final File[] allLibraryFiles,
+  public static ParameterSet create(final boolean applyVendorCentroiding,
+      @NotNull final File[] allDataFiles, @Nullable final File metadata,
+      @Nullable final File[] allLibraryFiles,
       @Nullable final AdvancedSpectraImportParameters advanced) {
     var params = new AllSpectralDataImportParameters().cloneParameterSet();
-    params.setParameter(AllSpectralDataImportParameters.applyVendorCentroiding, applyVendorCentroiding);
+    params.setParameter(AllSpectralDataImportParameters.applyVendorCentroiding,
+        applyVendorCentroiding);
     params.setParameter(fileNames, allDataFiles);
     params.setParameter(metadataFile, metadata != null, metadata);
     params.setParameter(SpectralLibraryImportParameters.dataBaseFiles, allLibraryFiles);
