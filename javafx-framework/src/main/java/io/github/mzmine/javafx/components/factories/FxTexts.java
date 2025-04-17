@@ -41,7 +41,7 @@ public class FxTexts {
   }
 
   public static Text underlined(String content) {
-    final Text text = new Text(content);
+    final Text text = text(content);
     text.setUnderline(true);
     return text;
   }
@@ -59,7 +59,7 @@ public class FxTexts {
   }
 
   public static Text styledText(String content, String styleClass) {
-    return styledText(new Text(content), styleClass);
+    return styledText(text(content), styleClass);
   }
 
   public static @NotNull Text styledText(Text text, String styleClass) {
@@ -72,7 +72,7 @@ public class FxTexts {
   }
 
   public static Text hyperlinkText(String content, String link) {
-    final Text text = new Text(content);
+    final Text text = text(content);
     return hyperlinkText(text, link);
   }
 
@@ -95,7 +95,7 @@ public class FxTexts {
   }
 
   public static @NotNull Text text(ObservableValue<String> text) {
-    final Text node = new Text();
+    final Text node = text(text.getValue());
     node.textProperty().bind(text);
     return node;
   }
