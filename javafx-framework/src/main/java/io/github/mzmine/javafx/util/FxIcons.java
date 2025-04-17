@@ -30,7 +30,10 @@ public enum FxIcons implements IconCodeSupplier {
   CHECK_CIRCLE, X, X_CIRCLE, EXCLAMATION_TRIANGLE, EXCLAMATION_CIRCLE, INFO_CIRCLE, QUESTION_CIRCLE,
 
   // control flow
-  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, PLUS, ADD, EDIT, QUESTIONMARK,
+  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, PLUS, ADD, EDIT, QUESTIONMARK, ARROW_IN_RIGHT,
+
+  // icons
+  FILE,
 
   // UI
   DARK_MODE_SWITCH, BATCH,
@@ -87,6 +90,8 @@ public enum FxIcons implements IconCodeSupplier {
       case PLUS -> "bi-plus";
       case LIGHTBULB -> "bi-lightbulb";
       case QUESTIONMARK -> "bi-question-circle";
+      case ARROW_IN_RIGHT -> "bi-box-arrow-in-right";
+      case FILE -> "bi-file-earmark-text";
     };
   }
 }

@@ -80,9 +80,9 @@ public class IonModificationParameter implements
    */
   public IonModificationParameter(final String name, final String description) {
     super();
-    adducts = new MultiChoiceParameter<>(name, description, new IonModification[0],
+    adducts = new MultiChoiceParameter<>(name, description, 1, new IonModification[0],
         IonModification.POLARITY_MASS_SORTER);
-    modification = new MultiChoiceParameter<>("Modifications", "Modifications on adducts",
+    modification = new MultiChoiceParameter<>("Modifications", "Modifications on adducts", 0,
         new IonModification[0], IonModification.POLARITY_MASS_SORTER);
   }
 
@@ -252,11 +252,16 @@ public class IonModificationParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (getValue() == null) {
+    final IonModification[][] value = getValue();
+    if (value == null) {
       errorMessages.add("Adducts is not set properly");
       return false;
     }
-    return true;
+
+    adducts.checkValue(errorMessages);
+    modification.checkValue(errorMessages);
+
+    return errorMessages.isEmpty();
   }
 
   @Override

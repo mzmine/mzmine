@@ -54,7 +54,6 @@ import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.parameters.ParameterSet;
@@ -383,11 +382,8 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         // set raw and library files to parameter
         ParameterSet param = MZmineCore.getConfiguration()
             .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
-        param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
-        param.setParameter(AllSpectralDataImportParameters.fileNames,
-            rawDataFiles.toArray(File[]::new));
-        param.setParameter(SpectralLibraryImportParameters.dataBaseFiles,
-            libraryFiles.toArray(File[]::new));
+        param = AllSpectralDataImportParameters.create(ConfigService.isApplyVendorCentroiding(),
+            rawDataFiles.toArray(File[]::new), null, libraryFiles.toArray(File[]::new), null);
 
         // start import task for libraries and raw data files
         AllSpectralDataImportModule module = MZmineCore.getModuleInstance(

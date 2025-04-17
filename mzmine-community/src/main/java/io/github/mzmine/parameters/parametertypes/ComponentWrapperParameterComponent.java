@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,25 +23,35 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_spectral_library;
+package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.modules.io.download.AssetCategory;
-import io.github.mzmine.modules.io.download.DownloadAssets;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithDownloadParameter;
-import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.parameters.UserParameter;
+import java.util.function.Supplier;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import org.jetbrains.annotations.NotNull;
 
-public class SpectralLibraryImportParameters extends SimpleParameterSet {
+public class ComponentWrapperParameterComponent<EmbeddedComponent extends Node> extends HBox {
 
+  private final EmbeddedComponent embeddedComponent;
 
-  public static final FileNamesWithDownloadParameter dataBaseFiles = new FileNamesWithDownloadParameter(
-      "Spectral library files", """
-      Path of spectral library files in common formats
-      (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY,
-      DownloadAssets.forAssetGroup(AssetCategory.SPECTRAL_LIBRARIES), "Drag & drop your spectral libraries here.");
+  public ComponentWrapperParameterComponent(UserParameter<?, EmbeddedComponent> embeddedParameter,
+      @NotNull Supplier<Node> nodeSupplier) {
 
-  public SpectralLibraryImportParameters() {
-    super(dataBaseFiles);
+    embeddedComponent = embeddedParameter.createEditingComponent();
+
+    setSpacing(5);
+    getChildren().add(embeddedComponent);
+    getChildren().add(nodeSupplier.get());
+    setAlignment(Pos.CENTER_LEFT);
+    HBox.setHgrow(embeddedComponent, Priority.ALWAYS);
   }
 
+  public EmbeddedComponent getEmbeddedComponent() {
+    return embeddedComponent;
+  }
 }

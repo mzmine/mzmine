@@ -28,6 +28,8 @@ package io.github.mzmine.modules.io.import_rawdata_all;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
@@ -37,6 +39,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComponentWrapperParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
@@ -58,8 +61,16 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   private static final Logger logger = Logger.getLogger(
       AllSpectralDataImportParameters.class.getName());
 
+  public static final ComponentWrapperParameter<Boolean, BooleanParameter> applyVendorCentroiding = new ComponentWrapperParameter<>(
+      new BooleanParameter("Try vendor centroiding",
+          "Vendor centroiding will be applied to the imported raw data if this option is selected and cetroiding is supported.",
+          true), () -> FxButtons.createButton(null, FxIcons.GEAR_PREFERENCES,
+      "Open the preference dialog, which controls this parameter for the drag & drop import and the mzwizard.",
+      () -> ConfigService.getPreferences()
+          .showSetupDialog(true, MZminePreferences.applyVendorCentroiding.getName())));
+
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
-      ExtensionFilters.MS_RAW_DATA);
+      ExtensionFilters.MS_RAW_DATA, "Drag & drop your MS data files here.");
 
   public static final OptionalModuleParameter<AdvancedSpectraImportParameters> advancedImport = new OptionalModuleParameter<>(
       "Advanced import",
@@ -76,6 +87,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
   public AllSpectralDataImportParameters() {
     super(new Parameter[]{fileNames, //
+            applyVendorCentroiding, //
             advancedImport, // directly process masslists
             metadataFile, // metadata import
             sortAndRecolor, // sort and recolor
@@ -85,15 +97,19 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   }
 
 
-  public static ParameterSet create(@NotNull final File[] allDataFiles,
-      @Nullable final File metadata, @Nullable final File[] allLibraryFiles) {
-    return create(allDataFiles, metadata, allLibraryFiles, null);
+  public static ParameterSet create(final boolean applyVendorCentroiding,
+      @NotNull final File[] allDataFiles, @Nullable final File metadata,
+      @Nullable final File[] allLibraryFiles) {
+    return create(applyVendorCentroiding, allDataFiles, metadata, allLibraryFiles, null);
   }
 
-  public static ParameterSet create(@NotNull final File[] allDataFiles,
-      @Nullable final File metadata, @Nullable final File[] allLibraryFiles,
+  public static ParameterSet create(final boolean applyVendorCentroiding,
+      @NotNull final File[] allDataFiles, @Nullable final File metadata,
+      @Nullable final File[] allLibraryFiles,
       @Nullable final AdvancedSpectraImportParameters advanced) {
     var params = new AllSpectralDataImportParameters().cloneParameterSet();
+    params.setParameter(AllSpectralDataImportParameters.applyVendorCentroiding,
+        applyVendorCentroiding);
     params.setParameter(fileNames, allDataFiles);
     params.setParameter(metadataFile, metadata != null, metadata);
     params.setParameter(SpectralLibraryImportParameters.dataBaseFiles, allLibraryFiles);
@@ -144,15 +160,14 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
     // compare based on absolute files
     // skip all files in import that directly match the abs path of another file.
     // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
-    return streamValidatedFiles(parameters)
-        .filter(file -> !currentlyLoadedFiles.contains(file.importedFile().getAbsoluteFile()))
+    return streamValidatedFiles(parameters).filter(
+            file -> !currentlyLoadedFiles.contains(file.importedFile().getAbsoluteFile()))
         .toArray(ImportFile[]::new);
   }
 
   /**
    * Applies {@link AllSpectralDataImportModule#validateBrukerPath(File)} to get the actual file
-   * paths and applies name changes due to the MSconvert import.
-   * This is done always before import.
+   * paths and applies name changes due to the MSconvert import. This is done always before import.
    *
    * @return stream of {@link ImportFile}s
    */

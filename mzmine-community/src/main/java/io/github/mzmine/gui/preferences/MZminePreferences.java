@@ -231,11 +231,11 @@ public class MZminePreferences extends SimpleParameterSet {
           + "This will reduce the import time when re-processing, but require more disc space.",
       false);
 
-  public static final BooleanParameter applyPeakPicking = new BooleanParameter(
-      "Apply peak picking (recommended)", """
-      Apply vendor peak picking during import of native vendor files with MSConvert.
+  public static final BooleanParameter applyVendorCentroiding = new BooleanParameter(
+      "Apply vendor centroiding (recommended)", """
+      Apply vendor centroiding (peak picking) during import of native vendor files.
       Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
-      Peak picking is only """, true);
+      """, true);
 
   public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
       "Thermo data import", """
@@ -276,8 +276,8 @@ public class MZminePreferences extends SimpleParameterSet {
         // silent parameters without controls
         showTempFolderAlert, username,
         //
-        msConvertPath, keepConvertedFile, applyPeakPicking, watersLockmass, thermoRawFileParserPath,
-        thermoImportChoice);
+        applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass,
+        thermoRawFileParserPath, thermoImportChoice);
 
     darkModeProperty.subscribe(state -> {
       var oldTheme = getValue(theme);
@@ -308,8 +308,8 @@ public class MZminePreferences extends SimpleParameterSet {
         intensityFormat, ppmFormat, scoreFormat, unitFormat);
     dialog.addParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale, chartParam, theme,
         presentationMode, showPrecursorWindow, imageTransformation, imageNormalization);
-    dialog.addParameterGroup("MS data import", msConvertPath, keepConvertedFile, applyPeakPicking,
-        watersLockmass, thermoRawFileParserPath, thermoImportChoice);
+    dialog.addParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
+        keepConvertedFile, watersLockmass, thermoRawFileParserPath, thermoImportChoice);
 //    dialog.addParameterGroup("Other", new Parameter[]{
     // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
 //    });
@@ -568,5 +568,13 @@ public class MZminePreferences extends SimpleParameterSet {
         skipRawDataAndFeatureListParameters);
 
     return superCheck;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final var map = super.getNameParameterMap();
+    map.put("Apply peak picking (recommended)",
+        getParameter(MZminePreferences.applyVendorCentroiding));
+    return map;
   }
 }

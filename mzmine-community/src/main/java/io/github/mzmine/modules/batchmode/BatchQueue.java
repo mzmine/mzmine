@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import com.vdurmont.semver4j.Semver;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -283,8 +284,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
     if (!extraImportSteps.isEmpty()) {
       logger.severe(potentialErrorMessage);
       var message = "There were too many raw data import modules in the batch list:"
-                    + extraImportSteps.stream().map(MZmineModule::getName)
-                        .collect(Collectors.joining("\n"));
+          + extraImportSteps.stream().map(MZmineModule::getName).collect(Collectors.joining("\n"));
       logger.severe(message);
       return false;
     }
@@ -325,8 +325,11 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         return false;
       }
 
-      ParameterSet parameters = AllSpectralDataImportParameters.create(allDataFiles, metadataFile,
-          allLibraryFiles);
+      ParameterSet parameters = AllSpectralDataImportParameters.create(
+          // use the last set value, not the preference
+          ConfigService.getConfiguration().getModuleParameters(AllSpectralDataImportModule.class)
+              .getValue(AllSpectralDataImportParameters.applyVendorCentroiding), //
+          allDataFiles, metadataFile, allLibraryFiles);
       addFirst(new MZmineProcessingStepImpl<>(module, parameters));
 
       return true;
