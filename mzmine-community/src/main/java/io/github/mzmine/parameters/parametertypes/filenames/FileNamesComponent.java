@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.filenames;
 
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.modules.io.download.DownloadAsset;
 import io.github.mzmine.modules.io.download.DownloadAssetButton;
 import io.github.mzmine.util.collections.CollectionUtils;
@@ -42,6 +43,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -53,6 +56,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -70,13 +74,14 @@ public class FileNamesComponent extends BorderPane {
   private final List<ExtensionFilter> filters;
   private final Path defaultDir;
   private final List<DownloadAsset> assets;
+  private final DoubleProperty dragMessageOpacity = new SimpleDoubleProperty(0.3);
 
-  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir) {
-    this(filters, defaultDir, List.of());
+  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir, @Nullable String dragPrompt) {
+    this(filters, defaultDir, List.of(), dragPrompt);
   }
 
   public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir,
-      @NotNull List<DownloadAsset> assets) {
+      @NotNull List<DownloadAsset> assets, @Nullable String dragPrompt) {
     this.filters = ImmutableList.copyOf(filters);
     this.defaultDir = defaultDir;
     this.assets = assets;
@@ -86,6 +91,9 @@ public class FileNamesComponent extends BorderPane {
     txtFilename.setPrefRowCount(6);
     txtFilename.setFont(smallFont);
     initDragDropped();
+
+    final StackPane stack = FxIconUtil.createDragAndDropWrapper(txtFilename,
+        txtFilename.textProperty().isEmpty(), dragPrompt, dragMessageOpacity);
 
     Button btnFileBrowser = new Button("Select files");
     btnFileBrowser.setMaxWidth(Double.MAX_VALUE);
@@ -160,7 +168,7 @@ public class FileNamesComponent extends BorderPane {
     buttonGrid.layout();
 
     // main gridpane
-    this.setCenter(txtFilename);
+    this.setCenter(stack);
     this.setRight(buttonGrid);
   }
 
@@ -269,13 +277,18 @@ public class FileNamesComponent extends BorderPane {
 
   private void initDragDropped() {
     txtFilename.setOnDragOver(e -> {
+      dragMessageOpacity.set(0.6);
       if (e.getGestureSource() != this && e.getGestureSource() != txtFilename && e.getDragboard()
           .hasFiles()) {
         e.acceptTransferModes(TransferMode.COPY_OR_MOVE);
       }
       e.consume();
     });
+    txtFilename.setOnDragExited(_ -> {
+      dragMessageOpacity.set(0.3);
+    });
     txtFilename.setOnDragDropped(e -> {
+      dragMessageOpacity.set(0.3);
       if (e.getDragboard().hasFiles()) {
         final List<File> files = e.getDragboard().getFiles();
 
