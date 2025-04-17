@@ -25,37 +25,50 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.ListDoubleParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
 
 public class WaveletResolverParameters extends GeneralResolverParameters {
+
+  private static final double mergeProximity = 0.1;
 
   public static final DoubleParameter snr = new DoubleParameter("Signal to noise threshold", "",
       new DecimalFormat("#.#"), 3d, 0d, Double.MAX_VALUE);
 
   public static final DoubleParameter minHeight = new DoubleParameter("Minimum height", "",
-      new DecimalFormat("#.#"), 1E3, 0d, Double.MAX_VALUE);
+      ConfigService.getGuiFormats().intensityFormat(), 1E3, 0d, Double.MAX_VALUE);
 
   public static final DoubleParameter LOCAL_NOISE_WINDOW_FACTOR = new DoubleParameter(
       "LOCAL_NOISE_WINDOW_FACTOR", "", new DecimalFormat("#.###"), 3.0);
 
   public static final DoubleParameter WAVELET_KERNEL_RADIUS_FACTOR = new DoubleParameter(
-      "WAVELET_KERNEL_RADIUS_FACTOR", "", new DecimalFormat("#.###"), 0.8, 0d, Double.MAX_VALUE);
+      "WAVELET_KERNEL_RADIUS_FACTOR", "", new DecimalFormat("#.###"), 1d, 0d, Double.MAX_VALUE);
 
-  public static final DoubleParameter mergeProximity = new DoubleParameter("Merge proximity", "",
-      new DecimalFormat("#.###"), 0.8, 0d, Double.MAX_VALUE);
+  public static final StringParameter scales = new StringParameter("Scales", "",
+      Stream.of(1d, 2d, 3d, 4d, 5d, 6d, 8d, 10d).map(Object::toString)
+          .collect(Collectors.joining(", ")));
+
+  private static final BooleanParameter old = new BooleanParameter("old", "", true);
 
   public WaveletResolverParameters() {
     super(GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
-        GeneralResolverParameters.groupMS2Parameters, snr, WAVELET_KERNEL_RADIUS_FACTOR,
-        mergeProximity, minHeight, LOCAL_NOISE_WINDOW_FACTOR,
+        GeneralResolverParameters.groupMS2Parameters, snr, WAVELET_KERNEL_RADIUS_FACTOR, minHeight,
+        LOCAL_NOISE_WINDOW_FACTOR, scales, old,
 
         GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS, GeneralResolverParameters.SUFFIX,
         GeneralResolverParameters.handleOriginal);
@@ -63,14 +76,20 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
 
   @Override
   public @Nullable Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
-//    return new WaveletResolver(new int[]{5, 10, 15, 20, 30}, parameterSet.getValue(snr),
-//        parameterSet.getValue(minHeight), parameterSet.getValue(boundaryThreshold),
-//        parameterSet.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS),
-//        parameterSet.getValue(maxWidthPoints), parameterSet, flist);
 
-    return new WaveletPeakDetector(new double[]{2, 3, 4, 5, 6, 8, 10},
-        parameterSet.getValue(snr), parameterSet.getValue(minHeight),
-        parameterSet.getValue(mergeProximity), parameterSet.getValue(WAVELET_KERNEL_RADIUS_FACTOR),
+    var scales = Arrays.stream(parameterSet.getValue(WaveletResolverParameters.scales).split(","))
+        .map(String::trim).mapToDouble(Double::valueOf).toArray();
+
+    if(parameterSet.getValue(WaveletResolverParameters.old)) {
+      return new WaveletPeakDetector2(scales, parameterSet.getValue(snr),
+          parameterSet.getValue(minHeight), mergeProximity,
+          parameterSet.getValue(WAVELET_KERNEL_RADIUS_FACTOR),
+          parameterSet.getValue(LOCAL_NOISE_WINDOW_FACTOR).intValue(), flist, parameterSet);
+    }
+
+    return new WaveletPeakDetector(scales, parameterSet.getValue(snr),
+        parameterSet.getValue(minHeight), mergeProximity,
+        parameterSet.getValue(WAVELET_KERNEL_RADIUS_FACTOR),
         parameterSet.getValue(LOCAL_NOISE_WINDOW_FACTOR).intValue(), flist, parameterSet);
   }
 
