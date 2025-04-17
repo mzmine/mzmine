@@ -65,6 +65,7 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
       weak.addListChangeListener(table, table.getSelectionModel().getSelectedItems(),
           c -> selectionChanged());
     }
+    selectionChanged();
   }
 
   public static void addNewTab(@Nullable final FeatureTableFX table) {
