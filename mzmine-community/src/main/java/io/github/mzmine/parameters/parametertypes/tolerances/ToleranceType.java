@@ -27,7 +27,7 @@ package io.github.mzmine.parameters.parametertypes.tolerances;
 
 /**
  * Defines different types of tolerances, e.g., for {@link MZTolerance}. We use intra-sample and
- * sample-to-sample to have a greater difference than when using inter and intra sampple
+ * sample-to-sample to have a greater difference than when using inter and intra sample
  */
 public enum ToleranceType {
   SCAN_TO_SCAN("scan-to-scan"), INTRA_SAMPLE("intra-sample"), SAMPLE_TO_SAMPLE(
