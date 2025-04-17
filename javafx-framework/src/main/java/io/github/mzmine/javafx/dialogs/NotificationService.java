@@ -48,6 +48,7 @@ public class NotificationService {
   public static final Duration DEFAULT_DURATION = Duration.seconds(15);
   public static final Pos DEFAULT_POSITION = Pos.BOTTOM_RIGHT;
 
+
   public enum NotificationType implements IconCodeSupplier {
     INFO, WARNING, ERROR, CONFIRMATION, PLAIN;
 
@@ -75,6 +76,14 @@ public class NotificationService {
         case ERROR -> FxIcons.X_CIRCLE.getIconCode();
       };
     }
+  }
+
+  public static void show(NotificationMessage notification) {
+    show(notification, null);
+  }
+
+  public static void show(NotificationMessage notification, EventHandler<ActionEvent> onClick) {
+    show(notification.type(), notification.title(), notification.text(), onClick);
   }
 
   public static void show(@NotNull NotificationService.NotificationType type, @NotNull String title,
