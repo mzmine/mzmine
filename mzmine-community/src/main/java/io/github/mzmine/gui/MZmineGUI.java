@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,14 +26,15 @@
 package io.github.mzmine.gui;
 
 
+import static io.github.mzmine.gui.WindowLocation.TAB;
+import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
+import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
+
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
-
-import static io.github.mzmine.gui.WindowLocation.TAB;
-
 import io.github.mzmine.gui.mainwindow.AboutTab;
 import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
@@ -53,15 +54,8 @@ import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
-
-import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
-
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
-
-import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
-
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
@@ -576,6 +570,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     // key typed does not work
     // using EventFilter instead of handler as this is a top level to get all events
     rootScene.addEventFilter(KeyEvent.KEY_RELEASED, GlobalKeyHandler.getInstance());
+
+    // check user in gui mode and show message now
+    MZmineCore.checkUserRemainingDays(CurrentUserService.getUser());
 
     // register shutdown hook only if we have GUI - we don't want to
     // save configuration on exit if we only run a batch

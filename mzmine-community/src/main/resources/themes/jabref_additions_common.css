@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,82 +24,87 @@
  */
 
 .notification-bar > .pane {
-    -fx-background-color: -jr-base;
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.3), 9, 0, 0, 2);
-    -fx-padding: 6px 7px 6px 10px;
-    -fx-background-radius: 0px;
-    -fx-border-radius: 0px;
+  -fx-background-color: -jr-base;
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.3), 9, 0, 0, 2);
+  -fx-padding: 6px 7px 6px 10px;
+  -fx-background-radius: 0px;
+  -fx-border-radius: 0px;
+  /* this is needed for popup notifications with NotificationService. It does not affect the NotificationPane?*/
+  -fx-max-width: 550;
 }
 
 .notification-bar > .pane > .button-bar {
-    -fx-padding: 0px 24px 0px 0px;
-    -fx-background-color: -jr-base;
+  -fx-padding: 0px 24px 0px 0px;
+  -fx-background-color: -jr-base;
 }
 
 .notification-bar > .pane > .label {
-    -fx-text-fill: -fx-text-base-color;
-    -fx-graphic-text-gap: 10px;
-    -fx-font-size: 105%;
+  -fx-text-fill: -fx-text-base-color;
+  -fx-graphic-text-gap: 10px;
+  -fx-font-size: 105%;
+  /* this is needed for popup notifications with NotificationService. It does not affect the NotificationPane?*/
+  -fx-wrap-text: true;
 }
 
 .notification-bar > .pane > .label > .ikonli-font-icon {
-    -fx-icon-size: 30px;
-    -fx-icon-color: -jr-selected;
+  -fx-icon-size: 30px;
+  -fx-icon-color: -jr-selected;
 }
 
-.popover  {
-	-fx-background-color: transparent;
+
+.popover {
+  -fx-background-color: transparent;
 }
 
 .popover > .border {
-	-fx-stroke: linear-gradient(to bottom, rgba(0,0,0, .3), rgba(0, 0, 0, .7)) ;
-	-fx-stroke-width: 1;
-	-fx-fill: rgba(255.0,255.0,255.0, .95);
-	-fx-effect: dropshadow(gaussian, rgba(0,0,0,.2), 10.0, 0.5, 2.0, 2.0);
+  -fx-stroke: linear-gradient(to bottom, rgba(0, 0, 0, .3), rgba(0, 0, 0, .7));
+  -fx-stroke-width: 1;
+  -fx-fill: rgba(255.0, 255.0, 255.0, .95);
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, .2), 10.0, 0.5, 2.0, 2.0);
 }
 
 .popover > .content {
-	-fx-padding: 0.0 0.0 0.0 0.0;
+  -fx-padding: 0.0 0.0 0.0 0.0;
 }
 
 .popover > .detached {
-	-fx-padding: 0.0 0.0 0.0 0.0;
+  -fx-padding: 0.0 0.0 0.0 0.0;
 }
 
-.popover > .content > .title > .text  {
-	-fx-padding: 0.0 0.0 0.0 0.0;
-	-fx-text-fill: -fx-text-base-color;
-	-fx-font-weight: bold;
+.popover > .content > .title > .text {
+  -fx-padding: 0.0 0.0 0.0 0.0;
+  -fx-text-fill: -fx-text-base-color;
+  -fx-font-weight: bold;
 }
 
 .popover > .content > .title > .icon {
-	-fx-padding: 6.0 0.0 0.0 10.0;
+  -fx-padding: 6.0 0.0 0.0 10.0;
 }
 
 .popover > .content > .title > .icon > .graphics > .circle {
-	-fx-fill: gray ;
-	-fx-effect: innershadow(gaussian, rgba(0,0,0,.2), 3, 0.5, 1.0, 1.0);
+  -fx-fill: gray;
+  -fx-effect: innershadow(gaussian, rgba(0, 0, 0, .2), 3, 0.5, 1.0, 1.0);
 }
 
 .popover > .content > .title > .icon > .graphics > .line {
-	-fx-stroke: white ;
-	-fx-stroke-width: 2;
+  -fx-stroke: white;
+  -fx-stroke-width: 2;
 }
 
 .icon-button:flash .ikonli-font-icon {
-    -fx-icon-color: -jr-selected;
+  -fx-icon-color: -jr-selected;
 }
 
 .align-right-column {
-	-fx-alignment: center-right;
+  -fx-alignment: center-right;
 }
 
 .align-left-column {
-	-fx-alignment: center-left;
+  -fx-alignment: center-left;
 }
 
 .align-center-column {
-	-fx-alignment: center-center;
+  -fx-alignment: center-center;
 }
 
 .custom-menu-item {
