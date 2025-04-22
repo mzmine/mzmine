@@ -66,7 +66,6 @@ import io.mzio.users.gui.fx.UsersController;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -264,7 +263,8 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(// start with performance
-        numOfThreads, memoryOption, tempDirectory, runGCafterBatchStep, deleteTempFiles,
+        new Parameter[]{numOfThreads, memoryOption, tempDirectory, runGCafterBatchStep,
+            deleteTempFiles,
         proxySettings,
         /*applyTimsPressureCompensation,*/
         // visuals
@@ -281,7 +281,8 @@ public class MZminePreferences extends SimpleParameterSet {
         showTempFolderAlert, username, showQuickStart,
         //
         applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass,
-        thermoRawFileParserPath, thermoImportChoice);
+            thermoRawFileParserPath, thermoImportChoice},
+        "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
       var oldTheme = getValue(theme);
