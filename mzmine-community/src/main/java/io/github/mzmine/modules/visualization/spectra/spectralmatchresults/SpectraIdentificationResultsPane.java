@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.framework.fx.features.AbstractFeatureListRowsPane;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
@@ -77,8 +78,8 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
 
   // link row selection to results
   private final Font headerFont = new Font("Dialog Bold", 16);
-  private final ObservableList<SpectralDBAnnotation> totalMatches;
-  private final ObservableList<SpectralDBAnnotation> visibleMatches;
+  private final ObservableList<SpectralDBAnnotation> totalMatches = FXCollections.observableList(Collections.synchronizedList(new ArrayList<>()));
+  private final ObservableList<SpectralDBAnnotation> visibleMatches = FXCollections.observableArrayList();
 
   private final Map<SpectralDBAnnotation, SpectralMatchPanelFX> matchPanels;
   private final VBox mainBox;
@@ -93,10 +94,6 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
 
   public SpectraIdentificationResultsPane(final ParentFeatureListPaneGroup parentGroup) {
     super(parentGroup);
-
-    totalMatches = FXCollections.observableList(Collections.synchronizedList(new ArrayList<>()));
-    visibleMatches = FXCollections.observableArrayList();
-    // any number of rows
 
     noMatchesFound = new Label("I'm working on it");
     noMatchesFound.setFont(headerFont);
@@ -132,6 +129,7 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
   @Override
   public void onSelectedRowsChanged(final @NotNull List<? extends FeatureListRow> selectedRows) {
     super.onSelectedRowsChanged(selectedRows); // required for children
+
 
     var allMatches = selectedRows.stream().map(FeatureListRow::getSpectralLibraryMatches)
         .flatMap(Collection::stream).toList();
@@ -291,6 +289,7 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
   public void sortTotalMatches() {
     if (totalMatches.isEmpty()) {
       setMatchingFinished();
+      renewLayout();
       return;
     } else {
       mainBox.getChildren().remove(noMatchesFound);
