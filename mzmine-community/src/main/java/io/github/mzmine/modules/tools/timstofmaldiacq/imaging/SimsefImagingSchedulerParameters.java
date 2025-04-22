@@ -116,9 +116,7 @@ public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
     }
     final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
         text("When using the SIMSEF workflow please cite:"), linebreak(),
-        ArticleReferences.SIMSEF.hyperlinkText(), linebreak(),
-        text("When using the SIMSEF workflow for spot analysis please also cite:"), linebreak(),
-        ArticleReferences.CUSTOMLIPIDCLASSES.hyperlinkText());
+        ArticleReferences.SIMSEF.hyperlinkText());
     ParameterSetupDialog dialog = new TimsTOFImageMsMsDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
