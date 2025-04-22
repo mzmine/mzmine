@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,6 +49,7 @@ import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -69,8 +70,13 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       () -> ConfigService.getPreferences()
           .showSetupDialog(true, MZminePreferences.applyVendorCentroiding.getName())));
 
+  /**
+   * This parameter adds a different validation step to files that may map files selected in the All
+   * .d or similar buttons to a validated list of distinct files
+   */
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
-      ExtensionFilters.MS_RAW_DATA, "Drag & drop your MS data files here.");
+      ExtensionFilters.MS_RAW_DATA, "Drag & drop your MS data files here.",
+      AllSpectralDataImportParameters::validateDistinctPaths);
 
   public static final OptionalModuleParameter<AdvancedSpectraImportParameters> advancedImport = new OptionalModuleParameter<>(
       "Advanced import",
@@ -179,6 +185,20 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
         .map(AllSpectralDataImportModule::validateBrukerPath).map(
             file -> new ImportFile(file, RawDataFileTypeDetector.detectDataFileType(file),
                 MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted)));
+  }
+
+
+  /**
+   * Validating paths may jump from nested .d folders or similar to the main file this creates
+   * duplicates which are filtered
+   *
+   * @return distinct files after validating paths
+   */
+  public static @NotNull File[] validateDistinctPaths(@NotNull File[] files) {
+    return Arrays.stream(files).map(AllSpectralDataImportModule::validateBrukerPath)
+        .filter(Objects::nonNull)
+        // needs distinct as bruker files may be duplicated with .d files in multiple layers
+        .distinct().toArray(File[]::new);
   }
 
 }
