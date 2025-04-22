@@ -223,6 +223,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
             final byte[] bytes = Arrays.copyOfRange(buffer, i,
                 Math.min(i + xmlHeader.length, read));
             if (Arrays.equals(bytes, xmlHeader)) {
+              logger.finest("Found XML header at position %d".formatted(i));
               headerStartIndex = i;
               break;
             }
@@ -230,11 +231,11 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
         }
         if (headerStartIndex == -1) {
           if (read != -1) {
-            logger.finest(() -> "Skipping text before mzml header: %s".formatted(
-                new String(buffer, 0, read, StandardCharsets.UTF_8)));
+            logger.finest(() -> "Skipping text (%d bytes) before mzml header: %s".formatted(read,
+                inQuotes(new String(buffer, 0, read, StandardCharsets.UTF_8))));
             headerStartOffset += read;
           } else {
-            logger.finest("No data recieved from MSConvert. Current header offset: %d".formatted(
+            logger.finest("No data received from MSConvert. Current header offset: %d".formatted(
                 headerStartOffset));
           }
         }
@@ -242,7 +243,9 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       // return to start of file and skip ahead to the index where the mzml starts
       mzMLStream.reset();
       mzMLStream.mark(0);
-      mzMLStream.skipNBytes(headerStartOffset + headerStartIndex);
+      final int byteOffset = headerStartOffset + headerStartIndex;
+      logger.finest(() -> "Found XML header at byte offset %d".formatted(byteOffset));
+      mzMLStream.skipNBytes(byteOffset);
     }
   }
 
@@ -290,8 +293,8 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       return;
     }
 
-    final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath, convertToFile, parameters.getValue(
-        AllSpectralDataImportParameters.applyVendorCentroiding));
+    final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath, convertToFile,
+        parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding));
 
     if (convertToFile) {
       ProcessBuilder builder = new ProcessBuilder(cmdLine);
@@ -370,7 +373,8 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   }
 
   private void importFromStream(File rawFilePath, List<String> cmdLine) {
-    ProcessBuilder builder = new ProcessBuilder(cmdLine);
+    final ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(
+        FileAndPathUtil.getTempDir());
     Process process = null;
     try {
       process = builder.start();
