@@ -37,11 +37,17 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
@@ -56,7 +62,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.util.ExitCode;
 import java.util.Map;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,6 +119,15 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
         handleChimerics, quality, advanced);
   }
 
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        text("When using the spectral library generation module please cite:"), linebreak(),
+        ArticleReferences.SPECLIBGENERATION.hyperlinkText());
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
