@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -76,7 +76,8 @@ public class FileNamesComponent extends BorderPane {
   private final List<DownloadAsset> assets;
   private final DoubleProperty dragMessageOpacity = new SimpleDoubleProperty(0.3);
 
-  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir, @Nullable String dragPrompt) {
+  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir,
+      @Nullable String dragPrompt) {
     this(filters, defaultDir, List.of(), dragPrompt);
   }
 
@@ -198,7 +199,11 @@ public class FileNamesComponent extends BorderPane {
     // create from folder button
     createButton(btns, allFilters, true);
 
-    for (ExtensionFilter filter : filters) {
+    // add buttons for single format filters
+    List<ExtensionFilter> singleFormatFilters = filters.stream()
+        .filter(f -> f.getExtensions().stream().map(String::toLowerCase).distinct().count() == 1)
+        .toList();
+    for (ExtensionFilter filter : singleFormatFilters) {
       createButton(btns, filter, false);
     }
     return btns;
