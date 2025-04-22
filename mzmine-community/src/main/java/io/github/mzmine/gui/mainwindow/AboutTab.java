@@ -86,7 +86,7 @@ public class AboutTab extends SimpleTab {
 
     // Copyright Notice
     contentBox.getChildren().add(FxLabels.newBoldLabel("Copyright Notice"));
-    Label copyrightNotice = new Label("©2024 by mzio GmbH and mzmine development team");
+    Label copyrightNotice = new Label("©2025 by mzio GmbH and mzmine development team");
     contentBox.getChildren().add(copyrightNotice);
 
     ScrollPane scrollPane = new ScrollPane(contentBox);
