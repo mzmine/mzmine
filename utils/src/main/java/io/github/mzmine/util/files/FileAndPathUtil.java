@@ -25,6 +25,11 @@
 
 package io.github.mzmine.util.files;
 
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.SPARSE;
+import static java.nio.file.StandardOpenOption.WRITE;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -35,15 +40,12 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import static java.nio.file.StandardOpenOption.CREATE_NEW;
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.SPARSE;
-import static java.nio.file.StandardOpenOption.WRITE;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -435,17 +437,27 @@ public class FileAndPathUtil {
   }
 
   /**
-   * Flat array of all files in directory and sub directories that match the filter
+   * Flat array of all files or directories with matching extension filter in directory and sub
+   * directories
    *
-   * @param dir          parent directory
-   * @param fileFilter   filter for file extensions
-   * @param searchSubdir include all sub directories
+   * @param dir                   parent directory
+   * @param fileFilter            filter for file extensions (or directory extension)
+   * @param allowDirectoryMatches
+   * @param searchSubdir          include all sub directories
    */
-  public static File[] findFilesInDirFlat(File dir, ExtensionFilter fileFilter,
-      boolean searchSubdir) {
-    return findFilesInDir(dir, new FileTypeFilter(fileFilter, ""), searchSubdir, false).stream()
-        .flatMap(Arrays::stream).filter(Objects::nonNull)
-        .sorted(Comparator.comparing(File::getAbsolutePath)).toArray(File[]::new);
+  public static @NotNull File[] findFilesInDirFlat(File dir, ExtensionFilter fileFilter,
+      boolean allowDirectoryMatches, boolean searchSubdir) {
+    int maxDepth = searchSubdir ? 10 : 1;
+
+    // include directories in search
+    final FileTypeFilter actualFilter = new FileTypeFilter(fileFilter, "", allowDirectoryMatches);
+    try (Stream<Path> paths = Files.walk(dir.toPath(), maxDepth, FileVisitOption.FOLLOW_LINKS)) {
+      return paths.map(Path::toFile).filter(actualFilter::accept)
+          .sorted(Comparator.comparing(File::getAbsolutePath)).toArray(File[]::new);
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Cannot access files system to stream files: " + e.getMessage(), e);
+      return new File[0];
+    }
   }
 
   /**

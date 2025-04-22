@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -75,17 +76,33 @@ public class FileNamesComponent extends BorderPane {
   private final Path defaultDir;
   private final List<DownloadAsset> assets;
   private final DoubleProperty dragMessageOpacity = new SimpleDoubleProperty(0.3);
+  // this mapper is applied when all * files button is clicked. Input is all files and directories
+  // matching the filter and the function may apply transformation like Bruker path validation
+  private final @NotNull Function<File[], File[]> allFilesMapper;
 
+
+  /**
+   * @param allFilesMapper this mapper is applied when all * files button is clicked. Input is all
+   *                       files and directories matching the filter and the function may apply
+   *                       transformation like Bruker path validation
+   */
   public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir,
-      @Nullable String dragPrompt) {
-    this(filters, defaultDir, List.of(), dragPrompt);
+      @Nullable String dragPrompt, @NotNull Function<File[], File[]> allFilesMapper) {
+    this(filters, defaultDir, List.of(), dragPrompt, allFilesMapper);
   }
 
+  /**
+   * @param allFilesMapper this mapper is applied when all * files button is clicked. Input is all
+   *                       files and directories matching the filter and the function may apply
+   *                       transformation like Bruker path validation
+   */
   public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir,
-      @NotNull List<DownloadAsset> assets, @Nullable String dragPrompt) {
+      @NotNull List<DownloadAsset> assets, @Nullable String dragPrompt,
+      @NotNull Function<File[], File[]> allFilesMapper) {
     this.filters = ImmutableList.copyOf(filters);
     this.defaultDir = defaultDir;
     this.assets = assets;
+    this.allFilesMapper = allFilesMapper;
 
     txtFilename = new TextArea();
     txtFilename.setPrefColumnCount(65);
@@ -220,9 +237,10 @@ public class FileNamesComponent extends BorderPane {
     btnFromDirectory.setMinWidth(USE_COMPUTED_SIZE);
     btnFromDirectory.setPrefWidth(USE_COMPUTED_SIZE);
     btnFromDirectory.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-    btnFromDirectory.setTooltip(new Tooltip("All files in folder (sub folders)"));
+    btnFromDirectory.setTooltip(new Tooltip(
+        "All files in the selected folder (optionally include all sub folders if checked above)"));
     btns.add(btnFromDirectory);
-    btnFromDirectory.setOnAction(e -> {
+    btnFromDirectory.setOnAction(_ -> {
       // Create chooser.
       DirectoryChooser fileChooser = new DirectoryChooser();
       fileChooser.setTitle("Select a folder");
@@ -235,7 +253,14 @@ public class FileNamesComponent extends BorderPane {
       }
 
       // list all files in sub directories
-      setValue(FileAndPathUtil.findFilesInDirFlat(dir, filter, useSubFolders.isSelected()));
+      final @NotNull File[] matchingFilesAndDirs = FileAndPathUtil.findFilesInDirFlat(dir, filter,
+          true, useSubFolders.isSelected());
+
+      // raw data files need post processing of matching files to validate bruker file paths
+      // other filter just filters out directories and only keeps files
+      final File[] mappedFiles = allFilesMapper.apply(matchingFilesAndDirs);
+
+      setValue(mappedFiles);
     });
   }
 
