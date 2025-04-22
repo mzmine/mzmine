@@ -83,6 +83,9 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final HiddenParameter<String> username = new HiddenParameter<>(
       new StringParameter("username", "last active username", "", false, true));
 
+  public static final HiddenParameter<Boolean> showQuickStart = new HiddenParameter<>(
+      new BooleanParameter("Show quick start video", "", true));
+
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
 
@@ -143,7 +146,8 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
   public static final BooleanParameter useTabSubtitles = new BooleanParameter("Show tab sub titles",
-      "If enabled, the name of feature lists or raw data files will be displayed in the tab header, e.g., in for the feature list tab.", true);
+      "If enabled, the name of feature lists or raw data files will be displayed in the tab header, e.g., in for the feature list tab.",
+      true);
 
   public static final ColorPaletteParameter defaultColorPalette = new ColorPaletteParameter(
       "Default color palette",
@@ -274,7 +278,7 @@ public class MZminePreferences extends SimpleParameterSet {
         imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
         windowSetttings, useTabSubtitles,
         // silent parameters without controls
-        showTempFolderAlert, username,
+        showTempFolderAlert, username, showQuickStart,
         //
         applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass,
         thermoRawFileParserPath, thermoImportChoice);
@@ -306,12 +310,13 @@ public class MZminePreferences extends SimpleParameterSet {
         /*, applyTimsPressureCompensation*/);
     dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
         intensityFormat, ppmFormat, scoreFormat, unitFormat);
-    dialog.addParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale, chartParam, theme,
-        presentationMode, showPrecursorWindow, imageTransformation, imageNormalization);
+    dialog.addParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
+        chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
+        imageNormalization);
     dialog.addParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
         keepConvertedFile, watersLockmass, thermoRawFileParserPath, thermoImportChoice);
 //    dialog.addParameterGroup("Other", new Parameter[]{
-    // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
+    // imsModuleWarnings, showTempFolderAlert, windowSetttings, showQuickStart  are hidden parameters
 //    });
     dialog.setFilterText(filterParameters);
 
