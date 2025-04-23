@@ -104,7 +104,7 @@ public class TTestConfigurationComponent extends GridPane implements
 
     add(new Label("Metadata column"), 0, 0);
     add(metadataCombo, 1, 0);
-    add(new Label("Sample type"), 2, 0);
+    add(new Label("Test type"), 2, 0);
     add(samplingCombo, 3, 0);
     add(new Label("Group A"), 0, 1);
     add(groupACombo, 1, 1);

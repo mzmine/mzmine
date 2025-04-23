@@ -99,8 +99,12 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -133,8 +137,10 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -241,6 +247,7 @@ public class MainWindowController {
   private final PauseTransition manualGcDelay = new PauseTransition(Duration.millis(500));
 
   private Workspace activeWorkspace;
+  private final DoubleProperty dragDropOpacity = new SimpleDoubleProperty(0.3);
 
   @NotNull
   private static Pane getRawGraphic(RawDataFile rawDataFile) {
@@ -449,6 +456,17 @@ public class MainWindowController {
   }
 
   private void initRawDataList() {
+    final BorderPane parent = (BorderPane) rawDataList.getParent();
+    final StackPane dragAndDropWrapper = FxIconUtil.createDragAndDropWrapper(rawDataList,
+        Bindings.createBooleanBinding(() -> rawDataList.getItems().isEmpty(),
+            rawDataList.getListItems(), rawDataList.itemsProperty()),
+        "Drag & drop MS data files, mzmine projects, and/or spectral libraries here",
+        dragDropOpacity);
+    parent.setCenter(dragAndDropWrapper);
+    rawDataList.setOnDragEntered(_ -> dragDropOpacity.set(0.6));
+    rawDataList.setOnDragExited(_ -> dragDropOpacity.set(0.3));
+    rawDataList.setOnDragDropped(_ -> dragDropOpacity.set(0.3));
+
     rawDataList.setCellFactory(
         rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
 
@@ -609,7 +627,7 @@ public class MainWindowController {
 
   public void selectTab(String title) {
     final Optional<Tab> first = mainTabPane.getTabs().stream()
-        .filter(f -> f.getText().equals(title)).findFirst();
+        .filter(f -> MZmineTab.getText(f).equals(title)).findFirst();
     first.ifPresent(tab -> mainTabPane.getSelectionModel().select(tab));
   }
 

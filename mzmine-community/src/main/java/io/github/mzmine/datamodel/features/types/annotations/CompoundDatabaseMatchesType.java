@@ -71,7 +71,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(),
       new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
       new IonTypeType(), new MolecularStructureType(), new SmilesStructureType(),
-      new InChIStructureType(),
+      new InChIStructureType(), new InChIKeyStructureType(),
       // classifiers
       new ClassyFireSuperclassType(), new ClassyFireClassType(), new ClassyFireSubclassType(),
       new ClassyFireParentType(), new NPClassifierSuperclassType(), new NPClassifierClassType(),

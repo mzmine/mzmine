@@ -386,6 +386,8 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Help");
     addMenuItem(menu, "Open documentation", () -> MZmineCore.getDesktop()
         .openWebPage("https://mzmine.github.io/mzmine_documentation/"));
+    addMenuItem(menu, "Open quick start video", () -> DesktopService.getDesktop()
+        .openWebPage(MzioMZmineLinks.WIZARD_QUICKSTART_VIDEO.getUrl()));
     addMenuItem(menu, "Open landing page",
         () -> MZmineCore.getDesktop().addTab(new MZmineIntroductionTab()));
 

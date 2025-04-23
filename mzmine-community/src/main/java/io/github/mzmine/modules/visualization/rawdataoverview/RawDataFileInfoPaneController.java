@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,12 +29,12 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.factories.TableColumns;
-import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.MZmineIconUtils;
 import java.text.NumberFormat;
@@ -42,6 +42,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
@@ -59,6 +61,7 @@ public class RawDataFileInfoPaneController {
 
   private static final Logger logger = Logger.getLogger(
       RawDataFileInfoPaneController.class.getName());
+
 
   private boolean populated = false;
 
@@ -82,6 +85,9 @@ public class RawDataFileInfoPaneController {
 
   @FXML
   private TableColumn<Scan, String> precursorMzColumn;
+
+  @FXML
+  private TableColumn<Scan, String> fragMethodColumn;
 
   @FXML
   private TableColumn<Scan, Range<Double>> mzRangeColumn;
@@ -130,6 +136,8 @@ public class RawDataFileInfoPaneController {
         p -> new SimpleObjectProperty<>(p.getValue().getBasePeakIntensity()));
     precursorMzColumn.setCellValueFactory(
         p -> new SimpleStringProperty(getPrecursorString(p.getValue(), mzFormat)));
+    fragMethodColumn.setCellValueFactory(
+        p -> new SimpleStringProperty(getFragmentationMethod(p.getValue())));
     mzRangeColumn.setCellValueFactory(
         p -> new SimpleObjectProperty<>(p.getValue().getScanningMZRange()));
     scanTypeColumn.setCellValueFactory(
@@ -152,6 +160,18 @@ public class RawDataFileInfoPaneController {
     TableColumns.setFormattedRangeCellFactory(mzRangeColumn, mzFormat);
 
     TableColumns.autoFitLastColumn(rawDataTableView);
+  }
+
+  private String getFragmentationMethod(final Scan scan) {
+    final MsMsInfo info = scan.getMsMsInfo();
+    if (info == null) {
+      return "";
+    }
+
+    // If unknown just dont show the activation method. Makes table look cleaner
+    return Stream.of(info.getActivationMethod(), info.getActivationEnergy())
+        .filter(Objects::nonNull).filter(o -> o != ActivationMethod.UNKNOWN).map(Objects::toString)
+        .collect(Collectors.joining(", "));
   }
 
   /**
@@ -275,7 +295,8 @@ public class RawDataFileInfoPaneController {
         case PasefMsMsInfo i -> mzFormat.format(i.getIsolationMz());
         case IonMobilityMsMsInfo i ->
             mzFormat.format(Objects.requireNonNullElse(i.getIsolationWindow().lowerEndpoint(), -1))
-                + "-" + mzFormat.format(Objects.requireNonNullElse(i.getIsolationWindow().upperEndpoint(), -1));
+            + "-" + mzFormat.format(
+                Objects.requireNonNullElse(i.getIsolationWindow().upperEndpoint(), -1));
       };
     }).toList();
   }

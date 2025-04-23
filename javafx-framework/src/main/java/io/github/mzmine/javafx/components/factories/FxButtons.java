@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.util.IconCodeSupplier;
@@ -124,5 +125,11 @@ public class FxButtons {
 
   public static Button createCancelButton(String text, Runnable runnable) {
     return createButton(text, null, FxIconUtil.getFontIcon(FxIcons.CANCEL), runnable);
+  }
+
+  public static Button createHelpButton(String url) {
+    return FxButtons.createButton("Help", "Open the documentation",
+        FxIconUtil.getFontIcon(FxIcons.QUESTIONMARK),
+        () -> DesktopService.getDesktop().openWebPage(url));
   }
 }
