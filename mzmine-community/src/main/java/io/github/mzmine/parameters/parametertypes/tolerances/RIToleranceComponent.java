@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,16 +24,18 @@
  */
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.RIColumn;
+import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.*;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.converter.NumberStringConverter;
 import org.jetbrains.annotations.Nullable;
-
-import java.text.NumberFormat;
 
 /**
  *
@@ -41,7 +43,7 @@ import java.text.NumberFormat;
 public class RIToleranceComponent extends HBox {
 
   private final ObservableList<RIColumn> toleranceTypes;
-  private final NumberFormat format = NumberFormat.getIntegerInstance();
+  private final NumberFormat format = ConfigService.getGuiFormats().rtFormat();
   private final TextFormatter<Number> textFormatter = new TextFormatter<>(
       new NumberStringConverter(format));
   private final TextField toleranceField;
@@ -64,9 +66,9 @@ public class RIToleranceComponent extends HBox {
     RIColumn selectedColumnType = toleranceType.getValue();
     String valueString = toleranceField.getText();
 
-    Integer tolerance = null;
+    Float tolerance = null;
     try {
-      tolerance = Integer.parseInt(valueString);
+      tolerance = Float.parseFloat(valueString);
     } catch (Exception e) {
       return null;
     }
@@ -85,8 +87,7 @@ public class RIToleranceComponent extends HBox {
     RIColumn selectedColumnType = value.getColumn();
 
     toleranceType.setValue(selectedColumnType);
-    String valueString = String.valueOf(tolerance);
-    toleranceField.setText(valueString);
+    toleranceField.setText(format.format(tolerance));
   }
 
   public void setToolTipText(String toolTip) {

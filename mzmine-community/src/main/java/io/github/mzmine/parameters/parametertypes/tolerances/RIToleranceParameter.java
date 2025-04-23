@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,25 +26,22 @@
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
 import io.github.mzmine.util.RIColumn;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-
-import static java.lang.Boolean.parseBoolean;
 
 public class RIToleranceParameter implements UserParameter<RITolerance, RIToleranceComponent> {
 
   private static final String DEFAULT_NAME = "Retention index tolerance";
   private static final String DEFAULT_DESC = "Maximum allowed difference between two retention index values";
   private final ObservableList<RIColumn> columnTypes;
-  private String name, description;
+  private final String name;
+  private final String description;
   private RITolerance value;
 
   public RIToleranceParameter() {
@@ -59,7 +56,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
   }
 
   public RIToleranceParameter(String name, String description,
-                              ObservableList<RIColumn> columnTypes) {
+      ObservableList<RIColumn> columnTypes) {
     this.name = name;
     this.description = description;
     this.columnTypes = columnTypes;
@@ -86,7 +83,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
   }
 
   public RIToleranceParameter(String name, String description, RITolerance defaultValue,
-                              ObservableList<RIColumn> columnTypes) {
+      ObservableList<RIColumn> columnTypes) {
     this.name = name;
     this.description = description;
     this.value = defaultValue;
