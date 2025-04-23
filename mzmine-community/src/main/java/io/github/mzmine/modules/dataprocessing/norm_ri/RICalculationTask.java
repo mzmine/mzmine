@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_ri;
 
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.DATE_HEADER;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -44,12 +46,17 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.date.LocalDateParser;
 import io.github.mzmine.util.io.CsvReader;
 import java.io.File;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -77,9 +84,8 @@ public class RICalculationTask extends AbstractFeatureListTask {
   private final OriginalFeatureListHandlingParameter.OriginalFeatureListOption handleOriginal;
   private final boolean shouldExtrapolate;
   private final boolean shouldAddSummary;
-  private volatile List<RIScale> linearScales = new ArrayList<>();
   private final MetadataTable metadataTable;
-  ;
+  private List<RIScale> linearScales;
 
 
   public RICalculationTask(MZmineProject project, @Nullable MemoryMapStorage storage,
@@ -97,16 +103,32 @@ public class RICalculationTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    linearScales = new ArrayList<>(
-        Arrays.stream(parameters.getValue(RICalculationParameters.alkaneFiles)).sequential()
-            .map(this::processLadder).filter(Objects::nonNull).toList());
-    linearScales.sort(Comparator.comparing(RIScale::date).reversed());
+    assert featureList != null;
+    if (!featureList.hasFeatureType(RTType.class)) {
+      error("Feature list requires RT in features for retention index calculation");
+      return;
+    }
+
+    // sorted scales - ascending for binary search
+    final File[] scaleFiles = parameters.getValue(RICalculationParameters.alkaneFiles);
+    linearScales = Arrays.stream(scaleFiles).map(this::processLadder).filter(Objects::nonNull)
+        .sorted(Comparator.comparing(RIScale::date)).toList();
+
+    if (linearScales.isEmpty()) {
+      error("No valid scale files found");
+      return;
+    } else if (scaleFiles.length != linearScales.size()) {
+      logger.warning(
+          "Number of scale files %d and number of valid scales %d unequal. Will proceed.".formatted(
+              scaleFiles.length, linearScales.size()));
+    }
 
     ModularFeatureList processedList = processFeatureList(featureList);
 
-    handleOriginal.reflectNewFeatureListToProject(suffix, project, processedList, featureList);
-    setStatus(TaskStatus.FINISHED);
-
+    if (!isCanceled()) {
+      handleOriginal.reflectNewFeatureListToProject(suffix, project, processedList, featureList);
+      setStatus(TaskStatus.FINISHED);
+    }
   }
 
   record RIScaleEntry(@JsonProperty("Carbon #") int nCarbons, @JsonProperty("RT") float rt) {
@@ -138,39 +160,48 @@ public class RICalculationTask extends AbstractFeatureListTask {
   }
 
   protected ModularFeatureList processFeatureList(final ModularFeatureList featureList) {
-    if (featureList != null && featureList.hasFeatureType(RTType.class)) {
-      ModularFeatureList outputList = featureList.createCopy(
-          featureList.getName() + " with retention index", null, false);
+    outputList = featureList.createCopy(featureList.getName() + " with retention index", null,
+        false);
 
-      outputList.addFeatureType(new RIType());
-      if (shouldAddSummary) {
-        // the file is set directly
-        outputList.addFeatureType(new RIScaleType());
+    outputList.addFeatureType(new RIType());
+    if (shouldAddSummary) {
+      // the file is set directly
+      outputList.addFeatureType(new RIScaleType());
 
-        // values below are calculated as row bindings from the RIType - so just add the row binding
-        // this automatically adds the types as row types instead of feature types
-        outputList.addFeatureType(new RIMinType());
-        outputList.addFeatureType(new RIMaxType());
-        outputList.addFeatureType(new RIDiffType());
+      // values below are calculated as row bindings from the RIType - so just add the row binding
+      // this automatically adds the types as row types instead of feature types
+      outputList.addFeatureType(new RIMinType());
+      outputList.addFeatureType(new RIMaxType());
+      outputList.addFeatureType(new RIDiffType());
 
-      }
-
-      for (RawDataFile file : outputList.getRawDataFiles()) {
-        LocalDate sampleDate = metadataTable.getValue(metadataTable.getRunDateColumn(), file)
-            .toLocalDate();
-        for (RIScale riScale : linearScales) {
-          if (sampleDate != null && sampleDate.isAfter(riScale.date()) || sampleDate.isEqual(
-              riScale.date())) {
-            outputList.getFeatures(file).stream().parallel()
-                .forEach(f -> processFeature(f, riScale));
-            break;
-          }
-        }
-
-      }
-      return outputList;
     }
-    return featureList;
+
+    for (RawDataFile file : outputList.getRawDataFiles()) {
+      LocalDateTime sampleDate = metadataTable.getValue(metadataTable.getRunDateColumn(), file);
+      if (sampleDate == null) {
+        error(
+            "Requires sample date to be set in project metadata in column %s. The easiest way is to define the dates in a csv file and import as metadata. Format: 2024-01-21 or with time 2024-01-21T20:35:41".formatted(
+                DATE_HEADER));
+        return null;
+      }
+
+      // find closest linear scale based on date comparison
+      final int index = BinarySearch.binarySearch(linearScales,
+          (double) sampleDate.toEpochSecond(ZoneOffset.UTC), DefaultTo.CLOSEST_VALUE,
+          scale -> (double) scale.date().toEpochSecond(LocalTime.NOON, ZoneOffset.UTC));
+
+      final RIScale bestScale = linearScales.get(index);
+
+      final long days = ChronoUnit.DAYS.between(bestScale.date(), sampleDate.toLocalDate());
+      if (Math.abs(days) > 0) {
+        logger.info(
+            "NOTICE: The retention index scale (%s) was measured on a different day than the sample %s (%s) (%d days)".formatted(
+                bestScale.date(), file.getName(), sampleDate, days));
+      }
+
+      outputList.getFeatures(file).stream().parallel().forEach(f -> processFeature(f, bestScale));
+    }
+    return outputList;
   }
 
   private void processFeature(final ModularFeature feature, final RIScale riScale) {
