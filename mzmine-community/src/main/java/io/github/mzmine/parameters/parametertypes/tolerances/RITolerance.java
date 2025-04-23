@@ -30,7 +30,9 @@ import io.github.mzmine.util.RIColumn;
 import io.github.mzmine.util.RIRecord;
 
 /**
- * RITolerance is an absolute tolerance based on a specific RIColumn
+ * RITolerance allows specifying retention index tolerance for comparing two compounds It is an
+ * absolute unitless tolerance based on a specific RIColumn, which specifies the stationary phase
+ * within the column
  */
 public class RITolerance {
 
