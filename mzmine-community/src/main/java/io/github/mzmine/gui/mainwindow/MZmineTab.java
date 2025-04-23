@@ -111,7 +111,13 @@ public abstract class MZmineTab extends Tab {
       }
     });
 
+    final Tooltip tooltip = new Tooltip();
+    tooltip.textProperty().bind(
+        Bindings.createStringBinding(() -> titleText.getText() + "\n" + subTitleText.getText(),
+            subTitleProperty(), titleText.textProperty()));
+
     graphic.setCenter(textWrapper);
+    Tooltip.install(graphic, tooltip);
     setGraphic(graphic);
 
     contextMenu = new ContextMenu();

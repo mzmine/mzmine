@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,7 +47,6 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -139,7 +138,11 @@ public class FxLayout {
   }
 
   public static HBox newHBox(Pos alignment, Insets padding, Node... children) {
-    var pane = new HBox(DEFAULT_SPACE, children);
+    return newHBox(alignment, padding, DEFAULT_SPACE, children);
+  }
+
+  public static HBox newHBox(Pos alignment, Insets padding, int spacing, Node... children) {
+    var pane = new HBox(spacing, children);
     pane.setAlignment(alignment);
     pane.setPadding(padding);
     return pane;

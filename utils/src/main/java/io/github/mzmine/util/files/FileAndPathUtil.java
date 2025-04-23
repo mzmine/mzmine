@@ -25,8 +25,12 @@
 
 package io.github.mzmine.util.files;
 
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.SPARSE;
+import static java.nio.file.StandardOpenOption.WRITE;
+
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -35,21 +39,16 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import static java.nio.file.StandardOpenOption.CREATE_NEW;
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.SPARSE;
-import static java.nio.file.StandardOpenOption.WRITE;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
@@ -425,131 +424,27 @@ public class FileAndPathUtil {
   // ###############################################################################################
   // search for files
 
-  public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter) {
-    return findFilesInDir(dir, fileFilter, true);
-  }
-
-  public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter,
-      boolean searchSubdir) {
-    return findFilesInDir(dir, new FileTypeFilter(fileFilter, ""), searchSubdir, false);
-  }
-
   /**
-   * Flat array of all files in directory and sub directories that match the filter
+   * Flat array of all files or directories with matching extension filter in directory and sub
+   * directories
    *
-   * @param dir          parent directory
-   * @param fileFilter   filter for file extensions
-   * @param searchSubdir include all sub directories
+   * @param dir                   parent directory
+   * @param fileFilter            filter for file extensions (or directory extension)
+   * @param allowDirectoryMatches
+   * @param searchSubdir          include all sub directories
    */
-  public static File[] findFilesInDirFlat(File dir, ExtensionFilter fileFilter,
-      boolean searchSubdir) {
-    return findFilesInDir(dir, new FileTypeFilter(fileFilter, ""), searchSubdir, false).stream()
-        .flatMap(Arrays::stream).filter(Objects::nonNull)
-        .sorted(Comparator.comparing(File::getAbsolutePath)).toArray(File[]::new);
-  }
+  public static @NotNull File[] findFilesInDirFlat(File dir, ExtensionFilter fileFilter,
+      boolean allowDirectoryMatches, boolean searchSubdir) {
+    int maxDepth = searchSubdir ? 10 : 1;
 
-  /**
-   * @param dir        parent directory
-   * @param fileFilter filter files
-   * @return list of all files in directory and sub directories
-   */
-  public static List<File[]> findFilesInDir(File dir, FileFilter fileFilter) {
-    return findFilesInDir(dir, fileFilter, true, false);
-  }
-
-  public static List<File[]> findFilesInDir(File dir, FileFilter fileFilter, boolean searchSubdir) {
-    return findFilesInDir(dir, fileFilter, searchSubdir, false);
-  }
-
-  public static List<File[]> findFilesInDir(File dir, FileFilter fileFilter, boolean searchSubdir,
-      boolean filesInSeparateFolders) {
-    File[] subDir = FileAndPathUtil.getSubDirectories(dir);
-    // result: each vector element stands for one file
-    List<File[]> list = new ArrayList<>();
-    // add all files as first
-    // sort all files and return them
-    File[] files = dir.listFiles(fileFilter);
-    if (files != null && files.length > 0) {
-      files = FileAndPathUtil.sortFilesByNumber(files, false);
-      list.add(files);
-    }
-
-    if (subDir == null || subDir.length <= 0 || !searchSubdir) {
-      // no subdir end directly
-      return list;
-    } else {
-      // sort dirs
-      subDir = FileAndPathUtil.sortFilesByNumber(subDir, false);
-      // go in all sub and subsub... folders to find files
-      if (filesInSeparateFolders) {
-        findFilesInSubDirSeparatedFolders(dir, subDir, list, fileFilter);
-      } else {
-        findFilesInSubDir(subDir, list, fileFilter);
-      }
-      // return as array (unsorted because they are sorted folder wise)
-      return list;
-    }
-  }
-
-  /**
-   * go into all subfolders and find all files and go in further subfolders files stored in separate
-   * folders. one line in one folder
-   *
-   * @param dirs musst be sorted!
-   * @param list
-   */
-  private static void findFilesInSubDirSeparatedFolders(File parent, File[] dirs, List<File[]> list,
-      FileFilter fileFilter) {
-    // go into folder and find files
-    List<File> img = null;
-    // each file in one folder
-    for (File dir : dirs) {
-      // find all suiting files
-      File[] subFiles = FileAndPathUtil.sortFilesByNumber(dir.listFiles(fileFilter), false);
-      // if there are some suiting files in here directory has been found!
-      // create image of these
-      // dirs
-      if (subFiles.length > 0) {
-        if (img == null) {
-          img = new ArrayList<>();
-        }
-        // put them into the list
-        img.addAll(Arrays.asList(subFiles));
-      } else {
-        // search in subfolders for data
-        // find all subfolders, sort them and do the same iterative
-        File[] subDir = FileAndPathUtil.sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir),
-            false);
-        // call this method
-        findFilesInSubDirSeparatedFolders(dir, subDir, list, fileFilter);
-      }
-    }
-    // add to list
-    if (img != null && img.size() > 0) {
-      list.add(img.toArray(File[]::new));
-    }
-  }
-
-  /**
-   * Go into all sub-folders and find all files files stored one image in one folder!
-   *
-   * @param dirs musst be sorted!
-   * @param list
-   */
-  private static void findFilesInSubDir(File[] dirs, List<File[]> list, FileFilter fileFilter) {
-    // All files in one folder
-    for (File dir : dirs) {
-      // find all suiting files
-      File[] subFiles = FileAndPathUtil.sortFilesByNumber(dir.listFiles(fileFilter), false);
-      // put them into the list
-      if (subFiles != null && subFiles.length > 0) {
-        list.add(subFiles);
-      }
-      // find all subfolders, sort them and do the same iterative
-      File[] subDir = FileAndPathUtil.sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir),
-          false);
-      // call this method
-      findFilesInSubDir(subDir, list, fileFilter);
+    // include directories in search
+    final FileTypeFilter actualFilter = new FileTypeFilter(fileFilter, "", allowDirectoryMatches);
+    try (Stream<Path> paths = Files.walk(dir.toPath(), maxDepth, FileVisitOption.FOLLOW_LINKS)) {
+      return paths.map(Path::toFile).filter(actualFilter::accept)
+          .sorted(Comparator.comparing(File::getAbsolutePath)).toArray(File[]::new);
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Cannot access files system to stream files: " + e.getMessage(), e);
+      return new File[0];
     }
   }
 

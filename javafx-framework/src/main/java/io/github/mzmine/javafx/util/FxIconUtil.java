@@ -290,6 +290,8 @@ public class FxIconUtil {
     }
 
     final StackPane stack = newStackPane(Insets.EMPTY, node, withText);
+    stack.setMinHeight(Region.USE_COMPUTED_SIZE);
+    stack.setPrefHeight(Region.USE_PREF_SIZE);
     return stack;
   }
 }

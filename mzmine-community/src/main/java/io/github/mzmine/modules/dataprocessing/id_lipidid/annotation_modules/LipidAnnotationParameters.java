@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassParameter;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassesProvider;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClassParameters;
@@ -37,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -81,8 +87,13 @@ public class LipidAnnotationParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        text("When using the Lipid annotation module please cite:"), linebreak(),
+        ArticleReferences.LIPIDANNOTATION.hyperlinkText(), linebreak(),
+        text("When using custom lipid classes please cite:"), linebreak(),
+        ArticleReferences.CUSTOMLIPIDCLASSES.hyperlinkText());
     LipidAnnotationParameterSetupDialog dialog = new LipidAnnotationParameterSetupDialog(
-        valueCheckRequired, this);
+        valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
