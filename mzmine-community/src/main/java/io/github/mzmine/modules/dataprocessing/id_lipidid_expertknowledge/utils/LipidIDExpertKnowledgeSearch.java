@@ -26,8 +26,16 @@ import org.kie.api.KieServices;
 import org.kie.api.io.Resource;
 import org.kie.api.runtime.KieSession;
 
+/**
+ * Class that contains all the methods that search and find information for the module
+ */
 public class LipidIDExpertKnowledgeSearch {
 
+    /**
+     * Finds the rows that have Lipid Annotations
+     * @param group RowGroup that has all the rows with the same groupID
+     * @return List of rows with Lipid Annotations
+     */
     public static List<FeatureListRow> findAnnotatedRows(RowGroup group) {
         List<FeatureListRow> annotatedRows = new ArrayList<>();
         for (FeatureListRow row : group.getRows()) {
@@ -35,6 +43,7 @@ public class LipidIDExpertKnowledgeSearch {
                 annotatedRows.add(row);
             }
         }
+        //TODO quitar esto?
         if (!annotatedRows.isEmpty()) {
             System.out.println("-----G: " + group.getGroupID() + " has lipid matches: " + annotatedRows.size());
         } else {
@@ -43,6 +52,11 @@ public class LipidIDExpertKnowledgeSearch {
         return annotatedRows;
     }
 
+    /**
+     * Finds and store important information of each row in a group (mz, intensity and rt)
+     * @param group RowGroup that has all the rows with the same groupID
+     * @return RowInfo objects with information about a RowGroup
+     */
     public static RowInfo findRowInfo(RowGroup group) {
         List<Double> mzList = new ArrayList<>();
         List<Float> intensityList = new ArrayList<>();
@@ -56,6 +70,15 @@ public class LipidIDExpertKnowledgeSearch {
         return rowInfo;
     }
 
+    /**
+     * Finds adducts taking as reference rows with Lipid Annotations
+     * @param adductsISF List of possible adducts and ISF
+     * @param rowInfo RowInfo for the group the row is part of
+     * @param mzTolerance mz tolerance
+     * @param row FeatureListRow with Lipid Annotation
+     * @param match MatchedLipid present in the row
+     * @return List of adducts found for the group the row is part of
+     */
     public static List<FoundAdduct> findAdducts(List<ExpertKnowledge> adductsISF, RowInfo rowInfo, double mzTolerance, FeatureListRow row, MatchedLipid match) {
         List<FoundAdduct> foundAdducts = new ArrayList<>();
         List<Double> mzList = rowInfo.getMzList();
@@ -79,6 +102,7 @@ public class LipidIDExpertKnowledgeSearch {
                         foundAdducts.add(new FoundAdduct(myAdduct.getCompleteName(), row.getAverageMZ(), row.getMaxHeight(), row.getAverageRT(), 1));
                     }
                     neutralMass = row.getAverageMZ() - adductMZ;
+                    //TODO quitar!?
                     System.out.println("-------M: " + neutralMass + " for mz: " + row.getAverageMZ());
                     break;
                 }
@@ -97,6 +121,7 @@ public class LipidIDExpertKnowledgeSearch {
                     float rt = rtList.get(i); //Get the RT from the list
 
                     if (mz > minRange && mz < maxRange) { //Found it in the list
+                        //TODO quitar!?
                         System.out.println("---Found: " + myAdduct.getCompleteName());
                         // Add the found adduct to the list based on the class type for the charge
                         if (myAdduct.getClass().equals(CommonAdductNegative.class) || myAdduct.getClass().equals(CommonISFNegative.class)) {
@@ -163,13 +188,19 @@ public class LipidIDExpertKnowledgeSearch {
                 }
             }
         }
-
+        //TODO quitar!?
         System.out.println("Found adducts");
         for (FoundAdduct fa : foundAdducts) System.out.print(fa.getAdductName() + "/" + fa.getMzFeature() + " ; ");
 
         return foundAdducts;
     }
 
+    /**
+     * Finds lipids in ESI+ from adducts found for a group
+     * @param row FeatureListRow that has Lipid Annotation
+     * @param lipid MatchedLipid for the row
+     * @param found list of FoundAdducts for the group the row is part of
+     */
     public static void findLipidsPositive(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found) {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
@@ -337,6 +368,12 @@ public class LipidIDExpertKnowledgeSearch {
     }
 
 
+    /**
+     * Finds lipids in ESI- from adducts found for a group
+     * @param row FeatureListRow that has Lipid Annotation
+     * @param lipid MatchedLipid for the row
+     * @param found list of FoundAdducts for the group the row is part of
+     */
     public static void findLipidsNegative(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found) {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();

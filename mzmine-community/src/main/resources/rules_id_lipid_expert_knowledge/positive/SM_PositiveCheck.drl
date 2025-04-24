@@ -30,13 +30,6 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+Na]+; ");
 end
-rule "No presence [M+Na]+"
-when
-    not FoundAdduct(adductName == "[M+Na]+")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+Na]+; ");
-end
 
 rule "Presence [M+K]+"
 when
@@ -44,13 +37,6 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+K]+; ");
-end
-rule "No presence [M+K]+"
-when
-    not FoundAdduct(adductName == "[M+K]+")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+K]+; ");
 end
 
 rule "Presence [M+C2H7N2]+"
@@ -60,13 +46,8 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+C2H7N2]+; ");
 end
-rule "No presence [M+C2H7N2]+"
-when
-    not FoundAdduct(adductName == "[M+C2H7N2]+")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+C2H7N2]+; ");
-end
+
+
 
 rule "Intensity [M+H]+ > [M+Na]+"
 when
@@ -133,4 +114,26 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+Na]+ < [M+C2H7N2]+; ");
+end
+
+rule "Intensity [M+K]+ > [M+H]+"
+when
+    $adduct2: FoundAdduct(adductName == "[M+K]+")
+    $adduct1: FoundAdduct(adductName == "[M+H]+")
+
+    eval($adduct1.getIntensity() > $adduct2.getIntensity())
+then
+    lipid.setScore(-2);
+    lipid.setDescrIncorrect("Intensity NOT OK [M+K]+ > [M+H]+; ");
+end
+
+rule "Intensity [M+C2H7N2]+ > [M+H]+"
+when
+    $adduct2: FoundAdduct(adductName == "[M+C2H7N2]+")
+    $adduct1: FoundAdduct(adductName == "[M+H]+")
+
+    eval($adduct1.getIntensity() > $adduct2.getIntensity())
+then
+    lipid.setScore(-2);
+    lipid.setDescrIncorrect("Intensity NOT OK [M+C2H7N2]+ > [M+H]+; ");
 end

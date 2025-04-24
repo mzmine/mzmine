@@ -15,13 +15,6 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H]+; ");
 end
-rule "No presence [M+H]+"
-when
-    not FoundAdduct(adductName == "[M+H]+")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+H]+; ");
-end
 
 rule "Presence [M+Na]+"
 when
@@ -29,13 +22,6 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+Na]+; ");
-end
-rule "No presence [M+Na]+"
-when
-    not FoundAdduct(adductName == "[M+Na]+")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+Na]+; ");
 end
 
 rule "Presence [M+K]+"
@@ -45,13 +31,6 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+K]+; ");
 end
-rule "No presence [M+K]+"
-when
-    not FoundAdduct(adductName == "[M+K]+")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+K]+; ");
-end
 
 rule "Presence [M+C2H7N2]+"
 when
@@ -59,13 +38,6 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+C2H7N2]+; ");
-end
-rule "No presence [M+C2H7N2]+"
-when
-    not FoundAdduct(adductName == "[M+C2H7N2]+")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+C2H7N2]+; ");
 end
 
 rule "Presence [M+NH4]+"
@@ -75,13 +47,6 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+NH4]+; ");
 end
-rule "No presence [M+NH4]+"
-when
-    not FoundAdduct(adductName == "[M+NH4]+")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+NH4]+; ");
-end
 
 rule "Presence [M+H-H2O]+"
 when
@@ -90,10 +55,4 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H-H2O]+; ");
 end
-rule "No presence [M+H-H2O]+"
-when
-    not FoundAdduct(adductName == "[M+H-H2O]+")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+H-H2O]+; ");
-end
+

@@ -3,6 +3,9 @@ package io.github.mzmine.datamodel.features.types.annotations.lipidexpertknowled
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents the column of score assigned for the feature in Lipid Validation
+ */
 public class LipidValidationScoreType extends ScoreType {
 
     @NotNull

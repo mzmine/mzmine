@@ -8,6 +8,9 @@ import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents the column of negative evidence found for the feature in Lipid Validation
+ */
 public class LipidValidationIncorrectDescriptionType extends StringType implements EditableColumnType, StringParser<String>, AnnotationType {
 
     private StringConverter<String> converter = new DefaultStringConverter();

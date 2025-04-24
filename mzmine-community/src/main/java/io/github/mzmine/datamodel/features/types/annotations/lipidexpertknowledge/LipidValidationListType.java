@@ -19,6 +19,9 @@ import javax.xml.stream.XMLStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the columns for the feature in Lipid Validation
+ */
 public class LipidValidationListType extends ListWithSubsType<FoundLipid> implements AnnotationType {
 
     private static final List<DataType> subTypes = List.of(

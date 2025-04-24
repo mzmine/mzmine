@@ -16,6 +16,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+/**
+ * Represents the column of adducts found for the feature in Lipid Validation
+ */
 public class LipidValidationAdductsType extends StringType implements EditableColumnType, StringParser<String>, AnnotationType  {
 
     private StringConverter<String> converter = new DefaultStringConverter();

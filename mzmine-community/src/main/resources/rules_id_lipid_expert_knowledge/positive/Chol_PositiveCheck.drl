@@ -16,12 +16,12 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H]+; ");
 end
-rule "No presence [M+H]+"
+rule "No presence [M+NH4]+"
 when
-    $adduct: FoundAdduct(adductName == "[M+H]+")
+    $adduct: FoundAdduct(adductName == "[M+NH4]+")
 then
     lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+H]+; ");
+    lipid.setDescrIncorrect("Missing [M+NH4]+; ");
 end
 
 rule "Presence [M+NH4]+"
@@ -31,13 +31,6 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+NH4]+; ");
 end
-rule "No presence [M+NH4]+"
-when
-    not FoundAdduct(adductName == "[M+NH4]+")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+NH4]+; ");
-end
 
 rule "Presence [cholestadiene ion]+"
 when
@@ -46,13 +39,8 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [cholestadiene ion]+; ");
 end
-rule "No presence [cholestadiene ion]+"
-when
-    not FoundAdduct(adductName == "[C27H44]+")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [cholestadiene ion]+; ");
-end
+
+
 
 rule "Intensity [M+NH4]+ > [M+H]+"
 when

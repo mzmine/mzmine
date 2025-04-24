@@ -18,7 +18,11 @@ public enum SampleTypes {
         this.name = name;
     }
 
-    public static List<SampleTypes> getListOfMobilePhases(){
+    /**
+     * Gets a list of all the Sample Types
+     * @return
+     */
+    public static List<SampleTypes> getListOfSampleTypes(){
         List<SampleTypes> list = new ArrayList<>();
         list.add(SampleTypes.PLASMA);
         list.add(SampleTypes.BLOOD);

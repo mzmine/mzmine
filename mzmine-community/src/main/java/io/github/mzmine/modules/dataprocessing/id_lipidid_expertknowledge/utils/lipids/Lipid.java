@@ -485,10 +485,18 @@ public enum Lipid {
         this.negativeISF = negativeISF;
     }
 
+    /**
+     * Gets a copy of the full name of the Lipid
+     * @return String with name (eg:Carnitines)
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Gets a copy of the abbreviation of the Lipid
+     * @return String with abbreviation (eg:CAR)
+     */
     public String getAbbr() {
         return abbr;
     }

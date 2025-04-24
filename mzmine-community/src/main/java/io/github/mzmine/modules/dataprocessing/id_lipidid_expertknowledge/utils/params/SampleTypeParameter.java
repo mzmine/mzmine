@@ -24,12 +24,12 @@ public class SampleTypeParameter<ValueType> implements UserParameter<ValueType[]
     private final int minNumber;
 
     public SampleTypeParameter(String name, String description, ValueType[] choices) {
-        this(name, description, choices, null, 0);
+        this(name, description, choices, null, 1);
     }
 
     public SampleTypeParameter(String name, String description, ValueType[] choices,
                                 ValueType[] values) {
-        this(name, description, choices, values, 0);
+        this(name, description, choices, values, 1);
     }
 
     public SampleTypeParameter(String name, String description, ValueType[] choices, ValueType[] values, int minNumber) {

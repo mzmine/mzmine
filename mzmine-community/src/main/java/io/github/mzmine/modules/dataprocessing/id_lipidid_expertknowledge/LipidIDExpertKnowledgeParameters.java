@@ -18,7 +18,7 @@ import javafx.scene.layout.Region;
 import static io.github.mzmine.javafx.components.factories.FxTexts.*;
 
 /**
- * Parameters for Lipid Annotation Expert Knowledge module
+ * Parameters for Lipid Validation module
  *
  * @author Blanca Pueche Granados (blancapueche@gmail.com)
  */
@@ -33,7 +33,7 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
             "Mobile phases", "Selection of mobile phases", MobilePhases.getListOfMobilePhases().toArray());
 
     public static final SampleTypeParameter<Object> sampleTypeParameter = new SampleTypeParameter(
-            "Sample types", "Selection of sample type", SampleTypes.getListOfMobilePhases().toArray());
+            "Sample types", "Selection of sample type", SampleTypes.getListOfSampleTypes().toArray());
 
     public LipidIDExpertKnowledgeParameters() {
         super(new Parameter[]{featureLists, mzTolerance, mobilePhaseParameter, sampleTypeParameter});
@@ -42,7 +42,6 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
     @Override
     public ExitCode showSetupDialog(boolean valueCheckRequired) {
         assert Platform.isFxApplicationThread();
-        //TODO dejar esto!?
         final Region message = FxTextFlows.newTextFlowInAccordion("Authors Note",
                 boldText("Blanca Pueche Granados:\n"),
                 text("This module requires Lipid Annotation to be run first."));

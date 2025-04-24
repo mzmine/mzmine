@@ -33,11 +33,3 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M-H+(CH3COONa)]-; ");
 end
-rule "No presence [M-H+(CH3COONa)]-"
-when
-    not FoundAdduct(adductName == "[M-H+(CH3COONa)]-")
-then
-
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M-H+(CH3COONa)]-; ");
-end

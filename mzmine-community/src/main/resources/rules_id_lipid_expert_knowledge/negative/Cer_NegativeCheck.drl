@@ -16,12 +16,12 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M-H]-; ");
 end
-rule "No presence [M-H]-"
+rule "No presence [M+CH3COO]-"
 when
-    not FoundAdduct(adductName == "[M-H]-")
+    not FoundAdduct(adductName == "[M+CH3COO]-")
 then
     lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M-H]-; ");
+    lipid.setDescrIncorrect("Missing [M+CH3COO]-; ");
 end
 
 rule "Presence [M+CH3COO]-"
@@ -30,13 +30,6 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+CH3COO]-; ");
-end
-rule "No presence [M+CH3COO]-"
-when
-    not FoundAdduct(adductName == "[M+CH3COO]-")
-then
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+CH3COO]-; ");
 end
 
 rule "Presence [M+HCOO]-"
@@ -47,14 +40,6 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+HCOO]-; ");
 end
-rule "No presence [M+HCOO]-"
-when
-    not FoundAdduct(adductName == "[M+HCOO]-")
-then
-
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+HCOO]-; ");
-end
 
 rule "Presence [M+Cl]-"
 when
@@ -64,14 +49,9 @@ then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+Cl]-; ");
 end
-rule "No presence [M+Cl]-"
-when
-    not FoundAdduct(adductName == "[M+Cl]-")
-then
 
-    lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+Cl]-; ");
-end
+
+
 
 rule "Intensity [M+CH3COO]- > [M-H]-"
 when
@@ -168,4 +148,28 @@ then
     
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+Cl]- < [M+HCOO]-; ");
+end
+
+rule "Intensity [M+Cl]- < [M+HCOO]-"
+when
+    $adduct1: FoundAdduct(adductName == "[M+Cl]-")
+    $adduct2: FoundAdduct(adductName == "[M+HCOO]-")
+
+    eval($adduct1.getIntensity() < $adduct2.getIntensity())
+then
+
+    lipid.setScore(-2);
+    lipid.setDescrIncorrect("Intensity NOT OK [M+Cl]- < [M+HCOO]-; ");
+end
+
+rule "Intensity [M+HCOO]- > [M+CH3COO]-"
+when
+    $adduct1: FoundAdduct(adductName == "[M+HCOO]-")
+    $adduct2: FoundAdduct(adductName == "[M+CH3COO]-")
+
+    eval($adduct1.getIntensity() > $adduct2.getIntensity())
+then
+
+    lipid.setScore(-2);
+    lipid.setDescrIncorrect("Intensity NOT OK [M+HCOO]- > [M+CH3COO]-; ");
 end

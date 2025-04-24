@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Component for the choosing of the movile phases of the samples
+ * Component for the choosing of the mobile phases of the samples
  */
 public class MobilePhaseComponent extends BorderPane {
 
@@ -19,6 +19,7 @@ public class MobilePhaseComponent extends BorderPane {
     private final Map<MobilePhases, CheckBoxTreeItem<Object>> classToItemMap = new HashMap<>();
 
     public MobilePhaseComponent(final Object[] choices) {
+        super();
         mobilePhases.setShowRoot(false);
         mobilePhases.setMinWidth(500);
         mobilePhases.setMinHeight(200);

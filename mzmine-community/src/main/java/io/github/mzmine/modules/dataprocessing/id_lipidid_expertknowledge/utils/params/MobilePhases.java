@@ -20,6 +20,10 @@ public enum MobilePhases {
         this.name = name;
     }
 
+    /**
+     * Gets a list of all the Mobile Phases
+     * @return
+     */
     public static List<MobilePhases> getListOfMobilePhases(){
         List<MobilePhases> list = new ArrayList<>();
         list.add(MobilePhases.CH3COO);

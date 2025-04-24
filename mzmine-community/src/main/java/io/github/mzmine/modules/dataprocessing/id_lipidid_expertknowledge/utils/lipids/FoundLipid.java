@@ -1,17 +1,12 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -27,8 +22,8 @@ import java.util.logging.Logger;
 public class FoundLipid {
 
     private Lipid lipid;
-    //To store the score and description assigned by the rules
     private MatchedLipid annotatedLipid;
+    //To store the score and description assigned by the rules
     private Double score;
     private String descrCorrect;
     private String descrIncorrect;
@@ -60,67 +55,120 @@ public class FoundLipid {
         this.adducts = foundAdducts;
     }
 
+    /**
+     * Gets a copy in String formsat of the adducts
+     * @return a String with the adducts
+     */
     public String getAdducts() {
         String stringAdducts = this.adducts.toString();
         return stringAdducts;
     }
 
+    /**
+     * Sets the attribute to the adducts passed as input
+     * @param adducts List of Found Adducts
+     */
     public void setAdducts(List<FoundAdduct> adducts) {
         this.adducts = adducts;
     }
 
+    /**
+     * Gets a copy of the score
+     * @return score for the Lipid Annotation
+     */
     public Double getScore() {
         return score;
     }
 
+    /**
+     * Sets the score to the value passed as input plus the previous score value
+     * @param score
+     */
     public void setScore(double score) {
         this.score = this.score + score;
     }
 
+    /**
+     * Gets a copy of the Lipid
+     * @return Lipid assigned
+     */
     public Lipid getLipid() {
         return lipid;
     }
 
+    /**
+     * Sets the Lipid as the input object
+     * @param lipid Lipid found in the feature
+     */
     public void setLipid(Lipid lipid) {
         this.lipid = lipid;
     }
+
+    /**
+     * Gets a copy of the positive evidence
+     * @return String with correct evidence
+     */
     public String getDescrCorrect() {
         return descrCorrect;
     }
 
+    /**
+     * Sets the correct evidence to the input value PLUS the previous value
+     * @param descrCorrect positive evidence
+     */
     public void setDescrCorrect(String descrCorrect) {
         this.descrCorrect = this.descrCorrect + descrCorrect;
     }
 
+    /**
+     * Gets a copy of the negative evidence
+     * @return String with incorrect evidence
+     */
     public String getDescrIncorrect() {
         return descrIncorrect;
     }
 
-    public MatchedLipid getAnnotatedLipid() {
-        return annotatedLipid;
-    }
-
-    public void setAnnotatedLipid(MatchedLipid annotatedLipid) {
-        this.annotatedLipid = annotatedLipid;
-    }
-
+    /**
+     * Sets the incorrect evidence to the input value PLUS the previous value
+     * @param descrIncorrect negative evidence
+     */
     public void setDescrIncorrect(String descrIncorrect) {
         this.descrIncorrect = this.descrIncorrect + descrIncorrect;
     }
 
+    /**
+     * Method to represent the FoundLipid object
+     * @return String with the annotatedLipid attribute
+     */
     @Override
     public String toString() {
         return  "[" + annotatedLipid +
                 ']';
     }
 
+    /**
+     * Method to normalize the socre between 0 and 2
+     * @param rawScore score assigned by the rules
+     * @param maxScore highest score possible
+     * @return normalized score [0,2]
+     */
     public double normalizeScore(double rawScore, double maxScore) {
         return Math.max(0.0, Math.min(2.0, ((double)(rawScore + maxScore) / (2.0 * maxScore)) * 2.0));
     }
 
+    /**
+     * Sets the score attribute ONLY to the input value
+     * @param score final score
+     */
     public void setFinalScore(double score) { this.score = score; }
 
-    private static List<FoundAdduct> loadAdductsFromXML(XMLStreamReader reader)
+    /**
+     * Method to load adducts from XML files
+     * @param reader
+     * @return
+     * @throws XMLStreamException
+     */
+    public static List<FoundAdduct> loadAdductsFromXML(XMLStreamReader reader)
             throws XMLStreamException {
 
         List<FoundAdduct> adducts = new ArrayList<>();
@@ -138,7 +186,13 @@ public class FoundLipid {
         return adducts;
     }
 
-    private static FoundAdduct loadSingleAdductFromXML(XMLStreamReader reader)
+    /**
+     * Loads one adduct from XML files
+     * @param reader
+     * @return
+     * @throws XMLStreamException
+     */
+    public static FoundAdduct loadSingleAdductFromXML(XMLStreamReader reader)
             throws XMLStreamException {
 
         String adductName = null;
@@ -168,6 +222,13 @@ public class FoundLipid {
         return adduct;
     }
 
+    /**
+     * Loads the whole Found Lipid from XML files
+     * @param reader
+     * @param possibleFiles
+     * @return
+     * @throws XMLStreamException
+     */
     public static FoundLipid loadFromXML(XMLStreamReader reader, Collection<RawDataFile> possibleFiles)
             throws XMLStreamException {
 
@@ -221,6 +282,13 @@ public class FoundLipid {
         return foundLipid;
     }
 
+    /**
+     * Saves FoundLipids to XML file
+     * @param writer
+     * @param flist
+     * @param row
+     * @throws XMLStreamException
+     */
     public void saveToXML(@NotNull XMLStreamWriter writer,
                           @NotNull ModularFeatureList flist,
                           @NotNull ModularFeatureListRow row) throws XMLStreamException {

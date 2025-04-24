@@ -58,23 +58,6 @@ public enum CommonAdductPositive implements ExpertKnowledge {
     }
 
     /**
-     * Calculates neutral mass
-     * @param observedMz experimental m/z
-     * @return neutral mass value
-     */
-    public double calculateNeutralMass(double observedMz) {
-        return (observedMz * Math.abs(1)) - mz;
-    }
-    /**
-     * Calculates the expected m/z
-     * @param neutralMass calculated with calculateNeutralMass
-     * @return expected m/z value
-     */
-    public double expectedMz(double neutralMass) {
-        return (neutralMass + mz) / Math.abs(1);
-    }
-
-    /**
      * Returns a copy of the name. Eg: [M+H]+
      * @return
      */
