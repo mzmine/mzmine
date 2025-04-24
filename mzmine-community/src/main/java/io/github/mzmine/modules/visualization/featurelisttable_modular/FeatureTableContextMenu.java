@@ -101,6 +101,7 @@ import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.Spect
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -358,16 +359,20 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem searchFormulaPubChem = new ConditionalMenuItem("Search formula in PubChem",
         () -> selectedRow != null && !selectedRow.getFormulas().isEmpty());
     searchFormulaPubChem.setOnAction(e -> {
-      new PubChemResultsController(selectedRow, new IonType(IonModification.H),
+      final List<IonType> ionTypes = FeatureUtils.extractAllIonTypes(selectedRow);
+      new PubChemResultsController(selectedRow,
+          ionTypes.isEmpty() ? new IonType(IonModification.H) : ionTypes.getFirst(),
           selectedRow.getFormulas().getFirst().getFormulaAsString()).showInWindow();
     });
 
     final MenuItem searchMassPubChem = new ConditionalMenuItem("Search mass in PubChem",
         () -> selectedRow != null);
     searchMassPubChem.setOnAction(e -> {
-      final IonType ionType = new IonType(IonModification.H);
+      final List<IonType> ionTypes = FeatureUtils.extractAllIonTypes(selectedRow);
+      final IonType ionType =
+          ionTypes.isEmpty() ? new IonType(IonModification.H) : ionTypes.getFirst();
       new PubChemResultsController(selectedRow, ionType,
-          selectedRow.getAverageMZ() - ionType.getMassDifference()).showInWindow();
+          ionType.getMass(selectedRow.getAverageMZ())).showInWindow();
     });
 
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
