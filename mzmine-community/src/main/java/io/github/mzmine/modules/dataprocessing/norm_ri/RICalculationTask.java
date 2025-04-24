@@ -46,16 +46,11 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.BinarySearch;
-import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
-import io.github.mzmine.util.date.LocalDateParser;
+import io.github.mzmine.util.date.LocalDateTimeParser;
 import io.github.mzmine.util.io.CsvReader;
 import java.io.File;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -85,7 +80,7 @@ public class RICalculationTask extends AbstractFeatureListTask {
   private final boolean shouldExtrapolate;
   private final boolean shouldAddSummary;
   private final MetadataTable metadataTable;
-  private List<RIScale> linearScales;
+  private List<RIScale> linearScalesDescendingDate;
 
 
   public RICalculationTask(MZmineProject project, @Nullable MemoryMapStorage storage,
@@ -109,18 +104,18 @@ public class RICalculationTask extends AbstractFeatureListTask {
       return;
     }
 
-    // sorted scales - ascending for binary search
+    // sorted scales - descending
     final File[] scaleFiles = parameters.getValue(RICalculationParameters.alkaneFiles);
-    linearScales = Arrays.stream(scaleFiles).map(this::processLadder).filter(Objects::nonNull)
-        .sorted(Comparator.comparing(RIScale::date)).toList();
+    linearScalesDescendingDate = Arrays.stream(scaleFiles).map(this::processLadder)
+        .filter(Objects::nonNull).sorted(Comparator.comparing(RIScale::date).reversed()).toList();
 
-    if (linearScales.isEmpty()) {
+    if (linearScalesDescendingDate.isEmpty()) {
       error("No valid scale files found");
       return;
-    } else if (scaleFiles.length != linearScales.size()) {
+    } else if (scaleFiles.length != linearScalesDescendingDate.size()) {
       logger.warning(
           "Number of scale files %d and number of valid scales %d unequal. Will proceed.".formatted(
-              scaleFiles.length, linearScales.size()));
+              scaleFiles.length, linearScalesDescendingDate.size()));
     }
 
     ModularFeatureList processedList = processFeatureList(featureList);
@@ -139,10 +134,10 @@ public class RICalculationTask extends AbstractFeatureListTask {
     if (file.exists() && file.canRead()) {
       try {
         String fileName = file.getAbsolutePath();
-        LocalDate date = LocalDateParser.parseAnyEndingDate(
+        LocalDateTime date = LocalDateTimeParser.parseAnyFirstDate(
             FilenameUtils.removeExtension(fileName));
 
-        if (date == null || fileName == null) {
+        if (date == null) {
           return null;
         }
         final List<RIScaleEntry> entries = CsvReader.readToList(file, RIScaleEntry.class, ',');
@@ -186,13 +181,11 @@ public class RICalculationTask extends AbstractFeatureListTask {
       }
 
       // find closest linear scale based on date comparison
-      final int index = BinarySearch.binarySearch(linearScales,
-          (double) sampleDate.toEpochSecond(ZoneOffset.UTC), DefaultTo.CLOSEST_VALUE,
-          scale -> (double) scale.date().toEpochSecond(LocalTime.NOON, ZoneOffset.UTC));
 
-      final RIScale bestScale = linearScales.get(index);
+      final RIScale bestScale = findScalePreviousToSample(sampleDate);
 
-      final long days = ChronoUnit.DAYS.between(bestScale.date(), sampleDate.toLocalDate());
+      final long days = ChronoUnit.DAYS.between(bestScale.date().toLocalDate(),
+          sampleDate.toLocalDate());
       if (Math.abs(days) > 0) {
         logger.info(
             "NOTICE: The retention index scale (%s) was measured on a different day than the sample %s (%s) (%d days)".formatted(
@@ -202,6 +195,19 @@ public class RICalculationTask extends AbstractFeatureListTask {
       outputList.getFeatures(file).stream().parallel().forEach(f -> processFeature(f, bestScale));
     }
     return outputList;
+  }
+
+  private RIScale findScalePreviousToSample(LocalDateTime sampleDate) {
+    // find latest scale that was measured before sample date
+    // newest scale first
+    for (RIScale scale : linearScalesDescendingDate) {
+      // same day or after
+      if (!sampleDate.isBefore(scale.date())) {
+        return scale;
+      }
+    }
+    // last scale in case sample was measured before all scales
+    return linearScalesDescendingDate.getLast();
   }
 
   private void processFeature(final ModularFeature feature, final RIScale riScale) {

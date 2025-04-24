@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_ri;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
 /**
@@ -35,6 +35,6 @@ import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
  * @param fileName
  * @param interpolator
  */
-public record RIScale(LocalDate date, String fileName, PolynomialSplineFunction interpolator) {
+public record RIScale(LocalDateTime date, String fileName, PolynomialSplineFunction interpolator) {
 
 }
