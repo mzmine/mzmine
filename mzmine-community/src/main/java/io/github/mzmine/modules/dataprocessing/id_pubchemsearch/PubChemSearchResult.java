@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.id_pubchemsearch;
 
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.beans.property.Property;
 import javafx.collections.ObservableList;
 
 /**
@@ -34,6 +35,6 @@ import javafx.collections.ObservableList;
  * @param results An observable list containing the parsed CompoundData. Will be empty if status is
  *                ERROR or CANCELED, or if no results were found.
  */
-public record PubChemSearchResult(TaskStatus status, ObservableList<CompoundData> results) {
+public record PubChemSearchResult(Property<TaskStatus> status, ObservableList<CompoundData> results) {
 
 }

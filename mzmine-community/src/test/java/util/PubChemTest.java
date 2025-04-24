@@ -24,24 +24,61 @@
 
 package util;
 
+import com.google.common.collect.Lists;
 import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.CompoundData;
 import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.PubChemApiClient;
+import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.PubChemApiClient.PubChemApiException;
 import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.PubChemSearch;
 import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.PubChemSearchResult;
+import io.github.mzmine.taskcontrol.TaskService;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.IOException;
+import java.util.List;
 import javafx.collections.ObservableList;
 import org.junit.jupiter.api.Test;
 
 public class PubChemTest {
 
   @Test
-  void testFormulaSearch() {
-    final PubChemSearchResult result = PubChemApiClient.executeSearch(PubChemSearch.byFormula("H2O"));
-    System.out.println(result.results());
+  void testFormulaSearch() throws PubChemApiException, IOException, InterruptedException {
+
+    try (PubChemApiClient client = new PubChemApiClient()) {
+
+      final PubChemSearch search = PubChemSearch.byFormula("H2O");
+      final List<String> cids = client.findCids(search);
+      final List<List<String>> chunked = Lists.partition(cids,
+          PubChemApiClient.DEFAULT_CID_CHUNK_SIZE);
+      List<CompoundData> s = chunked.stream().map(chunk -> {
+        try {
+          return client.fetchPropertiesForChunk(search, chunk);
+        } catch (PubChemApiException e) {
+          throw new RuntimeException(e);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }).flatMap(List::stream).toList();
+
+      System.out.println(s);
+    }
   }
 
   @Test
   void testMassSearch() {
-    final ObservableList<CompoundData> s = PubChemApiClient.executeSearch(PubChemSearch.byMassRange(18.01, 18.02)).results();
-    System.out.println(s);
+
+    final PubChemSearchResult result = PubChemApiClient.runAsync(
+        PubChemSearch.byMassRange(18.01, 18.02), TaskService.getController().getExecutor());
+
+    while(result.status().getValue() != TaskStatus.FINISHED) {
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      System.out.println(result.status().getValue());
+    }
+
+    System.out.println(result.results());
   }
 }

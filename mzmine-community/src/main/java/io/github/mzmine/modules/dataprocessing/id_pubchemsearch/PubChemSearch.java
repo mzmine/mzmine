@@ -24,36 +24,34 @@
 
 package io.github.mzmine.modules.dataprocessing.id_pubchemsearch;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger; // Keep logger if needed for config validation/warnings
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Immutable configuration record for a PubChem search request. This object holds the parameters but
- * does not perform the search itself. Use PubChemApiClient.executeSearch(searchConfig) to run the
- * search.
+ * does not perform the search itself. Use {@link PubChemApiClient#findCids(PubChemSearch)} or
+ * {@link PubChemApiClient#findCidsAsync(PubChemSearch)} and
+ * {@link PubChemApiClient#fetchPropertiesForChunk(PubChemSearch, List)} or
+ * {@link PubChemApiClient#fetchPropertiesForChunkAsync(PubChemSearch, List)} to run the search.
  */
-public record PubChemSearch(
-    // --- Search Parameters (Mutually Exclusive) ---
-    Optional<String> formula, Optional<Double> minMass, Optional<Double> maxMass,
+public record PubChemSearch(Optional<String> formula, Optional<Double> minMass,
+                            Optional<Double> maxMass, HttpClient httpClient,
+                            Duration requestTimeout, Duration pollInterval, Duration maxPollTime,
+                            String baseApiUrl, String requestedProperties) {
 
-    // --- Configuration ---
-    Optional<HttpClient> customHttpClient, // Optional custom client
-    Duration requestTimeout, Duration pollInterval, Duration maxPollTime, String baseApiUrl,
-    String requestedProperties) {
-
-  // --- Logger for configuration related messages ---
-  private static final Logger CONFIG_LOGGER = Logger.getLogger(PubChemSearch.class.getName());
-
-  // --- Constants for Defaults ---
   private static final String DEFAULT_PUBCHEM_API_BASE_URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug";
   private static final Duration DEFAULT_REQUEST_TIMEOUT = Duration.ofSeconds(30);
-  private static final Duration DEFAULT_POLL_INTERVAL = Duration.ofSeconds(2);
-  private static final Duration DEFAULT_MAX_POLL_TIME = Duration.ofMinutes(5);
-  private static final String DEFAULT_COMPOUND_PROPERTIES = "MolecularFormula,CanonicalSMILES,InChI,InChIKey,IUPACName,Title,Charge,MonoisotopicMass";
+  private static final Duration DEFAULT_POLL_INTERVAL = Duration.ofMillis(200);
+  private static final Duration DEFAULT_MAX_POLL_TIME = Duration.ofSeconds(30);
+  private static final String DEFAULT_COMPOUND_PROPERTIES = "MolecularFormula,SMILES,InChI,InChIKey,IUPACName,Title,Charge,MonoisotopicMass";
   // No default HttpClient constant here, will be created on demand if not provided
 
 
@@ -65,7 +63,7 @@ public record PubChemSearch(
     Objects.requireNonNull(maxPollTime, "Max poll time cannot be null");
     Objects.requireNonNull(baseApiUrl, "Base API URL cannot be null");
     Objects.requireNonNull(requestedProperties, "Requested properties cannot be null");
-    Objects.requireNonNull(customHttpClient, "customHttpClient Optional cannot be null");
+    Objects.requireNonNull(httpClient, "customHttpClient Optional cannot be null");
     Objects.requireNonNull(formula, "formula Optional cannot be null");
     Objects.requireNonNull(minMass, "minMass Optional cannot be null");
     Objects.requireNonNull(maxMass, "maxMass Optional cannot be null");
@@ -103,7 +101,6 @@ public record PubChemSearch(
   }
 
   // --- Static Factory Methods (Starting Points) ---
-
   public static PubChemSearch byFormula(String formula) {
     // Basic validation here, canonical constructor does the rest
     if (formula == null || formula.isBlank()) {
@@ -111,9 +108,10 @@ public record PubChemSearch(
     }
     return new PubChemSearch(Optional.of(formula), Optional.empty(), Optional.empty(),
         // Search Criteria
-        Optional.empty(), // Default HttpClient
-        DEFAULT_REQUEST_TIMEOUT, DEFAULT_POLL_INTERVAL, DEFAULT_MAX_POLL_TIME,
-        DEFAULT_PUBCHEM_API_BASE_URL, DEFAULT_COMPOUND_PROPERTIES // Other Config Defaults
+        HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+            .followRedirects(HttpClient.Redirect.NORMAL).build(), DEFAULT_REQUEST_TIMEOUT,
+        DEFAULT_POLL_INTERVAL, DEFAULT_MAX_POLL_TIME, DEFAULT_PUBCHEM_API_BASE_URL,
+        DEFAULT_COMPOUND_PROPERTIES // Other Config Defaults
     );
   }
 
@@ -121,48 +119,49 @@ public record PubChemSearch(
     // Basic validation here, canonical constructor does the rest
     return new PubChemSearch(Optional.empty(), Optional.of(minMass), Optional.of(maxMass),
         // Search Criteria
-        Optional.empty(), // Default HttpClient
-        DEFAULT_REQUEST_TIMEOUT, DEFAULT_POLL_INTERVAL, DEFAULT_MAX_POLL_TIME,
-        DEFAULT_PUBCHEM_API_BASE_URL, DEFAULT_COMPOUND_PROPERTIES // Other Config Defaults
+        HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+            .followRedirects(HttpClient.Redirect.NORMAL).build(), DEFAULT_REQUEST_TIMEOUT,
+        DEFAULT_POLL_INTERVAL, DEFAULT_MAX_POLL_TIME, DEFAULT_PUBCHEM_API_BASE_URL,
+        DEFAULT_COMPOUND_PROPERTIES // Other Config Defaults
     );
+  }
+
+  public static PubChemSearch byMassRange(double mass, @NotNull final MZTolerance tolerance) {
+    final Range<Double> range = tolerance.getToleranceRange(mass);
+    return PubChemSearch.byMassRange(range.lowerEndpoint(), range.upperEndpoint());
   }
 
   // --- Configuration "with" Methods (Return new instances) ---
 
   public PubChemSearch withHttpClient(HttpClient client) {
     Objects.requireNonNull(client, "HttpClient cannot be null");
-    return new PubChemSearch(formula, minMass, maxMass, Optional.of(client), requestTimeout,
-        pollInterval, maxPollTime, baseApiUrl, requestedProperties);
-  }
-
-  public PubChemSearch withoutCustomHttpClient() {
-    return new PubChemSearch(formula, minMass, maxMass, Optional.empty(), requestTimeout,
-        pollInterval, maxPollTime, baseApiUrl, requestedProperties);
+    return new PubChemSearch(formula, minMass, maxMass, client, requestTimeout, pollInterval,
+        maxPollTime, baseApiUrl, requestedProperties);
   }
 
   public PubChemSearch withRequestTimeout(Duration timeout) {
-    return new PubChemSearch(formula, minMass, maxMass, customHttpClient, timeout, pollInterval,
+    return new PubChemSearch(formula, minMass, maxMass, httpClient, timeout, pollInterval,
         maxPollTime, baseApiUrl, requestedProperties);
   }
 
   public PubChemSearch withPollInterval(Duration interval) {
-    return new PubChemSearch(formula, minMass, maxMass, customHttpClient, requestTimeout, interval,
+    return new PubChemSearch(formula, minMass, maxMass, httpClient, requestTimeout, interval,
         maxPollTime, baseApiUrl, requestedProperties);
   }
 
   public PubChemSearch withMaxPollTime(Duration maxTime) {
-    return new PubChemSearch(formula, minMass, maxMass, customHttpClient, requestTimeout,
-        pollInterval, maxTime, baseApiUrl, requestedProperties);
+    return new PubChemSearch(formula, minMass, maxMass, httpClient, requestTimeout, pollInterval,
+        maxTime, baseApiUrl, requestedProperties);
   }
 
   public PubChemSearch withBaseApiUrl(String baseUrl) {
-    return new PubChemSearch(formula, minMass, maxMass, customHttpClient, requestTimeout,
-        pollInterval, maxPollTime, baseUrl, requestedProperties);
+    return new PubChemSearch(formula, minMass, maxMass, httpClient, requestTimeout, pollInterval,
+        maxPollTime, baseUrl, requestedProperties);
   }
 
   public PubChemSearch withRequestedProperties(String properties) {
-    return new PubChemSearch(formula, minMass, maxMass, customHttpClient, requestTimeout,
-        pollInterval, maxPollTime, baseApiUrl, properties);
+    return new PubChemSearch(formula, minMass, maxMass, httpClient, requestTimeout, pollInterval,
+        maxPollTime, baseApiUrl, properties);
   }
 
   // --- Convenience Getters ---

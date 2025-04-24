@@ -1,31 +1,17 @@
-/*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
-
 package io.github.mzmine.modules.dataprocessing.id_pubchemsearch;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+
+import com.google.common.collect.Lists;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.util.Objects;
+import java.util.stream.Collectors;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.json.JSONArray;
@@ -45,101 +31,269 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
+import java.util.concurrent.*; // Import concurrent classes
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Utility class for executing PubChem searches defined by a PubChemSearch configuration object.
- * Provides a static method to run the search synchronously.
+ * Client for interacting with the PubChem PUG REST API. Supports both synchronous and asynchronous
+ * operations. Allows fetching properties in manageable chunks.
  */
-public final class PubChemApiClient { // Final class, no instances needed
+public class PubChemApiClient implements AutoCloseable {
 
   private static final Logger LOGGER = Logger.getLogger(PubChemApiClient.class.getName());
-  private static final int CID_CHUNK_SIZE = 50; // Chunk size for property fetching
+  public static final int DEFAULT_CID_CHUNK_SIZE = 50; // Made public for clarity
 
-  // Private constructor to prevent instantiation
-  private PubChemApiClient() {
+  private final ExecutorService executorService; // For asynchronous operations
+  private final boolean shutdownExecutorOnClose; // Whether this instance owns the executor
+  private final ObjectMapper jsonMapper; // Instance of ObjectMapper
+
+  /**
+   * Creates a PubChemApiClient with a default HttpClient and a default cached thread pool
+   * ExecutorService. The default executor will be shut down when close() is called.
+   */
+  public PubChemApiClient() {
+    this(Executors.newCachedThreadPool(), // Default executor
+        true); // Owns the default executor
   }
 
   /**
-   * Executes the PubChem search synchronously based on the provided configuration. This method
-   * performs all necessary steps: finding CIDs (with polling if needed), fetching properties
-   * (chunked), and parsing the results.
+   * Creates a PubChemApiClient with a provided HttpClient and ExecutorService.
    *
-   * @param searchConfig The configuration object defining the search parameters.
-   * @return A PubChemSearchResult containing the final status and an observable list of results.
-   * The list will be empty if status is ERROR or if no compounds were found.
+   * @param executorService         The ExecutorService to use for asynchronous tasks.
+   * @param shutdownExecutorOnClose If true, the provided executorService will be shut down when
+   *                                close() is called. Set to false if the executor is managed
+   *                                externally.
    */
-  public static PubChemSearchResult executeSearch(PubChemSearch searchConfig) {
+  public PubChemApiClient(ExecutorService executorService, boolean shutdownExecutorOnClose) {
+    this.executorService = Objects.requireNonNull(executorService,
+        "ExecutorService cannot be null");
+    this.shutdownExecutorOnClose = shutdownExecutorOnClose;
+    this.jsonMapper = createObjectMapper(); // Create instance mapper
+  }
+
+  private ObjectMapper createObjectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new Jdk8Module()); // Still needed for Optionals
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return mapper;
+  }
+
+  // --- Public API Methods ---
+
+  /**
+   * Asynchronously finds PubChem Compound IDs (CIDs) based on the search configuration. Handles
+   * polling for asynchronous results from PubChem if necessary.
+   *
+   * @param searchConfig The search configuration.
+   * @return A CompletableFuture that will complete with a List of CIDs (empty if none found), or
+   * complete exceptionally if an error occurs.
+   */
+  public CompletableFuture<List<String>> findCidsAsync(PubChemSearch searchConfig) {
     Objects.requireNonNull(searchConfig, "Search configuration cannot be null");
-    LOGGER.log(Level.INFO, "Executing PubChem search for: {0}",
+    LOGGER.log(Level.FINE, "Queueing async CID search for: {0}",
         searchConfig.getSearchCriteriaDescription());
 
-    // Obtain or create HttpClient instance
-    HttpClient httpClient = searchConfig.customHttpClient().orElseGet(
-        () -> HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
-            .connectTimeout(searchConfig.requestTimeout()) // Use timeout from config
-            .build());
+    // Run the potentially blocking find operation in the executor
+    return CompletableFuture.supplyAsync(() -> {
+      try {
+        // Call the internal synchronous logic within the async task
+        return findCidsInternal(searchConfig);
+      } catch (IOException | InterruptedException | PubChemApiException | JSONException e) {
+        // Wrap checked exceptions in a runtime exception to fail the future
+        throw new CompletionException(handleExecutionException("Async CID search", e));
+      }
+    }, executorService);
+  }
 
+  /**
+   * Asynchronously fetches and parses compound properties for a given *single chunk* of CIDs.
+   *
+   * @param searchConfig The search configuration (used for API URL, properties, timeout).
+   * @param cidsChunk    A list of CIDs for which to fetch properties (should be <= reasonable chunk
+   *                     size, e.g., 50).
+   * @return A CompletableFuture that will complete with a List of parsed CompoundData objects for
+   * the chunk, or complete exceptionally if an error occurs during fetch or parsing.
+   */
+  public CompletableFuture<List<CompoundData>> fetchPropertiesForChunkAsync(
+      PubChemSearch searchConfig, List<String> cidsChunk) {
+    Objects.requireNonNull(searchConfig, "Search configuration cannot be null");
+    Objects.requireNonNull(cidsChunk, "CID chunk list cannot be null");
+    if (cidsChunk.isEmpty()) {
+      LOGGER.fine(
+          "fetchPropertiesForChunkAsync called with empty CID list, returning empty result immediately.");
+      return CompletableFuture.completedFuture(Collections.emptyList());
+    }
+    // Basic check, could add warning if size is large
+    // if (cidsChunk.size() > DEFAULT_CID_CHUNK_SIZE) { ... }
+
+    LOGGER.log(Level.FINE, "Queueing async property fetch for chunk of {0} CIDs.",
+        cidsChunk.size());
+
+    return CompletableFuture.supplyAsync(() -> {
+      try {
+        // 1. Fetch raw JSON for the chunk
+        String chunkJsonResult = performSinglePropertySearchInternal(searchConfig, cidsChunk);
+        // 2. Parse the JSON using Jackson
+        return parsePropertiesJsonWithJackson(chunkJsonResult);
+      } catch (IOException | InterruptedException | PubChemApiException e) {
+        // Wrap checked exceptions
+        throw new CompletionException(
+            handleExecutionException("Async property fetch for chunk", e));
+      }
+    }, executorService);
+  }
+
+  /**
+   * Synchronously finds PubChem Compound IDs (CIDs). Use findCidsAsync for non-blocking
+   * operations.
+   *
+   * @param searchConfig The search configuration.
+   * @return A List of CIDs (empty if none found).
+   * @throws PubChemApiException  If an API error occurs.
+   * @throws IOException          If a network error occurs.
+   * @throws InterruptedException If the thread is interrupted (e.g., during polling sleep).
+   */
+  public List<String> findCids(PubChemSearch searchConfig)
+      throws PubChemApiException, IOException, InterruptedException {
+    Objects.requireNonNull(searchConfig, "Search configuration cannot be null");
+    LOGGER.log(Level.INFO, "Executing synchronous CID search for: {0}",
+        searchConfig.getSearchCriteriaDescription());
     try {
-      // Step 1: Find CIDs
-      List<String> cids = findCidsInternal(searchConfig, httpClient);
-      if (cids.isEmpty()) {
-        LOGGER.info("No CIDs found for the search criteria.");
-        return new PubChemSearchResult(TaskStatus.FINISHED, FXCollections.observableArrayList());
-      }
-      LOGGER.log(Level.INFO, "Found {0} CIDs. Fetching properties...", cids.size());
-
-      // Step 2: Fetch Properties (Chunked)
-      String finalJson = performChunkedCidPropertySearchInternal(searchConfig, httpClient, cids);
-      if (finalJson == null || finalJson.isEmpty() || finalJson.equals(
-          createEmptyPropertyTableJson())) {
-        LOGGER.info("Property fetch returned no data (or empty structure).");
-        return new PubChemSearchResult(TaskStatus.FINISHED, FXCollections.observableArrayList());
-      }
-
-      // Step 3: Parse JSON into CompoundData objects
-      LOGGER.info("Parsing final JSON result...");
-      List<CompoundData> compoundList = parsePropertiesJson(finalJson);
-      LOGGER.log(Level.INFO, "Successfully parsed {0} compounds.", compoundList.size());
-
-      // Step 4: Create ObservableList and return FINISHED result
-      ObservableList<CompoundData> observableResults = FXCollections.observableArrayList(
-          compoundList);
-      return new PubChemSearchResult(TaskStatus.FINISHED, observableResults);
-
-    } catch (IOException | InterruptedException | PubChemApiException | JSONException e) {
-      // Handle exceptions from any step (CID search, Property fetch, JSON parsing)
-      PubChemApiException wrappedEx = handleExecutionException("Search execution", e);
-      LOGGER.log(Level.SEVERE, "PubChem search failed: " + wrappedEx.getMessage(),
-          wrappedEx.getCause());
-      return new PubChemSearchResult(TaskStatus.ERROR,
-          FXCollections.observableArrayList()); // Return ERROR status with empty list
+      return findCidsInternal(searchConfig);
+    } catch (JSONException e) {
+      // Wrap org.json exception from internal parsing
+      throw handleExecutionException("Sync CID search parsing", e);
     }
   }
 
-  // ========================================================================
-  // Internal Helper Methods (Static, moved from previous record)
-  // These now take PubChemSearch config and HttpClient as parameters
-  // ========================================================================
+  /**
+   * Synchronously fetches and parses properties for a single chunk of CIDs. Use
+   * fetchPropertiesForChunkAsync for non-blocking operations.
+   *
+   * @param searchConfig The search configuration.
+   * @param cidsChunk    The list of CIDs for this chunk.
+   * @return A List of parsed CompoundData objects.
+   * @throws PubChemApiException     If an API error occurs.
+   * @throws IOException             If a network error occurs.
+   * @throws InterruptedException    If the thread is interrupted.
+   * @throws JsonProcessingException If Jackson parsing fails.
+   */
+  public List<CompoundData> fetchPropertiesForChunk(PubChemSearch searchConfig,
+      List<String> cidsChunk)
+      throws PubChemApiException, IOException, InterruptedException, JsonProcessingException {
+    Objects.requireNonNull(searchConfig, "Search configuration cannot be null");
+    Objects.requireNonNull(cidsChunk, "CID chunk list cannot be null");
+    if (cidsChunk.isEmpty()) {
+      return Collections.emptyList();
+    }
+    LOGGER.log(Level.INFO, "Executing synchronous property fetch for chunk of {0} CIDs.",
+        cidsChunk.size());
+    String chunkJsonResult = performSinglePropertySearchInternal(searchConfig, cidsChunk);
+    return parsePropertiesJsonWithJackson(chunkJsonResult);
+  }
 
-  private static List<String> findCidsInternal(PubChemSearch config, HttpClient httpClient)
-      throws IOException, InterruptedException, PubChemApiException {
+  /**
+   * Shuts down the internally managed ExecutorService if applicable. Call this when the client is
+   * no longer needed to release resources, but only if you used the default constructor or set
+   * shutdownExecutorOnClose to true.
+   */
+  public void close() {
+    if (shutdownExecutorOnClose) {
+      executorService.shutdown();
+      try {
+        if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+          executorService.shutdownNow();
+        }
+      } catch (InterruptedException e) {
+        executorService.shutdownNow();
+        Thread.currentThread().interrupt();
+        LOGGER.log(Level.SEVERE, "Interrupted while waiting for ExecutorService termination.", e);
+      }
+    }
+  }
+
+  public static PubChemSearchResult runAsync(PubChemSearch searchConfig, ExecutorService executor) {
+    // Create client, passing the executor, indicating it's managed externally
+    final PubChemApiClient client = new PubChemApiClient(executor, false);
+
+    // 2. Start CID search asynchronously
+    final CompletableFuture<List<String>> cidsFuture = client.findCidsAsync(searchConfig);
+
+    final ObservableList<CompoundData> resultsList = FXCollections.observableArrayList();
+    final Property<TaskStatus> status = new SimpleObjectProperty<>(TaskStatus.PROCESSING);
+    final PubChemSearchResult result = new PubChemSearchResult(status, resultsList);
+
+    // 3. Chain operations: Once CIDs are found, fetch properties for each chunk
+    CompletableFuture<List<CompoundData>> allCompoundsFuture = cidsFuture.thenComposeAsync(cids -> {
+      if (cids.isEmpty()) {
+        LOGGER.info("No CIDs found, skipping property fetch.");
+        client.close();
+        return CompletableFuture.completedFuture(Collections.emptyList());
+      }
+      LOGGER.info("Found " + cids.size() + " CIDs. Fetching properties in chunks...");
+
+      // Create a list of futures, one for each chunk fetch
+      final List<CompletableFuture<List<CompoundData>>> chunkFutures = new ArrayList<>();
+      Lists.partition(cids, PubChemApiClient.DEFAULT_CID_CHUNK_SIZE).forEach(chunk -> {
+        // when the properties are found, already add them to the results
+        final CompletableFuture<List<CompoundData>> chunkAddResultsToList = client.fetchPropertiesForChunkAsync(
+            searchConfig, chunk).whenComplete((compounds, throwable) -> {
+          if (throwable != null) {
+            // Handle errors from CID search or property fetch/parse
+            LOGGER.log(Level.SEVERE,
+                "Asynchronous search failed while fetching compound properties!", throwable);
+            status.setValue(TaskStatus.ERROR);
+            client.close();
+            return;
+          }
+          // in case the list us used in gui
+          FxThread.runLater(() -> resultsList.addAll(compounds));
+        });
+        chunkFutures.add(chunkAddResultsToList);
+      });
+
+      // Combine the results from all chunk futures
+      return combineChunkResults(chunkFutures);
+    }, executor); // Use the executor for composing steps
+
+    // 4. Handle the final result (or errors)
+    allCompoundsFuture.whenCompleteAsync((compoundList, throwable) -> {
+      if (throwable != null) {
+        // Handle errors from CID search or property fetch/parse
+        LOGGER.log(Level.SEVERE, "Asynchronous search failed!", throwable);
+        status.setValue(TaskStatus.ERROR);
+        client.close();
+        return;
+      }
+
+      // Process the final list of compounds
+      LOGGER.info("Asynchronous search completed successfully. Found " + compoundList.size()
+          + " compounds.");
+
+      status.setValue(TaskStatus.FINISHED);
+      client.close();
+      LOGGER.info("Demo finished.");
+    }, executor); // Use executor for the final completion stage too
+
+    LOGGER.info("... Main thread continues while async search runs ...");
+
+    return result;
+  }
+
+  private List<String> findCidsInternal(PubChemSearch config)
+      throws IOException, InterruptedException, PubChemApiException, JSONException {
     LOGGER.fine(
-        () -> "Internal: Initiating CID search for: " + config.getSearchCriteriaDescription());
-    List<String> foundCids =
-        config.isMassSearch() ? performMassCidSearchInternal(config, httpClient)
-            : performFormulaCidSearchInternal(config, httpClient);
-    LOGGER.fine(() -> "Internal: CID search successful. Found " + foundCids.size() + " CIDs.");
+        () -> "Initiating CID search for: " + config.getSearchCriteriaDescription());
+    List<String> foundCids = config.isMassSearch() ? performMassCidSearchInternal(config)
+        : performFormulaCidSearchInternal(config);
+    LOGGER.fine(() -> "CID search successful. Found " + foundCids.size() + " CIDs.");
     return foundCids;
   }
 
-  private static List<String> performFormulaCidSearchInternal(PubChemSearch config,
-      HttpClient httpClient) throws IOException, InterruptedException, PubChemApiException {
+  private List<String> performFormulaCidSearchInternal(PubChemSearch config)
+      throws IOException, InterruptedException, PubChemApiException, JSONException {
     String theFormula = config.formula()
         .orElseThrow(() -> new IllegalStateException("Formula is missing"));
     String encodedFormula = URLEncoder.encode(theFormula, StandardCharsets.UTF_8);
@@ -147,12 +301,13 @@ public final class PubChemApiClient { // Final class, no instances needed
         encodedFormula);
     HttpRequest request = buildGetRequest(initialUrl, config.requestTimeout());
     String pollUrlTemplate = config.baseApiUrl() + "/compound/listkey/%s/cids/JSON";
-    String jsonResponse = executeRequestInternal(config, httpClient, request, pollUrlTemplate);
+    // Pass config for polling parameters
+    String jsonResponse = executeRequestInternal(config, request, pollUrlTemplate);
     return parseCidResponseInternal(jsonResponse);
   }
 
-  private static List<String> performMassCidSearchInternal(PubChemSearch config,
-      HttpClient httpClient) throws IOException, InterruptedException, PubChemApiException {
+  private List<String> performMassCidSearchInternal(PubChemSearch config)
+      throws IOException, InterruptedException, PubChemApiException, JSONException {
     double theMinMass = config.minMass()
         .orElseThrow(() -> new IllegalStateException("Min Mass is missing"));
     double theMaxMass = config.maxMass()
@@ -163,13 +318,226 @@ public final class PubChemApiClient { // Final class, no instances needed
         config.baseApiUrl(), lowerMassStr, upperMassStr);
     HttpRequest request = buildGetRequest(initialUrl, config.requestTimeout());
     String pollUrlTemplate = config.baseApiUrl() + "/compound/listkey/%s/cids/JSON";
-    String jsonResponse = executeRequestInternal(config, httpClient, request, pollUrlTemplate);
+    // Pass config for polling parameters
+    String jsonResponse = executeRequestInternal(config, request, pollUrlTemplate);
     return parseCidResponseInternal(jsonResponse);
   }
 
+  private String performSinglePropertySearchInternal(PubChemSearch config, List<String> cidsChunk)
+      throws IOException, InterruptedException, PubChemApiException {
+    if (cidsChunk == null || cidsChunk.isEmpty()) {
+      return createEmptyPropertyTableJson();
+    }
+
+    String cidString = String.join(",", cidsChunk);
+    String url = String.format("%s/compound/cid/property/%s/JSON", config.baseApiUrl(),
+        config.requestedProperties());
+    String postBody = "cid=" + URLEncoder.encode(cidString, StandardCharsets.UTF_8);
+
+    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url))
+        .timeout(config.requestTimeout())
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .header("Accept", "application/json").POST(HttpRequest.BodyPublishers.ofString(postBody))
+        .build();
+    // Pass config for potential polling (though unlikely for POST)
+    return executeRequestInternal(config, request, null);
+  }
+
+  private HttpRequest buildGetRequest(String url, Duration timeout) {
+    return HttpRequest.newBuilder().uri(URI.create(url)).timeout(timeout)
+        .header("Accept", "application/json").GET().build();
+  }
+
+  private String executeRequestInternal(PubChemSearch config, HttpRequest initialRequest,
+      String pollUrlTemplate)
+      throws IOException, InterruptedException, PubChemApiException, JSONException {
+    // Uses instance httpClient
+    HttpResponse<String> response = sendRequestInternal(initialRequest, config.httpClient());
+    int statusCode = response.statusCode();
+    String responseBody = response.body();
+    if (statusCode == 200 && !isWaitingResponseInternal(responseBody)) {
+      return responseBody;
+    }
+    if ((statusCode == 202 || (statusCode == 200 && isWaitingResponseInternal(responseBody)))
+        && pollUrlTemplate != null) {
+      String listKey = extractListKeyInternal(responseBody);
+      if (listKey == null) {
+        String msg = "PubChem indicated waiting, but no ListKey found. URI: " + initialRequest.uri()
+            + ". Body: " + responseBody;
+        LOGGER.warning(msg);
+        throw new PubChemApiException(msg);
+      }
+      LOGGER.info("PubChem request queued. ListKey: " + listKey + ". Polling initiated...");
+      // Pass config for polling parameters
+      return pollForResultInternal(config, listKey, pollUrlTemplate);
+    }
+    return handleNonSuccessResponseInternal(statusCode, responseBody, initialRequest.uri());
+  }
+
+  private HttpResponse<String> sendRequestInternal(HttpRequest request, HttpClient httpClient)
+      throws IOException, InterruptedException {
+    LOGGER.log(Level.FINER, "Sending {0} request to {1}",
+        new Object[]{request.method(), request.uri()});
+    // Uses instance httpClient
+    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    LOGGER.log(Level.FINER, "Received status {0} from {1}",
+        new Object[]{response.statusCode(), request.uri()});
+    return response;
+  }
+
+  private String handleNonSuccessResponseInternal(int statusCode, String responseBody,
+      URI requestUri) throws PubChemApiException {
+    // Logic is the same, uses static logger
+    String uriStr = requestUri.toString();
+    if (statusCode == 404) {
+      LOGGER.fine(
+          () -> "Received 404 Not Found for " + uriStr + ". Treating as empty result.");
+      if (requestUri.getPath().contains("/cids/JSON") || requestUri.getPath()
+          .contains("/listkey/")) {
+        return "{\"IdentifierList\": {\"CID\": []}}";
+      } else {
+        return createEmptyPropertyTableJson();
+      }
+    } else if (statusCode == 400) {
+      String faultMsg = extractFaultMessageInternal(responseBody);
+      String errorMsg = String.format("PubChem API Bad Request (400) for URL [%s]. Response: %s",
+          uriStr, faultMsg);
+      LOGGER.warning(errorMsg);
+      throw new PubChemApiException(errorMsg);
+    } else if (statusCode == 503 || statusCode == 504) {
+      String errorMsg = String.format(
+          "PubChem service unavailable or timed out (%d) for URL [%s]. Try again later.",
+          statusCode, uriStr);
+      LOGGER.warning(errorMsg);
+      throw new PubChemApiException(errorMsg);
+    } else {
+      String errorMsg = String.format(
+          "PubChem API request failed with status code %d for URL [%s]. Response: %s", statusCode,
+          uriStr, responseBody != null ? responseBody : "(No Body)");
+      LOGGER.warning(errorMsg);
+      throw new PubChemApiException(errorMsg);
+    }
+  }
+
+  // Polling now uses config for timings and instance client
+  private String pollForResultInternal(PubChemSearch config, String listKey, String pollUrlTemplate)
+      throws IOException, InterruptedException, PubChemApiException, JSONException {
+    Instant pollDeadline = Instant.now().plus(config.maxPollTime());
+    String pollUrl = String.format(pollUrlTemplate, listKey);
+
+    while (Instant.now().isBefore(pollDeadline)) {
+      // Use config for poll interval
+      long sleepMillis = config.pollInterval().toMillis();
+      long remainingMillis = Duration.between(Instant.now(), pollDeadline).toMillis();
+      if (remainingMillis <= 0) {
+        break;
+      }
+      if (remainingMillis > sleepMillis) {
+        LOGGER.log(Level.FINEST, "Polling ListKey {0}: Sleeping for {1} ms.",
+            new Object[]{listKey, sleepMillis});
+        TimeUnit.MILLISECONDS.sleep(sleepMillis);
+      } else if (remainingMillis > 50) {
+        LOGGER.log(Level.FINEST,
+            "Polling ListKey {0}: Near deadline, sleeping for remaining {1} ms.",
+            new Object[]{listKey, remainingMillis});
+        TimeUnit.MILLISECONDS.sleep(remainingMillis);
+        if (Instant.now().isAfter(pollDeadline)) {
+          break;
+        }
+      } else {
+        break;
+      }
+
+      // Use config for request timeout
+      HttpRequest pollRequest = buildGetRequest(pollUrl, config.requestTimeout());
+      LOGGER.log(Level.FINE, "Polling ListKey {0}: Requesting {1}",
+          new Object[]{listKey, pollUrl});
+      HttpResponse<String> pollResponse;
+      try {
+        // Uses instance client via sendRequestInternal
+        pollResponse = sendRequestInternal(pollRequest, config.httpClient());
+      } catch (IOException | InterruptedException e) {
+        PubChemApiException wrappedEx = handleExecutionException(
+            "Polling request for ListKey " + listKey, e);
+        LOGGER.log(Level.WARNING, "Polling request failed: " + wrappedEx.getMessage(),
+            wrappedEx.getCause());
+        throw wrappedEx;
+      }
+
+      int pollStatusCode = pollResponse.statusCode();
+      String pollBody = pollResponse.body();
+      // 200 is finished, 202 is waiting
+      if (pollStatusCode == 202 || pollStatusCode == 200) {
+        if (isWaitingResponseInternal(pollBody)) {
+          LOGGER.log(Level.FINE, "... still waiting (ListKey: {0})", listKey);
+          continue;
+        } else {
+          LOGGER.info("Polling successful for ListKey: " + listKey);
+          return pollBody;
+        }
+      } else {
+        try {
+          return handleNonSuccessResponseInternal(pollStatusCode, pollBody, pollRequest.uri());
+        } catch (PubChemApiException e) {
+          throw new PubChemApiException(
+              "Polling failed for ListKey " + listKey + ": " + e.getMessage(), e.getCause());
+        }
+      }
+    }
+    // Use config for max poll time in message
+    String timeoutMsg =
+        "Polling timed out after " + config.maxPollTime() + " for ListKey: " + listKey;
+    LOGGER.warning(timeoutMsg);
+    throw new PubChemApiException(timeoutMsg);
+  }
+
+  // --- Parsing and Utility Methods (Mostly static or use instance mapper) ---
+
+  // Still uses org.json for structure check
+  private static boolean isWaitingResponseInternal(String responseBody) {
+    if (responseBody == null || !responseBody.trim().startsWith("{")) {
+      return false;
+    }
+    try {
+      return new JSONObject(responseBody).has("Waiting");
+    } catch (JSONException e) {
+      return false;
+    }
+  }
+
+  // Still uses org.json
+  private static String extractListKeyInternal(String responseBody) {
+    if (responseBody == null) {
+      return null;
+    }
+    try {
+      JSONObject obj = new JSONObject(responseBody);
+      if (obj.has("Waiting") && !obj.isNull("Waiting")) {
+        return obj.getJSONObject("Waiting").optString("ListKey", null);
+      }
+    } catch (JSONException e) { /* Ignore */ }
+    return null;
+  }
+
+  // Still uses org.json
+  private static String extractFaultMessageInternal(String responseBody) {
+    if (responseBody == null) {
+      return "(No Body)";
+    }
+    try {
+      JSONObject faultJson = new JSONObject(responseBody);
+      if (faultJson.has("Fault")) {
+        JSONObject fault = faultJson.getJSONObject("Fault");
+        String details = fault.optString("Details", "");
+        String message = fault.optString("Message", responseBody);
+        return message + (details.isEmpty() ? "" : " Details: [" + details + "]");
+      }
+    } catch (JSONException e) { /* Ignore */ }
+    return responseBody;
+  }
+
   private static List<String> parseCidResponseInternal(String jsonResponse)
-      throws PubChemApiException {
-    // This parsing logic remains mostly the same as before
+      throws PubChemApiException, JSONException {
     try {
       JSONObject r = new JSONObject(jsonResponse);
       if (r.has("IdentifierList") && !r.isNull("IdentifierList")) {
@@ -177,17 +545,17 @@ public final class PubChemApiClient { // Final class, no instances needed
         if (i.has("CID") && !i.isNull("CID")) {
           JSONArray cA = i.getJSONArray("CID");
           List<String> cs = new ArrayList<>(cA.length());
-            for (int j = 0; j < cA.length(); j++) {
-                cs.add(String.valueOf(cA.opt(j)));
-            }
+          for (int j = 0; j < cA.length(); j++) {
+            cs.add(String.valueOf(cA.opt(j)));
+          }
           cs.removeIf(String::isEmpty);
           return cs;
         }
       }
     } catch (JSONException e) {/* handled below */}
-      if (jsonResponse.equals("{\"IdentifierList\": {\"CID\": []}}")) {
-          return List.of();
-      }
+    if (jsonResponse.equals("{\"IdentifierList\": {\"CID\": []}}")) {
+      return List.of();
+    }
     try {
       JSONObject r = new JSONObject(jsonResponse);
       if (r.has("Fault")) {
@@ -216,360 +584,80 @@ public final class PubChemApiClient { // Final class, no instances needed
     return List.of();
   }
 
-  private static String performChunkedCidPropertySearchInternal(PubChemSearch config,
-      HttpClient httpClient, List<String> cidsToSearch)
-      throws IOException, InterruptedException, PubChemApiException, JSONException {
-
-    if (cidsToSearch == null || cidsToSearch.isEmpty()) {
-      return createEmptyPropertyTableJson();
-    }
-
-    JSONArray allProperties = new JSONArray();
-    int totalSize = cidsToSearch.size();
-    int chunkCount = (int) Math.ceil((double) totalSize / CID_CHUNK_SIZE);
-    LOGGER.fine(() -> "Internal: Starting chunked property fetch for " + totalSize + " CIDs in "
-        + chunkCount + " chunks.");
-
-    for (int i = 0; i < totalSize; i += CID_CHUNK_SIZE) {
-      int fromIndex = i;
-      int toIndex = Math.min(i + CID_CHUNK_SIZE, totalSize);
-      List<String> chunk = cidsToSearch.subList(fromIndex, toIndex);
-      int currentChunkNum = (i / CID_CHUNK_SIZE) + 1;
-
-      LOGGER.log(Level.FINE,
-          "Internal: Processing property fetch chunk {0} of {1} (CIDs {2} to {3})",
-          new Object[]{currentChunkNum, chunkCount, fromIndex + 1, toIndex});
-
-      String chunkJsonResult = performSinglePropertySearchInternal(config, httpClient, chunk);
-
-      try {
-        JSONObject chunkResponse = new JSONObject(chunkJsonResult);
-        if (chunkResponse.has("PropertyTable") && !chunkResponse.isNull("PropertyTable")) {
-          JSONObject propertyTable = chunkResponse.getJSONObject("PropertyTable");
-          if (propertyTable.has("Properties") && !propertyTable.isNull("Properties")) {
-            JSONArray propertiesArray = propertyTable.getJSONArray("Properties");
-            for (int j = 0; j < propertiesArray.length(); j++) {
-              allProperties.put(propertiesArray.getJSONObject(j));
-            }
-            LOGGER.log(Level.FINER, "Internal: Chunk {0}: Added {1} properties.",
-                new Object[]{currentChunkNum, propertiesArray.length()});
-          } else {
-            LOGGER.log(Level.FINER,
-                "Internal: Chunk {0}: No 'Properties' array found in PropertyTable.",
-                currentChunkNum);
-          }
-        } else {
-          if (chunkResponse.has("Fault")) {
-            String faultMsg = extractFaultMessageInternal(chunkJsonResult);
-            throw new PubChemApiException(
-                "PubChem API error during property fetch for chunk " + currentChunkNum + ": "
-                    + faultMsg);
-          } else {
-            LOGGER.log(Level.WARNING,
-                "Internal: Chunk {0}: Response did not contain expected 'PropertyTable'. Body: {1}",
-                new Object[]{currentChunkNum, chunkJsonResult});
-            throw new PubChemApiException(
-                "Unexpected response structure during property fetch for chunk " + currentChunkNum
-                    + ": Missing PropertyTable");
-          }
-        }
-      } catch (JSONException e) {
-        LOGGER.log(Level.SEVERE,
-            "Internal: Failed to parse JSON response for chunk " + currentChunkNum + ". Body: "
-                + chunkJsonResult, e);
-        throw new JSONException(
-            "Failed to parse JSON response for chunk " + currentChunkNum + ": " + e.getMessage());
-      }
-    }
-
-    JSONObject finalRoot = new JSONObject();
-    JSONObject finalPropertyTable = new JSONObject();
-    finalPropertyTable.put("Properties", allProperties);
-    finalRoot.put("PropertyTable", finalPropertyTable);
-
-    LOGGER.log(Level.FINE,
-        "Internal: Finished processing all chunks. Total properties retrieved: {0}",
-        allProperties.length());
-    return finalRoot.toString();
-  }
-
-  private static String performSinglePropertySearchInternal(PubChemSearch config,
-      HttpClient httpClient, List<String> cidsChunk)
-      throws IOException, InterruptedException, PubChemApiException {
-      if (cidsChunk == null || cidsChunk.isEmpty()) {
-          return createEmptyPropertyTableJson();
-      }
-
-    String cidString = String.join(",", cidsChunk);
-    String url = String.format("%s/compound/cid/property/%s/JSON", config.baseApiUrl(),
-        config.requestedProperties());
-    String postBody = "cid=" + URLEncoder.encode(cidString, StandardCharsets.UTF_8);
-
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url))
-        .timeout(config.requestTimeout())
-        .header("Content-Type", "application/x-www-form-urlencoded")
-        .header("Accept", "application/json").POST(HttpRequest.BodyPublishers.ofString(postBody))
-        .build();
-    return executeRequestInternal(config, httpClient, request, null); // No polling expected
-  }
-
-  private static HttpRequest buildGetRequest(String url, Duration timeout) {
-    return HttpRequest.newBuilder().uri(URI.create(url)).timeout(timeout)
-        .header("Accept", "application/json").GET().build();
-  }
-
-  private static String executeRequestInternal(PubChemSearch config, HttpClient httpClient,
-      HttpRequest initialRequest, String pollUrlTemplate)
-      throws IOException, InterruptedException, PubChemApiException {
-    HttpResponse<String> response = sendRequestInternal(httpClient, initialRequest); // Pass client
-    int statusCode = response.statusCode();
-    String responseBody = response.body();
-    if (statusCode == 200 && !isWaitingResponseInternal(responseBody)) {
-      LOGGER.fine(() -> "Internal: Request to " + initialRequest.uri() + " successful (sync).");
-      return responseBody;
-    }
-    if ((statusCode == 202 || (statusCode == 200 && isWaitingResponseInternal(responseBody)))
-        && pollUrlTemplate != null) {
-      String listKey = extractListKeyInternal(responseBody);
-      if (listKey == null) {
-        String msg = "PubChem indicated waiting, but no ListKey found. URI: " + initialRequest.uri()
-            + ". Body: " + responseBody;
-        LOGGER.warning(msg);
-        throw new PubChemApiException(msg);
-      }
-      LOGGER.info("PubChem request queued. ListKey: " + listKey + ". Polling initiated...");
-      return pollForResultInternal(config, httpClient, listKey,
-          pollUrlTemplate); // Pass config and client
-    }
-    return handleNonSuccessResponseInternal(statusCode, responseBody, initialRequest.uri());
-  }
-
-  private static HttpResponse<String> sendRequestInternal(HttpClient httpClient,
-      HttpRequest request) throws IOException, InterruptedException {
-    LOGGER.log(Level.FINER, "Internal: Sending {0} request to {1}",
-        new Object[]{request.method(), request.uri()});
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    LOGGER.log(Level.FINER, "Internal: Received status {0} from {1}",
-        new Object[]{response.statusCode(), request.uri()});
-    return response;
-  }
-
-  private static String handleNonSuccessResponseInternal(int statusCode, String responseBody,
-      URI requestUri) throws PubChemApiException {
-    // Logic remains the same, just ensure logging and exception creation are correct
-    String uriStr = requestUri.toString();
-    if (statusCode == 404) {
-      LOGGER.fine(
-          () -> "Internal: Received 404 Not Found for " + uriStr + ". Treating as empty result.");
-        if (requestUri.getPath().contains("/cids/JSON") || requestUri.getPath()
-            .contains("/listkey/")) {
-            return "{\"IdentifierList\": {\"CID\": []}}";
-        } else {
-            return createEmptyPropertyTableJson();
-        }
-    } else if (statusCode == 400) {
-      String faultMsg = extractFaultMessageInternal(responseBody);
-      String errorMsg = String.format("PubChem API Bad Request (400) for URL [%s]. Response: %s",
-          uriStr, faultMsg);
-      LOGGER.warning(errorMsg);
-      throw new PubChemApiException(errorMsg);
-    } else if (statusCode == 503 || statusCode == 504) {
-      String errorMsg = String.format(
-          "PubChem service unavailable or timed out (%d) for URL [%s]. Try again later.",
-          statusCode, uriStr);
-      LOGGER.warning(errorMsg);
-      throw new PubChemApiException(errorMsg);
-    } else {
-      String errorMsg = String.format(
-          "PubChem API request failed with status code %d for URL [%s]. Response: %s", statusCode,
-          uriStr, responseBody != null ? responseBody : "(No Body)");
-      LOGGER.warning(errorMsg);
-      throw new PubChemApiException(errorMsg);
-    }
-  }
-
-  private static String pollForResultInternal(PubChemSearch config, HttpClient httpClient,
-      String listKey, String pollUrlTemplate)
-      throws IOException, InterruptedException, PubChemApiException {
-    Instant pollDeadline = Instant.now().plus(config.maxPollTime());
-    String pollUrl = String.format(pollUrlTemplate, listKey);
-
-    while (Instant.now().isBefore(pollDeadline)) {
-      long sleepMillis = config.pollInterval().toMillis();
-      long remainingMillis = Duration.between(Instant.now(), pollDeadline).toMillis();
-        if (remainingMillis <= 0) {
-            break;
-        }
-      if (remainingMillis > sleepMillis) {
-        LOGGER.log(Level.FINEST, "Internal: Polling ListKey {0}: Sleeping for {1} ms.",
-            new Object[]{listKey, sleepMillis});
-        TimeUnit.MILLISECONDS.sleep(sleepMillis);
-      } else if (remainingMillis > 50) {
-        LOGGER.log(Level.FINEST,
-            "Internal: Polling ListKey {0}: Near deadline, sleeping for remaining {1} ms.",
-            new Object[]{listKey, remainingMillis});
-        TimeUnit.MILLISECONDS.sleep(remainingMillis);
-          if (Instant.now().isAfter(pollDeadline)) {
-              break;
-          }
-      } else {
-        break;
-      }
-
-      HttpRequest pollRequest = buildGetRequest(pollUrl,
-          config.requestTimeout()); // Use timeout from config
-      LOGGER.log(Level.FINE, "Internal: Polling ListKey {0}: Requesting {1}",
-          new Object[]{listKey, pollUrl});
-      HttpResponse<String> pollResponse;
-      try {
-        pollResponse = sendRequestInternal(httpClient, pollRequest); // Pass client
-      } catch (IOException | InterruptedException e) {
-        PubChemApiException wrappedEx = handleExecutionException(
-            "Polling request for ListKey " + listKey, e);
-        LOGGER.log(Level.WARNING, "Polling request failed: " + wrappedEx.getMessage(),
-            wrappedEx.getCause());
-        throw wrappedEx;
-      }
-
-      int pollStatusCode = pollResponse.statusCode();
-      String pollBody = pollResponse.body();
-      if (pollStatusCode == 200) {
-        if (isWaitingResponseInternal(pollBody)) {
-          LOGGER.log(Level.FINE, "... still waiting (ListKey: {0})", listKey);
-          continue;
-        } else {
-          LOGGER.info("Polling successful for ListKey: " + listKey);
-          return pollBody;
-        }
-      } else {
-        try {
-          return handleNonSuccessResponseInternal(pollStatusCode, pollBody, pollRequest.uri());
-        } catch (PubChemApiException e) {
-          throw new PubChemApiException(
-              "Polling failed for ListKey " + listKey + ": " + e.getMessage(), e.getCause());
-        }
-      }
-    }
-    String timeoutMsg =
-        "Polling timed out after " + config.maxPollTime() + " for ListKey: " + listKey;
-    LOGGER.warning(timeoutMsg);
-    throw new PubChemApiException(timeoutMsg);
-  }
-
-  private static boolean isWaitingResponseInternal(String responseBody) {
-      if (responseBody == null || !responseBody.trim().startsWith("{")) {
-          return false;
-      }
-    try {
-      return new JSONObject(responseBody).has("Waiting");
-    } catch (JSONException e) {
-      return false;
-    }
-  }
-
-  private static String extractListKeyInternal(String responseBody) {
-      if (responseBody == null) {
-          return null;
-      }
-    try {
-      JSONObject obj = new JSONObject(responseBody);
-        if (obj.has("Waiting") && !obj.isNull("Waiting")) {
-            return obj.getJSONObject("Waiting").optString("ListKey", null);
-        }
-    } catch (JSONException e) { /* Ignore */ }
-    return null;
-  }
-
-  private static String extractFaultMessageInternal(String responseBody) { /* ... no changes ... */
-      if (responseBody == null) {
-          return "(No Body)";
-      }
-    try {
-      JSONObject faultJson = new JSONObject(responseBody);
-      if (faultJson.has("Fault")) {
-        JSONObject fault = faultJson.getJSONObject("Fault");
-        String details = fault.optString("Details", "");
-        String message = fault.optString("Message", responseBody);
-        return message + (details.isEmpty() ? "" : " Details: [" + details + "]");
-      }
-    } catch (JSONException e) { /* Ignore */ }
-    return responseBody;
-  }
-
+  // Static helper
   private static String createEmptyPropertyTableJson() {
     return "{\"PropertyTable\": {\"Properties\": []}}";
   }
 
-  private static PubChemApiException handleExecutionException(String context, Exception e) {
-    // Logic remains the same, just ensure logging and exception creation are correct
-      if (e instanceof PubChemApiException) {
-          return (PubChemApiException) e;
-      } else if (e instanceof IOException) {
-          return new PubChemApiException("Network error during " + context + ": " + e.getMessage(),
-              e);
-      } else if (e instanceof InterruptedException) {
-          Thread.currentThread().interrupt();
-          return new PubChemApiException("Operation interrupted during " + context, e);
-      } else if (e instanceof JSONException) {
-          LOGGER.log(Level.SEVERE, "JSON processing error during " + context, e);
-          return new PubChemApiException("JSON processing error during " + context + ": " + e.getMessage(), e);
-      } else {
-          LOGGER.log(Level.SEVERE, "Unexpected error during " + context, e);
-          return new PubChemApiException("Unexpected error during " + context + ": " + e.getMessage(),
-              e);
-      }
-  }
+  // Uses instance jsonMapper
+  private List<CompoundData> parsePropertiesJsonWithJackson(String jsonResult) throws IOException {
 
-  // --- JSON Parsing to CompoundData ---
-  private static List<CompoundData> parsePropertiesJson(String jsonResult) throws JSONException {
-    List<CompoundData> compounds = new ArrayList<>();
-    JSONObject root = new JSONObject(jsonResult);
-
-    if (!root.has("PropertyTable") || root.isNull("PropertyTable")) {
-      LOGGER.warning("Final JSON result missing 'PropertyTable'.");
+    if (jsonResult == null || jsonResult.isBlank() || jsonResult.equals(
+        createEmptyPropertyTableJson())) {
       return Collections.emptyList();
     }
-    JSONObject propertyTable = root.getJSONObject("PropertyTable");
 
-    if (!propertyTable.has("Properties") || propertyTable.isNull("Properties")) {
-      LOGGER.warning("PropertyTable missing 'Properties' array.");
+    JsonNode rootNode = this.jsonMapper.readTree(jsonResult);
+    JsonNode propertiesNode = rootNode.path("PropertyTable").path("Properties");
+
+    if (propertiesNode.isMissingNode() || !propertiesNode.isArray()) {
+      LOGGER.warning("Could not find 'PropertyTable.Properties' array in JSON response.");
+      JsonNode faultNode = rootNode.path("Fault");
+      if (!faultNode.isMissingNode()) {
+        String faultMsg = extractFaultMessageInternal(jsonResult);
+        LOGGER.warning("Received fault message instead of properties: " + faultMsg);
+      }
       return Collections.emptyList();
     }
-    JSONArray propertiesArray = propertyTable.getJSONArray("Properties");
 
-    for (int i = 0; i < propertiesArray.length(); i++) {
-      JSONObject propObj = propertiesArray.getJSONObject(i);
-
-      // Extract fields safely using opt methods
-      int cid = propObj.optInt("CID",
-          -1); // Assuming CID is always present, use -1 as sentinel if not
-      if (cid == -1) {
-        LOGGER.warning("Skipping property object with missing CID: " + propObj);
-        continue; // Skip entries without a CID
-      }
-
-      Optional<String> formula = Optional.ofNullable(propObj.optString("MolecularFormula", null));
-      Optional<String> smiles = Optional.ofNullable(propObj.optString("CanonicalSMILES", null));
-      Optional<String> inchi = Optional.ofNullable(propObj.optString("InChI", null));
-      Optional<String> inchiKey = Optional.ofNullable(propObj.optString("InChIKey", null));
-      Optional<String> iupac = Optional.ofNullable(propObj.optString("IUPACName", null));
-      Optional<String> title = Optional.ofNullable(propObj.optString("Title", null));
-
-      // OptionalInt/Double require checking if the key exists before getting
-      OptionalInt charge =
-          propObj.has("Charge") ? OptionalInt.of(propObj.getInt("Charge")) : OptionalInt.empty();
-      OptionalDouble mass =
-          propObj.has("MonoisotopicMass") ? OptionalDouble.of(propObj.getDouble("MonoisotopicMass"))
-              : OptionalDouble.empty();
-
-      compounds.add(
-          new CompoundData(cid, formula, smiles, inchi, inchiKey, iupac, title, charge, mass));
-    }
-
+    List<CompoundData> compounds = this.jsonMapper.readerForListOf(CompoundData.class)
+        .readValue(propertiesNode);
+    compounds.removeIf(Objects::isNull);
     return compounds;
   }
 
-  // Nested Exception Class (can remain here or be top-level)
+  // Static exception helper
+  private static PubChemApiException handleExecutionException(String context, Exception e) {
+    // Check order matters: JsonProcessingException is an IOException
+    if (e instanceof PubChemApiException) {
+      return (PubChemApiException) e;
+    } else if (e instanceof JsonProcessingException) {
+      LOGGER.log(Level.SEVERE, "Jackson JSON processing error during " + context, e);
+      return new PubChemApiException(
+          "Jackson JSON processing error during " + context + ": " + e.getMessage(), e);
+    } else if (e instanceof IOException) {
+      return new PubChemApiException("Network error during " + context + ": " + e.getMessage(), e);
+    } else if (e instanceof InterruptedException) {
+      Thread.currentThread().interrupt();
+      return new PubChemApiException("Operation interrupted during " + context, e);
+    } else if (e instanceof JSONException) {
+      LOGGER.log(Level.SEVERE, "org.json processing error during " + context, e);
+      return new PubChemApiException(
+          "org.json processing error during " + context + ": " + e.getMessage(), e);
+    }
+    // Catch CompletionException specifically if wrapping occurred earlier
+    else if (e instanceof CompletionException && e.getCause() != null) {
+      // Try to handle the cause
+      if (e.getCause() instanceof PubChemApiException) {
+        return (PubChemApiException) e.getCause();
+      }
+      if (e.getCause() instanceof IOException) {
+        return new PubChemApiException(
+            "Network error during " + context + ": " + e.getCause().getMessage(), e.getCause());
+      }
+      // ... add other specific cause checks if needed
+      LOGGER.log(Level.SEVERE,
+          "Unexpected error during " + context + " (wrapped in CompletionException)", e.getCause());
+      return new PubChemApiException(
+          "Unexpected error during " + context + ": " + e.getCause().getMessage(), e.getCause());
+    } else {
+      LOGGER.log(Level.SEVERE, "Unexpected error during " + context, e);
+      return new PubChemApiException("Unexpected error during " + context + ": " + e.getMessage(),
+          e);
+    }
+  }
+
+  // --- Nested Exception Class ---
   public static class PubChemApiException extends Exception {
 
     public PubChemApiException(String message) {
@@ -579,5 +667,23 @@ public final class PubChemApiClient { // Final class, no instances needed
     public PubChemApiException(String message, Throwable cause) {
       super(message, cause);
     }
+  }
+
+  /**
+   * Helper method to combine results from multiple CompletableFutures, each returning a List.
+   */
+  private static <T> CompletableFuture<List<T>> combineChunkResults(
+      List<CompletableFuture<List<T>>> futures) {
+    // Create a future that completes when all individual chunk futures complete
+    CompletableFuture<Void> allDoneFuture = CompletableFuture.allOf(
+        futures.toArray(new CompletableFuture[0]));
+
+    // When all are done, collect the results from each future
+    return allDoneFuture.thenApply(v -> // 'v' is void here
+        futures.stream().map(
+                CompletableFuture::join) // Get result from each completed future (join is safe here as allDoneFuture guarantees completion)
+            .flatMap(List::stream)       // Flatten the List<List<T>> into a single Stream<T>
+            .collect(Collectors.toList()) // Collect into the final List<T>
+    );
   }
 }
