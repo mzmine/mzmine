@@ -77,8 +77,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
   private double minIntensity, mergeWidth, minIsotopePatternScore;
   private int charge, minSize, minC, maxC;
   private String element;
-  private String [] elements;
-  private boolean autoCarbon;
+  private String[] elements;
 
   private EChartViewer pnlChart;
   private JFreeChart chart;
@@ -101,7 +100,6 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
   private IntegerParameter pMinC, pMaxC, pMinSize, pCharge;
   private StringParameter pElement;
   private DoubleParameter pMinIntensity, pMergeWidth, pminIsotopePatternScore;
-  private OptionalModuleParameter pAutoCarbon;
 
   private ExtendedIsotopePatternDataSet dataset;
   private SpectraToolTipGenerator ttGen;
@@ -113,7 +111,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
   @Override
   protected void showPreview(boolean show) {
     super.showPreview(show);
-    if(show) {
+    if (show) {
       updatePreview();
     }
   }
@@ -135,10 +133,6 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     pnlPreview.setCenter(pnlChart);
 
     // get components
-    cmpAutoCarbon = (OptionalModuleComponent) this
-        .getComponentForParameter(IsotopePeakScannerParameters.autoCarbonOpt);
-    cmpAutoCarbonCbx = cmpAutoCarbon.getCheckbox();
-
     previewWrapperPane.setCenter(pnlPreview);
 
     // get parameters
@@ -146,12 +140,11 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     pMinIntensity = parameterSet.getParameter(IsotopePeakScannerParameters.minPatternIntensity);
     pCharge = parameterSet.getParameter(IsotopePeakScannerParameters.charge);
     pMergeWidth = parameterSet.getParameter(IsotopePeakScannerParameters.mergeWidth);
-    pAutoCarbon = parameterSet.getParameter(IsotopePeakScannerParameters.autoCarbonOpt);
-    autoCarbonParameters = pAutoCarbon.getEmbeddedParameters();
     pMinC = autoCarbonParameters.getParameter(AutoCarbonParameters.minCarbon);
     pMaxC = autoCarbonParameters.getParameter(AutoCarbonParameters.maxCarbon);
     pMinSize = autoCarbonParameters.getParameter(AutoCarbonParameters.minPatternSize);
-    pminIsotopePatternScore = parameterSet.getParameter(IsotopePeakScannerParameters.minIsotopePatternScore);
+    pminIsotopePatternScore = parameterSet.getParameter(
+        IsotopePeakScannerParameters.minIsotopePatternScore);
 
     // set up gui
     /*
@@ -222,15 +215,15 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
       return;
     }
 
-    SimpleIsotopePattern [] patterns = calculateIsotopePattern();
-    if (patterns== null) {
+    SimpleIsotopePattern[] patterns = calculateIsotopePattern();
+    if (patterns == null) {
       logger.warning("Could not calculate isotope pattern. Please check the parameters.");
       return;
     }
     updateChart(patterns);
   }
 
-  private void updateChart(SimpleIsotopePattern [] patterns) {
+  private void updateChart(SimpleIsotopePattern[] patterns) {
     dataset = new ExtendedIsotopePatternDataSet(patterns, minIntensity, mergeWidth);
     chart.getXYPlot().setDataset(dataset);
 
@@ -240,7 +233,6 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
 
   private boolean updateParameters() {
     updateParameterSetFromComponents();
-    autoCarbon = pAutoCarbon.getValue();
 
     if (!checkParameters()) {
       logger.info("updateParameters() failed due to invalid input.");
@@ -258,38 +250,12 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     minIsotopePatternScore = pminIsotopePatternScore.getValue();
     charge = pCharge.getValue();
 
-    if (autoCarbon) {
-      updateAutoCarbonParameters();
-    }
     return true;
   }
 
-  private void updateAutoCarbonParameters() {
-    minC = pMinC.getValue();
-    maxC = pMaxC.getValue();
-    minSize = pMinSize.getValue();
-
-    // form.setMaximum(maxC);
-    // form.setMinimum(minC);
-
-    if (txtCurrentPatternIndex.getText().equals("")) // if the user did
-    // stuff we dont allow
-    {
-      txtCurrentPatternIndex.setText(String.valueOf((minC + maxC) / 2));
-    }
-    if (Integer.parseInt(txtCurrentPatternIndex.getText()) > maxC) {
-      txtCurrentPatternIndex.setText(String.valueOf(maxC));
-    }
-    if (Integer.parseInt(txtCurrentPatternIndex.getText()) < minC) {
-      txtCurrentPatternIndex.setText(String.valueOf(minC));
-    }
-  }
-
   private boolean checkParameters() {
-    if (/* pElement.getValue().equals("") */pElement.getValue() == null || (
-        pElement.getValue().equals("") && !autoCarbon) || pElement.getValue().contains(" ")){
-//        || !FormulaUtils.checkMolecularFormula(pElement.getValue())) {
-      logger.info("Invalid input or Element == \"\" and no autoCarbon or invalid formula.");
+    if (pElement.getValue() == null ||  pElement.getValue().equals("")) {
+      logger.info("Invalid input or Element or invalid formula.");
       return false;
     }
     if (pMinIntensity.getValue() == null || pMinIntensity.getValue() > 1.0d
@@ -315,7 +281,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     return true;
   }
 
-  private SimpleIsotopePattern [] calculateIsotopePattern() {
+  private SimpleIsotopePattern[] calculateIsotopePattern() {
     if (!checkParameters()) {
       return null;
     }
@@ -324,12 +290,6 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     for (String element : elements) {
       String strPattern = "";
       int currentCarbonPattern = Integer.parseInt(txtCurrentPatternIndex.getText());
-
-      if (autoCarbon) {
-        strPattern = "C" + String.valueOf(currentCarbonPattern) + element;
-      } else {
-        strPattern = element;
-      }
 
       if (strPattern.equals("")) {
         return null;
@@ -341,7 +301,8 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
       charge = (charge > 0) ? charge : charge * -1;
       try {
         // *0.2 so the user can see the peaks below the threshold
-        pattern = (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(strPattern, minIntensity * 0.1, mergeWidth, charge, pol, true);
+        pattern = (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(
+            strPattern, minIntensity * 0.1, mergeWidth, charge, pol, true);
       } catch (Exception e) {
         logger.warning("The entered Sum formula is invalid.");
         return null;

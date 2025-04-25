@@ -36,21 +36,20 @@ import java.util.Map;
 
 public class MajorIsotopeIdentifier {
 
-  Map<Integer, Double> resultingScores = new HashMap<>();
-  List<FeatureListRow> rowsWithBestIPs = new ArrayList <>();
-  Map<Integer, IsotopePattern> resultingIsotopePattern = new HashMap<>();
-  PeakListHandler resultMapOfIsotopes = new PeakListHandler();
-  PeakListHandler resultMapOfMajorIsotopesWithBestScores = new PeakListHandler();
+  private final Map<Integer, Double> resultingScores = new HashMap<>();
+  private final List<FeatureListRow> rowsWithBestIPs = new ArrayList<>();
+  private final Map<Integer, IsotopePattern> resultingIsotopePattern = new HashMap<>();
+  private final PeakListHandler resultMapOfIsotopes = new PeakListHandler();
+  private final PeakListHandler resultMapOfMajorIsotopesWithBestScores = new PeakListHandler();
 
-
-  public void findMajorIsotopes (List<FeatureListRow> rowsWithIPs, Map<Integer,
-      Double> scores, Map<Integer, IsotopePattern> detectedIsotopePattern, RTTolerance rtTolerance,
+  public void findMajorIsotopes(List<FeatureListRow> rowsWithIPs, Map<Integer, Double> scores,
+      Map<Integer, IsotopePattern> detectedIsotopePattern, RTTolerance rtTolerance,
       MobilityTolerance mobTolerance, Boolean resolvedMobility) {
     for (FeatureListRow candidate : rowsWithIPs) {
 
-        boolean bestScore = checkIfRowHasTheHighestIPSimilarityScore(rowsWithIPs, candidate, scores,
-            detectedIsotopePattern.get(candidate.getID()).getDataPointMZRange(), rtTolerance,
-            mobTolerance, detectedIsotopePattern, resolvedMobility);
+      boolean bestScore = checkIfRowHasTheHighestIPSimilarityScore(rowsWithIPs, candidate, scores,
+          detectedIsotopePattern.get(candidate.getID()).getDataPointMZRange(), rtTolerance,
+          mobTolerance, detectedIsotopePattern, resolvedMobility);
       double candidateScore = scores.get(candidate.getID());
       if (bestScore) {
         if (resultMapOfIsotopes.containsID(candidate.getID())
@@ -66,12 +65,12 @@ public class MajorIsotopeIdentifier {
     }
   }
 
-  public void findAllIsotopes (List<FeatureListRow> rowsWithIPs, Map<Integer,
-      Double> scores, Map<Integer, IsotopePattern> detectedIsotopePattern) {
+  public void findAllIsotopes(List<FeatureListRow> rowsWithIPs, Map<Integer, Double> scores,
+      Map<Integer, IsotopePattern> detectedIsotopePattern) {
     for (FeatureListRow candidate : rowsWithIPs) {
 
-      if (resultMapOfIsotopes.containsID(candidate.getID()) &&
-          resultingScores.get(candidate.getID()) > scores.get(candidate.getID())) {
+      if (resultMapOfIsotopes.containsID(candidate.getID())
+          && resultingScores.get(candidate.getID()) > scores.get(candidate.getID())) {
         continue;
       }
       resultMapOfIsotopes.addRow(candidate);
@@ -82,15 +81,17 @@ public class MajorIsotopeIdentifier {
   }
 
 
-  public void findMajorIsotopesWithBestScores (RTTolerance rtTolerance,
-      MobilityTolerance mobTolerance, Boolean resolvedMobility){
+  public void findMajorIsotopesWithBestScores(RTTolerance rtTolerance,
+      MobilityTolerance mobTolerance, Boolean resolvedMobility) {
     for (FeatureListRow candidate : rowsWithBestIPs) {
 
-          boolean bestScoreOfAllIPs = checkIfRowHasTheHighestIPSimilarityScore(rowsWithBestIPs,
-          candidate,resultingScores,resultingIsotopePattern.get(candidate.getID()).getDataPointMZRange(),
-          rtTolerance,mobTolerance, resultingIsotopePattern, resolvedMobility );
+      boolean bestScoreOfAllIPs = checkIfRowHasTheHighestIPSimilarityScore(rowsWithBestIPs,
+          candidate, resultingScores,
+          resultingIsotopePattern.get(candidate.getID()).getDataPointMZRange(), rtTolerance,
+          mobTolerance, resultingIsotopePattern, resolvedMobility);
       if (bestScoreOfAllIPs) {
-        candidate.getBestFeature().setIsotopePattern(resultingIsotopePattern.get(candidate.getID()));
+        candidate.getBestFeature()
+            .setIsotopePattern(resultingIsotopePattern.get(candidate.getID()));
         resultMapOfMajorIsotopesWithBestScores.addRow(candidate);
       }
     }
@@ -98,10 +99,10 @@ public class MajorIsotopeIdentifier {
 
   // Comparing the scores of all features within the RT range and MZ range of the candidate feature's IsotopePattern
 // with the candidate's isotope pattern score, if the candidate has the highest score the value becomes true
-  public Boolean checkIfRowHasTheHighestIPSimilarityScore(List <FeatureListRow> rows,
-      FeatureListRow candidate, Map <Integer, Double> scores, Range<Double> DataPointMZRange,
-      RTTolerance rtTolerance, MobilityTolerance mobTolerance, Map<Integer,
-      IsotopePattern> resultingIsotopePattern,Boolean resolvedMobility) {
+  public Boolean checkIfRowHasTheHighestIPSimilarityScore(List<FeatureListRow> rows,
+      FeatureListRow candidate, Map<Integer, Double> scores, Range<Double> DataPointMZRange,
+      RTTolerance rtTolerance, MobilityTolerance mobTolerance,
+      Map<Integer, IsotopePattern> resultingIsotopePattern, Boolean resolvedMobility) {
     for (FeatureListRow row : rows) {
 
       Range<Double> MZRangeOfRow = resultingIsotopePattern.get(row.getID()).getDataPointMZRange();
@@ -111,23 +112,24 @@ public class MajorIsotopeIdentifier {
       //the same mass ranges of the detected  isotope patterns are compared and the features with the
       // highest scores within these mass ranges is selected to consider possible co-elutions
 
-      if (resolvedMobility
-          && rtTolerance.checkWithinTolerance(row.getAverageRT(), candidate.getAverageRT())
-          && checkMobility(mobTolerance, candidate, row)) {
+      if (resolvedMobility && rtTolerance.checkWithinTolerance(row.getAverageRT(),
+          candidate.getAverageRT()) && checkMobility(mobTolerance, candidate, row)) {
+        if (scores.get(row.getID()) > (scores.get(candidate.getID()) + 0.01)) {
+          return false;
+        }
+      } else if (!resolvedMobility
+          || candidate.getAverageMobility() == null && rtTolerance.checkWithinTolerance(
+          row.getAverageRT(), candidate.getAverageRT()) && (
+          DataPointMZRange.contains(row.getAverageMZ()) || MZRangeOfRow.contains(
+              candidate.getAverageMZ()))) {
+
         if (scores.get(row.getID()) > (scores.get(candidate.getID()) + 0.01)) {
           return false;
         }
       }
-      else if (!resolvedMobility ||candidate.getAverageMobility() == null
-          &&rtTolerance.checkWithinTolerance(row.getAverageRT(), candidate.getAverageRT())
-          && (DataPointMZRange.contains(row.getAverageMZ())|| MZRangeOfRow.contains(candidate.getAverageMZ()))) {
 
-          if (scores.get(row.getID()) > (scores.get(candidate.getID()) + 0.01)) {
-            return false;
-          }
-        }
-
-    }return true;
+    }
+    return true;
   }
 
 
@@ -140,5 +142,23 @@ public class MajorIsotopeIdentifier {
       return false;
     }
   }
+  public Map<Integer, IsotopePattern> getResultingIsotopePattern() {
+    return resultingIsotopePattern;
+  }
 
+  public Map<Integer, Double> getResultingScores() {
+    return resultingScores;
+  }
+
+  public List<FeatureListRow> getRowsWithBestIPs() {
+    return rowsWithBestIPs;
+  }
+
+  public PeakListHandler getResultMapOfIsotopes() {
+    return resultMapOfIsotopes;
+  }
+
+  public PeakListHandler getResultMapOfMajorIsotopesWithBestScores() {
+    return resultMapOfMajorIsotopesWithBestScores;
+  }
 }

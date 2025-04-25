@@ -64,7 +64,7 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
   private FeatureList peakList;
   private MZTolerance mzTolerance;
   private MobilityTolerance mobTolerance;
-  private io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance rtTolerance;
+  private RTTolerance rtTolerance;
   private double minPatternIntensity;
   private String patternFormulas, suffix;
   private int charge;
@@ -122,17 +122,17 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
               peakList).toString() + "!=" + polarityType.toString());
     }
 
-    ObservableList<FeatureListRow> rows = peakList.getRows();
-    PeakListHandler featureMap = new PeakListHandler();
-    Map<Integer, IsotopePattern> detectedIsotopePattern = new HashMap<>();
-    List<FeatureListRow> rowsWithIPs = new ArrayList<>();
-    Map<Integer, Double> scores = new HashMap<>();
-    PeakListHandler finalMap;
-    IsotopePatternCalculator ipCalculator = new IsotopePatternCalculator(minPatternIntensity,
+    final ObservableList<FeatureListRow> rows = peakList.getRows();
+    final PeakListHandler featureMap = new PeakListHandler();
+    final Map<Integer, IsotopePattern> detectedIsotopePattern = new HashMap<>();
+    final List<FeatureListRow> rowsWithIPs = new ArrayList<>();
+    final Map<Integer, Double> rowIdToScore = new HashMap<>();
+    final PeakListHandler finalMap;
+    final IsotopePatternCalculator ipCalculator = new IsotopePatternCalculator(minPatternIntensity,
         mzTolerance);
-    IsotopePeakFinder isotopePeakFinder = new IsotopePeakFinder();
-    IsotopePatternScoring scoring = new IsotopePatternScoring();
-    MajorIsotopeIdentifier majorIsotopeIdentifier = new MajorIsotopeIdentifier();
+    final IsotopePeakFinder isotopePeakFinder = new IsotopePeakFinder();
+    final IsotopePatternScoring scoring = new IsotopePatternScoring();
+    final MajorIsotopeIdentifier majorIsotopeIdentifier = new MajorIsotopeIdentifier();
 
     for (FeatureListRow row : rows) {
       featureMap.addRow(row);
@@ -147,13 +147,8 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     for (int i = 0; i < charges.length; i++) {
       charges[i] = i + 1;
     }
-//    if (element.contains(",")) {
-//      elements = element.split(",");
-//    } else {
-//      elements = new String[1];
-//      elements[0] = element;
-//    }
-    String[] formulas = patternFormulas.split(",");
+    final String[] formulas = Arrays.stream(patternFormulas.split(",")).map(String::trim)
+        .toArray(String[]::new);
 
     for (String formula : formulas) {
       for (int charge : charges) {
@@ -161,20 +156,20 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
         for (FeatureListRow row : rows) {
 
           final IsotopePattern calculatedPattern = ipCalculator.calculateIsotopePattern(row,
-              formula.trim(), charge);
+              formula, charge);
           final IsotopePattern detectedPattern = isotopePeakFinder.detectedIsotopePattern(peakList,
               row, calculatedPattern, mzTolerance, minHeight, resolvedByMobility, charge);
           final double score = scoring.calculateIsotopeScore(detectedPattern, calculatedPattern,
               mzTolerance, minHeight);
 
           if (score >= minIsotopePatternScore) {
-            if (scores.get(row.getID()) != null && scores.get(row.getID()) > score) {
+            if (rowIdToScore.get(row.getID()) != null && rowIdToScore.get(row.getID()) > score) {
               continue;
             }
             detectedIsotopePattern.put(row.getID(), detectedPattern);
             row.getBestFeature().setCharge(charge);
             rowsWithIPs.add(row);
-            scores.put(row.getID(), score);
+            rowIdToScore.put(row.getID(), score);
           }
         }
       }
@@ -183,23 +178,23 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
       //A tolerance range of 0.01 was applied to avoid excluding isotopic patterns with very similar score values.
 
       if (onlyMonoisotopic) {
-        majorIsotopeIdentifier.findMajorIsotopes(rowsWithIPs, scores, detectedIsotopePattern,
+        majorIsotopeIdentifier.findMajorIsotopes(rowsWithIPs, rowIdToScore, detectedIsotopePattern,
             rtTolerance, mobTolerance, resolvedByMobility);
       } else {
-        majorIsotopeIdentifier.findAllIsotopes(rowsWithIPs, scores, detectedIsotopePattern);
+        majorIsotopeIdentifier.findAllIsotopes(rowsWithIPs, rowIdToScore, detectedIsotopePattern);
       }
       rowsWithIPs.clear();
       detectedIsotopePattern.clear();
-      scores.clear();
+      rowIdToScore.clear();
     }
 
     // Reduction of features to those with the best similarity values of all considered element combinations.
     if (bestScores) {
       majorIsotopeIdentifier.findMajorIsotopesWithBestScores(rtTolerance, mobTolerance,
           resolvedByMobility);
-      finalMap = majorIsotopeIdentifier.resultMapOfMajorIsotopesWithBestScores;
+      finalMap = majorIsotopeIdentifier.getResultMapOfMajorIsotopesWithBestScores();
     } else {
-      finalMap = majorIsotopeIdentifier.resultMapOfIsotopes;
+      finalMap = majorIsotopeIdentifier.getResultMapOfIsotopes();
     }
 
     resultPeakList = finalMap.generateResultPeakList(majorIsotopeIdentifier, resultPeakList);
@@ -249,26 +244,7 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
 
   private boolean checkParameters() {
     if (charge == 0) {
-      setErrorMessage("Error: charge may not be 0!");
-      setStatus(TaskStatus.ERROR);
-      return false;
-    }
-
-    RawDataFile[] raws = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
-    boolean foundMassList = false;
-    for (RawDataFile raw : raws) {
-      ObservableList<Scan> scanNumbers = raw.getScans();
-      for (Scan scan : scanNumbers) {
-        MassList massList = scan.getMassList();
-        if (massList != null) {
-          foundMassList = true;
-          break;
-        }
-      }
-    }
-    if (foundMassList == false) {
-      setErrorMessage("Feature list \"" + peakList.getName() + "\" does not contain a mass list");
-      setStatus(TaskStatus.ERROR);
+      error("Error: charge may not be 0!");
       return false;
     }
 
