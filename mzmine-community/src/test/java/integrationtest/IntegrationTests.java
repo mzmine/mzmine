@@ -190,7 +190,9 @@ public class IntegrationTests {
     }
 
     IntegrationTest.builder("rawdatafiles/integration_tests/isotopepeakscanner",
-        "enhanced_peak_scanner.mzbatch").tempDir(tempDir).build().runBatchGetCheckResults(
-        "rawdatafiles/integration_tests/isotopepeakscanner/expected_results.csv");
+            "enhanced_peak_scanner.mzbatch").tempDir(tempDir)
+        .rawFilesAbsPath("F:\\Testdaten\\230328_GdMix1_10um_RA5_1_3881.d").build()
+        .runBatchGetCheckResults(
+            "rawdatafiles/integration_tests/isotopepeakscanner/expected_results.csv");
   }
 }
