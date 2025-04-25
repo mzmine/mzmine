@@ -33,10 +33,8 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import java.util.Map;
 
@@ -46,8 +44,8 @@ public class IsotopePatternMatcherParameters extends SimpleParameterSet {
   public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter(
       "Isotope m/z tolerance",
       "Maximum allowed difference between two m/z values to be considered same.\\n"
-          + "            + \"The value is specified both as absolute tolerance (in m/z) and relative tolerance (in ppm).\\n"
-          + "            + \"The tolerance range is calculated using maximum of the absolute and relative tolerances.",
+      + "            + \"The value is specified both as absolute tolerance (in m/z) and relative tolerance (in ppm).\\n"
+      + "            + \"The tolerance range is calculated using maximum of the absolute and relative tolerances.",
       0.005, 10);
   public static final RTToleranceParameter isotopeRtTolerance = new RTToleranceParameter(
       "Isotope rt tolerance",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
+import static io.github.mzmine.util.IonMobilityUtils.getMobilityFWHM;
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
@@ -47,7 +50,6 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
@@ -59,13 +61,11 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.IsotopesUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.SpectraMerging;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
@@ -188,10 +188,9 @@ class IsotopeFinderTask extends AbstractTask {
         }
 
         double mz = feature.getMZ();
-        if (mergedMobilityScans){
-          scan = findBestScanOrMergedMobilityScan(scans, Objects.requireNonNull(feature), isoMzTolerance);
-        }
-        else {
+        if (mergedMobilityScans) {
+          scan = findBestScanOrMergedMobilityScan(scans, feature, isoMzTolerance);
+        } else {
           scan = findBestScanOrMobilityScan(scans, mobScans, feature);
         }
 
@@ -216,8 +215,9 @@ class IsotopeFinderTask extends AbstractTask {
           }
 
           if (candidates.size() > 1) { // feature itself is always in cadidates
-            IsotopePattern newPattern = new SimpleIsotopePattern(candidates.toArray(new DataPoint[0]),
-                charge, IsotopePatternStatus.DETECTED, IsotopeFinderModule.MODULE_NAME);
+            IsotopePattern newPattern = new SimpleIsotopePattern(
+                candidates.toArray(new DataPoint[0]), charge, IsotopePatternStatus.DETECTED,
+                IsotopeFinderModule.MODULE_NAME);
             if (pattern == null) {
               pattern = newPattern;
             } else if (pattern instanceof SimpleIsotopePattern) {
@@ -251,7 +251,8 @@ class IsotopeFinderTask extends AbstractTask {
           Float mobility = feature.getMobility();
           MobilityType mobilityType = feature.getMobilityUnit();
           if (data instanceof IMSRawDataFile imsfile) {
-            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0 && mobilityType != null) {
+            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0
+                && mobilityType != null) {
               Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, bestCharge, imsfile);
               if (ccs != null) {
                 feature.setCCS(ccs);
@@ -298,7 +299,7 @@ class IsotopeFinderTask extends AbstractTask {
         processedRows++;
       }
     } catch (Exception ex) {
-      logger.log(Level.WARNING, "Error in isotope finder "+ ex.getMessage(), ex);
+      logger.log(Level.WARNING, "Error in isotope finder " + ex.getMessage(), ex);
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -344,50 +345,40 @@ class IsotopeFinderTask extends AbstractTask {
   }
 
   @NotNull
-  private Scan findBestScanOrMobilityScan(ScanDataAccess scans, MobilityScanDataAccess mobScans,
-      Feature feature) {
+  private Scan findBestScanOrMobilityScan(ScanDataAccess scans,
+      @Nullable MobilityScanDataAccess mobScans, Feature feature) {
 
+    boolean mobility = feature.getMobility() != null;
+    if (mobility && mobScans != null) {
+      MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(feature);
+      if (bestMobilityScan != null) {
+        mobScans.jumpToMobilityScan(bestMobilityScan);
+        return mobScans;
+      }
+    }
     Scan maxScan = feature.getRepresentativeScan();
     int scanIndex = scans.indexOf(maxScan);
     scans.jumpToIndex(scanIndex);
 
-    boolean mobility = feature.getMobility() != null;
-    MobilityScan mobilityScan = null;
-    if (mobility && mobScans != null) {
-      MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(feature);
-      if (bestMobilityScan != null) {
-        mobilityScan = mobScans.jumpToMobilityScan(bestMobilityScan);
-      }
-    }
-
-    return mobilityScan != null ? mobScans : scans;
+    return scans;
   }
 
-  private Scan findBestScanOrMergedMobilityScan(ScanDataAccess scans,
-      Feature feature, MZTolerance mzTolerance) {
+  private Scan findBestScanOrMergedMobilityScan(ScanDataAccess scans, Feature feature,
+      MZTolerance mzTolerance) {
 
-
-    final Scan maxScan = feature.getRepresentativeScan();
-    final int scanIndex = scans.indexOf(maxScan);
-    scans.jumpToIndex(scanIndex);
-    final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
     final boolean mobility = feature.getMobility() != null;
-    ModularFeature modFeature = new ModularFeature(featureList, feature);
+    final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
 
-        if (mobility && featureData instanceof IonMobilogramTimeSeries imsData) {
-          MergedMassSpectrum mergedMobilityScan = null;
-          final Range<Float> mobilityFWHM = IonMobilityUtils.getMobilityFWHM(imsData.getSummedMobilogram());
-          final List <MobilityScan> mobilityScans = imsData.getMobilograms().stream()
-              .flatMap(s -> ( s.getSpectra().stream()))
-              .filter(m -> {
-                assert mobilityFWHM != null;
-                return mobilityFWHM.contains((float) m.getMobility());
-              }).toList();
-          if (!mobilityScans.isEmpty()) {
-            mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans, mzTolerance,
-                MergingType.ALL_ENERGIES, null);
-            return mergedMobilityScan;
-          }
+    if (mobility && featureData instanceof IonMobilogramTimeSeries imsData) {
+      final Range<Float> mobilityFWHM = requireNonNullElse(
+          getMobilityFWHM(imsData.getSummedMobilogram()), feature.getMobilityRange());
+      final List<MobilityScan> mobilityScans = imsData.getMobilograms().stream()
+          .flatMap(s -> (s.getSpectra().stream()))
+          .filter(m -> mobilityFWHM.contains((float) m.getMobility())).toList();
+      if (!mobilityScans.isEmpty()) {
+        MergedMassSpectrum mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans,
+            mzTolerance, MergingType.ALL_ENERGIES, null);
+        return mergedMobilityScan;
 //          if (mobilityFWHM != null && feature.getRawDataFile() != null) {
 //            MemoryMapStorage storage = MemoryMapStorage.create();
 //            final MergedMassSpectrum mergedMobilityScan = SpectraMerging.extractSummedMobilityScan(modFeature, mzTolerance,
@@ -396,13 +387,15 @@ class IsotopeFinderTask extends AbstractTask {
 //              return mergedMobilityScan;
 //            }
 //          }
-        }
+      }
+    }
+// is mobility
+    final Scan maxScan = feature.getRepresentativeScan();
+    final int scanIndex = scans.indexOf(maxScan);
+    scans.jumpToIndex(scanIndex);
 
     return scans;
   }
-
-
-
 
 
   @Nullable

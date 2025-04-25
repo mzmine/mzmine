@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2024 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -13,6 +38,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -20,6 +46,7 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,8 +95,6 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     patternFormulas = parameters.getParameter(IsotopePeakScannerParameters.formula).getValue();
     suffix = parameters.getParameter(IsotopePeakScannerParameters.suffix).getValue();
     charge = parameters.getParameter(IsotopePeakScannerParameters.charge).getValue();
-    resultPeakList = new ModularFeatureList(peakList.getName() + " " + suffix,
-        getMemoryMapStorage(), peakList.getRawDataFiles());
     minIsotopePatternScore = parameters.getParameter(
         IsotopePeakScannerParameters.minIsotopePatternScore).getValue();
     bestScores = parameters.getParameter(IsotopePeakScannerParameters.bestScores).getValue();
@@ -89,6 +114,7 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     if (!checkParameters()) {
       return;
     }
+    resultPeakList = FeatureListUtils.createCopy(peakList, suffix, getMemoryMapStorage());
 
     if (getPeakListPolarity(peakList) != polarityType) {
       logger.warning(
@@ -102,7 +128,8 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     List<FeatureListRow> rowsWithIPs = new ArrayList<>();
     Map<Integer, Double> scores = new HashMap<>();
     PeakListHandler finalMap;
-    IsotopePatternCalculator ipCalculator = new IsotopePatternCalculator();
+    IsotopePatternCalculator ipCalculator = new IsotopePatternCalculator(minPatternIntensity,
+        mzTolerance);
     IsotopePeakFinder isotopePeakFinder = new IsotopePeakFinder();
     IsotopePatternScoring scoring = new IsotopePatternScoring();
     MajorIsotopeIdentifier majorIsotopeIdentifier = new MajorIsotopeIdentifier();
@@ -177,11 +204,7 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     }
 
     resultPeakList = finalMap.generateResultPeakList(majorIsotopeIdentifier, resultPeakList);
-    if (resultPeakList.getNumberOfRows() > 1) {
-      addResultToProject(resultPeakList);
-    } else {
-      //message = "Element not found.";
-    }
+    addResultToProject(resultPeakList);
     setStatus(TaskStatus.FINISHED);
   }
 
