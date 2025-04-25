@@ -58,11 +58,12 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
 
   private static final Logger logger = Logger.getLogger(GroupableListView.class.getName());
   private final Map<GroupEntity, ObservableList<ValueEntity<T>>> listGroups = FXCollections.observableHashMap();
+
   private final ObservableList<GroupableListViewEntity> listItems = FXCollections.observableArrayList();
 
   private final ObservableList<T> selectedValues = FXCollections.observableArrayList();
-  private final ObservableList<GroupEntity> selectedGroups = FXCollections.observableArrayList();
 
+  private final ObservableList<GroupEntity> selectedGroups = FXCollections.observableArrayList();
   private Function<T, String> grouping;
 
   public GroupableListView() {
@@ -154,6 +155,10 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
       }
       setItems(listItems);
     });
+  }
+
+  public ObservableList<GroupableListViewEntity> getListItems() {
+    return listItems;
   }
 
   public void groupSelectedItems() {

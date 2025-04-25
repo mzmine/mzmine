@@ -119,6 +119,7 @@ import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBS
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
@@ -218,15 +219,15 @@ public class BatchModeModulesList {
            * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAIMPORT}
            */
           AllSpectralDataImportModule.class, //
-          TDFImportModule.class, //
-          ImzMLImportModule.class, //
-          MzDataImportModule.class, //
-          MSDKmzMLImportModule.class, //
-          MzXMLImportModule.class, //
-          NetCDFImportModule.class, //
-          ThermoRawImportModule.class, //
+//          TDFImportModule.class, //
+//          ImzMLImportModule.class, //
+//          MzDataImportModule.class, //
+//          MSDKmzMLImportModule.class, //
+//          MzXMLImportModule.class, //
+//          NetCDFImportModule.class, //
+//          ThermoRawImportModule.class, //
 //      WatersRawImportModule.class, //
-          ZipImportModule.class, //
+//          ZipImportModule.class, //
           SpectralLibraryImportModule.class, //
           SpectralLibraryToFeatureListModule.class, //
 
@@ -343,6 +344,7 @@ public class BatchModeModulesList {
           LinearNormalizerModule.class, //
           RTCorrectionModule.class, //
           StandardCompoundNormalizerModule.class, //
+          RICalculationModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}

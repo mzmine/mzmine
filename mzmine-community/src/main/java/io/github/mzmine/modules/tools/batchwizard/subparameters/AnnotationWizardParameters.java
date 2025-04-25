@@ -57,7 +57,7 @@ public final class AnnotationWizardParameters extends WizardStepParameters {
       "Spectral library files", """
       Path of spectral library files in common formats
       (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY,
-      DownloadAssets.forAssetGroup(AssetCategory.SPECTRAL_LIBRARIES));
+      DownloadAssets.forAssetGroup(AssetCategory.SPECTRAL_LIBRARIES), "Drag & drop your spectral libraries here.");
 
   public AnnotationWizardParameters() {
     super(WizardPart.ANNOTATION, AnnotationWizardParameterFactory.Annotation,

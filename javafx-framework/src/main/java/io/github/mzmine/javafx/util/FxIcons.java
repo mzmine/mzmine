@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,10 +27,13 @@ package io.github.mzmine.javafx.util;
 
 public enum FxIcons implements IconCodeSupplier {
   // status
-  CHECK_CIRCLE, X, X_CIRCLE, EXCLAMATION_TRIANGLE, EXCLAMATION_CIRCLE,
+  CHECK_CIRCLE, X, X_CIRCLE, EXCLAMATION_TRIANGLE, EXCLAMATION_CIRCLE, INFO_CIRCLE, QUESTION_CIRCLE,
 
   // control flow
-  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, PLUS, ADD, EDIT, QUESTIONMARK,
+  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, PLUS, ADD, EDIT, QUESTIONMARK, ARROW_IN_RIGHT,
+
+  // icons
+  FILE,
 
   // UI
   DARK_MODE_SWITCH, BATCH,
@@ -46,9 +49,11 @@ public enum FxIcons implements IconCodeSupplier {
   @Override
   public String getIconCode() {
     return switch (this) {
+      case QUESTION_CIRCLE -> "bi-question-circle";
       case CHECK_CIRCLE -> "bi-check2-circle";
       case X -> "bi-x";
       case X_CIRCLE -> "bi-x-circle";
+      case INFO_CIRCLE -> "bi-info-circle";
       case EXCLAMATION_TRIANGLE -> "bi-exclamation-triangle";
       case EXCLAMATION_CIRCLE -> "bi-exclamation-circle";
       case DARK_MODE_SWITCH -> "bi-mask";
@@ -85,6 +90,8 @@ public enum FxIcons implements IconCodeSupplier {
       case PLUS -> "bi-plus";
       case LIGHTBULB -> "bi-lightbulb";
       case QUESTIONMARK -> "bi-question-circle";
+      case ARROW_IN_RIGHT -> "bi-box-arrow-in-right";
+      case FILE -> "bi-file-earmark-text";
     };
   }
 }

@@ -66,7 +66,6 @@ import io.mzio.users.gui.fx.UsersController;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -82,6 +81,9 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final HiddenParameter<String> username = new HiddenParameter<>(
       new StringParameter("username", "last active username", "", false, true));
+
+  public static final HiddenParameter<Boolean> showQuickStart = new HiddenParameter<>(
+      new BooleanParameter("Show quick start video", "", true));
 
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
@@ -141,6 +143,10 @@ public class MZminePreferences extends SimpleParameterSet {
 //      new ErrorMailSettings());
 
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
+
+  public static final BooleanParameter useTabSubtitles = new BooleanParameter("Show tab sub titles",
+      "If enabled, the name of feature lists or raw data files will be displayed in the tab header, e.g., in for the feature list tab.",
+      true);
 
   public static final ColorPaletteParameter defaultColorPalette = new ColorPaletteParameter(
       "Default color palette",
@@ -228,11 +234,11 @@ public class MZminePreferences extends SimpleParameterSet {
           + "This will reduce the import time when re-processing, but require more disc space.",
       false);
 
-  public static final BooleanParameter applyPeakPicking = new BooleanParameter(
-      "Apply peak picking (recommended)", """
-      Apply vendor peak picking during import of native vendor files with MSConvert.
+  public static final BooleanParameter applyVendorCentroiding = new BooleanParameter(
+      "Apply vendor centroiding (recommended)", """
+      Apply vendor centroiding (peak picking) during import of native vendor files.
       Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
-      Peak picking is only """, true);
+      """, true);
 
   public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
       "Thermo data import", """
@@ -257,7 +263,8 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(// start with performance
-        numOfThreads, memoryOption, tempDirectory, runGCafterBatchStep, deleteTempFiles,
+        new Parameter[]{numOfThreads, memoryOption, tempDirectory, runGCafterBatchStep,
+            deleteTempFiles,
         proxySettings,
         /*applyTimsPressureCompensation,*/
         // visuals
@@ -269,12 +276,13 @@ public class MZminePreferences extends SimpleParameterSet {
         // other preferences
         defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
         imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
-        windowSetttings,
+        windowSetttings, useTabSubtitles,
         // silent parameters without controls
-        showTempFolderAlert, username,
+        showTempFolderAlert, username, showQuickStart,
         //
-        msConvertPath, keepConvertedFile, applyPeakPicking, watersLockmass, thermoRawFileParserPath,
-        thermoImportChoice);
+        applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass,
+            thermoRawFileParserPath, thermoImportChoice},
+        "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
       var oldTheme = getValue(theme);
@@ -303,12 +311,13 @@ public class MZminePreferences extends SimpleParameterSet {
         /*, applyTimsPressureCompensation*/);
     dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
         intensityFormat, ppmFormat, scoreFormat, unitFormat);
-    dialog.addParameterGroup("Visuals", defaultColorPalette, defaultPaintScale, chartParam, theme,
-        presentationMode, showPrecursorWindow, imageTransformation, imageNormalization);
-    dialog.addParameterGroup("MS data import", msConvertPath, keepConvertedFile, applyPeakPicking,
-        watersLockmass, thermoRawFileParserPath, thermoImportChoice);
+    dialog.addParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
+        chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
+        imageNormalization);
+    dialog.addParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
+        keepConvertedFile, watersLockmass, thermoRawFileParserPath, thermoImportChoice);
 //    dialog.addParameterGroup("Other", new Parameter[]{
-    // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
+    // imsModuleWarnings, showTempFolderAlert, windowSetttings, showQuickStart  are hidden parameters
 //    });
     dialog.setFilterText(filterParameters);
 
@@ -475,7 +484,8 @@ public class MZminePreferences extends SimpleParameterSet {
     final List<SimpleColorPalette> palettes = getParameter(
         MZminePreferences.defaultColorPalette).getPalettes();
     // check if an inverted palette already exists. if not, use the inverted one.
-    final Optional<SimpleColorPalette> match = palettes.stream().filter(p -> p.equals(cloned, false)).findFirst();
+    final Optional<SimpleColorPalette> match = palettes.stream()
+        .filter(p -> p.equals(cloned, false)).findFirst();
     setParameter(MZminePreferences.defaultColorPalette, match.orElse(cloned));
   }
 
@@ -564,5 +574,13 @@ public class MZminePreferences extends SimpleParameterSet {
         skipRawDataAndFeatureListParameters);
 
     return superCheck;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final var map = super.getNameParameterMap();
+    map.put("Apply peak picking (recommended)",
+        getParameter(MZminePreferences.applyVendorCentroiding));
+    return map;
   }
 }

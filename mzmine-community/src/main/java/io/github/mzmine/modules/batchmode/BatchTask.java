@@ -245,7 +245,7 @@ public class BatchTask extends AbstractTask {
         File datasetDir = subDirectories.get(currentDataset);
         datasetName = datasetDir.getName();
         File[] allFiles = FileAndPathUtil.findFilesInDirFlat(datasetDir,
-            ExtensionFilters.ALL_MS_DATA_FILTER, searchSubdirs);
+            ExtensionFilters.ALL_MS_DATA_FILTER, true, searchSubdirs);
 
         logger.info(
             String.format("Processing batch dataset %s (%d/%d)", datasetName, currentDataset + 1,

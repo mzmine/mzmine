@@ -170,7 +170,7 @@ public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTas
 
     addAppliedMethodAndAddToProject(dataFile);
 
-    if (convertedScansAfterFilter == 0) {
+    if (convertedScansAfterFilter == 0 && dataFile.getOtherDataFiles().isEmpty()) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("No scans found");
       return;
