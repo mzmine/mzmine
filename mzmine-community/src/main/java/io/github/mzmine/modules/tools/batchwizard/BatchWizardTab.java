@@ -31,8 +31,10 @@ import static io.github.mzmine.modules.tools.batchwizard.WizardPart.WORKFLOW;
 import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getOrElse;
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -57,6 +59,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.links.MzioMZmineLinks;
 import java.io.File;
 import java.text.MessageFormat;
 import java.time.LocalDate;
@@ -74,6 +77,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -88,7 +92,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,6 +119,7 @@ public class BatchWizardTab extends SimpleTab {
   private boolean listenersActive = true;
   private TabPane tabPane;
   private HBox schemaPane;
+  private final int helpButtonSize = 50;
 
   public BatchWizardTab() {
     super("mzwizard");
@@ -318,10 +325,10 @@ public class BatchWizardTab extends SimpleTab {
     return spacer;
   }
 
-  private VBox createTopMenu() {
-    VBox vbox = new VBox(4);
-    vbox.setAlignment(Pos.CENTER);
-    VBox.setMargin(vbox, new Insets(5));
+  private Region createTopMenu() {
+    VBox controlSchemaPane = new VBox(4);
+    controlSchemaPane.setAlignment(Pos.CENTER);
+    VBox.setMargin(controlSchemaPane, new Insets(5));
 
     var topPane = new FlowPane(4, 4);
     topPane.setAlignment(Pos.CENTER);
@@ -375,8 +382,18 @@ public class BatchWizardTab extends SimpleTab {
 
     schemaPane = new HBox(0);
     schemaPane.setAlignment(Pos.CENTER);
-    vbox.getChildren().addAll(topPane, schemaPane);
-    return vbox;
+    // add a wrapper around the top pane with combo boxes and buttons so the help button does not overlap
+    final HBox topPaneWrapper = FxLayout.newHBox(new Insets(0, helpButtonSize, 0, helpButtonSize), topPane);
+    HBox.setHgrow(topPane, Priority.ALWAYS);
+    controlSchemaPane.getChildren().addAll(topPaneWrapper, schemaPane);
+
+    final ButtonBase help = FxIconUtil.newIconButton(FxIcons.QUESTIONMARK, 50,
+        "Open the mzwizard documentation", () -> DesktopService.getDesktop()
+            .openWebPage(MzioMZmineLinks.WIZARD_DOCUMENTATION.getUrl()));
+    final StackPane stackPane = new StackPane(controlSchemaPane, help);
+    StackPane.setAlignment(help, Pos.TOP_RIGHT);
+
+    return stackPane;
   }
 
   /**

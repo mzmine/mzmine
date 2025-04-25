@@ -54,7 +54,7 @@ import org.sqlite.JDBC;
 public class BafDataAccess implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(BafDataAccess.class.getName());
-  private final SpectraAcquisitionStepsTable spectraTable = new SpectraAcquisitionStepsTable();
+  private final SpectraAcquisitionStepsTable spectraTable;
   private final BafPropertiesTable metadata = new BafPropertiesTable();
   private final Ms2Table ms2Table = new Ms2Table();
   @NotNull
@@ -65,7 +65,8 @@ public class BafDataAccess implements AutoCloseable {
   private MemorySegment mzBufferSegment;
   private MemorySegment intensityBufferSegment;
 
-  public BafDataAccess() {
+  public BafDataAccess(final boolean importProfileIfPossible) {
+    spectraTable = new SpectraAcquisitionStepsTable(importProfileIfPossible);
     this.arena = Arena.ofConfined();
     mzSizeBuffer = arena.allocate(BafLib.uint64_t);
     intensitySizeBuffer = arena.allocate(BafLib.uint64_t);

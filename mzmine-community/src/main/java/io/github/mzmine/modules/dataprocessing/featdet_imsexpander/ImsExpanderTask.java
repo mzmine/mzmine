@@ -74,7 +74,6 @@ public class ImsExpanderTask extends AbstractTask {
   final List<AbstractTask> tasks = new ArrayList<>();
   private final MZmineProject project;
   private final MZTolerance mzTolerance;
-  private final boolean useMzToleranceRange;
   private final AtomicInteger processedRows = new AtomicInteger(0);
   private final int binWidth;
   private final int maxNumTraces;
@@ -90,9 +89,7 @@ public class ImsExpanderTask extends AbstractTask {
     this.parameters = parameters;
     this.project = project;
     this.flist = flist;
-    useMzToleranceRange = parameters.getParameter(ImsExpanderParameters.mzTolerance).getValue();
-    mzTolerance = parameters.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
-        .getValue();
+    mzTolerance = parameters.getParameter(ImsExpanderParameters.mzTolerance).getValue();
     maxNumTraces =
         parameters.getValue(ImsExpanderParameters.maxNumTraces) ? parameters.getParameter(
             ImsExpanderParameters.maxNumTraces).getEmbeddedParameter().getValue()
@@ -119,7 +116,7 @@ public class ImsExpanderTask extends AbstractTask {
       sum += finishedPercentage;
     }
     return 0.4 * sum / tasks.size() + 0.4 * (processedRows.get() / (double) totalRows)
-           + 0.2 * createdRows / (double) totalRows;
+        + 0.2 * createdRows / (double) totalRows;
   }
 
   @Override
@@ -128,7 +125,7 @@ public class ImsExpanderTask extends AbstractTask {
     if (flist.getNumberOfRawDataFiles() != 1 || !(flist.getRawDataFile(
         0) instanceof IMSRawDataFile imsFile)) {
       setErrorMessage("More than one raw data file in feature list " + flist.getName()
-                      + " or no mobility dimension in raw data file.");
+          + " or no mobility dimension in raw data file.");
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -146,11 +143,9 @@ public class ImsExpanderTask extends AbstractTask {
     final List<? extends FeatureListRow> rows = new ArrayList<>(flist.getRows());
     rows.sort((Comparator.comparingDouble(FeatureListRow::getAverageMZ)));
 
-    // either we use the row m/z + tolerance range, or we use the mz range of the feature.
     final List<ExpandingTrace> expandingTraces = new ArrayList<>(rows.stream().map(
         row -> new ExpandingTrace((ModularFeatureListRow) row,
-            useMzToleranceRange ? mzTolerance.getToleranceRange(row.getAverageMZ())
-                : row.getFeature(imsFile).getRawDataPointsMZRange())).toList());
+            mzTolerance.getToleranceRange(row.getAverageMZ()))).toList());
 
     if (expandingTraces.isEmpty()) {
       newFlist.getAppliedMethods().add(
@@ -175,7 +170,7 @@ public class ImsExpanderTask extends AbstractTask {
     final List<List<ExpandingTrace>> subLists = Lists.partition(expandingTraces, tracesPerList);
 
     for (final List<ExpandingTrace> subList : subLists) {
-      final Frame firstFrame = (Frame) subList.get(0).getRow().getBestFeature().getFeatureData()
+      final Frame firstFrame = (Frame) subList.getFirst().getRow().getBestFeature().getFeatureData()
           .getSpectrum(0);
       final ExpandingTrace lastFrameTrace = subList.stream().max(
               (a, b) -> Float.compare(a.getRtRange().upperEndpoint(), b.getRtRange().upperEndpoint()))
@@ -187,8 +182,8 @@ public class ImsExpanderTask extends AbstractTask {
       final List<Frame> framesSubList = frames.subList(frames.indexOf(firstFrame),
           frames.indexOf(lastFrame) + 1);
 
-      final ArrayList<ExpandingTrace> traces = new ArrayList<>(subList);
-      traces.sort(Comparator.comparingDouble(a -> a.getRow().getAverageMZ()));
+      final List<ExpandingTrace> traces = new ArrayList<>(subList);
+      traces.sort(Comparator.comparingDouble(a -> a.getMzRange().lowerEndpoint()));
 
       final BinningMobilogramDataAccess mobilogramDataAccess = EfficientDataAccess.of(imsFile,
           binWidth);
@@ -215,7 +210,7 @@ public class ImsExpanderTask extends AbstractTask {
       final ImsExpanderSubTask t = (ImsExpanderSubTask) task;
       final List<ExpandedTrace> expandedTraces = t.getExpandedTraces();
 
-      for (ExpandedTrace expandedTrace : expandedTraces) {
+      for (final ExpandedTrace expandedTrace : expandedTraces) {
         final ModularFeatureListRow row = new ModularFeatureListRow(newFlist,
             expandedTrace.oldRow(), false);
         final ModularFeature f = new ModularFeature(newFlist, expandedTrace.oldFeature());

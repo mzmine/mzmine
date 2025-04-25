@@ -35,6 +35,7 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -48,6 +49,7 @@ import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionInfo;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,10 +87,11 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     this.project = project;
     this.module = module;
     this.parameters = parameters;
+    assert parameters instanceof AllSpectralDataImportParameters;
   }
 
   public static @NotNull List<String> buildCommandLine(File filePath, File msConvertPath,
-      boolean convertToFile) {
+      boolean convertToFile, boolean applyVendorCentroiding) {
     final File mzMLFile = getMzMLFileName(filePath);
     final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(filePath);
 
@@ -98,8 +101,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     )); // vendor peak-picking
 
     if (convertToFile) {
-      cmdLine.addAll(List.of(
-          "--outdir", inQuotes(mzMLFile.getParent()), // need to set dir here
+      cmdLine.addAll(List.of("--outdir", inQuotes(mzMLFile.getParent()), // need to set dir here
           "--outfile", inQuotes(mzMLFile.getName()))); // only file name here
     } else {
       cmdLine.addAll(List.of("-o", "-")); /* to stdout */
@@ -115,8 +117,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       cmdLine.addAll(List.of("--combineIonMobilitySpectra"));
     }
 
-    if (ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)
-        && isPeakPickingSupported(fileType)) {
+    if (applyVendorCentroiding && isPeakPickingSupported(fileType)) {
       cmdLine.addAll(List.of("--filter", "\"peakPicking vendor msLevel=1-\""));
     }
 
@@ -222,6 +223,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
             final byte[] bytes = Arrays.copyOfRange(buffer, i,
                 Math.min(i + xmlHeader.length, read));
             if (Arrays.equals(bytes, xmlHeader)) {
+              logger.finest("Found XML header at position %d".formatted(i));
               headerStartIndex = i;
               break;
             }
@@ -229,18 +231,21 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
         }
         if (headerStartIndex == -1) {
           if (read != -1) {
-            logger.finest(() -> "Skipping text before mzml header: %s".formatted(
-                new String(buffer, 0, read, StandardCharsets.UTF_8)));
+            logger.finest(() -> "Skipping text (%d bytes) before mzml header: %s".formatted(read,
+                inQuotes(new String(buffer, 0, read, StandardCharsets.UTF_8))));
             headerStartOffset += read;
           } else {
-            logger.finest("No data recieved from MSConvert. Current header offset: %d".formatted(
+            logger.finest("No data received from MSConvert. Current header offset: %d".formatted(
                 headerStartOffset));
           }
         }
       }
       // return to start of file and skip ahead to the index where the mzml starts
       mzMLStream.reset();
-      mzMLStream.skipNBytes(headerStartOffset + headerStartIndex);
+      mzMLStream.mark(0);
+      final int byteOffset = headerStartOffset + headerStartIndex;
+      logger.finest(() -> "Found XML header at byte offset %d".formatted(byteOffset));
+      mzMLStream.skipNBytes(byteOffset);
     }
   }
 
@@ -288,10 +293,11 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       return;
     }
 
-    final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath, convertToFile);
+    final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath, convertToFile,
+        parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding));
 
     if (convertToFile) {
-      ProcessBuilder builder = new ProcessBuilder(cmdLine);
+      ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(FileAndPathUtil.getTempDir());
       try {
         final Process process = builder.start();
         while (process.isAlive()) { // wait for conversion to finish
@@ -361,13 +367,14 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     if (parsedScans != totalScans) {
       throw (new RuntimeException(
           "MSConvert process crashed before all scans were extracted (" + parsedScans + " out of "
-          + totalScans + ")"));
+              + totalScans + ")"));
     }
     msdkTask.addAppliedMethodAndAddToProject(dataFile);
   }
 
   private void importFromStream(File rawFilePath, List<String> cmdLine) {
-    ProcessBuilder builder = new ProcessBuilder(cmdLine);
+    final ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(
+        FileAndPathUtil.getTempDir());
     Process process = null;
     try {
       process = builder.start();
@@ -406,7 +413,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       if (parsedScans != totalScans) {
         throw (new RuntimeException(
             "ThermoRawFileParser/MSConvert process crashed before all scans were extracted ("
-            + parsedScans + " out of " + totalScans + ")"));
+                + parsedScans + " out of " + totalScans + ")"));
       }
 
       msdkTask.addAppliedMethodAndAddToProject(dataFile);

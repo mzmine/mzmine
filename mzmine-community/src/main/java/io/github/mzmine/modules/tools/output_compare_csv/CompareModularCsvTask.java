@@ -187,4 +187,8 @@ public class CompareModularCsvTask extends AbstractSimpleToolTask {
   public String getTaskDescription() {
     return "Comparing two modular CSV output files";
   }
+
+  public List<CheckResult> getChecks() {
+    return checks;
+  }
 }

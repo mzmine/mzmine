@@ -1,5 +1,7 @@
 package io.github.mzmine.modules.tools.output_compare_csv;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult.Severity;
 import io.github.mzmine.modules.tools.output_compare_csv.MZmineModularCsv.Column;
@@ -8,7 +10,6 @@ import io.github.mzmine.util.maths.Precision;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import static java.util.Objects.requireNonNullElse;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +45,7 @@ sealed interface ColumnData<T> {
   /**
    * @param idPair
    * @param other     other column to compare
-   * @param maxErrors maximum errors to collect before ending. -1 or 0 for unlimited issues
+   * @param maxErrors maximum errors to collect before ending. -1 for unlimited issues
    * @return list of issues
    */
   default List<CheckResult> checkEqual(final @Nullable ColumnData[] idPair, final ColumnData other,
@@ -90,7 +91,7 @@ sealed interface ColumnData<T> {
         results.add(CheckResult.create(col.header(), Severity.ERROR, col.type(), a, b,
             rowValueUnequalMessage(idPair, row)));
       }
-      if (maxErrors > 0 && results.size() >= maxErrors) {
+      if (maxErrors >= 0 && results.size() > maxErrors) {
         return results;
       }
     }

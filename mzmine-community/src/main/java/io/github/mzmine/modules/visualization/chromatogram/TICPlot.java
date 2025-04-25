@@ -38,6 +38,9 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.maths.Precision;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
@@ -317,10 +320,10 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   public synchronized int addDataSet(final XYDataset dataSet) {
     if ((dataSet instanceof TICDataSet) && (((TICDataSet) dataSet).getPlotType()
-                                            != getPlotType())) {
+        != getPlotType())) {
       throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
-                                         + "' does not have a compatible plotType. Expected '"
-                                         + this.getPlotType().toString() + "'");
+          + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
+          + "'");
     }
 
     try {
@@ -404,8 +407,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     // Check if the dataSet to be added is compatible with the type of plot.
     if (dataSet.getPlotType() != getPlotType()) {
       throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
-                                         + "' does not have a compatible plotType. Expected '"
-                                         + this.getPlotType().toString() + "'");
+          + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
+          + "'");
     }
     return addDataSetAndRenderer(dataSet, renderer);
   }
@@ -634,7 +637,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
         ((observable, oldValue, newValue) -> applyWithNotifyChanges(false, () -> {
           if (newValue) {
             int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-            for (int i = 0; i <numDatasets; i++) {
+            for (int i = 0; i < numDatasets; i++) {
               XYDataset dataset = getXYPlot().getDataset();
               if (dataset == null) {
                 continue;
@@ -697,17 +700,29 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
     for (int i = 0; i < numDatasets; i++) {
       XYDataset ds = getXYPlot().getDataset(i);
-      if (!(ds instanceof TICDataSet dataSet)) {
-        continue;
-      }
-      int index = dataSet.getIndex(selectedRT, selectedIT);
-      if (index >= 0) {
-        double mz = 0;
-        if (getPlotType() == TICPlotType.BASEPEAK) {
-          mz = dataSet.getZValue(0, index);
+      if (ds instanceof TICDataSet dataSet) {
+        int index = dataSet.getIndex(selectedRT, selectedIT);
+        if (index >= 0) {
+          double mz = 0;
+          if (getPlotType() == TICPlotType.BASEPEAK) {
+            mz = dataSet.getZValue(0, index);
+          }
+          return new ChromatogramCursorPosition(selectedRT, mz, selectedIT, dataSet.getDataFile(),
+              dataSet.getScan(index));
         }
-        return new ChromatogramCursorPosition(selectedRT, mz, selectedIT, dataSet.getDataFile(),
-            dataSet.getScan(index));
+      } else if (ds instanceof FeatureDataSet dataSet) {
+        int index = BinarySearch.binarySearch(selectedRT, DefaultTo.MINUS_INSERTION_POINT,
+            dataSet.getItemCount(0), j -> dataSet.getXValue(0, j));
+        if (index >= 0 && Precision.equalDoubleSignificance(dataSet.getYValue(0, index),
+            selectedIT)) {
+          double mz = 0;
+          if (getPlotType() == TICPlotType.BASEPEAK) {
+            mz = dataSet.getMZ(index);
+          }
+          return new ChromatogramCursorPosition(selectedRT, mz, selectedIT,
+              dataSet.getFeature().getRawDataFile(),
+              dataSet.getFeature().getFeatureData().getSpectrum(index));
+        }
       }
     }
     return null;
