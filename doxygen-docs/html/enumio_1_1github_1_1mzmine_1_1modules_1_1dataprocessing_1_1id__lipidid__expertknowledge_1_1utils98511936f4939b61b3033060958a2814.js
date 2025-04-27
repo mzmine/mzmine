@@ -1,7 +1,0 @@
-var enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils98511936f4939b61b3033060958a2814 =
-[
-    [ "CommonAdductPositive", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils98511936f4939b61b3033060958a2814.html#a1cdefaab0c01f57888edbb7cfe3ad771", null ],
-    [ "getCompleteName", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils98511936f4939b61b3033060958a2814.html#a07014623e076857d0879dd2e9db7ce24", null ],
-    [ "getMz", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils98511936f4939b61b3033060958a2814.html#ad21ff13cce4d011b52cdddda3919484b", null ],
-    [ "getName", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils98511936f4939b61b3033060958a2814.html#a49829ceb97ce8357c2122b1632fd1954", null ]
-];

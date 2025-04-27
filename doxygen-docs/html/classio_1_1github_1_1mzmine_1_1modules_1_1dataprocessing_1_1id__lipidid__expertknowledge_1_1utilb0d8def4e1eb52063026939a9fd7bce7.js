@@ -1,6 +1,0 @@
-var classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilb0d8def4e1eb52063026939a9fd7bce7 =
-[
-    [ "SampleTypeComponent", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilb0d8def4e1eb52063026939a9fd7bce7.html#ab8e2ce8197fc3832897e6e868027cf2e", null ],
-    [ "getValue", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilb0d8def4e1eb52063026939a9fd7bce7.html#a8bf48c8e3abc06e49240cbfdcfbd70ad", null ],
-    [ "setValue", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilb0d8def4e1eb52063026939a9fd7bce7.html#adf055234c98ac6179fd00d9855a40e2b", null ]
-];

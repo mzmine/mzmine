@@ -1,7 +1,0 @@
-var enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilsf845eab48ecf0ea7804cc957a6f9bc62 =
-[
-    [ "CommonISFNegative", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilsf845eab48ecf0ea7804cc957a6f9bc62.html#a89a1df3c1ab2e0df653f5f3e31fdb6fb", null ],
-    [ "getCompleteName", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilsf845eab48ecf0ea7804cc957a6f9bc62.html#af464be46d61f3c5afc3b3ef290e0714a", null ],
-    [ "getMz", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilsf845eab48ecf0ea7804cc957a6f9bc62.html#ac154b485943779d6e0bd6a5f9af7c359", null ],
-    [ "getName", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilsf845eab48ecf0ea7804cc957a6f9bc62.html#a36fd6aee22770e0f4996414951865910", null ]
-];
