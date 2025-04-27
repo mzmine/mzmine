@@ -1,0 +1,8 @@
+var classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_module =
+[
+    [ "getDescription", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_module.html#a6a4b76b880368b9f55d031c2ddc8ecbf", null ],
+    [ "getModuleCategory", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_module.html#a21728b53bc196360a255604edb7974fb", null ],
+    [ "getName", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_module.html#a5ff00c96e47b27657c5050d0cdd8899b", null ],
+    [ "getParameterSetClass", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_module.html#a058e38afd0170c0d1e6004f028397b01", null ],
+    [ "runModule", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_module.html#ad121bc25d2ac861935e4bd33998144be", null ]
+];

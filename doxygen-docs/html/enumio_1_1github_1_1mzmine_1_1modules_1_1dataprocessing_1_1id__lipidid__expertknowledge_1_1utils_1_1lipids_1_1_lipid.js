@@ -1,0 +1,6 @@
+var enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1lipids_1_1_lipid =
+[
+    [ "Lipid", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1lipids_1_1_lipid.html#a5bbd7ebb8268a0187a80a74c2eba52ea", null ],
+    [ "getAbbr", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1lipids_1_1_lipid.html#a19b587a6bacbd01dd4fb20f86cbdf49b", null ],
+    [ "getName", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1lipids_1_1_lipid.html#aadfafc5794d342ae9d570e1acf4f4dcd", null ]
+];

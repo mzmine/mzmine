@@ -1,0 +1,12 @@
+var classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1adducts_1_1_found_adduct =
+[
+    [ "FoundAdduct", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1adducts_1_1_found_adduct.html#adb9a6feebeddc91ede9144a824418712", null ],
+    [ "equals", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1adducts_1_1_found_adduct.html#aafdd35edd1300da072d7b2da4b1e643b", null ],
+    [ "getAdductName", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1adducts_1_1_found_adduct.html#a4a68e6baa58d22b3118d554446225527", null ],
+    [ "getCharge", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1adducts_1_1_found_adduct.html#a1157c21a27c76db1cfbd3396d6943f57", null ],
+    [ "getIntensity", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1adducts_1_1_found_adduct.html#ad55fb5962ff9810d5229c8cd9fce89d8", null ],
+    [ "getMzFeature", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1adducts_1_1_found_adduct.html#a641517ca4823721ee1bc2c63fb8fa889", null ],
+    [ "getRt", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1adducts_1_1_found_adduct.html#aa6d424b2dba52aab093fc356436d81ae", null ],
+    [ "hashCode", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1adducts_1_1_found_adduct.html#a5e19dd340c489d90d971a2d5b7d75454", null ],
+    [ "toString", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1adducts_1_1_found_adduct.html#aae93cbe4f037a4486fb6bc336294eca3", null ]
+];

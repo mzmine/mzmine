@@ -1,0 +1,7 @@
+var enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilscd5f2b8f6143eabe1e5189801ae4cbc3 =
+[
+    [ "CommonAdductNegative", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilscd5f2b8f6143eabe1e5189801ae4cbc3.html#a108ae9ac54086545f8238cbd935f4d55", null ],
+    [ "getCompleteName", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilscd5f2b8f6143eabe1e5189801ae4cbc3.html#a0d1fd376ea82a691fec8a94cd67bb123", null ],
+    [ "getMz", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilscd5f2b8f6143eabe1e5189801ae4cbc3.html#a77fe5f56400f60f4a37e81a72ee2d71c", null ],
+    [ "getName", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utilscd5f2b8f6143eabe1e5189801ae4cbc3.html#ad237080eed58cde6cd09d14032dc727f", null ]
+];

@@ -1,0 +1,17 @@
+var classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc =
+[
+    [ "MobilePhaseParameter", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#a829a155a1f66698f9f92bf024fd7bd73", null ],
+    [ "MobilePhaseParameter", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#a23deecd41e8f32b01faa7dc7ee198943", null ],
+    [ "MobilePhaseParameter", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#a26df0db25a0e0404917bcca1f22c9876", null ],
+    [ "cloneParameter", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#a9faf45d7a26dd6239b85870f906c82f2", null ],
+    [ "createEditingComponent", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#aa7ab1f48954a7fd1b12c4d5c2c132ae5", null ],
+    [ "getChoices", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#a6eed8c817cd8ee9c5d6435d25432437c", null ],
+    [ "getComponentVgrowPriority", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#aa48ed62cb167819ab69a8278ad462e3a", null ],
+    [ "getDescription", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#a5635be94be71166a07fac6ea181a7699", null ],
+    [ "getName", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#a80b4567410b1e3d654200ddee9adee3a", null ],
+    [ "getValue", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#a89686170ba6d63454d835cacf118be3e", null ],
+    [ "setChoices", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#ab26fce20c572a8db031081e4de485dc1", null ],
+    [ "setValue", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#af4247875e92a2d678c64eac3ccc84d2e", null ],
+    [ "setValueFromComponent", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#a5c5354309f4abbefa7465ea237636783", null ],
+    [ "setValueToComponent", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util7cbcb131bd6ab1f694f0bbf4191cfadc.html#ac1889f26c96fd8426146762f5abf77aa", null ]
+];

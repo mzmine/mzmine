@@ -1,0 +1,5 @@
+var enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1params_1_1_sample_types =
+[
+    [ "SampleTypes", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1params_1_1_sample_types.html#a117f7ba1b6c95e3837d6a2a8bccf1c58", null ],
+    [ "getName", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1params_1_1_sample_types.html#a9662f9295c5411694181c08525272f92", null ]
+];

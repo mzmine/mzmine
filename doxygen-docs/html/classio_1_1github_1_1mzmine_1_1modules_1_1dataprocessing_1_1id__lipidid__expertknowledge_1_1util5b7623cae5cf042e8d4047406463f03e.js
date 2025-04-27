@@ -1,0 +1,6 @@
+var classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util5b7623cae5cf042e8d4047406463f03e =
+[
+    [ "MobilePhaseComponent", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util5b7623cae5cf042e8d4047406463f03e.html#ac229bac08b608400a60d0df3ee9a8b62", null ],
+    [ "getValue", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util5b7623cae5cf042e8d4047406463f03e.html#a1f0451f406a51b6576cdd7a701126739", null ],
+    [ "setValue", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1util5b7623cae5cf042e8d4047406463f03e.html#a575b0d2d87595560910d8a0e6fe2d283", null ]
+];

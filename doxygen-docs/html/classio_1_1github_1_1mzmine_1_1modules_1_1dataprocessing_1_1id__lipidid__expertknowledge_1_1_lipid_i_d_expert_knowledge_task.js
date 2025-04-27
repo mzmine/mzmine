@@ -1,0 +1,11 @@
+var classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_task =
+[
+    [ "LipidIDExpertKnowledgeTask", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_task.html#a8d5aac0d3a96aadbb8293bcf2cd2f035", null ],
+    [ "error", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_task.html#a9aa22f2fe6f072007287416e5f3440c9", null ],
+    [ "getFinishedPercentage", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_task.html#af7e8b6f5f8f3b845c8e779c469993d5a", null ],
+    [ "getTaskDescription", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_task.html#a23c5bfe536d2ef2f51b8b59b4fd8584b", null ],
+    [ "isCanceled", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_task.html#aceaac92499057ecd60364759741d0c64", null ],
+    [ "isFinished", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_task.html#a98a34af0b1ef9d1da9cb6af409474d05", null ],
+    [ "run", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_task.html#a1c4ac83e86991727601ad06e6e6b738d", null ],
+    [ "setOnFinished", "classio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1_lipid_i_d_expert_knowledge_task.html#a82d58a0a59deac232b35826479cf4945", null ]
+];
