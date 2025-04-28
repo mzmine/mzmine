@@ -29,16 +29,21 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataGroup;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataResults;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 
 public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
+
+  private final @NotNull SimpleColorPalette colorPalette;
 
   public RowBoxPlotDataset(FeatureListRow row, @Nullable MetadataColumn<?> groupingColumn,
       AbundanceMeasure abundance) {
@@ -47,15 +52,17 @@ public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
       final List<Float> values = row.getFeatures().stream().map(abundance::get)
           .filter(Objects::nonNull).toList();
       add(values, 0, row.toString());
+      colorPalette = ConfigService.getDefaultColorPalette().clone(true);
       return;
     }
 
     // use the same method for grouping like ColorByMetadataTask and PCAScoresProvider
-    // TODO where is the color of this plot / dataset/ renderer defined? it should use the colors of the groups
-    // for now it is correct as it uses standard colors
+    // colors for this plot / dataset are defined by theme so need to apply colors to the theme and reapply theme to chart
     final List<RawDataFile> files = row.getFeatureList().getRawDataFiles();
     final ColorByMetadataResults grouping = ColorByMetadataUtils.colorByColumn(groupingColumn,
         files);
+
+    colorPalette = grouping.createColorPalette();
 
     for (ColorByMetadataGroup group : grouping.groups()) {
       final String groupName = group.valueString();
@@ -66,4 +73,7 @@ public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
     }
   }
 
+  public @NotNull SimpleColorPalette getColorPalette() {
+    return colorPalette;
+  }
 }

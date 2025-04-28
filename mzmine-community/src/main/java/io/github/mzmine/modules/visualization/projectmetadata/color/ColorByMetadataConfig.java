@@ -30,19 +30,22 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.util.color.SimpleColorPalette;
 
+/**
+ * @param handleNumericOption an option how to handle numeric and date values. Either gradient or
+ *                            distinct colors or automatic gradient for large sample sets.
+ * @param transform           transformation for the transformPalette paint scale to interpolate
+ *                            colors between each step.
+ * @param categoryPalette     For {@link ColorByNumericOption#DISCRETE}: this palette holds distinct
+ *                            colors for categories without interpolation. Usually:
+ *                            {@link MZmineConfiguration#getDefaultColorPalette()}
+ * @param transformPalette    For {@link ColorByNumericOption#GRADIENT}: this palette holds colors
+ *                            for interpolation PaintScales and applies the transform. Usually
+ *                            {@link MZmineConfiguration#getDefaultPaintScalePalette()}
+ */
 public record ColorByMetadataConfig(ColorByNumericOption handleNumericOption,
                                     PaintScaleTransform transform,
                                     SimpleColorPalette categoryPalette,
                                     SimpleColorPalette transformPalette) {
-
-  public ColorByMetadataConfig(ColorByNumericOption handleNumericOption,
-      PaintScaleTransform transform, SimpleColorPalette categoryPalette,
-      SimpleColorPalette transformPalette) {
-    this.handleNumericOption = handleNumericOption;
-    this.transform = transform;
-    this.categoryPalette = categoryPalette;
-    this.transformPalette = transformPalette;
-  }
 
   public ColorByMetadataConfig(ColorByNumericOption handleNumericOption,
       PaintScaleTransform transform) {

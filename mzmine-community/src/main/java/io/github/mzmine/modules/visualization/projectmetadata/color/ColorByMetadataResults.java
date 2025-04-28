@@ -25,7 +25,10 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.color;
 
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.renderer.PaintScale;
 
 public record ColorByMetadataResults(List<ColorByMetadataGroup> groups, PaintScale paintScale,
@@ -49,5 +52,18 @@ public record ColorByMetadataResults(List<ColorByMetadataGroup> groups, PaintSca
 
   public double getMaxValueDouble() {
     return groups.getLast().doubleValue();
+  }
+
+  /**
+   * Creates a color palette with the default palette but all colors defined by groups
+   */
+  @NotNull
+  public SimpleColorPalette createColorPalette() {
+    final SimpleColorPalette colors = ConfigService.getDefaultColorPalette().clone(true);
+    colors.clear();
+    for (ColorByMetadataGroup group : groups) {
+      colors.add(group.color());
+    }
+    return colors;
   }
 }
