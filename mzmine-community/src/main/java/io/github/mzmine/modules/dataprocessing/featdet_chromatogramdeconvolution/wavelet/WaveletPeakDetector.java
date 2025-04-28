@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.apache.commons.math3.transform.DftNormalization;
@@ -55,8 +56,7 @@ import org.apache.commons.math3.transform.FastFourierTransformer;
 import org.apache.commons.math3.transform.TransformType;
 import org.jetbrains.annotations.NotNull;
 
-// ... (rest of imports)
-
+@NotThreadSafe
 public class WaveletPeakDetector extends AbstractResolver {
 
   private static final Logger logger = Logger.getLogger(WaveletPeakDetector.class.getName());
@@ -72,6 +72,7 @@ public class WaveletPeakDetector extends AbstractResolver {
   private final double ZERO_THRESHOLD = 1e-9;
   private final NoiseCalculation noiseMethod;
   private final int minDataPoints;
+  private double[] yPadded = new double[0];
 
   private final Map<Integer, Map<Double, double[]>> waveletBuffer = new HashMap<>();
 
@@ -104,13 +105,13 @@ public class WaveletPeakDetector extends AbstractResolver {
     final int n = y.length;
 
     // 1. Compute CWT
-    double[][] cwtCoefficients = calculateCWT(y, scales);
+    final double[][] cwtCoefficients = calculateCWT(y, scales);
 
     // 2. Find Potential Peaks
-    List<PotentialPeak> potentialPeaks = findPotentialPeaksFromCWT(cwtCoefficients, scales, x, y);
+    final  List<PotentialPeak> potentialPeaks = findPotentialPeaksFromCWT(cwtCoefficients, scales, x, y);
 
     // 3. Initial Filtering - Height Only
-    List<DetectedPeak> heightFilteredPeaks = filterByHeight(potentialPeaks, y, x, minPeakHeight);
+    final List<DetectedPeak> heightFilteredPeaks = filterByHeight(potentialPeaks, y, x, minPeakHeight);
 
     if (heightFilteredPeaks.isEmpty()) {
       return Collections.emptyList();
@@ -122,7 +123,7 @@ public class WaveletPeakDetector extends AbstractResolver {
 
     // 5. Local Noise/Baseline Estimation and SNR Filter
     //    *** Modified call (no map passed) ***
-    List<DetectedPeak> finalDetectedPeaks = estimateLocalNoiseBaselineAndFilterBySNR(
+    final List<DetectedPeak> finalDetectedPeaks = estimateLocalNoiseBaselineAndFilterBySNR(
         heightFilteredPeaks, x, y, minSnr); // Pass x here for baseline calculation
 
     if (finalDetectedPeaks.isEmpty()) {
@@ -130,18 +131,13 @@ public class WaveletPeakDetector extends AbstractResolver {
     }
 
     // 6. Determine & SET Index Ranges for the FINAL Peaks
-    //    *** Modified call ***
-    //    (Optional: Recalculate boundaries if desired, or just use existing ones)
-    //    Let's assume we want the boundaries recalculated based on the final list context
-    //    If not, skip this and use the boundaries already set in finalDetectedPeaks
     findAndSetLocalMinimaBoundaries(finalDetectedPeaks, y);
 
     // 7. Convert Final Peaks (with boundaries) to PeakRange objects
-    //    *** Modified call (no map passed) ***
-    List<PeakRange> finalPeakRanges = convertPeaksToPeakRanges(finalDetectedPeaks, x);
+    final List<PeakRange> finalPeakRanges = convertPeaksToPeakRanges(finalDetectedPeaks, x);
 
     // 8. Merge Overlapping / Proximal Peaks
-    List<Range<Double>> mergedRanges = mergePeakRanges(finalPeakRanges, mergeProximityFactor, x);
+    final List<Range<Double>> mergedRanges = mergePeakRanges(finalPeakRanges, mergeProximityFactor, x);
 
     // 9. Sort final ranges by start time
     mergedRanges.sort(Comparator.comparing(Range::lowerEndpoint));
@@ -149,7 +145,6 @@ public class WaveletPeakDetector extends AbstractResolver {
     return mergedRanges;
   }
 
-  // ... (calculateCWT, generateMexicanHat, findPotentialPeaksFromCWT, filterByHeight as before) ...
   private double[][] calculateCWT(double[] y, double[] scales) {
     final int n = y.length;
     int N_padded = Integer.highestOneBit(n);
@@ -159,16 +154,20 @@ public class WaveletPeakDetector extends AbstractResolver {
     if (N_padded == 0) {
       N_padded = 2; // Handle very small n
     }
-
-    double[] yPadded = Arrays.copyOf(y, N_padded); // Pad with zeros
+    if(yPadded.length != N_padded) {
+      yPadded = Arrays.copyOf(y, N_padded); // Pad with zeros
+    } else {
+      System.arraycopy(y, 0, yPadded, 0, y.length);
+      Arrays.fill(yPadded, y.length, N_padded, 0d);
+    }
 
     FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
     Complex[] yFFT = fft.transform(yPadded, TransformType.FORWARD);
     double[][] cwt = new double[scales.length][n];
 
     for (int i = 0; i < scales.length; i++) {
-      double scale = scales[i];
-      double[] waveletKernel = generateMexicanHat(N_padded, scale);
+      final double scale = scales[i];
+      final double[] waveletKernel = generateMexicanHat(N_padded, scale);
       Complex[] waveletFFT = fft.transform(waveletKernel, TransformType.FORWARD);
       Complex[] waveletFFTConj = Arrays.stream(waveletFFT).map(Complex::conjugate)
           .toArray(Complex[]::new);
@@ -360,7 +359,6 @@ public class WaveletPeakDetector extends AbstractResolver {
       // *** Set boundaries on the peak object ***
       peak.setBoundaryIndices(leftIdx, rightIdx);
     }
-    // No return value needed
   }
 
   /**
@@ -430,14 +428,11 @@ public class WaveletPeakDetector extends AbstractResolver {
 
       // --- Check for sufficient TOTAL samples ---
       if (localBackgroundSamples.size() < MIN_LOCAL_SAMPLES) {
-        // System.err.println("Warning: Not enough total local background samples ("+localBackgroundSamples.size()+") near peak " + peak.peakIndex + ". Skipping.");
         continue;
       }
 
       // --- Calculate Local Baseline & Noise ---
-      // Keep your baseline calculation using X values
       final double localBaseline;
-      // Check edge indices before accessing x array
       if (leftEdgeIdx >= 0 && leftEdgeIdx < x.length && rightEdgeIdx >= 0
           && rightEdgeIdx < x.length) {
         localBaseline = (y[leftEdgeIdx] + y[rightEdgeIdx]) / 2;
@@ -505,8 +500,8 @@ public class WaveletPeakDetector extends AbstractResolver {
     for (DetectedPeak peak : peaks) {
       // *** Get boundaries directly from the peak object ***
       if (peak.hasValidBoundaries()) {
-        int leftIdx = peak.leftBoundaryIndex;
-        int rightIdx = peak.rightBoundaryIndex;
+        final int leftIdx = peak.leftBoundaryIndex;
+        final int rightIdx = peak.rightBoundaryIndex;
 
         // Check indices are valid for x array access
         if (leftIdx >= 0 && rightIdx < x.length) { // left <= right checked in hasValidBoundaries
@@ -554,8 +549,8 @@ public class WaveletPeakDetector extends AbstractResolver {
             > ZERO_THRESHOLD) {
           shouldMerge = true;
         } else if (proximityFactor > 0) {
-          double prevWidth = previous.range().upperEndpoint() - previous.range().lowerEndpoint();
-          double currWidth = current.range().upperEndpoint() - current.range().lowerEndpoint();
+          final double prevWidth = previous.range().upperEndpoint() - previous.range().lowerEndpoint();
+          final double currWidth = current.range().upperEndpoint() - current.range().lowerEndpoint();
           double avgWidth = (prevWidth + currWidth) / 2.0;
           if (avgWidth <= 0) {
             avgWidth = Math.max(Math.abs(previous.peakX() - current.peakX()) / 4.0, 1e-6);
