@@ -380,7 +380,13 @@ public class MetadataTable {
         nonNullMap.size() + (hasNulls ? 1 : 0));
 
     int counter = hasNulls ? 1 : 0;
-    for (Entry<Object, @NotNull List<RawDataFile>> e : nonNullMap.entrySet()) {
+
+    // in case we have string values - sort by toString as we will then just number each group.
+    // numbers and dates will be sorted after the convertToDouble conversion
+    final List<Entry<Object, @NotNull List<RawDataFile>>> entries = nonNullMap.entrySet().stream()
+        .sorted(Comparator.comparing(e -> e.getKey().toString())).toList();
+    
+    for (Entry<Object, @NotNull List<RawDataFile>> e : entries) {
       final List<RawDataFile> rawFiles = e.getValue();
       final Object value = e.getKey();
       final double doubleValue = convertValueToDouble(value, counter);
