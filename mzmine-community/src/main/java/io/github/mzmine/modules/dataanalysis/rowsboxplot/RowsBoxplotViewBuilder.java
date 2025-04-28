@@ -73,12 +73,9 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
         if (n != null) {
           final SimpleColorPalette colors = n.getColorPalette();
           colors.applyToChart(barChart);
-          // need to set a new renderer otherwise the old will keep the colors
+          // need to reset the renderer otherwise the old will keep the colors
           boxAndWhiskerRenderer.clearSeriesPaints(false);
           boxAndWhiskerRenderer.clearSeriesStrokes(false);
-//          final BoxAndWhiskerRenderer boxAndWhiskerRenderer2 = new BoxAndWhiskerRenderer();
-//          boxAndWhiskerRenderer2.setMeanVisible(false);
-//          barChart.getCategoryPlot().setRenderer(0, boxAndWhiskerRenderer2, false);
         }
       });
       barChart.getCategoryPlot().setDataset(0, n);
