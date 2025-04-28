@@ -104,8 +104,8 @@ public class FeatureShapeMobilogramChart extends BufferedChartNode {
     try {
       chart.getXYPlot().getDomainAxis().setRange(defaultRange);
       chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
-    } catch (NoSuchElementException e) {
-      System.out.println("Exception for row " + row.getID());
+    } catch (NullPointerException | NoSuchElementException e) {
+      // error in jfreechart draw method
     }
 
     setChartCreateImage(chart, GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH,

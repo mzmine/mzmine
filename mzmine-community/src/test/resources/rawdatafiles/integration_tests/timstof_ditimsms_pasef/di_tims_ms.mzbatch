@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><batch mzmine_version="4.5.43">
+<?xml version="1.0" encoding="UTF-8"?><batch mzmine_version="4.5.50">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" parameter_version="1">
         <parameter name="File names">
             <file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\additional\lc-tims-ms-pasef-a.d</file>
@@ -268,9 +268,9 @@
         <parameter name="Suffix">eics</parameter>
         <parameter name="Allow single scan chromatograms"/>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule" parameter_version="1">
+    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule" parameter_version="2">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
-        <parameter name="m/z tolerance" selected="true">
+        <parameter name="m/z tolerance">
             <absolutetolerance>0.005</absolutetolerance>
             <ppmtolerance>20.0</ppmtolerance>
         </parameter>
@@ -312,6 +312,7 @@
             <parameter name="Advanced" selected="false">
                 <parameter name="Minimum signal intensity (absolute, TIMS)" selected="true">200.0</parameter>
                 <parameter name="Minimum signal intensity (relative, TIMS)" selected="true">0.01</parameter>
+                <parameter name="Group iterative MS2s" selected="false">mainQuantFile</parameter>
             </parameter>
         </parameter>
         <parameter name="Dimension">Mobility</parameter>

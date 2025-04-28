@@ -69,7 +69,7 @@ code to mzmine.
 
 ### Java version
 
-mzmine development requires Java Development Kit (JDK) version 21 or newer (http://jdk.java.net).
+mzmine development requires Java Development Kit (JDK) version 23 or newer (http://jdk.java.net).
 
 
 ### Building

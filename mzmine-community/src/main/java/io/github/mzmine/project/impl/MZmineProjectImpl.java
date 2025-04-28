@@ -203,12 +203,12 @@ public class MZmineProjectImpl implements MZmineProject {
       if (names.contains(name)) {
         if (!MZmineCore.isHeadLessMode()) {
           MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
-                                                      + " because a file with the same name already exists in the project. Please copy "
-                                                      + "the file and rename it, if you want to import it twice.");
+              + " because a file with the same name already exists in the project. Please copy "
+              + "the file and rename it, if you want to import it twice.");
         }
         logger.warning(
             "Cannot add file with an original name that already exists in project. (filename="
-            + newFile.getName() + ")");
+                + newFile.getName() + ")");
         return;
       }
 
@@ -319,7 +319,7 @@ public class MZmineProjectImpl implements MZmineProject {
     }
     try {
       rawLock.readLock().lock();
-      name = name.trim();
+      name = FileAndPathUtil.eraseFormat(name).trim();
       for (final RawDataFile raw : rawDataFiles) {
         if (name.equalsIgnoreCase(raw.getName()) || name.equalsIgnoreCase(
             FileAndPathUtil.eraseFormat(raw.getName()))) {

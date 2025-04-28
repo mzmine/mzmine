@@ -220,4 +220,13 @@ public class ColorUtils {
   public static boolean isTransparent(Color clr) {
     return clr.getOpacity() < 0.4;
   }
+
+  public static Color invert(Color clr) {
+    return new Color(1 - clr.getRed(), 1 - clr.getGreen(), 1 - clr.getBlue(), clr.getOpacity());
+  }
+
+  public static java.awt.Color invert(java.awt.Color clr) {
+    return new java.awt.Color(255 - clr.getRed(), 255 - clr.getGreen(), 255 - clr.getBlue(),
+        clr.getAlpha());
+  }
 }

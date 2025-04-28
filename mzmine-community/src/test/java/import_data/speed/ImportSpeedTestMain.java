@@ -34,6 +34,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.io.WriterOptions;
@@ -64,7 +65,7 @@ public class ImportSpeedTestMain {
       rawdatafiles/DOM_a.mzML
       rawdatafiles/DOM_a_invalid_chars.mzML
       rawdatafiles/DOM_a_invalid_header.mzML
-          """.split("\n"));
+      """.split("\n"));
   public static String speedTestFile = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
 
 
@@ -137,14 +138,8 @@ public class ImportSpeedTestMain {
       return new File(ImportSpeedTestMain.class.getClassLoader().getResource(name).getFile());
     }).toArray(File[]::new);
 
-    AllSpectralDataImportParameters paramDataImport = new AllSpectralDataImportParameters();
-    paramDataImport.setParameter(AllSpectralDataImportParameters.fileNames, files);
-    paramDataImport.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[0]);
-    paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, advanced != null);
-    if (advanced != null) {
-      var advancedP = paramDataImport.getParameter(AllSpectralDataImportParameters.advancedImport);
-      advancedP.setEmbeddedParameters(advanced);
-    }
+    ParameterSet paramDataImport = AllSpectralDataImportParameters.create(true, files, null, null,
+        advanced);
 
     logger.info("Testing data import of mzML and mzXML without advanced parameters");
 

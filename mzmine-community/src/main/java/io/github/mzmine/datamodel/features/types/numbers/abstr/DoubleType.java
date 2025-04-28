@@ -130,7 +130,7 @@ public abstract class DoubleType extends NumberType<Double> {
               if (range == null) {
                 range = Range.singleton(value);
               } else {
-                range.span(Range.singleton(value));
+                range = range.span(Range.singleton(value));
               }
             }
           }
@@ -146,6 +146,22 @@ public abstract class DoubleType extends NumberType<Double> {
             }
           }
           return min;
+        }
+        case DIFFERENCE: {
+          Double min = null;
+          Double max = null;
+          for (var model : models) {
+            Double value = model.get(this);
+            if (value != null) {
+              if (max == null || value > max) {
+                max = value;
+              }
+              if (min == null || value < min) {
+                min = value;
+              }
+            }
+          }
+          return min == null ? null : max - min;
         }
         case MAX: {
           // calc average center of ranges

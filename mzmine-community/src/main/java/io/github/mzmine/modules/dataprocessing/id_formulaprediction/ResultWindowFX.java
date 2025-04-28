@@ -36,28 +36,27 @@ import java.io.IOException;
 
 public class ResultWindowFX extends Stage {
 
-    private ResultWindowController controller;
+  private ResultWindowController controller;
 
-    public ResultWindowFX(String title, FeatureListRow peakListRow, double searchedMass, int charge,
-                          Task searchTask){
+  public ResultWindowFX(String title, FeatureListRow peakListRow, double searchedMass, int charge,
+      Task searchTask) {
 
-        try{
+    try {
 
-            FXMLLoader root = new FXMLLoader(getClass().getResource("ResultWindowFX.fxml"));
-            Parent rootPane = root.load();
-            Scene scene = new Scene(rootPane);
-            setScene(scene);
-            controller = root.getController();
-            controller.initValues(title, peakListRow, searchedMass, charge, searchTask);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-
+      FXMLLoader root = new FXMLLoader(getClass().getResource("ResultWindowFX.fxml"));
+      Parent rootPane = root.load();
+      Scene scene = new Scene(rootPane);
+      setScene(scene);
+      controller = root.getController();
+      controller.initValues(title, peakListRow, searchedMass, charge, searchTask);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
-    public void addNewListItem(final ResultFormula formula) {
-        controller.addNewListItem(formula);
-    }
+
+  }
+
+  public void addNewListItem(final ResultFormula formula) {
+    controller.addNewListItem(formula);
+  }
 
 }

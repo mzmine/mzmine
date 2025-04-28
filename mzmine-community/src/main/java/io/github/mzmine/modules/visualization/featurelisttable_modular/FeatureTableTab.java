@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
@@ -55,6 +56,7 @@ public class FeatureTableTab extends MZmineTab {
 
   public FeatureTableTab(FeatureList flist) {
     super("Feature Table", true, false);
+    setSubTitle(flist.getName());
     mainPane = new BorderPane();
     toolBar = new ToolBar();
 
@@ -142,6 +144,7 @@ public class FeatureTableTab extends MZmineTab {
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
     if (featureLists == null || featureLists.isEmpty()) {
+      setSubTitle(null);
       return;
     }
 
@@ -149,6 +152,7 @@ public class FeatureTableTab extends MZmineTab {
     FeatureList featureList = featureLists.iterator().next();
 
     controller.setFeatureList(featureList);
+    setSubTitle(featureList.getName());
   }
 
   @Override

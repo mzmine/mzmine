@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,29 +23,57 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
+package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.abstr.StringType;
-import java.util.logging.Logger;
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.SimpleRowBinding;
+import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.AVERAGE;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Package private id type, so that pubchem ids can be read from a csv.
+ * Retention index type
  */
-public class PubChemIdType extends StringType {
+public class RIType extends FloatType {
 
-  private static final Logger logger = Logger.getLogger(PubChemIdType.class.getName());
+  public RIType() {
+    super(new DecimalFormat("0.##"));
+  }
 
-  public PubChemIdType() {
+  @NotNull
+  @Override
+  public String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "retention_index";
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return "pubchem_cid";
+  public NumberFormat getFormat() {
+    return DEFAULT_FORMAT;
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    return DEFAULT_FORMAT;
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "PubChemCID";
+    return "RI";
   }
+
+  @NotNull
+  @Override
+  public List<RowBinding> createDefaultRowBindings() {
+    return List.of(new SimpleRowBinding(this, AVERAGE));
+  }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
+
 }

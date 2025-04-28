@@ -301,13 +301,23 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   }
 
   /**
-   * Checks for equality between two color palettes. Does not take the name into account.
+   * Checks for equality between two color palettes. Takes the name into account.
    *
    * @param obj The palette.
    * @return true or false.
    */
   @Override
   public boolean equals(Object obj) {
+    return equals(obj, true);
+  }
+
+  /**
+   * Checks for equality between two color palettes. Takes the name into account.
+   *
+   * @param obj The palette.
+   * @return true or false.
+   */
+  public boolean equals(Object obj, boolean checkName) {
     if (obj == null) {
       return false;
     }
@@ -332,7 +342,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       }
     }
 
-    if (!Objects.equals(getName(), palette.getName())) {
+    if (checkName && !Objects.equals(getName(), palette.getName())) {
       return false;
     }
 
@@ -362,9 +372,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public SimpleColorPalette clone(boolean resetIndex) {
     SimpleColorPalette clone = new SimpleColorPalette();
-    for (Color clr : this) {
-      clone.add(clr);
-    }
+    clone.addAll(this);
     clone.setName(getName());
     clone.setNegativeColor(getNegativeColor());
     clone.setPositiveColor(getPositiveColor());

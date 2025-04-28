@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import java.util.stream.Collectors;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
@@ -83,6 +84,11 @@ public class RawDataOverviewPane extends MZmineTab {
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
     controller.setRawDataFiles((Collection<RawDataFile>) rawDataFiles);
+    if(rawDataFiles.size() <= 2) {
+      setSubTitle(rawDataFiles.stream().map(RawDataFile::getName).collect(Collectors.joining(", ")));
+    } else {
+      setSubTitle("Overlay of " + rawDataFiles.size() + " files");
+    }
   }
 
   @Override
