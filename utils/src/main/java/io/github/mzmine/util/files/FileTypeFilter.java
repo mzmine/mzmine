@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.Objects;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Robin Schmid (robinschmid@uni-muenster.de)
@@ -37,21 +38,29 @@ public class FileTypeFilter extends javax.swing.filechooser.FileFilter implement
 
   private String[] extensions;
   private String extension = null;
-  private String description;
+  private final String description;
+  private final boolean allowDirectories;
 
   public FileTypeFilter(String extension, String description) {
     this.extension = extension;
     this.description = description;
+    allowDirectories = false;
   }
 
   public FileTypeFilter(String[] extensions, String description) {
     this.extensions = extensions;
     this.description = description;
+    allowDirectories = false;
   }
 
   public FileTypeFilter(ExtensionFilter filter, String description) {
+    this(filter, description, false);
+  }
+
+  public FileTypeFilter(ExtensionFilter filter, String description, boolean allowDirectories) {
     this.extensions = mapFilter(filter);
     this.description = description;
+    this.allowDirectories = allowDirectories;
   }
 
   public static String[] mapFilter(ExtensionFilter filters) {
@@ -75,7 +84,7 @@ public class FileTypeFilter extends javax.swing.filechooser.FileFilter implement
     return getExtensionFromFile(file) != null;
   }
 
-  public static String getExtensionFromFile(File file) {
+  public static @Nullable String getExtensionFromFile(File file) {
     String extfile = null;
     String fileName = file.getName();
 
@@ -103,7 +112,7 @@ public class FileTypeFilter extends javax.swing.filechooser.FileFilter implement
 
   @Override
   public boolean accept(File file) {
-    if (file.isDirectory()) {
+    if (!allowDirectories && file.isDirectory()) {
       return false;
     }
     // String extfile = FilenameUtils.getExtension(file.getName());
@@ -111,6 +120,9 @@ public class FileTypeFilter extends javax.swing.filechooser.FileFilter implement
       return extension.equalsIgnoreCase(FileTypeFilter.getExtensionFromFile(file));
     } else {
       String fileEx = FileTypeFilter.getExtensionFromFile(file);
+      if (fileEx == null) {
+        return false;
+      }
       for (String e : extensions) {
         if (e.equalsIgnoreCase(fileEx)) {
           return true;
@@ -139,8 +151,8 @@ public class FileTypeFilter extends javax.swing.filechooser.FileFilter implement
       // FIle Name
       String tmp = getFileNameWithoutExtension(file) + "." + extension;
       File endfile = new File(file.getParent(), tmp);
-      System.out
-          .println("Save File as: " + endfile.getName() + " under " + endfile.getAbsolutePath());
+      System.out.println(
+          "Save File as: " + endfile.getName() + " under " + endfile.getAbsolutePath());
       return endfile;
     }
     return file;

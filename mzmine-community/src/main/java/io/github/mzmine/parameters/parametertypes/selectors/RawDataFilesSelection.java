@@ -156,7 +156,7 @@ public class RawDataFilesSelection implements Cloneable {
     }
 
     if (specificFiles == null) {
-      return null;
+      return new RawDataFile[0];
     }
 
     return Arrays.stream(specificFiles).<RawDataFile>mapMulti((specificFile, c) -> {

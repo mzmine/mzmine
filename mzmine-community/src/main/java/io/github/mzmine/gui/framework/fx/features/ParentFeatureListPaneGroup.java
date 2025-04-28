@@ -38,6 +38,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This pane may be derived from a {@link FeatureTableFX} or directly from {@link FeatureList}. rows
@@ -95,7 +96,9 @@ public class ParentFeatureListPaneGroup implements FeatureListRowsPane {
     featureList.addListener((obs, oldList, newList) -> {
       weak.removeAllForParent(oldList);
       // weakly bind
-      FeatureListUtils.bindRows(weak, newList, rows);
+      if(newList != null) {
+        FeatureListUtils.bindRows(weak, newList, rows);
+      }
     });
 
     featureTableFX.addListener((obs, oldTable, newTable) -> {

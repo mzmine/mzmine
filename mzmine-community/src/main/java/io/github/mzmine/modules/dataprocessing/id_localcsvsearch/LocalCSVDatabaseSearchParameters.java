@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Molecula
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;

@@ -140,11 +140,27 @@ public abstract class IntegerType extends NumberType<Integer> {
               if (range == null) {
                 range = Range.singleton(value);
               } else {
-                range.span(Range.singleton(value));
+                range = range.span(Range.singleton(value));
               }
             }
           }
           return range;
+        }
+        case DIFFERENCE: {
+          Integer min = null;
+          Integer max = null;
+          for (var model : models) {
+            Integer value = model.get(this);
+            if (value != null) {
+              if (max == null || value > max) {
+                max = value;
+              }
+              if (min == null || value < min) {
+                min = value;
+              }
+            }
+          }
+          return min == null ? null : max - min;
         }
         case MIN: {
           // calc average center of ranges

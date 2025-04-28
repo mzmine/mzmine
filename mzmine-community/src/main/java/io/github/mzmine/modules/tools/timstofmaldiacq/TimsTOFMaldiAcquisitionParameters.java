@@ -25,8 +25,14 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection.TimsTOFPrecursorSelectionOptions;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -39,8 +45,11 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
 import java.util.List;
+import javafx.application.Platform;
+import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
@@ -90,13 +99,29 @@ public class TimsTOFMaldiAcquisitionParameters extends SimpleParameterSet {
       """, 50);
 
   public TimsTOFMaldiAcquisitionParameters() {
-    super(new Parameter[]{flists, precursorSelectionModule, minMobilityWidth, maxMobilityWidth,
-        savePathDir, incrementOffsetX, initialOffsetY, maxIncrementSteps, acquisitionControl,
-        ceStepping, isolationWidth, exportOnly});
+    super(flists, precursorSelectionModule, minMobilityWidth, maxMobilityWidth, savePathDir,
+        incrementOffsetX, initialOffsetY, maxIncrementSteps, acquisitionControl, ceStepping,
+        isolationWidth, exportOnly);
   }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    assert Platform.isFxApplicationThread();
+
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        text("When using the SIMSEF workflow for spot analysis please also cite:"), linebreak(),
+        ArticleReferences.CUSTOMLIPIDCLASSES.hyperlinkText());
+
+    if ((parameters == null) || (parameters.length == 0)) {
+      return ExitCode.OK;
+    }
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
+    return dialog.getExitCode();
   }
 }
