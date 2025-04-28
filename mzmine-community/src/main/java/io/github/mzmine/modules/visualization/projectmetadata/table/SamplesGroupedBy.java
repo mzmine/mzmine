@@ -72,16 +72,6 @@ public final class SamplesGroupedBy<T> {
     return value;
   }
 
-  public @Nullable Comparable getComparableValueOrString() {
-    if (value == null) {
-      return null;
-    }
-    if (value instanceof Comparable<?>) {
-      return (Comparable<?>) value;
-    }
-    return value.toString();
-  }
-
   public @NotNull List<RawDataFile> files() {
     return files;
   }

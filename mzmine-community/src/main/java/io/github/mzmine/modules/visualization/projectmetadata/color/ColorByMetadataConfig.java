@@ -31,27 +31,45 @@ import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.util.color.SimpleColorPalette;
 
 /**
- * @param handleNumericOption an option how to handle numeric and date values. Either gradient or
- *                            distinct colors or automatic gradient for large sample sets.
- * @param transform           transformation for the transformPalette paint scale to interpolate
- *                            colors between each step.
- * @param categoryPalette     For {@link ColorByNumericOption#DISCRETE}: this palette holds distinct
- *                            colors for categories without interpolation. Usually:
- *                            {@link MZmineConfiguration#getDefaultColorPalette()}
- * @param transformPalette    For {@link ColorByNumericOption#GRADIENT}: this palette holds colors
- *                            for interpolation PaintScales and applies the transform. Usually
- *                            {@link MZmineConfiguration#getDefaultPaintScalePalette()}
+ * @param handleNumericOption        an option how to handle numeric and date values. Either
+ *                                   gradient or distinct colors or automatic gradient for large
+ *                                   sample sets.
+ * @param transform                  transformation for the transformPalette paint scale to
+ *                                   interpolate colors between each step.
+ * @param cloneResetCategoryPalette  For {@link ColorByNumericOption#DISCRETE}: this palette holds
+ *                                   distinct colors for categories without interpolation. Usually:
+ *                                   {@link MZmineConfiguration#getDefaultColorPalette()}. Notice:
+ *                                   this will always return a clone with reset index!
+ * @param cloneResetTransformPalette For {@link ColorByNumericOption#GRADIENT}: this palette holds
+ *                                   colors for interpolation PaintScales and applies the transform.
+ *                                   Usually
+ *                                   {@link MZmineConfiguration#getDefaultPaintScalePalette()}
+ *                                   Notice: this will always return a clone with reset index!
  */
 public record ColorByMetadataConfig(ColorByNumericOption handleNumericOption,
                                     PaintScaleTransform transform,
-                                    SimpleColorPalette categoryPalette,
-                                    SimpleColorPalette transformPalette) {
+                                    SimpleColorPalette cloneResetCategoryPalette,
+                                    SimpleColorPalette cloneResetTransformPalette) {
 
   public ColorByMetadataConfig(ColorByNumericOption handleNumericOption,
       PaintScaleTransform transform) {
     final MZmineConfiguration config = ConfigService.getConfiguration();
     this(handleNumericOption, transform, config.getDefaultColorPalette().clone(true),
         config.getDefaultPaintScalePalette().clone(true));
+  }
+
+  /**
+   * @return always a clone with reset index
+   */
+  public SimpleColorPalette cloneResetCategoryPalette() {
+    return cloneResetCategoryPalette.clone(true);
+  }
+
+  /**
+   * @return always a clone with reset index
+   */
+  public SimpleColorPalette cloneResetTransformPalette() {
+    return cloneResetTransformPalette.clone(true);
   }
 
   public static ColorByMetadataConfig createDefault() {

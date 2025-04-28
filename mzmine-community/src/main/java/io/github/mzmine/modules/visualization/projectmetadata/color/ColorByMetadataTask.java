@@ -103,7 +103,7 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
     brightnessPercentRange = ColorUtils.maxBrightnessWidth() * parameters.getValue(
         ColorByMetadataParameters.brightnessPercentRange);
 
-    colors = config.categoryPalette();
+    colors = config.cloneResetCategoryPalette();
   }
 
   @Override

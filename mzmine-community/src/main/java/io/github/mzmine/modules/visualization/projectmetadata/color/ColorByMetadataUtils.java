@@ -76,7 +76,7 @@ public class ColorByMetadataUtils {
       final double min = groups.getFirst().doubleValue();
       final double max = Math.max(groups.getLast().doubleValue(), Math.nextUp(min));
 
-      final PaintScale paintScale = config.transformPalette()
+      final PaintScale paintScale = config.cloneResetTransformPalette()
           .toPaintScale(config.transform(), Range.closed(min, max));
       final List<ColorByMetadataGroup> coloredGroups = groups.stream().map(
           group -> new ColorByMetadataGroup(group,
@@ -85,7 +85,7 @@ public class ColorByMetadataUtils {
       return new ColorByMetadataResults(coloredGroups, paintScale, true, config);
     } else {
       // color as categories
-      final SimpleColorPalette colors = config.categoryPalette();
+      final SimpleColorPalette colors = config.cloneResetCategoryPalette();
       final List<ColorByMetadataGroup> coloredGroups = groups.stream()
           .map(group -> new ColorByMetadataGroup(group, colors.getNextColor(), column)).toList();
       final PaintScale paintScale = createPaintScale(coloredGroups);
