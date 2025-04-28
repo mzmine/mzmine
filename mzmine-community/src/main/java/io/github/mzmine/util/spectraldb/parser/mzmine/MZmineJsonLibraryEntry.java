@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
 
 @JsonNaming(SnakeCaseStrategy.class)
 @JsonPropertyOrder({"softwaresource", "mergedSpectrumType", "entry_id", "ms_level", "polarity",
-    "compound_name", "synonyms", "adduct", "charge", "precursor_mz", "exact_mass", "rt", "ccs",
+    "compound_name", "synonyms", "adduct", "charge", "precursor_mz", "exact_mass", "rt", "ri", "ccs",
 
     // structure/compound specific
     "formula", "smiles", "inchi", "inchikey",
@@ -90,6 +90,7 @@ public class MZmineJsonLibraryEntry {
   public Double precursorMz, isolationWindow;
   public Double exactMass;
   public Double rt, ccs;
+  public String ri;
   public String cas, splash;
   public String formula, smiles, inchi, inchikey, peptideSequence;
   public FloatArrayList fragmentationEnergy;
@@ -165,6 +166,7 @@ public class MZmineJsonLibraryEntry {
 
       case MS_LEVEL -> msLevel;
       case RT -> rt;
+      case RETENTION_INDEX -> ri;
       case CCS -> ccs;
       case ION_TYPE -> adduct;
       case IMS_TYPE -> imsType;
@@ -249,6 +251,7 @@ public class MZmineJsonLibraryEntry {
       case NUM_PEAKS -> numSignals = (int) value;
       case EXACT_MASS -> exactMass = (double) value;
       case RT -> rt = (double) value;
+      case RETENTION_INDEX -> ri = value.toString();
       case CCS -> ccs = (double) value;
       case PRECURSOR_MZ -> precursorMz = (double) value;
       case MERGED_SPEC_TYPE -> mergedSpectrumType = value.toString();

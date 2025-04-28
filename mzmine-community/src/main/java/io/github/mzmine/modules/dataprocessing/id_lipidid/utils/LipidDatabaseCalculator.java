@@ -27,12 +27,12 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.utils;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassDescription;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Arrays;
@@ -63,17 +63,19 @@ public class LipidDatabaseCalculator {
 
   public LipidDatabaseCalculator(ParameterSet parameters, ILipidClass[] selectedLipids) {
 
-    this.minChainLength = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.minChainLength)
-        .getValue();
-    this.maxChainLength = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.maxChainLength)
-        .getValue();
-    this.minDoubleBonds = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.minDBEs).getValue();
-    this.maxDoubleBonds = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.maxDBEs).getValue();
-    this.onlySearchForEvenChains = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
-        .getParameter(LipidAnnotationChainParameters.onlySearchForEvenChainLength).getValue();
-    this.mzTolerance = parameters.getParameter(LipidAnnotationParameters.mzTolerance).getValue();
+    this.minChainLength = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters().getValue(LipidAnnotationChainParameters.minChainLength);
+    this.maxChainLength = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters().getValue(LipidAnnotationChainParameters.maxChainLength);
+    this.minDoubleBonds = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters().getValue(LipidAnnotationChainParameters.minDBEs);
+    this.maxDoubleBonds = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters().getValue(LipidAnnotationChainParameters.maxDBEs);
+    this.onlySearchForEvenChains = parameters.getParameter(
+            LipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+        .getValue(LipidAnnotationChainParameters.onlySearchForEvenChainLength);
+    this.mzTolerance = parameters.getValue(LipidAnnotationParameters.mzTolerance);
     this.selectedLipids = selectedLipids;
-
   }
 
   public ObservableList<LipidClassDescription> createTableData() {
@@ -85,7 +87,8 @@ public class LipidDatabaseCalculator {
       int maxTotalChainLength = maxChainLength * selectedLipid.getChainTypes().length;
       int minTotalDoubleBonds = minDoubleBonds * selectedLipid.getChainTypes().length;
       int maxTotalDoubleBonds = maxDoubleBonds * selectedLipid.getChainTypes().length;
-      for (int chainLength = minTotalChainLength; chainLength <= maxTotalChainLength; chainLength++) {
+      for (int chainLength = minTotalChainLength; chainLength <= maxTotalChainLength;
+          chainLength++) {
         if (onlySearchForEvenChains && chainLength % 2 != 0) {
           continue;
         }
@@ -101,17 +104,20 @@ public class LipidDatabaseCalculator {
           if (lipid == null) {
             continue;
           }
-          List<LipidFragmentationRule> fragmentationRules = Arrays.asList(selectedLipid.getFragmentationRules());
+          List<LipidFragmentationRule> fragmentationRules = Arrays.asList(
+              selectedLipid.getFragmentationRules());
           StringBuilder fragmentationRuleSB = new StringBuilder();
           fragmentationRules.stream().forEach(rule -> {
             fragmentationRuleSB.append(rule.toString()).append("\n");
           });
           StringBuilder exactMassSB = new StringBuilder();
-          Set<IonizationType> ionizationTypes = fragmentationRules.stream().map(LipidFragmentationRule::getIonizationType).collect(Collectors.toSet());
+          Set<IonizationType> ionizationTypes = fragmentationRules.stream()
+              .map(LipidFragmentationRule::getIonizationType).collect(Collectors.toSet());
           for (IonizationType ionizationType : ionizationTypes) {
             double mz = MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
                 AtomContainerManipulator.MonoIsotopic) + ionizationType.getAddedMass();
-            exactMassSB.append(ionizationType.getAdductName()).append(" ").append(MZmineCore.getConfiguration().getMZFormat().format(mz)).append("\n");
+            exactMassSB.append(ionizationType.getAdductName()).append(" ")
+                .append(MZmineCore.getConfiguration().getMZFormat().format(mz)).append("\n");
           }
           tableData.add(new LipidClassDescription(String.valueOf(id), // id
               selectedLipid.getName(), // lipid class
@@ -152,19 +158,24 @@ public class LipidDatabaseCalculator {
               if (!sb.isEmpty()) {
                 sb.append("\n");
               }
-              sb.append(entryCompare.getKey()).append(" interference with ").append(lipidClassDescription.getAbbreviation()).append(" ")
+              sb.append(entryCompare.getKey()).append(" interference with ")
+                  .append(lipidClassDescription.getAbbreviation()).append(" ")
                   .append(entry.getKey());
-            } else if (mzTolerance.checkWithinTolerance(valueOne, valueTwo) && isSamePolarity(entry.getKey(), entryCompare.getKey())) {
+            } else if (mzTolerance.checkWithinTolerance(valueOne, valueTwo) && isSamePolarity(
+                entry.getKey(), entryCompare.getKey())) {
               double delta = valueOne - valueTwo;
               if (!sb.isEmpty()) {
                 sb.append("\n");
               }
-              sb.append(entryCompare.getKey()).append(" possible interference with ").append(lipidClassDescription.getAbbreviation()).append(" ")
-                  .append(entry.getKey()).append(" \u0394 ").append(MZmineCore.getConfiguration().getMZFormat().format(delta));
+              sb.append(entryCompare.getKey()).append(" possible interference with ")
+                  .append(lipidClassDescription.getAbbreviation()).append(" ")
+                  .append(entry.getKey()).append(" \u0394 ")
+                  .append(MZmineCore.getConfiguration().getMZFormat().format(delta));
             }
           }
           if (!sb.isEmpty()) {
-            lipidClassDescriptionCompare.setInfo(lipidClassDescriptionCompare.getInfo() + "\n" + sb);
+            lipidClassDescriptionCompare.setInfo(
+                lipidClassDescriptionCompare.getInfo() + "\n" + sb);
           }
         }
       }
@@ -172,10 +183,12 @@ public class LipidDatabaseCalculator {
   }
 
   private boolean isSamePolarity(String key, String key2) {
-    return ((key.contains("]+") && key2.contains("]+")) || (key.contains("]-") && key2.contains("]-")));
+    return ((key.contains("]+") && key2.contains("]+")) || (key.contains("]-") && key2.contains(
+        "]-")));
   }
 
-  private Map<String, Double> extractIonNotationMzValuesFromTable(LipidClassDescription lipidClassDescription) {
+  private Map<String, Double> extractIonNotationMzValuesFromTable(
+      LipidClassDescription lipidClassDescription) {
     Map<String, Double> ionSpecificMzValues = new HashMap<>();
     String allPairs = lipidClassDescription.getExactMass();
     String[] pairs = allPairs.split("\n");

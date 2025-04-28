@@ -50,17 +50,7 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaList
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.datamodel.features.types.numbers.CCSType;
-import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
-import io.github.mzmine.datamodel.features.types.numbers.HeightType;
-import io.github.mzmine.datamodel.features.types.numbers.IDType;
-import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.*;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
@@ -309,6 +299,10 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public Float getAverageRT() {
     return get(RTType.class);
+  }
+
+  public Float getAverageRI() {
+    return get(RIType.class);
   }
 
   @Override

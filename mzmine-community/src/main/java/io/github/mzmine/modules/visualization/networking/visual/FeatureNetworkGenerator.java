@@ -44,7 +44,10 @@ import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeType;
 import io.github.mzmine.modules.visualization.networking.visual.enums.ElementType;
 import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
 import io.github.mzmine.modules.visualization.networking.visual.enums.NodeType;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.GraphStreamUtils;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -52,6 +55,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -107,10 +111,16 @@ public class FeatureNetworkGenerator {
     if (rows != null) {
       AtomicInteger added = new AtomicInteger(0);
 
+      // just make sure it is sorted by ID
+      rows = rows.stream()
+          .sorted(new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending))
+          .toList();
+
       if (useIonIdentity) {
         // ion identity networks are currently not covered in the relations maps
         // add all IIN
         IonNetwork[] nets = IonNetworkLogic.getAllNetworks(rows, onlyBestIonIdentityNet);
+        Arrays.sort(nets, Comparator.comparingInt(IonNetwork::getID));
         for (IonNetwork net : nets) {
           addIonNetwork(net, added);
         }
@@ -303,13 +313,21 @@ public class FeatureNetworkGenerator {
     if (relationsMaps == null || relationsMaps.isEmpty()) {
       return;
     }
-    for (Entry<String, R2RMap<RowsRelationship>> entry : relationsMaps.getRowsMaps().entrySet()) {
-      R2RMap<RowsRelationship> r2rMap = entry.getValue();
+    // sort maps by key so that the network is always created with the same nodes first
+    final List<R2RMap<RowsRelationship>> maps = relationsMaps.getRowsMaps().entrySet().stream()
+        .sorted(Entry.comparingByKey(Comparator.naturalOrder())).map(Entry::getValue).toList();
+
+    for (var r2rMap : maps) {
       // do not add MS1 correlation
       if (r2rMap == null) {
         continue;
       }
-      for (RowsRelationship rel : r2rMap.values()) {
+      // sort the relationships so that they are added in the same order always
+      final List<RowsRelationship> relationships = r2rMap.values().stream().sorted(
+          Comparator.comparing((RowsRelationship r) -> r.getRowA().getID())
+              .thenComparing(RowsRelationship::getScore)
+              .thenComparing(RowsRelationship::getMzDelta)).toList();
+      for (RowsRelationship rel : relationships) {
         if (rel != null) {
           addMS2SimEdges(rel.getRowA(), rel.getRowB(), rel);
         }

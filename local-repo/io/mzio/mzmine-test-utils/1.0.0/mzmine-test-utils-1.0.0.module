@@ -27,11 +27,11 @@
         {
           "name": "mzmine-test-utils-1.0.0.jar",
           "url": "mzmine-test-utils-1.0.0.jar",
-          "size": 2669,
-          "sha512": "3bd57d7bcd385fa2a77cb1fa3ca8b78a55234d1ee723d5654f8bd2b8e2d04c387363e059cd40ff1866f6e1efb6ba619b444383ae6c759a0cfd26962409ee30d3",
-          "sha256": "763b774d510b5907e2c79f9c19bff9437cf8ba0e45d3b8976ed581e7c1fee0ce",
-          "sha1": "dad2c61626235a48d11836fe2fd92d605ceae7d6",
-          "md5": "aee9ebfe980268a39e18a7d1c94a9ff2"
+          "size": 1137,
+          "sha512": "0ab5aa336fc683bc928c6d339405b9c284020447b2d5c080816243c5d1f559382d4ae05cf317f8f1532baa57aeddd6c75f6be06e40c85276f21d6b57f1d3e223",
+          "sha256": "311747af0e14b198cad07863405c9eb055356316d5fcf81ecd1f402ce5ed7294",
+          "sha1": "f81fa4f6b78b19d465314e877e195cdd8c7c2a7c",
+          "md5": "bb3541abcb1205fd21a951ff6af591da"
         }
       ]
     },
@@ -67,7 +67,7 @@
           "group": "org.mockito",
           "module": "mockito-junit-jupiter",
           "version": {
-            "requires": "5.8.0"
+            "requires": "5.16.0"
           }
         }
       ],
@@ -75,11 +75,11 @@
         {
           "name": "mzmine-test-utils-1.0.0.jar",
           "url": "mzmine-test-utils-1.0.0.jar",
-          "size": 2669,
-          "sha512": "3bd57d7bcd385fa2a77cb1fa3ca8b78a55234d1ee723d5654f8bd2b8e2d04c387363e059cd40ff1866f6e1efb6ba619b444383ae6c759a0cfd26962409ee30d3",
-          "sha256": "763b774d510b5907e2c79f9c19bff9437cf8ba0e45d3b8976ed581e7c1fee0ce",
-          "sha1": "dad2c61626235a48d11836fe2fd92d605ceae7d6",
-          "md5": "aee9ebfe980268a39e18a7d1c94a9ff2"
+          "size": 1137,
+          "sha512": "0ab5aa336fc683bc928c6d339405b9c284020447b2d5c080816243c5d1f559382d4ae05cf317f8f1532baa57aeddd6c75f6be06e40c85276f21d6b57f1d3e223",
+          "sha256": "311747af0e14b198cad07863405c9eb055356316d5fcf81ecd1f402ce5ed7294",
+          "sha1": "f81fa4f6b78b19d465314e877e195cdd8c7c2a7c",
+          "md5": "bb3541abcb1205fd21a951ff6af591da"
         }
       ]
     }

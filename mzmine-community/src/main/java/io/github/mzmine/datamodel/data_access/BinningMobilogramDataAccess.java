@@ -210,6 +210,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         final var advancedParam = parameterSet.getParameter(
             IonMobilityTraceBuilderParameters.advancedParameters).getValue();
         binWidth = switch (mt) {
+          case NONE, MIXED, OTHER, FAIMS -> null;
           case TIMS ->
               advancedParam.getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
@@ -225,7 +226,6 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
                   .getValue() ? advancedParam.getParameter(
                       AdvancedImsTraceBuilderParameters.twimsBinningWidth).getEmbeddedParameter()
                   .getValue() : getRecommendedBinWidth(imsFile);
-          default -> null;
         };
         break;
       }
@@ -236,6 +236,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         final var advancedParam = parameterSet.getParameter(
             RecursiveIMSBuilderParameters.advancedParameters).getValue();
         binWidth = switch (mt) {
+          case NONE, MIXED, OTHER, FAIMS -> null;
           case TIMS ->
               advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
@@ -251,7 +252,6 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
                   .getValue() ? advancedParam.getParameter(
                       RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth).getEmbeddedParameter()
                   .getValue() : getRecommendedBinWidth(imsFile);
-          default -> null;
         };
         break;
       }
@@ -259,13 +259,13 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       if (method.getModule().equals(MZmineCore.getModuleInstance(MobilogramBinningModule.class))) {
         final ParameterSet parameterSet = method.getParameters();
         binWidth = switch (mt) {
+          case NONE, FAIMS, OTHER, MIXED -> null;
           case TIMS ->
               parameterSet.getParameter(MobilogramBinningParameters.timsBinningWidth).getValue();
           case DRIFT_TUBE ->
               parameterSet.getParameter(MobilogramBinningParameters.dtimsBinningWidth).getValue();
           case TRAVELING_WAVE ->
               parameterSet.getParameter(MobilogramBinningParameters.twimsBinningWidth).getValue();
-          default -> null;
         };
         break;
       }
@@ -369,7 +369,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         }
       }
 
-      long numAssigned = Booleans.asList(assigned).stream().filter(val -> val == true).count();
+      long numAssigned = Booleans.asList(assigned).stream().filter(val -> val).count();
       if (numAssigned != numValues) {
         logger.info("assiged " + numAssigned + "/" + numValues);
       }
@@ -463,7 +463,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   public double getBinWidth() {
-    return (double) binWidth;
+    return binWidth;
   }
 
   /**

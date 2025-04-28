@@ -64,8 +64,7 @@ public interface MZmineConfiguration {
    *
    * @return
    */
-  @NotNull
-  List<File> getLastProjects();
+  @NotNull List<File> getLastProjects();
 
 
   /**
@@ -78,8 +77,7 @@ public interface MZmineConfiguration {
    *
    * @return
    */
-  @NotNull
-  FileNameListSilentParameter getLastProjectsParameter();
+  @NotNull FileNameListSilentParameter getLastProjectsParameter();
 
   NumberFormat getMZFormat();
 
@@ -145,6 +143,8 @@ public interface MZmineConfiguration {
   PaintScaleTransform getImageTransformation();
 
   File getMsConvertPath();
+
+  @NotNull File getLogFile();
 
   /**
    * The current hold total memory. Consider using {@link #getMaxMemoryGB()}

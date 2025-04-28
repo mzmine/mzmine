@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.javafx.components.util;
 
+import java.util.List;
+import java.util.stream.IntStream;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -136,7 +138,11 @@ public class FxLayout {
   }
 
   public static HBox newHBox(Pos alignment, Insets padding, Node... children) {
-    var pane = new HBox(DEFAULT_SPACE, children);
+    return newHBox(alignment, padding, DEFAULT_SPACE, children);
+  }
+
+  public static HBox newHBox(Pos alignment, Insets padding, int spacing, Node... children) {
+    var pane = new HBox(spacing, children);
     pane.setAlignment(alignment);
     pane.setPadding(padding);
     return pane;
@@ -277,5 +283,30 @@ public class FxLayout {
 
   public enum GridColumnGrow {
     LEFT, RIGHT, BOTH, NONE
+  }
+
+  public static ColumnConstraints newFillWidthColumn() {
+    final ColumnConstraints cc = new ColumnConstraints();
+    setGrowColumn(cc);
+    return cc;
+  }
+
+  public static List<ColumnConstraints> newFillWidthColumns(int numColumns) {
+    return IntStream.range(0, numColumns).mapToObj(i -> newFillWidthColumn()).toList();
+  }
+
+  public static RowConstraints newFillHeightRow() {
+    final RowConstraints rc = new RowConstraints();
+    setFillHeightRow(rc);
+    return rc;
+  }
+
+  public static List<RowConstraints> newFillHeightRows(int numRows) {
+    return IntStream.range(0, numRows).mapToObj(i -> newFillHeightRow()).toList();
+  }
+
+  private static void setFillHeightRow(RowConstraints rc) {
+    rc.setFillHeight(true);
+    rc.setVgrow(Priority.ALWAYS);
   }
 }

@@ -32,10 +32,12 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+
 import org.jetbrains.annotations.NotNull;
 
 class SpectralLibrarySearchTask extends RowsSpectralMatchTask {
@@ -44,7 +46,7 @@ class SpectralLibrarySearchTask extends RowsSpectralMatchTask {
   private final FeatureList[] featureLists;
 
   public SpectralLibrarySearchTask(ParameterSet parameters, FeatureList[] featureLists,
-      @NotNull Instant moduleCallDate) {
+                                   @NotNull Instant moduleCallDate) {
     super(parameters, combineRows(featureLists), moduleCallDate);
     this.featureLists = featureLists;
   }

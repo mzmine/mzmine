@@ -100,7 +100,7 @@ public class NistMspParser extends SpectralDBTextParser {
               // add and push
               addLibraryEntry(entry);
               // reset
-              fields = new EnumMap<>(fields);
+              fields.clear();
               dps.clear();
               isData = false;
             }
@@ -109,7 +109,7 @@ public class NistMspParser extends SpectralDBTextParser {
           logger.log(Level.WARNING, "Error for entry", ex);
           // reset on error
           isData = false;
-          fields = new EnumMap<>(fields);
+          fields.clear();
           dps.clear();
         }
         processedLines.incrementAndGet();

@@ -39,6 +39,8 @@ import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.dialogs.NotificationService;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -61,6 +63,8 @@ import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
+import io.mzio.users.user.UserNotificationUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -76,6 +80,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,12 +131,26 @@ public final class MZmineCore {
     CurrentUserService.subscribe(user -> {
       var nickname = user == null ? null : user.getNickname();
       ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
+
+      checkUserRemainingDays(user);
     });
 
     addUserRequiredListener();
 
     // after loading the config and numCores
     TaskService.init(ConfigService.getConfiguration().getNumOfThreads());
+  }
+
+  public static void checkUserRemainingDays(MZmineUser user) {
+    if (user != null) {
+      final EventHandler<ActionEvent> openUserTabAction = _ -> UsersTab.showTab();
+
+      var notification = UserNotificationUtils.getNotificationMessage(user);
+      if (notification != null) {
+        NotificationService.show(NotificationType.INFO, notification.title(), notification.text(),
+            openUserTabAction);
+      }
+    }
   }
 
   /**
@@ -192,6 +212,9 @@ public final class MZmineCore {
     logger.finest("Working directory is %s".formatted(cwd));
     logger.finest(
         "Default temporary directory is %s".formatted(System.getProperty("java.io.tmpdir")));
+
+    final File logFile = ConfigService.getConfiguration().getLogFile();
+    logger.finest("Writing log file to %s".formatted(logFile.getAbsolutePath()));
   }
 
   /**
@@ -247,7 +270,7 @@ public final class MZmineCore {
       final File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
 
       // run batch file
-      batchTask = BatchModeModule.runBatch(ProjectService.getProject(), batchFile,
+      batchTask = BatchModeModule.runBatchFile(ProjectService.getProject(), batchFile,
           overrideDataFiles, overrideMetadataFile, overrideSpectralLibraryFiles, outBaseFile,
           Instant.now());
     }

@@ -72,6 +72,16 @@ public interface Feature {
   void setRT(float rt);
 
   /**
+   * This method returns retention index of the feature if available
+   */
+  Float getRI();
+
+  /**
+   * Sets retention index of the feature
+   */
+  void setRI(float ri);
+
+  /**
    * This method returns the raw height of the feature
    */
   Float getHeight();
@@ -331,11 +341,6 @@ public interface Feature {
   void setFeatureInformation(FeatureInformation featureInfo);
   // End dulab Edit
 
-  @Nullable
-  default Integer getParentChromatogramRowID() {
-    return null;
-  }
-
   @NotNull FeatureList getFeatureList();
 
   int getNumberOfDataPoints();
@@ -374,4 +379,6 @@ public interface Feature {
   default boolean hasMs2Fragmentation() {
     return !getAllMS2FragmentScans().isEmpty();
   }
+
+  boolean isMrm();
 }

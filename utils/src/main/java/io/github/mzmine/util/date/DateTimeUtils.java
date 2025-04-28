@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,9 @@
 
 package io.github.mzmine.util.date;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +37,8 @@ import org.jetbrains.annotations.Nullable;
  * format: 2022-06-01T18:36:09
  * <p>
  * 2022-06-01T18:36:09Z is a zoned format that needs to be parsed by {@link ZonedDateTime}
+ * <p>
+ * For {@link LocalDate} parsing look at {@link LocalDateTimeParser#parseAnyFirstDate(String)}
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
@@ -52,11 +56,36 @@ public class DateTimeUtils {
   public static LocalDateTime parse(@NotNull String dateTime) {
     try {
       // ZonedDateTime with 2022-06-01T18:36:09Z where the Z stands for UTC
-      return ZonedDateTime.parse(dateTime).toLocalDateTime();
+      final ZonedDateTime zoned = ZonedDateTime.parse(dateTime);
+      return getStandardUtcLocalTime(zoned);
     } catch (Exception ignored) {
       // try to parse LocalDateTime 2022-06-01T18:36:09
-      return LocalDateTime.parse(dateTime);
+      try {
+        return LocalDateTime.parse(dateTime);
+      } catch (Exception _) {
+        return LocalDateTimeParser.parseAnyFirstDate(dateTime);
+      }
     }
+  }
+
+  /**
+   * Actually shifting the time instant internally
+   *
+   * @param zoned
+   * @return
+   */
+  public static @NotNull ZonedDateTime getStandardUtcTime(ZonedDateTime zoned) {
+    return zoned.withZoneSameInstant(ZoneOffset.UTC);
+  }
+
+  /**
+   * Actually shifting the time instant internally
+   *
+   * @param zoned
+   * @return
+   */
+  public static @NotNull LocalDateTime getStandardUtcLocalTime(ZonedDateTime zoned) {
+    return getStandardUtcTime(zoned).toLocalDateTime();
   }
 
   /**
@@ -77,4 +106,5 @@ public class DateTimeUtils {
       return defaultValue;
     }
   }
+
 }

@@ -43,6 +43,7 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.List;
@@ -54,6 +55,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
+import org.jfree.data.Range;
 
 public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotModel> {
 
@@ -103,8 +105,22 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
 
         chromPlot.setRangeAxisLabel(getSeriesRangeLabel(series));
         chromPlot.setRangeAxisFormat(formats.intensityFormat());
+
+        if (series.getNumberOfValues() > 0) {
+          final Range xRange = chromPlot.getDomainAxisRange();
+          final Range yRange = chromPlot.getRangeAxisRange();
+
+          if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(xRange,
+              com.google.common.collect.Range.closed(series.getRetentionTime(0),
+                  series.getRetentionTime(series.getNumberOfValues() - 1)))) {
+            chromPlot.applyAutoRangeToDomainAxis();
+            chromPlot.applyAutoRangeToRangeAxis(); // only change y axis if we also change x axis.
+          }
+        }
       }
     });
+
+    model.additionalTimeSeriesDatasetsProperty().subscribe(this::updateAdditionalDatasets);
 
     addFeatureListeners(chromPlot);
 
@@ -235,15 +251,21 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
   }
 
   private FlowPane createButtonBar() {
-    Button setLeftBoundary = FxButtons.createButton("Set left", FxIcons.ARROW_LEFT,
+    final String strSetLeft = "Set left";
+    final String strSetRight = "Set right";
+    final String strFinishFeature = "Finish feature";
+    final String strAbortFeature = "Abort feature";
+    final String strEditFeature = "Edit feature";
+
+    final Button setLeftBoundary = FxButtons.createButton(strSetLeft, FxIcons.ARROW_LEFT,
         "Set the left boundary of a feature (CTRL + left click).", onSetLeftPressed);
-    Button setRightBoundary = FxButtons.createButton("Set right", FxIcons.ARROW_RIGHT,
+    final Button setRightBoundary = FxButtons.createButton(strSetRight, FxIcons.ARROW_RIGHT,
         "Set the right boundary of a feature. (CTRL + SHIFT + left click)", onSetRightPressed);
-    Button finish = FxButtons.createButton("Finish feature", FxIcons.CHECK_CIRCLE,
+    final Button finish = FxButtons.createButton(strFinishFeature, FxIcons.CHECK_CIRCLE,
         "Finish current integration and save the feature.", onFinishPressed);
-    Button abortFeature = FxButtons.createButton("Abort feature", FxIcons.CANCEL,
+    final Button abortFeature = FxButtons.createButton(strAbortFeature, FxIcons.CANCEL,
         "Abort integration of the selected feature", onAbortPressed);
-    Button editSelected = FxButtons.createButton("Edit feature", FxIcons.EDIT,
+    final Button editSelected = FxButtons.createButton(strEditFeature, FxIcons.EDIT,
         "Edit the selected feature", onEditPressed);
     final FlowPane buttonBar = FxLayout.newFlowPane(setLeftBoundary, setRightBoundary, finish,
         abortFeature, editSelected);
@@ -253,10 +275,38 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
         Bindings.createBooleanBinding(() -> model.getSelectedFeature() == null,
             model.selectedFeatureProperty()));
 
+    model.stateProperty().subscribe(state -> {
+      if (state == State.SETTING_LEFT) {
+        setLeftBoundary.requestFocus();
+      }
+    });
+
     abortFeature.disableProperty().bind(Bindings.createBooleanBinding(
         () -> model.getCurrentStartTime() == null && model.getCurrentEndTime() == null,
         model.stateProperty(), model.currentStartTimeProperty(), model.currentEndTimeProperty()));
 
+    // a text less option is useful for the integration dashboard
+    model.useTextlessButtonsProperty().subscribe(textLess -> {
+      setLeftBoundary.setText(textLess ? null : strSetLeft);
+      setRightBoundary.setText(textLess ? null : strSetRight);
+      finish.setText(textLess ? null : strFinishFeature);
+      abortFeature.setText(textLess ? null : strAbortFeature);
+      editSelected.setText(textLess ? null : strEditFeature);
+    });
+
     return buttonBar;
+  }
+
+  private void updateAdditionalDatasets(List<ColoredXYDataset> oldDs,
+      List<ColoredXYDataset> newDs) {
+    if (newDs.isEmpty() && oldDs.isEmpty()) {
+      return;
+    }
+    model.getChromatogramPlot().applyWithNotifyChanges(false, () -> {
+      model.getChromatogramPlot().removeDatasets(oldDs);
+      model.getChromatogramPlot().addDatasets(
+          newDs.stream().map(ds -> new DatasetAndRenderer(ds, new ColoredXYLineRenderer()))
+              .toList());
+    });
   }
 }
