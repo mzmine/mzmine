@@ -35,9 +35,11 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+
 import org.jetbrains.annotations.NotNull;
 
 public class SpectralLibrarySearchModule implements MZmineProcessingModule {
@@ -52,7 +54,7 @@ public class SpectralLibrarySearchModule implements MZmineProcessingModule {
    * @param rows the feature list row.
    */
   public static void showSelectedRowsIdentificationDialog(final List<FeatureListRow> rows,
-      FeatureTableFX table, @NotNull Instant moduleCallDate) {
+                                                          FeatureTableFX table, @NotNull Instant moduleCallDate) {
 
     final ParameterSet parameters = new SelectedRowsSpectralLibrarySearchParameters();
 
@@ -77,7 +79,7 @@ public class SpectralLibrarySearchModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+                            @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     final ModularFeatureList[] featureLists = parameters
         .getParameter(SpectralLibrarySearchParameters.peakLists)
         .getValue().getMatchingFeatureLists();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,7 +80,7 @@ public abstract class ListDataType<T> extends DataType<List<T>> {
           }
           return c;
         }
-        case AVERAGE, SUM, RANGE, MIN, MAX: {
+        case AVERAGE, SUM, RANGE, MIN, MAX, DIFFERENCE: {
           throw new UnsupportedOperationException(String.format(
               "Bindings type %s is not supported by standard list data type, create a special implementation or use a different binding.",
               bindingType));

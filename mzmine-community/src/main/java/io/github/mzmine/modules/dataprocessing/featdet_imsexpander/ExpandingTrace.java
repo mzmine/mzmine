@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.CollectionUtils;
+import io.github.mzmine.util.maths.Precision;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -55,6 +56,7 @@ public class ExpandingTrace {
   private final ModularFeatureListRow f;
   private final Range<Float> rtRange;
   private final Range<Double> mzRange;
+  private final double centerMz;
 
   private final Map<MobilityScan, DataPoint> dataPoints = new HashMap<>();
 
@@ -62,6 +64,7 @@ public class ExpandingTrace {
     this.f = f;
     rtRange = f.getBestFeature().getRawDataPointsRTRange();
     this.mzRange = mzRange;
+    centerMz = f.getAverageMZ();
   }
 
   public ExpandingTrace(@NotNull final ModularFeatureListRow f, Range<Double> mzRange,
@@ -69,6 +72,7 @@ public class ExpandingTrace {
     this.f = f;
     this.rtRange = rtRange;
     this.mzRange = mzRange;
+    centerMz = f.getAverageMZ();
   }
 
   public ModularFeatureListRow getRow() {
@@ -83,15 +87,23 @@ public class ExpandingTrace {
    * @return true if the data points is added to this trace.
    */
   public boolean offerDataPoint(@NotNull MobilityScanDataAccess access, int index) {
-    if (!rtRange.contains(access.getRetentionTime()) || !mzRange.contains(
-        access.getMzValue(index))) {
+    final float rt = access.getRetentionTime();
+    final double mz = access.getMzValue(index);
+
+    if (!rtRange.contains(rt) || !mzRange.contains(mz)) {
       return false;
     }
 
-    synchronized (dataPoints) {
-      return dataPoints.putIfAbsent(access.getCurrentMobilityScan(),
-          new SimpleDataPoint(access.getMzValue(index), access.getIntensityValue(index))) == null;
-    }
+    final DataPoint dp = new SimpleDataPoint(mz,
+        access.getIntensityValue(index));
+
+    // keep the data point that has the lowest deviation to the mz of this row
+    return dataPoints.merge(access.getCurrentMobilityScan(), dp, (oldDp, newDp) -> {
+      if (Math.abs(centerMz - oldDp.getMZ()) > Math.abs(centerMz - newDp.getMZ())) {
+        return newDp;
+      }
+      return oldDp;
+    }) == dp;
   }
 
   public IonMobilogramTimeSeries toIonMobilogramTimeSeries(MemoryMapStorage storage,

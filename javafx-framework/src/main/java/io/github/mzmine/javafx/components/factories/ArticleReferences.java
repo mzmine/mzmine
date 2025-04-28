@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,7 +55,29 @@ public enum ArticleReferences {
 
   DREAMS(
       "Bushuiev R, Bushuiev A, Samusevich R, Brungs C, Sivic J, Pluskal T chemRxiv 10.26434/chemrxiv-2023-kss3r-v2",
-      "https://doi.org/10.26434/chemrxiv-2023-kss3r-v2");
+      "https://doi.org/10.26434/chemrxiv-2023-kss3r-v2"),
+
+  KENDRICK(
+      "Korf A, Vosse C, Schmid R et al. 2018; Rapid Communications in Mass Spectrometry, 32(12), 981-991.",
+      "https://doi.org/10.1002/rcm.8117"),
+
+  KENDRICKPOLYMERS(
+      "Korf A, Fouquet T, Schmid, R et al. S. 2019; Analytical chemistry, 92(1), 628-633.",
+      "https://doi.org/10.1021/acs.analchem.9b03863"),
+
+  LIPIDANNOTATION("Korf A, Jeck V, Schmid R et al. 2019; Analytical chemistry, 91(8), 5098-5105",
+      "https://pubs.acs.org/doi/abs/10.1021/acs.analchem.8b05493"),
+
+  CUSTOMLIPIDCLASSES(
+      "Rudt, E, Froning, M, Heuckeroth S et al. 2025; Anal. Chem., 97, 14, 7781–7788",
+      "https://doi.org/10.1021/acs.analchem.4c05989"),
+
+  SIMSEF("Heuckeroth S, Behrens A, Wolf C et al. 2023; Nature Communications, 14(1), 7495",
+      "https://doi.org/10.1038/s41467-023-43298-9"),
+
+  SPECLIBGENERATION("Brungs C, Schmid R, Heuckeroth S et al. 2025; chemRxiv",
+      "https://chemrxiv.org/engage/chemrxiv/article-details/67e12c85fa469535b95db52c");
+
 
   private final String content;
   private final String link;

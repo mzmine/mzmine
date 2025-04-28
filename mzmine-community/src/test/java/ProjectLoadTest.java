@@ -97,5 +97,8 @@ public class ProjectLoadTest {
             .getTypes().size());
     assertEquals(16, flist.getRows().stream().flatMap(r -> r.streamFeatures())
         .max(Comparator.comparingInt(f -> f.getTypes().size())).get().getTypes().size());
+
+    ProjectService.getProjectManager().clearProject();
+    ProjectService.getProject().clearSpectralLibrary();
   }
 }

@@ -31,6 +31,8 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -44,6 +46,8 @@ import org.w3c.dom.Element;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class ComboWithInputParameter<EnumType, ValueType extends ComboWithInputValue<EnumType, ?>, EmbeddedParameterType extends UserParameter<?, ?>> extends
     EmbeddedParameter<ValueType, EmbeddedParameterType, ComboWithInputComponent<EnumType>> {
+
+  private static final Logger logger = Logger.getLogger(ComboWithInputParameter.class.getName());
 
   protected final ObservableList<EnumType> choices;
   protected final EnumType inputTrigger;
@@ -81,8 +85,19 @@ public abstract class ComboWithInputParameter<EnumType, ValueType extends ComboW
 
   @Override
   public void setValue(final ValueType newValue) {
+    var oldValue = value;
     value = newValue;
-    ((Parameter) embeddedParameter).setValue(value == null ? null : value.getEmbeddedValue());
+    try {
+      if (value == null) {
+        embeddedParameter.setValue(null);
+      } else {
+        ((Parameter) embeddedParameter).setValue(newValue.getEmbeddedValue());
+      }
+    } catch (NullPointerException e) {
+      logger.log(Level.WARNING,
+          "Error setting value of parameter. old = %s, value = %s, new = %s".formatted(oldValue,
+              value, newValue), e);
+    }
   }
 
 
@@ -106,7 +121,8 @@ public abstract class ComboWithInputParameter<EnumType, ValueType extends ComboW
   }
 
   @Override
-  public void setValueToComponent(ComboWithInputComponent<EnumType> component, @Nullable ValueType newValue) {
+  public void setValueToComponent(ComboWithInputComponent<EnumType> component,
+      @Nullable ValueType newValue) {
     component.setValue(newValue);
   }
 

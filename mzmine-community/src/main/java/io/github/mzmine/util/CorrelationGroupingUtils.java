@@ -35,7 +35,7 @@ import io.github.mzmine.datamodel.features.correlation.RowGroupSimple;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -43,7 +43,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.collections.ObservableList;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -66,7 +65,7 @@ public class CorrelationGroupingUtils {
   /**
    * Create list of correlated rows
    *
-   * @param flist      feature list
+   * @param flist             feature list
    * @param keepExtendedStats keep extended statistics otherwise create simplified object
    * @return a list of all groups within the feature list
    */
@@ -82,57 +81,60 @@ public class CorrelationGroupingUtils {
             flist.getName());
         return List.of();
       }
-      logger.info("Creating groups for " + flist.getName());
       var corrMap = opCorrMap.get();
+      logger.info(
+          "Creating groups for %s with %d edges".formatted(flist.getName(), corrMap.size()));
 
       List<RowGroup> groups = new ArrayList<>();
-      HashMap<FeatureListRow, RowGroup> used = new HashMap<>();
+      HashMap<Integer, RowGroup> used = new HashMap<>();
 
-      int c = 0;
+      int nextGroupID = 1;
       List<RawDataFile> raw = flist.getRawDataFiles();
       // add all connections
       for (Entry<Integer, RowsRelationship> e : corrMap.entrySet()) {
         RowsRelationship r2r = e.getValue();
         FeatureListRow rowA = r2r.getRowA();
         FeatureListRow rowB = r2r.getRowB();
+        // row 2749 2852
         if (r2r instanceof R2RCorrelationData) {
           // already added?
-          RowGroup group = used.get(rowA);
-          RowGroup group2 = used.get(rowB);
+          RowGroup group = used.get(rowA.getID());
+          RowGroup group2 = used.get(rowB.getID());
           // merge groups if both present
           if (group != null && group2 != null && group.getGroupID() != group2.getGroupID()) {
             // copy all to group1 and remove g2
             for (FeatureListRow r : group2.getRows()) {
               group.add(r);
-              used.put(r, group);
+              used.put(r.getID(), group);
             }
             groups.remove(group2);
           } else if (group == null && group2 == null) {
             // create new group with both rows
             if (keepExtendedStats) {
-              group = new CorrelationRowGroup(raw, groups.size());
+              group = new CorrelationRowGroup(raw, nextGroupID);
             } else {
-              group = new RowGroupSimple(groups.size(), corrMap);
+              group = new RowGroupSimple(nextGroupID, corrMap);
             }
+            // increment group - the groups are renumbered later
+            nextGroupID++;
             group.addAll(rowA, rowB);
             groups.add(group);
             // mark as used
-            used.put(rowA, group);
-            used.put(rowB, group);
+            used.put(rowA.getID(), group);
+            used.put(rowB.getID(), group);
           } else if (group2 == null) {
             group.add(rowB);
-            used.put(rowB, group);
+            used.put(rowB.getID(), group);
           } else if (group == null) {
             group2.add(rowA);
-            used.put(rowA, group2);
+            used.put(rowA.getID(), group2);
           }
         }
-        // report back progress
-        c++;
       }
-      // sort by retention time
-      Collections.sort(groups);
-
+      // sort by retention time, group size and lowest row id to make sure it is stable
+      groups.sort(Comparator.comparing(RowGroup::calcAverageRetentionTime,
+              Comparator.nullsLast(Comparator.naturalOrder())).thenComparingInt(RowGroup::size)
+          .thenComparing(RowGroup::lowestRowId));
       // reset index
       for (int i = 0; i < groups.size(); i++) {
         groups.get(i).setGroupID(i);
@@ -159,18 +161,15 @@ public class CorrelationGroupingUtils {
     }
     return FeatureList.getGroups().stream().filter(g -> g instanceof CorrelationRowGroup)
         .map(g -> ((CorrelationRowGroup) g).getCorrelation()).flatMap(Arrays::stream) // R2GCorr
-        .flatMap(r2g -> r2g.getCorrelation() == null ? null
-            : r2g.getCorrelation().stream() //
-                .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
+        .flatMap(r2g -> r2g.getCorrelation() == null ? null : r2g.getCorrelation().stream() //
+            .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
   }
 
   public static Stream<R2RCorrelationData> streamFrom(FeatureListRow[] rows) {
     return Arrays.stream(rows).map(FeatureListRow::getGroup).filter(Objects::nonNull)
         .filter(g -> g instanceof CorrelationRowGroup).distinct()
-        .map(g -> ((CorrelationRowGroup) g).getCorrelation())
-        .flatMap(Arrays::stream) // R2GCorr
-        .flatMap(r2g -> r2g.getCorrelation() == null ? null
-            : r2g.getCorrelation().stream() //
-                .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
+        .map(g -> ((CorrelationRowGroup) g).getCorrelation()).flatMap(Arrays::stream) // R2GCorr
+        .flatMap(r2g -> r2g.getCorrelation() == null ? null : r2g.getCorrelation().stream() //
+            .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
   }
 }
