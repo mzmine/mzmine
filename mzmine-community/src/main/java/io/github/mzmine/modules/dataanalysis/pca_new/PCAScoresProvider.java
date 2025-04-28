@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,16 +31,18 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataConfig;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataGroup;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataResults;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
+import java.awt.Paint;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 import javafx.beans.property.Property;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.jetbrains.annotations.Nullable;
@@ -54,11 +56,17 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
   private final int pcX;
   private final int pcY;
   private final MetadataColumn<?> groupingColumn;
-  private int[] zData;
-  private LookupPaintScale paintScale;
-  private Map<RawDataFile, Integer> fileGroupMap;
+  private double[] zData;
+  private PaintScale paintScale;
   private int numberOfCategories;
   private String[] groupNames;
+  private Color[] groupColors;
+  // raw data file values will be sorted by metadata
+  // for the groups to appear in order in the legend - the order may be different from results.files order
+  // access index of raw data file index in pca results
+  private final Map<RawDataFile, Integer> pcaResultIndex = new HashMap<>();
+  // index of raw data file in dataset
+  private final Map<Integer, RawDataFile> dataFileIndex = new HashMap<>();
 
   /**
    * @param pcX index of the principal component used for domain axis, subtract 1 from the number
@@ -73,6 +81,9 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
     this.pcX = pcX;
     this.pcY = pcY;
     this.groupingColumn = groupingColumn;
+    for (int i = 0; i < result.files().size(); i++) {
+      pcaResultIndex.put(result.files().get(i), i);
+    }
   }
 
   public PCAScoresProvider(PCARowsResult result, String seriesKey, Color awt) {
@@ -81,54 +92,105 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
 
   @Override
   public void computeValues(Property<TaskStatus> status) {
-    final PCAResult pcaResult = result.pcaResult();
+    // group and assign default color
+    // already sorted by name
+    // null may be first element if present
+    final ColorByMetadataResults grouping = ColorByMetadataUtils.colorByColumn(groupingColumn,
+        result.files(), ColorByMetadataConfig.createDefault());
 
+    assert result.files().size() == grouping.numFiles();
+
+    setFileDataIndexes(grouping.groups());
+
+    setXYZScores(grouping.groups());
+
+    // create paintscale from groups
+    paintScale = grouping.paintScale();
+
+    // too many numeric groups - create gradient
+    if (grouping.isGradient()) {
+      // at max show 20 groups - otherwise too many
+      legendListNGroups(grouping, Math.min(20, grouping.size()));
+    } else {
+      legendListAllGroups(grouping);
+    }
+  }
+
+  /**
+   * Distinct colors for each group
+   */
+  private void legendListAllGroups(ColorByMetadataResults grouping) {
+    legendListNGroups(grouping, grouping.size());
+  }
+
+  /**
+   * Gradient paintscale with numeric values
+   */
+  private void legendListNGroups(ColorByMetadataResults grouping, int numberOfCategories) {
+    // if no column selected all will be treated as null
+    final int nGroups = grouping.size();
+    this.numberOfCategories = numberOfCategories;
+    groupNames = new String[numberOfCategories];
+    groupColors = new Color[numberOfCategories];
+
+    // null values are first group if present and they have the lowest value
+    // doubleValues are already sorted ascending
+    for (int i = 0; i < numberOfCategories; i++) {
+      // equally spaced entries subsampled
+      final ColorByMetadataGroup group = grouping.get(
+          (int) Math.round(i * (nGroups - 1) / (double) (numberOfCategories - 1)));
+      // this needs to match the order in the legend - therefore the data files need to be sorted by groupedFiles
+      groupNames[i] = group.valueString(); // N/A or real value
+      groupColors[i] = group.colorAWT();
+    }
+  }
+
+
+  private void setFileDataIndexes(List<ColorByMetadataGroup> groups) {
+    int dataIndex = 0;
+    for (ColorByMetadataGroup group : groups) {
+      for (RawDataFile file : group.files()) {
+        dataFileIndex.put(dataIndex, file);
+        dataIndex++;
+      }
+    }
+  }
+
+  private void setXYZScores(List<ColorByMetadataGroup> groups) {
+    final PCAResult pcaResult = result.pcaResult();
     final RealMatrix scores = pcaResult.projectDataToScores(pcX, pcY);
 
-    final List<RawDataFile> files = result.files();
-    final Map<?, List<RawDataFile>> groupedFiles = MZmineCore.getProjectMetadata()
-        .groupFilesByColumn(groupingColumn);
-
-    numberOfCategories = Math.max(groupedFiles.size(), 1);
-    groupNames = new String[Math.max(groupedFiles.size(), 1)];
-
-    AtomicInteger counter = new AtomicInteger(0);
-    fileGroupMap = new HashMap<>();
-    groupedFiles.forEach((groupKey, value) -> {
-      value.forEach(file -> {
-        fileGroupMap.put(file, counter.get());
-      });
-      groupNames[counter.get()] = groupKey.toString();
-      counter.getAndIncrement();
-    });
-
+    // actual xyz data
+    zData = new double[scores.getRowDimension()];
     double[] domainData = new double[scores.getRowDimension()];
     double[] rangeData = new double[scores.getRowDimension()];
-    zData = new int[scores.getRowDimension()];
-    assert files.size() == scores.getRowDimension();
-    for (int i = 0; i < scores.getRowDimension(); i++) {
-      domainData[i] = scores.getEntry(i, 0);
-      rangeData[i] = scores.getEntry(i, 1);
-      final RawDataFile file = files.get(i);
-      zData[i] = Objects.requireNonNullElse(fileGroupMap.get(file), 0);
+
+    int dp = 0;
+    for (final ColorByMetadataGroup group : groups) {
+      for (RawDataFile file : group.files()) {
+        // set data
+        final int resultIndex = pcaResultIndex.get(file);
+        domainData[dp] = scores.getEntry(resultIndex, 0);
+        rangeData[dp] = scores.getEntry(resultIndex, 1);
+        // use numeric value for double or date column and use id index for string values
+        // NaN for missing values
+        zData[dp] = group.doubleValue();
+        dp++;
+      }
     }
 
     setxValues(domainData);
     setyValues(rangeData);
-
-    final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
-    final Color defaultColor = colors.getPositiveColorAWT();
-
-    paintScale = new LookupPaintScale(0, numberOfCategories, defaultColor);
-    colors.resetColorCounter();
-    for (int i = 0; i < groupedFiles.size(); i++) {
-      paintScale.add(i, colors.getAWT(i));
-    }
   }
+
 
   @Override
   public @Nullable PaintScale getPaintScale() {
     return paintScale;
+  }
+
+  public void setPaintScale(LookupPaintScale paintScale) {
+    this.paintScale = paintScale;
   }
 
   @Override
@@ -149,7 +211,7 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
   @Override
   public String getToolTipText(int itemIndex) {
     final MetadataTable metadata = MZmineCore.getProjectMetadata();
-    final RawDataFile file = result.files().get(itemIndex);
+    final RawDataFile file = getItemObject(itemIndex);
     final Object value = metadata.getValue(groupingColumn, file);
 
     return """
@@ -169,7 +231,12 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
   }
 
   @Override
+  public Paint getLegendItemColor(int category) {
+    return groupColors[category] != null ? groupColors[category] : Color.black;
+  }
+
+  @Override
   public RawDataFile getItemObject(int item) {
-    return result.files().get(item);
+    return dataFileIndex.get(item);
   }
 }
