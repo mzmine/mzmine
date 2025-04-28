@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.DataTypesChangedListener;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -1057,7 +1058,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
    * and removes the row changed listener.
    */
   private void initFeatureListListener() {
-    final SetChangeListener<DataType> listener = _ -> {
+    final DataTypesChangedListener listener = (_, _) -> {
       dataChangedNotification.show();
     };
 
@@ -1066,10 +1067,10 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
         updateFeatureList(oldValue, newValue);
       });
       if (newValue != null) {
-        newValue.getRowTypes().addListener(listener);
+        newValue.getRowsSchema().addDataTypesChangeListener(listener);
       }
       if (oldValue != null) {
-        oldValue.getRowTypes().removeListener(listener);
+        oldValue.getRowsSchema().getDataTypesChangeListeners().remove(listener);
       }
     });
   }
