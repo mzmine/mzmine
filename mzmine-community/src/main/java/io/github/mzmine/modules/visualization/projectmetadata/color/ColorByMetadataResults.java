@@ -46,10 +46,18 @@ public record ColorByMetadataResults(List<ColorByMetadataGroup> groups, PaintSca
     return groups.get(groupIndex);
   }
 
+  /**
+   * @return the min double value to enable comparison. Date and numbers are converted and strings
+   * usually just follow the group order as integers.
+   */
   public double getMinValueDouble() {
     return groups.getFirst().doubleValue();
   }
 
+  /**
+   * @return the max double value to enable comparison. Date and numbers are converted and strings
+   * usually just follow the group order as integers.
+   */
   public double getMaxValueDouble() {
     return groups.getLast().doubleValue();
   }
