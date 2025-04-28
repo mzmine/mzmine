@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class WaveletResolverModule extends FeatureResolverModule {
 
-  public static final String NAME = "Wavelet feature resolver";
+  public static final String NAME = "Wavelet feature resolver (experimental)";
 
   @NotNull
   @Override
