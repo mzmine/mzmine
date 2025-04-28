@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,7 +45,6 @@ import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -92,7 +91,6 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
 
     colors = ConfigService.getDefaultColorPalette().clone(true);
   }
-
 
   @Override
   protected void process() {
@@ -145,27 +143,30 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
    * @param colorColumn column to group by
    */
   private void colorByColumn(final String colorColumn) {
+    List<RawDataFile> filteredRaws = raws;
+    if (separateBlankQcs) {
+      filteredRaws = SampleTypeFilter.sample().filterFiles(raws);
+      // need to skip the black/white color - already used for blanks
+      colors.removeFirst();
+    }
+
     MetadataTable metadata = ProjectService.getMetadata();
     MetadataColumn<?> column = metadata.getColumnByName(colorColumn);
     if (column == null) {
       // Do not handle this as an exception / error - this would crash batches
       // but this issue can be resolved later - just show a dialog
-      DialogLoggerUtil.showErrorDialog("Missing metdata column",
+      DialogLoggerUtil.showErrorDialog("Missing metadata column",
           "Recoloring: No such metadata column named %s, make sure to import metadata after samples are imported. Open the metadata from the project menu.".formatted(
               colorColumn));
       return;
     }
-    List<RawDataFile> filteredRaws = raws;
 
-    if (separateBlankQcs) {
-      filteredRaws = SampleTypeFilter.sample().filterFiles(raws);
-      // need to skip the black/white color - already used for blanks
-      colors.getNextColor();
+    List<ColoredMetadataGroup> groups = ColorByMetadataUtils.colorByColumn(colors, column,
+        filteredRaws);
+
+    for (ColoredMetadataGroup group : groups) {
+      colorFadeLighter(group.group().files(), group.color(), brightnessPercentRange);
     }
-
-    Map<?, List<RawDataFile>> groups = metadata.groupFilesByColumn(filteredRaws, column);
-    groups.forEach(
-        (_, group) -> colorFadeLighter(group, colors.getNextColor(), brightnessPercentRange));
   }
 
   /**

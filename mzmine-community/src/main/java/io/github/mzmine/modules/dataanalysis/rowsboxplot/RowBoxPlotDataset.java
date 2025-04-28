@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,11 +29,10 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataUtils;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColoredMetadataGroup;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
@@ -50,14 +49,20 @@ public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
       return;
     }
 
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
-    final Map<?, List<RawDataFile>> groupedFiles = metadata.groupFilesByColumn(groupingColumn);
-    groupedFiles.forEach((k, v) -> {
-      final String groupName = k.toString();
-      final List<Float> values = v.stream()
+    // use the same method for grouping like ColorByMetadataTask and PCAScoresProvider
+    // TODO where is the color of this plot / dataset/ renderer defined? it should use the colors of the groups
+    // for now it is correct as it uses standard colors
+    final List<RawDataFile> files = row.getFeatureList().getRawDataFiles();
+    final List<ColoredMetadataGroup> groups = ColorByMetadataUtils.colorByColumn(groupingColumn,
+        files);
+
+    for (ColoredMetadataGroup group : groups) {
+      final String groupName = group.valueString();
+      final List<Float> values = group.files().stream()
           .map(file -> abundance.get((ModularFeature) row.getFeature(file)))
           .filter(Objects::nonNull).toList();
       add(values, groupName, "%s %s".formatted(row.toString(), row.getPreferredAnnotationName()));
-    });
+    }
   }
+
 }

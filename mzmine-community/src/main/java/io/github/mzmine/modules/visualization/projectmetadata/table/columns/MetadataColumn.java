@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -209,5 +209,17 @@ public abstract sealed class MetadataColumn<T> implements Comparable<MetadataCol
 
     // then alphabetical order
     return this.getTitle().toLowerCase().compareTo(o.getTitle().toLowerCase());
+  }
+
+  /**
+   * Date and number column have a natural order like the acquisition or concentration
+   *
+   * @return true if date or number
+   */
+  public boolean hasNaturalOrder() {
+    return switch (this) {
+      case DoubleMetadataColumn _, DateMetadataColumn _ -> true;
+      default -> false;
+    };
   }
 }
