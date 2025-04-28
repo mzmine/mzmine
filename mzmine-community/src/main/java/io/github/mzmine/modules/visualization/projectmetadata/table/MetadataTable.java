@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -378,7 +379,6 @@ public class MetadataTable {
     final List<SamplesGroupedBy<T>> groups = new ArrayList<>(
         nonNullMap.size() + (hasNulls ? 1 : 0));
 
-    double minValue = Double.MAX_VALUE;
     int counter = hasNulls ? 1 : 0;
     for (Entry<Object, @NotNull List<RawDataFile>> e : nonNullMap.entrySet()) {
       final List<RawDataFile> rawFiles = e.getValue();
@@ -386,17 +386,18 @@ public class MetadataTable {
       final double doubleValue = convertValueToDouble(value, counter);
       groups.add(new SamplesGroupedBy<>((T) value, rawFiles, doubleValue));
       counter++;
-
-      if (doubleValue < minValue) {
-        minValue = doubleValue;
-      }
     }
     // requires sorting by value which is always comparable in table
     groups.sort(Comparator.comparing(SamplesGroupedBy::doubleValue));
 
     if (hasNulls) {
-      // always first if present
-      groups.addFirst(new SamplesGroupedBy<>(null, nullsList, minValue - 1));
+      // add null always first if present
+      final DoubleSummaryStatistics summary = groups.stream()
+          .mapToDouble(SamplesGroupedBy::doubleValue).summaryStatistics();
+      double nullValue = summary.getCount() == 0 ? 0
+          // min - step
+          : summary.getMin() - (summary.getMax() - summary.getMin()) / summary.getCount();
+      groups.addFirst(new SamplesGroupedBy<>(null, nullsList, nullValue));
     }
 
     return groups;

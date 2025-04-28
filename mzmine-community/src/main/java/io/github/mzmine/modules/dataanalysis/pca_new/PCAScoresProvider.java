@@ -31,8 +31,10 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataConfig;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataGroup;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataResults;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataUtils;
-import io.github.mzmine.modules.visualization.projectmetadata.color.ColoredMetadataGroup;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -55,7 +57,7 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
   private final int pcY;
   private final MetadataColumn<?> groupingColumn;
   private double[] zData;
-  private LookupPaintScale paintScale;
+  private PaintScale paintScale;
   private int numberOfCategories;
   private String[] groupNames;
   private Color[] groupColors;
@@ -93,60 +95,60 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
     // group and assign default color
     // already sorted by name
     // null may be first element if present
-    final List<ColoredMetadataGroup> groups = ColorByMetadataUtils.colorByColumn(groupingColumn,
-        result.files());
+    final ColorByMetadataResults grouping = ColorByMetadataUtils.colorByColumn(groupingColumn,
+        result.files(), ColorByMetadataConfig.createDefault());
 
-    assert result.files().size() == groups.stream().mapToInt(ColoredMetadataGroup::size).sum();
+    assert result.files().size() == grouping.numFiles();
 
-    setFileDataIndexes(groups);
+    setFileDataIndexes(grouping.groups());
 
-    setXYZScores(groups);
+    setXYZScores(grouping.groups());
+
+    // create paintscale from groups
+    paintScale = grouping.paintScale();
 
     // too many numeric groups - create gradient
-    if (groups.size() > 10 && groupingColumn.hasNaturalOrder()) {
-      createNumericGradientPaintScale(groups);
+    if (grouping.isGradient()) {
+      // at max show 20 groups - otherwise too many
+      legendListNGroups(grouping, Math.min(20, grouping.size()));
     } else {
-      createDistinctCategoriesPaintScale(groups);
+      legendListAllGroups(grouping);
     }
   }
 
   /**
    * Distinct colors for each group
-   *
-   * @param groups
    */
-  private void createDistinctCategoriesPaintScale(List<ColoredMetadataGroup> groups) {
-    // if no column selected all will be treated as null
-    numberOfCategories = groups.size();
-    groupNames = new String[numberOfCategories];
-    groupColors = new Color[numberOfCategories];
-
-    // create paintscale from groups
-    paintScale = ColorByMetadataUtils.createPaintScale(groups);
-
-    // null values are first group if present and they have the lowest value
-    // doubleValues are already sorted ascending
-    for (int groupIndex = 0; groupIndex < groups.size(); groupIndex++) {
-      final ColoredMetadataGroup group = groups.get(groupIndex);
-      // this needs to match the order in the legend - therefore the data files need to be sorted by groupedFiles
-      groupNames[groupIndex] = group.valueString(); // N/A or real value
-      groupColors[groupIndex] = group.colorAWT();
-      paintScale.add(group.doubleValue(), group.colorAWT());
-    }
+  private void legendListAllGroups(ColorByMetadataResults grouping) {
+    legendListNGroups(grouping, grouping.size());
   }
 
   /**
    * Gradient paintscale with numeric values
-   *
-   * @param groups
    */
-  private void createNumericGradientPaintScale(List<ColoredMetadataGroup> groups) {
+  private void legendListNGroups(ColorByMetadataResults grouping, int numberOfCategories) {
+    // if no column selected all will be treated as null
+    final int nGroups = grouping.size();
+    this.numberOfCategories = numberOfCategories;
+    groupNames = new String[numberOfCategories];
+    groupColors = new Color[numberOfCategories];
 
+    // null values are first group if present and they have the lowest value
+    // doubleValues are already sorted ascending
+    for (int i = 0; i < numberOfCategories; i++) {
+      // equally spaced entries subsampled
+      final ColorByMetadataGroup group = grouping.get(
+          (int) Math.round(i * (nGroups - 1) / (double) (numberOfCategories - 1)));
+      // this needs to match the order in the legend - therefore the data files need to be sorted by groupedFiles
+      groupNames[i] = group.valueString(); // N/A or real value
+      groupColors[i] = group.colorAWT();
+    }
   }
 
-  private void setFileDataIndexes(List<ColoredMetadataGroup> groups) {
+
+  private void setFileDataIndexes(List<ColorByMetadataGroup> groups) {
     int dataIndex = 0;
-    for (ColoredMetadataGroup group : groups) {
+    for (ColorByMetadataGroup group : groups) {
       for (RawDataFile file : group.files()) {
         dataFileIndex.put(dataIndex, file);
         dataIndex++;
@@ -154,7 +156,7 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
     }
   }
 
-  private void setXYZScores(List<ColoredMetadataGroup> groups) {
+  private void setXYZScores(List<ColorByMetadataGroup> groups) {
     final PCAResult pcaResult = result.pcaResult();
     final RealMatrix scores = pcaResult.projectDataToScores(pcX, pcY);
 
@@ -164,7 +166,7 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
     double[] rangeData = new double[scores.getRowDimension()];
 
     int dp = 0;
-    for (final ColoredMetadataGroup group : groups) {
+    for (final ColorByMetadataGroup group : groups) {
       for (RawDataFile file : group.files()) {
         // set data
         final int resultIndex = pcaResultIndex.get(file);

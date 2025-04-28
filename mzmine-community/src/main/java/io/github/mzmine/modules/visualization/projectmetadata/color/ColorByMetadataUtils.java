@@ -25,8 +25,9 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.color;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
@@ -36,6 +37,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.LookupPaintScale;
+import org.jfree.chart.renderer.PaintScale;
 
 public class ColorByMetadataUtils {
 
@@ -49,10 +51,9 @@ public class ColorByMetadataUtils {
    * @throws MetadataColumnDoesNotExistException If the column does not exist. Does not throw if the
    *                                             column is null.
    */
-  public static @NotNull List<ColoredMetadataGroup> colorByColumn(
+  public static @NotNull ColorByMetadataResults colorByColumn(
       final @Nullable MetadataColumn<?> column, final @NotNull List<RawDataFile> raws) {
-    final SimpleColorPalette defaultPalette = ConfigService.getDefaultColorPalette().clone(true);
-    return colorByColumn(defaultPalette, column, raws);
+    return colorByColumn(column, raws, ColorByMetadataConfig.createDefault());
   }
 
   /**
@@ -65,12 +66,31 @@ public class ColorByMetadataUtils {
    * @throws MetadataColumnDoesNotExistException If the column does not exist. Does not throw if the
    *                                             column is null.
    */
-  public static @NotNull List<ColoredMetadataGroup> colorByColumn(
-      final @NotNull SimpleColorPalette colors, final @Nullable MetadataColumn<?> column,
-      final @NotNull List<RawDataFile> raws) {
+  public static @NotNull ColorByMetadataResults colorByColumn(
+      final @Nullable MetadataColumn<?> column, final @NotNull List<RawDataFile> raws,
+      final @NotNull ColorByMetadataConfig config) {
     var groups = ProjectService.getMetadata().groupFilesByColumnIncludeNull(raws, column);
-    return groups.stream()
-        .map(group -> new ColoredMetadataGroup(group, colors.getNextColor(), column)).toList();
+
+    if (config.isUseGradient(groups.size()) && column != null && column.hasNaturalOrder()) {
+      // create paint scale gradient
+      final double min = groups.getFirst().doubleValue();
+      final double max = Math.max(groups.getLast().doubleValue(), Math.nextUp(min));
+
+      final PaintScale paintScale = config.transformPalette()
+          .toPaintScale(config.transform(), Range.closed(min, max));
+      final List<ColorByMetadataGroup> coloredGroups = groups.stream().map(
+          group -> new ColorByMetadataGroup(group,
+              FxColorUtil.awtColorToFX(paintScale.getPaint(group.doubleValue())), column)).toList();
+
+      return new ColorByMetadataResults(coloredGroups, paintScale, true, config);
+    } else {
+      // color as categories
+      final SimpleColorPalette colors = config.categoryPalette();
+      final List<ColorByMetadataGroup> coloredGroups = groups.stream()
+          .map(group -> new ColorByMetadataGroup(group, colors.getNextColor(), column)).toList();
+      final PaintScale paintScale = createPaintScale(coloredGroups);
+      return new ColorByMetadataResults(coloredGroups, paintScale, false, config);
+    }
   }
 
   /**
@@ -79,7 +99,7 @@ public class ColorByMetadataUtils {
    * @param groups sorted groups
    * @return paint scale with all groups
    */
-  public static LookupPaintScale createPaintScale(List<ColoredMetadataGroup> groups) {
+  public static PaintScale createPaintScale(List<ColorByMetadataGroup> groups) {
     // already sorted by doubleValue
     final double min = groups.getFirst().doubleValue();
     final double max = groups.getLast().doubleValue();
@@ -89,7 +109,7 @@ public class ColorByMetadataUtils {
 
     // upper end is excluded so need to add a tiny fraction to the upper bound
     var paintScale = new LookupPaintScale(min, Math.nextUp(max), defaultColor);
-    for (ColoredMetadataGroup group : groups) {
+    for (ColorByMetadataGroup group : groups) {
       paintScale.add(group.doubleValue(), group.colorAWT());
     }
     return paintScale;

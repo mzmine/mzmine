@@ -67,6 +67,7 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
   private final SimpleColorPalette colors;
   // mark colors as used when they colored a group
   private final Set<Color> usedColors = new HashSet<>();
+  private final ColorByMetadataConfig config;
 
   public ColorByMetadataTask(final @NotNull Instant moduleCallDate,
       @NotNull final ParameterSet parameters,
@@ -81,15 +82,28 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
     super(null, moduleCallDate, parameters, moduleClass);
     // sort by date
     this.raws = Arrays.stream(raws).sorted(RawDataByMetadataSorter.byDateAndName()).toList();
-    colorColumn = parameters.getEmbeddedParameterValueIfSelectedOrElse(
-        ColorByMetadataParameters.colorByColumn, null);
+
+    // metadata options like column and how to scale colors
+    final ColorByMetadataColumnParameters columnSelection = parameters.getEmbeddedParametersIfSelectedOrElse(
+        ColorByMetadataParameters.columnSelection, null);
+    if (columnSelection != null) {
+      colorColumn = columnSelection.getValue(ColorByMetadataColumnParameters.colorByColumn);
+      var transform = columnSelection.getValue(ColorByMetadataColumnParameters.gradientTransform);
+      var numericOption = columnSelection.getValue(
+          ColorByMetadataColumnParameters.colorNumericValues);
+      config = new ColorByMetadataConfig(numericOption, transform);
+    } else {
+      colorColumn = null;
+      config = ColorByMetadataConfig.createDefault();
+    }
+
     separateBlankQcs = parameters.getValue(ColorByMetadataParameters.separateBlankQcs);
     applySorting = parameters.getValue(ColorByMetadataParameters.applySorting);
     // as a percentage of the maximum
     brightnessPercentRange = ColorUtils.maxBrightnessWidth() * parameters.getValue(
         ColorByMetadataParameters.brightnessPercentRange);
 
-    colors = ConfigService.getDefaultColorPalette().clone(true);
+    colors = config.categoryPalette();
   }
 
   @Override
@@ -161,10 +175,9 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
       return;
     }
 
-    List<ColoredMetadataGroup> groups = ColorByMetadataUtils.colorByColumn(colors, column,
-        filteredRaws);
+    final var grouping = ColorByMetadataUtils.colorByColumn(column, filteredRaws, config);
 
-    for (ColoredMetadataGroup group : groups) {
+    for (ColorByMetadataGroup group : grouping.groups()) {
       colorFadeLighter(group.group().files(), group.color(), brightnessPercentRange);
     }
   }

@@ -29,8 +29,9 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataGroup;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataResults;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataUtils;
-import io.github.mzmine.modules.visualization.projectmetadata.color.ColoredMetadataGroup;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import java.util.Objects;
@@ -53,10 +54,10 @@ public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
     // TODO where is the color of this plot / dataset/ renderer defined? it should use the colors of the groups
     // for now it is correct as it uses standard colors
     final List<RawDataFile> files = row.getFeatureList().getRawDataFiles();
-    final List<ColoredMetadataGroup> groups = ColorByMetadataUtils.colorByColumn(groupingColumn,
+    final ColorByMetadataResults grouping = ColorByMetadataUtils.colorByColumn(groupingColumn,
         files);
 
-    for (ColoredMetadataGroup group : groups) {
+    for (ColorByMetadataGroup group : grouping.groups()) {
       final String groupName = group.valueString();
       final List<Float> values = group.files().stream()
           .map(file -> abundance.get((ModularFeature) row.getFeature(file)))

@@ -25,50 +25,29 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.color;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.modules.visualization.projectmetadata.table.SamplesGroupedBy;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
-import javafx.scene.paint.Color;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.renderer.PaintScale;
 
-/**
- * Group by a column with specific color
- */
-public record ColoredMetadataGroup(SamplesGroupedBy<?> group, Color color,
-                                   @Nullable MetadataColumn<?> column) {
+public record ColorByMetadataResults(List<ColorByMetadataGroup> groups, PaintScale paintScale,
+                                     boolean isGradient, ColorByMetadataConfig config) {
+
+  public int numFiles() {
+    return groups.stream().mapToInt(ColorByMetadataGroup::size).sum();
+  }
 
   public int size() {
-    return group.size();
+    return groups.size();
   }
 
-  public boolean isNullValue() {
-    return group.isNullValue();
+  public ColorByMetadataGroup get(int groupIndex) {
+    return groups.get(groupIndex);
   }
 
-  public String valueString() {
-    return group.valueString();
+  public double getMinValueDouble() {
+    return groups.getFirst().doubleValue();
   }
 
-  public java.awt.Color colorAWT() {
-    return FxColorUtil.fxColorToAWT(color);
-  }
-
-  public @NotNull List<RawDataFile> files() {
-    return group().files();
-  }
-
-  public @Nullable Object value() {
-    return group.value();
-  }
-
-  /**
-   * @return a double value to enable comparison. Date and numbers are converted and strings usually
-   * just follow the group order as integers.
-   */
-  public double doubleValue() {
-    return group.doubleValue();
+  public double getMaxValueDouble() {
+    return groups.getLast().doubleValue();
   }
 }
