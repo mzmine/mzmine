@@ -37,7 +37,6 @@ import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParam
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +50,7 @@ public class ColorByMetadataParameters extends SimpleParameterSet {
 
   public static OptionalModuleParameter<ColorByMetadataColumnParameters> columnSelection = new OptionalModuleParameter<>(
       "Metadata selection", "Select column and how to handle coloring",
-      EmbeddedComponentOptions.VIEW_IN_PANEL, new ColorByMetadataColumnParameters(), false);
+      new ColorByMetadataColumnParameters(), false, false);
 
   // use a medium range so that colors are not to light or dark
   public static final PercentParameter brightnessPercentRange = new PercentParameter(
