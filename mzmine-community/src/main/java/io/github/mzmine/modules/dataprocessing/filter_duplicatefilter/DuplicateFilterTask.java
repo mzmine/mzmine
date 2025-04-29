@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,12 +50,14 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -222,8 +224,9 @@ public class DuplicateFilterTask extends AbstractTask {
    */
   private void removeDuplicatesFromList(ModularFeatureList flist,
       ModularFeatureListRow[] duplicatesNullArray) {
+    final Comparator<FeatureListRow> comparator = FeatureListUtils.getDefaultRowSorter(flist);
     final var filteredRows = Arrays.stream(duplicatesNullArray).filter(Objects::nonNull)
-        .toArray(ModularFeatureListRow[]::new);
+        .sorted(comparator).toArray(ModularFeatureListRow[]::new);
     flist.setRows(filteredRows);
   }
 
