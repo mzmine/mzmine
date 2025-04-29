@@ -204,7 +204,10 @@ public interface FeatureList {
   public FeatureListRow getRow(int row);
 
   /**
-   * Returns all feature list rows
+   * All modification to the rows should be done through the provided methods or internally in this
+   * class
+   *
+   * @return an unmodifiable view of rows
    */
   public ObservableList<FeatureListRow> getRows();
 
