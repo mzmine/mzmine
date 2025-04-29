@@ -1,4 +1,4 @@
-name: Development Build Release
+name: Specific branch release
 
 on:
   workflow_dispatch
