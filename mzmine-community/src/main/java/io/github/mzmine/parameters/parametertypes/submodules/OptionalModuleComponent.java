@@ -58,6 +58,7 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
   private final DoubleProperty estimatedHeightProperty = new SimpleDoubleProperty(0);
   private final DoubleProperty estimatedWidthProperty = new SimpleDoubleProperty(0);
   protected final FlowPane topPane;
+  private final ParameterSet embeddedParameters;
 
 
   public OptionalModuleComponent(ParameterSet embeddedParameters,
@@ -79,6 +80,7 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
       EmbeddedComponentOptions viewOption, String title, boolean alwaysActive, boolean active,
       boolean openHidden) {
     super();
+    this.embeddedParameters = embeddedParameters;
     this.hidden.set(openHidden);
     checkBox = new CheckBox(title);
     setSelected(active);
@@ -122,6 +124,10 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
 
     setTop(topPane);
     applyCheckBoxState();
+  }
+
+  public ParameterSet getEmbeddedParameters() {
+    return embeddedParameters;
   }
 
   public void onViewStateChange(final boolean hidden) {
