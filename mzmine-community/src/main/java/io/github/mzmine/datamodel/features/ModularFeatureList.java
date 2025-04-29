@@ -115,7 +115,14 @@ public class ModularFeatureList implements FeatureList {
   // TODO do we need two sets? We could have observableSet of LinkedHashSet
   private final ObservableSet<DataType> featureTypes = FXCollections.observableSet(
       new LinkedHashSet<>());
+  /**
+   * This instance is internal and is never made public. Modifications are all done from within the
+   * feature list
+   */
   private final ObservableList<FeatureListRow> featureListRows = FXCollections.observableArrayList();
+  /**
+   * This is an unmodifiable view of the rows
+   */
   private final ObservableList<FeatureListRow> featureListRowsUnmodifiableView = FXCollections.unmodifiableObservableList(
       featureListRows);
   private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
