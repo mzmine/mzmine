@@ -51,6 +51,7 @@ public class MZTabmExportParameters extends SimpleParameterSet {
       , "Include peaks with unknown identity");
 
   public MZTabmExportParameters() {
-    super(new Parameter[]{featureLists, filename, exportAll});
+    super(new Parameter[]{featureLists, filename, exportAll},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/io/feat-list-export.html#mztab-m-export");
   }
 }

@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 
+@Deprecated
 public class MZTabmImportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Import mzTab-m file";
