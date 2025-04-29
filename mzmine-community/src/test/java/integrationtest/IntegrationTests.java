@@ -81,7 +81,7 @@ public class IntegrationTests {
       Assertions.assertEquals(0,
           IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset",
               "workshop_dataset_full.mzbatch").tempDir(tempDir).build().runBatchGetCheckResults(
-              "rawdatafiles/integration_tests/workshop_dataset/expected_results_full.csv"));
+              "rawdatafiles/integration_tests/workshop_dataset/expected_results_full.csv").size());
     }
   }
 
