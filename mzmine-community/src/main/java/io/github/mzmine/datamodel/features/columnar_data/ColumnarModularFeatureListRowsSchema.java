@@ -32,7 +32,8 @@ import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumns;
 import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.ObjectArrayColumn;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.util.HashMap;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,13 +50,18 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
   private static final Logger logger = Logger.getLogger(
       ColumnarModularFeatureListRowsSchema.class.getName());
 
+  /**
+   * Sorted by name LinkedHashMap
+   */
   private final Map<RawDataFile, DataColumn<ModularFeature>> features;
 
   public ColumnarModularFeatureListRowsSchema(final MemoryMapStorage storage,
-      final String modelName, final int initialSize, final @NotNull List<RawDataFile> dataFiles) {
+      final String modelName, final int initialSize, @NotNull List<RawDataFile> dataFiles) {
     super(storage, modelName, initialSize);
 
-    features = HashMap.newHashMap(dataFiles.size());
+    dataFiles = dataFiles.stream().sorted(Comparator.comparing(RawDataFile::getFileName)).toList();
+
+    features = LinkedHashMap.newLinkedHashMap(dataFiles.size());
     for (final RawDataFile raw : dataFiles) {
       features.put(raw, DataColumns.ofSynchronized(new ObjectArrayColumn<>(initialSize)));
     }
@@ -72,7 +78,7 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
       // resize raw file columns
       long success = features.values().stream().parallel()
           .filter(column -> column.ensureCapacity(finalSize)).count();
-
+      logger.finest("Resized %d feature columns".formatted(success));
       columnLength = finalSize;
     }
   }
