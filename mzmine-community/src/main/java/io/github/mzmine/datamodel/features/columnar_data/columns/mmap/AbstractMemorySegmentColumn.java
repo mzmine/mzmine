@@ -35,7 +35,7 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
 
   protected static final int SIZE_MULTIPLIER = 4;
   protected final MemoryMapStorage storage;
-  protected MemorySegment data;
+  protected volatile MemorySegment data;
 
   public AbstractMemorySegmentColumn(final MemoryMapStorage storage, final int initialCapacity) {
     this.storage = storage;
@@ -101,7 +101,8 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
     MemorySegment newData = storage.allocateMemorySegment(getValueLayout(), finalSize);
     clearRange(newData, capacity, finalSize);
     if (data != null) {
-      data = newData.copyFrom(data);
+      final MemorySegment copy = newData.copyFrom(data);
+      data = copy;
     } else {
       data = newData;
     }
