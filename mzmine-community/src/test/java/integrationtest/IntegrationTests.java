@@ -142,15 +142,6 @@ public class IntegrationTests {
   }
 
   @Test
-  void compareMse() {
-    Assertions.assertEquals(0, IntegrationTestUtils.getCsvComparisonResults(new File(
-            "C:\\Users\\Steffen\\git\\mzmine3\\mzmine-community\\src\\test\\resources\\rawdatafiles\\integration_tests\\mse\\expected_results_datamodel_Aligned_feature_list_peak_gaps.csv"),
-        new File(
-            "C:\\Users\\Steffen\\git\\mzmine3\\mzmine-community\\src\\test\\resources\\rawdatafiles\\integration_tests\\mse\\modular_export_mse_batch_keep.mzbatch_d72bc28a-f869-49da-84a9-91712ea9abfd_Aligned_feature_list_peak_gaps_dup.csv"),
-        "").size());
-  }
-
-  @Test
   @DisabledOnOs({OS.LINUX, OS.MAC})
   void testMseMsProject(@TempDir File tempDir) {
     final File exportedFlist = IntegrationTestUtils.loadProjectExportFeatureList(tempDir,
