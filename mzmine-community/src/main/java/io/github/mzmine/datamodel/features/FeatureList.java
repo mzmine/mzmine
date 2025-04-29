@@ -204,8 +204,9 @@ public interface FeatureList {
   public FeatureListRow getRow(int row);
 
   /**
-   * All modification to the rows should be done through the provided methods or internally in this
-   * class
+   * An unmodifiable view of the list of rows. All mutations are made by the {@link FeatureList}
+   * instance internally. Like sorting {@link FeatureList#applyDefaultRowsSorting()}, deletion,
+   * setAll, add, clear.
    *
    * @return an unmodifiable view of rows
    */
@@ -412,7 +413,7 @@ public interface FeatureList {
   public FeatureListRow findRowByID(int id);
 
   default boolean isEmpty() {
-    return getRows().isEmpty();
+    return getNumberOfRows() == 0;
   }
 
   public String getDateCreated();
