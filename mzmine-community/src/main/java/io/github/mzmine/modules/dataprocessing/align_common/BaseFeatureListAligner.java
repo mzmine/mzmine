@@ -77,7 +77,8 @@ public class BaseFeatureListAligner {
   public BaseFeatureListAligner(final Task parentTask, final List<FeatureList> featureLists,
       final String featureListName, final @Nullable MemoryMapStorage storage,
       final FeatureRowAlignScorer rowAligner, final FeatureCloner featureCloner,
-      final FeatureListRowSorter baseRowSorter, final @Nullable FeatureAlignmentPostProcessor postProcessor) {
+      final FeatureListRowSorter baseRowSorter,
+      final @Nullable FeatureAlignmentPostProcessor postProcessor) {
 
     this.parentTask = parentTask;
     this.featureLists = featureLists;
@@ -202,9 +203,9 @@ public class BaseFeatureListAligner {
 
     // sort feature lists by name to make reproducible
     // this is needed if 2 feature lists have the same number of rows, which will lead to different results
-    featureLists.stream().sorted(comparing(FeatureList::getName)).forEach(flist -> {
-      allRows.add(new ArrayList<>(flist.getRows()));
-    });
+    allRows.addAll(featureLists.stream()
+        .sorted(comparingInt(FeatureList::getNumberOfRows).reversed().thenComparing(FeatureList::getName))
+        .map(flist -> new ArrayList<>(flist.getRows())).toList());
 
     // still contains rows from unaligned feature lists
     while (!allRows.isEmpty()) {
@@ -224,12 +225,15 @@ public class BaseFeatureListAligner {
     }
 
     // first update row bindings
-    alignedFeatureList.parallelStream().filter(row -> row.getNumberOfFeatures() > 1)
-        .forEach(FeatureListRow::applyRowBindings);
+    final long appliedBindings = alignedFeatureList.parallelStream().filter(row -> row.getNumberOfFeatures() > 1)
+        .mapToLong(row -> {
+          row.applyRowBindings();
+          return 1L;
+        }).sum();
+    logger.info(() -> "Applied " + appliedBindings + " row bindings to new feature list " + alignedFeatureList.getName());
 
     // then sort by RT and reset IDs
     FeatureListUtils.sortByDefaultRT(alignedFeatureList, true);
-
 
     // score alignment by the number of features that fall within the mz, RT, mobility range
     // do not apply all the advanced filters to keep it simple
