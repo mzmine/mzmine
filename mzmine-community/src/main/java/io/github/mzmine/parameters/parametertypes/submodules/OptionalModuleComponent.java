@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -62,12 +62,24 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
 
   public OptionalModuleComponent(ParameterSet embeddedParameters,
       EmbeddedComponentOptions viewOption, boolean alwaysActive) {
-    this(embeddedParameters, viewOption, "", alwaysActive, alwaysActive);
+    this(embeddedParameters, viewOption, alwaysActive, true);
+  }
+
+  public OptionalModuleComponent(ParameterSet embeddedParameters,
+      EmbeddedComponentOptions viewOption, boolean alwaysActive, boolean hidden) {
+    this(embeddedParameters, viewOption, "", alwaysActive, alwaysActive, hidden);
   }
 
   public OptionalModuleComponent(ParameterSet embeddedParameters,
       EmbeddedComponentOptions viewOption, String title, boolean alwaysActive, boolean active) {
+    this(embeddedParameters, viewOption, title, alwaysActive, active, true);
+  }
+
+  public OptionalModuleComponent(ParameterSet embeddedParameters,
+      EmbeddedComponentOptions viewOption, String title, boolean alwaysActive, boolean active,
+      boolean openHidden) {
     super();
+    this.hidden.set(openHidden);
     checkBox = new CheckBox(title);
     setSelected(active);
     checkBox.selectedProperty().addListener((ob, ov, nv) -> applyCheckBoxState());
@@ -79,25 +91,23 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
       // use internal parameter pane
       paramPane = ParameterSetupPane.createEmbedded(true, embeddedParameters, null);
 
-      setButton = new Button("Show");
-      setButton.setOnAction(e -> {
-        boolean toggledHidden = !hidden.get();
+      setButton = new Button("");
+      setButton.setOnAction(e -> hidden.set(!hidden.get()));
+      setButton.setDisable(!active);
+
+      hidden.subscribe(hidden -> {
         // change text
-        setButton.setText(toggledHidden ? "Show" : "Hide");
-        setCenter(toggledHidden ? null : paramPane);
-        // events
-        hidden.set(toggledHidden);
+        setButton.setText(hidden ? "Show" : "Hide");
+        setCenter(hidden ? null : paramPane);
 
         // estimate new height
-        var params =
-            toggledHidden ? 0 : getEmbeddedParameterPane().getParametersAndComponents().size();
+        var params = hidden ? 0 : getEmbeddedParameterPane().getParametersAndComponents().size();
         setEstimatedHeight(params);
 
         setEstimatedDefaultWidth(params == 0);
 
-        onViewStateChange(toggledHidden);
+        onViewStateChange(hidden);
       });
-      setButton.setDisable(!active);
     }
     topPane = new FlowPane();
     topPane.setHgap(5d);

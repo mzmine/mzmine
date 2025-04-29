@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,14 @@ import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
+import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.plot.CombinedDomainCategoryPlot;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeCategoryPlot;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -95,7 +102,7 @@ public class ChartUtils {
     NumberFormat ppmFormat = MZmineCore.getConfiguration().getPPMFormat();
     String tooltipText = String.format(
         "Measured-matched m/z: %s-%s" + "\nMeasured-matched RT: %s-%s" + "\nMass error: %s %s"
-        + "\nMass peak intensity: %s" + "\nScan number: %s",
+            + "\nMass peak intensity: %s" + "\nScan number: %s",
         mzFormat.format(match.getMeasuredMzRatio()), mzFormat.format(match.getMatchedMzRatio()),
         rtFormat.format(match.getMeasuredRetentionTime()),
         match.getMatchedRetentionTime() == -1 ? "none"
@@ -154,4 +161,20 @@ public class ChartUtils {
     trendRenderer.setAutoPopulateSeriesPaint(false);
     return trendRenderer;
   }
+
+  public static Stream<Plot> streamPlots(JFreeChart chart) {
+    return streamPlots(chart.getPlot());
+  }
+
+  public static Stream<Plot> streamPlots(Plot plot) {
+    final Stream<? extends Plot> subplots = switch (plot) {
+      case CombinedDomainXYPlot p -> p.getSubplots().stream();
+      case CombinedRangeXYPlot p -> p.getSubplots().stream();
+      case CombinedDomainCategoryPlot p -> p.getSubplots().stream();
+      case CombinedRangeCategoryPlot p -> p.getSubplots().stream();
+      default -> Stream.empty();
+    };
+    return Stream.concat(Stream.of(plot), subplots);
+  }
+
 }
