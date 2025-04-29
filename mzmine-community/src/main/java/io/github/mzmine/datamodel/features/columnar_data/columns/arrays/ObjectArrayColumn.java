@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ObjectArrayColumn<T> extends AbstractDataColumn<T> {
 
-  public Object[] data;
+  public volatile Object[] data;
 
   public ObjectArrayColumn(final int columnLength) {
     data = new Object[columnLength];
@@ -51,7 +51,8 @@ public class ObjectArrayColumn<T> extends AbstractDataColumn<T> {
 
   @Override
   protected boolean resizeTo(final int finalSize) {
-    data = Arrays.copyOf(data, finalSize);
+    var copy = Arrays.copyOf(data, finalSize);
+    data = copy;
     return true;
   }
 

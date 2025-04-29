@@ -38,12 +38,13 @@ import io.github.mzmine.util.concurrent.CloseableResourceLock;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Logger;
@@ -69,7 +70,7 @@ public class ColumnarModularDataModelSchema {
   /**
    * Each data type has its own DataColumns usually created in the factory {@link DataColumns}.
    */
-  protected final Map<DataType, DataColumn> columns = HashMap.newHashMap(20);
+  protected final Map<DataType, DataColumn> columns = new ConcurrentHashMap<>(20);
   private final Map<DataType, DataColumn> readOnlyColumns = Collections.unmodifiableMap(columns);
 
   /**
@@ -89,8 +90,8 @@ public class ColumnarModularDataModelSchema {
 
   protected final String modelName;
 
-  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> dataTypeValueChangedListeners = new HashMap<>();
-  private final List<DataTypesChangedListener> dataTypesChangeListeners = new ArrayList<>();
+  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> dataTypeValueChangedListeners = new ConcurrentHashMap<>();
+  private final List<DataTypesChangedListener> dataTypesChangeListeners = new CopyOnWriteArrayList<>();
 
   public ColumnarModularDataModelSchema(final MemoryMapStorage storage, String modelName,
       int initialSize) {
