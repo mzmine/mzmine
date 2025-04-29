@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,6 +43,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataTypeUtils;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -206,6 +207,13 @@ public interface FeatureList {
    * Returns all feature list rows
    */
   public ObservableList<FeatureListRow> getRows();
+
+  /**
+   * @return modifiable copy of internal rows
+   */
+  default List<FeatureListRow> getRowsCopy() {
+    return new ArrayList<>(getRows());
+  }
 
   /**
    * Clear all rows and set new rows
@@ -529,6 +537,13 @@ public interface FeatureList {
   }
 
   void removeRows(Set<FeatureListRow> rowsToRemove);
+
+  /**
+   * Sorts the internal rows
+   */
+  void applyDefaultRowsSorting();
+
+  void clearRows();
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge
