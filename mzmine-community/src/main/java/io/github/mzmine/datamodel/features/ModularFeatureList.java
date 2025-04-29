@@ -509,8 +509,7 @@ public class ModularFeatureList implements FeatureList {
       }
     }
 //    logger.log(Level.FINEST, "SET ALL ROWS");
-    featureListRows.clear();
-    featureListRows.addAll(rows);
+    featureListRows.setAll(rows);
     applyRowBindings();
   }
 
