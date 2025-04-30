@@ -56,7 +56,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -263,7 +262,6 @@ public class RowsFilterTask extends AbstractTask {
    */
   private FeatureList filterFeatureListRows(final FeatureList featureList,
       boolean processInCurrentList) {
-    int rowsCount = 0;
     // if keep is selected we remove rows on failed criteria
     // otherwise we remove those that match all criteria
     boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
@@ -289,16 +287,15 @@ public class RowsFilterTask extends AbstractTask {
 
     // Filter rows.
     totalRows = featureList.getNumberOfRows();
-    List<FeatureListRow> matchedRows = new ArrayList<>((int) (totalRows * 0.75));
-
     processedRows = 0;
-    final ListIterator<FeatureListRow> iterator = featureList.getRows().listIterator();
-    while (iterator.hasNext()) {
+    // requires copy of rows as there is no efficient way to remove rows from the list
+    // the use setAll
+    final ArrayList<FeatureListRow> rowsToAdd = new ArrayList<>((int) (totalRows * 0.75));
+    final List<FeatureListRow> rowsCopy = featureList.getRowsCopy();
+    for (final FeatureListRow row : featureList.getRows()) {
       if (isCanceled()) {
         return null;
       }
-
-      final FeatureListRow row = iterator.next();
 
       final boolean hasMS2 = row.hasMs2Fragmentation();
       final boolean annotated = row.isIdentified();
@@ -307,43 +304,35 @@ public class RowsFilterTask extends AbstractTask {
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
       boolean keepRow = (keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
-                        || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
-      if (processInCurrentList) {
-        if (keepRow) {
-          rowsCount++;
-          if (renumber) {
-            row.set(IDType.class, rowsCount);
-          }
-        } else {
-          // process in place means that matched rows will be removed
-          matchedRows.add(row);
-        }
-      } else if (keepRow) {
-        matchedRows.add(row);
-        rowsCount++;
+          || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
+      if (keepRow) {
+        rowsToAdd.add(row);
       }
 
       processedRows++;
     }
 
-    // Create new feature list.
-
     final ModularFeatureList newFeatureList;
     if (processInCurrentList) {
       newFeatureList = (ModularFeatureList) featureList;
-      // process in place will remove all rows
-      newFeatureList.removeRows(matchedRows);
+      rowsToAdd.trimToSize();
+      newFeatureList.setRows(rowsToAdd);
+      if (renumber) {
+        for (int i = 0; i < rowsToAdd.size(); i++) {
+          rowsToAdd.get(i).set(IDType.class, i + 1);
+        }
+      }
     } else {
       final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
       // exact number of needed features and rows
-      int totalRows = matchedRows.size();
-      int totalFeatures = matchedRows.stream().mapToInt(FeatureListRow::getNumberOfFeatures).sum();
+      int totalRows = rowsToAdd.size();
+      int totalFeatures = rowsToAdd.stream().mapToInt(FeatureListRow::getNumberOfFeatures).sum();
 
       newFeatureList = FeatureListUtils.createCopyWithoutRows(featureList, suffix,
           getMemoryMapStorage(), totalRows, totalFeatures);
       // add rows to new list
-      for (int i = 0; i < matchedRows.size(); i++) {
-        var row = matchedRows.get(i);
+      for (int i = 0; i < rowsToAdd.size(); i++) {
+        var row = rowsToAdd.get(i);
         FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
             renumber ? i + 1 : row.getID(), (ModularFeatureListRow) row, true);
         newFeatureList.addRow(resetRow);
@@ -525,15 +514,15 @@ public class RowsFilterTask extends AbstractTask {
       if (!useRemainderOfKendrickMass) {
         // calc Kendrick mass defect
         defectOrRemainder = Math.ceil(kendrickCharge * (valueMZ * kendrickMassFactor)) //
-                            - kendrickCharge * (valueMZ * kendrickMassFactor);
+            - kendrickCharge * (valueMZ * kendrickMassFactor);
       } else {
         // calc Kendrick mass remainder
         defectOrRemainder = (kendrickCharge * (divisor - Math.round(
             FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
-                            / FormulaUtils.calculateExactMass(kendrickMassBase) - Math.floor(
+            / FormulaUtils.calculateExactMass(kendrickMassBase) - Math.floor(
             (kendrickCharge * (divisor - Math.round(
                 FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
-            / FormulaUtils.calculateExactMass(kendrickMassBase));
+                / FormulaUtils.calculateExactMass(kendrickMassBase));
       }
 
       // shift Kendrick mass defect or remainder of Kendrick mass

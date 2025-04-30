@@ -109,9 +109,17 @@ public class ModularFeatureList implements FeatureList {
   private NodeGenerationThread nodeThread;
   private final ReentrantReadWriteLock nodeThreadLock = new ReentrantReadWriteLock(false);
 
-  // columns: summary of all
-  // using LinkedHashMaps to save columns order according to the constructor
-  private final ObservableList<FeatureListRow> featureListRows;
+  /**
+   * This instance is internal and is never made public. Modifications are all done from within the
+   * feature list
+   */
+  private final ObservableList<FeatureListRow> featureListRows = FXCollections.observableArrayList();
+  /**
+   * This is an unmodifiable view of the rows
+   */
+  private final ObservableList<FeatureListRow> featureListRowsUnmodifiableView = FXCollections.unmodifiableObservableList(
+      featureListRows);
+
   private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
 
   private final R2RNetworkingMaps r2rNetworkingMaps = new R2RNetworkingMaps();
@@ -167,7 +175,6 @@ public class ModularFeatureList implements FeatureList {
     ((ArrayList) dataFiles).trimToSize();
     this.dataFiles = dataFiles;
     this.readOnlyRawDataFiles = Collections.unmodifiableList(dataFiles);
-    featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
     selectedScans = FXCollections.observableMap(new HashMap<>());
@@ -487,7 +494,7 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public ObservableList<FeatureListRow> getRows() {
-    return featureListRows;
+    return featureListRowsUnmodifiableView;
   }
 
   @Override
@@ -509,8 +516,7 @@ public class ModularFeatureList implements FeatureList {
       }
     }
 //    logger.log(Level.FINEST, "SET ALL ROWS");
-    featureListRows.clear();
-    featureListRows.addAll(rows);
+    featureListRows.setAll(rows);
     applyRowBindings();
   }
 
@@ -620,6 +626,17 @@ public class ModularFeatureList implements FeatureList {
   public void removeRows(final Collection<FeatureListRow> rowsToRemove) {
     // TODO remove from schema rows and features
     featureListRows.removeAll(rowsToRemove);
+  }
+
+  @Override
+  public void applyDefaultRowsSorting() {
+    final Comparator<FeatureListRow> comparator = FeatureListUtils.getDefaultRowSorter(this);
+    featureListRows.sort(comparator);
+  }
+
+  @Override
+  public void clearRows() {
+    featureListRows.clear();
   }
 
   @Override

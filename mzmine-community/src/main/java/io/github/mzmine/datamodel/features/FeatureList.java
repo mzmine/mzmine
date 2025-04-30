@@ -43,6 +43,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataTypeUtils;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -203,9 +204,20 @@ public interface FeatureList {
   public FeatureListRow getRow(int row);
 
   /**
-   * Returns all feature list rows
+   * An unmodifiable view of the list of rows. All mutations are made by the {@link FeatureList}
+   * instance internally. Like sorting {@link FeatureList#applyDefaultRowsSorting()}, deletion,
+   * setAll, add, clear.
+   *
+   * @return an unmodifiable view of rows
    */
   public ObservableList<FeatureListRow> getRows();
+
+  /**
+   * @return modifiable copy of internal rows
+   */
+  default List<FeatureListRow> getRowsCopy() {
+    return new ArrayList<>(getRows());
+  }
 
   /**
    * Clear all rows and set new rows
@@ -402,7 +414,7 @@ public interface FeatureList {
   public FeatureListRow findRowByID(int id);
 
   default boolean isEmpty() {
-    return getRows().isEmpty();
+    return getNumberOfRows() == 0;
   }
 
   public String getDateCreated();
@@ -533,6 +545,13 @@ public interface FeatureList {
   }
 
   void removeRows(Collection<FeatureListRow> rowsToRemove);
+
+  /**
+   * Sorts the internal rows
+   */
+  void applyDefaultRowsSorting();
+
+  void clearRows();
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge
