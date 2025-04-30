@@ -36,6 +36,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.download.AssetGroup;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -52,6 +53,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -93,6 +96,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
     this.parameters = parameters;
     this.module = module;
     this.scanProcessorConfig = scanProcessorConfig;
+    assert parameters instanceof AllSpectralDataImportParameters;
   }
 
   @Override
@@ -203,15 +207,17 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
       return null;
     }
 
-    final String cmdLine[] = new String[]{ //
-        thermoRawFileParserCommand, // program to run
-        "-s", // output mzML to stdout
-        "-p", // no peak picking
-        "-z", // no zlib compression (higher speed)
-        "-f=1", // no index, https://github.com/compomics/ThermoRawFileParser/issues/118
-        "-i", // input RAW file name coming next
-        fileToOpen.getPath() // input RAW file name
-    };
+    final List<String> cmdLine = new ArrayList<>(); //
+    cmdLine.add(thermoRawFileParserCommand); // program to run
+    cmdLine.add("-s"); // output mzML to stdout
+    if(!parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding)) {
+      cmdLine.add("-p"); // no peak picking
+    }
+    cmdLine.add("-z"); // no zlib compression (higher speed)
+    cmdLine.add("-f=1"); // no index, https://github.com/compomics/ThermoRawFileParser/issues/118
+    cmdLine.add("--allDetectors"); // include all detector data
+    cmdLine.add("-i"); // input RAW file name coming next
+    cmdLine.add(fileToOpen.getPath()); // input RAW file name
 
     // Create a separate process and execute ThermoRawFileParser.
     // Use thermoRawFileParserDir as working directory; this is essential, otherwise the process will fail.

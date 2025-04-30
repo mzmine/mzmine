@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransfo
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.javafx.util.color.Vision;
+import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts.ChartUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -42,7 +43,9 @@ import java.util.logging.Logger;
 import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
+import org.jfree.chart.plot.Plot;
 import org.w3c.dom.Element;
 
 /**
@@ -155,15 +158,28 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   }
 
   public void applyToChartTheme(EStandardChartTheme theme) {
+    final DefaultDrawingSupplier drawingSupplier = createDrawingSupplier();
+    theme.setDrawingSupplier(drawingSupplier);
+  }
 
+  private @NotNull DefaultDrawingSupplier createDrawingSupplier() {
     List<java.awt.Color> awtColors = new ArrayList<>();
     this.forEach(c -> awtColors.add(FxColorUtil.fxColorToAWT(c)));
     java.awt.Color colors[] = awtColors.toArray(new java.awt.Color[0]);
 
-    theme.setDrawingSupplier(new DefaultDrawingSupplier(colors, colors, colors,
-        DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
+    final DefaultDrawingSupplier drawingSupplier = new DefaultDrawingSupplier(colors, colors,
+        colors, DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
         DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE,
-        DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE));
+        DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE);
+    return drawingSupplier;
+  }
+
+  public void applyToChart(@NotNull JFreeChart chart) {
+    final DefaultDrawingSupplier drawingSupplier = createDrawingSupplier();
+    final List<Plot> plots = ChartUtils.streamPlots(chart).toList();
+    for (Plot plot : plots) {
+      plot.setDrawingSupplier(drawingSupplier);
+    }
   }
 
   /**
@@ -301,13 +317,23 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   }
 
   /**
-   * Checks for equality between two color palettes. Does not take the name into account.
+   * Checks for equality between two color palettes. Takes the name into account.
    *
    * @param obj The palette.
    * @return true or false.
    */
   @Override
   public boolean equals(Object obj) {
+    return equals(obj, true);
+  }
+
+  /**
+   * Checks for equality between two color palettes. Takes the name into account.
+   *
+   * @param obj The palette.
+   * @return true or false.
+   */
+  public boolean equals(Object obj, boolean checkName) {
     if (obj == null) {
       return false;
     }
@@ -332,7 +358,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       }
     }
 
-    if (!Objects.equals(getName(), palette.getName())) {
+    if (checkName && !Objects.equals(getName(), palette.getName())) {
       return false;
     }
 
@@ -362,9 +388,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public SimpleColorPalette clone(boolean resetIndex) {
     SimpleColorPalette clone = new SimpleColorPalette();
-    for (Color clr : this) {
-      clone.add(clr);
-    }
+    clone.addAll(this);
     clone.setName(getName());
     clone.setNegativeColor(getNegativeColor());
     clone.setPositiveColor(getPositiveColor());
@@ -528,4 +552,5 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     final Color fxColor = FxColorUtil.awtColorToFX(clr);
     return super.indexOf(fxColor);
   }
+
 }

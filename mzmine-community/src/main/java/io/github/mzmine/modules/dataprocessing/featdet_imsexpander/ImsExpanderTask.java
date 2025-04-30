@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -140,7 +140,7 @@ public class ImsExpanderTask extends AbstractTask {
 
     desc = "Mobility expanding feature list " + flist.getName();
 
-    final List<? extends FeatureListRow> rows = new ArrayList<>(flist.getRows());
+    final List<? extends FeatureListRow> rows = flist.getRowsCopy();
     rows.sort((Comparator.comparingDouble(FeatureListRow::getAverageMZ)));
 
     final List<ExpandingTrace> expandingTraces = new ArrayList<>(rows.stream().map(
@@ -223,7 +223,7 @@ public class ImsExpanderTask extends AbstractTask {
     }
 
     // explicitly don't renumber, IDs are kept from the old flist.
-    FeatureListUtils.sortByDefaultRT(newFlist, false);
+    FeatureListUtils.sortByDefault(newFlist, false);
 
     newFlist.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters,

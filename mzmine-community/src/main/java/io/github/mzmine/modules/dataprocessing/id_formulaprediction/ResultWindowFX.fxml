@@ -32,9 +32,13 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
-<BorderPane minHeight="200" minWidth="700" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultWindowController">
+<?import javafx.scene.layout.FlowPane?>
+
+<BorderPane fx:id="rootPane" minHeight="200" minWidth="700" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultWindowController">
     <top>
-        <Label text="List of possible formulas" VBox.vgrow="ALWAYS"></Label>
+      <FlowPane styleClass="region-match-chart-bg">
+          <Label text="List of possible formulas" VBox.vgrow="ALWAYS"></Label>
+      </FlowPane>
     </top>
 
     <bottom>

@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
@@ -34,12 +35,17 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
+
 import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
+
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
@@ -58,6 +64,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
@@ -141,8 +148,12 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
             SampleTypeFilter.of((List<SampleType>) c.getList())));
     final HBox sampleBox = newHBox(Insets.EMPTY, FxLabels.newLabel("Sample types"), sampleTypesBox);
 
+    final Button helpButton = FxButtons.createHelpButton(
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#statistics-dashboard");
+
     final TitledPane controls = new TitledPane("Controls",
-        newFlowPane(scaling, imputation, domain, range, coloring, abundance, sampleBox));
+        newFlowPane(scaling, imputation, domain, range, coloring, abundance, sampleBox,
+            helpButton));
     final RegionSelectionWrapper<? extends SimpleXYChart<?>> loadingsWrapper = new RegionSelectionWrapper<>(
         loadingsPlot, onExtractRegionsPressed);
     final Accordion accordion = new Accordion(

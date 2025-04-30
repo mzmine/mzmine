@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafDataAccess;
@@ -83,6 +84,8 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
     this.project = project;
 
     this.scanProcessorConfig = scanProcessorConfig;
+
+    assert parameters instanceof AllSpectralDataImportParameters;
   }
 
   @Override
@@ -101,10 +104,11 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
 
     final File folderPath =
         bafFileOrFolder.isDirectory() ? bafFileOrFolder : bafFileOrFolder.getParentFile();
-    file = new RawDataFileImpl(folderPath.getName(),
-        folderPath.getAbsolutePath(), getMemoryMapStorage());
+    file = new RawDataFileImpl(folderPath.getName(), folderPath.getAbsolutePath(),
+        getMemoryMapStorage());
 
-    try (BafDataAccess baf = new BafDataAccess()) {
+    try (BafDataAccess baf = new BafDataAccess(
+        parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding))) {
 
       final boolean b = baf.openBafFile(folderPath);
       if (!b) {

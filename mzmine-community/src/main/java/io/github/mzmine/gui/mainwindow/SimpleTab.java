@@ -68,12 +68,14 @@ public class SimpleTab extends MZmineTab {
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
+    final String text = getRawDataFilesSubtitle(rawDataFiles);
+    setSubTitle(text);
   }
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
+    final String text = getFeatureListsSubtitle(featureLists);
+    setSubTitle(text);
   }
 
   @Override
