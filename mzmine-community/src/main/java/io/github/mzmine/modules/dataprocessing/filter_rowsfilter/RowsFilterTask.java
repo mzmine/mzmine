@@ -315,7 +315,7 @@ public class RowsFilterTask extends AbstractTask {
     if (processInCurrentList) {
       newFeatureList = (ModularFeatureList) featureList;
       rowsToAdd.trimToSize();
-      newFeatureList.setRows(rowsToAdd);
+      newFeatureList.setRowsApplySort(rowsToAdd);
       if (renumber) {
         for (int i = 0; i < rowsToAdd.size(); i++) {
           rowsToAdd.get(i).set(IDType.class, i + 1);
