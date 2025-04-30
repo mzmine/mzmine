@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -254,7 +254,7 @@ public class Massvoltammogram {
     double potential = startPotential;
 
     //Getting the rows from the feature list and sorting them to ascending mz-values.
-    final List<FeatureListRow> rows = featureList.getRows();
+    final List<FeatureListRow> rows = featureList.getRowsCopy();
     rows.sort(FeatureListRowSorter.MZ_ASCENDING);
 
     //Calculating the rt tolerance for a feature around the potential.
@@ -280,8 +280,7 @@ public class Massvoltammogram {
 
         //Searching for the index of the features closest rt to the potential rt.
         final int index = BinarySearch.binarySearch(rt, DefaultTo.CLOSEST_VALUE,
-            featureData.getNumberOfValues(),
-            featureData::getRetentionTime);
+            featureData.getNumberOfValues(), featureData::getRetentionTime);
 
         //Calculating the rt value for the found index.
         final float foundRt = featureData.getRetentionTime(index);

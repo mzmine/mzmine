@@ -52,10 +52,10 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -306,13 +306,14 @@ public class RowsFilterTask extends AbstractTask {
     // Filter rows.
     totalRows = featureList.getNumberOfRows();
     processedRows = 0;
-    final ListIterator<FeatureListRow> iterator = featureList.getRows().listIterator();
-    while (iterator.hasNext()) {
+    // requires copy of rows as there is no efficient way to remove rows from the list
+    // the use setAll
+    final List<FeatureListRow> rowsToAdd = new ArrayList<>();
+    final List<FeatureListRow> rowsCopy = featureList.getRowsCopy();
+    for (final FeatureListRow row : featureList.getRows()) {
       if (isCanceled()) {
         return null;
       }
-
-      final FeatureListRow row = iterator.next();
 
       final boolean hasMS2 = row.hasMs2Fragmentation();
       final boolean annotated = row.isIdentified();
@@ -321,25 +322,25 @@ public class RowsFilterTask extends AbstractTask {
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
       boolean keepRow = (keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
-                        || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
-      if (processInCurrentList) {
-        if (keepRow) {
-          rowsCount++;
+          || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
+      if (keepRow) {
+        rowsCount++;
+        if (processInCurrentList) {
+          rowsToAdd.add(row);
           if (renumber) {
             row.set(IDType.class, rowsCount);
           }
         } else {
-          iterator.remove();
+          rowsToAdd.add(
+              new ModularFeatureListRow(newFeatureList, renumber ? rowsCount : row.getID(),
+                  (ModularFeatureListRow) row, true));
         }
-      } else if (keepRow) {
-        rowsCount++;
-        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
-            renumber ? rowsCount : row.getID(), (ModularFeatureListRow) row, true);
-        newFeatureList.addRow(resetRow);
       }
 
       processedRows++;
     }
+
+    newFeatureList.setRows(rowsToAdd);
 
     return newFeatureList;
   }
@@ -511,15 +512,15 @@ public class RowsFilterTask extends AbstractTask {
       if (!useRemainderOfKendrickMass) {
         // calc Kendrick mass defect
         defectOrRemainder = Math.ceil(kendrickCharge * (valueMZ * kendrickMassFactor)) //
-                            - kendrickCharge * (valueMZ * kendrickMassFactor);
+            - kendrickCharge * (valueMZ * kendrickMassFactor);
       } else {
         // calc Kendrick mass remainder
         defectOrRemainder = (kendrickCharge * (divisor - Math.round(
             FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
-                            / FormulaUtils.calculateExactMass(kendrickMassBase) - Math.floor(
+            / FormulaUtils.calculateExactMass(kendrickMassBase) - Math.floor(
             (kendrickCharge * (divisor - Math.round(
                 FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
-            / FormulaUtils.calculateExactMass(kendrickMassBase));
+                / FormulaUtils.calculateExactMass(kendrickMassBase));
       }
 
       // shift Kendrick mass defect or remainder of Kendrick mass

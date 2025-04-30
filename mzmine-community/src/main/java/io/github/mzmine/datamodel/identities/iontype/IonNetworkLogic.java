@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -145,7 +145,7 @@ public class IonNetworkLogic {
 
       return nets;
     } else {
-      return createAnnotationNetworks(pkl.getRows(), mzTolerance);
+      return createAnnotationNetworks(pkl.getRowsCopy(), mzTolerance);
     }
   }
 
@@ -234,8 +234,8 @@ public class IonNetworkLogic {
       MZTolerance mzTolerance) {
     for (FeatureListRow row : rows) {
       if (row.hasIonIdentity()) {
-        for (AtomicInteger index = new AtomicInteger(0); index.get() < row.getIonIdentities()
-            .size(); index.incrementAndGet()) {
+        for (AtomicInteger index = new AtomicInteger(0);
+            index.get() < row.getIonIdentities().size(); index.incrementAndGet()) {
           IonIdentity neutral = row.getIonIdentities().get(index.get());
           // only if charged (neutral losses do not point to the real neutral mass)
           if (!neutral.getIonType().isModifiedUndefinedAdduct()) {
@@ -504,8 +504,7 @@ public class IonNetworkLogic {
   }
 
   public static IonNetwork[] getAllNetworks(List<FeatureListRow> rows,
-      @Nullable IonNetworkSorter sorter,
-      boolean onlyBest) {
+      @Nullable IonNetworkSorter sorter, boolean onlyBest) {
     return streamNetworks(rows, sorter, onlyBest).toArray(IonNetwork[]::new);
   }
 
@@ -573,9 +572,9 @@ public class IonNetworkLogic {
             }
           }).filter(Objects::nonNull)
           // filter that all PeakListRows have this set to best Ion identity
-          .filter(net -> net.keySet().stream()
-              .allMatch(r -> r.hasIonIdentity() && r.getBestIonIdentity().getNetwork() != null
-                             && r.getBestIonIdentity().getNetwork().getID() == net.getID()));
+          .filter(net -> net.keySet().stream().allMatch(
+              r -> r.hasIonIdentity() && r.getBestIonIdentity().getNetwork() != null
+                  && r.getBestIonIdentity().getNetwork().getID() == net.getID()));
     }
     // get all IOnNetworks
     else {
@@ -604,7 +603,7 @@ public class IonNetworkLogic {
    */
   public static IonNetwork getBestNetwork(RowGroup group) {
     return group.stream().filter(FeatureListRow::hasIonIdentity).flatMap(
-        r -> r.getIonIdentities().stream().map(IonIdentity::getNetwork).filter(Objects::nonNull))
+            r -> r.getIonIdentities().stream().map(IonIdentity::getNetwork).filter(Objects::nonNull))
         .min(Comparator.naturalOrder()).orElse(null);
   }
 
@@ -615,8 +614,7 @@ public class IonNetworkLogic {
    */
   public static void renumberNetworks(ModularFeatureList featureList) {
     AtomicInteger netID = new AtomicInteger(0);
-    IonNetworkLogic
-        .streamNetworks(featureList,
+    IonNetworkLogic.streamNetworks(featureList,
             new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false)
         .forEach(n -> n.setID(netID.getAndIncrement()));
   }

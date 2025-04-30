@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.align_common;
 
-import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
 
 import io.github.mzmine.datamodel.RawDataFile;
@@ -203,9 +202,9 @@ public class BaseFeatureListAligner {
 
     // sort feature lists by name to make reproducible
     // this is needed if 2 feature lists have the same number of rows, which will lead to different results
-    allRows.addAll(featureLists.stream()
-        .sorted(comparingInt(FeatureList::getNumberOfRows).reversed().thenComparing(FeatureList::getName))
-        .map(flist -> new ArrayList<>(flist.getRows())).toList());
+    allRows.addAll(featureLists.stream().sorted(
+            comparingInt(FeatureList::getNumberOfRows).reversed().thenComparing(FeatureList::getName))
+        .map(FeatureList::getRowsCopy).toList());
 
     // still contains rows from unaligned feature lists
     while (!allRows.isEmpty()) {
@@ -225,15 +224,16 @@ public class BaseFeatureListAligner {
     }
 
     // first update row bindings
-    final long appliedBindings = alignedFeatureList.parallelStream().filter(row -> row.getNumberOfFeatures() > 1)
-        .mapToLong(row -> {
+    final long appliedBindings = alignedFeatureList.parallelStream()
+        .filter(row -> row.getNumberOfFeatures() > 1).mapToLong(row -> {
           row.applyRowBindings();
           return 1L;
         }).sum();
-    logger.info(() -> "Applied " + appliedBindings + " row bindings to new feature list " + alignedFeatureList.getName());
+    logger.info(() -> "Applied " + appliedBindings + " row bindings to new feature list "
+        + alignedFeatureList.getName());
 
     // then sort by RT and reset IDs
-    FeatureListUtils.sortByDefaultRT(alignedFeatureList, true);
+    FeatureListUtils.sortByDefault(alignedFeatureList, true);
 
     // score alignment by the number of features that fall within the mz, RT, mobility range
     // do not apply all the advanced filters to keep it simple
