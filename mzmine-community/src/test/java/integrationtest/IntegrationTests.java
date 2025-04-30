@@ -76,6 +76,16 @@ public class IntegrationTests {
   }
 
   @Test
+  void testLcMsFullBatch(@TempDir File tempDir) {
+    if(new File("D:\\OneDrive - mzio GmbH").exists()) {
+      Assertions.assertEquals(0,
+          IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset",
+              "workshop_dataset_full.mzbatch").tempDir(tempDir).build().runBatchGetCheckResults(
+              "rawdatafiles/integration_tests/workshop_dataset/expected_results_full.csv").size());
+    }
+  }
+
+  @Test
   @DisabledOnOs({OS.LINUX, OS.MAC})
     // windows paths don't work on linux/mac
   void testProjectLoadLcms(@TempDir File tempDir) {

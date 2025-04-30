@@ -115,7 +115,16 @@ public class ModularFeatureList implements FeatureList {
   // TODO do we need two sets? We could have observableSet of LinkedHashSet
   private final ObservableSet<DataType> featureTypes = FXCollections.observableSet(
       new LinkedHashSet<>());
-  private final ObservableList<FeatureListRow> featureListRows;
+  /**
+   * This instance is internal and is never made public. Modifications are all done from within the
+   * feature list
+   */
+  private final ObservableList<FeatureListRow> featureListRows = FXCollections.observableArrayList();
+  /**
+   * This is an unmodifiable view of the rows
+   */
+  private final ObservableList<FeatureListRow> featureListRowsUnmodifiableView = FXCollections.unmodifiableObservableList(
+      featureListRows);
   private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
 
   private final R2RNetworkingMaps r2rNetworkingMaps = new R2RNetworkingMaps();
@@ -151,7 +160,6 @@ public class ModularFeatureList implements FeatureList {
     ((ArrayList) dataFiles).trimToSize();
     this.dataFiles = dataFiles;
     this.readOnlyRawDataFiles = Collections.unmodifiableList(dataFiles);
-    featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
     selectedScans = FXCollections.observableMap(new HashMap<>());
@@ -486,7 +494,7 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public ObservableList<FeatureListRow> getRows() {
-    return featureListRows;
+    return featureListRowsUnmodifiableView;
   }
 
   @Override
@@ -508,8 +516,7 @@ public class ModularFeatureList implements FeatureList {
       }
     }
 //    logger.log(Level.FINEST, "SET ALL ROWS");
-    featureListRows.clear();
-    featureListRows.addAll(rows);
+    featureListRows.setAll(rows);
     applyRowBindings();
   }
 
@@ -616,6 +623,17 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void removeRows(final Set<FeatureListRow> rowsToRemove) {
     featureListRows.removeIf(rowsToRemove::contains);
+  }
+
+  @Override
+  public void applyDefaultRowsSorting() {
+    final Comparator<FeatureListRow> comparator = FeatureListUtils.getDefaultRowSorter(this);
+    featureListRows.sort(comparator);
+  }
+
+  @Override
+  public void clearRows() {
+    featureListRows.clear();
   }
 
   @Override

@@ -82,6 +82,7 @@ public class RawDataFileTypeDetector {
   public static final String AGILENT_ACQDATATA_FOLDER = "AcqData";
 
   private static final Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
+  private static final String LCD_SUFFIX = ".lcd";
 
   /**
    * @return Detected file type or null if the file is not of any supported type
@@ -155,6 +156,9 @@ public class RawDataFileTypeDetector {
         }
         if (lowerName.endsWith(TSF_SUFFIX) || lowerName.endsWith(TSF_BIN_SUFFIX)) {
           return RawDataFileType.BRUKER_TSF;
+        }
+        if(lowerName.endsWith(LCD_SUFFIX)) {
+          return RawDataFileType.SHIMADZU_LCD;
         }
 
         // Read the first 1kB of the file into a String

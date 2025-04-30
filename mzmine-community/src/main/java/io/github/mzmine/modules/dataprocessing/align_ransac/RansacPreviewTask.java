@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -122,8 +122,8 @@ public class RansacPreviewTask extends AbstractTask {
     Vector<AlignStructMol> alignMol = new Vector<>();
     totalRows = peakListX.getNumberOfRows();
 
-    peakListX.getRows().sorted(FeatureListRowSorter.DEFAULT_RT);
-    for (FeatureListRow row : peakListX.getRows()) {
+    var sortedRows = peakListX.getRows().stream().sorted(FeatureListRowSorter.DEFAULT_RT).toList();
+    for (FeatureListRow row : sortedRows) {
 
       // Calculate limits for a row with which the row can be aligned
       MZTolerance mzTolerance = parameters.getParameter(RansacAlignerParameters.MZTolerance)
