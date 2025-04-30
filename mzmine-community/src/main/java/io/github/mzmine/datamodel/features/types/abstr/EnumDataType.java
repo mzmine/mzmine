@@ -23,19 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
+package io.github.mzmine.datamodel.features.types.abstr;
 
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.datamodel.features.types.DataType;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 
-public class DetectionMemorySegmentColumn extends AbstractEnumMemorySegmentColumn<FeatureStatus> {
-
-  public DetectionMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
-    super(storage, initialCapacity);
-  }
+public abstract class EnumDataType<T extends Enum<T>> extends DataType<T> {
 
   @Override
-  public FeatureStatus[] values() {
-    return FeatureStatus.values();
+  public Property<T> createProperty() {
+    return new SimpleObjectProperty<>();
   }
+
+  /**
+   * @return The enum values
+   */
+  public T[] enumValues() {
+    return getValueClass().getEnumConstants();
+  }
+
 }

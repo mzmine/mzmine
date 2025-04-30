@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -50,7 +51,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DetectionType extends DataType<FeatureStatus> implements
+public class DetectionType extends EnumDataType<FeatureStatus> implements
     GraphicalColumType<FeatureStatus> {
 
   @NotNull
@@ -176,7 +177,7 @@ public class DetectionType extends DataType<FeatureStatus> implements
     if (!(value instanceof FeatureStatus status)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
     writer.writeCharacters(status.toString());
   }

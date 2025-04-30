@@ -30,14 +30,14 @@ import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.Nullable
 import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.NullableIntArrayColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.ObjectArrayColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.AlignmentScoreMemorySegmentColumn;
-import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.DetectionMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.DoubleRangeMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.EnumTypeMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.FloatRangeMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.NullableDoubleMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.NullableFloatMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.NullableIntMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
@@ -84,12 +84,12 @@ public class DataColumns {
       return inMemory(type, size);
     }
     return (AbstractDataColumn<T>) switch (type) {
+      case EnumDataType<?> et -> new EnumTypeMemorySegmentColumn<>(storage, size, et);
       case IntegerType _ -> ofInt(storage, size);
       case DoubleType _ -> ofDouble(storage, size);
       case FloatType _ -> ofFloat(storage, size);
       case FloatRangeType _ -> new FloatRangeMemorySegmentColumn(storage, size);
       case DoubleRangeType _ -> new DoubleRangeMemorySegmentColumn(storage, size);
-      case DetectionType _ -> new DetectionMemorySegmentColumn(storage, size);
       case AlignmentMainType _ -> new AlignmentScoreMemorySegmentColumn(storage, size);
       default -> new ObjectArrayColumn<>(size);
     };

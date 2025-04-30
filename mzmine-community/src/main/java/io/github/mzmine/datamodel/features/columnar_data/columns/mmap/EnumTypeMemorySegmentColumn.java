@@ -25,16 +25,40 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
+import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractEnumMemorySegmentColumn<T extends Enum> extends
-    AbstractMemorySegmentColumn<T> {
+/**
+ * Any enum value memory mapped
+ *
+ * @param <T>
+ */
+public class EnumTypeMemorySegmentColumn<T extends Enum<T>> extends AbstractMemorySegmentColumn<T> {
 
-  public AbstractEnumMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+  private final Class<T> clazz;
+
+  /**
+   * @param enumType any enum data type
+   */
+  public EnumTypeMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity,
+      EnumDataType<T> enumType) {
+    this(storage, initialCapacity, enumType.getValueClass());
+  }
+
+  /**
+   * @param clazz the value class for example of {@link EnumDataType}
+   */
+  public EnumTypeMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity,
+      Class<T> clazz) {
     super(storage, initialCapacity);
+    this.clazz = clazz;
+  }
+
+  public T[] values() {
+    return clazz.getEnumConstants();
   }
 
   @Override
@@ -56,5 +80,4 @@ public abstract class AbstractEnumMemorySegmentColumn<T extends Enum> extends
     data.setAtIndex(ValueLayout.JAVA_INT, index, value == null ? -1 : value.ordinal());
   }
 
-  public abstract T[] values();
 }
