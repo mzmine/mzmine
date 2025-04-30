@@ -106,8 +106,7 @@ public class VolcanoPlotRegionExtractionTask extends AbstractFeatureListTask {
         }
       }
     }
-    resultFlist.setRows(rows);
-    resultFlist.applyDefaultRowsSorting();
+    resultFlist.setRowsApplySort(rows);
     project.addFeatureList(resultFlist);
   }
 

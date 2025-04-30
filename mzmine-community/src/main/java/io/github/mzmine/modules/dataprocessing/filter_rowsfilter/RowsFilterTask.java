@@ -340,7 +340,7 @@ public class RowsFilterTask extends AbstractTask {
       processedRows++;
     }
 
-    newFeatureList.setRows(rowsToAdd);
+    newFeatureList.setRowsApplySort(rowsToAdd);
 
     return newFeatureList;
   }
