@@ -110,7 +110,7 @@ public class RowsFilterTask extends AbstractTask {
   private final Range<Float> rtRange;
   private final Range<Float> fwhmRange;
   private final Isotope13CFilter isotope13CFilter;
-  private AbsoluteAndRelativeInt minSamples;
+  private final AbsoluteAndRelativeInt minSamples;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
   private FeatureList filteredFeatureList;
@@ -291,7 +291,6 @@ public class RowsFilterTask extends AbstractTask {
     // requires copy of rows as there is no efficient way to remove rows from the list
     // the use setAll
     final ArrayList<FeatureListRow> rowsToAdd = new ArrayList<>((int) (totalRows * 0.75));
-    final List<FeatureListRow> rowsCopy = featureList.getRowsCopy();
     for (final FeatureListRow row : featureList.getRows()) {
       if (isCanceled()) {
         return null;
@@ -405,7 +404,8 @@ public class RowsFilterTask extends AbstractTask {
       }
       if (!foundText) {
         for (var id : row.getSpectralLibraryMatches()) {
-          if (id != null && id.getCompoundName().toLowerCase().trim().contains(searchText)) {
+          if (id != null && id.getCompoundName() != null && id.getCompoundName().toLowerCase()
+              .trim().contains(searchText)) {
             foundText = true;
             break;
           }
