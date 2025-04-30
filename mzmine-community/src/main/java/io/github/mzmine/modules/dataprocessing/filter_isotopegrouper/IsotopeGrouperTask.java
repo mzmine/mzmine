@@ -280,8 +280,7 @@ class IsotopeGrouperTask extends AbstractTask {
             IsotopeGrouperModule.class, parameters, getModuleCallDate()));
 
     // replace rows in list
-    deisotopedFeatureList.setRows(finalRows);
-    deisotopedFeatureList.applyDefaultRowsSorting();
+    deisotopedFeatureList.setRowsApplySort(finalRows);
 
     // Remove the original peakList if requested, or add, or work in place
     handleOriginal.reflectNewFeatureListToProject(suffix, project, deisotopedFeatureList,
