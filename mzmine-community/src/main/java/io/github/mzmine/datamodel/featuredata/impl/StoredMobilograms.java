@@ -30,9 +30,14 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import java.lang.foreign.MemorySegment;
 import java.util.List;
 
-public interface StoredMobilograms {
+/**
+ * Container class for stored mobilograms in a
+ * {@link io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}. Mobilograms can be
+ * accessed via {@link #mobilogram(int)} or {@link #storedMobilograms()}.
+ */
+public sealed interface StoredMobilograms permits SimpleStoredMobilograms, MappedStoredMobilograms {
 
-  MobilogramStorageResult EMPTY = new MobilogramStorageResult(List.of(), EMPTY_DOUBLE_SEGMENT,
+  SimpleStoredMobilograms EMPTY = new SimpleStoredMobilograms(List.of(), EMPTY_DOUBLE_SEGMENT,
       EMPTY_DOUBLE_SEGMENT);
 
   List<IonMobilitySeries> storedMobilograms();

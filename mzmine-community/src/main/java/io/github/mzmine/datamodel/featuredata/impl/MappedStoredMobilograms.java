@@ -36,24 +36,39 @@ import java.lang.invoke.VarHandle;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public class MappedStoredMobilograms implements StoredMobilograms {
+public final class MappedStoredMobilograms implements StoredMobilograms {
 
   private final SimpleIonMobilogramTimeSeries ionTrace;
   private final MemorySegment mzValuesSegment;
   private final MemorySegment intensityValuesSegment;
 
+  /**
+   * Describes a custom data structure that stores index information of a single mobilogram in a
+   * memory layout.
+   */
   private static final MemoryLayout mobilogramInfoLayout = MemoryLayout.structLayout(
       OfInt.JAVA_INT.withName("numValues"), OfInt.JAVA_INT.withName("storageOffset"),
-      OfInt.JAVA_INT.withName("mobilityScanIndicesStart"),
-      OfInt.JAVA_INT.withName("mobilityScanIndicesEnd"));
+      OfInt.JAVA_INT.withName("mobilityScanIndicesStart"));
+
+  /**
+   * Number of values in a mobilogram.
+   */
   private static final VarHandle numValues = mobilogramInfoLayout.varHandle(
       PathElement.groupElement("numValues"));
+
+  /**
+   * The storage offset (start index of mz and intensity values of a single mobilogram in the
+   * {@link #mzValuesSegment} and {@link #intensityValuesSegment}.
+   */
   private static final VarHandle storageOffset = mobilogramInfoLayout.varHandle(
       PathElement.groupElement("storageOffset"));
+
+  /**
+   * Start offset for the mobility scan indices in the {@link #mobilogramScanIndices}. The end index
+   * can be computed via the start index and the {@link #numValues}
+   */
   private static final VarHandle scanIndicesStart = mobilogramInfoLayout.varHandle(
       PathElement.groupElement("mobilityScanIndicesStart"));
-  private static final VarHandle scanIndicesEnd = mobilogramInfoLayout.varHandle(
-      PathElement.groupElement("mobilityScanIndicesEnd"));
 
   private final MemorySegment mobilogramData;
   private final MemorySegment mobilogramScanIndices;
@@ -85,7 +100,6 @@ public class MappedStoredMobilograms implements StoredMobilograms {
         mobilogramScanIndices.setAtIndex(OfInt.JAVA_INT, scanIndicesOffset++,
             scan.getMobilityScanNumber());
       }
-      scanIndicesEnd.set(mobilogramData, offset, scanIndicesOffset);
     }
   }
 
@@ -112,7 +126,7 @@ public class MappedStoredMobilograms implements StoredMobilograms {
     final int num = (int) numValues.get(sliced, 0L);
     final int storage = (int) storageOffset.get(sliced, 0L);
     final int startIndex = (int) scanIndicesStart.get(sliced, 0L);
-    final int endIndex = (int) scanIndicesEnd.get(sliced, 0L);
+    final int endIndex = startIndex + num;
 
     final Frame frame = ionTrace.getSpectrum(index);
     final List<MobilityScan> mobilityScans = IntStream.range(startIndex, endIndex)

@@ -193,7 +193,8 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final ComboParameter<ImsOptimisation> imsOptimisation = new ComboParameter<>(
       "Optimise IMS processing", """
-      Optimizes processing of IMS files for speed or memory efficiency.
+      Optimizes processing of IMS files for speed or memory efficiency. Changes to this parameter will affect
+      feature lists created after the parameter was changed.
       Speed: References to the individual mobilograms of IMS features will be stored in RAM.
       Memory efficiency: References to the individual mobilograms of IMS features will be stored in a temporary file.""",
       ImsOptimisation.values(), ImsOptimisation.MEMORY_EFFICIENCY);

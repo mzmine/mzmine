@@ -30,13 +30,13 @@ import java.lang.foreign.MemorySegment;
 import java.util.List;
 import java.util.Objects;
 
-public final class MobilogramStorageResult implements StoredMobilograms {
+public final class SimpleStoredMobilograms implements StoredMobilograms {
 
   private final List<IonMobilitySeries> storedMobilograms;
   private final MemorySegment storedMzValues;
   private final MemorySegment storedIntensityValues;
 
-  public MobilogramStorageResult(List<? extends IonMobilitySeries> storedMobilograms, MemorySegment storedMzValues,
+  public SimpleStoredMobilograms(List<? extends IonMobilitySeries> storedMobilograms, MemorySegment storedMzValues,
       MemorySegment storedIntensityValues) {
     this.storedMobilograms = (List<IonMobilitySeries>) storedMobilograms;
     this.storedMzValues = storedMzValues;
@@ -45,7 +45,7 @@ public final class MobilogramStorageResult implements StoredMobilograms {
 
   @Override
   public IonMobilitySeries mobilogram(int index) {
-    return mobilogram(index);
+    return storedMobilograms().get(index);
   }
 
   @Override
@@ -71,7 +71,7 @@ public final class MobilogramStorageResult implements StoredMobilograms {
     if (obj == null || obj.getClass() != this.getClass()) {
       return false;
     }
-    var that = (MobilogramStorageResult) obj;
+    var that = (SimpleStoredMobilograms) obj;
     return Objects.equals(this.storedMobilograms, that.storedMobilograms) && Objects.equals(this.storedMzValues,
         that.storedMzValues) && Objects.equals(this.storedIntensityValues, that.storedIntensityValues);
   }
@@ -83,7 +83,7 @@ public final class MobilogramStorageResult implements StoredMobilograms {
 
   @Override
   public String toString() {
-    return "MobilogramStorageResult[" + "storedMobilograms=" + storedMobilograms + ", "
+    return "SimpleStoredMobilograms[" + "storedMobilograms=" + storedMobilograms + ", "
         + "storedMzValues=" + storedMzValues + ", " + "storedIntensityValues="
         + storedIntensityValues + ']';
   }

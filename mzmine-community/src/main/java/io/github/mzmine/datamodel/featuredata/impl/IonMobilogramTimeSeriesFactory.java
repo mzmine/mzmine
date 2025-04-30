@@ -221,7 +221,7 @@ public class IonMobilogramTimeSeriesFactory {
   static StoredMobilograms storeMobilograms(SimpleIonMobilogramTimeSeries trace,
       @Nullable MemoryMapStorage storage, List<IonMobilitySeries> mobilograms) {
     if (mobilograms.isEmpty()) {
-      return MobilogramStorageResult.EMPTY;
+      return SimpleStoredMobilograms.EMPTY;
     }
 
     if (mobilograms.stream().allMatch(m -> m instanceof StorableIonMobilitySeries)) {
@@ -248,7 +248,7 @@ public class IonMobilogramTimeSeriesFactory {
     }
 
     return switch (ConfigService.getConfiguration().getCachedImsOptimisation()) {
-      case SPEED -> new MobilogramStorageResult(storedMobilograms, stored[0], stored[1]);
+      case SPEED -> new SimpleStoredMobilograms(storedMobilograms, stored[0], stored[1]);
       case MEMORY_EFFICIENCY -> new MappedStoredMobilograms(storage, trace, stored[0], stored[1], offsets,
           storedMobilograms);
     };
@@ -262,7 +262,7 @@ public class IonMobilogramTimeSeriesFactory {
       SimpleIonMobilogramTimeSeries newTrace, MemoryMapStorage storage,
       List<StorableIonMobilitySeries> mobilograms) {
     if (mobilograms.isEmpty()) {
-      return MobilogramStorageResult.EMPTY;
+      return SimpleStoredMobilograms.EMPTY;
     }
 
     // check if the mobilograms are consecutive
@@ -300,7 +300,7 @@ public class IonMobilogramTimeSeriesFactory {
 
 
     return switch (ConfigService.getConfiguration().getCachedImsOptimisation()) {
-      case SPEED -> new MobilogramStorageResult(storedMobilograms, mzValues, intensityValues);
+      case SPEED -> new SimpleStoredMobilograms(storedMobilograms, mzValues, intensityValues);
       case MEMORY_EFFICIENCY ->  new MappedStoredMobilograms(storage, newTrace, mzValues, intensityValues,
           storedMobilograms.stream().mapToInt(StorableIonMobilitySeries::getStorageOffset).toArray(),
           storedMobilograms);
