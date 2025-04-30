@@ -424,6 +424,9 @@ public class ScanUtils {
    */
   public static double calculateTIC(Scan scan, Range<Double> mzRange) {
     final IndexRange indexRange = BinarySearch.indexRange(mzRange, scan.getNumberOfDataPoints(), scan::getMzValue);
+    if(indexRange.isEmpty()) {
+      return 0.0d;
+    }
 
     double tic = 0.0;
     for (int i = indexRange.min(); i < indexRange.maxExclusive(); i++) {
