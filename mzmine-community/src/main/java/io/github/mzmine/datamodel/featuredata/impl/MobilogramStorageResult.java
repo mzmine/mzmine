@@ -28,14 +28,64 @@ package io.github.mzmine.datamodel.featuredata.impl;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import java.lang.foreign.MemorySegment;
 import java.util.List;
+import java.util.Objects;
 
-public record MobilogramStorageResult(List<IonMobilitySeries> storedMobilograms,
-                                      MemorySegment storedMzValues,
-                                      MemorySegment storedIntensityValues) implements
-    StoredMobilograms {
+public final class MobilogramStorageResult implements StoredMobilograms {
+
+  private final List<IonMobilitySeries> storedMobilograms;
+  private final MemorySegment storedMzValues;
+  private final MemorySegment storedIntensityValues;
+
+  public MobilogramStorageResult(List<? extends IonMobilitySeries> storedMobilograms, MemorySegment storedMzValues,
+      MemorySegment storedIntensityValues) {
+    this.storedMobilograms = (List<IonMobilitySeries>) storedMobilograms;
+    this.storedMzValues = storedMzValues;
+    this.storedIntensityValues = storedIntensityValues;
+  }
 
   @Override
   public IonMobilitySeries mobilogram(int index) {
     return mobilogram(index);
   }
+
+  @Override
+  public List<IonMobilitySeries> storedMobilograms() {
+    return storedMobilograms;
+  }
+
+  @Override
+  public MemorySegment storedMzValues() {
+    return storedMzValues;
+  }
+
+  @Override
+  public MemorySegment storedIntensityValues() {
+    return storedIntensityValues;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != this.getClass()) {
+      return false;
+    }
+    var that = (MobilogramStorageResult) obj;
+    return Objects.equals(this.storedMobilograms, that.storedMobilograms) && Objects.equals(this.storedMzValues,
+        that.storedMzValues) && Objects.equals(this.storedIntensityValues, that.storedIntensityValues);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(storedMobilograms, storedMzValues, storedIntensityValues);
+  }
+
+  @Override
+  public String toString() {
+    return "MobilogramStorageResult[" + "storedMobilograms=" + storedMobilograms + ", "
+        + "storedMzValues=" + storedMzValues + ", " + "storedIntensityValues="
+        + storedIntensityValues + ']';
+  }
+
 }

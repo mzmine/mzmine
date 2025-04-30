@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -246,9 +247,11 @@ public class IonMobilogramTimeSeriesFactory {
               spectra));
     }
 
-    return new MappedStoredMobilograms(storage, trace, stored[0], stored[1], offsets,
-        storedMobilograms);
-//    return new MobilogramStorageResult(storedMobilograms, stored[0], stored[1]);
+    return switch (ConfigService.getConfiguration().getCachedImsOptimisation()) {
+      case SPEED -> new MobilogramStorageResult(storedMobilograms, stored[0], stored[1]);
+      case MEMORY_EFFICIENCY -> new MappedStoredMobilograms(storage, trace, stored[0], stored[1], offsets,
+          storedMobilograms);
+    };
   }
 
   /**
@@ -295,9 +298,12 @@ public class IonMobilogramTimeSeriesFactory {
 //        == intensityValues.getAtIndex(OfDouble.JAVA_DOUBLE,
 //        StorageUtils.numDoubles(intensityValues) - 1);
 
-    return new MappedStoredMobilograms(storage, newTrace, mzValues, intensityValues,
-        storedMobilograms.stream().mapToInt(StorableIonMobilitySeries::getStorageOffset).toArray(),
-        storedMobilograms);
-//    return new MobilogramStorageResult(storedMobilograms, mzValues, intensityValues);
+
+    return switch (ConfigService.getConfiguration().getCachedImsOptimisation()) {
+      case SPEED -> new MobilogramStorageResult(storedMobilograms, mzValues, intensityValues);
+      case MEMORY_EFFICIENCY ->  new MappedStoredMobilograms(storage, newTrace, mzValues, intensityValues,
+          storedMobilograms.stream().mapToInt(StorableIonMobilitySeries::getStorageOffset).toArray(),
+          storedMobilograms);
+    };
   }
 }
