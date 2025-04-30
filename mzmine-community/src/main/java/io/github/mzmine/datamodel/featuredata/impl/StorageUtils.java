@@ -27,8 +27,10 @@ package io.github.mzmine.datamodel.featuredata.impl;
 import io.github.mzmine.datamodel.featuredata.IonSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import java.lang.foreign.ValueLayout.OfDouble;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -234,6 +236,27 @@ public class StorageUtils {
     return buffer;
   }
 
+  public static MemorySegment allocateSegment(@Nullable final MemoryMapStorage storage,
+      @NotNull final MemoryLayout layout, int numValues) {
+
+    MemorySegment buffer;
+    if (storage != null) {
+      buffer = storage.allocateMemorySegment(layout, numValues);
+    } else {
+      // must be at least 1 large. If layout.byteSize * numValues < 8 bytes, a double[0] would be created.
+      final long minSize = Math.ceilDiv(layout.byteSize() * numValues,
+          OfDouble.JAVA_DOUBLE.byteSize());
+      if (minSize > Integer.MAX_VALUE) {
+        throw new IllegalArgumentException(
+            "The size of the memory segment is too large. %d entries of %d B per entry (%d B)".formatted(
+                numValues, layout.byteSize(), minSize));
+      }
+      buffer = MemorySegment.ofArray(new double[(int) minSize]);
+    }
+
+    return buffer;
+  }
+
   public static long numFloats(MemorySegment segment) {
     return segment.byteSize() / ValueLayout.JAVA_FLOAT.byteSize();
   }
@@ -297,7 +320,7 @@ public class StorageUtils {
   }
 
   public static boolean contentEquals(MemorySegment s1, MemorySegment s2) {
-    if(s1.byteSize() != s2.byteSize()) {
+    if (s1.byteSize() != s2.byteSize()) {
       return false;
     }
     return MemorySegment.mismatch(s1, 0, s1.byteSize(), s2, 0, s2.byteSize()) == -1;

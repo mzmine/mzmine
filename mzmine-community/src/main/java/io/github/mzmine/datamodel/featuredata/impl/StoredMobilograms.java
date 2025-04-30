@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,10 +30,21 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import java.lang.foreign.MemorySegment;
 import java.util.List;
 
-public record MobilogramStorageResult(List<IonMobilitySeries> storedMobilograms,
-                                      MemorySegment storedMzValues,
-                                      MemorySegment storedIntensityValues) {
+/**
+ * Container class for stored mobilograms in a
+ * {@link io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}. Mobilograms can be
+ * accessed via {@link #mobilogram(int)} or {@link #storedMobilograms()}.
+ */
+public sealed interface StoredMobilograms permits SimpleStoredMobilograms, MappedStoredMobilograms {
 
-  public static final MobilogramStorageResult EMPTY = new MobilogramStorageResult(List.of(),
-      EMPTY_DOUBLE_SEGMENT, EMPTY_DOUBLE_SEGMENT);
+  SimpleStoredMobilograms EMPTY = new SimpleStoredMobilograms(List.of(), EMPTY_DOUBLE_SEGMENT,
+      EMPTY_DOUBLE_SEGMENT);
+
+  List<IonMobilitySeries> storedMobilograms();
+
+  MemorySegment storedMzValues();
+
+  MemorySegment storedIntensityValues();
+
+  IonMobilitySeries mobilogram(int index);
 }

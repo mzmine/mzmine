@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.preferences.ImageNormalization;
+import io.github.mzmine.gui.preferences.ImsOptimisation;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.Themes;
@@ -145,6 +146,9 @@ public interface MZmineConfiguration {
   File getMsConvertPath();
 
   @NotNull File getLogFile();
+
+  @NotNull ImsOptimisation getCachedImsOptimisation();
+  void setCachedImsOptimisation(@NotNull ImsOptimisation optimisation);
 
   /**
    * The current hold total memory. Consider using {@link #getMaxMemoryGB()}
