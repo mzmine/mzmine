@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.Nullable
 import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.NullableFloatArrayColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.NullableIntArrayColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.arrays.ObjectArrayColumn;
-import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.AlignmenScoreMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.AlignmentScoreMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.DetectionMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.DoubleRangeMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.FloatRangeMemorySegmentColumn;
@@ -90,7 +90,7 @@ public class DataColumns {
       case FloatRangeType _ -> new FloatRangeMemorySegmentColumn(storage, size);
       case DoubleRangeType _ -> new DoubleRangeMemorySegmentColumn(storage, size);
       case DetectionType _ -> new DetectionMemorySegmentColumn(storage, size);
-      case AlignmentMainType _ -> new AlignmenScoreMemorySegmentColumn(storage, size);
+      case AlignmentMainType _ -> new AlignmentScoreMemorySegmentColumn(storage, size);
       default -> new ObjectArrayColumn<>(size);
     };
   }

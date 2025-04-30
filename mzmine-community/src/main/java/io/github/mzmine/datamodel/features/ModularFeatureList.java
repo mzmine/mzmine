@@ -197,18 +197,7 @@ public class ModularFeatureList implements FeatureList {
       for (DataType dataType : added) {
         addRowBinding(dataType.createDefaultRowBindings());
       }
-      // TODO no need to remove from each feature as this is already removed from the schema itself
-//      for (DataType dt : removed) {
-//        parallelStreamFeatures().forEach(feature -> feature.remove(dt));
-//      }
     });
-
-    // not needed
-//    rowsSchema.addDataTypesChangeListener((_, removed) -> {
-//      for (@NotNull DataType dataType : removed) {
-//        parallelStream().forEach(row -> row.remove(dataType));
-//      }
-//    });
   }
 
   @Override
@@ -605,26 +594,50 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   *
+   * Only removes the row from the list of rows. The data backend does not have to change. The "gap"
+   * left by the removed row may still contain the information but this does not impede performance
+   * much. The next feature list copy step will create a new {@link ColumnarModularDataModelSchema}
+   * and the rows and features will be "pushed" together.
+   * <p>
+   * TODO Consider if removing row from rows & features schema saves more memory? Setting all in
+   * memory columns to null for a specific value may save memory. Lets say we remove a
+   * List of SuperComplexObject. The in place operations like duplicate rows filter or
+   * RowsFilterTask may generate many holes.
    */
   @Override
   public void removeRow(FeatureListRow row) {
-    // TODO remove from schema rows and features
     featureListRows.remove(row);
   }
 
   /**
-   * if available pass index and row {@see #removeRow(int, FeatureListRow)} for optimized version.
+   * Only removes the row from the list of rows. The data backend does not have to change. The "gap"
+   * left by the removed row may still contain the information but this does not impede performance
+   * much. The next feature list copy step will create a new {@link ColumnarModularDataModelSchema}
+   * and the rows and features will be "pushed" together.
+   * <p>
+   * TODO Consider if removing row from rows & features schema saves more memory? Setting all in
+   * memory columns to null for a specific value may save memory. Lets say we remove a
+   * List of SuperComplexObject. The in place operations like duplicate rows filter or
+   * RowsFilterTask may generate many holes.
    */
   @Override
   public void removeRow(int rowNum) {
-    // TODO remove from schema rows and features
-    removeRow(featureListRows.remove(rowNum));
+    featureListRows.remove(rowNum);
   }
 
+  /**
+   * Only removes the row from the list of rows. The data backend does not have to change. The "gap"
+   * left by the removed row may still contain the information but this does not impede performance
+   * much. The next feature list copy step will create a new {@link ColumnarModularDataModelSchema}
+   * and the rows and features will be "pushed" together.
+   * <p>
+   * TODO Consider if removing row from rows & features schema saves more memory? Setting all in
+   * memory columns to null for a specific value may save memory. Lets say we remove a
+   * List of SuperComplexObject. The in place operations like duplicate rows filter or
+   * RowsFilterTask may generate many holes.
+   */
   @Override
   public void removeRows(final Collection<FeatureListRow> rowsToRemove) {
-    // TODO remove from schema rows and features
     featureListRows.removeAll(rowsToRemove);
   }
 
@@ -634,6 +647,17 @@ public class ModularFeatureList implements FeatureList {
     featureListRows.sort(comparator);
   }
 
+  /**
+   * Only removes the row from the list of rows. The data backend does not have to change. The "gap"
+   * left by the removed row may still contain the information but this does not impede performance
+   * much. The next feature list copy step will create a new {@link ColumnarModularDataModelSchema}
+   * and the rows and features will be "pushed" together.
+   * <p>
+   * TODO Consider if removing row from rows & features schema saves more memory? Setting all in
+   * memory columns to null for a specific value may save memory. Lets say we remove a
+   * List of SuperComplexObject. The in place operations like duplicate rows filter or
+   * RowsFilterTask may generate many holes.
+   */
   @Override
   public void clearRows() {
     featureListRows.clear();

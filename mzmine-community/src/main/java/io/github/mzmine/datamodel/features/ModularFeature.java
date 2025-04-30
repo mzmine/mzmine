@@ -45,7 +45,22 @@ import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
-import io.github.mzmine.datamodel.features.types.numbers.*;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
+import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
+import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RIType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
@@ -79,13 +94,6 @@ public class ModularFeature extends ModularDataModelColumnarRow implements Featu
   public ModularFeature(@NotNull ModularFeatureList flist) {
     super(flist.getFeaturesSchema());
     this.flist = flist;
-
-    //
-//    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
-//      if (change.wasAdded()) {
-//        this.flist.addFeatureType(change.getKey());
-//      }
-//    });
   }
 
   // NOT TESTED

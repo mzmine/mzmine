@@ -143,30 +143,6 @@ public class ColumnarModularDataModelSchema {
     return columns.get(type);
   }
 
-  public DataColumn addDataType(final DataType type) {
-    DataColumn column = getColumn(type);
-    if (column != null) {
-      return column;
-    }
-
-    try (var _ = resizeLock.lockWrite()) {
-      // double-checked lock
-      column = getColumn(type);
-      if (column != null) {
-        return column;
-      }
-      // for now use synchronized DataColumns
-      column = DataColumns.ofTypeSynchronized(type, storage, columnLength);
-      columns.put(type, column);
-//      logger.finest("%s: adding data type %s".formatted(modelName, type.getUniqueID()));
-    }
-    var addedCopy = List.of(type);
-    for (var listener : dataTypesChangeListeners) {
-      listener.onChange(addedCopy, List.of());
-    }
-    return column;
-  }
-
   /**
    * @return read lock
    */
@@ -244,11 +220,14 @@ public class ColumnarModularDataModelSchema {
         return false;
       }
       // add column
-      column = addDataType(type);
+      addDataTypes(type);
+      column = getColumn(type);
     }
 
     /*
-     * using a lock inside each column because they might be resized at different points in time.
+     * using a lock inside each column because they might be resized at different points in time,
+     * because memory mapped columns usually make greater resizing increments
+     * as it is more expensive compared to in memory array columns.
      * Also they are resized on different treads
      */
     final Object old = column.get(rowIndex);

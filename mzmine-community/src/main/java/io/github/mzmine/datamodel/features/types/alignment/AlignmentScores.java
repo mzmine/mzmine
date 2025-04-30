@@ -25,9 +25,11 @@
 
 package io.github.mzmine.datamodel.features.types.alignment;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.ModularDataRecord;
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
-import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.AlignmenScoreMemorySegmentColumn;
+import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.AlignmentScoreMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityAbsoluteDifferenceType;
@@ -37,14 +39,13 @@ import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.scores.RateType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.WeightedDistanceScore;
 import java.util.List;
-import static java.util.Objects.requireNonNullElse;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Saves scores on the alignment.
  * <p>
- * Improtant: do not change order of record fields - {@link AlignmenScoreMemorySegmentColumn}
+ * Improtant: do not change order of record fields - {@link AlignmentScoreMemorySegmentColumn}
  * depends on it
  *
  * @param rate             the aligned/total samples

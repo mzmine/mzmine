@@ -93,7 +93,11 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
       final ModularFeature feature) {
     final DataColumn<ModularFeature> featuresCol = features.get(raw);
     if (featuresCol == null) {
-      return null; // previous behaviour was to return null - this means raw file is not in feature list
+      // raw data files in feature list cannot be changed - so no method should attempt to
+      // add a feature to a missing raw data file
+      throw new IllegalStateException(
+          "This feature list does not contain raw data file '" + raw.getFileName()
+              + "'. This points to an issue in the implementation.");
     }
     return featuresCol.set(rowIndex, feature);
   }

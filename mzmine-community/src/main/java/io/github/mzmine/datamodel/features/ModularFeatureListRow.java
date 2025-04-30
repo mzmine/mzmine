@@ -25,6 +25,9 @@
 
 package io.github.mzmine.datamodel.features;
 
+import static java.util.Objects.requireNonNullElse;
+import static java.util.Objects.requireNonNullElseGet;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
@@ -50,7 +53,18 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaList
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.numbers.*;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.RIType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
@@ -89,6 +103,12 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
   private static final Logger logger = Logger.getLogger(ModularFeatureListRow.class.getName());
   @NotNull
   private final ModularFeatureList flist;
+
+  /**
+   * Simple write lock for more complex objects to be changed like list types. Only write is
+   * locked.
+   */
+  private final Object writeLock = new Object();
 
   /**
    * Creates an empty row
@@ -197,7 +217,7 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
       }
       if (!flist.equals(feature.getFeatureList())) {
         throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-                                           + "row. Create feature with the correct feature list as an argument.");
+            + "row. Create feature with the correct feature list as an argument.");
       }
       if (raw == null) {
         throw new IllegalArgumentException("Raw file cannot be null");
@@ -416,54 +436,56 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
   @Override
   public List<FeatureIdentity> getPeakIdentities() {
     ManualAnnotation manual = getManualAnnotation();
-    return manual == null ? List.of()
-        : Objects.requireNonNullElse(manual.getIdentities(), List.of());
+    return manual == null ? List.of() : requireNonNullElse(manual.getIdentities(), List.of());
   }
 
   public void setPeakIdentities(List<FeatureIdentity> identities) {
-    ManualAnnotation manual = getManualAnnotation();
-    if (manual == null) {
-      manual = new ManualAnnotation();
+    synchronized (writeLock) {
+      ManualAnnotation manual = getManualAnnotation();
+      if (manual == null) {
+        manual = new ManualAnnotation();
+      }
+      manual.setIdentities(identities);
+      set(ManualAnnotationType.class, manual);
     }
-    manual.setIdentities(identities);
-    set(ManualAnnotationType.class, manual);
   }
 
   @Override
   public void addFeatureIdentity(FeatureIdentity identity, boolean preferred) {
-    ManualAnnotation manual = Objects.requireNonNullElse(getManualAnnotation(),
-        new ManualAnnotation());
+    synchronized (writeLock) {
+      ManualAnnotation manual = requireNonNullElse(getManualAnnotation(), new ManualAnnotation());
 
-    List<FeatureIdentity> peakIdentities;
-    // getPeakIdentities initializes the returned list as an immutable list if manual is null
-    // if we add a new identity for the first time here, this will lead to an UnsupportedOperationException
-    if (getManualAnnotation() == null) {
-      peakIdentities = new ArrayList<>();
-    } else {
-      peakIdentities = getPeakIdentities();
+      List<FeatureIdentity> peakIdentities;
+      // getPeakIdentities initializes the returned list as an immutable list if manual is null
+      // if we add a new identity for the first time here, this will lead to an UnsupportedOperationException
+      if (getManualAnnotation() == null) {
+        peakIdentities = new ArrayList<>();
+      } else {
+        peakIdentities = getPeakIdentities();
+      }
+      peakIdentities.remove(identity);
+      if (preferred) {
+        peakIdentities.add(0, identity);
+      } else {
+        peakIdentities.add(identity);
+      }
+      manual.setIdentities(peakIdentities);
+      set(ManualAnnotationType.class, manual);
     }
-    peakIdentities.remove(identity);
-    if (preferred) {
-      peakIdentities.add(0, identity);
-    } else {
-      peakIdentities.add(identity);
-    }
-    manual.setIdentities(peakIdentities);
-    set(ManualAnnotationType.class, manual);
   }
 
   @Override
   public void addCompoundAnnotation(CompoundDBAnnotation id) {
     // should usually not be called from multiple threads
-//    synchronized (getMap()) {
-    List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
-    List<CompoundDBAnnotation> newList = new ArrayList<>();
-    if (matches != null) {
-      newList.addAll(matches);
+    synchronized (writeLock) {
+      List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
+      List<CompoundDBAnnotation> newList = new ArrayList<>();
+      if (matches != null) {
+        newList.addAll(matches);
+      }
+      newList.add(id);
+      set(CompoundDatabaseMatchesType.class, newList);
     }
-    newList.add(id);
-    set(CompoundDatabaseMatchesType.class, newList);
-//    }
   }
 
   @NotNull
@@ -475,9 +497,7 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
 
   @Override
   public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
-//    synchronized (getMap()) {
     set(CompoundDatabaseMatchesType.class, annotations);
-//    }
   }
 
   /**
@@ -503,26 +523,22 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
 
   @Override
   public void addSpectralLibraryMatch(SpectralDBAnnotation id) {
-//    synchronized (getMap()) {
-    List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
-    if (matches == null) {
-      matches = new ArrayList<>();
+    synchronized (writeLock) {
+      List<SpectralDBAnnotation> old = requireNonNullElseGet(get(SpectralLibraryMatchesType.class),
+          ArrayList::new);
+      old.add(id);
+      set(SpectralLibraryMatchesType.class, old);
     }
-    matches.add(id);
-    set(SpectralLibraryMatchesType.class, matches);
-//    }
   }
 
   @Override
   public void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches) {
-//    synchronized (getMap()) {
-    List<SpectralDBAnnotation> old = get(SpectralLibraryMatchesType.class);
-    if (old == null) {
-      old = new ArrayList<>();
+    synchronized (writeLock) {
+      List<SpectralDBAnnotation> old = requireNonNullElseGet(get(SpectralLibraryMatchesType.class),
+          ArrayList::new);
+      old.addAll(matches);
+      set(SpectralLibraryMatchesType.class, old);
     }
-    old.addAll(matches);
-    set(SpectralLibraryMatchesType.class, old);
-//    }
   }
 
   @Override
@@ -533,9 +549,7 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
 
   @Override
   public void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches) {
-//    synchronized (getMap()) {
     set(SpectralLibraryMatchesType.class, matches);
-//    }
   }
 
   @Override
@@ -635,7 +649,7 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
   @Override
   public IsotopePattern getBestIsotopePattern() {
     return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight))
         .map(ModularFeature::getIsotopePattern).orElse(null);
   }
@@ -674,7 +688,7 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
 
   @Override
   public List<ResultFormula> getFormulas() {
-    return Objects.requireNonNullElse(get(FormulaListType.class), List.of());
+    return requireNonNullElse(get(FormulaListType.class), List.of());
   }
 
   @Override
@@ -684,26 +698,30 @@ public class ModularFeatureListRow extends ModularDataModelColumnarRow implement
 
   @Override
   public void addFormula(ResultFormula formula, boolean preferred) {
-    final List<ResultFormula> resultFormulas = new ArrayList<>(getFormulas());
-    if (preferred) {
-      resultFormulas.addFirst(formula);
-    } else {
-      resultFormulas.add(formula);
+    synchronized (writeLock) {
+      final List<ResultFormula> resultFormulas = new ArrayList<>(getFormulas());
+      if (preferred) {
+        resultFormulas.addFirst(formula);
+      } else {
+        resultFormulas.add(formula);
+      }
+      setFormulas(resultFormulas);
     }
-    setFormulas(resultFormulas);
   }
 
   @Override
   public void addLipidAnnotation(MatchedLipid matchedLipid) {
-    // add column first if needed
-    List<MatchedLipid> matches = get(LipidMatchListType.class);
-    if (matches == null) {
-      matches = List.of(matchedLipid);
-    } else {
-      matches = new ArrayList<>(matches);
-      matches.add(matchedLipid);
+    synchronized (writeLock) {
+      // add column first if needed
+      List<MatchedLipid> matches = get(LipidMatchListType.class);
+      if (matches == null) {
+        matches = List.of(matchedLipid);
+      } else {
+        matches = new ArrayList<>(matches);
+        matches.add(matchedLipid);
+      }
+      set(LipidMatchListType.class, matches);
     }
-    set(LipidMatchListType.class, matches);
   }
 
   @Override

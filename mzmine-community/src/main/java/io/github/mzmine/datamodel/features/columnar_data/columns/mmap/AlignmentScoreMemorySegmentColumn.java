@@ -25,24 +25,26 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT;
+import static java.lang.foreign.ValueLayout.JAVA_INT;
+
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemoryLayout.PathElement;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.StructLayout;
-import static java.lang.foreign.ValueLayout.JAVA_DOUBLE;
-import static java.lang.foreign.ValueLayout.JAVA_FLOAT;
-import static java.lang.foreign.ValueLayout.JAVA_INT;
 import java.lang.invoke.VarHandle;
 import org.jetbrains.annotations.Nullable;
 
-public class AlignmenScoreMemorySegmentColumn extends AbstractMemorySegmentColumn<AlignmentScores> {
+public class AlignmentScoreMemorySegmentColumn extends
+    AbstractMemorySegmentColumn<AlignmentScores> {
 
   public static final StructLayout LAYOUT = MemoryLayout.structLayout( //
       // Double needs to be at start otherwise layout may be unaligned
-      JAVA_DOUBLE.withName("maxMzDelta"), //
-      JAVA_FLOAT.withName("rate") //
+      JAVA_DOUBLE.withName("maxMzDelta") //
+      , JAVA_FLOAT.withName("rate") //
       , JAVA_INT.withName("alignedFeatures") //
       , JAVA_INT.withName("extraFeatures") //
       , JAVA_FLOAT.withName("weightedDistanceScore") //
@@ -70,7 +72,7 @@ public class AlignmenScoreMemorySegmentColumn extends AbstractMemorySegmentColum
   private static final VarHandle maxMobilityDeltaHandle = LAYOUT.arrayElementVarHandle(
       PathElement.groupElement("maxMobilityDelta"));
 
-  public AlignmenScoreMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+  public AlignmentScoreMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
     super(storage, initialCapacity);
   }
 

@@ -104,6 +104,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
@@ -112,7 +113,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.SetChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -142,7 +142,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import org.controlsfx.control.NotificationPane;
-import org.controlsfx.control.action.Action;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -594,6 +593,13 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     long totalRowCells = (long) flist.getRowTypes().size() * flist.getNumberOfRows();
     long totalFeatureCells = (long) flist.getFeatureTypes().size() * flist.streamFeatures().count();
 
+    // TODO remove or comment out
+    // Just logging to see how full a table is
+    final Predicate<DataType> inMemoryColumns = type -> switch (type) {
+      case IntegerType _, DoubleType _, FloatType _, FloatRangeType _, DoubleRangeType _,
+           AlignmentMainType _, DetectionType _ -> false;
+      default -> true;
+    };
     logger.fine("""
         Types:
         Row types: %s
@@ -603,23 +609,11 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
         Row cells (%d types): %d / %d (%.1f)
         Feature cells (%d types): %d / %d (%.1f)""".formatted( //
         flist.getRowTypes().stream() //
-            .filter(t -> {
-              return switch (t) {
-                case IntegerType _, DoubleType _, FloatType _, FloatRangeType _, DoubleRangeType _,
-                     AlignmentMainType _ -> false;
-                default -> true;
-              };
-            })//
+            .filter(inMemoryColumns)//
             .map(t -> "%s (%s)".formatted(t.getUniqueID(), t.getClass().getSimpleName()))
             .collect(Collectors.joining(", ")),//
         flist.getFeatureTypes().stream()//
-            .filter(t -> {
-              return switch (t) {
-                case IntegerType _, DoubleType _, FloatType _, FloatRangeType _, DoubleRangeType _,
-                     AlignmentMainType _, DetectionType _ -> false;
-                default -> true;
-              };
-            })//
+            .filter(inMemoryColumns)//
             .map(t -> "%s (%s)".formatted(t.getUniqueID(), t.getClass().getSimpleName()))
             .collect(Collectors.joining(", ")),//
         flist.getNumberOfRows(), //
