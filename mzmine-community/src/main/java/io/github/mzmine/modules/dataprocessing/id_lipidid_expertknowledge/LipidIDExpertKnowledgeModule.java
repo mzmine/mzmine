@@ -13,15 +13,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Main module class for Lipid Validation
+ * Main module class for Lipid Validation.
  *
  * @author Blanca Pueche Granados (blancapueche@gmail.com)
  */
 public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule{
 
     /**
-     * Name of the module
-     * @return String with name
+     * Name of the module.
+     * @return The module name.
      */
     @Override
     public @NotNull String getName() {
@@ -29,8 +29,8 @@ public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule{
     }
 
     /**
-     * Class
-     * @return Class
+     * Gets the parameters class.
+     * @return The parameter set class.
      */
     @Override
     public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
@@ -38,8 +38,8 @@ public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule{
     }
 
     /**
-     * Description of the module
-     * @return String with description
+     * Description of the module.
+     * @return The module description.
      */
     @Override
     public @NotNull String getDescription() {
@@ -47,7 +47,7 @@ public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule{
     }
 
     /**
-     * Method to execute the module
+     * Executes the module, creating the parameters and the task.
      * @param project Project to apply this module on.
      * @param parameters ParameterSet to invoke this module with. The ParameterSet has already been
      *        cloned for exclusive use by this module, therefore the module does not need to clone it
@@ -70,8 +70,8 @@ public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule{
     }
 
     /**
-     * Category of the module
-     * @return MZmineMoudleCategory
+     * Gets th category of the module.
+     * @return The MZmineMoudleCategory, set to "annotation".
      */
     @Override
     public @NotNull MZmineModuleCategory getModuleCategory() {

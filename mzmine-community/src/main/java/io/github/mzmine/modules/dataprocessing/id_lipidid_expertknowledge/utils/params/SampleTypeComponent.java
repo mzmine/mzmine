@@ -9,13 +9,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Component for the sample types
+ * Class that represents the SampleTypes in the setup dialog for the user to choose.
+ * The user has to choose only one option.
+ * The main logic was derived form similar classes in other modules, and the radio buttons were done with the help of ChatGPT.
  */
 public class SampleTypeComponent extends BorderPane {
 
+    /**
+     * Group of buttons in the window.
+     * There is one for each option.
+     */
     private final ToggleGroup toggleGroup = new ToggleGroup();
+    /**
+     * Relationship between SampleTypes and a button.
+     */
     private final Map<SampleTypes, RadioButton> classToItemMap = new HashMap<>();
 
+    /**
+     * Creates a new SampleTypeComponent with the specified info.
+     * Specifies how it appears and creates a "Clear" button to clear the selected option.
+     * @param choices The options the user can choose from.
+     */
     public SampleTypeComponent(final Object[] choices) {
         VBox mobilePhasesBox = new VBox();
         mobilePhasesBox.setSpacing(10);
@@ -41,6 +55,10 @@ public class SampleTypeComponent extends BorderPane {
         selectNoneButton.setOnAction(e -> toggleGroup.selectToggle(null));
     }
 
+    /**
+     * Get the users selections.
+     * @return The selected choices.
+     */
     public Object[] getValue() {
         RadioButton selectedRadioButton = (RadioButton) toggleGroup.getSelectedToggle();
         if (selectedRadioButton != null) {
@@ -55,7 +73,10 @@ public class SampleTypeComponent extends BorderPane {
         return null;
     }
 
-
+    /**
+     * Set the selections.
+     * @param value The selected objects.
+     */
     public void setValue(@Nullable final Object[] value) {
         toggleGroup.selectToggle(null); // Clear current selection
 

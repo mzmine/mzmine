@@ -22,19 +22,21 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidAnnotationR
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.*;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.Lipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
 import org.kie.api.KieServices;
 import org.kie.api.io.Resource;
 import org.kie.api.runtime.KieSession;
 
 /**
- * Class that contains all the methods that search and find information for the module
+ * Class that contains all the methods that search and find information for the module.
  */
 public class LipidIDExpertKnowledgeSearch {
 
     /**
-     * Finds the rows that have Lipid Annotations
-     * @param group RowGroup that has all the rows with the same groupID
-     * @return List of rows with Lipid Annotations
+     * Finds the rows that have Lipid Annotations by is the lipid matches are empty.
+     * If they are empty, they are added to a list.
+     * @param group RowGroup that has all the rows with the same groupID (assigned by metaCorrelate).
+     * @return List of rows with Lipid Annotations.
      */
     public static List<FeatureListRow> findAnnotatedRows(RowGroup group) {
         List<FeatureListRow> annotatedRows = new ArrayList<>();
@@ -53,9 +55,9 @@ public class LipidIDExpertKnowledgeSearch {
     }
 
     /**
-     * Finds and store important information of each row in a group (mz, intensity and rt)
-     * @param group RowGroup that has all the rows with the same groupID
-     * @return RowInfo objects with information about a RowGroup
+     * Finds and stores important information of each row in a group (mz, intensity and rt).
+     * @param group RowGroup that has all the rows with the same groupID.
+     * @return RowInfo objects with the m/z, intensity and RT values for a group.
      */
     public static RowInfo findRowInfo(RowGroup group) {
         List<Double> mzList = new ArrayList<>();
@@ -71,13 +73,16 @@ public class LipidIDExpertKnowledgeSearch {
     }
 
     /**
-     * Finds adducts taking as reference rows with Lipid Annotations
-     * @param adductsISF List of possible adducts and ISF
-     * @param rowInfo RowInfo for the group the row is part of
-     * @param mzTolerance mz tolerance
-     * @param row FeatureListRow with Lipid Annotation
-     * @param match MatchedLipid present in the row
-     * @return List of adducts found for the group the row is part of
+     * Finds adducts taking as input rows with Lipid Annotations.
+     * It is run for individual rows(for simplicity), as well as individual MatchedLipids. If one row has many MatchedLipids, this method will be called once for every MatchedLipid in that row.
+     * It checks to see if the row has MatchedLipids, if it does, it uses it as a reference to get the neutral mass of the molecule. After we have the neutral mass it loops through the List<ExpertKnowledge> and calculates a range of m/z with the neutral mass, the ExpertKnowledge m/z and the mzTolerance, and then if any of the values in RowInfo have an m/z within the range, we can say that that adduct is found.
+     * In case the row’s MatchedLipid is empty, it does the same process but taking every adduct from List<ExpertKowledge> as reference.
+     * @param adductsISF List of possible adducts and ISF, obtained from the enumerations.
+     * @param rowInfo RowInfo for the group the row is part of.
+     * @param mzTolerance mz tolerance, set by the user.
+     * @param row FeatureListRow with Lipid Annotation.
+     * @param match MatchedLipid present in the row.
+     * @return List of adducts found for the group the row is part of.
      */
     public static List<FoundAdduct> findAdducts(List<ExpertKnowledge> adductsISF, RowInfo rowInfo, double mzTolerance, FeatureListRow row, MatchedLipid match) {
         List<FoundAdduct> foundAdducts = new ArrayList<>();
@@ -102,8 +107,6 @@ public class LipidIDExpertKnowledgeSearch {
                         foundAdducts.add(new FoundAdduct(myAdduct.getCompleteName(), row.getAverageMZ(), row.getMaxHeight(), row.getAverageRT(), 1));
                     }
                     neutralMass = row.getAverageMZ() - adductMZ;
-                    //TODO quitar!?
-                    System.out.println("-------M: " + neutralMass + " for mz: " + row.getAverageMZ());
                     break;
                 }
             }
@@ -117,12 +120,10 @@ public class LipidIDExpertKnowledgeSearch {
 
                 for (int i = 0; i < mzList.size(); i++) {
                     double mz = mzList.get(i); //Get mz value from the list
-                    float intensity = intensityList.get(i); // Get the intensity from the list
+                    double intensity = intensityList.get(i); // Get the intensity from the list
                     float rt = rtList.get(i); //Get the RT from the list
 
                     if (mz > minRange && mz < maxRange) { //Found it in the list
-                        //TODO quitar!?
-                        System.out.println("---Found: " + myAdduct.getCompleteName());
                         // Add the found adduct to the list based on the class type for the charge
                         if (myAdduct.getClass().equals(CommonAdductNegative.class) || myAdduct.getClass().equals(CommonISFNegative.class)) {
                             foundAdducts.add(new FoundAdduct(myAdduct.getCompleteName(), mz, intensity, rt, -1));
@@ -160,7 +161,7 @@ public class LipidIDExpertKnowledgeSearch {
 
                         for (int j = 0; j < mzList.size(); j++) {
                             double mz = mzList.get(j); //Get mz value from the list
-                            float intensity = intensityList.get(j); // Get the intensity from the list
+                            double intensity = intensityList.get(j); // Get the intensity from the list
                             float rt = rtList.get(j); //Get the RT from the list
 
                             if (mz > minRange && mz < maxRange) { //Found it in the list
@@ -188,20 +189,20 @@ public class LipidIDExpertKnowledgeSearch {
                 }
             }
         }
-        //TODO quitar!?
-        System.out.println("Found adducts");
-        for (FoundAdduct fa : foundAdducts) System.out.print(fa.getAdductName() + "/" + fa.getMzFeature() + " ; ");
 
         return foundAdducts;
     }
 
     /**
-     * Finds lipids in ESI+ from adducts found for a group
-     * @param row FeatureListRow that has Lipid Annotation
-     * @param lipid MatchedLipid for the row
-     * @param found list of FoundAdducts for the group the row is part of
+     * Finds lipids in ESI+ from adducts found for a group.
+     * It obtains all the necessary information from the MatchedLipid, and creates a new FoundLipid with it. Then, depending on the abbreviation of the MatchedLipid, it will set a path, a set of double parameters to get the score at the end, and it sets the Lipid in FoundLipid. It then generates all the necessary parameters to fire the rules in the file specified by the path and it calculates the final score.
+     * Finally, it adds the results to the FeatureListRow to be able to see them in the output.
+     * @param row FeatureListRow that has Lipid Annotation.
+     * @param lipid MatchedLipid for the row.
+     * @param found List of FoundAdducts for the group the row is part of.
      */
-    public static void findLipidsPositive(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found) {
+    //TODO: HACER BIEN LO DE LAS FASES MÓVILES
+    public static void findLipidsPositive(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases) {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
 
@@ -344,8 +345,8 @@ public class LipidIDExpertKnowledgeSearch {
             var kContainer = ks.newKieContainer(kBuilder.getKieModule().getReleaseId());
             KieSession kSession = kContainer.newKieSession();
 
-            kSession.setGlobal("detectedLipids", detectedLipids);
             kSession.setGlobal("lipid", lipid_ExpertKnowledge);
+            kSession.setGlobal("mobilePhases", mobilePhases);
 
             for (FoundAdduct adduct : found) {
                 kSession.insert(adduct);
@@ -369,12 +370,15 @@ public class LipidIDExpertKnowledgeSearch {
 
 
     /**
-     * Finds lipids in ESI- from adducts found for a group
-     * @param row FeatureListRow that has Lipid Annotation
-     * @param lipid MatchedLipid for the row
-     * @param found list of FoundAdducts for the group the row is part of
+     * Finds lipids in ESI- from adducts found for a group.
+     * It obtains all the necessary information from the MatchedLipid, and creates a new FoundLipid with it. Then, depending on the abbreviation of the MatchedLipid, it will set a path, a set of double parameters to get the score at the end, and it sets the Lipid in FoundLipid. It then generates all the necessary parameters to fire the rules in the file specified by the path and it calculates the final score.
+     * Finally, it adds the results to the FeatureListRow to be able to see them in the output.
+     * @param row FeatureListRow that has Lipid Annotation.
+     * @param lipid MatchedLipid for the row.
+     * @param found List of FoundAdducts for the group the row is part of.
      */
-    public static void findLipidsNegative(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found) {
+    //TODO: HACER BIEN LO DE LAS FASES MÓVILES
+    public static void findLipidsNegative(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases) {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
 
@@ -498,8 +502,8 @@ public class LipidIDExpertKnowledgeSearch {
             var kContainer = ks.newKieContainer(kBuilder.getKieModule().getReleaseId());
             KieSession kSession = kContainer.newKieSession();
 
-            kSession.setGlobal("detectedLipids", detectedLipids);
             kSession.setGlobal("lipid", lipid_ExpertKnowledge);
+            kSession.setGlobal("mobilePhases", mobilePhases);
 
             for (FoundAdduct adduct : found) {
                 kSession.insert(adduct);

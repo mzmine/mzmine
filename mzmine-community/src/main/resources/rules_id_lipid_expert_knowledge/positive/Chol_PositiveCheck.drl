@@ -3,10 +3,12 @@ package rules_id_lipid_expert_knowledge.positive;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.CommonAdductPositive;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
+import java.util.List;
 
 // Declare the global list
-global java.util.List<FoundLipid> detectedLipids;
 global FoundLipid lipid;
+global List mobilePhases;
 
 
 rule "Presence [M+H]+"
@@ -18,7 +20,9 @@ then
 end
 rule "No presence [M+NH4]+"
 when
-    $adduct: FoundAdduct(adductName == "[M+NH4]+")
+    not FoundAdduct(adductName == "[M+NH4]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
 then
     lipid.setScore(-1);
     lipid.setDescrIncorrect("Missing [M+NH4]+; ");
@@ -27,6 +31,8 @@ end
 rule "Presence [M+NH4]+"
 when
     $adduct: FoundAdduct(adductName == "[M+NH4]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+NH4]+; ");
@@ -46,6 +52,8 @@ rule "Intensity [M+NH4]+ > [M+H]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+NH4]+")
     $adduct2: FoundAdduct(adductName == "[M+H]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
@@ -57,6 +65,8 @@ rule "Intensity [M+NH4]+ < [M+H]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+NH4]+")
     $adduct2: FoundAdduct(adductName == "[M+H]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
 
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then

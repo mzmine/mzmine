@@ -17,17 +17,38 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Class that represents the lipids found in my features
+ * Class that represents the lipids found in my features.
  */
 public class FoundLipid {
 
+    /**
+     * Lipid enumeration.
+     */
     private Lipid lipid;
+    /**
+     * MatchedLipid is a class from the Lipid Annotation module.
+     * MatchedLipid found with the Lipid Annotation module.
+     */
     private MatchedLipid annotatedLipid;
-    //To store the score and description assigned by the rules
+    /**
+     * Score that represents the strength of the annotation from Lipid Annotation.
+     * It is a value between [0,2].
+     */
     private Double score;
+    /**
+     * Positive evidence to support the annotation.
+     */
     private String descrCorrect;
+    /**
+     * Negative evidence found in the annotation.
+     */
     private String descrIncorrect;
+    /**
+     * List of adducts found for the object.
+     */
     private List<FoundAdduct> adducts;
+
+    //TODO quito esto!? creo q si, pero preguntar
     public static final String XML_ELEMENT = "lipidvalidation";
     private static final Logger logger = Logger.getLogger(FoundLipid.class.getName());
     private static final String XML_LIPID_VALIDATION_ELEMENT = "lipidvalidation";
@@ -37,6 +58,11 @@ public class FoundLipid {
     private static final String XML_INCORRECT = "incorrectdescription";
     private static final String XML_ADDUCTS = "adducts";
 
+    /**
+     * Creates a new FoundLipid object with the specified info.
+     * This constructor is called when the feature has an annotation.
+     * @param lipid MatchedLipid for the feature.
+     */
     public FoundLipid(MatchedLipid lipid) {
         this.lipid = null;
         this.score = 0.00; // Default score
@@ -46,6 +72,11 @@ public class FoundLipid {
         this.adducts = new ArrayList<>();
     }
 
+    /**
+     * Creates a new FoundLipid object with the specified info.
+     * This constructor is called when the feature does not have an annotation.
+     * @param foundAdducts List of FoundAdducts found for the feature.
+     */
     public FoundLipid(List<FoundAdduct> foundAdducts) {
         this.lipid = null;
         this.score = 0.00;
@@ -56,8 +87,8 @@ public class FoundLipid {
     }
 
     /**
-     * Gets a copy in String formsat of the adducts
-     * @return a String with the adducts
+     * Gets a copy in String format of the adducts.
+     * @return a String with the adducts.
      */
     public String getAdducts() {
         String stringAdducts = this.adducts.toString();
@@ -65,80 +96,81 @@ public class FoundLipid {
     }
 
     /**
-     * Sets the attribute to the adducts passed as input
-     * @param adducts List of Found Adducts
+     * Sets the attribute to the adducts passed as input.
+     * @param adducts List of Found Adducts.
      */
     public void setAdducts(List<FoundAdduct> adducts) {
         this.adducts = adducts;
     }
 
     /**
-     * Gets a copy of the score
-     * @return score for the Lipid Annotation
+     * Gets a copy of the score.
+     * @return score for the Lipid Annotation.
      */
     public Double getScore() {
         return score;
     }
 
     /**
-     * Sets the score to the value passed as input plus the previous score value
-     * @param score
+     * Updates the score to the value passed as input plus the previous score value.
+     * @param score score to be added to the existing one.
      */
     public void setScore(double score) {
         this.score = this.score + score;
     }
 
     /**
-     * Gets a copy of the Lipid
-     * @return Lipid assigned
+     * Gets a copy of the Lipid.
+     * @return Lipid assigned by the Lipid Annotation module.
      */
     public Lipid getLipid() {
         return lipid;
     }
 
     /**
-     * Sets the Lipid as the input object
-     * @param lipid Lipid found in the feature
+     * Sets the Lipid as the input object.
+     * @param lipid Lipid found in the feature by the Lipid Annotation module.
      */
     public void setLipid(Lipid lipid) {
         this.lipid = lipid;
     }
 
     /**
-     * Gets a copy of the positive evidence
-     * @return String with correct evidence
+     * Gets a copy of the positive evidence.
+     * @return String with correct evidence.
      */
     public String getDescrCorrect() {
         return descrCorrect;
     }
 
     /**
-     * Sets the correct evidence to the input value PLUS the previous value
-     * @param descrCorrect positive evidence
+     * Updates the correct evidence to the input value plus the previous value.
+     * @param descrCorrect positive evidence.
      */
     public void setDescrCorrect(String descrCorrect) {
         this.descrCorrect = this.descrCorrect + descrCorrect;
     }
 
     /**
-     * Gets a copy of the negative evidence
-     * @return String with incorrect evidence
+     * Gets a copy of the negative evidence.
+     * @return String with incorrect evidence.
      */
     public String getDescrIncorrect() {
         return descrIncorrect;
     }
 
     /**
-     * Sets the incorrect evidence to the input value PLUS the previous value
-     * @param descrIncorrect negative evidence
+     * Updates the incorrect evidence to the input value plus the previous value.
+     * @param descrIncorrect negative evidence.
      */
     public void setDescrIncorrect(String descrIncorrect) {
         this.descrIncorrect = this.descrIncorrect + descrIncorrect;
     }
 
     /**
-     * Method to represent the FoundLipid object
-     * @return String with the annotatedLipid attribute
+     * String representation of the object.
+     * It only includes the Lipid.
+     * @return String with the Lipid.
      */
     @Override
     public String toString() {
@@ -147,18 +179,18 @@ public class FoundLipid {
     }
 
     /**
-     * Method to normalize the socre between 0 and 2
-     * @param rawScore score assigned by the rules
-     * @param maxScore highest score possible
-     * @return normalized score [0,2]
+     * Method to normalize the socre between 0 and 2.
+     * @param rawScore score assigned by the drl files when firing the rules.
+     * @param maxScore highest score possible if all the positive rules were to execute.
+     * @return normalized score value [0,2].
      */
     public double normalizeScore(double rawScore, double maxScore) {
         return Math.max(0.0, Math.min(2.0, ((double)(rawScore + maxScore) / (2.0 * maxScore)) * 2.0));
     }
 
     /**
-     * Sets the score attribute ONLY to the input value
-     * @param score final score
+     * Sets the score attribute to the input value.
+     * @param score final score to be assigned to this object.
      */
     public void setFinalScore(double score) { this.score = score; }
 

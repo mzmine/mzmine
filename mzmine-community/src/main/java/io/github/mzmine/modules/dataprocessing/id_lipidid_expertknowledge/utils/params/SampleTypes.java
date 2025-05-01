@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Sample types
+ * This enumeration represents three common sample types.
  */
 public enum SampleTypes {
 
@@ -12,15 +12,22 @@ public enum SampleTypes {
     BLOOD("Blood"),
     CEREBROSPINAL_FLUID("Cerebrospinal fluid");
 
+    /**
+     * Name of the sample type.
+     */
     private final String name;
 
+    /**
+     * Creates a new SampleType object with the specified info.
+     * @param name The name of the new SampleType.
+     */
     SampleTypes(String name){
         this.name = name;
     }
 
     /**
-     * Gets a list of all the Sample Types
-     * @return
+     * Gets a list of all the sample types to put in the setup dialog for the user to choose.
+     * @return The complete list of all the sample types.
      */
     public static List<SampleTypes> getListOfSampleTypes(){
         List<SampleTypes> list = new ArrayList<>();
@@ -30,6 +37,10 @@ public enum SampleTypes {
         return list;
     }
 
+    /**
+     * Gtes the name of the SampleType.
+     * @return The name of the sample type.
+     */
     public String getName() {
         return name;
     }

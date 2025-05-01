@@ -20,10 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the columns for the feature in Lipid Validation
+ * This class represents the columns for the feature in Lipid Validation module.
+ * It includes the columns for "Found adducts", "Correct comments", "Incorrect comments" and "Score".
  */
 public class LipidValidationListType extends ListWithSubsType<FoundLipid> implements AnnotationType {
 
+    /**
+     * List of all the classes this class contains.
+     * Each class will be represented as a column in the feature list table.
+     */
     private static final List<DataType> subTypes = List.of(
             new LipidValidationListType(),
             new LipidValidationScoreType(),
@@ -32,21 +37,43 @@ public class LipidValidationListType extends ListWithSubsType<FoundLipid> implem
             new LipidValidationAdductsType()
             );
 
+    /**
+     * Identifier for the group of columns.
+     * @return The group ID.
+     */
     @Override
     public @NotNull String getUniqueID() {
         return "lipid_validations";
     }
 
+    /**
+     * Header (name) for the group of columns.
+     * It is what appears at the top of the column in the feature list table.
+     * @return The column header.
+     */
     @Override
     public @NotNull String getHeaderString() {
         return "Lipid Validation";
     }
 
+    /**
+     * Gets the group of classes.
+     * @return List of all the classes.
+     */
     @Override
     public @NotNull List<DataType> getSubDataTypes() {
         return subTypes;
     }
 
+    /**
+     * Maps each column with the data they contain.
+     * @param subType    the data type of the sub column. Defines what value should be extracted from
+     *                   the parentItem
+     * @param lipid the parent item, which is usually an element of the list set to this
+     *                   {@link ListWithSubsType}
+     * @return The specific information each column contains.
+     * @param <K> The type of keys maintained by the map.
+     */
     @Override
     public <K> @Nullable K map(@NotNull DataType<K> subType, FoundLipid lipid) {
         if (subType instanceof LipidValidationListType) {
@@ -124,6 +151,11 @@ public class LipidValidationListType extends ListWithSubsType<FoundLipid> implem
         return foundLipids;
     }
 
+    /**
+     * Sets the visibility of this column.
+     * True = appears by default, False = does not appear by default.
+     * @return True value.
+     */
     @Override
     public boolean getDefaultVisibility() {
         return true;

@@ -2,16 +2,19 @@ package rules_id_lipid_expert_knowledge.negative;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.CommonAdductNegative;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
-
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
+import java.util.List;
 
 // Declare the global list
-global java.util.List<FoundLipid> detectedLipids;
 global FoundLipid lipid;
+global List mobilePhases;
 
 
 rule "Presence [M+CH3COO]-"
 when
     $adduct: FoundAdduct(adductName == "[M+CH3COO]-")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
 then
     
     lipid.setScore(1);
@@ -20,6 +23,8 @@ end
 rule "No presence [M+CH3COO]-"
 when
     not FoundAdduct(adductName == "[M+CH3COO]-")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
 then
 
     lipid.setScore(-1);
@@ -29,6 +34,8 @@ end
 rule "Presence [M+CH3COO+(CH3COONa)]-"
 when
     $adduct: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
 then
     
     lipid.setScore(1);
@@ -38,6 +45,8 @@ end
 rule "Presence [M+CH3COO+(CH3COONa)2]-"
 when
     $adduct: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)2]-")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
 then
     
     lipid.setScore(1);
@@ -47,6 +56,8 @@ end
 rule "Presence [M+CH3COO+(CH3COONa)3]-"
 when
     $adduct: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)3]-")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
 then
     
     lipid.setScore(1);
@@ -56,6 +67,8 @@ end
 rule "Presence [M+HCOO]-"
 when
     $adduct: FoundAdduct(adductName == "[M+HCOO]-")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.HCOO)
 then
     
     lipid.setScore(1);
@@ -65,6 +78,8 @@ end
 rule "Presence [M+HCOO+(CH3COONa)]-"
 when
     $adduct: FoundAdduct(adductName == "[M+HCOO+(CH3COONa)]-")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
 then
     
     lipid.setScore(1);
@@ -83,6 +98,8 @@ end
 rule "Presence [M+CH3COO-CH3COOCH3]-"
 when
     $adduct: FoundAdduct(adductName == "[M+CH3COO-CH3COOCH3]-")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
 then
     
     lipid.setScore(1);
@@ -97,6 +114,8 @@ rule "Intensity [M+CH3COO]- > [M+CH3COO+(CH3COONa)]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
@@ -109,7 +128,8 @@ rule "Intensity [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)2]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)2]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     
@@ -121,7 +141,8 @@ rule "Intensity [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)3]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)3]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     
@@ -133,7 +154,10 @@ rule "Intensity [M+CH3COO+(CH3COONa)]- > [M+HCOO]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
     $adduct2: FoundAdduct(adductName == "[M+HCOO]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.HCOO)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     
@@ -145,7 +169,8 @@ rule "Intensity [M+CH3COO+(CH3COONa)]- >  [M+HCOO+(CH3COONa)]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
     $adduct2: FoundAdduct(adductName == "[M+HCOO+(CH3COONa)]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     
@@ -157,7 +182,8 @@ rule "Intensity [M+CH3COO+(CH3COONa)]- >  [M+Cl]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
     $adduct2: FoundAdduct(adductName == "[M+Cl]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     
@@ -170,7 +196,8 @@ rule "Intensity [M+CH3COO]- < [M+CH3COO+(CH3COONa)]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     
@@ -182,7 +209,8 @@ rule "Intensity [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)2]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)2]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     
@@ -194,7 +222,8 @@ rule "Intensity [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)3]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)3]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     
@@ -206,7 +235,10 @@ rule "Intensity [M+CH3COO+(CH3COONa)]- < [M+HCOO]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
     $adduct2: FoundAdduct(adductName == "[M+HCOO]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2== MobilePhases.HCOO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     
@@ -218,7 +250,8 @@ rule "Intensity [M+CH3COO+(CH3COONa)]- <  [M+HCOO+(CH3COONa)]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
     $adduct2: FoundAdduct(adductName == "[M+HCOO+(CH3COONa)]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     
@@ -230,7 +263,8 @@ rule "Intensity [M+CH3COO+(CH3COONa)]- <  [M+Cl]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
     $adduct2: FoundAdduct(adductName == "[M+Cl]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     
@@ -242,7 +276,8 @@ rule "Intensity [M+CH3COO+(CH3COONa)2]- > [M+CH3COO]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)2]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
 
@@ -254,7 +289,8 @@ rule "Intensity [M+CH3COO+(CH3COONa)3]- > [M+CH3COO]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)3]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
 
@@ -266,7 +302,10 @@ rule "Intensity [M+HCOO]- > [M+CH3COO]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+HCOO]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.HCOO)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
 
@@ -278,7 +317,8 @@ rule "Intensity [M+CH3COO]- <  [M+HCOO+(CH3COONa)]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO]-")
     $adduct2: FoundAdduct(adductName == "[M+HCOO+(CH3COONa)]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
 
@@ -290,7 +330,8 @@ rule "Intensity [M+CH3COO]- <  [M+Cl]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO]-")
     $adduct2: FoundAdduct(adductName == "[M+Cl]-")
-
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
 

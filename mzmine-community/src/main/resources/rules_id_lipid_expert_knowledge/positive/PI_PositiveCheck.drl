@@ -3,10 +3,12 @@ package rules_id_lipid_expert_knowledge.positive;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.CommonAdductPositive;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
+import java.util.List;
 
 // Declare the global list
-global java.util.List<FoundLipid> detectedLipids;
 global FoundLipid lipid;
+global List mobilePhases;
 
 rule "Presence [M+H]+"
 when
@@ -56,6 +58,12 @@ end
 rule "Presence [M+C2H7N2]+"
 when
     $adduct: FoundAdduct(adductName == "[M+C2H7N2]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.CH3CN)
+    $phase3 : MobilePhases() from mobilePhases
+    eval($phase3 == MobilePhases.CH3OH)
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+C2H7N2]+; ");
@@ -64,6 +72,8 @@ end
 rule "Presence [M+NH4]+"
 when
     $adduct: FoundAdduct(adductName == "[M+NH4]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+NH4]+; ");
@@ -75,6 +85,12 @@ rule "Intensity [M+H]+ > [M+C2H7N2]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+H]+")
     $adduct2: FoundAdduct(adductName == "[M+C2H7N2]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.CH3CN)
+    $phase3 : MobilePhases() from mobilePhases
+    eval($phase3 == MobilePhases.CH3OH)
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
@@ -86,6 +102,12 @@ rule "Intensity [M+Na]+ > [M+C2H7N2]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+Na]+")
     $adduct2: FoundAdduct(adductName == "[M+C2H7N2]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.CH3CN)
+    $phase3 : MobilePhases() from mobilePhases
+    eval($phase3 == MobilePhases.CH3OH)
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
@@ -97,6 +119,12 @@ rule "Intensity [M+NH4]+ > [M+C2H7N2]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+NH4]+")
     $adduct2: FoundAdduct(adductName == "[M+C2H7N2]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.CH3CN)
+    $phase3 : MobilePhases() from mobilePhases
+    eval($phase3 == MobilePhases.CH3OH)
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
@@ -108,6 +136,12 @@ rule "Intensity [M+C2H7N2]+ > [M+K]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+C2H7N2]+")
     $adduct2: FoundAdduct(adductName == "[M+K]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.CH3CN)
+    $phase3 : MobilePhases() from mobilePhases
+    eval($phase3 == MobilePhases.CH3OH)
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
@@ -119,6 +153,12 @@ rule "Intensity [M+H]+ < [M+C2H7N2]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+H]+")
     $adduct2: FoundAdduct(adductName == "[M+C2H7N2]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.CH3CN)
+    $phase3 : MobilePhases() from mobilePhases
+    eval($phase3 == MobilePhases.CH3OH)
 
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
@@ -130,6 +170,12 @@ rule "Intensity [M+Na]+ < [M+C2H7N2]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+Na]+")
     $adduct2: FoundAdduct(adductName == "[M+C2H7N2]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.CH3CN)
+    $phase3 : MobilePhases() from mobilePhases
+    eval($phase3 == MobilePhases.CH3OH)
 
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
@@ -141,6 +187,12 @@ rule "Intensity [M+NH4]+ < [M+C2H7N2]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+NH4]+")
     $adduct2: FoundAdduct(adductName == "[M+C2H7N2]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.CH3CN)
+    $phase3 : MobilePhases() from mobilePhases
+    eval($phase3 == MobilePhases.CH3OH)
 
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
@@ -152,6 +204,12 @@ rule "Intensity [M+C2H7N2]+ < [M+K]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+C2H7N2]+")
     $adduct2: FoundAdduct(adductName == "[M+K]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.CH3CN)
+    $phase3 : MobilePhases() from mobilePhases
+    eval($phase3 == MobilePhases.CH3OH)
 
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
@@ -161,8 +219,8 @@ end
 
 rule "Intensity [M+K]+ > [M+H]+"
 when
-    $adduct2: FoundAdduct(adductName == "[M+K]+")
-    $adduct1: FoundAdduct(adductName == "[M+H]+")
+    $adduct1: FoundAdduct(adductName == "[M+K]+")
+    $adduct2: FoundAdduct(adductName == "[M+H]+")
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
@@ -172,8 +230,8 @@ end
 
 rule "Intensity [M+K]+ > [M+Na]+"
 when
-    $adduct2: FoundAdduct(adductName == "[M+K]+")
-    $adduct1: FoundAdduct(adductName == "[M+Na]+")
+    $adduct1: FoundAdduct(adductName == "[M+K]+")
+    $adduct2: FoundAdduct(adductName == "[M+Na]+")
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
@@ -183,8 +241,10 @@ end
 
 rule "Intensity [M+K]+ > [M+NH4]+"
 when
-    $adduct2: FoundAdduct(adductName == "[M+K]+")
-    $adduct1: FoundAdduct(adductName == "[M+NH4]+")
+    $adduct1: FoundAdduct(adductName == "[M+K]+")
+    $adduct2: FoundAdduct(adductName == "[M+NH4]+")
+    $phase1 : MobilePhases() from mobilePhases
+    eval($phase1 == MobilePhases.NH4)
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then

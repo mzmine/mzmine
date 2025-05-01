@@ -97,8 +97,8 @@ end
 
 rule "Intensity [M+K]+ > [M+H]+"
 when
-    $adduct2: FoundAdduct(adductName == "[M+K]+")
-    $adduct1: FoundAdduct(adductName == "[M+H]+")
+    $adduct1: FoundAdduct(adductName == "[M+K]+")
+    $adduct2: FoundAdduct(adductName == "[M+H]+")
 
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then

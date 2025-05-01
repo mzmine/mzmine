@@ -12,26 +12,65 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Parameters for the sample types
- * @param <ValueType>
+ * Parameters for the sample types.
+ * The main logic was derived form similar classes in other modules, and the radio buttons were done with the help of ChatGPT.
+ * @param <ValueType> The type of the value associated.
  */
 public class SampleTypeParameter<ValueType> implements UserParameter<ValueType[], SampleTypeComponent>  {
-
+    /**
+     * Parameter name.
+     */
     private final String name;
+    /**
+     * Parameter description.
+     */
     private final String description;
+    /**
+     * Array of possible choices, in this case mobile phases.
+     */
     private ValueType[] choices;
+    /**
+     * Array of values, in this case mobile phases.
+     */
     private ValueType[] values;
+    /**
+     * Minimum number of needed mobile phases.
+     */
     private final int minNumber;
 
+    /**
+     * Creates a new SampleTypeParameter with the specified info.
+     * This constructor is called when creating the task.
+     * @param name The parameter name.
+     * @param description The parameter description.
+     * @param choices The parameter options.
+     */
     public SampleTypeParameter(String name, String description, ValueType[] choices) {
         this(name, description, choices, null, 1);
     }
 
+    /**
+     * Creates a new SampleTypeParameter with the specified info.
+     * This constructor is used in one of the methods of this class.
+     * @param name The parameter name.
+     * @param description The parameter description.
+     * @param choices The parameter options.
+     * @param values The parameter values.
+     */
     public SampleTypeParameter(String name, String description, ValueType[] choices,
                                 ValueType[] values) {
         this(name, description, choices, values, 1);
     }
 
+    /**
+     * Creates a new SampleTypeParameter with the specified info.
+     * This constructor is a general one called in the other constructors, and its the one that assigns values to the attributes.
+     * @param name
+     * @param description
+     * @param choices
+     * @param values
+     * @param minNumber
+     */
     public SampleTypeParameter(String name, String description, ValueType[] choices, ValueType[] values, int minNumber) {
 
         assert choices != null;
@@ -43,52 +82,87 @@ public class SampleTypeParameter<ValueType> implements UserParameter<ValueType[]
         this.minNumber = minNumber;
     }
 
+    /**
+     * Gets the name of the parameter.
+     * @return The parameter name.
+     */
     @Override
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the choices of the parameters to the input value.
+     * @param choices Array of possible options.
+     */
     public void setChoices(ValueType[] choices) {
         this.choices = choices;
     }
 
+    /**
+     * Gets the choices in the parameter.
+     * @return The parameter choices.
+     */
     public ValueType[] getChoices() {
         return choices;
     }
-
+    /**
+     * Gets the description.
+     * @return The parameter description.
+     */
     @Override
     public String getDescription() {
         return description;
     }
-
+    /**
+     * Creates the SampleTypeComponent that will be used in the setup dialog.
+     * @return A SampleTypeComponent.
+     */
     @Override
     public SampleTypeComponent createEditingComponent() {
         return new SampleTypeComponent(choices);
     }
-
+    /**
+     * Sets the values to the ones chosen in the setup dialog.
+     * @param component MobilePhaseComponent where the user chooses the options.
+     */
     @Override
     public void setValueFromComponent(SampleTypeComponent component) {
         Object[] componentValue = component.getValue();
         Class<ValueType> arrayType = (Class<ValueType>) this.choices.getClass().getComponentType();
         this.values = CollectionUtils.changeArrayType(componentValue, arrayType);
     }
-
+    /**
+     * Sets the values in the MobilePhaseComponent.
+     * @param sampleTypeComponent MobilePhaseComponent where the user chooses.
+     * @param newValue The values to be assigned to the component.
+     */
     @Override
     public void setValueToComponent(SampleTypeComponent sampleTypeComponent, ValueType @Nullable [] newValue) {
         sampleTypeComponent.setValue(newValue);
     }
 
+    /**
+     * Gets the values.
+     * @return The parameter values.
+     */
     @Override
     public ValueType[] getValue() {
         return values;
     }
 
-
+    /**
+     * Sets the values.
+     * @param values The parameter values.
+     */
     @Override
     public void setValue(ValueType[] values) {
         this.values = values;
     }
-
+    /**
+     * Clones a MobilePhaseParameter object.
+     * @return A copy of the MobilePhaseParameter.
+     */
     @Override
     public SampleTypeParameter<ValueType> cloneParameter() {
         SampleTypeParameter<ValueType> copy = new SampleTypeParameter<>(name, description,
@@ -97,6 +171,10 @@ public class SampleTypeParameter<ValueType> implements UserParameter<ValueType[]
         return copy;
     }
 
+    /**
+     * Retruns the priority of the component.
+     * @return Priority object.
+     */
     @Override
     public Priority getComponentVgrowPriority() {
         return UserParameter.super.getComponentVgrowPriority();

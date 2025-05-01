@@ -6,7 +6,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.
 
 
 // Declare the global list
-global java.util.List<FoundLipid> detectedLipids;
 global FoundLipid lipid;
 
 rule "Presence [M+H]+"

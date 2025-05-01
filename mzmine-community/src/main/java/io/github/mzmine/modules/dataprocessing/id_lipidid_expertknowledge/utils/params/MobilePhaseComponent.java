@@ -10,14 +10,31 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Component for the choosing of the mobile phases of the samples
+ * Class that represents the MobilePhases in the setup dialog for the user to choose.
+ * The user can choose none, or all of them at the same time.
+ * The main logic was derived form similar classes in other modules, and the checkboxes were done with the help of ChatGPT.
  */
 public class MobilePhaseComponent extends BorderPane {
 
+    /**
+     * Main item in the structure.
+     */
     private final CheckBoxTreeItem<Object> rootItem = new CheckBoxTreeItem<>("Root");
+    /**
+     * All the options for the user to choose from.
+     */
     private final CheckTreeView<Object> mobilePhases = new CheckTreeView<>(rootItem);
+    /**
+     * Relationship between the MobilePhase object and the checkbox representation.
+     */
     private final Map<MobilePhases, CheckBoxTreeItem<Object>> classToItemMap = new HashMap<>();
 
+    /**
+     * Creates a new MobilePhaseComponent.
+     * It specifies the size of the window, buttons "All", choose all the options at once, and "Clear" to clear all options, and the way the are displayed.
+     * The user can also, instead of using the buttons click on the checkboxes individually.
+     * @param choices The options the user can choose from.
+     */
     public MobilePhaseComponent(final Object[] choices) {
         super();
         mobilePhases.setShowRoot(false);
@@ -58,8 +75,7 @@ public class MobilePhaseComponent extends BorderPane {
 
     /**
      * Get the users selections.
-     *
-     * @return the selected choices.
+     * @return The selected choices.
      */
     public Object[] getValue() {
 
@@ -72,8 +88,7 @@ public class MobilePhaseComponent extends BorderPane {
 
     /**
      * Set the selections.
-     *
-     * @param values the selected objects.
+     * @param values The selected objects.
      */
     public void setValue(@Nullable final Object[] values) {
         mobilePhases.getCheckModel().clearChecks();

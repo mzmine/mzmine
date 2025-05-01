@@ -6,30 +6,37 @@ import java.util.regex.Pattern;
 /**
  * This enum contains the most common in-source fragments found in lipids according to a CEMBIO paper:
  * Martínez, S., Fernández-García, M., Londoño-Osorio, S., Barbas, C., & Gradillas, A. (2024). Highly reliable LC-MS lipidomics database for efficient human plasma profiling based on NIST SRM 19501. Journal of Lipid Research, 65(11), 100671. https://doi.org/10.1016/j.jlr.2024.100671
- * It has two attributes, the name (formula) and the m/z difference.
+ * It represents one common in-source fragment for ESI-.
  */
 public enum CommonISFNegative implements ExpertKnowledge {
     // ESI(-) In-source fragmentation
     M_PLUS_CH3COO_MINUS_CH3COOCH3("[M+CH3COO-CH3COOCH3]-", -15.01090);
 
     /**
-     * Specifies the formula
+     * String that represents the complete formula (eg: "[M+CH3COO-CH3COOCH3]-").
      */
     private final String name;
 
     /**
-     * Specifies the m/z difference
+     * Double representing the mass difference between a molecule (M) and the adduct.
+     * It accounts for the ions mass and charge.
      */
     private final double mz;
 
+    /**
+     * Creates a new CommonISFNegative with the specified info.
+     * @param name The name of the adduct.
+     * @param mz The m/z of the adduct.
+     */
     CommonISFNegative(String name, double mz) {
         this.name = name;
         this.mz = mz;
     }
 
     /**
-     * Gets the ion. Eg: [M+H]+ --> +H
-     * @return adduct name
+     * Gets the ion form the name attribute. It returns whatever is between "[M" and "]".
+     * Eg: "[M+H]+" --> "+H"
+     * @return The ion from the adduct name.
      */
     @Override
     public String getName() {
@@ -45,8 +52,8 @@ public enum CommonISFNegative implements ExpertKnowledge {
     }
 
     /**
-     * Gets a copy of the m/z
-     * @return adduct m/z
+     * Gets a copy of the m/z value.
+     * @return The m/z value of the adduct.
      */
     @Override
     public double getMz() {
@@ -54,8 +61,8 @@ public enum CommonISFNegative implements ExpertKnowledge {
     }
 
     /**
-     * Returns a copy of the name. Eg: [M+H]+
-     * @return
+     * Gets the complete name attribute.
+     * @return The adducts name.
      */
     public String getCompleteName(){ return this.name; };
 }

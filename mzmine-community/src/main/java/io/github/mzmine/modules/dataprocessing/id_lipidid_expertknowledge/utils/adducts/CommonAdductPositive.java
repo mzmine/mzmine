@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 /**
  * This enum contains the most common adducts found in lipids according to a CEMBIO paper:
  * Martínez, S., Fernández-García, M., Londoño-Osorio, S., Barbas, C., & Gradillas, A. (2024). Highly reliable LC-MS lipidomics database for efficient human plasma profiling based on NIST SRM 19501. Journal of Lipid Research, 65(11), 100671. https://doi.org/10.1016/j.jlr.2024.100671
- * It has two attributes, the name (formula) and the m/z difference.
+ * It represents five common adducts for ESI+.
  */
 public enum CommonAdductPositive implements ExpertKnowledge {
     // ESI(+)
@@ -17,40 +17,46 @@ public enum CommonAdductPositive implements ExpertKnowledge {
     M_PLUS_NH4("[M+NH4]+", 18.033823);
 
     /**
-     * Specifies the formula
+     * String that represents the complete formula (eg: "[M+Cl]-").
      */
     private final String name;
 
     /**
-     * Specifies the m/z difference
+     * Double representing the mass difference between a molecule (M) and the adduct.
+     * It accounts for the ions mass and charge.
      */
     private final double mz;
 
+    /**
+     * Creates a new CommonAdductPositive with the specified info.
+     * @param name The name of the adduct.
+     * @param mz The m/z of the adduct.
+     */
     CommonAdductPositive(String name, double mz) {
         this.name = name;
         this.mz = mz;
     }
 
     /**
-     * Gets the ion. Eg: [M+H]+ --> +H
-     * @return adduct name
+     * Gets the ion form the name attribute. It returns whatever is between "[M" and "]".
+     * Eg: "[M+H]+" --> "+H"
+     * @return The ion from the adduct name.
      */
     @Override
     public String getName() {
-        // Regex to capture patterns like: [M-H], [M+H], [M+CH3COO], [M+CH3COO+(CH3COONa)]
         Pattern pattern = Pattern.compile("\\[M([\\+\\-]?[A-Za-z0-9]+(?:\\([A-Za-z0-9]+\\))?(?:[\\+\\-]?[A-Za-z0-9]+(?:\\([A-Za-z0-9]+\\))?)*\\)])");
         Matcher matcher = pattern.matcher(name);
 
         if (matcher.find()) {
-            return matcher.group(1);  // Extract the part after [M and before ]
+            return matcher.group(1);
         }
 
-        return "";  // Return this if pattern is not found
+        return "";
     }
 
     /**
-     * Gets a copy of the m/z
-     * @return adduct m/z
+     * Gets a copy of the m/z value.
+     * @return The m/z value of the adduct.
      */
     @Override
     public double getMz() {
@@ -58,8 +64,8 @@ public enum CommonAdductPositive implements ExpertKnowledge {
     }
 
     /**
-     * Returns a copy of the name. Eg: [M+H]+
-     * @return
+     * Gets the complete name attribute.
+     * @return The adducts name.
      */
     public String getCompleteName(){ return this.name; };
 }
