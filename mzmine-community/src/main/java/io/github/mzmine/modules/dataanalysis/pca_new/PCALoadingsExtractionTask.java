@@ -93,8 +93,7 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
         }
       }
     }
-    resultFlist.setRows(rows);
-    resultFlist.applyDefaultRowsSorting();
+    resultFlist.setRowsApplySort(rows);
     project.addFeatureList(resultFlist);
   }
 

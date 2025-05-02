@@ -498,7 +498,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public void setRows(FeatureListRow... rows) {
+  public void setRowsApplySort(FeatureListRow... rows) {
     Set<RawDataFile> fileSet = new HashSet<>();
     for (FeatureListRow row : rows) {
       if (!(row instanceof ModularFeatureListRow)) {
@@ -518,6 +518,9 @@ public class ModularFeatureList implements FeatureList {
 //    logger.log(Level.FINEST, "SET ALL ROWS");
     featureListRows.setAll(rows);
     applyRowBindings();
+
+    // sorting
+    applyDefaultRowsSorting();
   }
 
   @Override
@@ -564,10 +567,6 @@ public class ModularFeatureList implements FeatureList {
     //    logger.finest("ADD ROW");
     featureListRows.add(modularRow);
     applyRowBindings(modularRow);
-
-    // TODO solve with bindings
-    // max intensity
-    // ranges
   }
 
   /**
