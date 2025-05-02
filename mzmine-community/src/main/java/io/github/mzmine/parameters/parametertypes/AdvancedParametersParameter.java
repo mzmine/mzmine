@@ -134,7 +134,7 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
   @Override
   public void setValueFromComponent(AdvancedParametersComponent component) {
     this.value = component.isSelected();
-    embeddedParameters = (T) component.getValue();
+    component.getValue();
   }
 
   @Override
