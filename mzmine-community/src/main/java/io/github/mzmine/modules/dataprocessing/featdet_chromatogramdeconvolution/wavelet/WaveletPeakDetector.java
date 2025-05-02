@@ -73,11 +73,12 @@ public class WaveletPeakDetector extends AbstractResolver {
   private final NoiseCalculation noiseMethod;
   private final int minDataPoints;
   private double[] yPadded = new double[0];
+  private final Double topToEdge;
 
   private final Map<Integer, Map<Double, double[]>> waveletBuffer = new HashMap<>();
 
   // ... (constants, fields, constructor) ...
-  public WaveletPeakDetector(double[] scales, double minSnr, double minPeakHeight,
+  public WaveletPeakDetector(double[] scales, double minSnr, Double topToEdge, double minPeakHeight,
       double mergeProximityFactor, double waveletKernelRadiusFactor, double localNoiseWindowFactor,
       ModularFeatureList flist, ParameterSet parameterSet) {
     super(parameterSet, flist);
@@ -93,6 +94,7 @@ public class WaveletPeakDetector extends AbstractResolver {
     this.LOCAL_NOISE_WINDOW_FACTOR = Math.max(1, localNoiseWindowFactor);
     this.noiseMethod = parameterSet.getValue(WaveletResolverParameters.noiseCalculation);
     this.minDataPoints = parameterSet.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
+    this.topToEdge = topToEdge;
   }
 
   @Override
@@ -108,10 +110,12 @@ public class WaveletPeakDetector extends AbstractResolver {
     final double[][] cwtCoefficients = calculateCWT(y, scales);
 
     // 2. Find Potential Peaks
-    final  List<PotentialPeak> potentialPeaks = findPotentialPeaksFromCWT(cwtCoefficients, scales, x, y);
+    final List<PotentialPeak> potentialPeaks = findPotentialPeaksFromCWT(cwtCoefficients, scales, x,
+        y);
 
     // 3. Initial Filtering - Height Only
-    final List<DetectedPeak> heightFilteredPeaks = filterByHeight(potentialPeaks, y, x, minPeakHeight);
+    final List<DetectedPeak> heightFilteredPeaks = filterByHeight(potentialPeaks, y, x,
+        minPeakHeight);
 
     if (heightFilteredPeaks.isEmpty()) {
       return Collections.emptyList();
@@ -137,7 +141,8 @@ public class WaveletPeakDetector extends AbstractResolver {
     final List<PeakRange> finalPeakRanges = convertPeaksToPeakRanges(finalDetectedPeaks, x);
 
     // 8. Merge Overlapping / Proximal Peaks
-    final List<Range<Double>> mergedRanges = mergePeakRanges(finalPeakRanges, mergeProximityFactor, x);
+    final List<Range<Double>> mergedRanges = mergePeakRanges(finalPeakRanges, mergeProximityFactor,
+        x);
 
     // 9. Sort final ranges by start time
     mergedRanges.sort(Comparator.comparing(Range::lowerEndpoint));
@@ -154,7 +159,7 @@ public class WaveletPeakDetector extends AbstractResolver {
     if (N_padded == 0) {
       N_padded = 2; // Handle very small n
     }
-    if(yPadded.length != N_padded) {
+    if (yPadded.length != N_padded) {
       yPadded = Arrays.copyOf(y, N_padded); // Pad with zeros
     } else {
       System.arraycopy(y, 0, yPadded, 0, y.length);
@@ -473,7 +478,8 @@ public class WaveletPeakDetector extends AbstractResolver {
       }
 
       // --- Filter based on local SNR ---
-      if (localSnr >= minSnr) {
+      if (localSnr >= minSnr || (topToEdge != null && localBaseline > 0.0
+          && peak.peakY / localBaseline >= topToEdge)) {
         // Update the SNR on the existing peak object before adding
         peak.snr = localSnr;
         finalPeaks.add(peak); // Add the peak that passed
@@ -549,8 +555,10 @@ public class WaveletPeakDetector extends AbstractResolver {
             > ZERO_THRESHOLD) {
           shouldMerge = true;
         } else if (proximityFactor > 0) {
-          final double prevWidth = previous.range().upperEndpoint() - previous.range().lowerEndpoint();
-          final double currWidth = current.range().upperEndpoint() - current.range().lowerEndpoint();
+          final double prevWidth =
+              previous.range().upperEndpoint() - previous.range().lowerEndpoint();
+          final double currWidth =
+              current.range().upperEndpoint() - current.range().lowerEndpoint();
           double avgWidth = (prevWidth + currWidth) / 2.0;
           if (avgWidth <= 0) {
             avgWidth = Math.max(Math.abs(previous.peakX() - current.peakX()) / 4.0, 1e-6);

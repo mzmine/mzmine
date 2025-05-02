@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
 import java.util.Arrays;
@@ -48,6 +49,10 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
   public static final DoubleParameter snr = new DoubleParameter("Signal to noise threshold", "",
       new DecimalFormat("#.#"), 3d, 0d, Double.MAX_VALUE);
 
+  public static final OptionalParameter<DoubleParameter> topToEdge = new OptionalParameter<>(
+      new DoubleParameter("Top to edge (SNR override)", "", new DecimalFormat("#.#"), 3d, 0d,
+          Double.MAX_VALUE));
+
   public static final DoubleParameter minHeight = new DoubleParameter("Minimum height", "",
       ConfigService.getGuiFormats().intensityFormat(), 1E3, 0d, Double.MAX_VALUE);
 
@@ -60,7 +65,7 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
 
   public WaveletResolverParameters() {
     super(GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
-        GeneralResolverParameters.groupMS2Parameters, snr, minHeight, noiseCalculation,
+        GeneralResolverParameters.groupMS2Parameters, snr, topToEdge, minHeight, noiseCalculation,
 
         GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS, GeneralResolverParameters.SUFFIX,
         GeneralResolverParameters.handleOriginal,
@@ -77,6 +82,8 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
 
     final AdvancedParametersParameter<AdvancedWaveletParameters> advanced = parameterSet.getParameter(
         advancedParameters);
+    final Double topToEdge = getEmbeddedParameterValueIfSelectedOrElse(
+        WaveletResolverParameters.topToEdge, null);
 
     if (advanced.getValue()) {
       final double waveletKernel = advanced.getValueOrDefault(
@@ -90,15 +97,15 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
           .mapToDouble(Double::valueOf).toArray();
 //      return new WaveletPeakDetector(scales, parameterSet.getValue(snr),
       return new WaveletPeakDetector(scales, parameterSet.getValue(WaveletResolverParameters.snr),
-          parameterSet.getValue(WaveletResolverParameters.minHeight), mergeProximity, waveletKernel,
-          noiseWindow, flist, parameterSet);
+          topToEdge, parameterSet.getValue(WaveletResolverParameters.minHeight), mergeProximity,
+          waveletKernel, noiseWindow, flist, parameterSet);
     }
 
     final var scales = Arrays.stream(AdvancedWaveletParameters.DEFAULT_SCALES.split(","))
         .map(String::trim).mapToDouble(Double::valueOf).toArray();
 
     return new WaveletPeakDetector(scales, parameterSet.getValue(WaveletResolverParameters.snr),
-        parameterSet.getValue(WaveletResolverParameters.minHeight), mergeProximity,
+        topToEdge, parameterSet.getValue(WaveletResolverParameters.minHeight), mergeProximity,
         AdvancedWaveletParameters.DEFAULT_WAVELET_KERNEL,
         AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW, flist, parameterSet);
   }
