@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,51 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.abstr;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import java.util.Map;
+import io.github.mzmine.datamodel.features.types.DataType;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
-import org.jetbrains.annotations.NotNull;
 
-/**
- * This FeaturesType contains features for each RawDataFile. Sub columns for samples and charts are
- * created.
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
- */
-public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
-    implements NoTextColumn {
-
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "features_map";
-  }
-
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "Features";
-  }
+public abstract class EnumDataType<T extends Enum<T>> extends DataType<T> {
 
   @Override
-  public Property<Map<RawDataFile, ModularFeature>> createProperty() {
+  public Property<T> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
-  @Override
-  public Class<Map<RawDataFile, ModularFeature>> getValueClass() {
-    return (Class) Map.class;
+  /**
+   * @return The enum values
+   */
+  public T[] enumValues() {
+    return getValueClass().getEnumConstants();
   }
 
-  @Override
-  public boolean getDefaultVisibility() {
-    return true;
-  }
 }

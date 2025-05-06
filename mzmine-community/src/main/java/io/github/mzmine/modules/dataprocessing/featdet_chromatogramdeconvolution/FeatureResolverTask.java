@@ -251,7 +251,7 @@ public class FeatureResolverTask extends AbstractTask {
       processedRows++;
     }
     logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
-        + " have less than 4 scans (frames for IMS data)");
+                + " have less than 4 scans (frames for IMS data)");
     //    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
@@ -304,11 +304,14 @@ public class FeatureResolverTask extends AbstractTask {
     }
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
 
+    // estimate number of resolved rows
+    int estimatedRows = originalFeatureList.getNumberOfRows() * 4;
     // create a new feature list and don't copy. Previous annotations of features are invalidated
     // during resolution
     final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
         originalFeatureList.getName() + " " + parameters.getParameter(
-            GeneralResolverParameters.SUFFIX).getValue(), storage, dataFile);
+            GeneralResolverParameters.SUFFIX).getValue(), storage, estimatedRows, estimatedRows,
+        dataFile);
 
     //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));

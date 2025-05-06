@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.DataTypesChangedListener;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -37,10 +38,10 @@ import io.github.mzmine.datamodel.features.types.AreaBarType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
@@ -68,6 +69,11 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.SizeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
@@ -98,6 +104,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
@@ -106,7 +113,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.SetChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -136,7 +142,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import org.controlsfx.control.NotificationPane;
-import org.controlsfx.control.action.Action;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -547,7 +552,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     }
 
     // useful for debugging and seeing how many cells are empty / full
-    // logTableFillingRatios(flist);
+    logTableFillingRatios(flist);
 
     //    logger.info("Adding columns to table");
     // for all data columns available in "data"
@@ -567,8 +572,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     rowCol.setGraphic(headerLabel);
 
     // add row types
-    featureList.getRowTypes().stream().filter(t -> !(t instanceof FeaturesType))
-        .forEach(dataType -> addColumn(rowCol, dataType));
+    featureList.getRowTypes().forEach(dataType -> addColumn(rowCol, dataType));
 
     sortColumn(rowCol);
 
@@ -576,10 +580,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     table.getColumns().add(rowCol);
 
     // add features
-    if (featureList.hasRowType(FeaturesType.class)) {
-      addColumn(rowCol, DataTypes.get(FeaturesType.class));
-    }
-
+    addFeaturesColumns();
   }
 
   private static void logTableFillingRatios(final FeatureList flist) {
@@ -592,10 +593,30 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     long totalRowCells = (long) flist.getRowTypes().size() * flist.getNumberOfRows();
     long totalFeatureCells = (long) flist.getFeatureTypes().size() * flist.streamFeatures().count();
 
+    // TODO remove or comment out
+    // Just logging to see how full a table is
+    final Predicate<DataType> inMemoryColumns = type -> switch (type) {
+      case IntegerType _, DoubleType _, FloatType _, FloatRangeType _, DoubleRangeType _,
+           AlignmentMainType _, DetectionType _ -> false;
+      default -> true;
+    };
     logger.fine("""
+        Types:
+        Row types: %s
+        Feature types: %s
+        Rows: %d
         Fill stats:
         Row cells (%d types): %d / %d (%.1f)
         Feature cells (%d types): %d / %d (%.1f)""".formatted( //
+        flist.getRowTypes().stream() //
+            .filter(inMemoryColumns)//
+            .map(t -> "%s (%s)".formatted(t.getUniqueID(), t.getClass().getSimpleName()))
+            .collect(Collectors.joining(", ")),//
+        flist.getFeatureTypes().stream()//
+            .filter(inMemoryColumns)//
+            .map(t -> "%s (%s)".formatted(t.getUniqueID(), t.getClass().getSimpleName()))
+            .collect(Collectors.joining(", ")),//
+        flist.getNumberOfRows(), //
         flist.getRowTypes().size(), rowValues, totalRowCells,
         (rowValues / (double) totalRowCells) * 100, //
         flist.getFeatureTypes().size(), featureValues, totalFeatureCells,
@@ -628,30 +649,26 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     }
 
     // Is feature type?
-    if (dataType.getClass().equals(FeaturesType.class)) {
-      addFeaturesColumns();
-    } else {
-      var col = dataType.createColumn(null, null);
-      if (col == null) {
-        return;
-      }
+    var col = dataType.createColumn(null, null);
+    if (col == null) {
+      return;
+    }
 
-      if (dataType instanceof ExpandableType) {
-        setupExpandableColumn(dataType, col, ColumnType.ROW_TYPE, null);
-      }
+    if (dataType instanceof ExpandableType) {
+      setupExpandableColumn(dataType, col, ColumnType.ROW_TYPE, null);
+    }
 
-      // Add row column
-      rowCol.getColumns().add(col);
+    // Add row column
+    rowCol.getColumns().add(col);
 
-      registerColumn(col, ColumnType.ROW_TYPE, dataType, null);
-      if (!(dataType instanceof ExpandableType)) {
-        // Hide area bars and area share columns, if there is only one raw data file in the feature list
-        if ((dataType instanceof AreaBarType || dataType instanceof AreaShareType)
-            && getFeatureList().getNumberOfRawDataFiles() == 1) {
-          col.setVisible(false);
-        } else {
-          recursivelyApplyVisibilityParameterToColumn(col);
-        }
+    registerColumn(col, ColumnType.ROW_TYPE, dataType, null);
+    if (!(dataType instanceof ExpandableType)) {
+      // Hide area bars and area share columns, if there is only one raw data file in the feature list
+      if ((dataType instanceof AreaBarType || dataType instanceof AreaShareType)
+          && getFeatureList().getNumberOfRawDataFiles() == 1) {
+        col.setVisible(false);
+      } else {
+        recursivelyApplyVisibilityParameterToColumn(col);
       }
     }
   }
@@ -813,6 +830,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
       return;
     }
 
+    List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
     // Add feature columns for each raw file
     for (RawDataFile dataFile : getFeatureList().getRawDataFiles()) {
       TreeTableColumn<ModularFeatureListRow, String> sampleCol = new TreeTableColumn<>();
@@ -850,8 +868,10 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
       // Add sample column
       // NOTE: sample column is not added to the columnMap
       sortColumn(sampleCol);
-      table.getColumns().add(sampleCol);
+      rawColumns.add(sampleCol);
     }
+    // bulk add columns
+    table.getColumns().addAll(rawColumns);
   }
 
   private void initHandleDoubleClicks() {
@@ -1032,7 +1052,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
    * and removes the row changed listener.
    */
   private void initFeatureListListener() {
-    final SetChangeListener<DataType> listener = _ -> {
+    final DataTypesChangedListener listener = (_, _) -> {
       dataChangedNotification.show();
     };
 
@@ -1041,10 +1061,10 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
         updateFeatureList(oldValue, newValue);
       });
       if (newValue != null) {
-        newValue.getRowTypes().addListener(listener);
+        newValue.getRowsSchema().addDataTypesChangeListener(listener);
       }
       if (oldValue != null) {
-        oldValue.getRowTypes().removeListener(listener);
+        oldValue.getRowsSchema().getDataTypesChangeListeners().remove(listener);
       }
     });
   }
@@ -1135,7 +1155,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     boolean smallDataset = flist.getNumberOfRawDataFiles() <= getMaximumSamplesForVisibleShapes();
     setVisible(ColumnType.ROW_TYPE, FeatureShapeType.class, null, smallDataset);
     setVisible(ColumnType.ROW_TYPE, FeatureShapeMobilogramType.class, null, smallDataset);
-    setVisible(ColumnType.ROW_TYPE, FeaturesType.class, null, true);
+//    setVisible(ColumnType.ROW_TYPE, FeaturesType.class, null, true);
 
     applyVisibilityParametersToAllColumns();
   }
