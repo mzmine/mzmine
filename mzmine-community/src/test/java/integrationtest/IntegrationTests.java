@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -57,31 +58,59 @@ public class IntegrationTests {
   }
 
   @Test
-  void testSmallLcMsBatch(@TempDir File tempDir) {
+  void testSmallLcMsBatchRemove(@TempDir File tempDir) {
+    testSmallLcMsBatch(tempDir, "workshop_dataset_integration_test.mzbatch");
+  }
 
+  @Test
+  void testSmallLcMsBatchKeep(@TempDir File tempDir) {
+    testSmallLcMsBatch(tempDir, "workshop_dataset_integration_test_keep.mzbatch");
+  }
+
+  @Test
+  void testSmallLcMsBatchInPlace(@TempDir File tempDir) {
+    testSmallLcMsBatch(tempDir, "workshop_dataset_integration_test_process_in_place.mzbatch");
+  }
+
+
+  void testSmallLcMsBatch(File tempDir, String batchFile) {
     final File results = IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset",
-            "workshop_dataset_integration_test.mzbatch").tempDir(tempDir)
+            batchFile).tempDir(tempDir)
         .rawFiles("171103_PMA_TK_QC_04-4to5min.mzML", "171103_PMA_TK_QC_05-4to5min.mzML")
         .specLibsFullPath("spectral_libraries/integration_tests/massbank_nist_for_tests.msp",
             "spectral_libraries/integration_tests/MoNA-export-LC-MS-MS_Spectra.json").build()
         .runBatchGetCsvFile();
 
     Assertions.assertTrue(IntegrationTestUtils.getCsvComparisonResults(
-        "rawdatafiles/integration_tests/workshop_dataset/expected_results.csv", results,
-        "workshop_dataset_integration_test").isEmpty());
+            "rawdatafiles/integration_tests/workshop_dataset/expected_results.csv", results, batchFile)
+        .isEmpty());
 
     Assertions.assertEquals(40, IntegrationTestUtils.getCsvComparisonResults(
         "rawdatafiles/integration_tests/workshop_dataset/expected_results_error.csv", results,
-        "workshop_dataset_integration_test").size());
+        batchFile).size());
   }
 
   @Test
-  void testLcMsFullBatch(@TempDir File tempDir) {
-    if(new File("D:\\OneDrive - mzio GmbH").exists()) {
+  void testLcMsFullBatchRemove(@TempDir File tempDir) {
+    testLcMsFullBatch(tempDir, "workshop_dataset_full.mzbatch");
+  }
+
+  @Test
+  void testLcMsFullBatchKeep(@TempDir File tempDir) {
+    testLcMsFullBatch(tempDir, "workshop_dataset_full_keep.mzbatch");
+  }
+
+  @Test
+  void testLcMsFullBatchInPlace(@TempDir File tempDir) {
+    testLcMsFullBatch(tempDir, "workshop_dataset_full_process_in_place.mzbatch");
+  }
+
+  void testLcMsFullBatch(File tempDir, String batchFile) {
+    if (new File("D:\\OneDrive - mzio GmbH").exists()) {
       Assertions.assertEquals(0,
-          IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset",
-              "workshop_dataset_full.mzbatch").tempDir(tempDir).build().runBatchGetCheckResults(
-              "rawdatafiles/integration_tests/workshop_dataset/expected_results_full.csv").size());
+          IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset", batchFile)
+              .tempDir(tempDir).build().runBatchGetCheckResults(
+                  "rawdatafiles/integration_tests/workshop_dataset/expected_results_full.csv").size());
     }
   }
 
