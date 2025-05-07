@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -112,6 +112,7 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
    * @param setPreferred true: start of list; false: end of list
    */
   public void addPattern(IsotopePattern pattern, boolean setPreferred) {
+    // TODO only retain one pattern with this charge state?
     patterns.remove(pattern);
     if (setPreferred) {
       patterns.add(0, pattern);
