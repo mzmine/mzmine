@@ -96,6 +96,14 @@ public class FoundLipid {
     }
 
     /**
+     * Gets the list of adducts.
+     * @return The list of FoundAdduct.
+     */
+    public List<FoundAdduct> getListAdducts() {
+        return this.adducts;
+    }
+
+    /**
      * Sets the attribute to the adducts passed as input.
      * @param adducts List of Found Adducts.
      */

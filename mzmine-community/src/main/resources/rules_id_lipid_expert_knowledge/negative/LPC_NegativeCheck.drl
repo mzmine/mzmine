@@ -80,6 +80,8 @@ when
     $adduct: FoundAdduct(adductName == "[M+HCOO+(CH3COONa)]-")
     $phase1 : MobilePhases() from mobilePhases
     eval($phase1 == MobilePhases.CH3COO)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.HCOO)
 then
     
     lipid.setScore(1);
@@ -171,6 +173,8 @@ when
     $adduct2: FoundAdduct(adductName == "[M+HCOO+(CH3COONa)]-")
     $phase1 : MobilePhases() from mobilePhases
     eval($phase1 == MobilePhases.CH3COO)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.HCOO)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     
@@ -252,6 +256,8 @@ when
     $adduct2: FoundAdduct(adductName == "[M+HCOO+(CH3COONa)]-")
     $phase1 : MobilePhases() from mobilePhases
     eval($phase1 == MobilePhases.CH3COO)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.HCOO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     
@@ -319,6 +325,8 @@ when
     $adduct2: FoundAdduct(adductName == "[M+HCOO+(CH3COONa)]-")
     $phase1 : MobilePhases() from mobilePhases
     eval($phase1 == MobilePhases.CH3COO)
+    $phase2 : MobilePhases() from mobilePhases
+    eval($phase2 == MobilePhases.HCOO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
 

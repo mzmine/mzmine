@@ -3,10 +3,13 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils
 
 import com.lowagie.text.Row;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -26,6 +29,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.
 import org.kie.api.KieServices;
 import org.kie.api.io.Resource;
 import org.kie.api.runtime.KieSession;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Class that contains all the methods that search and find information for the module.
@@ -180,7 +185,7 @@ public class LipidIDExpertKnowledgeSearch {
                             }
                         }
                     }
-                    if (tempAdducts.size() > foundAdducts.size()) {
+                    if (tempAdducts.size() > foundAdducts.size() && tempAdducts.size() >= 3) {
                         foundAdducts.clear();
                         foundAdducts.addAll(tempAdducts);
                         tempAdducts.clear();
@@ -189,7 +194,19 @@ public class LipidIDExpertKnowledgeSearch {
                 }
             }
         }
+        //if the foundAdducts is empty because it doesn't meet the conditions, I add default values with the most common ones
+        //+H and -H depending on polarity
+        RawDataFile rdf = row.getFeatures().get(0).getRawDataFile();
+        PolarityType polarity = rdf.getDataPolarity().get(0);
+        if (foundAdducts.isEmpty() && polarity.equals(PolarityType.POSITIVE) ) {
+            FoundAdduct defaultAdduct = new FoundAdduct("[M+H]+", 0.00, 0.00, 0.00, +1);
+            foundAdducts.add(defaultAdduct);
+        } else if (foundAdducts.isEmpty() && polarity.equals(PolarityType.NEGATIVE)) {
+            FoundAdduct defaultAdduct = new FoundAdduct("[M-H]-", 0.00, 0.00, 0.00, -1);
+            foundAdducts.add(defaultAdduct);
+        }
 
+        Collections.sort(foundAdducts, Comparator.comparingDouble(FoundAdduct::getIntensity).reversed());
         return foundAdducts;
     }
 
@@ -201,7 +218,6 @@ public class LipidIDExpertKnowledgeSearch {
      * @param lipid MatchedLipid for the row.
      * @param found List of FoundAdducts for the group the row is part of.
      */
-    //TODO: HACER BIEN LO DE LAS FASES MÓVILES
     public static void findLipidsPositive(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases) {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
@@ -377,7 +393,6 @@ public class LipidIDExpertKnowledgeSearch {
      * @param lipid MatchedLipid for the row.
      * @param found List of FoundAdducts for the group the row is part of.
      */
-    //TODO: HACER BIEN LO DE LAS FASES MÓVILES
     public static void findLipidsNegative(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases) {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();

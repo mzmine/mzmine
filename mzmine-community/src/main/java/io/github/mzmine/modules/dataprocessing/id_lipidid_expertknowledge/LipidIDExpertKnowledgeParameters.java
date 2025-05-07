@@ -69,6 +69,7 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
                 text("This module requires Lipid Annotation to be run first."));
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+
         dialog.showAndWait();
         return dialog.getExitCode();
     }

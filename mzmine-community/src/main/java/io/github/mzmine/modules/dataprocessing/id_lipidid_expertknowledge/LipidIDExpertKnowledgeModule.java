@@ -7,8 +7,10 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+
 import java.time.Instant;
 import java.util.Collection;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,10 +19,11 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Blanca Pueche Granados (blancapueche@gmail.com)
  */
-public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule{
+public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule {
 
     /**
      * Name of the module.
+     *
      * @return The module name.
      */
     @Override
@@ -30,6 +33,7 @@ public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule{
 
     /**
      * Gets the parameters class.
+     *
      * @return The parameter set class.
      */
     @Override
@@ -39,6 +43,7 @@ public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule{
 
     /**
      * Description of the module.
+     *
      * @return The module description.
      */
     @Override
@@ -48,22 +53,24 @@ public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule{
 
     /**
      * Executes the module, creating the parameters and the task.
-     * @param project Project to apply this module on.
-     * @param parameters ParameterSet to invoke this module with. The ParameterSet has already been
-     *        cloned for exclusive use by this module, therefore the module does not need to clone it
-     *        again. Upon invocation of the runModule() method it is guaranteed that the ParameterSet
-     *        is of the proper class as returned by getParameterSetClass(). Also, it is guaranteed
-     *        that the ParameterSet is checked by checkParameters(), therefore the module does not
-     *        need to perform these checks again.
-     * @param tasks A collection where the module should add its newly created Tasks, if it creates
-     *        any.
+     *
+     * @param project        Project to apply this module on.
+     * @param parameters     ParameterSet to invoke this module with. The ParameterSet has already been
+     *                       cloned for exclusive use by this module, therefore the module does not need to clone it
+     *                       again. Upon invocation of the runModule() method it is guaranteed that the ParameterSet
+     *                       is of the proper class as returned by getParameterSetClass(). Also, it is guaranteed
+     *                       that the ParameterSet is checked by checkParameters(), therefore the module does not
+     *                       need to perform these checks again.
+     * @param tasks          A collection where the module should add its newly created Tasks, if it creates
+     *                       any.
      * @param moduleCallDate
      * @return ExitCode
      */
     @Override
     public @NotNull ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
         FeatureList[] featureLists = parameters.getParameter(parameters.getParameter(LipidIDExpertKnowledgeParameters.featureLists)).getValue().getMatchingFeatureLists();
-        for (FeatureList fL : featureLists){
+
+        for (FeatureList fL : featureLists) {
             tasks.add(new LipidIDExpertKnowledgeTask(parameters, fL, moduleCallDate));
         }
         return ExitCode.OK;
@@ -71,6 +78,7 @@ public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule{
 
     /**
      * Gets th category of the module.
+     *
      * @return The MZmineMoudleCategory, set to "annotation".
      */
     @Override

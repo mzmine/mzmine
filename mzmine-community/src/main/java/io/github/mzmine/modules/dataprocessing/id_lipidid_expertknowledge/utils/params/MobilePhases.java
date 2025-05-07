@@ -10,7 +10,7 @@ public enum MobilePhases {
 
     CH3COO ("Acetate"),
     NH4 ("Ammonium"),
-    CH3OH("Metanol"),
+    CH3OH("Methanol"),
     CH3CN("Acetonitrile"),
     HCOO("Formate");
 
@@ -38,6 +38,7 @@ public enum MobilePhases {
         list.add(MobilePhases.NH4);
         list.add(MobilePhases.CH3CN);
         list.add(MobilePhases.CH3OH);
+        list.add(MobilePhases.HCOO);
         return list;
     }
 

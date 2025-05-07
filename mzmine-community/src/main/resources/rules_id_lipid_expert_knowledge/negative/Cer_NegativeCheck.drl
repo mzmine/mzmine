@@ -25,6 +25,7 @@ when
 then
     lipid.setScore(-1);
     lipid.setDescrIncorrect("Missing [M+CH3COO]-; ");
+    List<FoundAdduct> adducts = lipid.getListAdducts();
 end
 
 rule "Presence [M+CH3COO]-"

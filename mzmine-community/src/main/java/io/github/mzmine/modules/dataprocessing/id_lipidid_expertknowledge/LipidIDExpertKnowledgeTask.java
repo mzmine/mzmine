@@ -174,17 +174,20 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
             }
         }
 
-        PolarityType polarityType;
+        System.out.print(mobilePhase);
+
         List<ExpertKnowledge> commonAdductsISF = new ArrayList<>();
-        List<FeatureListRow> annotatedRows;
-        RowInfo rowInfo;
-        List<FoundAdduct> foundAdductsAndISF;
+        List<FeatureListRow> annotatedRows = new ArrayList<>();
+
         //Iterate through each row group
         for (RowGroup group : groupRows) {
+            annotatedRows.clear();
+            commonAdductsISF.clear();
 
             //Get polarity of our data
-            polarityType = getPolarityType(group);
+            PolarityType polarityType = getPolarityType(group);
 
+            commonAdductsISF = new ArrayList<>();
             if (polarityType.equals(PolarityType.POSITIVE)) {
                 commonAdductsISF.addAll(Arrays.asList(CommonAdductPositive.values()));
                 commonAdductsISF.addAll(Arrays.asList(CommonISFPositive.values()));
@@ -195,41 +198,73 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
             //sort by mz
             commonAdductsISF.sort(Comparator.comparingDouble(ExpertKnowledge::getMz));
 
+            //check and delete adducts that can't appear due to mobile phases
+            if(polarityType.equals(PolarityType.POSITIVE)) {
+                if (!(mobilePhase.contains(MobilePhases.NH4) && mobilePhase.contains(MobilePhases.CH3CN) && mobilePhase.contains(MobilePhases.CH3OH))) {
+                    commonAdductsISF.remove(CommonAdductPositive.M_PLUS_C2H7N2);
+                    commonAdductsISF.remove(CommonAdductPositive.M_PLUS_NH4);
+                } else if (!mobilePhase.contains(MobilePhases.NH4)) {
+                    commonAdductsISF.remove(CommonAdductPositive.M_PLUS_NH4);
+                }
+            } else if (polarityType.equals(PolarityType.NEGATIVE)) {
+                if (!(mobilePhase.contains(MobilePhases.CH3COO) && mobilePhase.contains(MobilePhases.HCOO))) {
+                    commonAdductsISF.remove(CommonAdductNegative.M_MINUS_H_PLUS_CH3COONa);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_CH3COONa);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_2CH3COONa);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_3CH3COONa);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_HCOO_PLUS_CH3COONa);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_HCOO);
+                    commonAdductsISF.remove(CommonISFNegative.M_PLUS_CH3COO_MINUS_CH3COOCH3);
+                } else if (!mobilePhase.contains(MobilePhases.CH3COO)) {
+                    commonAdductsISF.remove(CommonAdductNegative.M_MINUS_H_PLUS_CH3COONa);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_CH3COONa);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_2CH3COONa);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_3CH3COONa);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_HCOO_PLUS_CH3COONa);
+                    commonAdductsISF.remove(CommonISFNegative.M_PLUS_CH3COO_MINUS_CH3COOCH3);
+                } else if (!mobilePhase.contains(MobilePhases.HCOO)) {
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_HCOO_PLUS_CH3COONa);
+                    commonAdductsISF.remove(CommonAdductNegative.M_PLUS_HCOO);
+                }
+            }
+
             //Find rows that are annotated in the group
-            annotatedRows = LipidIDExpertKnowledgeSearch.findAnnotatedRows(group);
+            annotatedRows.addAll(LipidIDExpertKnowledgeSearch.findAnnotatedRows(group));
             //Find relevant data to find adducts
-            rowInfo = LipidIDExpertKnowledgeSearch.findRowInfo(group);
+            RowInfo rowInfo = LipidIDExpertKnowledgeSearch.findRowInfo(group);
 
             if (!annotatedRows.isEmpty()) {
                 for (FeatureListRow row : annotatedRows) {
                     List<MatchedLipid> lipidsMatched = row.getLipidMatches();
                     // TODO quitar!?
-                    System.out.println("-----Row:" + row.getAverageMZ() + " has lipid matches: " + lipidsMatched);
+                    //System.out.println("-----Row:" + row.getAverageMZ() + " has lipid matches: " + lipidsMatched);
                     for (MatchedLipid matchedLipid : lipidsMatched) {
-                        foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, matchedLipid);
+                        List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, matchedLipid);
 
                         if (polarityType.equals(PolarityType.POSITIVE)) {
                             LipidIDExpertKnowledgeSearch.findLipidsPositive(row, matchedLipid, foundAdductsAndISF, mobilePhase);
                         } else if (polarityType.equals(PolarityType.NEGATIVE)) {
                             LipidIDExpertKnowledgeSearch.findLipidsNegative(row, matchedLipid, foundAdductsAndISF, mobilePhase);
                         }
-                        for (int i = 0; i<foundAdductsAndISF.size(); i++) {
+                        /*for (int i = 0; i<foundAdductsAndISF.size(); i++) {
                             System.out.println(foundAdductsAndISF.get(i).getAdductName() + " : " + foundAdductsAndISF.get(i).getMzFeature()+ " : " + foundAdductsAndISF.get(i).getIntensity());
-                        }
+                        }*/
                     }
                 }
             } else {
                 for (FeatureListRow row : group.getRows()) {
                     MatchedLipid match = null;
                     //TODO quitar!?
-                    System.out.println("-----Row:" + row.getAverageMZ() + " has lipid matches: " + match);
-                    foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, match);
+                    //System.out.println("-----Row:" + row.getAverageMZ() + " has lipid matches: " + match);
+                    List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, match);
 
                     FoundLipid foundLipid = new FoundLipid(foundAdductsAndISF);
                     row.addLipidValidation(foundLipid);
-                    for (int i = 0; i<foundAdductsAndISF.size(); i++) {
+                    /*for (int i = 0; i<foundAdductsAndISF.size(); i++) {
                         System.out.println(foundAdductsAndISF.get(i).getAdductName() + " : " + foundAdductsAndISF.get(i).getMzFeature() + " : " + foundAdductsAndISF.get(i).getIntensity());
-                    }
+                    }*/
                 }
             }
 

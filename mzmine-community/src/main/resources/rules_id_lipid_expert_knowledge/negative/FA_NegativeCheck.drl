@@ -31,6 +31,7 @@ global List mobilePhases;
      $adduct: FoundAdduct(adductName == "[M-H+(CH3COONa)]-")
      $phase1 : MobilePhases() from mobilePhases
      eval($phase1 == MobilePhases.CH3COO)
+
  then
      
      lipid.setScore(1);
