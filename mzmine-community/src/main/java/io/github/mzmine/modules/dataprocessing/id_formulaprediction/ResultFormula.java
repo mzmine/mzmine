@@ -127,7 +127,7 @@ public class ResultFormula extends MolecularFormulaIdentity {
    *
    */
   public ResultFormula(IMolecularFormula ionFormula, FeatureListRow row) {
-    super(ionFormula, FormulaUtils.calculateMzRatio(ionFormula));
+    super(ionFormula, row.getAverageMZ());
     predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(ionFormula, 0.01,
         ionFormula.getCharge(), PolarityType.fromInt(ionFormula.getCharge()));
 
@@ -136,10 +136,15 @@ public class ResultFormula extends MolecularFormulaIdentity {
     this.isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(predictedIsotopePattern,
         measuredPattern, MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, 0);
 
-    var msmsScore1 = MSMSScoreCalculator.evaluateMSMS(ionFormula, row.getMostIntenseFragmentScan(),
-        MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, 50);
-    this.msmsScore = msmsScore1.explainedIntensity();
-    this.msmsAnnotation = msmsScore1.annotation();
+    if(row.hasMs2Fragmentation()) {
+      var msmsScore1 = MSMSScoreCalculator.evaluateMSMS(ionFormula, row.getMostIntenseFragmentScan(),
+          MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, 50);
+      this.msmsScore = msmsScore1.explainedIntensity();
+      this.msmsAnnotation = msmsScore1.annotation();
+    } else {
+      this.msmsScore = 0f;
+      this.msmsAnnotation = null;
+    }
   }
 
   public static List<ResultFormula> forAllAnnotations(FeatureListRow row, boolean dropDuplicates) {

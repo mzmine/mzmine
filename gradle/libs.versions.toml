@@ -69,6 +69,7 @@ jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", ver
 jackson-datetime = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jackson-dataformat-csv = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-csv", version = "jackson" }
+jackson-datatype = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8", version.ref = "jackson" }
 woodstox-core = "com.fasterxml.woodstox:woodstox-core:6.6.0"
 aalto-xml = "com.fasterxml:aalto-xml:1.3.2"
 # chemistry
@@ -131,7 +132,7 @@ slf4j = ["slf4j-api", "slf4j-jdk14"]
 poi = ["poi", "poi-ooxml"]
 okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
-jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime"]
+jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime", "jackson-datatype"]
 batik = ["batik-anim", "batik-svggen", "batik-swing"]
 
 
