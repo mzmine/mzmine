@@ -1,4 +1,0 @@
-var enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1params_1_1_mobile_phases =
-[
-    [ "MobilePhases", "enumio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_1utils_1_1params_1_1_mobile_phases.html#a213d2056772301dafccbf1fcc0160f66", null ]
-];

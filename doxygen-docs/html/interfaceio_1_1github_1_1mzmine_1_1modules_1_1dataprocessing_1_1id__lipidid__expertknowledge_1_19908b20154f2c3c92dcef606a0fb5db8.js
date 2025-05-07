@@ -1,6 +1,0 @@
-var interfaceio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_19908b20154f2c3c92dcef606a0fb5db8 =
-[
-    [ "getCompleteName", "interfaceio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_19908b20154f2c3c92dcef606a0fb5db8.html#a19f0a48f6540c45e85b13ee674c74dda", null ],
-    [ "getMz", "interfaceio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_19908b20154f2c3c92dcef606a0fb5db8.html#aff78b350eebceb0267c39a852a625174", null ],
-    [ "getName", "interfaceio_1_1github_1_1mzmine_1_1modules_1_1dataprocessing_1_1id__lipidid__expertknowledge_1_19908b20154f2c3c92dcef606a0fb5db8.html#a8e8cde178e668e7a295b7bf4c1765829", null ]
-];
