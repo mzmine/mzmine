@@ -309,9 +309,9 @@ public class FeatureListSaveTask extends AbstractTask {
     try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
       dataType.saveToXML(writer, value, flist, row, feature, file);
     } catch (XMLStreamException e) {
-      logger.warning(() -> "Error while writing data type " + dataType.getClass().getSimpleName()
-          + " with value " + value + " to xml.");
-      e.printStackTrace();
+      logger.log(Level.WARNING,
+          "Error while writing data type " + dataType.getClass().getSimpleName() + " with value "
+              + value + " to xml.", e);
     }
     writer.writeEndElement();
   }
