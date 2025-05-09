@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 public class IsotopeLabelingTargetedModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Isotopologue peak detection";
-  private static final String MODULE_DESCRIPTION = "Module to detect the specified number of isotopologues for specified targeted features."; // TODO
+  private static final String MODULE_DESCRIPTION = "Module to detect the number of element-specific isotopologues for targeted features.";
 
   @Override
   public @NotNull String getName() {
