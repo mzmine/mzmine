@@ -75,6 +75,8 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.Extern
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
+import io.github.mzmine.modules.dataprocessing.id_untargetedLabeling.UntargetedLabelingModule;
+import io.github.mzmine.modules.dataprocessing.isolab_natabundance.IsotopeNaturalAbundanceModule;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
@@ -184,7 +186,8 @@ public final class AcademicWorkspace extends AbstractWorkspace {
         CCSCalcModule.class);
 
     addModuleMenuItems(menu, "Isotopes", IsotopeGrouperModule.class, IsotopeFinderModule.class,
-        IsotopePeakScannerModule.class);
+        IsotopePeakScannerModule.class, IsotopeNaturalAbundanceModule.class,
+        UntargetedLabelingModule.class);
 
     menu.getItems().add(buildDefaultFeatureGroupingSubMenu());
 
