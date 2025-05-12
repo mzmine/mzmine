@@ -71,6 +71,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
   private static final String BATCH_STEP_ELEMENT = "batchstep";
   // Method element name.
   private static final String METHOD_ELEMENT = "method";
+  private static final String MODULE_NAME_ATTR = "module_name";
   private static final String MODULE_VERSION_ATTR = "parameter_version";
 
   /**
@@ -252,6 +253,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       if (parameters != null) {
         // save version, since MZmine 3.4.0
         stepElement.setAttribute(MODULE_VERSION_ATTR, String.valueOf(parameters.getVersion()));
+        stepElement.setAttribute(MODULE_NAME_ATTR, step.getModule().getName());
         parameters.saveValuesToXML(stepElement);
       }
     }

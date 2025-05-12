@@ -100,7 +100,8 @@ public class BatchModeModule implements MZmineProcessingModule {
         if (!ConfigService.isIgnoreParameterWarningsInBatch()) {
           // parameters have updated, we need to exit
           logger.log(Level.SEVERE,
-              "Exiting because some parameter sets have been updated since the batch was created. Please update the batch file by opening it in the GUI and try again.");
+              "Exiting because some parameter sets have been updated since the batch was "
+                  + "created. Please update the batch file by opening it in the GUI and try again.");
           System.exit(1);
         }
       }
