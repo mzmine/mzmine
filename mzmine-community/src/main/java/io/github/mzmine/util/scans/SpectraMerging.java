@@ -54,6 +54,7 @@ import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -74,6 +75,7 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.validation.constraints.Null;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -314,8 +316,7 @@ public class SpectraMerging {
 
     List<MobilityScan> mobilityScans = frame.getMobilityScans().stream().filter(
         ms -> spectraNumbers.contains(ms.getMobilityScanNumber()) && (mobilityRange == null
-                                                                      || mobilityRange.contains(
-            (float) ms.getMobility()))).collect(Collectors.toList());
+            || mobilityRange.contains((float) ms.getMobility()))).collect(Collectors.toList());
 
     if (mobilityScans.isEmpty()) {
       return null;
@@ -354,22 +355,6 @@ public class SpectraMerging {
         mobilityScans, intensityMergingType, cf, MergingType.PASEF_SINGLE);
   }
 
-  /**
-   * Cannot return null as it's used for grouping
-   *
-   * @return the collision energy or -1 if null
-   */
-  private static float getCollisionEnergy(final Scan spec) {
-    if (spec instanceof MergedMsMsSpectrum merged) {
-      return merged.getCollisionEnergy();
-    }
-    MsMsInfo info = spec.getMsMsInfo();
-    if (info != null) {
-      return Objects.requireNonNullElse(info.getActivationEnergy(), -1f);
-    }
-    return -1f;
-  }
-
   @Nullable
   public static MergedMassSpectrum extractSummedMobilityScan(@NotNull final ModularFeature f,
       @NotNull final MZTolerance tolerance, @NotNull final Range<Float> mobilityRange,
@@ -395,6 +380,10 @@ public class SpectraMerging {
           }
         }).toList();
 
+    if(scans.isEmpty()) {
+      return null;
+    }
+
     // todo use mass lists over raw scans to merge (separate PR)
 
     final double[][] merged = calculatedMergedMzsAndIntensities(scans, tolerance,
@@ -402,6 +391,21 @@ public class SpectraMerging {
 
     return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
         IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, MergingType.ALL_ENERGIES);
+  }
+
+  @Nullable
+  public static <T extends MassSpectrum> MergedMassSpectrum extractMergedScan(
+      @NotNull final ModularFeature f, @NotNull final MZTolerance tolerance,
+      @NotNull final Range<Float> mobilityRange, @NotNull final Range<Float> rtRange,
+      @Nullable final MemoryMapStorage storage) {
+    if (FeatureUtils.isImsFeature(f)) {
+      return extractSummedMobilityScan(f, tolerance, mobilityRange, rtRange, storage);
+    } else {
+      final List<? extends Scan> scans = f.getFeatureData().getSpectra().stream()
+          .filter(s -> rtRange.contains(s.getRetentionTime())).toList();
+      return mergeSpectra(scans, tolerance, IntensityMergingType.SUMMED,
+          MergingType.ALL_ENERGIES, DEFAULT_CENTER_FUNCTION, storage);
+    }
   }
 
   /**

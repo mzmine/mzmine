@@ -58,6 +58,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.validation.constraints.Null;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -127,6 +128,10 @@ public class IonMobilityUtils {
       }
     }
     return false;
+  }
+
+  public static boolean isImsFeature(@Nullable Feature feature) {
+    return FeatureUtils.isImsFeature(feature);
   }
 
   /**

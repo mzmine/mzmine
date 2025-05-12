@@ -210,7 +210,7 @@ public class FeatureCorrelationUtil {
    * @return feature shape correlation or null if not possible not enough data points for a
    * correlation
    */
-  public static CorrelationData corrFeatureShape(CachedFeatureDataAccess data, Feature f1,
+  public static CorrelationData corrFeatureShape(@Nullable CachedFeatureDataAccess data, Feature f1,
       Feature f2, boolean sameRawFile, int minCorrelatedDataPoints, int minCorrDPOnFeatureEdge,
       double noiseLevelShapeCorr) {
     // f1 should be the higher feature

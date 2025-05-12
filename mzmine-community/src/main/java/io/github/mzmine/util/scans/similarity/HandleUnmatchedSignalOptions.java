@@ -35,10 +35,22 @@ import java.util.List;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public enum HandleUnmatchedSignalOptions {
-  KEEP_ALL_AND_MATCH_TO_ZERO, // keep all unmatched signals and match to 0 intensity
-  REMOVE_ALL, // discard unmatched
-  KEEP_LIBRARY_SIGNALS, // keep all library signals - match unmatched against 0 intensity
-  KEEP_EXPERIMENTAL_SIGNALS; // keep all query signals - match unmatched against 0 intensity
+  /**
+   * keep all unmatched signals and match to 0 intensity
+   */
+  KEEP_ALL_AND_MATCH_TO_ZERO,
+  /**
+   * discard unmatched
+   */
+  REMOVE_ALL,
+  /**
+   * keep all library signals - match unmatched against 0 intensity
+   */
+  KEEP_LIBRARY_SIGNALS,
+  /**
+   * keep all query signals - match unmatched against 0 intensity
+   */
+  KEEP_EXPERIMENTAL_SIGNALS;
 
   @Override
   public String toString() {
