@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,7 +38,7 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This class implements a simple isotopic peaks grouper method based on searching for neighbouring
+ * This class implements a simple isotopic peaks grouper method based on searching for neighboring
  * peaks from expected locations.
  */
 public class IsotopeNaturalAbundanceModule implements MZmineProcessingModule {

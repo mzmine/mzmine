@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,6 +60,10 @@ public class IsotopeNaturalAbundanceParameters extends SimpleParameterSet {
       new DoubleParameter("mz of the resolution",
           "mz at which the resolution has been determined. Required to trigger high resolution correction."));
 
+  public static final OptionalParameter<StringParameter> resolutionFormulaCode = new OptionalParameter<>(
+      new StringParameter("Instrument resolution type",
+          "Type of instrument resolution. Choose between 'orbitrap', 'ft-icr' and 'constant'. Required to trigger high resolution correction."));
+
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
   public static final IntegerParameter charge = new IntegerParameter("Charge",
@@ -92,9 +96,9 @@ public class IsotopeNaturalAbundanceParameters extends SimpleParameterSet {
       true);
 
   public IsotopeNaturalAbundanceParameters() {
-    super(new Parameter[]{peakLists, suffix, mzTolerance, resolution, mzOfResolution, rtTolerance,
-            charge, tracerPurity, mobilityTolerace, backgroundValue, tracerIsotope, handleOriginal},
-        "https://mzmine.github.io/mzmine_documentation");
+    super(new Parameter[]{peakLists, suffix, mzTolerance, resolution, mzOfResolution,
+        resolutionFormulaCode, rtTolerance, charge, tracerPurity, mobilityTolerace, backgroundValue,
+        tracerIsotope, handleOriginal}, "https://mzmine.github.io/mzmine_documentation");
   }
 
   @Override

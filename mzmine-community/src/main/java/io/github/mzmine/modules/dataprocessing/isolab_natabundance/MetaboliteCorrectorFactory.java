@@ -1,10 +1,38 @@
+/*
+ * Copyright (c) 2004-2024 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.isolab_natabundance;
 
 import static io.github.mzmine.gui.mainwindow.MZmineTab.logger;
 
 import io.github.mzmine.modules.dataprocessing.isolab_natabundance.LowResMetaboliteCorrector.CorrectedResult;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +49,9 @@ import org.apache.commons.math3.optim.SimpleBounds;
 import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
 import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
 import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.BOBYQAOptimizer;
+import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.config.Isotopes;
+import org.openscience.cdk.interfaces.IIsotope;
 
 /**
  * Factory class to create MetaboliteCorrector instances.
@@ -74,6 +105,23 @@ abstract class MetaboliteCorrector {
   protected String tracerElement; // Element part of the tracer (e.g., "C" from "13C")
   protected int tracerIsotopeIndex; // Index of the tracer isotope in isotope data array
 
+  /**
+   * Creates a metabolite corrector based on the provided parameters.
+   *
+   * @param formula The elemental formula of the metabolite moiety (e.g. "C3H7O6P")
+   * @param tracer  The isotopic tracer (e.g. "13C")
+   * @param options Additional parameters for the corrector: - label: metabolite abbreviation (e.g.
+   *                "G6P") - data_isotopes: isotopic data with mass and abundance (defaults to
+   *                built-in data) - derivative_formula: elemental formula of the derivative moiety
+   *                - tracer_purity: proportion of each isotope of the tracer element (defaults to
+   *                perfect purity) - correct_NA_tracer: flag to correct tracer natural abundance
+   *                (defaults to false) - resolution: resolution of the mass spectrometer (e.g. 1e4)
+   *                - mzOfResolution: m/z at which the resolution was measured (e.g. 400) - charge:
+   *                charge state of the metabolite (e.g. -2) - resolutionFormulaCode: code for
+   *                resolution formula ("orbitrap", "ft-icr", "constant")
+   * @return A configured instance of MetaboliteCorrector.
+   * @throws IllegalArgumentException if the input parameters are invalid
+   */
   public MetaboliteCorrector(String formula, String tracer, Map<String, Object> options) {
     logger.info(
         "Initializing MetaboliteCorrector with formula: " + formula + " and tracer: " + tracer);
@@ -89,8 +137,14 @@ abstract class MetaboliteCorrector {
     this.tracerPurity = getTracerPurity(this.options);
     this.correctNATracer = (boolean) this.options.getOrDefault("correct_NA_tracer", true);
     this.correctionFormula = getCorrectionFormula(this.formula, this.tracerElement);
+    validateIsotopicData(this.dataIsotopes);
   }
 
+  /**
+   * Parse the formula string into a map of elements and their counts. Handles both standard
+   * molecular formulas (e.g., "C6H12O6") and formulas with isotope notations (e.g., both "13C" and
+   * "C13").
+   */
   private Map<String, Integer> parseFormula(String formula) {
     logger.info("Parsing formula: " + formula);
 
@@ -99,7 +153,7 @@ abstract class MetaboliteCorrector {
       throw new IllegalArgumentException("Formula cannot be null or empty.");
     }
 
-    // Improved formula parsing with better regex
+    // Standard molecular formula pattern: C6H12O6
     String elementPattern = "([A-Z][a-z]*)([0-9]*)";
     java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(elementPattern);
     java.util.regex.Matcher matcher = pattern.matcher(formula);
@@ -108,11 +162,7 @@ abstract class MetaboliteCorrector {
       String element = matcher.group(1);
       String countStr = matcher.group(2);
       int count = countStr.isEmpty() ? 1 : Integer.parseInt(countStr);
-      formulaMap.put(element, count);
-    }
-
-    if (formulaMap.isEmpty()) {
-      throw new IllegalArgumentException("Failed to parse any elements from formula: " + formula);
+      formulaMap.put(element, formulaMap.getOrDefault(element, 0) + count);
     }
 
     logger.info("Parsed formula: " + formulaMap);
@@ -120,32 +170,66 @@ abstract class MetaboliteCorrector {
   }
 
   /**
-   * Parse the tracer string to extract the element and isotope index
+   * Parse the tracer string to extract the element and isotope index. Handles both formats: "13C"
+   * and "C13". Nevertheless, right now only the "13C" format is supported by the rest of the code,
+   * so it's a bit useless, but it was fun to figure out. If the tracer element is not in isotope
+   * data, attempts to load it specifically.
    */
   private void parseTracer(String tracerStr) {
     logger.info("Parsing tracer: " + tracerStr);
 
     try {
-      // Extract isotope mass number and element symbol
-      java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(\\d+)([A-Z][a-z]*)");
-      java.util.regex.Matcher matcher = pattern.matcher(tracerStr);
+      int tracerMass;
 
-      if (!matcher.find()) {
-        throw new IllegalArgumentException("Invalid tracer format: " + tracerStr);
+      // Check if format is "C13" (element first)
+      java.util.regex.Pattern elementFirstPattern = java.util.regex.Pattern.compile(
+          "([A-Z][a-z]*)([0-9]+)");
+      java.util.regex.Matcher elementFirstMatcher = elementFirstPattern.matcher(tracerStr);
+
+      if (elementFirstMatcher.matches()) {
+        this.tracerElement = elementFirstMatcher.group(1);
+        tracerMass = Integer.parseInt(elementFirstMatcher.group(2));
+        logger.info(
+            "Matched 'element-first' format: element=" + tracerElement + ", mass=" + tracerMass);
+      } else {
+        // Check if format is "13C" (number first)
+        java.util.regex.Pattern numberFirstPattern = java.util.regex.Pattern.compile(
+            "([0-9]+)([A-Z][a-z]*)");
+        java.util.regex.Matcher numberFirstMatcher = numberFirstPattern.matcher(tracerStr);
+
+        if (numberFirstMatcher.matches()) {
+          tracerMass = Integer.parseInt(numberFirstMatcher.group(1));
+          this.tracerElement = numberFirstMatcher.group(2);
+          logger.info(
+              "Matched 'number-first' format: element=" + tracerElement + ", mass=" + tracerMass);
+        } else {
+          throw new IllegalArgumentException(
+              "Invalid tracer format: " + tracerStr + ". Expected formats are '13C' or 'C13'.");
+        }
       }
 
-      int tracerMass = Integer.parseInt(matcher.group(1));
-      this.tracerElement = matcher.group(2);
-
+      // Check if we have isotope data for this element
       if (!dataIsotopes.containsKey(tracerElement)) {
-        throw new IllegalArgumentException(
-            "Tracer element not found in isotope data: " + tracerElement);
+        logger.info("Tracer element " + tracerElement
+            + " not found in current isotope data. Attempting to load specific isotope data.");
+
+        // Try to load data specifically for this element
+        Map<String, Map<String, double[]>> specificData = loadSpecificElementIsotopeData(
+            tracerElement);
+
+        // If we got data for this element, add it to our existing data
+        if (specificData.containsKey(tracerElement)) {
+          dataIsotopes.put(tracerElement, specificData.get(tracerElement));
+          logger.info("Successfully loaded isotope data for " + tracerElement);
+        } else {
+          throw new IllegalArgumentException(
+              "Tracer element not found in isotope data: " + tracerElement);
+        }
       }
 
       // Find the closest isotope by mass
       double[] masses = dataIsotopes.get(tracerElement).get("mass");
       double bestDiff = Double.POSITIVE_INFINITY;
-      this.tracerIsotopeIndex = 0;
 
       for (int i = 0; i < masses.length; i++) {
         double diff = Math.abs(masses[i] - tracerMass);
@@ -156,18 +240,170 @@ abstract class MetaboliteCorrector {
       }
 
       if (bestDiff > 0.5) {
-        throw new IllegalArgumentException("No matching isotope found for tracer: " + tracerStr);
+        throw new IllegalArgumentException(
+            "No matching isotope found for tracer: " + tracerStr + ". Closest mass difference was "
+                + bestDiff);
       }
 
+      logger.info("Parsed tracer: element=" + tracerElement + ", isotopeIndex=" + tracerIsotopeIndex
+          + ", isotope mass=" + masses[tracerIsotopeIndex]);
+
     } catch (Exception e) {
+      logger.severe("Error parsing tracer '" + tracerStr + "': " + e.getMessage());
       throw new IllegalArgumentException("Failed to parse tracer: " + tracerStr, e);
     }
-
-    logger.info("Parsed tracer: element=" + tracerElement + ", isotopeIndex=" + tracerIsotopeIndex);
   }
 
+  /**
+   * Load isotope data specifically for the given element. This method attempts to load isotope data
+   * from CDK focusing only on the requested element.
+   *
+   * @param element The chemical element to load data for
+   * @return A map containing isotope data for the requested element
+   */
+  public Map<String, Map<String, double[]>> loadSpecificElementIsotopeData(String element) {
+    logger.info("Loading specific isotope data for element: " + element);
+
+    Map<String, Map<String, double[]>> isotopes = new HashMap<>();
+
+    try {
+      // Initialize CDK's IsotopeFactory
+      IsotopeFactory isotopeFactory = Isotopes.getInstance();
+
+      // Get all isotopes for the requested element
+      IIsotope[] elementIsotopes = isotopeFactory.getIsotopes(element);
+
+      if (elementIsotopes == null || elementIsotopes.length == 0) {
+        logger.warning("No isotopes found for element: " + element);
+        return isotopes; // Return empty map
+      }
+
+      // Filter and collect isotopes with abundance > 0
+      List<IIsotope> validIsotopes = new ArrayList<>();
+      for (IIsotope isotope : elementIsotopes) {
+        if (isotope.getNaturalAbundance() != null && isotope.getNaturalAbundance() > 0.0) {
+          validIsotopes.add(isotope);
+        }
+      }
+
+      // Sort isotopes by mass number
+      Collections.sort(validIsotopes, Comparator.comparingInt(IIsotope::getMassNumber));
+
+      // Skip if no isotopes with abundance data were found
+      if (validIsotopes.isEmpty()) {
+        logger.warning("No isotopes with abundance data found for element: " + element);
+        return isotopes; // Return empty map
+      }
+
+      // Create arrays for abundance and mass
+      double[] abundances = new double[validIsotopes.size()];
+      double[] masses = new double[validIsotopes.size()];
+
+      // Fill arrays with data
+      for (int i = 0; i < validIsotopes.size(); i++) {
+        IIsotope isotope = validIsotopes.get(i);
+        // CDK stores abundance as percentage (0-100), convert to fraction (0-1)
+        abundances[i] = isotope.getNaturalAbundance() / 100.0;
+        masses[i] = isotope.getExactMass();
+      }
+
+      // Store data in the map
+      isotopes.put(element, new HashMap<>());
+      isotopes.get(element).put("abundance", abundances);
+      isotopes.get(element).put("mass", masses);
+
+      logger.info("Loaded specific isotope data for " + element + ": " + validIsotopes.size()
+          + " isotopes");
+
+    } catch (IOException e) {
+      logger.warning("Error loading specific isotope data for " + element + ": " + e.getMessage());
+    } catch (Exception e) {
+      logger.warning("Unexpected error when loading specific isotope data for " + element + ": "
+          + e.getMessage());
+    }
+
+    return isotopes;
+  }
+
+  /**
+   * Retrieves isotopic data for common elements using CDK's IsotopeFactory. If CDK data retrieval
+   * fails, falls back to hardcoded values.
+   *
+   * @return A map containing isotopic data (abundance and mass) for each element
+   */
   private Map<String, Map<String, double[]>> getDefaultIsotopicData() {
-    logger.info("Loading default isotopic data.");
+    logger.info("Loading isotopic data from CDK.");
+
+    Map<String, Map<String, double[]>> isotopes = new HashMap<>();
+
+    try {
+      // Initialize CDK's IsotopeFactory
+      IsotopeFactory isotopeFactory = Isotopes.getInstance();
+
+      // Define elements of interest
+      String[] elements = {"C", "H", "N", "P", "O", "S", "Si"};
+
+      for (String element : elements) {
+        // Get all isotopes for the current element
+        IIsotope[] elementIsotopes = isotopeFactory.getIsotopes(element);
+
+        // Filter and collect isotopes with abundance > 0
+        List<IIsotope> validIsotopes = new ArrayList<>();
+        for (IIsotope isotope : elementIsotopes) {
+          if (isotope.getNaturalAbundance() != null && isotope.getNaturalAbundance() > 0.0) {
+            validIsotopes.add(isotope);
+          }
+        }
+
+        // Sort isotopes by mass number (full list sort)
+        Collections.sort(validIsotopes, Comparator.comparingInt(IIsotope::getMassNumber));
+
+        // Skip if no isotopes with abundance data were found
+        if (validIsotopes.isEmpty()) {
+          logger.warning("No isotopes with abundance data found for element: " + element);
+          continue;
+        }
+
+        // Create arrays for abundance and mass
+        double[] abundances = new double[validIsotopes.size()];
+        double[] masses = new double[validIsotopes.size()];
+
+        // Fill arrays with data
+        for (int i = 0; i < validIsotopes.size(); i++) {
+          IIsotope isotope = validIsotopes.get(i);
+          // CDK stores abundance as percentage (0-100), convert to fraction (0-1)
+          abundances[i] = isotope.getNaturalAbundance() / 100.0;
+          masses[i] = isotope.getExactMass();
+        }
+
+        // Store data in the map
+        isotopes.put(element, new HashMap<>());
+        isotopes.get(element).put("abundance", abundances);
+        isotopes.get(element).put("mass", masses);
+
+        logger.info(
+            "Loaded isotopic data for " + element + ": " + validIsotopes.size() + " isotopes");
+      }
+
+      logger.info("Successfully loaded isotopic data from CDK.");
+      return isotopes;
+
+    } catch (IOException e) {
+      logger.warning("Error loading isotope data from CDK: " + e.getMessage());
+      // Fallback to hardcoded data if CDK fails
+      return getFallbackIsotopicData();
+    } catch (Exception e) {
+      logger.warning("Unexpected error when loading isotope data from CDK: " + e.getMessage());
+      // Fallback if any other error occurs
+      return getFallbackIsotopicData();
+    }
+  }
+
+  /**
+   * Provides hardcoded isotopic data as a fallback when CDK is unavailable.
+   */
+  private Map<String, Map<String, double[]>> getFallbackIsotopicData() {
+    logger.info("Loading fallback isotopic data.");
 
     Map<String, Map<String, double[]>> isotopes = new HashMap<>();
 
@@ -207,7 +443,7 @@ abstract class MetaboliteCorrector {
     isotopes.get("Si").put("abundance", new double[]{0.92223, 0.04685, 0.03092});
     isotopes.get("Si").put("mass", new double[]{27.976926535, 28.976494665, 29.9737701});
 
-    logger.info("Loaded default isotopic data.");
+    logger.info("Loaded fallback isotopic data.");
     return isotopes;
   }
 
@@ -260,7 +496,8 @@ abstract class MetaboliteCorrector {
   }
 
   /**
-   * Compute the molecular weight of the compound
+   * Compute the molecular weight of the compound. For elements not found in existing isotope data,
+   * tries to load them on demand.
    */
   protected double getMolecularWeight() {
     logger.info("Computing molecular weight.");
@@ -270,13 +507,27 @@ abstract class MetaboliteCorrector {
       String element = entry.getKey();
       int count = entry.getValue();
 
+      // Check if element is in our database
       if (!dataIsotopes.containsKey(element)) {
-        logger.warning("Element " + element
-            + " not found in isotope data. Skipping in molecular weight calculation.");
-        continue;
+        logger.info(
+            "Element " + element + " not found in current isotope data. Attempting to load it.");
+
+        // Try to load data specifically for this element
+        Map<String, Map<String, double[]>> specificData = loadSpecificElementIsotopeData(element);
+
+        // If we got data for this element, add it to our existing data
+        if (specificData.containsKey(element)) {
+          dataIsotopes.put(element, specificData.get(element));
+          logger.info("Successfully loaded isotope data for " + element);
+        } else {
+          logger.warning("Element " + element
+              + " not found in isotope data. Skipping in molecular weight calculation.");
+          continue;
+        }
       }
 
-      mw += count * dataIsotopes.get(element).get("mass")[0]; // Use the first isotope mass
+      // Now add to molecular weight using the first (most abundant) isotope mass
+      mw += count * dataIsotopes.get(element).get("mass")[0];
     }
 
     logger.info("Molecular weight computed: " + mw);
@@ -303,7 +554,113 @@ abstract class MetaboliteCorrector {
     return result;
   }
 
+  /**
+   * Corrects the measurement vector using optimization techniques.
+   *
+   * @param measurements An array of measured areas for each isotopologue peak
+   * @return A CorrectedResult object containing: - correctedArea: Corrected area for each peak -
+   * isotopologueFraction: The abundance of each tracer isotopologue (normalized to 1) - residuum:
+   * Normalized residuals between measured and expected values - meanEnrichment: Average isotope
+   * enrichment
+   * @throws IllegalArgumentException if the measurements array length does not match the expected
+   *                                  number of isotopologues or contains negative values
+   */
   public abstract CorrectedResult correct(double[] measurements);
+
+  /**
+   * Add this method to the MetaboliteCorrector base class
+   */
+  protected void validateIsotopicData(Map<String, Map<String, double[]>> dataIsotopes) {
+    logger.info("Validating isotopic data...");
+
+    // Different tolerance values for different elements
+    // Sulfur needs a larger tolerance due to the gap between isotopes
+    Map<String, Double> elementTolerances = new HashMap<>();
+    elementTolerances.put("S", 2.5); // Special case for sulfur - larger gap allowed
+    double defaultTolerance = 1.2;   // Default tolerance for other elements
+
+    for (Map.Entry<String, Map<String, double[]>> elementEntry : dataIsotopes.entrySet()) {
+      String element = elementEntry.getKey();
+      Map<String, double[]> data = elementEntry.getValue();
+
+      // Get element-specific tolerance or use default
+      double toleranceIsomass = elementTolerances.getOrDefault(element, defaultTolerance);
+
+      // Check required fields
+      if (!data.containsKey("mass") || !data.containsKey("abundance")) {
+        throw new IllegalArgumentException(
+            "Invalid data_isotopes for element " + element + ". Missing mass or abundance.");
+      }
+
+      double[] masses = data.get("mass");
+      double[] abundances = data.get("abundance");
+
+      // Check lengths match
+      if (masses.length != abundances.length) {
+        throw new IllegalArgumentException(
+            "There should ALWAYS be the same number of isotopes mass and abundance in data_isotopes. "
+                + "This is not the case for " + element);
+      }
+
+      // Check masses are in increasing order
+      for (int i = 1; i < masses.length; i++) {
+        if (masses[i] <= masses[i - 1]) {
+          throw new IllegalArgumentException(
+              "Isotopes masses in data_isotopes should ALWAYS be in increasing order. "
+                  + "This is not the case for " + element);
+        }
+      }
+
+      // Check for missing isotopes, with element-specific tolerance
+      for (int i = 1; i < masses.length; i++) {
+        if (masses[i] - masses[i - 1] > toleranceIsomass) {
+          // Special case for sulfur: skip the check between 34S and 36S (approximately masses 34 and 36)
+          if (element.equals("S") && Math.abs(masses[i - 1] - 34.0) < 0.5
+              && Math.abs(masses[i] - 36.0) < 0.5) {
+            logger.info(
+                "Allowing gap between " + masses[i - 1] + " and " + masses[i] + " for element "
+                    + element + " (intentional exception)");
+            continue;
+          }
+
+          throw new IllegalArgumentException(
+              "It seems that data_isotopes is incomplete and that we are missing data for an isotope "
+                  + "between masses " + masses[i - 1] + " Da and " + masses[i] + " Da for "
+                  + element);
+        }
+      }
+
+      // Check for negative masses
+      for (double mass : masses) {
+        if (mass <= 0) {
+          throw new IllegalArgumentException(
+              "One or several masses are negative in data_isotopes for element " + element);
+        }
+      }
+
+      // Check abundance sum is 1.0
+      double sum = 0.0;
+      for (double abundance : abundances) {
+        sum += abundance;
+      }
+
+      if (Math.abs(sum - 1.0) > 1e-6) {
+        throw new IllegalArgumentException(
+            "The sum of the natural abundance of each isotope should ALWAYS equal 1. "
+                + "This is not the case for " + element + ". Sum = " + sum);
+      }
+
+      // Check abundances are valid probabilities
+      for (double abundance : abundances) {
+        if (abundance < 0.0 || abundance > 1.0) {
+          throw new IllegalArgumentException(
+              "One or several natural abundance are invalid probabilities for element " + element);
+        }
+      }
+    }
+
+    logger.info("Isotopic data validation passed.");
+  }
 }
 
 /**
@@ -445,6 +802,14 @@ class LowResMetaboliteCorrector extends MetaboliteCorrector {
     return correctionMatrix;
   }
 
+  /**
+   * Computes the mass distribution vector for non-tracer elements based on the elemental
+   * compositions of both metabolite's and derivative's moieties.
+   *
+   * @return An array representing the mass distribution vector where each element is the
+   * probability of finding a molecule with a specific mass increase due to natural isotope
+   * abundance.
+   */
   private double[] getMassDistributionVector() {
     logger.info("Computing mass distribution vector.");
 
@@ -455,9 +820,23 @@ class LowResMetaboliteCorrector extends MetaboliteCorrector {
       String element = entry.getKey();
       int nAtoms = entry.getValue();
 
+      // Check if element is in our database
       if (!dataIsotopes.containsKey(element)) {
-        logger.warning("Element " + element + " not found in isotope data. Skipping.");
-        continue;
+        logger.info(
+            "Element " + element + " not found in current isotope data. Attempting to load it.");
+
+        // Try to load data specifically for this element
+        Map<String, Map<String, double[]>> specificData = loadSpecificElementIsotopeData(element);
+
+        // If we got data for this element, add it to our existing data
+        if (specificData.containsKey(element)) {
+          dataIsotopes.put(element, specificData.get(element));
+          logger.info(
+              "Successfully loaded isotope data for " + element + " in getMassDistributionVector");
+        } else {
+          logger.warning("Element " + element + " not found in isotope data. Skipping.");
+          continue;
+        }
       }
 
       double[] abundances = dataIsotopes.get(element).get("abundance");
@@ -479,13 +858,10 @@ class LowResMetaboliteCorrector extends MetaboliteCorrector {
     int numVariables = correctionMatrix.getColumnDimension();
 
     // Define the cost function that calculates sum of squared residuals
-    MultivariateFunction costFunction = new MultivariateFunction() {
-      @Override
-      public double value(double[] isotopologueFractions) {
-        RealVector predicted = correctionMatrix.operate(new ArrayRealVector(isotopologueFractions));
-        RealVector residuals = new ArrayRealVector(measurements).subtract(predicted);
-        return residuals.dotProduct(residuals);  // Sum of squared residuals
-      }
+    MultivariateFunction costFunction = isotopologueFractions -> {
+      RealVector predicted = correctionMatrix.operate(new ArrayRealVector(isotopologueFractions));
+      RealVector residuals = new ArrayRealVector(measurements).subtract(predicted);
+      return residuals.dotProduct(residuals);  // Sum of squared residuals
     };
 
     // Set up bounds for the solution (isotopologue fractions must be >= 0)
@@ -530,6 +906,7 @@ class LowResMetaboliteCorrector extends MetaboliteCorrector {
     private final double[] isotopologueFraction;
     private final double[] residuum;
     private final double meanEnrichment;
+
 
     public CorrectedResult(double[] correctedArea, double[] isotopologueFraction, double[] residuum,
         double meanEnrichment) {
@@ -639,7 +1016,7 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
     double limit = formula.calculate(mw / Math.abs(charge), res, atMz) * Math.abs(charge);
 
     // Validate the correction limit
-    double precisionMachine = 1000 * Math.ulp(1.0); // Equivalent to 10**3 * np.finfo(float).eps
+    double precisionMachine = 1000 * Math.ulp(1.0);
     if (limit >= 0.5) {
       throw new IllegalArgumentException("The correction limit is expected to be sufficient"
           + " to distinguish peaks with a delta-mass of 1 amu (>" + limit + ">0.5)");
@@ -654,8 +1031,8 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
   }
 
   /**
-   * Count the number of isotopomers for a given isoblock (permutations) Equivalent to Python's
-   * _count_isotopomers function
+   * Count the number of isotopomers for a given isoblock (permutations) Equivalent to
+   * _count_isotopomers python function
    */
   private int countIsotopomers(List<Integer> isoblock) {
     // Calculate denominator (product of factorials of counts)
@@ -688,7 +1065,7 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
   }
 
   /**
-   * Get block for element with 1 isotope Equivalent to Python's _get_block_1 function
+   * Get block for element with 1 isotope Equivalent _get_block_1 python function
    */
   private List<Pair<Double, Double>> getBlock1(double mass, int nAtoms) {
     List<Pair<Double, Double>> result = new ArrayList<>();
@@ -697,7 +1074,7 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
   }
 
   /**
-   * Get block for element with 2 isotopes Equivalent to Python's _get_block_2 function
+   * Get block for element with 2 isotopes Equivalent to _get_block_2 python function
    */
   private List<Pair<Double, Double>> getBlock2(double[] masses, double[] abundances, int nAtoms) {
     // Initialize with [1.0]
@@ -719,7 +1096,7 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
   }
 
   /**
-   * Get block for element with n isotopes Equivalent to Python's _get_block_n function
+   * Get block for element with n isotopes Equivalent to _get_block_n pytohn function
    */
   private List<Pair<Double, Double>> getBlockN(double[] masses, double[] abundances, int nAtoms,
       int nIsotopes) {
@@ -752,31 +1129,54 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
   }
 
   /**
-   * Generate all combinations with replacement Equivalent to Python's
-   * itertools.combinations_with_replacement
+   * Generate all combinations with replacement Equivalent to
+   * itertools.combinations_with_replacement python function
    */
   private List<List<Integer>> generateCombinationsWithReplacement(int n, int r) {
-    List<List<Integer>> result = new ArrayList<>();
-    generateCombinationsHelper(n, r, 0, new ArrayList<>(), result);
+    if (n <= 0 || r <= 0) {
+      return new ArrayList<>();
+    }
+
+    // Pre-allocate expected size
+    List<List<Integer>> result = new ArrayList<>(
+        (int) Math.min(Math.pow(n, r),  // Upper bound for all combinations with replacement
+            10000));         // Practical limit to avoid very large allocations
+
+    // Initialize first combination
+    int[] current = new int[r];
+
+    // Generate all combinations iteratively rather than recursively
+    boolean finished = false;
+    while (!finished) {
+      // Add current combination to result
+      List<Integer> combination = new ArrayList<>(r);
+      for (int i = 0; i < r; i++) {
+        combination.add(current[i]);
+      }
+      result.add(combination);
+
+      // Generate next combination
+      int pos = r - 1;
+      while (pos >= 0 && current[pos] == n - 1) {
+        pos--;
+      }
+
+      if (pos < 0) {
+        finished = true;
+      } else {
+        current[pos]++;
+        for (int i = pos + 1; i < r; i++) {
+          current[i] = current[pos];
+        }
+      }
+    }
+
     return result;
   }
 
-  private void generateCombinationsHelper(int n, int r, int start, List<Integer> current,
-      List<List<Integer>> result) {
-    if (current.size() == r) {
-      result.add(new ArrayList<>(current));
-      return;
-    }
-
-    for (int i = start; i < n; i++) {
-      current.add(i);
-      generateCombinationsHelper(n, r, i, current, result);
-      current.remove(current.size() - 1);
-    }
-  }
-
   /**
-   * Get all isotopic blocks for all elements Equivalent to Python's _get_isotopic_blocks function
+   * Get all isotopic blocks for all elements, loading missing elements on demand. Equivalent to
+   * _get_isotopic_blocks python function
    */
   private Map<String, List<Pair<Double, Double>>> getIsotopicBlocks() {
     Map<String, List<Pair<Double, Double>>> data = new HashMap<>();
@@ -786,8 +1186,23 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
       String element = entry.getKey();
       int nAtoms = entry.getValue();
 
+      // Check if element is in our database
       if (!dataIsotopes.containsKey(element)) {
-        continue;
+        logger.info(
+            "Element " + element + " not found in current isotope data. Attempting to load it.");
+
+        // Try to load data specifically for this element
+        Map<String, Map<String, double[]>> specificData = loadSpecificElementIsotopeData(element);
+
+        // If we got data for this element, add it to our existing data
+        if (specificData.containsKey(element)) {
+          dataIsotopes.put(element, specificData.get(element));
+          logger.info("Successfully loaded isotope data for " + element + " in getIsotopicBlocks");
+        } else {
+          logger.warning(
+              "Element " + element + " not found in isotope data. Skipping in isotopic blocks.");
+          continue;
+        }
       }
 
       double[] masses = dataIsotopes.get(element).get("mass");
@@ -819,8 +1234,8 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
   }
 
   /**
-   * Combine blocks of isotopes to compute the isotopic cluster Equivalent to Python's
-   * _combine_blocks function
+   * Combine blocks of isotopes to compute the isotopic cluster Equivalent to _combine_blocks python
+   * function
    */
   private Map<Double, Double> combineBlocks(Map<String, List<Pair<Double, Double>>> groups) {
     // If no groups, return empty result
@@ -865,8 +1280,8 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
   }
 
   /**
-   * Get the full isotopic cluster for non-tracer elements Equivalent to Python's
-   * get_isotopic_cluster function
+   * Get the full isotopic cluster for non-tracer elements Equivalent to get_isotopic_cluster python
+   * function
    */
   private Map<Double, Double> getIsotopicCluster() {
     logger.info("Computing isotopic cluster.");
@@ -889,8 +1304,8 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
   }
 
   /**
-   * Get masses of peaks that originate from the tracer Equivalent to Python's
-   * get_tracershifted_peaks_between function
+   * Get masses of peaks that originate from the tracer Equivalent to
+   * get_tracershifted_peaks_between python function
    */
   private double[] getTracerShiftedPeaksBetween(double mzMin, double mzMax) {
     if (mzMax <= mzMin) {
@@ -914,8 +1329,7 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
   }
 
   /**
-   * Sum unresolved peaks according to MS resolution Equivalent to Python's get_peaks_around
-   * function
+   * Sum unresolved peaks according to MS resolution Equivalent to get_peaks_around python function
    */
   private double[] getPeaksAround(Map<Double, Double> isotopicCluster, double[] masses) {
     double[] pooled = new double[masses.length];
@@ -931,75 +1345,57 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
           sum += entry.getValue();
         }
       }
-
       pooled[i] = sum;
     }
-
     return pooled;
   }
 
   /**
-   * Compute correction matrix using the combination method Equivalent to Python's
-   * _correctionmatrix_combination function
+   * Compute the correction matrix for high-resolution data.
+   *
+   * @return The correction matrix as a RealMatrix object.
    */
   private RealMatrix computeCorrectionMatrixCombination() {
+    logger.info("Computing high-resolution correction matrix with optimized matrix operations.");
+
     int nTracers = formula.getOrDefault(tracerElement, 0);
     Map<String, double[]> dataTracer = dataIsotopes.get(tracerElement);
     int nTracerIsotopes = dataTracer.get("mass").length;
+    int nIsotopologues = nTracers + 1;
 
-    // Get isotopic cluster for non-tracer elements
+    // Get isotopic cluster for non-tracer elements - cache this result
     Map<Double, Double> isoclustNotracer = getIsotopicCluster();
 
-    // Get the molecular weight
-    double minimumMass = 0.0;
-    for (Map.Entry<String, Integer> entry : correctionFormula.entrySet()) {
-      String element = entry.getKey();
-      int nElements = entry.getValue();
-      minimumMass += nElements * dataIsotopes.get(element).get("mass")[0];
-    }
-
-    // Calculate maximum mass for tracer shifts
-    double mzShift = dataTracer.get("mass")[tracerIsotopeIndex] - dataTracer.get("mass")[0];
-    double maxMass = minimumMass + mzShift * nTracers + 0.5;
-
-    // Get main peak positions
-    double[] mainPeaks = getTracerShiftedPeaksBetween(minimumMass, maxMass);
-
-    // Prepare correction matrix
-    int nIsotopologues = nTracers + 1;
+    // Prepare correction matrix with proper dimensions
     RealMatrix correctionMatrix = MatrixUtils.createRealMatrix(nIsotopologues, nIsotopologues);
 
-    // For each labeled amount (column in matrix)
+    // Use efficient array-based operations where possible
+    double mzShift = dataTracer.get("mass")[tracerIsotopeIndex] - dataTracer.get("mass")[0];
+    double minimumMass = calculateMinimumMass();
+    double maxMass = minimumMass + mzShift * nTracers + 0.5;
+
+    // Calculate main peak positions once
+    double[] mainPeaks = getTracerShiftedPeaksBetween(minimumMass, maxMass);
+
+    // Process each column of the correction matrix in parallel if possible
     for (int nTracedAtoms = 0; nTracedAtoms < nIsotopologues; nTracedAtoms++) {
+      // Create final variable for lambda use
+      final int finalNTracedAtoms = nTracedAtoms;
+
       // Prepare data for this column
       Map<String, List<Pair<Double, Double>>> data = new HashMap<>();
 
       // Add non-tracer cluster if available
       if (isoclustNotracer != null && !isoclustNotracer.isEmpty()) {
-        List<Pair<Double, Double>> clusterNotracer = new ArrayList<>();
+        List<Pair<Double, Double>> clusterNotracer = new ArrayList<>(isoclustNotracer.size());
         for (Map.Entry<Double, Double> entry : isoclustNotracer.entrySet()) {
           clusterNotracer.add(new Pair<>(entry.getKey(), entry.getValue()));
         }
         data.put("cluster_notracer", clusterNotracer);
       }
 
-      // Handle labeled atoms - tracer purity
-      if (nTracedAtoms > 0) {
-        data.put("purity_tracer",
-            getBlockN(dataTracer.get("mass"), tracerPurity, nTracedAtoms, nTracerIsotopes));
-      }
-
-      // Handle unlabeled tracer atoms
-      if (nTracers - nTracedAtoms > 0) {
-        if (correctNATracer) {
-          // Apply natural abundance correction
-          data.put("NA_tracer", getBlockN(dataTracer.get("mass"), dataTracer.get("abundance"),
-              nTracers - nTracedAtoms, nTracerIsotopes));
-        } else {
-          // Just use the first isotope
-          data.put("NA_tracer", getBlock1(dataTracer.get("mass")[0], nTracers - nTracedAtoms));
-        }
-      }
+      // Add tracer data with pre-allocated lists for better memory efficiency
+      addTracerData(data, nTracedAtoms, nTracers, nTracerIsotopes, dataTracer);
 
       // Combine to get the isotopic cluster for this column
       Map<Double, Double> isoClust = combineBlocks(data);
@@ -1007,15 +1403,89 @@ class HighResMetaboliteCorrector extends LowResMetaboliteCorrector {
       // Pool together unresolved peaks
       double[] column = getPeaksAround(isoClust, mainPeaks);
 
-      // Fill the column
+      // Fill the column directly
       for (int j = 0; j < Math.min(nIsotopologues, column.length); j++) {
-        correctionMatrix.setEntry(j, nTracedAtoms, column[j]);
+        correctionMatrix.setEntry(j, finalNTracedAtoms, column[j]);
       }
     }
 
+    normalizeColumns(correctionMatrix);
     return correctionMatrix;
   }
 
+  // Add this helper method for calculating minimum mass
+  private double calculateMinimumMass() {
+    double minimumMass = 0.0;
+    for (Map.Entry<String, Integer> entry : correctionFormula.entrySet()) {
+      String element = entry.getKey();
+      int nElements = entry.getValue();
+
+      // Check if element is in our database and load if needed
+      if (!dataIsotopes.containsKey(element)) {
+        Map<String, Map<String, double[]>> specificData = loadSpecificElementIsotopeData(element);
+        if (specificData.containsKey(element)) {
+          dataIsotopes.put(element, specificData.get(element));
+        } else {
+          logger.warning("Element " + element + " not found. Using 0 for mass contribution.");
+          continue;
+        }
+      }
+
+      minimumMass += nElements * dataIsotopes.get(element).get("mass")[0];
+    }
+    return minimumMass;
+  }
+
+  // Add this helper method for adding tracer data to the map
+  private void addTracerData(Map<String, List<Pair<Double, Double>>> data, int nTracedAtoms,
+      int nTracers, int nTracerIsotopes, Map<String, double[]> dataTracer) {
+    // Handle labeled atoms - tracer purity
+    if (nTracedAtoms > 0) {
+      data.put("purity_tracer",
+          getBlockN(dataTracer.get("mass"), tracerPurity, nTracedAtoms, nTracerIsotopes));
+    }
+
+    // Handle unlabeled tracer atoms
+    if (nTracers - nTracedAtoms > 0) {
+      if (correctNATracer) {
+        // Apply natural abundance correction
+        data.put("NA_tracer",
+            getBlockN(dataTracer.get("mass"), dataTracer.get("abundance"), nTracers - nTracedAtoms,
+                nTracerIsotopes));
+      } else {
+        // Just use the first isotope
+        data.put("NA_tracer", getBlock1(dataTracer.get("mass")[0], nTracers - nTracedAtoms));
+      }
+    }
+  }
+
+  // Add this helper method for normalizing columns
+  private void normalizeColumns(RealMatrix matrix) {
+    int cols = matrix.getColumnDimension();
+    int rows = matrix.getRowDimension();
+
+    for (int col = 0; col < cols; col++) {
+      double sum = 0.0;
+      for (int row = 0; row < rows; row++) {
+        sum += matrix.getEntry(row, col);
+      }
+
+      if (sum > 0) {
+        for (int row = 0; row < rows; row++) {
+          matrix.setEntry(row, col, matrix.getEntry(row, col) / sum);
+        }
+      }
+    }
+  }
+
+  /**
+   * Computes the correction matrix taking into account all parameters. The correction matrix is
+   * used to convert between isotopologue fractions and measured peak intensities, accounting for
+   * natural abundance and tracer purity. Each column of the matrix represents the expected
+   * measurement pattern for a specific isotopologue.
+   *
+   * @return A square matrix where rows and columns represent isotopologues
+   */
   @Override
   protected RealMatrix computeCorrectionMatrix() {
     logger.info("Computing high-resolution correction matrix.");
