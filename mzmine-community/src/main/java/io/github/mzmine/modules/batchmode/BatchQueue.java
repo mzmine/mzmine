@@ -96,7 +96,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         case 0 -> "the same";
         default -> "";
       };
-      String msg = "The batch file was created with %s version of MZmine%s (this version is %s).".formatted(
+      String msg = "The batch file was created with %s version of mzmine %s (this version is %s).".formatted(
           vstring, batchMzmineVersion, mzmineVersion);
       logger.info(msg);
       //
