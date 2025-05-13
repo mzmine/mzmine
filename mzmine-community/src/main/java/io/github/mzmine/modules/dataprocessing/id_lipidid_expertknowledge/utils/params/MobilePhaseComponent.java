@@ -1,5 +1,4 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
 import javafx.geometry.Orientation;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;

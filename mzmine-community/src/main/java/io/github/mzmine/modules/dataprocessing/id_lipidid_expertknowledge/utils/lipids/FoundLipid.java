@@ -48,7 +48,7 @@ public class FoundLipid {
      */
     private List<FoundAdduct> adducts;
 
-    //TODO quito esto!? creo q si, pero preguntar
+
     public static final String XML_ELEMENT = "lipidvalidation";
     private static final Logger logger = Logger.getLogger(FoundLipid.class.getName());
     private static final String XML_LIPID_VALIDATION_ELEMENT = "lipidvalidation";

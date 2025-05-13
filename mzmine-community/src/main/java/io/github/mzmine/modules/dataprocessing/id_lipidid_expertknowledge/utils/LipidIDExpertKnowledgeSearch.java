@@ -1,27 +1,14 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils;
 
 
-import com.lowagie.text.Row;
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
-import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidAnnotationResolver;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.*;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.Lipid;
@@ -49,12 +36,6 @@ public class LipidIDExpertKnowledgeSearch {
             if (!row.getLipidMatches().isEmpty()) {
                 annotatedRows.add(row);
             }
-        }
-        //TODO quitar esto?
-        if (!annotatedRows.isEmpty()) {
-            System.out.println("-----G: " + group.getGroupID() + " has lipid matches: " + annotatedRows.size());
-        } else {
-            System.out.println("---G: " + group.getGroupID() + " does NOT have lipid matches");
         }
         return annotatedRows;
     }
@@ -89,7 +70,8 @@ public class LipidIDExpertKnowledgeSearch {
      * @param match MatchedLipid present in the row.
      * @return List of adducts found for the group the row is part of.
      */
-    public static List<FoundAdduct> findAdducts(List<ExpertKnowledge> adductsISF, RowInfo rowInfo, double mzTolerance, FeatureListRow row, MatchedLipid match) {
+    public static List<FoundAdduct> findAdducts(List<ExpertKnowledge> adductsISF, RowInfo rowInfo, double mzTolerance,
+                                                FeatureListRow row, MatchedLipid match) {
         List<FoundAdduct> foundAdducts = new ArrayList<>();
         List<Double> mzList = rowInfo.getMzList();
         List<Float> intensityList = rowInfo.getIntensityList();
@@ -194,17 +176,6 @@ public class LipidIDExpertKnowledgeSearch {
                 }
             }
         }
-        //if the foundAdducts is empty because it doesn't meet the conditions, I add default values with the most common ones
-        //+H and -H depending on polarity
-        RawDataFile rdf = row.getFeatures().get(0).getRawDataFile();
-        PolarityType polarity = rdf.getDataPolarity().get(0);
-        if (foundAdducts.isEmpty() && polarity.equals(PolarityType.POSITIVE) ) {
-            FoundAdduct defaultAdduct = new FoundAdduct("[M+H]+", 0.00, 0.00, 0.00, +1);
-            foundAdducts.add(defaultAdduct);
-        } else if (foundAdducts.isEmpty() && polarity.equals(PolarityType.NEGATIVE)) {
-            FoundAdduct defaultAdduct = new FoundAdduct("[M-H]-", 0.00, 0.00, 0.00, -1);
-            foundAdducts.add(defaultAdduct);
-        }
 
         Collections.sort(foundAdducts, Comparator.comparingDouble(FoundAdduct::getIntensity).reversed());
         return foundAdducts;
@@ -233,7 +204,6 @@ public class LipidIDExpertKnowledgeSearch {
         double totalMaxPresence;
         double totalMaxIntensity;
         double maxScore = 0.00;
-
 
         if (abbr.equals("CAR")) {
             lipid_ExpertKnowledge.setLipid(Lipid.CAR);

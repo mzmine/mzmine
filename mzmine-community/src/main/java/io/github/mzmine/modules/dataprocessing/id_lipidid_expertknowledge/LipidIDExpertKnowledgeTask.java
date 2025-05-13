@@ -174,8 +174,6 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
             }
         }
 
-        System.out.print(mobilePhase);
-
         List<ExpertKnowledge> commonAdductsISF = new ArrayList<>();
         List<FeatureListRow> annotatedRows = new ArrayList<>();
 
@@ -238,8 +236,6 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
             if (!annotatedRows.isEmpty()) {
                 for (FeatureListRow row : annotatedRows) {
                     List<MatchedLipid> lipidsMatched = row.getLipidMatches();
-                    // TODO quitar!?
-                    //System.out.println("-----Row:" + row.getAverageMZ() + " has lipid matches: " + lipidsMatched);
                     for (MatchedLipid matchedLipid : lipidsMatched) {
                         List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, matchedLipid);
 
@@ -248,23 +244,15 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                         } else if (polarityType.equals(PolarityType.NEGATIVE)) {
                             LipidIDExpertKnowledgeSearch.findLipidsNegative(row, matchedLipid, foundAdductsAndISF, mobilePhase);
                         }
-                        /*for (int i = 0; i<foundAdductsAndISF.size(); i++) {
-                            System.out.println(foundAdductsAndISF.get(i).getAdductName() + " : " + foundAdductsAndISF.get(i).getMzFeature()+ " : " + foundAdductsAndISF.get(i).getIntensity());
-                        }*/
                     }
                 }
             } else {
                 for (FeatureListRow row : group.getRows()) {
                     MatchedLipid match = null;
-                    //TODO quitar!?
-                    //System.out.println("-----Row:" + row.getAverageMZ() + " has lipid matches: " + match);
                     List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, match);
 
                     FoundLipid foundLipid = new FoundLipid(foundAdductsAndISF);
                     row.addLipidValidation(foundLipid);
-                    /*for (int i = 0; i<foundAdductsAndISF.size(); i++) {
-                        System.out.println(foundAdductsAndISF.get(i).getAdductName() + " : " + foundAdductsAndISF.get(i).getMzFeature() + " : " + foundAdductsAndISF.get(i).getIntensity());
-                    }*/
                 }
             }
 

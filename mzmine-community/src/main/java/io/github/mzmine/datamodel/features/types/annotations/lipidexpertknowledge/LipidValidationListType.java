@@ -1,15 +1,21 @@
 package io.github.mzmine.datamodel.features.types.annotations.lipidexpertknowledge;
 
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.*;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import javafx.scene.Node;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.shape.Circle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,7 +90,7 @@ public class LipidValidationListType extends ListWithSubsType<FoundLipid> implem
             return (K) lipid.getDescrCorrect();
         } else if (subType instanceof LipidValidationIncorrectDescriptionType) {
             return (K) lipid.getDescrIncorrect();
-        }else if (subType instanceof LipidValidationAdductsType)  {
+        } else if (subType instanceof LipidValidationAdductsType) {
             return (K) lipid.getAdducts();
         } else {
             throw new UnsupportedOperationException(
