@@ -65,6 +65,12 @@ public class Weights {
   public static final Weights NIST11 = new Weights("NIST11 (LC)", 0.53, 1.3);
   public static final Weights[] VALUES = new Weights[]{NONE, SQRT, MASSBANK, NIST11, NIST_GC};
 
+  /**
+   * used in pattern recognition
+   * {@link io.github.mzmine.modules.dataprocessing.id_patternsearch.PatternSearchTask}
+   */
+  public static final Weights INTENSITY = new Weights("INTENSITY", 1, 0);
+
   private final String name;
   private final double mz;
   private final double intensity;

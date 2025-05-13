@@ -24,27 +24,19 @@
 
 package io.github.mzmine.modules.dataprocessing.id_patternsearch;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureCorrelationUtil;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
-import io.github.mzmine.util.CorrelationGroupingUtils;
-import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
-import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
@@ -64,10 +56,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.validation.constraints.Null;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,11 +67,11 @@ public class PatternSearchTask extends AbstractFeatureListTask {
 
   private final FeatureList flist;
   private final SpectralSimilarityFunction similarityFunction = new WeightedCosineSpectralSimilarity(
-      WeightedCosineSpectralSimilarityParameters.of(Weights.SQRT, 0.7,
+      WeightedCosineSpectralSimilarityParameters.of(Weights.INTENSITY, 0.7,
           HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS));
-  private @NotNull MZTolerance interScanMergingTolerance = new MZTolerance(0.002, 2);
-  private @NotNull MZTolerance matchingTolerance = new MZTolerance(0.002, 2);
-  private SpectrumOption spectrumOption;
+//  private final @NotNull MZTolerance interScanMergingTolerance;
+  private final @NotNull MZTolerance matchingTolerance;
+  private SpectrumOption spectrumOption = SpectrumOption.MERGED_FWHM;
   private final File libraryFile;
   private AutoLibraryParser parser;
 
@@ -101,7 +91,7 @@ public class PatternSearchTask extends AbstractFeatureListTask {
     this.flist = flist;
     totalItems = flist.getNumberOfRows();
     libraryFile = parameters.getValue(PatternSearchParameters.libraryFile);
-    interScanMergingTolerance = parameters.getValue(PatternSearchParameters.ms1MergingTolerance);
+//    interScanMergingTolerance = parameters.getValue(PatternSearchParameters.ms1MergingTolerance);
     matchingTolerance = parameters.getValue(PatternSearchParameters.isotopeMatchingTolerance);
   }
 
@@ -121,9 +111,9 @@ public class PatternSearchTask extends AbstractFeatureListTask {
       final List<SpectralDBAnnotation> annotations = new ArrayList<>();
 
       for (ModularFeature feature : row.getFeatures()) {
-        spectrumOption = SpectrumOption.MERGED_FWHM;
-        final Scan featureSpectrum = extractSpectrumForFeature(feature, spectrumOption);
-        if(featureSpectrum == null) {
+//      final Scan featureSpectrum = extractSpectrumForFeature(feature, spectrumOption);
+        final Scan featureSpectrum = feature.getMostIntenseFragmentScan();
+        if (featureSpectrum == null) {
           continue;
         }
 
@@ -158,7 +148,7 @@ public class PatternSearchTask extends AbstractFeatureListTask {
     }
   }
 
-  @Nullable
+  /*@Nullable
   private Scan extractSpectrumForFeature(ModularFeature feature, SpectrumOption spectrumOption) {
     return switch (spectrumOption) {
       case MERGED_FWHM -> {
@@ -180,7 +170,7 @@ public class PatternSearchTask extends AbstractFeatureListTask {
         }
       }
     };
-  }
+  }*/
 
   @Override
   public String getTaskDescription() {

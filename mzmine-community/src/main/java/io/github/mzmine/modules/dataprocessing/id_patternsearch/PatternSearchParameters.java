@@ -24,28 +24,45 @@
 
 package io.github.mzmine.modules.dataprocessing.id_patternsearch;
 
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.ExtensionFilters;
+import javafx.scene.layout.Region;
+import org.jetbrains.annotations.Nullable;
 
 public class PatternSearchParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
   public static final FileNameParameter libraryFile = new FileNameParameter("Library file",
-      "Library file containing the pattern search library.", ExtensionFilters.ALL_LIBRARY, FileSelectionType.OPEN);
+      "Library file containing the pattern search library.", ExtensionFilters.ALL_LIBRARY,
+      FileSelectionType.OPEN);
 
-  public static final MZToleranceParameter ms1MergingTolerance = new MZToleranceParameter(
-      "MS1 merging tolerance", "Tolerance to merge MS1 scans with.", 0.005, 5);
+  public static final DoubleParameter minScore = new DoubleParameter("Minimum score",
+      "Minimum required score.", ConfigService.getGuiFormats().scoreFormat(), 0.9, 0d, 1d);
 
   public static final MZToleranceParameter isotopeMatchingTolerance = new MZToleranceParameter(
-      "MS1 merging tolerance", "Tolerance to merge MS1 scans with.", 0.002, 2);
-
+      "Pattern matching tolerance", "Tolerance to match the tolerance to the pattern.", 0.002, 2);
 
   public PatternSearchParameters() {
-    super(flists, libraryFile, ms1MergingTolerance, isotopeMatchingTolerance);
+    super(flists, libraryFile, minScore /*, ms1MergingTolerance*/, isotopeMatchingTolerance);
+  }
+
+  @Override
+  public @Nullable Region getMessage() {
+    return FxTextFlows.newTextFlow(FxTexts.text("""
+        This is an experimental/prototype module.
+        The intended use case is to recognise intensity patterns in spectra that are paired as fragmentation spectra. \
+        The pattern is specified in a spectral library. Each signal in the spectral library is shifted by the m/z of \
+        the specific feature. If a match is achieved, the match is added as a spectral library match.
+        To pair correlated MS1 signals, use the DIA correlation and set the scan filter to MS1."""));
   }
 }

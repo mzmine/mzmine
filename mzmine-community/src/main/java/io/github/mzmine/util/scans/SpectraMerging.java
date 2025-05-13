@@ -380,7 +380,7 @@ public class SpectraMerging {
           }
         }).toList();
 
-    if(scans.isEmpty()) {
+    if (scans.isEmpty()) {
       return null;
     }
 
@@ -403,8 +403,8 @@ public class SpectraMerging {
     } else {
       final List<? extends Scan> scans = f.getFeatureData().getSpectra().stream()
           .filter(s -> rtRange.contains(s.getRetentionTime())).toList();
-      return mergeSpectra(scans, tolerance, IntensityMergingType.SUMMED,
-          MergingType.ALL_ENERGIES, DEFAULT_CENTER_FUNCTION, storage);
+      return mergeSpectra(scans, tolerance, IntensityMergingType.SUMMED, MergingType.ALL_ENERGIES,
+          DEFAULT_CENTER_FUNCTION, storage);
     }
   }
 
