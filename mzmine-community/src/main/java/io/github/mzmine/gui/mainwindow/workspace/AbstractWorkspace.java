@@ -114,6 +114,7 @@ import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureC
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.isotope_labeling.IsotopeLabelingModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
 import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
@@ -336,6 +337,7 @@ public abstract class AbstractWorkspace implements Workspace {
     addSeparator(featureVis);
     addModuleMenuItems(featureVis, "Lipids", EquivalentCarbonNumberModule.class,
         LipidAnnotationSummaryModule.class);
+    addModuleMenuItem(featureVis, IsotopeLabelingModule.class, null);
     // end of feature visualization
     // back to main visualization menu
     addModuleMenuItems(menu, MSnTreeVisualizerModule.class);
