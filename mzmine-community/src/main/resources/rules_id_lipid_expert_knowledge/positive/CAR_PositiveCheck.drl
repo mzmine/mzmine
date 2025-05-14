@@ -3,10 +3,12 @@ package rules_id_lipid_expert_knowledge.positive;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.CommonAdductPositive;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
-
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
+import java.util.List;
 
 // Declare the global list
 global FoundLipid lipid;
+global List mobilePhases;
 
 rule "Presence [M+H]+"
 when
