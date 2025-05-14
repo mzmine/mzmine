@@ -234,14 +234,18 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
             RowInfo rowInfo = LipidIDExpertKnowledgeSearch.findRowInfo(group);
 
             if (!annotatedRows.isEmpty()) {
+                String[] positiveNames = {"CAR","CE","Cer","Chol","DG","HexCer","LPC","LPE","LPI","PC","PE","PI","SM","TG"};
+                String[] negativeNames = {"Cer","DG","FA","HexCer","LPC","LPE","LPI","PC","PE","PI","SM"};
+
                 for (FeatureListRow row : annotatedRows) {
                     List<MatchedLipid> lipidsMatched = row.getLipidMatches();
                     for (MatchedLipid matchedLipid : lipidsMatched) {
+                        String abbr = matchedLipid.getLipidAnnotation().getLipidClass().getAbbr();
                         List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, matchedLipid);
 
-                        if (polarityType.equals(PolarityType.POSITIVE)) {
+                        if (polarityType.equals(PolarityType.POSITIVE) && Arrays.asList(positiveNames).contains(abbr)) {
                             LipidIDExpertKnowledgeSearch.findLipidsPositive(row, matchedLipid, foundAdductsAndISF, mobilePhase);
-                        } else if (polarityType.equals(PolarityType.NEGATIVE)) {
+                        } else if (polarityType.equals(PolarityType.NEGATIVE) && Arrays.asList(negativeNames).contains(abbr)) {
                             LipidIDExpertKnowledgeSearch.findLipidsNegative(row, matchedLipid, foundAdductsAndISF, mobilePhase);
                         }
                     }
