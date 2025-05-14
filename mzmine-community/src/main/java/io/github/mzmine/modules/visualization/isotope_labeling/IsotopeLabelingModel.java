@@ -61,7 +61,7 @@ public class IsotopeLabelingModel {
 
   // Visualization properties
   private final StringProperty visualizationType = new SimpleStringProperty("Relative intensities");
-  private final BooleanProperty normalizeToBaseIsotopologue = new SimpleBooleanProperty(true);
+  private final BooleanProperty normalizeToBaseIsotopologue = new SimpleBooleanProperty(false);
   private final IntegerProperty maxIsotopologues = new SimpleIntegerProperty(10);
 
   // Chart data
