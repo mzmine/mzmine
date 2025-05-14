@@ -1,6 +1,5 @@
 package util.lipidvalidationtest;
 
-import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
@@ -20,9 +19,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TestFindLipids {
 
+    DummyModularFeatureList dummyList;
+    CapturingFeatureListRow row;
+
     @BeforeEach
     void setUp(){
         // CODE THAT IS COMMON TO ALL LIPID TESTS
+        dummyList = new DummyModularFeatureList(null, null, List.of(new DummyRawDataFile()));
+        row = new CapturingFeatureListRow(dummyList, 0);
     }
 
     /**
@@ -31,10 +35,6 @@ public class TestFindLipids {
      */
     @Test
     void testFindLipidsPositive_DG_allMobilePhases_C2H7N2_Na() {
-        DummyModularFeatureList flist = new DummyModularFeatureList(null, null, List.of(new DummyRawDataFile()));
-        //DummyFeatureListRow row = new DummyFeatureListRow(flist, 0);
-        CapturingFeatureListRow row = new CapturingFeatureListRow(flist, 0);
-
 
         LipidClasses lipid = LipidClasses.DIACYLGLYCEROLS;
         MolecularSpeciesLevelAnnotation msla = new MolecularSpeciesLevelAnnotation(lipid, null, null, null);
@@ -62,10 +62,6 @@ public class TestFindLipids {
      */
     @Test
     void testFindLipidsPositive_DG_someMobilePhases_NoC2H7N2_Na() {
-        DummyModularFeatureList flist = new DummyModularFeatureList(null, null, List.of(new DummyRawDataFile()));
-        //DummyFeatureListRow row = new DummyFeatureListRow(flist, 0);
-        CapturingFeatureListRow row = new CapturingFeatureListRow(flist, 0);
-
 
         LipidClasses lipid = LipidClasses.DIACYLGLYCEROLS;
         MolecularSpeciesLevelAnnotation msla = new MolecularSpeciesLevelAnnotation(lipid, null, null, null);
@@ -94,8 +90,6 @@ public class TestFindLipids {
      */
     @Test
     void testFindLipidsPositive_pathIsNull_noValidationAdded() {
-        DummyModularFeatureList dummyList = new DummyModularFeatureList(null, null, List.of(new DummyRawDataFile()));
-        CapturingFeatureListRow row = new CapturingFeatureListRow(dummyList, 0);
 
         LipidClasses unknownLipid = LipidClasses.FATTYACIDESTOLIDES;
         MolecularSpeciesLevelAnnotation annotation = new MolecularSpeciesLevelAnnotation(unknownLipid, null, null, null);
@@ -110,7 +104,7 @@ public class TestFindLipids {
 
         // Assert that no actual lipid was added
         FoundLipid captured = row.getCapturedLipid();
-        assertTrue(captured == null || captured.getScore() == 0.0, "No meaningful lipid should be added when path is null");
+        assertTrue(captured.getScore() == 0.0, "No meaningful lipid should be added when path is null");
     }
 
 

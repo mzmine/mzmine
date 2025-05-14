@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- *
+ * Dummy implementation of RawDataFile for testing purposes.
  */
 public class DummyRawDataFile implements RawDataFile {
 
