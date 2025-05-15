@@ -29,12 +29,14 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import io.github.mzmine.project.ProjectService;
 import java.util.Objects;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeTableColumn;
@@ -71,24 +73,18 @@ public class MetadataHeaderColumn<S, T> extends TreeTableColumn<S, T> {
     final Label title = new Label(dataType.getHeaderString());
     header.getChildren().add(title);
 
-    final ComboBox<MetadataColumn<?>> metadataColumnBox = new ComboBox<>();
-    metadataColumnBox.setEditable(false);
+    // using a combobox here causes the virtual flow to fail. This lead to the feature table not
+    // jumping to/selecting the row if a loading was selected in the stats dashboard scores plot
+    final ChoiceBox<MetadataColumn<?>> metadataColumnBox = new ChoiceBox<>();
     metadataColumnBox.getItems().addAll(ProjectService.getMetadata().getColumns());
-    metadataColumnBox.setMinWidth(ComboBox.USE_PREF_SIZE);
+    metadataColumnBox.getSelectionModel().selectFirst();
+    metadataColumnBox.valueProperty().bindBidirectional(selectedColumn);
+    metadataColumnBox.setMaxWidth(Double.MAX_VALUE);
     header.getChildren().add(metadataColumnBox);
     VBox.setVgrow(metadataColumnBox, Priority.ALWAYS);
+
     setGraphic(header);
-
-    metadataColumnBox.getSelectionModel().selectFirst();
-
-    metadataColumnBox.valueProperty().bindBidirectional(selectedColumn);
     selectedColumn.set(defaultColumn);
-
-//    final PauseTransition setDelay = new PauseTransition(Duration.millis(1000));
-//    setDelay.setOnFinished(_ -> {
-//      getTreeTableView().refresh();
-//    });
-//    setDelay.playFromStart();
   }
 
   public @Nullable MetadataColumn<?> getSelectedColumn() {
