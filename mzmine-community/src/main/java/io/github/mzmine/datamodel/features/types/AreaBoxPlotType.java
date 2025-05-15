@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.fx.MetadataHeaderColumn;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.AbundanceBarCell;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
@@ -43,7 +44,9 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.Map;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.scene.Node;
+import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +68,7 @@ public class AreaBoxPlotType extends LinkedGraphicalType {
 
   @Override
   public double getColumnWidth() {
-    return 150;
+    return GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH;
   }
 
   @Override
@@ -79,13 +82,14 @@ public class AreaBoxPlotType extends LinkedGraphicalType {
   public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
 
-    final MetadataHeaderColumn<ModularFeatureListRow, Object> col = new MetadataHeaderColumn<>(this,
-        ProjectService.getMetadata().getSampleTypeColumn());
+    final MetadataHeaderColumn<ModularFeatureListRow, Object> col = new MetadataHeaderColumn<>(
+        this, ProjectService.getMetadata().getSampleTypeColumn());
 
     // define observable
     col.setCellFactory(
-        c -> new AbundanceBarCell<>(col.selectedColumnProperty(), AbundanceMeasure.Area));
-    col.setCellValueFactory(new DataTypeCellValueFactory(raw, this, parentType, subColumnIndex));
+        c -> (TreeTableCell) new AbundanceBarCell(col.selectedColumnProperty(), AbundanceMeasure.Area));
+//    col.setCellValueFactory(new DataTypeCellValueFactory(raw, this, parentType, subColumnIndex));
+    col.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
     return col;
   }
 

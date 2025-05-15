@@ -74,7 +74,8 @@ public class FeatureTableFXUtil {
       // not expanded
       return;
     }
-    VirtualFlow<?> flow = (VirtualFlow<?>) table.lookup(".virtual-flow");
+
+    VirtualFlow<?> flow = (VirtualFlow<?>) table.getTable().lookup(".virtual-flow");
     if (flow != null) {
       final IndexedCell<?> firstCell = flow.getFirstVisibleCell();
       final IndexedCell<?> lastCell = flow.getLastVisibleCell();

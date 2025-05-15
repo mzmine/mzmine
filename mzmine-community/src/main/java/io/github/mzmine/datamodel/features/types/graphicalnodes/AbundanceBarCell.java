@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.features.types.graphicalnodes;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
@@ -37,7 +38,7 @@ import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AbundanceBarCell<V> extends TreeTableCell<ModularFeatureListRow, V> {
+public class AbundanceBarCell extends TreeTableCell<ModularFeatureListRow, ModularFeatureListRow> {
 
   private final RowsBoxplotController boxPlot;
   private final Region view;
@@ -49,38 +50,24 @@ public class AbundanceBarCell<V> extends TreeTableCell<ModularFeatureListRow, V>
     boxPlot = new RowsBoxplotController();
     setMinHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
 
-    // does not update properly somehow
-    /*PropertyUtils.onChange(() -> {
-      final ModularFeatureListRow row = tableRowProperty().get().getItem();
+    PropertyUtils.onChange(() -> {
+      final ModularFeatureListRow row = (ModularFeatureListRow) itemProperty().get();
       if (row != null && !emptyProperty().get()) {
         boxPlot.selectedRowsProperty().set(List.of(row));
       } else {
         boxPlot.selectedRowsProperty().set(List.of());
       }
-    }, tableRowProperty(), itemProperty(), emptyProperty());*/
+    }, tableRowProperty(), itemProperty(), emptyProperty());
 
     boxPlot.abundanceMeasureProperty().set(abundanceMeasure);
     boxPlot.groupingColumnProperty().bindBidirectional(groupingColumn);
 
     boxPlot.showCategoryAxisLabelProperty().set(false);
     boxPlot.showTitleProperty().set(false);
-    boxPlot.showColumnAxisLabelsProperty().set(false);
+    boxPlot.showColumnAxisLabelsProperty().set(true);
 
     view = boxPlot.buildView();
     setGraphic(view);
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-  }
-
-  @Override
-  protected void updateItem(V v, boolean isEmpty) {
-    super.updateItem(v, isEmpty);
-    final ModularFeatureListRow row = tableRowProperty().get().getItem();
-    if (row != null && !isEmpty) {
-      setGraphic(view);
-      boxPlot.selectedRowsProperty().set(List.of(row));
-    } else {
-      setGraphic(null);
-      boxPlot.selectedRowsProperty().set(List.of());
-    }
   }
 }

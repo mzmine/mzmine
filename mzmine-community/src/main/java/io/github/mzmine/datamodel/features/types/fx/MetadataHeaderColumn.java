@@ -25,7 +25,8 @@
 package io.github.mzmine.datamodel.features.types.fx;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
@@ -37,62 +38,57 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Creates a table column that has a combo box in it's header, which allows selection of a metadata column.
+ * Creates a table column that has a combo box in it's header, which allows selection of a metadata
+ * column.
+ *
  * @param <S>
  * @param <T>
  */
 public class MetadataHeaderColumn<S, T> extends TreeTableColumn<S, T> {
 
   private final ObjectProperty<@Nullable MetadataColumn<?>> selectedColumn = new SimpleObjectProperty<>();
-  private final PauseTransition delay = new PauseTransition(new Duration(100));
+  private final PauseTransition delay = new PauseTransition(Duration.millis(100));
 
   public MetadataHeaderColumn(@NotNull DataType<?> dataType,
       @Nullable MetadataColumn<?> defaultColumn) {
+    super();
 
     setUserData(dataType);
     setSortable(true);
     if (dataType.getPrefColumnWidth() > 0) {
       setPrefWidth(dataType.getPrefColumnWidth());
     }
-    final BorderPane header = new BorderPane();
+
+    final VBox header = FxLayout.newVBox(Pos.CENTER);
+    header.setFillWidth(true);
     final Label title = new Label(dataType.getHeaderString());
-    header.setTop(title);
-    BorderPane.setAlignment(title, Pos.TOP_CENTER);
+    header.getChildren().add(title);
 
-    final ComboBox<String> metadataColumnBox = new ComboBox<>();
-    metadataColumnBox.setEditable(true);
-    metadataColumnBox.getItems().addAll(ProjectService.getMetadata().getColumnTitles());
-    metadataColumnBox.valueProperty().addListener((_, _, _) -> delay.playFromStart());
+    final ComboBox<MetadataColumn<?>> metadataColumnBox = new ComboBox<>();
+    metadataColumnBox.setEditable(false);
+    metadataColumnBox.getItems().addAll(ProjectService.getMetadata().getColumns());
+    metadataColumnBox.setMinWidth(ComboBox.USE_PREF_SIZE);
+    header.getChildren().add(metadataColumnBox);
+    VBox.setVgrow(metadataColumnBox, Priority.ALWAYS);
+    setGraphic(header);
 
-    delay.setOnFinished(_ -> {
-      final String columnName = metadataColumnBox.getValue();
-      final MetadataTable metadata = ProjectService.getMetadata();
-      final MetadataColumn<?> column = metadata.getColumnByName(columnName);
-      if (column != selectedColumn.get()) {
-        selectedColumn.set(column);
-      }
-    });
+    metadataColumnBox.getSelectionModel().selectFirst();
 
-    selectedColumn.addListener((_, _, newColumn) -> {
-      if (newColumn != null) {
-        if (!Objects.equals(metadataColumnBox.getValue(), newColumn.getTitle())) {
-          metadataColumnBox.setValue(newColumn.getTitle());
-        }
-      } else {
-        metadataColumnBox.setValue(null);
-      }
-    });
-
+    metadataColumnBox.valueProperty().bindBidirectional(selectedColumn);
     selectedColumn.set(defaultColumn);
 
-    header.setCenter(metadataColumnBox);
-    setGraphic(header);
+//    final PauseTransition setDelay = new PauseTransition(Duration.millis(1000));
+//    setDelay.setOnFinished(_ -> {
+//      getTreeTableView().refresh();
+//    });
+//    setDelay.playFromStart();
   }
 
   public @Nullable MetadataColumn<?> getSelectedColumn() {
