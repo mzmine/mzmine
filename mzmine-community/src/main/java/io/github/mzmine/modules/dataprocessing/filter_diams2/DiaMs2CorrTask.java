@@ -756,7 +756,8 @@ public class DiaMs2CorrTask extends AbstractTask {
     }
 
     if (windowScanMap.isEmpty()) {
-      windowScanMap.put(new IsolationWindow(Range.closed(Double.MIN_VALUE, Double.MAX_VALUE), null),
+      // in case no isolation window was found, use one single isolation window that encloses everything
+      windowScanMap.put(new IsolationWindow(Range.closed(0d, Double.MAX_VALUE), null),
           ms2ScanSelection.getMatchingScans(file.getScans()));
     }
 

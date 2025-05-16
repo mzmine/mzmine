@@ -118,7 +118,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   // only used for single spectrum searches
   private final Double singleScanPrecursorMZ;
-  private final boolean isSingleScanSearch;
 
   /**
    * Constructor used for matchign a single spectrum via
@@ -131,7 +130,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this.parameters = singleSpectrumParam.toSearchParameters(scan);
     this.scan = scan;
     this.rows = null;
-    isSingleScanSearch = true;
 
     mzToleranceSpectra = parameters.getValue(SpectralLibrarySearchParameters.mzTolerance);
     msLevelFilter = MsLevelFilter.of(scan.getMSLevel());
@@ -192,7 +190,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this.parameters = parameters;
     this.rows = rows;
     this.scan = null;
-    isSingleScanSearch = false;
     singleScanPrecursorMZ = null;
 
     mzToleranceSpectra = parameters.getValue(SpectralLibrarySearchParameters.mzTolerance);
