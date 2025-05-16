@@ -96,6 +96,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,6 +124,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
   private double isolationWindowMergingProgress = 0d;
   private double adapTaskProgess = 0d;
+  private boolean discriminateByCE;
 
   protected DiaMs2CorrTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       ModularFeatureList flist, ParameterSet parameters) {
@@ -229,9 +231,14 @@ public class DiaMs2CorrTask extends AbstractTask {
       final List<@NotNull PseudoSpectrum> correlatedMs2s = processIsolationWindows(feature,
           matchingWindows, isoWindowEicsMap, isolationWindowScanMap);
 
-      PseudoSpectrum reoccurringIons = refineMs2s(correlatedMs2s);
-      feature.setAllMS2FragmentScans(
-          reoccurringIons != null ? List.of(reoccurringIons) : List.of());
+      if(!discriminateByCE) {
+        // we can only refine if we don't discriminate by CE, otherwise we compare spectra of different CEs
+        PseudoSpectrum reoccurringIons = refineMs2s(correlatedMs2s);
+        feature.setAllMS2FragmentScans(
+            reoccurringIons != null ? List.of(reoccurringIons) : List.of());
+      } else {
+        feature.setAllMS2FragmentScans((List<Scan>)(List<? extends Scan>)correlatedMs2s);
+      }
     }
 
     flist.getAppliedMethods().add(
@@ -730,14 +737,24 @@ public class DiaMs2CorrTask extends AbstractTask {
 
   private Map<IsolationWindow, List<Scan>> extractIsolationWindows(
       @NotNull final RawDataFile file) {
+    final long numberOfCEs = ScanUtils.streamMsMsInfos(file.getScans(), null)
+        .filter(Objects::nonNull).map(MsMsInfo::getActivationEnergy).filter(Objects::nonNull)
+        .distinct().count();
+    if (numberOfCEs < 5 && !(file instanceof IMSRawDataFile)) {
+      discriminateByCE = true;
+    } else {
+      discriminateByCE = false;
+    }
+
     Map<IsolationWindow, List<Scan>> windowScanMap = new HashMap<>();
     for (Scan scan : ms2ScanSelection.getMatchingScans(file)) {
 
       if (scan instanceof Frame frame) {
         final Set<IonMobilityMsMsInfo> imsMsMsInfos = frame.getImsMsMsInfos();
         for (IonMobilityMsMsInfo info : imsMsMsInfos) {
+          // set CE of IsolationWindow to null to never discriminate by CE in IMS data. May be ramped along the mobility axis.
           IsolationWindow window = new IsolationWindow(info.getIsolationWindow(),
-              info.getMobilityRange());
+              info.getMobilityRange(), null);
           final List<Scan> scans = windowScanMap.computeIfAbsent(window, w -> new ArrayList<>());
           // have to extract some mocked frames later
           scans.add(scan);
@@ -749,7 +766,8 @@ public class DiaMs2CorrTask extends AbstractTask {
         }
 
         final Range<Double> mzRange = msMsInfo.getIsolationWindow();
-        IsolationWindow window = new IsolationWindow(mzRange, null);
+        IsolationWindow window = new IsolationWindow(mzRange, null,
+            discriminateByCE ? msMsInfo.getActivationEnergy() : null);
         final List<Scan> scans = windowScanMap.computeIfAbsent(window, w -> new ArrayList<>());
         scans.add(scan);
       }
@@ -757,7 +775,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
     if (windowScanMap.isEmpty()) {
       // in case no isolation window was found, use one single isolation window that encloses everything
-      windowScanMap.put(new IsolationWindow(Range.closed(0d, Double.MAX_VALUE), null),
+      windowScanMap.put(new IsolationWindow(Range.closed(0d, Double.MAX_VALUE),  null, null),
           ms2ScanSelection.getMatchingScans(file.getScans()));
     }
 

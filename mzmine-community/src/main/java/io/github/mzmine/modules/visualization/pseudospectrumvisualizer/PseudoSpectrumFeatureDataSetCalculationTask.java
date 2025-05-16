@@ -114,7 +114,7 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
       // SWATH / DIA PASEF etc
       switch (scan) {
         case Frame frame -> {
-          frame.getImsMsMsInfos().stream().map(IsolationWindow::new)
+          frame.getImsMsMsInfos().stream().map(info -> new IsolationWindow(info, false))
               .filter(w -> w.contains(feature)).findAny().ifPresent(_ -> c.accept(frame));
         }
         default -> {
