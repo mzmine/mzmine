@@ -40,7 +40,7 @@ public class ExportFeaturesToXMLTask extends AbstractFeatureListTask {
 
   private static final Logger logger = Logger.getLogger(ExportFeaturesToXMLTask.class.getName());
 
-  private final FeatureList flist;
+  private final ModularFeatureList flist;
   private File file;
 
   /**
@@ -53,7 +53,7 @@ public class ExportFeaturesToXMLTask extends AbstractFeatureListTask {
    */
   protected ExportFeaturesToXMLTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
-      @NotNull Class<? extends MZmineModule> moduleClass, FeatureList flist) {
+      @NotNull Class<? extends MZmineModule> moduleClass, ModularFeatureList flist) {
     super(storage, moduleCallDate, parameters, moduleClass);
 
     this.flist = flist;
@@ -81,42 +81,11 @@ public class ExportFeaturesToXMLTask extends AbstractFeatureListTask {
       writer.writeAttribute(CONST.XML_DATE_CREATED_ATTR, flist.getDateCreated());
 
       for (final var row : flist.getRowsCopy()) {
-        writer.writeStartElement(CONST.XML_ROW_ELEMENT); // row
-        writer.writeAttribute(new IDType().getUniqueID(), String.valueOf(row.getID()));
-
-        for (final var feature : row.getFeatures()) {
-          final RawDataFile file = feature.getRawDataFile();
-          if (file == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
-            continue;
-          }
-
-          writer.writeStartElement(CONST.XML_FEATURE_ELEMENT); // feature
-          writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, file.getName());
-
-          final FeatureDataType type = new FeatureDataType();
-          final IonTimeSeries<? extends Scan> series = feature.getFeatureData();
-
-          writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT); // data type element
-          writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, type.getUniqueID());
-
-          final List<? extends Scan> selectedScans = flist.getSeletedScans(file);
-          if (selectedScans == null) {
-            // sanity check during saving.
-            throw new IllegalArgumentException("Cannot find selected scans.");
-          }
-
-          { // feature data
-            writer.writeStartElement(type.getUniqueID());
-            series.saveValueToXML(writer, (List) file.getScans(),
-                true); // use ALL scans of the given raw data file.
-            writer.writeEndElement();
-          }
-          writer.writeEndElement(); // data type element
-
-          writer.writeEndElement(); // feature
+        if (isCanceled()) {
+          break;
         }
 
-        writer.writeEndElement(); // row
+        FeatureListSaveTask.writeRow(writer, flist, (ModularFeatureListRow) row);
       }
 
       writer.writeEndElement(); // feature list

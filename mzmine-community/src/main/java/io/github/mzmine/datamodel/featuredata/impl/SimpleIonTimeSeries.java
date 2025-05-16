@@ -240,7 +240,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   @Override
   public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans)
       throws XMLStreamException {
-    saveValueToXML(writer, allScans, false);
+    saveValueToXML(writer, allScans, true);
   }
 
   @Override

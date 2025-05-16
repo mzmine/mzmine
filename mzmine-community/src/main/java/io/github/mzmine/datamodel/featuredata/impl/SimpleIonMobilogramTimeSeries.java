@@ -360,20 +360,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   @Override
   public void saveValueToXML(XMLStreamWriter writer, List<Frame> allScans)
       throws XMLStreamException {
-    writer.writeStartElement(SimpleIonMobilogramTimeSeries.XML_ELEMENT);
-
-    IntensitySeries.saveIntensityValuesToXML(writer, this);
-    MzSeries.saveMzValuesToXML(writer, this);
-    IonSpectrumSeries.saveSpectraIndicesToXML(writer, this, allScans);
-
-    summedMobilogram.saveValueToXML(writer);
-
-    for (IonMobilitySeries mobilogram : mobilograms) {
-      IonMobilitySeries.saveMobilogramToXML(writer, mobilogram,
-          mobilogram.getSpectrum(0).getFrame().getMobilityScans());
-    }
-
-    writer.writeEndElement();
+    saveValueToXML(writer, allScans, true);
   }
 
   @Override

@@ -2,6 +2,7 @@ package io.github.mzmine.modules.io.export_features_xml;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.impl.TaskPerFeatureListModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -13,14 +14,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class ExportFeaturesToXMLModule extends TaskPerFeatureListModule {
 
-  /**
-   * @param name                  name of the module in the menu and quick access
-   * @param parameterSetClass     the class of the parameters
-   * @param moduleCategory        module category for quick access and batch mode
-   * @param requiresMemoryMapping if true and if memory mapping is activated, task will get a memory
-   *                              map storage
-   * @param description           the description of the task
-   */
   public ExportFeaturesToXMLModule() {
     super("Export features to XML", ExportFeaturesToXMLParameters.class,
         MZmineModuleCategory.FEATURELISTEXPORT, false,
@@ -32,6 +25,6 @@ public class ExportFeaturesToXMLModule extends TaskPerFeatureListModule {
       @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
       @NotNull FeatureList featureList) {
     return new ExportFeaturesToXMLTask(storage, moduleCallDate, parameters, this.getClass(),
-        featureList);
+        (ModularFeatureList) featureList);
   }
 }

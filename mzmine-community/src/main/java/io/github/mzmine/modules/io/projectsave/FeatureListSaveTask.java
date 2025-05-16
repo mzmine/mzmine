@@ -144,10 +144,10 @@ public class FeatureListSaveTask extends AbstractTask {
       appendMetadata(document, root, flist);
 
       XMLUtils.saveToFile(tempFile, document);
-      zos.putNextEntry(new ZipEntry(getMetadataFileName(flist.getName())));
+        zos.putNextEntry(new ZipEntry(getMetadataFileName(flist.getName())));
 
-      try (InputStream is = new FileInputStream(tempFile)) {
-        copy.copy(is, zos);
+        try (InputStream is = new FileInputStream(tempFile)) {
+          copy.copy(is, zos);
       }
 
       tempFile.delete();
@@ -244,7 +244,7 @@ public class FeatureListSaveTask extends AbstractTask {
         }
 
         ModularFeatureListRow row = (ModularFeatureListRow) r;
-        writeRow(writer, row);
+        writeRow(writer, flist, row);
 
         processedRows++;
       }
@@ -263,20 +263,21 @@ public class FeatureListSaveTask extends AbstractTask {
       return false;
     }
 
-    try (FileInputStream is = new FileInputStream(tempFile)) {
-      zos.putNextEntry(new ZipEntry(getDataFileName(flist.getName())));
-      copy.copy(is, zos);
-    } catch (IOException e) {
-      logger.log(Level.SEVERE, e.getMessage(), e);
-      setStatus(TaskStatus.ERROR);
-      return false;
+      try (FileInputStream is = new FileInputStream(tempFile)) {
+        zos.putNextEntry(new ZipEntry(getDataFileName(flist.getName())));
+        copy.copy(is, zos);
+      } catch (IOException e) {
+        logger.log(Level.SEVERE, e.getMessage(), e);
+        setStatus(TaskStatus.ERROR);
+        return false;
     }
 
 //    tempFile.delete();
     return true;
   }
 
-  private void writeRow(XMLStreamWriter writer, ModularFeatureListRow row)
+  public static void writeRow(XMLStreamWriter writer, ModularFeatureList flist,
+      ModularFeatureListRow row)
       throws XMLStreamException {
 
     writer.writeStartElement(CONST.XML_ROW_ELEMENT);
@@ -292,7 +293,7 @@ public class FeatureListSaveTask extends AbstractTask {
     }
 
     for (ModularFeature feature : row.getFeatures()) {
-      writeFeature(writer, row, feature);
+      writeFeature(writer, flist, row, feature);
     }
 
     writer.writeEndElement();
@@ -316,7 +317,8 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeEndElement();
   }
 
-  private void writeFeature(XMLStreamWriter writer, ModularFeatureListRow row,
+  public static void writeFeature(XMLStreamWriter writer, ModularFeatureList flist,
+      ModularFeatureListRow row,
       ModularFeature feature) throws XMLStreamException {
     final RawDataFile rawDataFile = feature.getRawDataFile();
     if (rawDataFile == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
