@@ -25,35 +25,85 @@
 
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
+import io.github.mzmine.javafx.components.factories.FxTextFields;
+import io.github.mzmine.javafx.components.formatters.FormatDoubleStringConverter;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ValuePropertyComponent;
+import java.util.Objects;
+import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
-import javafx.util.converter.NumberStringConverter;
 import org.jetbrains.annotations.Nullable;
 
-public class MZToleranceComponent extends FlowPane {
+public class MZToleranceComponent extends FlowPane implements ValuePropertyComponent<MZTolerance> {
+
+  private static final Logger logger = Logger.getLogger(MZToleranceComponent.class.getName());
 
   private final TextField mzToleranceField, ppmToleranceField;
+  private final ObjectProperty<MZTolerance> valueProperty = new SimpleObjectProperty<>();
+  private final TextFormatter<Double> absoluteFormatter;
+  private final TextFormatter<Double> relativeFormatter;
 
   public MZToleranceComponent() {
+    setAlignment(Pos.CENTER_LEFT);
     setHgap(5);
     // setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
 
     mzToleranceField = new TextField();
     mzToleranceField.setPrefColumnCount(6);
-    mzToleranceField.setTextFormatter(new TextFormatter<>(
-        new NumberStringConverter(MZmineCore.getConfiguration().getMZFormat())));
+    absoluteFormatter = new TextFormatter<>(
+        new FormatDoubleStringConverter(MZmineCore.getConfiguration().getMZFormat()));
+    FxTextFields.attachDelayedTextFormatter(mzToleranceField, absoluteFormatter);
 
     ppmToleranceField = new TextField();
     ppmToleranceField.setPrefColumnCount(6);
-    ppmToleranceField.setTextFormatter(new TextFormatter<>(
-        new NumberStringConverter(MZmineCore.getConfiguration().getPPMFormat())));
+    relativeFormatter = new TextFormatter<>(
+        new FormatDoubleStringConverter(MZmineCore.getConfiguration().getPPMFormat()));
+    FxTextFields.attachDelayedTextFormatter(ppmToleranceField, relativeFormatter);
 
     getChildren().addAll(mzToleranceField, new Label("m/z  or"), ppmToleranceField,
         new Label("ppm"));
+
+    absoluteFormatter.valueProperty().addListener((__, _, newValue) -> {
+      final MZTolerance value = getValue();
+      if (value != null) {
+        // only update if valid
+        valueProperty.set(value);
+      }
+    });
+    relativeFormatter.valueProperty().addListener((__, _, newValue) -> {
+      final MZTolerance value = getValue();
+      if (value != null) {
+        // only update if valid
+        valueProperty.set(getValue());
+      }
+    });
+
+    valueProperty.addListener((__, oldValue, newValue) -> {
+      if (Objects.equals(oldValue, newValue)) {
+        return;
+      }
+
+      if (newValue == null) {
+        ppmToleranceField.setText("");
+        mzToleranceField.setText("");
+        return;
+      }
+
+      // only update the formatted text instead of the value of the formatter, this way we circumvent precision errors
+      ppmToleranceField.setText(
+          relativeFormatter.getValueConverter().toString(newValue.getPpmTolerance()));
+      mzToleranceField.setText(
+          absoluteFormatter.getValueConverter().toString(newValue.getMzTolerance()));
+      logger.finest("Value property changed to " + newValue);
+    });
   }
 
   public MZTolerance getValue() {
@@ -62,7 +112,7 @@ public class MZToleranceComponent extends FlowPane {
       double ppmTolerance = Double.parseDouble(ppmToleranceField.getText().trim());
       MZTolerance value = new MZTolerance(mzTolerance, ppmTolerance);
       return value;
-    } catch (NumberFormatException e) {
+    } catch (NumberFormatException | NullPointerException e) {
       return null;
     }
   }
@@ -83,7 +133,12 @@ public class MZToleranceComponent extends FlowPane {
   }
 
   public void setListener(Runnable listener) {
-    mzToleranceField.textProperty().addListener((o, oldValue, newValue) -> listener.run());
-    ppmToleranceField.textProperty().addListener((o, oldValue, newValue) -> listener.run());
+    mzToleranceField.textProperty().addListener((_, _, _) -> listener.run());
+    ppmToleranceField.textProperty().addListener((_, _, _) -> listener.run());
+  }
+
+  @Override
+  public Property<MZTolerance> valueProperty() {
+    return valueProperty;
   }
 }
