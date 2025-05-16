@@ -33,8 +33,10 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.layout.Region;
+import javax.tools.Tool;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +66,7 @@ public class AbundanceBarCell extends TreeTableCell<ModularFeatureListRow, Modul
 
     boxPlot.showCategoryAxisLabelProperty().set(false);
     boxPlot.showTitleProperty().set(false);
-    boxPlot.showColumnAxisLabelsProperty().set(true);
+    boxPlot.showColumnAxisLabelsProperty().set(false);
 
     view = boxPlot.buildView();
     setGraphic(view);
