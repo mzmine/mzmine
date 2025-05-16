@@ -59,4 +59,7 @@ public class StatsDashboardTab extends SimpleTab {
         featureLists.stream().filter(FeatureList::isAligned).map(FeatureList.class::cast).toList());
   }
 
+  public StatsDashboardController getController() {
+    return controller;
+  }
 }

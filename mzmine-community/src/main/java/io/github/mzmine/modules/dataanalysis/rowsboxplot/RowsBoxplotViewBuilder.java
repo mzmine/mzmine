@@ -38,7 +38,9 @@ import javafx.scene.layout.Region;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.CategoryItemLabelGenerator;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
+import org.jfree.chart.title.TextTitle;
 
 public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
 
@@ -68,7 +70,9 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
         final List<FeatureListRow> selectedRows = model.getSelectedRows();
         if (selectedRows != null && !selectedRows.isEmpty()) {
           final FeatureListRow row = selectedRows.getFirst();
-          barChart.setTitle(row.toString());
+          if (model.isShowTitle()) {
+            barChart.setTitle(row.toString());
+          }
         }
         if (n != null) {
           final SimpleColorPalette colors = n.getColorPalette();
@@ -81,8 +85,21 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
       barChart.getCategoryPlot().setDataset(0, n);
     });
 
-    model.abundanceMeasureProperty().addListener((_, _, n) -> {
+    model.abundanceMeasureProperty().subscribe((n) -> {
       barChart.getCategoryPlot().getRangeAxis().setLabel(DataTypes.get(n.type()).getHeaderString());
+    });
+
+    final String categoryAxisLabel = barChart.getCategoryPlot().getDomainAxis().getLabel();
+    model.showCategoryAxisLabelProperty().subscribe(
+        value -> barChart.getCategoryPlot().getDomainAxis()
+            .setLabel(value ? categoryAxisLabel : ""));
+
+    final TextTitle chartTitle = barChart.getTitle();
+    model.showTitleProperty().subscribe(value -> barChart.setTitle(value ? chartTitle : null));
+
+    model.showCategoryAxisColumnLabelsProperty().subscribe(value -> {
+      barChart.getCategoryPlot().getDomainAxis().setTickLabelsVisible(value);
+      barChart.getCategoryPlot().getDomainAxis().setTickMarksVisible(value);
     });
 
     return new BorderPane(viewer);
