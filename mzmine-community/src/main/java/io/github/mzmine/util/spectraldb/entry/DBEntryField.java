@@ -725,7 +725,7 @@ public enum DBEntryField {
       return Long.parseLong(content);
     }
     if (getObjectClass().equals(FloatArrayList.class)) {
-      final String replaced = content.replaceAll("[^0-9.,-]", "").replaceAll("[-]", ",");
+      final String replaced = content.replaceAll("[^0-9.,-]", "");
       final float[] floats = ParsingUtils.stringToFloatArray(replaced, ",");
       return new FloatArrayList(floats);
     }
