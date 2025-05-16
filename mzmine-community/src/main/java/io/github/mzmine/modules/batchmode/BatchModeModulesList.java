@@ -135,6 +135,7 @@ import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
 import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
+import io.github.mzmine.modules.io.export_features_xml.ExportFeaturesToXMLModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
 import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
@@ -418,6 +419,7 @@ public class BatchModeModulesList {
           MsMsQualityExportModule.class, //
           ExportAllIdsGraphicalModule.class, //
           CcsBaseExportModule.class, //
+          ExportFeaturesToXMLModule.class, //
 
           /*
            * needed in batch mode?
