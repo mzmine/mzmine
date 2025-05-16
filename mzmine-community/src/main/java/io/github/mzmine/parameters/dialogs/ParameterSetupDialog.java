@@ -34,7 +34,6 @@ import javafx.scene.layout.Region;
  * Parameter is represented by a component. The component can be obtained by calling
  * getComponentForParameter(). Type of component depends on parameter type:
  * <p>
- * TODO: parameter setup dialog should show the name of the module in the title
  */
 public class ParameterSetupDialog extends EmptyParameterSetupDialogBase {
 
