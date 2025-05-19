@@ -187,7 +187,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return isolationWindowMergingProgress * 0.25 + adapTaskProgess * 0.25
-           + (currentRow / (double) numRows) * 0.5d;
+        + (currentRow / (double) numRows) * 0.5d;
   }
 
   @Override
@@ -755,8 +755,15 @@ public class DiaMs2CorrTask extends AbstractTask {
       }
     }
 
+    if (windowScanMap.isEmpty()) {
+      // in case no isolation window was found, use one single isolation window that encloses everything
+      windowScanMap.put(new IsolationWindow(Range.closed(0d, Double.MAX_VALUE), null),
+          ms2ScanSelection.getMatchingScans(file.getScans()));
+    }
+
     logger.finest(() -> "%s: Extracted %d raw isolation windows.".formatted(file.getName(),
         windowScanMap.size()));
+
     // now merge some isolation windows, if they are largely overlapping (e.g. MSConvert converted Agilent AllIons files.)
     final List<Entry<IsolationWindow, List<Scan>>> sortedWindowEntries = new ArrayList<>(
         windowScanMap.entrySet().stream().sorted(Comparator.comparingDouble(

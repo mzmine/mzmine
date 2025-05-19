@@ -171,6 +171,12 @@ public interface FeatureListRow extends ModularDataModel {
   Float getAverageRT();
 
   /**
+   * Returns average RI for features on this row
+   */
+
+  Float getAverageRI();
+
+  /**
    * Sets average rt for this row
    */
   void setAverageRT(Float averageRT);

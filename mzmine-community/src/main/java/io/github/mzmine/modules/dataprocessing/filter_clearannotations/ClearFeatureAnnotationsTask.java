@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -94,7 +94,7 @@ public class ClearFeatureAnnotationsTask extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
       logger.info("Filtering feature list rows");
 
-      totalRows = origFeatureList.getRows().size() * typesToClear.size();
+      totalRows = origFeatureList.getNumberOfRows() * typesToClear.size();
 
       for (DataType<?> dataType : typesToClear) {
         if (!origFeatureList.getRowTypes().contains(dataType)) {

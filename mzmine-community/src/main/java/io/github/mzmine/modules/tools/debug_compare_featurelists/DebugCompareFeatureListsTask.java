@@ -107,7 +107,7 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
       logger.info("Same number of rows: %d".formatted(list1.getNumberOfRows()));
       // sorting of rows the same?
       List<String> errors = new ArrayList<>();
-      for (int i = 0; i < list1.getRows().size(); i++) {
+      for (int i = 0; i < list1.getNumberOfRows(); i++) {
         // n features
         var row1 = list1.getRow(i);
         var row2 = list2.getRow(i);
