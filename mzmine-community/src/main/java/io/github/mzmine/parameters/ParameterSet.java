@@ -42,6 +42,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.beans.property.BooleanProperty;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -299,5 +300,9 @@ public interface ParameterSet extends ParameterContainer {
   default <V, T extends Parameter<V>> Stream<T> streamForClass(Class<T> parameterClass) {
     return Arrays.stream(getParameters()).filter(parameterClass::isInstance)
         .map(parameterClass::cast);
+  }
+
+  default @Nullable Region getMessage() {
+    return null;
   }
 }

@@ -28,15 +28,24 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectModuleOptions;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SelectedRowsSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.util.ExitCode;
 import java.awt.Window;
+import java.util.List;
 import javafx.scene.control.CheckBox;
 
 /**
@@ -59,6 +68,37 @@ public class SingleSpectrumLibrarySearchParameters extends SimpleParameterSet {
             SpectralLibrarySearchParameters.similarityFunction,
             SpectralLibrarySearchParameters.advanced},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectral_library_search/spectral_library_search.html");
+  }
+
+  public SelectedRowsSpectralLibrarySearchParameters toSearchParameters(Scan scan) {
+    final ParameterSet param = new SelectedRowsSpectralLibrarySearchParameters().cloneParameterSet();
+
+    param.setParameter(SpectralLibrarySearchParameters.libraries,
+        getValue(SpectralLibrarySearchParameters.libraries));
+
+    param.setParameter(SpectralLibrarySearchParameters.msLevelFilter,
+        MsLevelFilter.of(scan.getMSLevel()));
+    param.setParameter(SpectralLibrarySearchParameters.spectraMergeSelect,
+        SpectraMergeSelectModuleOptions.INPUT_SCANS);
+    param.setParameter(SpectralLibrarySearchParameters.mzTolerancePrecursor,
+        getValue(SpectralLibrarySearchParameters.mzTolerancePrecursor));
+    param.setParameter(SpectralLibrarySearchParameters.mzTolerance,
+        getValue(SpectralLibrarySearchParameters.mzTolerance));
+    param.setParameter(SpectralLibrarySearchParameters.removePrecursor,
+        getValue(SpectralLibrarySearchParameters.removePrecursor));
+    param.setParameter(SpectralLibrarySearchParameters.minMatch,
+        getValue(SpectralLibrarySearchParameters.minMatch));
+    param.setParameter(SpectralLibrarySearchParameters.similarityFunction,
+        getValue(SpectralLibrarySearchParameters.similarityFunction));
+    param.setParameter(SpectralLibrarySearchParameters.advanced,
+        getValue(SpectralLibrarySearchParameters.advanced));
+
+    final AdvancedParametersParameter<AdvancedSpectralLibrarySearchParameters> advancedParam = param.getParameter(
+        SpectralLibrarySearchParameters.advanced);
+    advancedParam.setEmbeddedParameters(
+        (AdvancedSpectralLibrarySearchParameters) getEmbeddedParameterValue(SpectralLibrarySearchParameters.advanced));
+
+    return (SelectedRowsSpectralLibrarySearchParameters) param;
   }
 
   @Override

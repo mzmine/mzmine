@@ -220,19 +220,19 @@ public interface FeatureList {
   }
 
   /**
-   * Clear all rows and set new rows
+   * Clear all rows and set new rows - then apply default sorting
    *
    * @param rows new rows to set
    */
-  void setRows(FeatureListRow... rows);
+  void setRowsApplySort(FeatureListRow... rows);
 
   /**
-   * Clear all rows and set new rows
+   * Clear all rows and set new rows - then apply default sorting
    *
    * @param rows new rows to set
    */
-  default void setRows(List<FeatureListRow> rows) {
-    setRows(rows.toArray(FeatureListRow[]::new));
+  default void setRowsApplySort(List<FeatureListRow> rows) {
+    setRowsApplySort(rows.toArray(FeatureListRow[]::new));
   }
 
   /**

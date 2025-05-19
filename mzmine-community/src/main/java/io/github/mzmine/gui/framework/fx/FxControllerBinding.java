@@ -39,27 +39,29 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBind
     if (master == null || child == null) {
       return;
     }
-
+    // value of the argument property is set to the calling property.
+    // -> propA.bindBidirectional(probB) -> propA gets the value of propB
+    // the "master" value shall be the initial value.
     if (master instanceof SelectedAbundanceMeasureBinding m
         && child instanceof SelectedAbundanceMeasureBinding c) {
-      m.abundanceMeasureProperty().bindBidirectional(c.abundanceMeasureProperty());
+      c.abundanceMeasureProperty().bindBidirectional(m.abundanceMeasureProperty());
     }
     if (master instanceof SelectedFeatureListsBinding m
         && child instanceof SelectedFeatureListsBinding c) {
-      m.selectedFeatureListsProperty().bindBidirectional(c.selectedFeatureListsProperty());
+      c.selectedFeatureListsProperty().bindBidirectional(m.selectedFeatureListsProperty());
     }
     if (master instanceof SelectedFeaturesBinding m && child instanceof SelectedFeaturesBinding c) {
-      m.selectedFeaturesProperty().bindBidirectional(c.selectedFeaturesProperty());
+      c.selectedFeaturesProperty().bindBidirectional(m.selectedFeaturesProperty());
     }
     if (master instanceof SelectedFilesBinding m && child instanceof SelectedFilesBinding c) {
-      m.selectedRawFilesProperty().bindBidirectional(c.selectedRawFilesProperty());
+      c.selectedRawFilesProperty().bindBidirectional(m.selectedRawFilesProperty());
     }
     if (master instanceof SelectedMetadataColumnBinding m
         && child instanceof SelectedMetadataColumnBinding c) {
-      m.groupingColumnProperty().bindBidirectional(c.groupingColumnProperty());
+      c.groupingColumnProperty().bindBidirectional(m.groupingColumnProperty());
     }
     if (master instanceof SelectedRowsBinding m && child instanceof SelectedRowsBinding c) {
-      m.selectedRowsProperty().bindBidirectional(c.selectedRowsProperty());
+      c.selectedRowsProperty().bindBidirectional(m.selectedRowsProperty());
     }
   }
 

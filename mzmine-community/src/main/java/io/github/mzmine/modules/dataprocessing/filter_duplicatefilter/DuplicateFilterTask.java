@@ -50,14 +50,12 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -224,10 +222,9 @@ public class DuplicateFilterTask extends AbstractTask {
    */
   private void removeDuplicatesFromList(ModularFeatureList flist,
       ModularFeatureListRow[] duplicatesNullArray) {
-    final Comparator<FeatureListRow> comparator = FeatureListUtils.getDefaultRowSorter(flist);
     final var filteredRows = Arrays.stream(duplicatesNullArray).filter(Objects::nonNull)
-        .sorted(comparator).toArray(ModularFeatureListRow[]::new);
-    flist.setRows(filteredRows);
+        .toArray(ModularFeatureListRow[]::new);
+    flist.setRowsApplySort(filteredRows);
   }
 
   private int applyOldAverageFilter(MZTolerance mzTolerance, RTTolerance rtTolerance,
