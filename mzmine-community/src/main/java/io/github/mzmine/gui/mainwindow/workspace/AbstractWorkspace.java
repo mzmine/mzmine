@@ -90,7 +90,7 @@ import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sql.SQLExportModule;
 import io.github.mzmine.modules.io.export_features_venn.VennExportModule;
-import io.github.mzmine.modules.io.export_features_xml.ExportFeaturesToXMLModule;
+import io.github.mzmine.modules.io.export_features_xml.ExportFeaturesDataModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
 import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
@@ -274,7 +274,7 @@ public abstract class AbstractWorkspace implements Workspace {
         //
         ImportFeatureNetworksSimpleModule.class, ExportCorrAnnotationModule.class,
         NetworkGraphMlExportModule.class, FeatureMLExportModularModule.class,
-        CcsBaseExportModule.class, ExportFeaturesToXMLModule.class);
+        CcsBaseExportModule.class, ExportFeaturesDataModule.class);
     addModuleMenuItems(menu, "Statistics", VennExportModule.class, MetaboAnalystExportModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryBatchGenerationModule.class,
         GNPSLibraryBatchExportModule.class, ExportScansFeatureModule.class);

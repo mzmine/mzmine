@@ -135,7 +135,7 @@ import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
 import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
-import io.github.mzmine.modules.io.export_features_xml.ExportFeaturesToXMLModule;
+import io.github.mzmine.modules.io.export_features_xml.ExportFeaturesDataModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
 import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
@@ -148,14 +148,6 @@ import io.github.mzmine.modules.io.export_scans_modular.ExportScansFeatureModule
 import io.github.mzmine.modules.io.import_feature_networks.ImportFeatureNetworksSimpleModule;
 import io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
-import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportModule;
-import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportModule;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule;
-import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule;
-import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportModule;
-import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule;
-import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
@@ -419,7 +411,7 @@ public class BatchModeModulesList {
           MsMsQualityExportModule.class, //
           ExportAllIdsGraphicalModule.class, //
           CcsBaseExportModule.class, //
-          ExportFeaturesToXMLModule.class, //
+          ExportFeaturesDataModule.class, //
 
           /*
            * needed in batch mode?

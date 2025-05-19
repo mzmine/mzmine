@@ -1,16 +1,9 @@
 package io.github.mzmine.modules.io.export_features_xml;
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.FeatureDataType;
-import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -18,11 +11,8 @@ import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -36,9 +26,9 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ExportFeaturesToXMLTask extends AbstractFeatureListTask {
+public class ExportFeaturesDataTask extends AbstractFeatureListTask {
 
-  private static final Logger logger = Logger.getLogger(ExportFeaturesToXMLTask.class.getName());
+  private static final Logger logger = Logger.getLogger(ExportFeaturesDataTask.class.getName());
 
   private final ModularFeatureList flist;
   private File file;
@@ -51,13 +41,13 @@ public class ExportFeaturesToXMLTask extends AbstractFeatureListTask {
    * @param parameters
    * @param moduleClass
    */
-  protected ExportFeaturesToXMLTask(@Nullable MemoryMapStorage storage,
+  protected ExportFeaturesDataTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
       @NotNull Class<? extends MZmineModule> moduleClass, ModularFeatureList flist) {
     super(storage, moduleCallDate, parameters, moduleClass);
 
     this.flist = flist;
-    file = parameters.getValue(ExportFeaturesToXMLParameters.file);
+    file = parameters.getValue(ExportFeaturesDataParameters.file);
   }
 
   @Override

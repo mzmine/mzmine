@@ -12,10 +12,10 @@ import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ExportFeaturesToXMLModule extends TaskPerFeatureListModule {
+public class ExportFeaturesDataModule extends TaskPerFeatureListModule {
 
-  public ExportFeaturesToXMLModule() {
-    super("Export features to XML", ExportFeaturesToXMLParameters.class,
+  public ExportFeaturesDataModule() {
+    super("Export feature data", ExportFeaturesDataParameters.class,
         MZmineModuleCategory.FEATURELISTEXPORT, false,
         "Export the chromatogram data of features to an XML file.");
   }
@@ -24,7 +24,7 @@ public class ExportFeaturesToXMLModule extends TaskPerFeatureListModule {
   public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
       @NotNull FeatureList featureList) {
-    return new ExportFeaturesToXMLTask(storage, moduleCallDate, parameters, this.getClass(),
+    return new ExportFeaturesDataTask(storage, moduleCallDate, parameters, this.getClass(),
         (ModularFeatureList) featureList);
   }
 }
