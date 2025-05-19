@@ -134,6 +134,18 @@ public class ParsingUtils {
     return b.toString();
   }
 
+  public static String floatArrayToString(float[] data) {
+    StringBuilder b = new StringBuilder();
+    for (int i = 0; i < data.length; i++) {
+      double v = data[i];
+      b.append(v);
+      if (i < data.length - 1) {
+        b.append(SEPARATOR);
+      }
+    }
+    return b.toString();
+  }
+
   public static float[] stringToFloatArray(String string) {
     return stringToFloatArray(string, SEPARATOR);
   }
