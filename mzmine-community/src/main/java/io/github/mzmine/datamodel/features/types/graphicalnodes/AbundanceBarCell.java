@@ -33,10 +33,8 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.layout.Region;
-import javax.tools.Tool;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,24 +49,25 @@ public class AbundanceBarCell extends TreeTableCell<ModularFeatureListRow, Modul
 
     boxPlot = new RowsBoxplotController();
     setMinHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-
-    PropertyUtils.onChange(() -> {
-      final ModularFeatureListRow row = (ModularFeatureListRow) itemProperty().get();
-      if (row != null && !emptyProperty().get()) {
-        boxPlot.selectedRowsProperty().set(List.of(row));
-      } else {
-        boxPlot.selectedRowsProperty().set(List.of());
-      }
-    }, tableRowProperty(), itemProperty(), emptyProperty());
-
     boxPlot.abundanceMeasureProperty().set(abundanceMeasure);
     boxPlot.groupingColumnProperty().bindBidirectional(groupingColumn);
 
     boxPlot.showCategoryAxisLabelProperty().set(false);
     boxPlot.showTitleProperty().set(false);
     boxPlot.showColumnAxisLabelsProperty().set(false);
-
     view = boxPlot.buildView();
+
+    PropertyUtils.onChange(() -> {
+      final ModularFeatureListRow row = itemProperty().get();
+      if (row != null && !isEmpty()) {
+        boxPlot.selectedRowsProperty().set(List.of(row));
+        setGraphic(view);
+      } else {
+        boxPlot.selectedRowsProperty().set(List.of());
+        setGraphic(null);
+      }
+    }, itemProperty(), emptyProperty());
+
     setGraphic(view);
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
   }
