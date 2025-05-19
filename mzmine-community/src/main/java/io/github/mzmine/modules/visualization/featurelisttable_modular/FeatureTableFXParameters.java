@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -46,6 +47,11 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
       "Default feature intensity", "Used in the compact table", AbundanceMeasure.values(),
       AbundanceMeasure.Height);
 
+  public static final BooleanParameter sampleColumnsVisible = new BooleanParameter(
+      "Sample-specific columns visibility",
+      "If active then show sample specific columns. This may slow down the table for large datasets with many samples.",
+      true);
+
   public static final BooleanParameter defaultVisibilityOfImsFeature = new BooleanParameter(
       "Default visibility (IMS feature charts)",
       "This parameter is applied when opening a new feature table. Only used for single sample feature lists.",
@@ -74,7 +80,7 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
       "If ticked, the axes of image plots will be hidden.", false);
 
   public FeatureTableFXParameters() {
-    super(showRowTypeColumns, showFeatureTypeColumns, defaultAbundanceMeasure,
+    super(showRowTypeColumns, showFeatureTypeColumns, defaultAbundanceMeasure, sampleColumnsVisible,
         defaultVisibilityOfImsFeature, defaultVisibilityOfImages, defaultVisibilityOfShapes,
         deactivateShapesGreaterNSamples, lockImagesToAspectRatio, hideImageAxes);
   }

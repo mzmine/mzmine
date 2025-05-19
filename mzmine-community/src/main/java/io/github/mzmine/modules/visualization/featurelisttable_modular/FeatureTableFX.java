@@ -90,6 +90,7 @@ import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.ArrayList;
@@ -166,6 +167,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   private final ObjectProperty<ModularFeatureList> featureListProperty = new SimpleObjectProperty<>();
   private final NotificationPane dataChangedNotification;
+  private final BooleanParameter sampleColVisibleParameter;
 
   public FeatureTableFX() {
     dataChangedNotification = new NotificationPane(table);
@@ -189,6 +191,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     rowTypesParameter = parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
     featureTypesParameter = parameters.getParameter(
         FeatureTableFXParameters.showFeatureTypeColumns);
+    sampleColVisibleParameter = parameters.getParameter(
+        FeatureTableFXParameters.sampleColumnsVisible);
 
     rowItems = FXCollections.observableArrayList();
     filteredRowItems = new FilteredList<>(rowItems);
@@ -200,6 +204,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     FeatureTableColumnMenuHelper contextMenuHelper = new FeatureTableColumnMenuHelper(this);
     // Adding additional menu options
     addContextMenuItem(contextMenuHelper, "Compact table", e -> showCompactChromatographyColumns());
+    addContextMenuItem(contextMenuHelper, "Toggle sample columns", e -> toggleSampleColumns());
     addContextMenuItem(contextMenuHelper, "Toggle shape columns", e -> toggleShapeColumns());
     addContextMenuItem(contextMenuHelper, "Toggle alignment columns",
         e -> toggleAlignmentColumns());
@@ -231,6 +236,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
       }
     });
   }
+
 
   private void initDataChangedNotification() {
     final Button btnUpdateTable = FxButtons.createButton("Update table", null,
@@ -795,6 +801,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private void recursivelyApplyVisibilityParameterToColumn(TreeTableColumn column) {
     ColumnID id = newColumnMap.get(column);
 
+    final boolean sampleColsVisible = sampleColVisibleParameter.getValue();
+
     if (id == null) {
       column.getColumns()
           .forEach(col -> recursivelyApplyVisibilityParameterToColumn((TreeTableColumn) col));
@@ -803,7 +811,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
 
     boolean visible;
     if (id.getType() == ColumnType.FEATURE_TYPE) {
-      visible = featureTypesParameter.isDataTypeVisible(id);
+      // for large datasets sampleColsVisible is false
+      visible = sampleColsVisible && featureTypesParameter.isDataTypeVisible(id);
     } else {
       visible = rowTypesParameter.isDataTypeVisible(id);
     }
@@ -821,6 +830,12 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     }
   }
 
+  private void toggleSampleColumns() {
+    // flip
+    sampleColVisibleParameter.setValue(!sampleColVisibleParameter.getValue());
+    applyVisibilityParametersToAllColumns();
+  }
+
   public void applyVisibilityParametersToAllColumns() {
     table.getColumns().forEach(this::recursivelyApplyVisibilityParameterToColumn);
   }
@@ -829,6 +844,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     if (getFeatureList() == null) {
       return;
     }
+    // TODO think about not creating the columns in the first place if this is still slowing down the table startup
 
     List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
     // Add feature columns for each raw file
@@ -1088,6 +1104,10 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     if (newFeatureList == null) {
       return;
     }
+
+    // too many samples slow down the table - therefore do not show sample specific columns then
+    sampleColVisibleParameter.setValue(newFeatureList.getNumberOfRawDataFiles() <= 36);
+
     addColumns(newFeatureList);
     // first check if feature list is too large
     applyDefaultColumnVisibilities();
