@@ -99,7 +99,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new CCSType(),//
       new CCSRelativeErrorType(),//
       new CommentType(), //
-      new DatabaseEntryIdType());
+      new EntryIdType());
 
   @NotNull
   @Override
@@ -150,7 +150,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case MzAbsoluteDifferenceType _ -> match.getMzAbsoluteError();
       case MzPpmDifferenceType _ -> match.getMzPpmError();
       case CommentType _ -> entry.getOrElse(DBEntryField.COMMENT, null);
-      case DatabaseEntryIdType _ -> entry.getOrElse(DBEntryField.ENTRY_ID, null);
+      case EntryIdType _ -> entry.getOrElse(DBEntryField.ENTRY_ID, null);
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };

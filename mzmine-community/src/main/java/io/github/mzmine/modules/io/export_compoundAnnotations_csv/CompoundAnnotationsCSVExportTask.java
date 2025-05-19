@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.MethodType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.annotations.DatabaseEntryIdType;
+import io.github.mzmine.datamodel.features.types.annotations.EntryIdType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
@@ -173,7 +173,7 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
       var columns = Stream.of(IDType.class, CompoundNameType.class, IonTypeType.class,
               ScoreType.class, PrecursorMZType.class, MobilityType.class, CCSType.class, RTType.class,
               FormulaType.class, SmilesStructureType.class, InChIStructureType.class,
-              InChIKeyStructureType.class, MethodType.class, UsiType.class, DatabaseEntryIdType.class)
+              InChIKeyStructureType.class, MethodType.class, UsiType.class, EntryIdType.class)
           .map(c -> DataTypes.get((Class) c)).toList();
 
       // Create a header string by joining the unique IDs of the DataTypes with commas

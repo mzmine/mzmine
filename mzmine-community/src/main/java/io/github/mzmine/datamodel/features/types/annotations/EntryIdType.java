@@ -27,11 +27,11 @@ package io.github.mzmine.datamodel.features.types.annotations;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
-public class DatabaseEntryIdType extends StringType {
+public class EntryIdType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "database_entry_id";
+    return "entry_id";
   }
 
   @Override

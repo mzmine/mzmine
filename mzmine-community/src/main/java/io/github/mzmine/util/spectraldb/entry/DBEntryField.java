@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.annotations.DatabaseEntryIdType;
+import io.github.mzmine.datamodel.features.types.annotations.EntryIdType;
 import io.github.mzmine.datamodel.features.types.annotations.DatasetIdType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
@@ -309,7 +309,7 @@ public enum DBEntryField {
            OTHER_MATCHED_COMPOUNDS_NAMES, //
            MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
            MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURELIST_NAME_FEATURE_ID, RETENTION_INDEX -> StringType.class;
-      case ENTRY_ID -> DatabaseEntryIdType.class;
+      case ENTRY_ID -> EntryIdType.class;
       case MERGED_N_SAMPLES -> TotalSamplesType.class;
       case CLASSYFIRE_SUPERCLASS -> ClassyFireSuperclassType.class;
       case CLASSYFIRE_CLASS -> ClassyFireClassType.class;
