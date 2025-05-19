@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger; // Keep logger if needed for config validation/warnings
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Immutable configuration record for a PubChem search request. This object holds the parameters but
@@ -42,8 +43,8 @@ import org.jetbrains.annotations.NotNull;
  * {@link PubChemApiClient#fetchPropertiesForChunk(PubChemSearch, List)} or
  * {@link PubChemApiClient#fetchPropertiesForChunkAsync(PubChemSearch, List)} to run the search.
  */
-public record PubChemSearch(Optional<String> formula, Optional<Double> minMass,
-                            Optional<Double> maxMass, HttpClient httpClient,
+public record PubChemSearch(@Nullable String formula, @Nullable Double minMass,
+                            @Nullable Double maxMass, HttpClient httpClient,
                             Duration requestTimeout, Duration pollInterval, Duration maxPollTime,
                             String baseApiUrl, String requestedProperties) {
 
@@ -64,9 +65,6 @@ public record PubChemSearch(Optional<String> formula, Optional<Double> minMass,
     Objects.requireNonNull(baseApiUrl, "Base API URL cannot be null");
     Objects.requireNonNull(requestedProperties, "Requested properties cannot be null");
     Objects.requireNonNull(httpClient, "customHttpClient Optional cannot be null");
-    Objects.requireNonNull(formula, "formula Optional cannot be null");
-    Objects.requireNonNull(minMass, "minMass Optional cannot be null");
-    Objects.requireNonNull(maxMass, "maxMass Optional cannot be null");
 
     if (requestTimeout.isNegative() || requestTimeout.isZero()) {
       throw new IllegalArgumentException("Request timeout must be positive");
@@ -85,17 +83,17 @@ public record PubChemSearch(Optional<String> formula, Optional<Double> minMass,
     }
 
     // Check search criteria mutual exclusivity
-    boolean hasFormula = formula.isPresent() && !formula.get().isBlank();
-    boolean hasMass = minMass.isPresent() && maxMass.isPresent();
+    boolean hasFormula = formula != null && !formula.isBlank();
+    boolean hasMass = minMass != null && maxMass != null;
 
     if (hasFormula == hasMass) { // If both are present or both are absent
       throw new IllegalArgumentException(
           "Must specify either a non-blank formula OR both minMass and maxMass, but not both or neither.");
     }
-    if (hasMass && minMass.get() > maxMass.get()) {
+    if (hasMass && minMass > maxMass) {
       throw new IllegalArgumentException("minMass cannot be greater than maxMass");
     }
-    if (hasMass && (minMass.get() < 0 || maxMass.get() < 0)) {
+    if (hasMass && (minMass < 0 || maxMass < 0)) {
       throw new IllegalArgumentException("Mass values cannot be negative");
     }
   }
@@ -106,7 +104,7 @@ public record PubChemSearch(Optional<String> formula, Optional<Double> minMass,
     if (formula == null || formula.isBlank()) {
       throw new IllegalArgumentException("Chemical formula cannot be null or blank");
     }
-    return new PubChemSearch(Optional.of(formula), Optional.empty(), Optional.empty(),
+    return new PubChemSearch(formula, null, null,
         // Search Criteria
         HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
             .followRedirects(HttpClient.Redirect.NORMAL).build(), DEFAULT_REQUEST_TIMEOUT,
@@ -117,7 +115,7 @@ public record PubChemSearch(Optional<String> formula, Optional<Double> minMass,
 
   public static PubChemSearch byMassRange(double minMass, double maxMass) {
     // Basic validation here, canonical constructor does the rest
-    return new PubChemSearch(Optional.empty(), Optional.of(minMass), Optional.of(maxMass),
+    return new PubChemSearch(null, minMass, maxMass,
         // Search Criteria
         HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
             .followRedirects(HttpClient.Redirect.NORMAL).build(), DEFAULT_REQUEST_TIMEOUT,
@@ -166,20 +164,19 @@ public record PubChemSearch(Optional<String> formula, Optional<Double> minMass,
 
   // --- Convenience Getters ---
   public boolean isFormulaSearch() {
-    return formula.isPresent();
+    return formula != null;
   }
 
   public boolean isMassSearch() {
-    return minMass.isPresent();
-  } // Presence implies maxMass is also checked by constructor
+    return minMass != null && maxMass != null;
+  }
 
   public String getSearchCriteriaDescription() {
     if (isFormulaSearch()) {
-      return "Formula=" + formula.orElse("?");
+      return "Formula=" + formula;
     }
     if (isMassSearch()) {
-      return String.format(Locale.ROOT, "MassRange=[%.4f, %.4f]", minMass.orElse(Double.NaN),
-          maxMass.orElse(Double.NaN));
+      return String.format(Locale.ROOT, "MassRange=[%.4f, %.4f]", minMass, maxMass);
     }
     return "Unknown Criteria";
   }

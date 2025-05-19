@@ -29,15 +29,13 @@ import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBA
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
+import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.MsMsScoreType;
-import io.github.mzmine.datamodel.structures.MolecularStructure;
-import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
-import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.components.factories.TreeTableColumns;
 import io.github.mzmine.javafx.components.factories.TreeTableColumns.ColumnAlignment;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -45,9 +43,6 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
-import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.CompoundData;
-import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.visualization.molstructure.StructureTableCell;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
@@ -56,13 +51,8 @@ import io.github.mzmine.util.components.FormulaTextField;
 import io.github.mzmine.util.javafx.IonTypeTextField;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
 import java.util.function.Consumer;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ReadOnlyDoubleWrapper;
-import javafx.beans.property.ReadOnlyFloatWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleListProperty;
@@ -80,7 +70,6 @@ import javafx.scene.control.TreeTableView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javax.naming.Name;
 import org.jetbrains.annotations.NotNull;
 
 public class PubChemResultsViewBuilder extends FxViewBuilder<PubChemResultsModel> {
@@ -111,6 +100,7 @@ public class PubChemResultsViewBuilder extends FxViewBuilder<PubChemResultsModel
     borderPane.setTop(FxLayout.newHBox(formulaBox, new Separator(Orientation.VERTICAL), massBox));
 
     final TreeTableView<CompoundDBAnnotation> treeTableView = new TreeTableView<>();
+    treeTableView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY_FLEX_NEXT_COLUMN);
 
     // dummy for the root item
     final TreeItem<CompoundDBAnnotation> root = new TreeItem<>(new SimpleCompoundDBAnnotation());
@@ -262,6 +252,12 @@ public class PubChemResultsViewBuilder extends FxViewBuilder<PubChemResultsModel
         Comparators.COMPARE_ABS_DOUBLE,
         a -> new ReadOnlyObjectWrapper<>(a.get(MzAbsoluteDifferenceType.class)));
     treeTableView.getColumns().add(mzDiffColumn);
+
+    final TreeTableColumn<CompoundDBAnnotation, Float> mzPpmDiffColumn = TreeTableColumns.createColumn(
+        "Δm/z (ppm)", 0, 0, formats.mzFormat(), ColumnAlignment.RIGHT,
+        Comparators.COMPARE_ABS_FLOAT,
+        a -> new ReadOnlyObjectWrapper<>(a.get(MzPpmDifferenceType.class)));
+    treeTableView.getColumns().add(mzPpmDiffColumn);
 
     final TreeTableColumn<CompoundDBAnnotation, Float> isotopeScoreColumn = TreeTableColumns.createColumn(
         "Isotope score", 0, 0, formats.scoreFormat(), ColumnAlignment.RIGHT,

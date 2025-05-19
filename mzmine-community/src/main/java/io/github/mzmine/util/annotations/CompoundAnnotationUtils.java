@@ -27,6 +27,7 @@ package io.github.mzmine.util.annotations;
 
 import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
@@ -51,6 +52,7 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.StringUtils;
@@ -337,5 +339,13 @@ public class CompoundAnnotationUtils {
       db.setStructure(structure);
     }
     return db;
+  }
+
+  public static @Nullable String getBestFormula(@NotNull ModularFeatureListRow row) {
+    return streamFeatureAnnotations(row).sorted(getSorterMaxScoreFirst())
+        .map(FeatureAnnotation::getFormula).filter(Objects::nonNull).findFirst().orElseGet(() -> {
+          final List<ResultFormula> formulas = row.getFormulas();
+          return formulas.isEmpty() ? null : formulas.getFirst().getFormulaAsString();
+        });
   }
 }

@@ -33,11 +33,17 @@ import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.PubChemSearchRes
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class PubChemTest {
+
+  private static final Logger logger = Logger.getLogger(PubChemTest.class.getName());
 
   @Test
   void testFormulaSearch() throws PubChemApiException, IOException, InterruptedException {
@@ -51,16 +57,12 @@ public class PubChemTest {
       List<CompoundData> s = chunked.stream().map(chunk -> {
         try {
           return client.fetchPropertiesForChunk(search, chunk);
-        } catch (PubChemApiException e) {
-          throw new RuntimeException(e);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
+        } catch (PubChemApiException | IOException | InterruptedException e) {
+          logger.log(Level.SEVERE, e.getMessage(), e);
+          return List.<CompoundData>of();
         }
       }).flatMap(List::stream).toList();
-
-      System.out.println(s);
+      Assertions.assertTrue(!s.isEmpty());
     }
   }
 
@@ -70,15 +72,14 @@ public class PubChemTest {
     final PubChemSearchResult result = PubChemApiClient.runAsync(
         PubChemSearch.byMassRange(18.01, 18.02), TaskService.getController().getExecutor());
 
-    while(result.status().getValue() != TaskStatus.FINISHED) {
+    while (result.status().getValue() != TaskStatus.FINISHED) {
       try {
         Thread.sleep(500);
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        logger.log(Level.SEVERE, e.getMessage(), e);
       }
-      System.out.println(result.status().getValue());
     }
 
-    System.out.println(result.results());
+    Assertions.assertTrue(!result.results().isEmpty());
   }
 }

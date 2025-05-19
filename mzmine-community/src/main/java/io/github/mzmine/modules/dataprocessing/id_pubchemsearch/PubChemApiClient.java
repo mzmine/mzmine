@@ -14,6 +14,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -155,9 +156,8 @@ public class PubChemApiClient implements AutoCloseable {
    * @throws IOException          If a network error occurs.
    * @throws InterruptedException If the thread is interrupted (e.g., during polling sleep).
    */
-  public List<String> findCids(PubChemSearch searchConfig)
+  public List<String> findCids(@NotNull PubChemSearch searchConfig)
       throws PubChemApiException, IOException, InterruptedException {
-    Objects.requireNonNull(searchConfig, "Search configuration cannot be null");
     LOGGER.log(Level.INFO, "Executing synchronous CID search for: {0}",
         searchConfig.getSearchCriteriaDescription());
     try {
@@ -284,8 +284,7 @@ public class PubChemApiClient implements AutoCloseable {
 
   private List<String> findCidsInternal(PubChemSearch config)
       throws IOException, InterruptedException, PubChemApiException, JSONException {
-    LOGGER.fine(
-        () -> "Initiating CID search for: " + config.getSearchCriteriaDescription());
+    LOGGER.fine(() -> "Initiating CID search for: " + config.getSearchCriteriaDescription());
     List<String> foundCids = config.isMassSearch() ? performMassCidSearchInternal(config)
         : performFormulaCidSearchInternal(config);
     LOGGER.fine(() -> "CID search successful. Found " + foundCids.size() + " CIDs.");
@@ -294,8 +293,10 @@ public class PubChemApiClient implements AutoCloseable {
 
   private List<String> performFormulaCidSearchInternal(PubChemSearch config)
       throws IOException, InterruptedException, PubChemApiException, JSONException {
-    String theFormula = config.formula()
-        .orElseThrow(() -> new IllegalStateException("Formula is missing"));
+    if(!config.isFormulaSearch()) {
+      throw new IllegalStateException("Search formula is not set. %s".formatted(config.toString()));
+    }
+    String theFormula = config.formula();
     String encodedFormula = URLEncoder.encode(theFormula, StandardCharsets.UTF_8);
     String initialUrl = String.format("%s/compound/formula/%s/cids/JSON", config.baseApiUrl(),
         encodedFormula);
@@ -308,10 +309,11 @@ public class PubChemApiClient implements AutoCloseable {
 
   private List<String> performMassCidSearchInternal(PubChemSearch config)
       throws IOException, InterruptedException, PubChemApiException, JSONException {
-    double theMinMass = config.minMass()
-        .orElseThrow(() -> new IllegalStateException("Min Mass is missing"));
-    double theMaxMass = config.maxMass()
-        .orElseThrow(() -> new IllegalStateException("Max Mass is missing"));
+    if (!config.isMassSearch()) {
+      throw new IllegalStateException("Search masses are not set. %s".formatted(config.toString()));
+    }
+    double theMinMass = config.minMass();
+    double theMaxMass = config.maxMass();
     String lowerMassStr = String.format(Locale.ROOT, "%.4f", theMinMass);
     String upperMassStr = String.format(Locale.ROOT, "%.4f", theMaxMass);
     String initialUrl = String.format("%s/compound/monoisotopic_mass/range/%s/%s/cids/JSON",
@@ -390,8 +392,7 @@ public class PubChemApiClient implements AutoCloseable {
     // Logic is the same, uses static logger
     String uriStr = requestUri.toString();
     if (statusCode == 404) {
-      LOGGER.fine(
-          () -> "Received 404 Not Found for " + uriStr + ". Treating as empty result.");
+      LOGGER.fine(() -> "Received 404 Not Found for " + uriStr + ". Treating as empty result.");
       if (requestUri.getPath().contains("/cids/JSON") || requestUri.getPath()
           .contains("/listkey/")) {
         return "{\"IdentifierList\": {\"CID\": []}}";
@@ -450,8 +451,7 @@ public class PubChemApiClient implements AutoCloseable {
 
       // Use config for request timeout
       HttpRequest pollRequest = buildGetRequest(pollUrl, config.requestTimeout());
-      LOGGER.log(Level.FINE, "Polling ListKey {0}: Requesting {1}",
-          new Object[]{listKey, pollUrl});
+      LOGGER.log(Level.FINE, "Polling ListKey {0}: Requesting {1}", new Object[]{listKey, pollUrl});
       HttpResponse<String> pollResponse;
       try {
         // Uses instance client via sendRequestInternal

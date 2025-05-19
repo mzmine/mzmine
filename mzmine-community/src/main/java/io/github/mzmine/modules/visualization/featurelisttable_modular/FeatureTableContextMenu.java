@@ -105,6 +105,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -357,12 +358,12 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     final MenuItem searchFormulaPubChem = new ConditionalMenuItem("Search formula in PubChem",
-        () -> selectedRow != null && !selectedRow.getFormulas().isEmpty());
+        () -> selectedRow != null && CompoundAnnotationUtils.getBestFormula(selectedRow) != null);
     searchFormulaPubChem.setOnAction(e -> {
       final List<IonType> ionTypes = FeatureUtils.extractAllIonTypes(selectedRow);
       new PubChemResultsController(selectedRow,
           ionTypes.isEmpty() ? new IonType(IonModification.H) : ionTypes.getFirst(),
-          selectedRow.getFormulas().getFirst().getFormulaAsString()).showInWindow();
+          CompoundAnnotationUtils.getBestFormula(selectedRow)).showInWindow();
     });
 
     final MenuItem searchMassPubChem = new ConditionalMenuItem("Search mass in PubChem",

@@ -43,41 +43,38 @@ import org.jetbrains.annotations.Nullable;
 public class PubChemSearchTask extends FxUpdateTask<PubChemResultsModel> {
 
   private final SearchType searchType;
-  private final @NotNull MZTolerance tolerance;
+  private final @Nullable MZTolerance tolerance;
   private double progress = 0d;
   private final @Nullable FeatureListRow rowToScoreAgainst;
-  private final @Nullable IonType ionType;
   private long totalResults = 0;
 
   enum SearchType {
     MASS, FORMULA;
   }
 
-  protected PubChemSearchTask(@NotNull String taskName, PubChemResultsModel model,
+  PubChemSearchTask(@NotNull String taskName, PubChemResultsModel model,
       SearchType searchType) {
     super(taskName, model);
     this.searchType = searchType;
     tolerance = model.getMzTolerance();
     rowToScoreAgainst = model.getSelectedRow();
-    ionType = model.getIonType();
   }
 
   @Override
   public boolean checkPreConditions() {
-    if (tolerance == null) {
-      return false;
-    }
 
     return switch (searchType) {
-      case MASS -> model.getMassToSearch() != null;
+      case MASS -> tolerance != null && model.getMassToSearch() != null;
       case FORMULA -> model.getFormulaToSearch() != null;
     };
   }
 
+
   @Override
   protected void process() {
     final PubChemSearch searchConfig = switch (searchType) {
-      case MASS -> PubChemSearch.byMassRange(model.getMassToSearch(), tolerance);
+      case MASS -> // nullability of tolerance checked in checkPreConditions
+          PubChemSearch.byMassRange(model.getMassToSearch(), tolerance);
       case FORMULA -> PubChemSearch.byFormula(model.getFormulaToSearch());
     };
 
