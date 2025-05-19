@@ -206,4 +206,16 @@ public class IntegrationTests {
 //        second, "ims");
 //    Assertions.assertEquals(0, results.size());
   }
+
+  @Test
+  void testEnhancedPeakScanner(@TempDir File tempDir) {
+    if (!new File("D:\\OneDrive - mzio GmbH").exists()) {
+      logger.info("Skipping tims full batch integration test.");
+      return;
+    }
+
+    IntegrationTest.builder("rawdatafiles/integration_tests/isotopepeakscanner",
+        "enhanced_peak_scanner.mzbatch").tempDir(tempDir).build().runBatchGetCheckResults(
+        "rawdatafiles/integration_tests/isotopepeakscanner/expected_results.csv");
+  }
 }
