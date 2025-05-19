@@ -47,4 +47,8 @@ public class HeightBoxPlotType extends AbstractBoxPlotType {
     return "Height box plot";
   }
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }
