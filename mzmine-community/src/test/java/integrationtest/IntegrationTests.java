@@ -220,4 +220,17 @@ public class IntegrationTests {
 //        second, "ims");
 //    Assertions.assertEquals(0, results.size());
   }
+
+  @Test
+  void testDiaPasef(@TempDir File tempDir) {
+    // only run the test on local machines
+    if (!new File("D:\\OneDrive - mzio GmbH").exists()) {
+      logger.info("Skipping tims full batch integration test.");
+      return;
+    }
+    Assertions.assertEquals(0, IntegrationTest.builder("rawdatafiles/integration_tests/diaPASEF",
+            "dia_pasef_local.mzbatch").tempDir(tempDir).build()
+        .runBatchGetCheckResults("rawdatafiles/integration_tests/diaPASEF/expected_results.csv")
+        .size());
+  }
 }
