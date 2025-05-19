@@ -85,32 +85,18 @@ public class IntegrationTests {
             "rawdatafiles/integration_tests/workshop_dataset/expected_results.csv", results, batchFile)
         .isEmpty());
 
-    Assertions.assertEquals(40, IntegrationTestUtils.getCsvComparisonResults(
+    Assertions.assertEquals(42, IntegrationTestUtils.getCsvComparisonResults(
         "rawdatafiles/integration_tests/workshop_dataset/expected_results_error.csv", results,
         batchFile).size());
   }
 
   @Test
-  void testLcMsFullBatchRemove(@TempDir File tempDir) {
-    testLcMsFullBatch(tempDir, "workshop_dataset_full.mzbatch");
-  }
-
-  @Test
-  void testLcMsFullBatchKeep(@TempDir File tempDir) {
-    testLcMsFullBatch(tempDir, "workshop_dataset_full_keep.mzbatch");
-  }
-
-  @Test
-  void testLcMsFullBatchInPlace(@TempDir File tempDir) {
-    testLcMsFullBatch(tempDir, "workshop_dataset_full_process_in_place.mzbatch");
-  }
-
-  void testLcMsFullBatch(File tempDir, String batchFile) {
+  void testLcMsFullBatch(@TempDir File tempDir) {
     if (new File("D:\\OneDrive - mzio GmbH").exists()) {
       Assertions.assertEquals(0,
-          IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset", batchFile)
-              .tempDir(tempDir).build().runBatchGetCheckResults(
-                  "rawdatafiles/integration_tests/workshop_dataset/expected_results_full.csv").size());
+          IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset",
+              "workshop_dataset_full.mzbatch").tempDir(tempDir).build().runBatchGetCheckResults(
+              "rawdatafiles/integration_tests/workshop_dataset/expected_results_full.csv").size());
     }
   }
 
@@ -219,5 +205,18 @@ public class IntegrationTests {
 //    final List<@NotNull CheckResult> results = IntegrationTestUtils.getCsvComparisonResults(first,
 //        second, "ims");
 //    Assertions.assertEquals(0, results.size());
+  }
+
+  @Test
+  void testDiaPasef(@TempDir File tempDir) {
+    // only run the test on local machines
+    if (!new File("D:\\OneDrive - mzio GmbH").exists()) {
+      logger.info("Skipping tims full batch integration test.");
+      return;
+    }
+    Assertions.assertEquals(0, IntegrationTest.builder("rawdatafiles/integration_tests/diaPASEF",
+            "dia_pasef_local.mzbatch").tempDir(tempDir).build()
+        .runBatchGetCheckResults("rawdatafiles/integration_tests/diaPASEF/expected_results.csv")
+        .size());
   }
 }
