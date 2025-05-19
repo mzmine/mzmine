@@ -27,6 +27,7 @@ package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -96,6 +97,13 @@ public class BatchModeModule implements MZmineProcessingModule {
         for (final String errorMessage : errorMessages) {
           logger.log(Level.WARNING, errorMessage);
         }
+        if (!ConfigService.isIgnoreParameterWarningsInBatch()) {
+          // parameters have updated, we need to exit
+          logger.log(Level.SEVERE,
+              "Exiting because some parameter sets have been updated since the batch was "
+                  + "created. Please update the batch file by opening it in the GUI and try again.");
+          System.exit(1);
+        }
       }
 
       return runBatchQueue(newQueue, project, overrideDataFiles, overrideMetadataFile,
@@ -117,10 +125,10 @@ public class BatchModeModule implements MZmineProcessingModule {
    *                                     filename
    * @return the batch task if successful or null on error
    */
-  public static @Nullable BatchTask runBatchQueue(BatchQueue newQueue, @NotNull MZmineProject project,
-      @Nullable File @Nullable [] overrideDataFiles, @Nullable File overrideMetadataFile,
-      File[] overrideSpectralLibraryFiles, @Nullable String overrideOutBaseFile,
-      @NotNull Instant moduleCallDate) {
+  public static @Nullable BatchTask runBatchQueue(BatchQueue newQueue,
+      @NotNull MZmineProject project, @Nullable File @Nullable [] overrideDataFiles,
+      @Nullable File overrideMetadataFile, File[] overrideSpectralLibraryFiles,
+      @Nullable String overrideOutBaseFile, @NotNull Instant moduleCallDate) {
     if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Cannot run a second batch while the current batch is not finished.");

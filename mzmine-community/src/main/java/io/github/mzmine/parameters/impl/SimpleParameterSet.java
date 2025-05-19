@@ -250,7 +250,7 @@ public class SimpleParameterSet implements ParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, null);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, this.getMessage());
     dialog.showAndWait();
     return dialog.getExitCode();
   }

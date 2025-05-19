@@ -34,7 +34,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.AreaBarType;
+import io.github.mzmine.datamodel.features.types.AreaBoxPlotType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -664,7 +664,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     registerColumn(col, ColumnType.ROW_TYPE, dataType, null);
     if (!(dataType instanceof ExpandableType)) {
       // Hide area bars and area share columns, if there is only one raw data file in the feature list
-      if ((dataType instanceof AreaBarType || dataType instanceof AreaShareType)
+      if ((dataType instanceof AreaBoxPlotType || dataType instanceof AreaShareType)
           && getFeatureList().getNumberOfRawDataFiles() == 1) {
         col.setVisible(false);
       } else {

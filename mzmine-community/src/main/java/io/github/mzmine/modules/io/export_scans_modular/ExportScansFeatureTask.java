@@ -390,8 +390,6 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
     // create unknown to not interfere with annotation by sirius by adding to much info
     final SpectralLibraryEntry entry = entryFactory.createUnknown(null, row, f, spectrum, data,
         null, metadataMap);
-    // below here are only SIRIUS specific fields added or overwritten.
-    // all default behavior should go into {@link SpectralLibraryEntryFactory}
 
     return entry;
   }
