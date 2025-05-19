@@ -103,7 +103,6 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
     Range<Float> featureRtRange = feature.getRawDataPointsRTRange();
     final ScanSelection selection = new ScanSelection(pseudoScan.getMSLevel(), featureRtRange);
 
-    // use scans from feature list
     List<Scan> scans = selection.streamMatchingScans(dataFile).<Scan>mapMulti((scan, c) -> {
       // MS1 like GC-EI-MS
       if (scan.getMSLevel() == 1) {

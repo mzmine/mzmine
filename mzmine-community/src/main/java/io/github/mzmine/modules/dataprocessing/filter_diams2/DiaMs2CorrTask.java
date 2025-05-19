@@ -231,13 +231,13 @@ public class DiaMs2CorrTask extends AbstractTask {
       final List<@NotNull PseudoSpectrum> correlatedMs2s = processIsolationWindows(feature,
           matchingWindows, isoWindowEicsMap, isolationWindowScanMap);
 
-      if(!discriminateByCE) {
+      if (!discriminateByCE) {
         // we can only refine if we don't discriminate by CE, otherwise we compare spectra of different CEs
         PseudoSpectrum reoccurringIons = refineMs2s(correlatedMs2s);
         feature.setAllMS2FragmentScans(
             reoccurringIons != null ? List.of(reoccurringIons) : List.of());
       } else {
-        feature.setAllMS2FragmentScans((List<Scan>)(List<? extends Scan>)correlatedMs2s);
+        feature.setAllMS2FragmentScans((List<Scan>) (List<? extends Scan>) correlatedMs2s);
       }
     }
 
@@ -741,6 +741,8 @@ public class DiaMs2CorrTask extends AbstractTask {
         .filter(Objects::nonNull).map(MsMsInfo::getActivationEnergy).filter(Objects::nonNull)
         .distinct().count();
     if (numberOfCEs < 5 && !(file instanceof IMSRawDataFile)) {
+      // if we can find multiple collision energies in a non ims file, the likelyhood is that there
+      // were multiple CEs acquired and we must discriminate by CEs.
       discriminateByCE = true;
     } else {
       discriminateByCE = false;
@@ -775,7 +777,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
     if (windowScanMap.isEmpty()) {
       // in case no isolation window was found, use one single isolation window that encloses everything
-      windowScanMap.put(new IsolationWindow(Range.closed(0d, Double.MAX_VALUE),  null, null),
+      windowScanMap.put(new IsolationWindow(Range.closed(0d, Double.MAX_VALUE), null, null),
           ms2ScanSelection.getMatchingScans(file.getScans()));
     }
 
