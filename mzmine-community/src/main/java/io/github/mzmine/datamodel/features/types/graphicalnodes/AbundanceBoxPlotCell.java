@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -38,12 +39,13 @@ import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AbundanceBarCell extends TreeTableCell<ModularFeatureListRow, ModularFeatureListRow> {
+public class AbundanceBoxPlotCell extends
+    TreeTableCell<ModularFeatureListRow, ModularFeatureListRow> {
 
   private final RowsBoxplotController boxPlot;
   private final Region view;
 
-  public AbundanceBarCell(@NotNull ObjectProperty<@Nullable MetadataColumn<?>> groupingColumn,
+  public AbundanceBoxPlotCell(@NotNull ObjectProperty<@Nullable MetadataColumn<?>> groupingColumn,
       AbundanceMeasure abundanceMeasure) {
     super();
 

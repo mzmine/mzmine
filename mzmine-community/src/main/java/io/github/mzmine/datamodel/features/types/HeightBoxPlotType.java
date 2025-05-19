@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,33 +25,14 @@
 
 package io.github.mzmine.datamodel.features.types;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.fx.ColumnID;
-import io.github.mzmine.datamodel.features.types.fx.ColumnType;
-import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
-import io.github.mzmine.datamodel.features.types.fx.MetadataHeaderColumn;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.AbundanceBarCell;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDashboardTab;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.project.ProjectService;
-import java.util.List;
-import java.util.Map;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class HeightBoxPlotType extends LinkedGraphicalType {
+public class HeightBoxPlotType extends AbstractBoxPlotType {
+
+  public HeightBoxPlotType() {
+    super(AbundanceMeasure.Height);
+  }
 
   @NotNull
   @Override
@@ -67,56 +48,7 @@ public class HeightBoxPlotType extends LinkedGraphicalType {
   }
 
   @Override
-  public double getColumnWidth() {
-    return GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH;
-  }
-
-  @Override
-  public @Nullable Node createCellContent(@NotNull ModularFeatureListRow row, Boolean cellData,
-      @Nullable RawDataFile raw, AtomicDouble progress) {
-
-    throw new IllegalStateException("Statement should be unreachable due to custom cell factory.");
-  }
-
-  @Override
-  public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
-      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
-
-    final MetadataHeaderColumn<ModularFeatureListRow, Object> col = new MetadataHeaderColumn<>(this,
-        ProjectService.getMetadata().getSampleTypeColumn());
-
-    // define observable
-    col.setCellFactory(c -> (TreeTableCell) new AbundanceBarCell(col.selectedColumnProperty(),
-        AbundanceMeasure.Height));
-//    col.setCellValueFactory(new DataTypeCellValueFactory(raw, this, parentType, subColumnIndex));
-    col.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
-    return col;
-  }
-
-  @Override
-  public @Nullable Runnable getDoubleClickAction(@Nullable FeatureTableFX table,
-      @NotNull ModularFeatureListRow row, @NotNull List<RawDataFile> file,
-      @Nullable DataType<?> superType, @Nullable Object value) {
-    return () -> {
-      if (table == null || table.getFeatureList() == null) {
-        return;
-      }
-      FxThread.runLater(() -> {
-        final StatsDashboardTab tab = new StatsDashboardTab();
-        tab.onFeatureListSelectionChanged(List.of(table.getFeatureList()));
-        tab.getController().selectedRowsProperty().set(List.of(row));
-
-        final ColumnID colId = new ColumnID(this, ColumnType.ROW_TYPE, null, -1);
-        final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> map = table.getNewColumnMap();
-        final MetadataColumn<?> selectedColumn = map.entrySet().stream()
-            .filter(entry -> entry.getValue().getUniqueIdString().equals(colId.getUniqueIdString()))
-            .findFirst().map(entry -> ((MetadataHeaderColumn) entry.getKey()).getSelectedColumn())
-            .orElse(ProjectService.getMetadata().getSampleTypeColumn());
-
-        tab.getController().groupingColumnProperty().set(selectedColumn);
-        tab.getController().abundanceMeasureProperty().set(AbundanceMeasure.Height);
-        MZmineCore.getDesktop().addTab(tab);
-      });
-    };
+  public boolean getDefaultVisibility() {
+    return true;
   }
 }
