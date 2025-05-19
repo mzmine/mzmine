@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,9 +31,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
-import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.fx.MetadataHeaderColumn;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.AbundanceBarCell;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.AbundanceBoxPlotCell;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -82,12 +81,12 @@ public class AreaBoxPlotType extends LinkedGraphicalType {
   public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
 
-    final MetadataHeaderColumn<ModularFeatureListRow, Object> col = new MetadataHeaderColumn<>(
-        this, ProjectService.getMetadata().getSampleTypeColumn());
+    final MetadataHeaderColumn<ModularFeatureListRow, Object> col = new MetadataHeaderColumn<>(this,
+        ProjectService.getMetadata().getSampleTypeColumn());
 
     // define observable
-    col.setCellFactory(
-        c -> (TreeTableCell) new AbundanceBarCell(col.selectedColumnProperty(), AbundanceMeasure.Area));
+    col.setCellFactory(c -> (TreeTableCell) new AbundanceBoxPlotCell(col.selectedColumnProperty(),
+        AbundanceMeasure.Area));
 //    col.setCellValueFactory(new DataTypeCellValueFactory(raw, this, parentType, subColumnIndex));
     col.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
     return col;
