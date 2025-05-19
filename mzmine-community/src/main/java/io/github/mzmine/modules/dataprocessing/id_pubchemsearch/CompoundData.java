@@ -42,38 +42,38 @@ public record CompoundData(
     @JsonProperty("CID") int cid, // Assuming CID is always present and an int
 
     // Map JSON property names to Optional record components
-    @JsonProperty("MolecularFormula") Optional<String> molecularFormula,
+    @JsonProperty("MolecularFormula") String molecularFormula,
 
-    @JsonProperty("SMILES") Optional<String> smiles,
+    @JsonProperty("SMILES") String smiles,
 
-    @JsonProperty("InChI") Optional<String> inchi,
+    @JsonProperty("InChI") String inchi,
 
-    @JsonProperty("InChIKey") Optional<String> inchiKey,
+    @JsonProperty("InChIKey") String inchiKey,
 
-    @JsonProperty("IUPACName") Optional<String> iupacName,
+    @JsonProperty("IUPACName") String iupacName,
 
-    @JsonProperty("Title") Optional<String> title,
+    @JsonProperty("Title") String title,
 
-    @JsonProperty("Charge") OptionalInt charge,
+    @JsonProperty("Charge") Integer charge,
 
-    @JsonProperty("MonoisotopicMass") OptionalDouble monoisotopicMass) {
+    @JsonProperty("MonoisotopicMass") Double monoisotopicMass) {
 
   public @NotNull CompoundDBAnnotation convert(@Nullable IonType ionType) {
     final CompoundDBAnnotation annotation = new SimpleCompoundDBAnnotation();
 
     annotation.put(PubChemIdType.class, String.valueOf(cid()));
-    molecularFormula().ifPresent(form -> annotation.put(FormulaType.class, form));
-    monoisotopicMass().ifPresent(mz -> annotation.put(NeutralMassType.class, mz));
-    charge().ifPresent(charge -> annotation.put(ChargeType.class, charge));
-    inchi().ifPresent(inchi -> annotation.put(InChIStructureType.class, inchi));
-    inchiKey().ifPresent(key -> annotation.put(InChIKeyStructureType.class, key));
-    smiles().ifPresent(smiles -> annotation.put(SmilesStructureType.class, smiles));
-    title().ifPresent(name -> annotation.put(CompoundNameType.class, name));
+    annotation.putIfNotNull(FormulaType.class, molecularFormula);
+    annotation.putIfNotNull(ChargeType.class, charge);
+    annotation.putIfNotNull(InChIStructureType.class, inchi);
+    annotation.putIfNotNull(InChIKeyStructureType.class, inchiKey);
+    annotation.putIfNotNull(SmilesStructureType.class, smiles);
+    annotation.putIfNotNull(CompoundNameType.class, title);
 
     if (ionType != null) {
-      annotation.put(IonTypeType.class, ionType);
-      monoisotopicMass.ifPresent(
-          neutral -> annotation.put(PrecursorMZType.class, ionType.getMZ(neutral)));
+      annotation.putIfNotNull(IonTypeType.class, ionType);
+      if(monoisotopicMass != null) {
+        annotation.put(PrecursorMZType.class, ionType.getMZ(monoisotopicMass));
+      }
     }
 
     return annotation;
