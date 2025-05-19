@@ -27,6 +27,9 @@ package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.TreeMap;
@@ -40,11 +43,11 @@ import java.util.TreeMap;
  * why it has the method containsID to check.
  *
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- *
  */
 public class PeakListHandler {
 
   private TreeMap<Integer, FeatureListRow> map;
+
 
   public PeakListHandler() {
     map = new TreeMap<Integer, FeatureListRow>();
@@ -57,7 +60,7 @@ public class PeakListHandler {
 
   /**
    * use this if you want to manage an existing PeakList
-   * 
+   *
    * @param pL the feature list you want to manage
    */
   public void setUp(FeatureList pL) {
@@ -68,7 +71,7 @@ public class PeakListHandler {
 
   /**
    * Manually add a PeakListRow
-   * 
+   *
    * @param row row to be added
    */
   public void addRow(FeatureListRow row) {
@@ -76,7 +79,6 @@ public class PeakListHandler {
   }
 
   /**
-   * 
    * @return number of rows handled with plh
    */
   public int size() {
@@ -84,7 +86,6 @@ public class PeakListHandler {
   }
 
   /**
-   * 
    * @param ID ID to check for
    * @return true if contained, false if not
    */
@@ -93,7 +94,6 @@ public class PeakListHandler {
   }
 
   /**
-   * 
    * @return ArrayList<Integer> of all IDs of the feature list rows
    */
   public ArrayList<Integer> getAllKeys() {
@@ -104,7 +104,6 @@ public class PeakListHandler {
   }
 
   /**
-   * 
    * @param ID ID of the row you want
    * @return Row with specified ID
    */
@@ -113,16 +112,41 @@ public class PeakListHandler {
   }
 
   /**
-   * 
    * @param ID integer array of IDs
    * @return all rows with specified ids
    */
   public FeatureListRow[] getRowsByID(int ID[]) {
     FeatureListRow[] rows = new FeatureListRow[ID.length];
 
-    for (int i = 0; i < ID.length; i++)
+    for (int i = 0; i < ID.length; i++) {
       rows[i] = map.get(ID[i]);
+    }
 
     return rows;
   }
+
+  /**
+   * @param majorIsotopeIdentifier
+   * @param peakList
+   * @return ModularFeatureList generated based on a given peakList with the addition of the isotope
+   * pattern found by the isotopepeakscanner
+   */
+
+  public ModularFeatureList generateResultPeakList(MajorIsotopeIdentifier majorIsotopeIdentifier,
+      ModularFeatureList peakList) {
+    ArrayList<Integer> keys = getAllKeys();
+    for (Integer key : keys) {
+      ModularFeatureListRow bestRow = new ModularFeatureListRow(peakList, key,
+          (ModularFeatureListRow) getRowByID(key), true);
+      bestRow.getBestFeature()
+          .setIsotopePattern(majorIsotopeIdentifier.getResultingIsotopePattern().get(key));
+      bestRow.getBestFeature().setCharge(getRowByID(key).getBestFeature().getCharge());
+
+      float scoreFloat = majorIsotopeIdentifier.getResultingScores().get(key).floatValue();
+      bestRow.getBestFeature().set(IsotopePatternScoreType.class, scoreFloat);
+      peakList.addRow(bestRow);
+    }
+    return peakList;
+  }
+
 }
