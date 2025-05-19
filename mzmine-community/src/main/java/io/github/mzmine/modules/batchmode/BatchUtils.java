@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
+import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
@@ -188,5 +189,18 @@ public class BatchUtils {
     }
     return errorMessages.isEmpty() ? null
         : errorMessages.stream().collect(Collectors.joining("\n\n"));
+  }
+
+  /**
+   * Clone a step, also clones the internal ParameterSet
+   */
+  @NotNull
+  public static MZmineProcessingStep<MZmineProcessingModule> cloneStep(
+      @NotNull MZmineProcessingStep<MZmineProcessingModule> step) {
+    if (step.getParameterSet() == null) {
+      return new MZmineProcessingStepImpl<>(step.getModule(), null);
+    }
+    final ParameterSet clonedParams = step.getParameterSet().cloneParameterSet();
+    return new MZmineProcessingStepImpl<>(step.getModule(), clonedParams);
   }
 }
