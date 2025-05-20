@@ -47,11 +47,6 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
       "Default feature intensity", "Used in the compact table", AbundanceMeasure.values(),
       AbundanceMeasure.Height);
 
-  public static final BooleanParameter sampleColumnsVisible = new BooleanParameter(
-      "Show sample specific columns",
-      "If active then show sample specific columns. This may slow down the table for large datasets with many samples.",
-      true);
-
   public static final BooleanParameter defaultVisibilityOfImsFeature = new BooleanParameter(
       "Default visibility (IMS feature charts)",
       "This parameter is applied when opening a new feature table. Only used for single sample feature lists.",
@@ -80,7 +75,7 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
       "If ticked, the axes of image plots will be hidden.", false);
 
   public FeatureTableFXParameters() {
-    super(showRowTypeColumns, showFeatureTypeColumns, defaultAbundanceMeasure, sampleColumnsVisible,
+    super(showRowTypeColumns, showFeatureTypeColumns, defaultAbundanceMeasure,
         defaultVisibilityOfImsFeature, defaultVisibilityOfImages, defaultVisibilityOfShapes,
         deactivateShapesGreaterNSamples, lockImagesToAspectRatio, hideImageAxes);
   }

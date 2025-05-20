@@ -90,7 +90,6 @@ import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.ArrayList;
@@ -108,7 +107,9 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -167,7 +168,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   private final ObjectProperty<ModularFeatureList> featureListProperty = new SimpleObjectProperty<>();
   private final NotificationPane dataChangedNotification;
-  private final BooleanParameter sampleColVisibleParameter;
+  private final BooleanProperty sampleColVisibleParameter = new SimpleBooleanProperty();
+  private final List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
 
   public FeatureTableFX() {
     dataChangedNotification = new NotificationPane(table);
@@ -191,8 +193,6 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     rowTypesParameter = parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
     featureTypesParameter = parameters.getParameter(
         FeatureTableFXParameters.showFeatureTypeColumns);
-    sampleColVisibleParameter = parameters.getParameter(
-        FeatureTableFXParameters.sampleColumnsVisible);
 
     rowItems = FXCollections.observableArrayList();
     filteredRowItems = new FilteredList<>(rowItems);
@@ -832,19 +832,31 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private void toggleSampleColumns() {
     // flip
     sampleColVisibleParameter.setValue(!sampleColVisibleParameter.getValue());
+    // sample specific columns are only created if needed
+    if (rawColumns.isEmpty()) {
+      // add features
+      addFeaturesColumns();
+    }
+
     applyVisibilityParametersToAllColumns();
   }
 
   public void applyVisibilityParametersToAllColumns() {
+    // do not show raw file columns if hidden
+    for (TreeTableColumn<ModularFeatureListRow, String> col : rawColumns) {
+      col.setVisible(sampleColVisibleParameter.get());
+    }
+
     table.getColumns().forEach(this::recursivelyApplyVisibilityParameterToColumn);
   }
 
   private void addFeaturesColumns() {
-    if (getFeatureList() == null) {
+    // only create feature columns if they are visible
+    rawColumns.clear();
+    if (getFeatureList() == null || !sampleColVisibleParameter.get()) {
       return;
     }
 
-    List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
     // Add feature columns for each raw file
     for (RawDataFile dataFile : getFeatureList().getRawDataFiles()) {
       TreeTableColumn<ModularFeatureListRow, String> sampleCol = new TreeTableColumn<>();
@@ -1094,6 +1106,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     table.getRoot().getChildren().clear();
     table.getColumns().clear();
     rowItems.clear();
+    newColumnMap.clear();
 
     // remove the old listener
     if (oldFeatureList != null) {
