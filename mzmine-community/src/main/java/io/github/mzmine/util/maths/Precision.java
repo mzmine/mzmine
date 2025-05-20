@@ -29,6 +29,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import org.jetbrains.annotations.Nullable;
 
 public class Precision {
 
@@ -185,6 +186,16 @@ public class Precision {
 
   public static boolean equalFloatSignificance(final float a, final float b) {
     return equalSignificance(a, b, 6); // float significance is 6 - 7 digits
+  }
+
+  public static boolean equalFloatSignificance(final @Nullable Float a, final @Nullable Float b) {
+    if(a == null && b == null) {
+      return true;
+    }
+    if(a == null || b == null) {
+      return false;
+    }
+    return equalFloatSignificance(a.floatValue(), b.floatValue());
   }
 
   public static boolean equalSignificance(final float a, final float b, final int sigDigits) {

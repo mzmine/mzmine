@@ -127,6 +127,8 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
    */
   void saveValueToXML(XMLStreamWriter writer, List<T> allScans) throws XMLStreamException;
 
+  void saveValueToXML(XMLStreamWriter writer, List<T> allScans, boolean includeRt) throws XMLStreamException;
+
   @Override
   default @Nullable MemoryMapStorage getStorage() {
     if (getSpectra().isEmpty() || !(getSpectrum(0) instanceof Scan scan)) {
