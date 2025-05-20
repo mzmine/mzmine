@@ -375,6 +375,13 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
 
+  @Override
+  public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans, boolean includeRt)
+      throws XMLStreamException {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
   /**
    * Usage of this method is strongly discouraged because it returns the internal buffer of this
    * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct

@@ -61,6 +61,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.getTypeValue;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -767,7 +768,6 @@ public class FeatureUtils {
   }
 
   public static List<IonType> extractAllIonTypes(FeatureListRow row) {
-
     final List<IonType> allIonTypes = Arrays.stream(FeatureAnnotationPriority.values())
         .flatMap(type -> {
           final Object o = row.get(type.getAnnotationType());
@@ -775,13 +775,20 @@ public class FeatureUtils {
             return Stream.empty();
           }
           return switch (type) {
-            case MANUAL, FORMULA, LIPID -> Stream.empty();
+            case MANUAL, LIPID, FORMULA -> Stream.empty();
             case SPECTRAL_LIBRARY, EXACT_COMPOUND -> {
               List<FeatureAnnotation> featureAnnotations = (List<FeatureAnnotation>) annotations;
               yield featureAnnotations.stream().map(FeatureAnnotation::getAdductType);
             }
           };
-        }).toList();
+        }).collect(Collectors.toList());
+
+    if(row.getBestIonIdentity() != null) {
+      final IonType ionType = row.getBestIonIdentity().getIonType();
+      final List<IonType> combined = new ArrayList<>(allIonTypes);
+      combined.add(ionType);
+      return combined;
+    }
 
     return allIonTypes;
   }

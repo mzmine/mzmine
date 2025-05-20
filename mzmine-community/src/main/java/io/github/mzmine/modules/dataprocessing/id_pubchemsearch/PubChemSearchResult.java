@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,32 +22,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.modules.dataprocessing.id_pubchemsearch;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.beans.property.Property;
+import javafx.collections.ObservableList;
 
-public class HeightBoxPlotType extends AbstractBoxPlotType {
+/**
+ * Holds the result of a PubChem search executed by PubChemApiClient.
+ *
+ * @param status  The final status of the search operation.
+ * @param results An observable list containing the parsed CompoundData. Will be empty if status is
+ *                ERROR or CANCELED, or if no results were found.
+ */
+public record PubChemSearchResult(Property<TaskStatus> status, ObservableList<CompoundData> results) {
 
-  public HeightBoxPlotType() {
-    super(AbundanceMeasure.Height);
-  }
-
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "height_box_plot";
-  }
-
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "Height box plot";
-  }
-
-  @Override
-  public boolean getDefaultVisibility() {
-    return true;
-  }
 }

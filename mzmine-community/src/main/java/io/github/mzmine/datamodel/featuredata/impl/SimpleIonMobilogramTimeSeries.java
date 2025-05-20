@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.MzSeries;
+import io.github.mzmine.datamodel.featuredata.TimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningModule;
@@ -361,11 +362,20 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   @Override
   public void saveValueToXML(XMLStreamWriter writer, List<Frame> allScans)
       throws XMLStreamException {
+    saveValueToXML(writer, allScans, true);
+  }
+
+  @Override
+  public void saveValueToXML(XMLStreamWriter writer, List<Frame> allScans, boolean includeRt)
+      throws XMLStreamException {
     writer.writeStartElement(SimpleIonMobilogramTimeSeries.XML_ELEMENT);
 
     IntensitySeries.saveIntensityValuesToXML(writer, this);
     MzSeries.saveMzValuesToXML(writer, this);
     IonSpectrumSeries.saveSpectraIndicesToXML(writer, this, allScans);
+    if(includeRt) {
+      TimeSeries.saveValuesToXML(writer, this);
+    }
 
     summedMobilogram.saveValueToXML(writer);
 
@@ -376,6 +386,8 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     writer.writeEndElement();
   }
+
+
 
   @Override
   public boolean equals(Object o) {

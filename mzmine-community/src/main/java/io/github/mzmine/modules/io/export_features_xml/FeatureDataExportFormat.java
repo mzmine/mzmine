@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,32 +22,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.modules.io.export_features_xml;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
-public class HeightBoxPlotType extends AbstractBoxPlotType {
+public enum FeatureDataExportFormat implements UniqueIdSupplier {
 
-  public HeightBoxPlotType() {
-    super(AbundanceMeasure.Height);
-  }
+  XML;
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "height_box_plot";
-  }
-
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "Height box plot";
-  }
 
   @Override
-  public boolean getDefaultVisibility() {
-    return true;
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case XML -> "xml";
+    };
+  }
+
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case XML -> "XML";
+    };
   }
 }
