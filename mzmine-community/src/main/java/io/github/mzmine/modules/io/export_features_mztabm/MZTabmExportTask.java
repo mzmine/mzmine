@@ -209,7 +209,7 @@ public class MZTabmExportTask extends AbstractTask {
           assay.addMsRunRefItem(msRun);
           mtd.addAssayItem(assay);
 
-          for (UserParameter<?, ?> p : project.getParameters()) {
+          /*for (UserParameter<?, ?> p : project.getParameters()) {
             if (p.getName().contains("study variable")) {
               if (svhash.containsKey(String.valueOf(project.getParameterValue(p, file)))) {
                 svhash.get(String.valueOf(project.getParameterValue(p, file))).add(file);
@@ -220,7 +220,7 @@ public class MZTabmExportTask extends AbstractTask {
               }
               break;
             }
-          }
+          }*/
 
           //Optional Columns
           // TODO: rename "peak_mz" to "feature_mz" in both import and export and test if they work

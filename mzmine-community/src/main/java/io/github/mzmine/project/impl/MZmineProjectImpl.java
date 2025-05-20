@@ -129,67 +129,6 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public void addParameter(UserParameter<?, ?> parameter) {
-    if (projectParametersAndValues.containsKey(parameter)) {
-      return;
-    }
-
-    Hashtable<RawDataFile, Object> parameterValues = new Hashtable<>();
-    projectParametersAndValues.put(parameter, parameterValues);
-
-  }
-
-  @Override
-  public void removeParameter(UserParameter<?, ?> parameter) {
-    projectParametersAndValues.remove(parameter);
-  }
-
-  @Override
-  public UserParameter<?, ?> getParameterByName(String name) {
-    for (UserParameter<?, ?> parameter : getParameters()) {
-      if (parameter.getName().equals(name)) {
-        return parameter;
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public boolean hasParameter(UserParameter<?, ?> parameter) {
-    // matching by name
-    UserParameter<?, ?> param = getParameterByName(parameter.getName());
-    return param != null;
-  }
-
-  @Override
-  public UserParameter<?, ?>[] getParameters() {
-    return projectParametersAndValues.keySet().toArray(new UserParameter[0]);
-  }
-
-  @Override
-  public void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile,
-      Object value) {
-    if (!(hasParameter(parameter))) {
-      addParameter(parameter);
-    }
-    Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues.get(parameter);
-    if (value == null) {
-      parameterValues.remove(rawDataFile);
-    } else {
-      parameterValues.put(rawDataFile, value);
-    }
-  }
-
-  @Override
-  public Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile) {
-    if (!(hasParameter(parameter))) {
-      return null;
-    }
-
-    return projectParametersAndValues.get(parameter).get(rawDataFile);
-  }
-
-  @Override
   public void addFile(@NotNull final RawDataFile newFile) {
     try {
       rawLock.writeLock().lock();

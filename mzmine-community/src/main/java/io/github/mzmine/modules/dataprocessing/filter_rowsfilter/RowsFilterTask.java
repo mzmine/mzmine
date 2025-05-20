@@ -29,11 +29,13 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureAnnotationIterator;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
@@ -50,6 +52,7 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -80,7 +83,6 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean onlyIdentified;
   private final boolean filterByIdentityText;
   private final boolean filterByCommentText;
-  private final String groupingParameter;
   private final boolean filterByMinFeatureCount;
   private final boolean filterByMinIsotopePatternSize;
   private final boolean filterByMzRange;
@@ -144,7 +146,6 @@ public class RowsFilterTask extends AbstractTask {
     onlyIdentified = parameters.getValue(RowsFilterParameters.HAS_IDENTITIES);
     filterByIdentityText = parameters.getValue(RowsFilterParameters.IDENTITY_TEXT);
     filterByCommentText = parameters.getValue(RowsFilterParameters.COMMENT_TEXT);
-    groupingParameter = (String) parameters.getValue(RowsFilterParameters.GROUPSPARAMETER);
     filterByMinFeatureCount = parameters.getValue(RowsFilterParameters.MIN_FEATURE_COUNT);
     filterByMinIsotopePatternSize = parameters.getValue(
         RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT);
@@ -354,7 +355,7 @@ public class RowsFilterTask extends AbstractTask {
     }
 
     // Check number of features.
-    final int featureCount = getFeatureCount(row, groupingParameter);
+    final int featureCount = row.getNumberOfFeatures();
     if (filterByMinFeatureCount) {
       if (!minSamples.checkGreaterEqualMax(totalSamples, featureCount)) {
         return true;
@@ -383,30 +384,11 @@ public class RowsFilterTask extends AbstractTask {
     // Search feature identity text.
     if (filterByIdentityText) {
       boolean foundText = false;
-      if (row.getPeakIdentities() != null) {
-        for (var id : row.getPeakIdentities()) {
-          if (id != null && id.getName().toLowerCase().trim().contains(searchText)) {
-            foundText = true;
-            break;
-          }
-        }
-      }
-      List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
-      if (matchedLipids != null && !foundText) {
-        for (var id : matchedLipids) {
-          if (id != null && id.getLipidAnnotation().getAnnotation().toLowerCase().trim()
-              .contains(searchText)) {
-            foundText = true;
-            break;
-          }
-        }
-      }
-      if (!foundText) {
-        for (var id : row.getSpectralLibraryMatches()) {
-          if (id != null && id.getCompoundName().toLowerCase().trim().contains(searchText)) {
-            foundText = true;
-            break;
-          }
+      if (!foundText && !row.getCompoundAnnotations().isEmpty()) {
+        if (CompoundAnnotationUtils.streamFeatureAnnotations(row)
+            .map(FeatureAnnotation::getCompoundName).filter(Objects::nonNull)
+            .anyMatch(name -> name.toLowerCase().trim().contains(searchText))) {
+          foundText = true;
         }
       }
       if (!foundText && row.get(GNPSSpectralLibraryMatchesType.class) != null) {
@@ -540,45 +522,6 @@ public class RowsFilterTask extends AbstractTask {
 
     return removeRedundantIsotopeRows && isRowRedundantDueToIsotopePattern(row,
         row.getBestIsotopePattern());
-  }
-
-  private int getFeatureCount(FeatureListRow row, String groupingParameter) {
-    if (groupingParameter.contains("Filtering by ")) {
-      HashMap<String, Integer> groups = new HashMap<>();
-      for (RawDataFile file : project.getDataFiles()) {
-        UserParameter<?, ?>[] params = project.getParameters();
-        for (UserParameter<?, ?> p : params) {
-          groupingParameter = groupingParameter.replace("Filtering by ", "");
-          if (groupingParameter.equals(p.getName())) {
-            String parameterValue = String.valueOf(project.getParameterValue(p, file));
-            if (row.hasFeature(file)) {
-              if (groups.containsKey(parameterValue)) {
-                groups.put(parameterValue, groups.get(parameterValue) + 1);
-              } else {
-                groups.put(parameterValue, 1);
-              }
-            } else {
-              groups.put(parameterValue, 0);
-            }
-          }
-        }
-      }
-
-      Set<String> ref = groups.keySet();
-      Iterator<String> it = ref.iterator();
-      int min = Integer.MAX_VALUE;
-      while (it.hasNext()) {
-        String name = it.next();
-        int val = groups.get(name);
-        if (val < min) {
-          min = val;
-        }
-      }
-      return min;
-
-    } else {
-      return row.getNumberOfFeatures();
-    }
   }
 
   /**

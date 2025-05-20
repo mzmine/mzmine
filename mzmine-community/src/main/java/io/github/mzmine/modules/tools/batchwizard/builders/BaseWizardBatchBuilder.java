@@ -937,7 +937,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(RowsFilterParameters.FWHM, false);
     param.setParameter(RowsFilterParameters.CHARGE, false);
     param.setParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT, false);
-    param.setParameter(RowsFilterParameters.GROUPSPARAMETER, RowsFilterParameters.defaultGrouping);
     param.setParameter(RowsFilterParameters.HAS_IDENTITIES, false);
     param.setParameter(RowsFilterParameters.IDENTITY_TEXT, false);
     param.setParameter(RowsFilterParameters.COMMENT_TEXT, false);
