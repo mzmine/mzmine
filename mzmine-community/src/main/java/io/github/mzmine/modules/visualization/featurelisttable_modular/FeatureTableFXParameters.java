@@ -48,7 +48,7 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
       AbundanceMeasure.Height);
 
   public static final BooleanParameter sampleColumnsVisible = new BooleanParameter(
-      "Sample-specific columns visibility",
+      "Show sample specific columns",
       "If active then show sample specific columns. This may slow down the table for large datasets with many samples.",
       true);
 
