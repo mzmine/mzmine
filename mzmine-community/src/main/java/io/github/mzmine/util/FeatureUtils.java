@@ -176,6 +176,7 @@ public class FeatureUtils {
    *
    * @return True if identities match between rows
    */
+  @Deprecated
   public static boolean compareIdentities(FeatureListRow row1, FeatureListRow row2) {
 
     if ((row1 == null) || (row2 == null)) {

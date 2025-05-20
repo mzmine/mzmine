@@ -113,13 +113,6 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       logger.warning(mzmineVersionError);
     }
 
-    // Set the parameter choice for the RowsFilterModule
-    String[] choices;
-    choices = new String[1];
-    choices[0] = "No parameters defined";
-    MZmineCore.getConfiguration().getModuleParameters(RowsFilterModule.class)
-        .getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(choices);
-
     // Create an empty queue.
     final BatchQueue queue = new BatchQueue();
 
