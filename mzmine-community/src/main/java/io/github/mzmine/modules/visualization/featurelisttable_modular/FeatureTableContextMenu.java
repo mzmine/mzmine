@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
+
+import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
@@ -115,13 +117,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -257,7 +260,7 @@ public class FeatureTableContextMenu extends ContextMenu {
       final FeatureAnnotation annotation = getAnnotationForBioTransformerPrediction();
       if (annotation != null) {
         BioTransformerModule.runSingleRowPredection(selectedRow, annotation.getSmiles(),
-            Objects.requireNonNullElse(annotation.getCompoundName(), "UNKNOWN"));
+            requireNonNullElse(annotation.getCompoundName(), "UNKNOWN"));
       }
     });
 
@@ -434,17 +437,17 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D",
-        () -> selectedFeature != null);
-    show2DItem.setOnAction(
-        e -> TwoDVisualizerModule.show2DVisualizerSetupDialog(selectedFeature.getRawDataFile(),
-            selectedFeature.getRawDataPointsMZRange(), selectedFeature.getRawDataPointsRTRange()));
+        () -> !selectedRows.isEmpty());
+    show2DItem.setOnAction(e -> {
+      final ModularFeature feature = requireNonNullElse(selectedFeature,
+          selectedRow.getBestFeature());
 
-    final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D",
-        () -> selectedFeature != null);
-    show3DItem.setOnAction(
-        e -> Fx3DVisualizerModule.setupNew3DVisualizer(selectedFeature.getRawDataFile(),
-            selectedFeature.getRawDataPointsMZRange(), selectedFeature.getRawDataPointsRTRange(),
-            selectedFeature));
+      TwoDVisualizerModule.show2DVisualizerSetupDialog(feature.getRawDataFile(),
+          feature.getRawDataPointsMZRange(), feature.getRawDataPointsRTRange());
+    });
+
+    final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D", () -> selectedRow != null);
+    show3DItem.setOnAction(open3DFeaturePlot());
 
     final MenuItem showIntensityPlotItem = new ConditionalMenuItem(
         "Plot using Intensity plot module",
@@ -591,6 +594,31 @@ public class FeatureTableContextMenu extends ContextMenu {
             new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
             showPeakRowSummaryItem, showCorrelatedImageFeaturesItem);
+  }
+
+  private @NotNull EventHandler<ActionEvent> open3DFeaturePlot() {
+    return e -> {
+      final List<Feature> features = getSelectedOrBestFeatures();
+      final RawDataFile[] dataFiles = features.stream().map(Feature::getRawDataFile)
+          .toArray(RawDataFile[]::new);
+
+      final Range<Double> mzRange = features.stream().map(Feature::getRawDataPointsMZRange)
+          .reduce(Range::span).orElse(null);
+      final Range<Float> rtRange = features.stream().map(Feature::getRawDataPointsRTRange)
+          .reduce(Range::span).orElse(null);
+
+      Fx3DVisualizerModule.setupNew3DVisualizer(dataFiles, mzRange, rtRange, features);
+    };
+  }
+
+  private @NotNull List<Feature> getSelectedOrBestFeatures() {
+    List<Feature> features = new ArrayList<>();
+    if (selectedFeatures.isEmpty()) {
+      features.addAll(selectedRows.stream().map(ModularFeatureListRow::getBestFeature).toList());
+    } else {
+      features.addAll(selectedFeatures);
+    }
+    return features;
   }
 
   private boolean selectedRowHasCorrelationData() {
