@@ -59,6 +59,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
+import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
@@ -107,7 +108,9 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -166,6 +169,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   private final ObjectProperty<ModularFeatureList> featureListProperty = new SimpleObjectProperty<>();
   private final NotificationPane dataChangedNotification;
+  private final BooleanProperty sampleColVisibleParameter = new SimpleBooleanProperty();
+  private final List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
 
   public FeatureTableFX() {
     dataChangedNotification = new NotificationPane(table);
@@ -200,6 +205,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     FeatureTableColumnMenuHelper contextMenuHelper = new FeatureTableColumnMenuHelper(this);
     // Adding additional menu options
     addContextMenuItem(contextMenuHelper, "Compact table", e -> showCompactChromatographyColumns());
+    addContextMenuItem(contextMenuHelper, "Toggle sample columns", e -> toggleSampleColumns());
     addContextMenuItem(contextMenuHelper, "Toggle shape columns", e -> toggleShapeColumns());
     addContextMenuItem(contextMenuHelper, "Toggle alignment columns",
         e -> toggleAlignmentColumns());
@@ -231,6 +237,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
       }
     });
   }
+
 
   private void initDataChangedNotification() {
     final Button btnUpdateTable = FxButtons.createButton("Update table", null,
@@ -552,7 +559,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     }
 
     // useful for debugging and seeing how many cells are empty / full
-    logTableFillingRatios(flist);
+//    logTableFillingRatios(flist);
 
     //    logger.info("Adding columns to table");
     // for all data columns available in "data"
@@ -593,7 +600,6 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     long totalRowCells = (long) flist.getRowTypes().size() * flist.getNumberOfRows();
     long totalFeatureCells = (long) flist.getFeatureTypes().size() * flist.streamFeatures().count();
 
-    // TODO remove or comment out
     // Just logging to see how full a table is
     final Predicate<DataType> inMemoryColumns = type -> switch (type) {
       case IntegerType _, DoubleType _, FloatType _, FloatRangeType _, DoubleRangeType _,
@@ -645,6 +651,10 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   public void addColumn(final TreeTableColumn<ModularFeatureListRow, String> rowCol,
       DataType dataType) {
     if (getFeatureList() == null) {
+      return;
+    }
+    if (dataType instanceof MinSamplesRequirement req
+        && req.getMinSamples() > getFeatureList().getNumberOfRawDataFiles()) {
       return;
     }
 
@@ -795,6 +805,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private void recursivelyApplyVisibilityParameterToColumn(TreeTableColumn column) {
     ColumnID id = newColumnMap.get(column);
 
+    final boolean sampleColsVisible = sampleColVisibleParameter.getValue();
+
     if (id == null) {
       column.getColumns()
           .forEach(col -> recursivelyApplyVisibilityParameterToColumn((TreeTableColumn) col));
@@ -803,7 +815,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
 
     boolean visible;
     if (id.getType() == ColumnType.FEATURE_TYPE) {
-      visible = featureTypesParameter.isDataTypeVisible(id);
+      // for large datasets sampleColsVisible is false
+      visible = sampleColsVisible && featureTypesParameter.isDataTypeVisible(id);
     } else {
       visible = rowTypesParameter.isDataTypeVisible(id);
     }
@@ -821,16 +834,34 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     }
   }
 
+  private void toggleSampleColumns() {
+    // flip
+    sampleColVisibleParameter.setValue(!sampleColVisibleParameter.getValue());
+    // sample specific columns are only created if needed
+    if (rawColumns.isEmpty()) {
+      // add features
+      addFeaturesColumns();
+    }
+
+    applyVisibilityParametersToAllColumns();
+  }
+
   public void applyVisibilityParametersToAllColumns() {
+    // do not show raw file columns if hidden
+    for (TreeTableColumn<ModularFeatureListRow, String> col : rawColumns) {
+      col.setVisible(sampleColVisibleParameter.get());
+    }
+
     table.getColumns().forEach(this::recursivelyApplyVisibilityParameterToColumn);
   }
 
   private void addFeaturesColumns() {
-    if (getFeatureList() == null) {
+    // only create feature columns if they are visible
+    rawColumns.clear();
+    if (getFeatureList() == null || !sampleColVisibleParameter.get()) {
       return;
     }
 
-    List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
     // Add feature columns for each raw file
     for (RawDataFile dataFile : getFeatureList().getRawDataFiles()) {
       TreeTableColumn<ModularFeatureListRow, String> sampleCol = new TreeTableColumn<>();
@@ -1080,6 +1111,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     table.getRoot().getChildren().clear();
     table.getColumns().clear();
     rowItems.clear();
+    newColumnMap.clear();
 
     // remove the old listener
     if (oldFeatureList != null) {
@@ -1088,6 +1120,10 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     if (newFeatureList == null) {
       return;
     }
+
+    // too many samples slow down the table - therefore do not show sample specific columns then
+    sampleColVisibleParameter.setValue(newFeatureList.getNumberOfRawDataFiles() <= 36);
+
     addColumns(newFeatureList);
     // first check if feature list is too large
     applyDefaultColumnVisibilities();
