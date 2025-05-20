@@ -59,6 +59,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
+import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
@@ -650,6 +651,10 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   public void addColumn(final TreeTableColumn<ModularFeatureListRow, String> rowCol,
       DataType dataType) {
     if (getFeatureList() == null) {
+      return;
+    }
+    if (dataType instanceof MinSamplesRequirement req
+        && req.getMinSamples() > getFeatureList().getNumberOfRawDataFiles()) {
       return;
     }
 
