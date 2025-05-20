@@ -558,7 +558,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     }
 
     // useful for debugging and seeing how many cells are empty / full
-    logTableFillingRatios(flist);
+//    logTableFillingRatios(flist);
 
     //    logger.info("Adding columns to table");
     // for all data columns available in "data"
@@ -599,7 +599,6 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     long totalRowCells = (long) flist.getRowTypes().size() * flist.getNumberOfRows();
     long totalFeatureCells = (long) flist.getFeatureTypes().size() * flist.streamFeatures().count();
 
-    // TODO remove or comment out
     // Just logging to see how full a table is
     final Predicate<DataType> inMemoryColumns = type -> switch (type) {
       case IntegerType _, DoubleType _, FloatType _, FloatRangeType _, DoubleRangeType _,
@@ -844,7 +843,6 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     if (getFeatureList() == null) {
       return;
     }
-    // TODO think about not creating the columns in the first place if this is still slowing down the table startup
 
     List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
     // Add feature columns for each raw file
