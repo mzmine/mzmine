@@ -103,7 +103,6 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
     Range<Float> featureRtRange = feature.getRawDataPointsRTRange();
     final ScanSelection selection = new ScanSelection(pseudoScan.getMSLevel(), featureRtRange);
 
-    // use scans from feature list
     List<Scan> scans = selection.streamMatchingScans(dataFile).<Scan>mapMulti((scan, c) -> {
       // MS1 like GC-EI-MS
       if (scan.getMSLevel() == 1) {
@@ -114,7 +113,7 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
       // SWATH / DIA PASEF etc
       switch (scan) {
         case Frame frame -> {
-          frame.getImsMsMsInfos().stream().map(IsolationWindow::new)
+          frame.getImsMsMsInfos().stream().map(info -> new IsolationWindow(info, false))
               .filter(w -> w.contains(feature)).findAny().ifPresent(_ -> c.accept(frame));
         }
         default -> {

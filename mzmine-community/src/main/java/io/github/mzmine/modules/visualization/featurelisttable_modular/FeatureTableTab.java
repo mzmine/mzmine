@@ -56,7 +56,7 @@ public class FeatureTableTab extends MZmineTab {
 
   public FeatureTableTab(FeatureList flist) {
     super("Feature Table", true, false);
-    setSubTitle(flist.getName());
+    setSubTitle(flist != null ? flist.getName() : null);
     mainPane = new BorderPane();
     toolBar = new ToolBar();
 
