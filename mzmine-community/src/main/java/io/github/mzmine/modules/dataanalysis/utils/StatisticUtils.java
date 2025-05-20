@@ -97,7 +97,7 @@ public class StatisticUtils {
   }
 
   /**
-   * Scales the values in every column to be between 0-1. To be used before centering the matrix.
+   * Scales the values in every column. To be used before centering the matrix.
    */
   public static RealMatrix scale(RealMatrix data, ScalingFunction scaling, boolean inPlace) {
     final RealMatrix result = inPlace ? data
@@ -111,9 +111,9 @@ public class StatisticUtils {
     return result;
   }
 
-  public static RealMatrix centerAndScale(RealMatrix data, ScalingFunction scaling,
+  public static RealMatrix scaleAndCenter(RealMatrix data, ScalingFunction scaling,
       boolean inPlace) {
-    return scale(center(data, inPlace), scaling, inPlace);
+    return center(scale(data, scaling, inPlace), inPlace);
   }
 
   public static RealMatrix imputeMissingValues(RealMatrix data, boolean inPlace,
