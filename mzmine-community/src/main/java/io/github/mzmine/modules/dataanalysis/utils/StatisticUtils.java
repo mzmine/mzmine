@@ -143,6 +143,10 @@ public class StatisticUtils {
     // file2  2   2   1   1
     // file3  3   4   4   5
 
+    if(rows.size() < allFiles.size()) {
+      throw new IllegalStateException("Cannot perform PCA on a dataset with less rows/features than samples.");
+    }
+
     final RealMatrix data = new Array2DRowRealMatrix(allFiles.size(), rows.size());
 
     for (int fileIndex = 0; fileIndex < allFiles.size(); fileIndex++) {
