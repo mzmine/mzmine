@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_featurefilter;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
@@ -33,6 +34,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -83,6 +85,11 @@ public class FeatureFilterParameters extends SimpleParameterSet {
           "Permissible range of the asymmetry factor for a peak",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.5, 2.0)));
 
+  public static final OptionalParameter<DoubleParameter> minShapeScore = new OptionalParameter<>(
+      new DoubleParameter("Minimum shape score",
+          "Define how well the shape of a feature must fit to a gaussian or bi-gaussian peak.",
+          ConfigService.getGuiFormats().scoreFormat(), 0.8, 0d, 1d), false);
+
   public static final OriginalFeatureListHandlingParameter AUTO_REMOVE = new OriginalFeatureListHandlingParameter(
       false, OriginalFeatureListOption.KEEP);
 
@@ -93,7 +100,7 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   public FeatureFilterParameters() {
     super(
         new Parameter[]{PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA, PEAK_HEIGHT, PEAK_DATAPOINTS,
-            PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, KEEP_MS2_ONLY, AUTO_REMOVE},
+            PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, minShapeScore, KEEP_MS2_ONLY, AUTO_REMOVE},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_filter/feature_filter.html");
   }
 

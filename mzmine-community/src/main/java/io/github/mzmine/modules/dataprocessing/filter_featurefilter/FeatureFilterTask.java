@@ -31,11 +31,23 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.ShapeScoreType;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.AsymmetricGaussianPeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.GaussianDoublePeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.FitQuality;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.GaussianPeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.PeakFitterUtils;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.PeakModel;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -44,6 +56,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import java.time.Instant;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -162,6 +175,9 @@ public class FeatureFilterTask extends AbstractTask {
         FeatureFilterParameters.PEAK_ASYMMETRYFACTOR).getValue();
     final boolean keepMs2Only = parameters.getParameter(FeatureFilterParameters.KEEP_MS2_ONLY)
         .getValue();
+    final boolean filterByShapeScore = parameters.getValue(FeatureFilterParameters.minShapeScore);
+    final double minShapeScore = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        FeatureFilterParameters.minShapeScore, 0d);
 
     final Range<Double> durationRange = parameters.getParameter(
         FeatureFilterParameters.PEAK_DURATION).getEmbeddedParameter().getValue();
@@ -180,6 +196,11 @@ public class FeatureFilterTask extends AbstractTask {
     final Range<Float> asymmetryRange = RangeUtils.toFloatRange(
         parameters.getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR).getEmbeddedParameter()
             .getValue());
+
+    if (filterByShapeScore) {
+      newPeakList.addFeatureType(DataTypes.get(ShapeScoreType.class));
+      newPeakList.addRowType(DataTypes.get(ShapeScoreType.class));
+    }
 
     // Loop through all rows in feature list
     final ModularFeatureListRow[] rows = newPeakList.getRows()
@@ -234,8 +255,8 @@ public class FeatureFilterTask extends AbstractTask {
             peakHeight)) || (filterByDatapoints && !datapointsRange.contains(peakDatapoints)) || (
             filterByFWHM && !fwhmRange.contains(peakFWHM)) || (filterByTailingFactor
             && !tailingRange.contains(peakTailingFactor)) || (filterByAsymmetryFactor
-            && !asymmetryRange.contains(peakAsymmetryFactor)) || (keepMs2Only
-            && bestMsMs == null)) {
+            && !asymmetryRange.contains(peakAsymmetryFactor)) || (keepMs2Only && bestMsMs == null)
+            || (filterByShapeScore && removeRowBasedOnShapeScore(row, minShapeScore))) {
           // Mark peak to be removed
           keepPeak[i] = false;
         }
@@ -257,5 +278,30 @@ public class FeatureFilterTask extends AbstractTask {
         new SimpleFeatureListAppliedMethod(FeatureFilterModule.class, parameters,
             getModuleCallDate()));
     return newPeakList;
+  }
+
+  private boolean removeRowBasedOnShapeScore(FeatureListRow row, final double minShapeScore) {
+
+    final List<PeakModel> peakModels = List.of(new GaussianPeak(), new AsymmetricGaussianPeak(),
+        new GaussianDoublePeak());
+
+    for (final Feature f : row.getFeatures()) {
+      final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
+      final double[] rts = new double[featureData.getNumberOfValues()];
+      final double[] intensities = new double[featureData.getNumberOfValues()];
+      featureData.getIntensityValues(intensities);
+      for (int i = 0; i < rts.length; i++) {
+        rts[i] = featureData.getRetentionTime(i);
+      }
+
+      final FitQuality fitted = PeakFitterUtils.fitPeakModels(rts, intensities, peakModels);
+      if (fitted == null || fitted.rSquared() < minShapeScore) {
+        return true;
+      }
+
+      ((ModularFeature) f).set(ShapeScoreType.class, (float) fitted.rSquared());
+      ((ModularFeature) f).set(CommentType.class, fitted.peakType().toString());
+    }
+    return false;
   }
 }
