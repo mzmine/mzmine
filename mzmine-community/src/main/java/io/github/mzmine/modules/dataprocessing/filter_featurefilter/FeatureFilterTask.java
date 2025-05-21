@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -202,6 +201,9 @@ public class FeatureFilterTask extends AbstractTask {
       newPeakList.addRowType(DataTypes.get(ShapeScoreType.class));
     }
 
+    final ModularFeatureList removedFeaturesList = new ModularFeatureList("filtered features",
+        getMemoryMapStorage(), peakList.getRawDataFiles());
+
     // Loop through all rows in feature list
     final ModularFeatureListRow[] rows = newPeakList.getRows()
         .toArray(ModularFeatureListRow[]::new);
@@ -211,6 +213,9 @@ public class FeatureFilterTask extends AbstractTask {
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
       final ModularFeatureListRow row = rows[processedRows];
+
+      final ModularFeatureListRow rowOfRemovedFeatures = new ModularFeatureListRow(
+          removedFeaturesList, row.getID());
 
       for (int i = 0; i < totalRawDataFiles; i++) {
         // Peak values
@@ -256,9 +261,11 @@ public class FeatureFilterTask extends AbstractTask {
             filterByFWHM && !fwhmRange.contains(peakFWHM)) || (filterByTailingFactor
             && !tailingRange.contains(peakTailingFactor)) || (filterByAsymmetryFactor
             && !asymmetryRange.contains(peakAsymmetryFactor)) || (keepMs2Only && bestMsMs == null)
-            || (filterByShapeScore && removeRowBasedOnShapeScore(row, minShapeScore))) {
+            || (filterByShapeScore && removeFeatureBasedOnShapeScore(peak, minShapeScore))) {
           // Mark peak to be removed
           keepPeak[i] = false;
+          rowOfRemovedFeatures.addFeature(rawdatafiles[i],
+              new ModularFeature(removedFeaturesList, peak));
         }
       }
       // empty row?
@@ -272,36 +279,40 @@ public class FeatureFilterTask extends AbstractTask {
           }
         }
       }
+
+      if (rowOfRemovedFeatures.getNumberOfFeatures() > 0) {
+        removedFeaturesList.addRow(rowOfRemovedFeatures);
+      }
     }
 
     newPeakList.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(FeatureFilterModule.class, parameters,
             getModuleCallDate()));
+
+    project.addFeatureList(removedFeaturesList);
+
     return newPeakList;
   }
 
-  private boolean removeRowBasedOnShapeScore(FeatureListRow row, final double minShapeScore) {
+  private boolean removeFeatureBasedOnShapeScore(Feature f, final double minShapeScore) {
 
     final List<PeakModel> peakModels = List.of(new GaussianPeak(), new AsymmetricGaussianPeak(),
         new GaussianDoublePeak());
 
-    for (final Feature f : row.getFeatures()) {
-      final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
-      final double[] rts = new double[featureData.getNumberOfValues()];
-      final double[] intensities = new double[featureData.getNumberOfValues()];
-      featureData.getIntensityValues(intensities);
-      for (int i = 0; i < rts.length; i++) {
-        rts[i] = featureData.getRetentionTime(i);
-      }
+    final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
+    final double[] rts = new double[featureData.getNumberOfValues()];
+    final double[] intensities = new double[featureData.getNumberOfValues()];
+    featureData.getIntensityValues(intensities);
+    for (int i = 0; i < rts.length; i++) {
+      rts[i] = featureData.getRetentionTime(i);
+    }
 
-      final FitQuality fitted = PeakFitterUtils.fitPeakModels(rts, intensities, peakModels);
-      if (fitted == null || fitted.rSquared() < minShapeScore) {
-        return true;
-      }
-
+    final FitQuality fitted = PeakFitterUtils.fitPeakModels(rts, intensities, peakModels);
+    if(fitted != null) {
       ((ModularFeature) f).set(ShapeScoreType.class, (float) fitted.rSquared());
       ((ModularFeature) f).set(CommentType.class, fitted.peakType().toString());
     }
-    return false;
+
+    return fitted == null || fitted.rSquared() < minShapeScore;
   }
 }

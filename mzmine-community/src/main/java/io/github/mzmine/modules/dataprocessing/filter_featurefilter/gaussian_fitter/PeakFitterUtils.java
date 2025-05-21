@@ -58,8 +58,8 @@ public class PeakFitterUtils {
     }
 
     FitQuality bestFit = null;
-    for (PeakModel peak : peakModels) {
-      final FitQuality thisFit = peak.performFit(pointList);
+    for (PeakModel peakModel : peakModels) {
+      final FitQuality thisFit = peakModel.performFit(pointList);
       if(bestFit == null) {
         bestFit = thisFit;
       } else if(thisFit != null && bestFit.rSquared() < thisFit.rSquared()) {
@@ -136,8 +136,8 @@ public class PeakFitterUtils {
         .target(yObs)                       // Observed y-values (the target for the model)
         .weight(weightMatrix) // Weights for residuals (null if all 1.0 or unweighted)
         .lazyEvaluation(false)// Eagerly compute value and Jacobian
-        .maxEvaluations(20) // Max number of model evaluations
-        .maxIterations(20)   // Max number of optimizer iterations
+        .maxEvaluations(100) // Max number of model evaluations
+        .maxIterations(100)   // Max number of optimizer iterations
         .parameterValidator(validator)     // Optional parameter validator
         .build();
 

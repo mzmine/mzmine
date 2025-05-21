@@ -24,11 +24,20 @@
 
 package util;
 
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.AsymmetricGaussianPeak;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.FitQuality;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.GaussianDoublePeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.GaussianPeak;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.PeakFitterUtils;
+import java.util.DoubleSummaryStatistics;
+import java.util.List;
+import java.util.Objects;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.Test;
 
 public class FitterTest {
+
+  private static final Logger logger = Logger.getLogger(FitterTest.class.getName());
 
   @Test
   void testGaussianFitter() {
@@ -47,6 +56,60 @@ public class FitterTest {
         3255895.036, 2946840.238, 2624884.976, 2371787.911, 2211696.577, 1900029.339, 1446694.143,
         1370919.417, 1338367.929, 1384401.946, 1394644.893, 1313078.786, 1118257.006};
 
-    FitQuality gf = PeakFitterUtils.fitPeakModels(rts, intensities);
+    FitQuality gf = PeakFitterUtils.fitPeakModels(rts, intensities,
+        List.of(new AsymmetricGaussianPeak()));
+  }
+
+  @Test
+  void testBadPeak() {
+    double[] x = new double[]{8.495267868, 8.502846718, 8.511771202, 8.519396782, 8.526919365,
+        8.534352303, 8.541919708, 8.549429893, 8.556567192, 8.564012527, 8.571388245, 8.578792572,
+        8.586440086, 8.59390831, 8.601377487, 8.608750343, 8.616060257, 8.623598099};
+
+    double[] y = new double[]{363934.1563, 534773.875, 495209.4688, 548776.875, 552176.375,
+        543185.5625, 524146.0313, 641103.9375, 770880.5625, 564265.9375, 532109.4375, 543570.5625,
+        603697.5625, 536073.8125, 580397.75, 421767.75, 456927, 495422.5313};
+
+    final FitQuality fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new GaussianPeak()));
+    logger.fine(fit.toString());
+  }
+
+  @Test
+  void testTailingPeak() {
+    double x[] = new double[]{8.436031342, 8.443263054, 8.450414658, 8.457859993, 8.464979172,
+        8.472619057, 8.480257988, 8.48789978, 8.495381355, 8.502960205, 8.512058258, 8.519651413,
+        8.527062416, 8.534116745, 8.541747093, 8.549307823, 8.556893349, 8.56427002, 8.571580887,
+        8.578576088, 8.586263657, 8.593792915, 8.601468086, 8.60863018, 8.61608696, 8.623140335,
+        8.630841255, 8.638524055, 8.64617157, 8.653250694, 8.660761833, 8.668057442, 8.675685883,
+        8.685617447, 8.693324089, 8.700592041, 8.70777607, 8.715467453, 8.723162651, 8.730844498,
+        8.738502502, 8.746123314, 8.753817558, 8.761521339, 8.768846512, 8.776566505, 8.784269333,
+        8.791927338, 8.799625397, 8.807318687, 8.815002441, 8.8227005, 8.830416679, 8.838102341,
+        8.846293449, 8.854008675, 8.861726761, 8.869428635, 8.877128601, 8.884835243, 8.892566681,
+        8.90029335, 8.90803051, 8.91574955, 8.923474312, 8.931176186, 8.938930511, 8.946667671,
+        8.954426765};
+
+    double[] y = new double[]{45204.75893, 114784.2623, 242528.7083, 450466.8054, 723759.5126,
+        1094652.171, 1510158.455, 1892077.274, 2377388.815, 2621148.839, 2858927.143, 3054205.274,
+        3072362.5, 3105144.452, 3208537.917, 3172016.048, 3237762.107, 3232906.06, 3205781.369,
+        3112509.917, 3007661.345, 2914828.155, 2844111.94, 2756956.476, 2753093.619, 2630266.929,
+        2559327.762, 2413834.56, 2351139.333, 2323447.179, 2332292.393, 2366656.155, 2367857.726,
+        2258578.53, 2135975.887, 2017613.554, 2006158.994, 1983034.804, 1922412.649, 1898818.911,
+        1890629.113, 1819708.298, 1837718.613, 1768397.857, 1654868.56, 1650806.56, 1628665.792,
+        1587515.827, 1540349.554, 1460334.208, 1418102.786, 1431727.804, 1396976.476, 1397118.607,
+        1304515.429, 1213349.899, 1193048.256, 1168530.342, 1109329.408, 1106374.848, 1067001.253,
+        1049427.548, 1069455.72, 1060020.563, 1019356.387, 1006609.667, 939384.9643, 877632.7292,
+        832264.2589};
+
+    FitQuality fit = PeakFitterUtils.fitPeakModels(x, y,
+        List.of(new GaussianPeak()));
+    logger.info("Gaussian: " + (fit != null ? fit.toString() : ""));
+
+    fit = PeakFitterUtils.fitPeakModels(x, y,
+        List.of(new AsymmetricGaussianPeak()));
+    logger.info("Asymmetric: " + (fit != null ? fit.toString() : ""));
+
+    fit = PeakFitterUtils.fitPeakModels(x, y,
+        List.of(new GaussianDoublePeak()));
+    logger.info("Double gaussian: " + (fit != null ? fit.toString() : ""));
   }
 }

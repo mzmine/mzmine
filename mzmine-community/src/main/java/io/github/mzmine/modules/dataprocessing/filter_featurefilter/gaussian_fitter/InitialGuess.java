@@ -111,7 +111,6 @@ class InitialGuess {
    */
   public static double[] guessDoubleGaussian(List<WeightedObservedPoint> points) {
     if (points == null || points.size() < 6) { // Need enough points for 6 parameters
-      System.err.println("Warning: Not enough points for double Gaussian guess. Returning null.");
       return null;
     }
 
