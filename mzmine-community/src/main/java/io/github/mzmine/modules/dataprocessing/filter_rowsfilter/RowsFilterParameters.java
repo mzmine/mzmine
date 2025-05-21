@@ -117,12 +117,16 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "Keep or remove rows", "If selected, rows will be removed based on criteria instead of kept",
       RowsFilterChoices.values(), RowsFilterChoices.KEEP_MATCHING);
 
+  public static final OptionalModuleParameter<CVFilterParameters> cvFilter = new OptionalModuleParameter<>(
+      "CV filter", "Filter rows based on coefficient of variation in a specific sample group.",
+      (CVFilterParameters) new CVFilterParameters().cloneParameterSet(), false);
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       true);
 
   public static final BooleanParameter MS2_Filter = new BooleanParameter("Feature with MS2 scan",
       "If checked, the rows that don't contain MS2 scan will be removed.", false);
+
   public static final BooleanParameter KEEP_ALL_MS2 = new BooleanParameter(
       "Never remove feature with MS2",
       "If checked, all rows with MS2 are retained without applying any further filters on them.",
@@ -146,8 +150,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public RowsFilterParameters() {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
             ISOTOPE_FILTER_13C, removeRedundantRows, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
-            KENDRICK_MASS_DEFECT, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter,
-            KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID, massDefect, handleOriginal},
+            KENDRICK_MASS_DEFECT, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, cvFilter, REMOVE_ROW,
+            MS2_Filter, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID, massDefect, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
 

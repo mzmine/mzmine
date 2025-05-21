@@ -92,6 +92,7 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean filterByCharge;
   private final boolean filterByKMD;
   private final boolean filterByMS2;
+  private final boolean filterByCv;
   private final RowsFilterChoices filterOption;
   private final boolean renumber;
   private final boolean filterByMassDefect;
@@ -112,6 +113,8 @@ public class RowsFilterTask extends AbstractTask {
   private final Range<Float> rtRange;
   private final Range<Float> fwhmRange;
   private final Isotope13CFilter isotope13CFilter;
+  @Nullable
+  private final CvFilter cvFilter;
   private AbsoluteAndRelativeInt minSamples;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
@@ -157,6 +160,7 @@ public class RowsFilterTask extends AbstractTask {
     filterByKMD = parameters.getValue(RowsFilterParameters.KENDRICK_MASS_DEFECT);
     filterByMS2 = parameters.getValue(RowsFilterParameters.MS2_Filter);
     filterOption = parameters.getValue(RowsFilterParameters.REMOVE_ROW);
+    filterByCv = parameters.getValue(RowsFilterParameters.cvFilter);
     minSamples = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         RowsFilterParameters.MIN_FEATURE_COUNT, null);
     renumber = parameters.getValue(RowsFilterParameters.Reset_ID);
@@ -197,6 +201,9 @@ public class RowsFilterTask extends AbstractTask {
     fwhmRange = filterByFWHM ? RangeUtils.toFloatRange(
         parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue())
         : null;
+    cvFilter = filterByCv ? CvFilter.of(
+        (CVFilterParameters) parameters.getEmbeddedParameterValue(RowsFilterParameters.cvFilter),
+        origFeatureList) : null;
 
     // isotope filter
     filter13CIsotopes = parameters.getParameter(RowsFilterParameters.ISOTOPE_FILTER_13C).getValue();
@@ -517,6 +524,10 @@ public class RowsFilterTask extends AbstractTask {
     }
 
     if (filterByMassDefect && !massDefectFilter.contains(row.getAverageMZ())) {
+      return true;
+    }
+
+    if (filterByCv && cvFilter != null && !cvFilter.matches(row)) {
       return true;
     }
 
