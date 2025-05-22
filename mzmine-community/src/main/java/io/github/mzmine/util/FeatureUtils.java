@@ -782,7 +782,7 @@ public class FeatureUtils {
               yield featureAnnotations.stream().map(FeatureAnnotation::getAdductType);
             }
           };
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
 
     if(row.getBestIonIdentity() != null) {
       final IonType ionType = row.getBestIonIdentity().getIonType();
