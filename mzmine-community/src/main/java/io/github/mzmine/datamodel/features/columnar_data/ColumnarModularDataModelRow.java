@@ -40,12 +40,12 @@ import org.jetbrains.annotations.Nullable;
  * A row in a {@link ColumnarModularDataModelSchema} where the index was obtained from
  * {@link ColumnarModularDataModelSchema#addRowGetIndex()}.
  */
-public class ModularDataModelColumnarRow implements ModularDataModel {
+public class ColumnarModularDataModelRow implements ModularDataModel {
 
   protected final ColumnarModularDataModelSchema schema;
   protected final int modelRowIndex;
 
-  public ModularDataModelColumnarRow(final ColumnarModularDataModelSchema schema) {
+  public ColumnarModularDataModelRow(final ColumnarModularDataModelSchema schema) {
     this.schema = schema;
     modelRowIndex = schema.addRowGetIndex();
   }

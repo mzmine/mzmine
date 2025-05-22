@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,15 +25,16 @@
 
 package io.github.mzmine.datamodel.features;
 
+import static java.util.Objects.requireNonNullElse;
+
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelRow;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
-import io.github.mzmine.datamodel.features.columnar_data.ModularDataModelColumnarRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import static java.util.Objects.requireNonNullElse;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -41,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * TODO try to replace this with {@link ColumnarModularDataModelSchema} where possible and then {@link ModularDataModelColumnarRow}
+ * TODO try to replace this with {@link ColumnarModularDataModelSchema} where possible and then {@link ColumnarModularDataModelRow}
  */
 public abstract class ModularDataModelMap implements ModularDataModel {
 
