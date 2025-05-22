@@ -26,6 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.metadata;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -35,12 +37,14 @@ import java.util.List;
 import java.util.Objects;
 import javafx.animation.PauseTransition;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 
-public class MetadataGroupSelectionComponent extends VBox {
+public class MetadataGroupSelectionComponent extends GridPane {
 
   private static final int inputSize = 20;
   private final TextField columnField = new TextField();
@@ -49,6 +53,9 @@ public class MetadataGroupSelectionComponent extends VBox {
 
   public MetadataGroupSelectionComponent() {
     super();
+    setHgap(FxLayout.DEFAULT_SPACE);
+    setVgap(FxLayout.DEFAULT_SPACE);
+
     columnField.setPrefColumnCount(inputSize);
     final AutoCompletionBinding<MetadataColumn<?>> colBinding = TextFields.bindAutoCompletion(
         columnField, MZmineCore.getProjectMetadata().getColumns());
@@ -75,8 +82,11 @@ public class MetadataGroupSelectionComponent extends VBox {
               .map(String::toLowerCase).filter(str -> str.contains(input)).sorted().toList();
         });
 
-    setSpacing(5);
-    getChildren().addAll(columnField, groupField);
+    add(FxLabels.newLabelNoWrap("Metadata column"), 0, 0);
+    add(columnField, 1, 0);
+    add(FxLabels.newLabelNoWrap("Metadata group"), 0, 1);
+    add(groupField, 1, 1);
+    getColumnConstraints().addAll(new ColumnConstraints(), FxLayout.newFillWidthColumn());
   }
 
   public MetadataGroupSelection getValue() {
