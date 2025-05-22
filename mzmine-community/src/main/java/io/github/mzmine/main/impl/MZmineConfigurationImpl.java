@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.preferences.ImageNormalization;
-import io.github.mzmine.gui.preferences.ImsOptimisation;
+import io.github.mzmine.gui.preferences.ImsOptimization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.Themes;
@@ -98,7 +98,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   private final EStandardChartTheme standardChartTheme;
 
   @NotNull
-  private ImsOptimisation cachedImsOptimisation = ImsOptimisation.MEMORY_EFFICIENCY;
+  private ImsOptimization cachedImsOptimization = ImsOptimization.MEMORY_EFFICIENCY;
 
   public MZmineConfigurationImpl() {
     moduleParameters = new Hashtable<>();
@@ -535,12 +535,12 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
-  public @NotNull ImsOptimisation getCachedImsOptimisation() {
-    return cachedImsOptimisation;
+  public @NotNull ImsOptimization getCachedImsOptimization() {
+    return cachedImsOptimization;
   }
 
   @Override
-  public void setCachedImsOptimisation(@NotNull ImsOptimisation optimisation) {
-    this.cachedImsOptimisation = optimisation;
+  public void setCachedImsOptimization(@NotNull ImsOptimization optimization) {
+    this.cachedImsOptimization = optimization;
   }
 }
