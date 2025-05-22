@@ -341,10 +341,10 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem exportImageToCsv = new ConditionalMenuItem("Export image to .csv",
         () -> !selectedRows.isEmpty() && selectedRows.get(0).hasFeatureType(ImageType.class));
+    exportImageToCsv.visibleProperty().bind(hasImagingData);
     exportImageToCsv.setOnAction(
         e -> ImageToCsvExportModule.showExportDialog(selectedRows, Instant.now()));
 
-    exportImageToCsv.visibleProperty().bind(hasImagingData);
     // export menu
     exportMenu.getItems()
         .addAll(exportIsotopesItem, exportMSMSItem, exportToSirius, new SeparatorMenuItem(),
@@ -430,12 +430,14 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showIMSFeatureItem = new ConditionalMenuItem("Ion mobility trace",
         () -> !selectedRows.isEmpty() && selectedOrBestFeature != null
             && selectedOrBestFeature.getRawDataFile() instanceof IMSRawDataFile);
+    showIMSFeatureItem.visibleProperty().bind(hasIonMobilityData);
     showIMSFeatureItem.setOnAction(
         e -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(selectedOrBestFeature)));
 
     final MenuItem showImageFeatureItem = new ConditionalMenuItem("Image",
         () -> !selectedRows.isEmpty() && selectedOrBestFeature != null
             && selectedOrBestFeature.getRawDataFile() instanceof ImagingRawDataFile);
+    showImageFeatureItem.visibleProperty().bind(hasImagingData);
     showImageFeatureItem.setOnAction(e -> {
       ImageVisualizerParameters params = (ImageVisualizerParameters) MZmineCore.getConfiguration()
           .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
@@ -451,6 +453,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> (!selectedRows.isEmpty() && selectedOrBestFeature != null
             && selectedOrBestFeature.getRawDataFile() instanceof ImagingRawDataFile
             && selectedRowHasCorrelationData()));
+    showCorrelatedImageFeaturesItem.visibleProperty().bind(hasImagingData);
     showCorrelatedImageFeaturesItem.setOnAction(e -> {
       showCorrelatedImageFeatures();
     });
@@ -473,12 +476,14 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showInIMSRawDataOverviewItem = new ConditionalMenuItem(
         "Show m/z ranges in IMS raw data overview", () -> selectedOrBestFeature != null
         && selectedOrBestFeature.getRawDataFile() instanceof IMSRawDataFile);
+    showInIMSRawDataOverviewItem.visibleProperty().bind(hasIonMobilityData);
     showInIMSRawDataOverviewItem.setOnAction(
         e -> IMSRawDataOverviewModule.openIMSVisualizerTabWithFeatures(
             getSelectedOrBestFeaturesFromSameRaw()));
 
     final MenuItem showInMobilityMzVisualizerItem = new ConditionalMenuItem(
         "Plot mobility/CCS vs. m/z", () -> !selectedRows.isEmpty() && hasIonMobilityData.get());
+    showInMobilityMzVisualizerItem.visibleProperty().bind(hasIonMobilityData);
     showInMobilityMzVisualizerItem.setOnAction(e -> {
       IMSMobilityMzPlotModule.visualizeFeaturesInNewTab(selectedRows, false);
     });
@@ -515,12 +520,14 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> selectedOrBestFeature != null
             && selectedOrBestFeature.getRepresentativeScan() instanceof Frame
             && selectedOrBestFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+    showBestMobilityScanItem.visibleProperty().bind(hasIonMobilityData);
     showBestMobilityScanItem.setOnAction(e -> SpectraVisualizerModule.addNewSpectrumTab(
         IonMobilityUtils.getBestMobilityScan(selectedOrBestFeature)));
 
     final MenuItem extractSumSpectrumFromMobScans = new ConditionalMenuItem(
         "Extract spectrum from mobility FWHM", () -> selectedOrBestFeature != null
         && selectedOrBestFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+    extractSumSpectrumFromMobScans.visibleProperty().bind(hasIonMobilityData);
     extractSumSpectrumFromMobScans.setOnAction(e -> {
       Range<Float> fwhm = IonMobilityUtils.getMobilityFWHM(
           ((IonMobilogramTimeSeries) selectedFeature.getFeatureData()).getSummedMobilogram());
@@ -552,6 +559,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showPseudoSpectrumItem = new ConditionalMenuItem("Show Pseudo Spectrum",
         () -> selectedOrBestFeature != null
             && selectedOrBestFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+    showPseudoSpectrumItem.visibleProperty().bind(hasPseudoSpectra);
     showPseudoSpectrumItem.setOnAction(e -> showPseudoSpectrum());
 
     final MenuItem showDiaMirror = new ConditionalMenuItem(
@@ -559,6 +567,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         && selectedOrBestFeature.getRawDataFile() instanceof IMSRawDataFile
         && selectedOrBestFeature.getFeatureData() instanceof IonMobilogramTimeSeries
         && selectedOrBestFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+    showDiaMirror.visibleProperty().bind(hasIonMobilityData);
     showDiaMirror.setOnAction(e -> showDiaMirror());
 
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Spectral mirror (2 rows)",
@@ -603,18 +612,6 @@ public class FeatureTableContextMenu extends ContextMenu {
 
 //    final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
 //        /* !selectedRows.isEmpty() */ false); // todo, not implemented yet
-
-    showIMSFeatureItem.visibleProperty().bind(hasIonMobilityData);
-    showInIMSRawDataOverviewItem.visibleProperty().bind(hasIonMobilityData);
-    showInMobilityMzVisualizerItem.visibleProperty().bind(hasIonMobilityData);
-    showBestMobilityScanItem.visibleProperty().bind(hasIonMobilityData);
-    extractSumSpectrumFromMobScans.visibleProperty().bind(hasIonMobilityData);
-
-    showImageFeatureItem.visibleProperty().bind(hasImagingData);
-    showCorrelatedImageFeaturesItem.visibleProperty().bind(hasImagingData);
-    showDiaMirror.visibleProperty().bind(hasImagingData);
-
-    showPseudoSpectrumItem.visibleProperty().bind(hasPseudoSpectra);
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
