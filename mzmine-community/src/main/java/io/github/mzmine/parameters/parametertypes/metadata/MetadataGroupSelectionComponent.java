@@ -31,14 +31,13 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTabl
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import javafx.animation.PauseTransition;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.util.Callback;
+import javafx.util.Duration;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
-import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
 import org.controlsfx.control.textfield.TextFields;
 
 public class MetadataGroupSelectionComponent extends VBox {
@@ -46,6 +45,7 @@ public class MetadataGroupSelectionComponent extends VBox {
   private static final int inputSize = 20;
   private final TextField columnField = new TextField();
   private final TextField groupField = new TextField();
+  private final PauseTransition pauseAfterColChange = new PauseTransition(Duration.millis(200));
 
   public MetadataGroupSelectionComponent() {
     super();
@@ -54,8 +54,9 @@ public class MetadataGroupSelectionComponent extends VBox {
         columnField, MZmineCore.getProjectMetadata().getColumns());
 
     groupField.setPrefColumnCount(inputSize);
-    TextFields.bindAutoCompletion(groupField,
-        (Callback<ISuggestionRequest, Collection<? extends Object>>) iSuggestionRequest -> {
+
+    final AutoCompletionBinding<String> newBinding = TextFields.bindAutoCompletion(groupField,
+        iSuggestionRequest -> {
           final String input = iSuggestionRequest.getUserText().toLowerCase();
 
           final MetadataTable metadata = MZmineCore.getProjectMetadata();

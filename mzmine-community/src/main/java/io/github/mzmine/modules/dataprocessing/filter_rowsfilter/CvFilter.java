@@ -39,20 +39,25 @@ import java.util.stream.IntStream;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
 
-record CvFilter(double maxCvPercent, AbundanceMeasure abundanceMeasure, List<RawDataFile> cvFiles) {
+record CvFilter(double maxCvPercent, AbundanceMeasure abundanceMeasure, List<RawDataFile> cvFiles,
+                boolean keepUndetected) {
 
   public CvFilter(MetadataGroupSelection metadataGrouping, double maxCv,
-      AbundanceMeasure abundanceMeasure, FeatureList flist) {
+      AbundanceMeasure abundanceMeasure, FeatureList flist, boolean keepUndetected) {
     this(maxCv, abundanceMeasure, metadataGrouping.getMatchingFiles().stream()
-        .filter(file -> flist.getRawDataFiles().contains(file)).toList());
+        .filter(file -> flist.getRawDataFiles().contains(file)).toList(), keepUndetected);
   }
 
   public static CvFilter of(CVFilterParameters parameters, FeatureList flist) {
     return new CvFilter(parameters.getValue(CVFilterParameters.grouping),
         parameters.getValue(CVFilterParameters.maxCv),
-        parameters.getValue(CVFilterParameters.abundanceMeasure), flist);
+        parameters.getValue(CVFilterParameters.abundanceMeasure), flist,
+        parameters.getValue(CVFilterParameters.keepUndetected));
   }
 
+  /**
+   * @return True if the row passes the filter and is thereby below the set {@link #maxCvPercent}.
+   */
   public boolean matches(final FeatureListRow row) {
     final RealVector abundances = new ArrayRealVector(cvFiles.size());
     final ImputationFunction imputer = new OneFifthOfMinimumImputer();
@@ -64,7 +69,7 @@ record CvFilter(double maxCvPercent, AbundanceMeasure abundanceMeasure, List<Raw
 
     final boolean allNaN = IntStream.range(0, abundances.getDimension())
         .allMatch(i -> Double.isNaN(abundances.getEntry(i)));
-    if (allNaN) {
+    if (allNaN && !keepUndetected) {
       // feature not detected in QCs, will not filter it out
       return false;
     }
@@ -79,6 +84,6 @@ record CvFilter(double maxCvPercent, AbundanceMeasure abundanceMeasure, List<Raw
 
     row.set(CvType.class, (float) rsd);
 
-    return rsd > maxCvPercent;
+    return rsd <= maxCvPercent;
   }
 }

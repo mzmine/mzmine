@@ -25,8 +25,8 @@
 package io.github.mzmine.modules.dataprocessing.filter_featurefilter;
 
 public enum FeatureFilterChoices {
-  KEEP_MATCHING("Keep features that match all criteria"), REMOVE_MATCHING(
-      "Remove features that match all criteria");
+  KEEP_MATCHING("Keep features that match all criteria"), KEEP_NOT_MATCHING(
+      "Keep features that do not match at least one criteria");
 
   private final String title;
 

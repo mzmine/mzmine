@@ -28,9 +28,7 @@ package io.github.mzmine.modules.dataprocessing.filter_featurefilter;
 import com.google.common.collect.Range;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -44,7 +42,6 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
 import java.util.Map;
@@ -92,7 +89,7 @@ public class FeatureFilterParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<DoubleParameter> minShapeScore = new OptionalParameter<>(
       new DoubleParameter("Minimum shape score",
-          "Define how well the shape of a feature must fit to a gaussian or bi-gaussian peak.",
+          "Define how well the shape of a feature must fit to a gaussian or bi-gaussian peak.\nPeaks with less than 5 points will be removed without attempting a fit.",
           ConfigService.getGuiFormats().scoreFormat(), 0.8, 0d, 1d), false);
 
   public static final OptionalParameter<DoubleParameter> topToEdge = new OptionalParameter<>(
@@ -100,8 +97,9 @@ public class FeatureFilterParameters extends SimpleParameterSet {
           "Minimum top to edge ratio for a chromatographic peak. Divides the intensity of the highest by the intensity of the lowest point. (I(highest)/I(lowest))",
           new DecimalFormat("0.###"), 2.0, 0d, Double.MAX_VALUE), false);
 
-  public static final ComboParameter<FeatureFilterChoices> keepOrRemove = new ComboParameter<>(
-      "Keep or remove features", "Specify if features that match all criteria should be kept or removed.",
+  public static final ComboParameter<FeatureFilterChoices> keepMatching = new ComboParameter<>(
+      "Keep matching/not matching features",
+      "Specify if features matching all or not matching at least one criteria should be removed.",
       FeatureFilterChoices.values(), FeatureFilterChoices.KEEP_MATCHING);
 
   public static final OriginalFeatureListHandlingParameter AUTO_REMOVE = new OriginalFeatureListHandlingParameter(
@@ -115,7 +113,7 @@ public class FeatureFilterParameters extends SimpleParameterSet {
     super(
         new Parameter[]{PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA, PEAK_HEIGHT, PEAK_DATAPOINTS,
             PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, minShapeScore, topToEdge,
-            KEEP_MS2_ONLY, keepOrRemove, AUTO_REMOVE},
+            KEEP_MS2_ONLY, keepMatching, AUTO_REMOVE},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_filter/feature_filter.html");
   }
 
@@ -140,7 +138,8 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   @Override
   public @Nullable String getVersionMessage(int version) {
     return switch (version) {
-      case 3 -> "Added an option to specify if features matching the Feature filter shall be kept or removed.";
+      case 3 ->
+          "Added an option to specify if features matching the Feature filter shall be kept or removed.";
       default -> null;
     };
   }

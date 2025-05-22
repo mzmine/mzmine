@@ -101,7 +101,7 @@ public class FeatureFilterTask extends AbstractTask {
     filteredPeakList = null;
     processedRows = 0;
     totalRows = 0;
-    keepOrRemove = parameterSet.getValue(FeatureFilterParameters.keepOrRemove);
+    keepOrRemove = parameterSet.getValue(FeatureFilterParameters.keepMatching);
   }
 
   @Override
@@ -223,7 +223,7 @@ public class FeatureFilterTask extends AbstractTask {
         final Feature peak = row.getFeature(rawdatafiles[i]);
         // no feature for raw data file
         if (peak == null || peak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
-          keepPeak[i] = getFailedTestValue();
+          keepPeak[i] = false;
           continue;
         }
 
@@ -273,7 +273,7 @@ public class FeatureFilterTask extends AbstractTask {
           continue;
         }
 
-        if (!keepPeak[i]) {
+        if (keepPeak[i] == getFailedTestValue()) {
           continue;
         }
 
@@ -295,12 +295,12 @@ public class FeatureFilterTask extends AbstractTask {
 
       // empty row?
       boolean isEmpty = Booleans.asList(keepPeak).stream()
-          .noneMatch(keep -> keep);
+          .allMatch(keep -> keep == false);
       if (isEmpty) {
         newPeakList.removeRow(row);
       } else {
         for (int i = 0; i < rawdatafiles.length; i++) {
-          if (!keepPeak[i]) {
+          if (keepPeak[i] == false) {
             row.removeFeature(rawdatafiles[i]);
           }
         }
@@ -331,7 +331,7 @@ public class FeatureFilterTask extends AbstractTask {
 
   private boolean getFailedTestValue() {
     return switch (keepOrRemove) {
-      case FeatureFilterChoices.REMOVE_MATCHING -> true;
+      case FeatureFilterChoices.KEEP_NOT_MATCHING -> true;
       case FeatureFilterChoices.KEEP_MATCHING -> false;
     };
   }

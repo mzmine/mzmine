@@ -30,6 +30,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelectionParameter;
@@ -50,8 +51,11 @@ public class CVFilterParameters extends SimpleParameterSet {
       "Select the abundance measure (height or area) to use for CV calculation.",
       AbundanceMeasure.values(), AbundanceMeasure.Area);
 
+  public static final BooleanParameter keepUndetected = new BooleanParameter("Keep undetected",
+      "Keep features that were not detected in the specified group in the feature list.", false);
+
   public CVFilterParameters() {
-    super(grouping, maxCv, abundanceMeasure);
+    super(grouping, maxCv, abundanceMeasure, keepUndetected);
   }
 
   @Override
