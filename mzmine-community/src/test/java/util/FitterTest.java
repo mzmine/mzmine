@@ -24,12 +24,12 @@
 
 package util;
 
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.AsymmetricGaussianPeak;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.FitQuality;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.GaussianDoublePeak;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.GaussianPeak;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.PeakFitterUtils;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.PeakType;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.AsymmetricGaussianPeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.FitQuality;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianDoublePeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianPeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakFitterUtils;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakShapeClassification;
 import java.util.List;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
@@ -40,7 +40,7 @@ public class FitterTest {
   private static final Logger logger = Logger.getLogger(FitterTest.class.getName());
 
   @Test
-  void testGaussianFitter() {
+  void testDoublePeak() {
     double[] rts = {3.660087824, 3.667550325, 3.674948215, 3.683954477, 3.691175222, 3.698764801,
         3.706291914, 3.713668823, 3.721143723, 3.728068829, 3.735060453, 3.742645741, 3.750104189,
         3.757412195, 3.767095804, 3.773991346, 3.781339407, 3.789007902, 3.796607971, 3.803955793,
@@ -59,8 +59,8 @@ public class FitterTest {
     FitQuality fit = PeakFitterUtils.fitPeakModels(rts, intensities,
         List.of(new GaussianPeak(), new GaussianDoublePeak(), new AsymmetricGaussianPeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(PeakType.TAILING_GAUSSIAN, fit.peakType());
-    Assertions.assertEquals(0.9735731417717831, fit.rSquared());
+    Assertions.assertEquals(PeakShapeClassification.DOUBLE_GAUSSIAN, fit.peakShapeClassification());
+    Assertions.assertEquals(0.9643966172323696, fit.rSquared());
   }
 
   @Test
@@ -75,7 +75,7 @@ public class FitterTest {
 
     final FitQuality fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new GaussianPeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.6896750547379958, fit.rSquared());
+    Assertions.assertEquals(0.6896750547021087, fit.rSquared(), 0.0000001);
   }
 
   @Test
@@ -106,14 +106,14 @@ public class FitterTest {
 
     FitQuality fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new GaussianPeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.7930620240019175, fit.rSquared());
+    Assertions.assertEquals(0.7930620129683198, fit.rSquared(), 0.0000001);
 
     fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new AsymmetricGaussianPeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.9468027109848314, fit.rSquared());
+    Assertions.assertEquals(0.9283789295872468, fit.rSquared(), 0.0000001);
 
     fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new GaussianDoublePeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.9186944157390703, fit.rSquared());
+    Assertions.assertEquals(0.9332001170402136, fit.rSquared(), 0.0000001);
   }
 }

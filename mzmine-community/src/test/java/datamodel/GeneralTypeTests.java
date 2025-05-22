@@ -36,15 +36,19 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.PeakShapeClassificationType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorPurityType;
 import io.github.mzmine.datamodel.features.types.numbers.SimpleStatistics;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CvType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.ShapeScoreType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakShapeClassification;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -149,6 +153,27 @@ public class GeneralTypeTests {
   void mobilityUnitTypeTest() {
     MobilityUnitType type = new MobilityUnitType();
     var value = MobilityType.TIMS;
+    simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void testPeakClassificationType() {
+    PeakShapeClassificationType type = new PeakShapeClassificationType();
+    var value = PeakShapeClassification.DOUBLE_GAUSSIAN;
+    simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void testShapeScoreType() {
+    ShapeScoreType type = new ShapeScoreType();
+    var value = 0.98927f;
+    simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void testCvType() {
+    CvType type = new CvType();
+    var value = 0.18f;
     simpleDataTypeSaveLoadTest(type, value);
   }
 }

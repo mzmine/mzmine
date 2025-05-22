@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter;
+package io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter;
 
 import java.util.List;
 import org.apache.commons.math3.exception.NullArgumentException;
@@ -36,13 +36,17 @@ import org.jetbrains.annotations.Nullable;
  * Used to model a fronting or tailing peak. Uses two gaussians internally. Both gaussians use the
  * same amplitude and center, but different sigma values.
  */
-public class AsymmetricGaussianPeak implements PeakModel {
+public class AsymmetricGaussianPeak implements PeakModelFunction {
+
+  public static final double ASYMMETRIC_GAUSSIAN_PENALTY = 0.98;
 
   public AsymmetricGaussianPeak() {
     super();
   }
 
-  // Parameters: [0]=Amplitude(A), [1]=Mean(mu), [2]=Sigma_left, [3]=Sigma_right
+  /**
+   * Parameters: [0]=Amplitude(A), [1]=Mean(mu), [2]=Sigma_left, [3]=Sigma_right
+   */
   @Override
   public double value(double x, double... parameters) {
     if (parameters == null) {
@@ -69,8 +73,10 @@ public class AsymmetricGaussianPeak implements PeakModel {
     }
   }
 
-  // Gradient: partial derivatives with respect to A, mu, sigma_left, sigma_right
-  // dF/dA, dF/dmu, dF/dsigma_left, dF/dsigma_right
+  /**
+   * Gradient: partial derivatives with respect to A, mu, sigma_left, sigma_right
+   * dF/dA, dF/dmu, dF/dsigma_left, dF/dsigma_right
+   */
   @Override
   public double[] gradient(double x, double... parameters) {
     if (parameters == null) {
@@ -154,28 +160,26 @@ public class AsymmetricGaussianPeak implements PeakModel {
         return null;
       }
 
-      double[] paramsBiGaussian = optimum.getPoint().toArray();
+      final double[] paramsBiGaussian = optimum.getPoint().toArray();
 
-      PeakType peakType = getPeakType();
+      PeakShapeClassification peakShapeClassification = getPeakType();
       if (paramsBiGaussian[3] > paramsBiGaussian[2] * 1.05) {
-//        logger.finest("Interpretation: Tailing peak (sigma_right > sigma_left)");
-        peakType = PeakType.TAILING_GAUSSIAN;
+        peakShapeClassification = PeakShapeClassification.TAILING_GAUSSIAN;
       } else if (paramsBiGaussian[2] > paramsBiGaussian[3] * 1.05) {
-//        logger.finest("Interpretation: Fronting peak (sigma_left > sigma_right)");
-        peakType = PeakType.FRONTING_GAUSSIAN;
-      } else {
-//        logger.finest("Interpretation: Symmetric peak (sigma_left approx sigma_right)");
+        peakShapeClassification = PeakShapeClassification.FRONTING_GAUSSIAN;
       }
 
-      return PeakFitterUtils.calculateFitQuality(points, paramsBiGaussian, this, peakType);
+      final FitQuality fit = PeakFitterUtils.calculateFitQuality(points, paramsBiGaussian, this,
+          peakShapeClassification);
+      return new FitQuality(fit.rSquared() * ASYMMETRIC_GAUSSIAN_PENALTY, fit.numPoints(),
+          fit.numParameters(), fit.fittedY(), fit.peakShapeClassification());
     } catch (final Exception e) {
-//      logger.log(Level.SEVERE, e.getMessage(), e);
       return null;
     }
   }
 
   @Override
-  public PeakType getPeakType() {
-    return PeakType.GAUSSIAN;
+  public PeakShapeClassification getPeakType() {
+    return PeakShapeClassification.GAUSSIAN;
   }
 }

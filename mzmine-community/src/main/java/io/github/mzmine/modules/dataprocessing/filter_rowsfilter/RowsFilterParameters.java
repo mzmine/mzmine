@@ -141,7 +141,6 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "Reset the feature number ID",
       "If checked, the row number of original feature list will be reset.", false);
 
-
   public static final OptionalParameter<MassDefectParameter> massDefect = new OptionalParameter<>(
       new MassDefectParameter("Mass defect",
           "Filters for mass defects of features.\nValid inputs: 0.314-0.5 or 0.90-0.15",

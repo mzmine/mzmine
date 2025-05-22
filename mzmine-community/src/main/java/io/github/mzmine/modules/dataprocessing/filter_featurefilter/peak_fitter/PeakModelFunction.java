@@ -22,10 +22,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter;
+package io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter;
 
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.math3.analysis.ParametricUnivariateFunction;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
@@ -33,9 +32,9 @@ import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer.Optim
 import org.apache.commons.math3.fitting.leastsquares.ParameterValidator;
 import org.jetbrains.annotations.Nullable;
 
-public interface PeakModel extends ParametricUnivariateFunction {
+public interface PeakModelFunction extends ParametricUnivariateFunction {
 
-  static final Logger logger = Logger.getLogger(PeakModel.class.getName());
+  static final Logger logger = Logger.getLogger(PeakModelFunction.class.getName());
 
   @Nullable ParameterValidator getValidator();
 
@@ -66,5 +65,5 @@ public interface PeakModel extends ParametricUnivariateFunction {
     }
   }
 
-  PeakType getPeakType();
+  PeakShapeClassification getPeakType();
 }

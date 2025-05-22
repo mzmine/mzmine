@@ -40,14 +40,13 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
-import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.ShapeScoreType;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.AsymmetricGaussianPeak;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.GaussianDoublePeak;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.FitQuality;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.GaussianPeak;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.PeakFitterUtils;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.PeakModel;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.AsymmetricGaussianPeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianDoublePeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.FitQuality;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianPeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakFitterUtils;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakModelFunction;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -60,7 +59,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,6 +74,7 @@ public class FeatureFilterTask extends AbstractTask {
   private final MZmineProject project;
   private final FeatureList origPeakList;
   private ModularFeatureList filteredPeakList;
+  private final FeatureFilterChoices keepOrRemove;
 
   // Processed rows counter
   private int processedRows;
@@ -102,6 +101,7 @@ public class FeatureFilterTask extends AbstractTask {
     filteredPeakList = null;
     processedRows = 0;
     totalRows = 0;
+    keepOrRemove = parameterSet.getValue(FeatureFilterParameters.keepOrRemove);
   }
 
   @Override
@@ -207,9 +207,6 @@ public class FeatureFilterTask extends AbstractTask {
       newPeakList.addRowType(DataTypes.get(ShapeScoreType.class));
     }
 
-    final ModularFeatureList removedFeaturesList = new ModularFeatureList("filtered features",
-        getMemoryMapStorage(), peakList.getRawDataFiles());
-
     // Loop through all rows in feature list
     final ModularFeatureListRow[] rows = newPeakList.getRows()
         .toArray(ModularFeatureListRow[]::new);
@@ -221,16 +218,12 @@ public class FeatureFilterTask extends AbstractTask {
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
       final ModularFeatureListRow row = rows[processedRows];
 
-      final ModularFeatureListRow rowOfRemovedFeatures = new ModularFeatureListRow(
-          removedFeaturesList, row.getID());
-
+      Arrays.fill(keepPeak, !getFailedTestValue());
       for (int i = 0; i < totalRawDataFiles; i++) {
-        // Peak values
-        keepPeak[i] = true;
         final Feature peak = row.getFeature(rawdatafiles[i]);
         // no feature for raw data file
         if (peak == null || peak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
-          keepPeak[i] = false;
+          keepPeak[i] = getFailedTestValue();
           continue;
         }
 
@@ -276,9 +269,7 @@ public class FeatureFilterTask extends AbstractTask {
             && !asymmetryRange.contains(peakAsymmetryFactor)) || (keepMs2Only && bestMsMs == null)
             || (filterByTopToEdge && topToEdge < topToEdgeThreshold)) {
           // Mark peak to be removed
-          keepPeak[i] = false;
-          rowOfRemovedFeatures.addFeature(rawdatafiles[i],
-              new ModularFeature(removedFeaturesList, peak));
+          keepPeak[i] = getFailedTestValue();
           continue;
         }
 
@@ -297,15 +288,14 @@ public class FeatureFilterTask extends AbstractTask {
 
         if (filterByShapeScore && removeFeatureBasedOnShapeScore(peak, minShapeScore, rts,
             intensities)) {
-          keepPeak[i] = false;
-          rowOfRemovedFeatures.addFeature(rawdatafiles[i],
-              new ModularFeature(removedFeaturesList, peak));
+          keepPeak[i] = getFailedTestValue();
           continue;
         }
       }
 
       // empty row?
-      boolean isEmpty = Booleans.asList(keepPeak).stream().noneMatch(keep -> keep);
+      boolean isEmpty = Booleans.asList(keepPeak).stream()
+          .noneMatch(keep -> keep);
       if (isEmpty) {
         newPeakList.removeRow(row);
       } else {
@@ -315,19 +305,11 @@ public class FeatureFilterTask extends AbstractTask {
           }
         }
       }
-
-      if (rowOfRemovedFeatures.getNumberOfFeatures() > 0) {
-        removedFeaturesList.addRow(rowOfRemovedFeatures);
-      }
     }
 
     newPeakList.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(FeatureFilterModule.class, parameters,
             getModuleCallDate()));
-
-    if(removedFeaturesList.getNumberOfRows() > 0) {
-      project.addFeatureList(removedFeaturesList);
-    }
 
     return newPeakList;
   }
@@ -335,15 +317,22 @@ public class FeatureFilterTask extends AbstractTask {
   private boolean removeFeatureBasedOnShapeScore(final Feature f, final double minShapeScore,
       final double[] rts, final double[] intensities) {
 
-    final List<PeakModel> peakModels = List.of(new GaussianPeak(), new AsymmetricGaussianPeak(),
+    final List<PeakModelFunction> peakModels = List.of(new GaussianPeak(), new AsymmetricGaussianPeak(),
         new GaussianDoublePeak());
 
     final FitQuality fitted = PeakFitterUtils.fitPeakModels(rts, intensities, peakModels);
     if (fitted != null) {
       ((ModularFeature) f).set(ShapeScoreType.class, (float) fitted.rSquared());
-      ((ModularFeature) f).set(CommentType.class, fitted.peakType().toString());
+      ((ModularFeature) f).set(CommentType.class, fitted.peakShapeClassification().toString());
     }
 
     return fitted == null || fitted.rSquared() < minShapeScore;
+  }
+
+  private boolean getFailedTestValue() {
+    return switch (keepOrRemove) {
+      case FeatureFilterChoices.REMOVE_MATCHING -> true;
+      case FeatureFilterChoices.KEEP_MATCHING -> false;
+    };
   }
 }

@@ -28,12 +28,14 @@ package io.github.mzmine.modules.dataprocessing.filter_featurefilter;
 import com.google.common.collect.Range;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -45,7 +47,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureFilterParameters extends SimpleParameterSet {
 
@@ -94,7 +98,11 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   public static final OptionalParameter<DoubleParameter> topToEdge = new OptionalParameter<>(
       new DoubleParameter("Top-to-edge ratio",
           "Minimum top to edge ratio for a chromatographic peak. Divides the intensity of the highest by the intensity of the lowest point. (I(highest)/I(lowest))",
-          new DecimalFormat("0.###"), 2.0, 0d, Double.MAX_VALUE));
+          new DecimalFormat("0.###"), 2.0, 0d, Double.MAX_VALUE), false);
+
+  public static final ComboParameter<FeatureFilterChoices> keepOrRemove = new ComboParameter<>(
+      "Keep or remove features", "Specify if features that match all criteria should be kept or removed.",
+      FeatureFilterChoices.values(), FeatureFilterChoices.KEEP_MATCHING);
 
   public static final OriginalFeatureListHandlingParameter AUTO_REMOVE = new OriginalFeatureListHandlingParameter(
       false, OriginalFeatureListOption.KEEP);
@@ -107,7 +115,7 @@ public class FeatureFilterParameters extends SimpleParameterSet {
     super(
         new Parameter[]{PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA, PEAK_HEIGHT, PEAK_DATAPOINTS,
             PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, minShapeScore, topToEdge,
-            KEEP_MS2_ONLY, AUTO_REMOVE},
+            KEEP_MS2_ONLY, keepOrRemove, AUTO_REMOVE},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_filter/feature_filter.html");
   }
 
@@ -126,6 +134,19 @@ public class FeatureFilterParameters extends SimpleParameterSet {
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 3 -> "Added an option to specify if features matching the Feature filter shall be kept or removed.";
+      default -> null;
+    };
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
+    super.handleLoadedParameters(loadedParams);
   }
 }

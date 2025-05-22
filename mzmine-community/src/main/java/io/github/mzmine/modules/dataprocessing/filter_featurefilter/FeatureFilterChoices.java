@@ -22,27 +22,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter;
+package io.github.mzmine.modules.dataprocessing.filter_featurefilter;
 
-/**
- * A record to hold various goodness-of-fit metrics.
- *
- * @param rSquared         Coefficient of Determination.
- * @param numPoints        Number of data points.
- * @param numParameters    Number of fitted parameters.
- * @param degreesOfFreedom Calculated as numPoints - numParameters.
- */
-public record FitQuality(double rSquared, int numPoints, int numParameters, int degreesOfFreedom,
-                         double[] fittedY, PeakType peakType) {
+public enum FeatureFilterChoices {
+  KEEP_MATCHING("Keep features that match all criteria"), REMOVE_MATCHING(
+      "Remove features that match all criteria");
 
-  /**
-   * Convenience constructor that calculates derived metrics (degreesOfFreedom, chiSquared,
-   * reducedChiSquared) from the primary metrics and data/parameter counts.
-   */
-  public FitQuality(double rSquared, int numPoints, int numParameters, double[] fittedY,
-      PeakType peakType) {
-    this(rSquared, numPoints, numParameters, Math.max(1, numPoints - numParameters), fittedY,
-        peakType);
+  private final String title;
+
+  FeatureFilterChoices(String title) {
+    this.title = title;
   }
 
+  @Override
+  public String toString() {
+    return title;
+  }
 }

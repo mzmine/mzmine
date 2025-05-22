@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter;
+package io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter;
 
 import java.util.logging.Logger;
 import org.apache.commons.math3.analysis.MultivariateMatrixFunction;
@@ -47,7 +47,7 @@ public class PeakFitterUtils {
 
   private static final Logger logger = Logger.getLogger(PeakFitterUtils.class.getName());
 
-  public static FitQuality fitPeakModels(double[] xData, double[] yData, List<PeakModel> peakModels) {
+  public static FitQuality fitPeakModels(double[] xData, double[] yData, List<PeakModelFunction> peakModels) {
 
     // This list will be used for everything
     List<WeightedObservedPoint> pointList = new ArrayList<>();
@@ -58,7 +58,7 @@ public class PeakFitterUtils {
     }
 
     FitQuality bestFit = null;
-    for (PeakModel peakModel : peakModels) {
+    for (PeakModelFunction peakModel : peakModels) {
       final FitQuality thisFit = peakModel.performFit(pointList);
       if(bestFit == null) {
         bestFit = thisFit;
@@ -151,7 +151,7 @@ public class PeakFitterUtils {
   static FitQuality calculateFitQuality(List<WeightedObservedPoint> observedPoints,
       // ParametricUnivariateFunction fittedFunction, // This parameter is not needed
       double[] fittedParameters, // Used for numParameters
-      ParametricUnivariateFunction modelFunction, PeakType peakType) {
+      ParametricUnivariateFunction modelFunction, PeakShapeClassification peakShapeClassification) {
     final int numPoints = observedPoints.size();
     final int numParameters = fittedParameters.length; // Get number of parameters
 
@@ -163,6 +163,6 @@ public class PeakFitterUtils {
         observedPoints.stream().mapToDouble(WeightedObservedPoint::getY).toArray(), fittedYValues);
 
     // Instantiate the FitQuality record using the 5-argument convenience constructor
-    return new FitQuality(r2, numPoints, numParameters, fittedYValues, peakType);
+    return new FitQuality(r2, numPoints, numParameters, fittedYValues, peakShapeClassification);
   }
 }

@@ -22,10 +22,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter;
+package io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter;
 
-import org.apache.commons.math3.analysis.ParametricUnivariateFunction;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
 
-public enum PeakType {
+public enum PeakShapeClassification implements UniqueIdSupplier {
   GAUSSIAN, FRONTING_GAUSSIAN, TAILING_GAUSSIAN, DOUBLE_GAUSSIAN;
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case GAUSSIAN -> "gaussian";
+      case FRONTING_GAUSSIAN -> "fronting_gaussian";
+      case TAILING_GAUSSIAN -> "tailing_gaussian";
+      case DOUBLE_GAUSSIAN -> "double_gaussian";
+    };
+  }
 }

@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter;
+package io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter;
 
 import java.util.List;
 import org.apache.commons.math3.exception.DimensionMismatchException;
@@ -34,13 +34,13 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Models a double peak. Uses two gaussians, both with different amplitudes, centers, and sigmas.
  */
-public class GaussianDoublePeak implements PeakModel {
+public class GaussianDoublePeak implements PeakModelFunction {
 
   /**
    * penalize double gaussian peaks to not make the model overfit asymmetric or normal gaussians
    * with a double gaussian
    */
-  private static final double DOUBLE_GAUSSIAN_PENALTY = 0.95;
+  private static final double DOUBLE_GAUSSIAN_PENALTY = 0.965;
 
   public GaussianDoublePeak() {
     super();
@@ -143,14 +143,6 @@ public class GaussianDoublePeak implements PeakModel {
       if (params.getEntry(5) <= 1e-9) {
         params.setEntry(5, 1e-9); // sigma2
       }
-      // Optional: ensure mu1 < mu2 or some ordering if desired,
-      // but the fitter might swap them anyway if it finds a better fit.
-      // if (params.getEntry(1) > params.getEntry(4)) { // mu1 > mu2
-      //    // Swap all parameters of peak 1 and 2
-      //    double tmpA = params.getEntry(0); params.setEntry(0, params.getEntry(3)); params.setEntry(3, tmpA);
-      //    double tmpMu = params.getEntry(1); params.setEntry(1, params.getEntry(4)); params.setEntry(4, tmpMu);
-      //    double tmpSig = params.getEntry(2); params.setEntry(2, params.getEntry(5)); params.setEntry(5, tmpSig);
-      // }
       return params;
     };
   }
@@ -161,18 +153,18 @@ public class GaussianDoublePeak implements PeakModel {
   }
 
   @Override
-  public PeakType getPeakType() {
-    return PeakType.DOUBLE_GAUSSIAN;
+  public PeakShapeClassification getPeakType() {
+    return PeakShapeClassification.DOUBLE_GAUSSIAN;
   }
 
   @Override
   public FitQuality performFit(List<WeightedObservedPoint> points) {
-    final var fit = PeakModel.super.performFit(points);
+    final var fit = PeakModelFunction.super.performFit(points);
     if (fit == null) {
       return null;
     }
 
     return new FitQuality(fit.rSquared() * DOUBLE_GAUSSIAN_PENALTY, fit.numPoints(),
-        fit.numParameters(), fit.fittedY(), fit.peakType());
+        fit.numParameters(), fit.fittedY(), fit.peakShapeClassification());
   }
 }

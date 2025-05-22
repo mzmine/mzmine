@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter;
+package io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter;
 
 import java.util.List;
 import org.apache.commons.math3.exception.NullArgumentException;
@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Models an ideal peak using a gaussian.
  */
-public class GaussianPeak implements PeakModel {
+public class GaussianPeak implements PeakModelFunction {
 
   public GaussianPeak() {
     super();
@@ -100,7 +100,7 @@ public class GaussianPeak implements PeakModel {
   }
 
   @Override
-  public PeakType getPeakType() {
-    return PeakType.GAUSSIAN;
+  public PeakShapeClassification getPeakType() {
+    return PeakShapeClassification.GAUSSIAN;
   }
 }
