@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.ShapeScoreType;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.AsymmetricGaussianPeak;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.gaussian_fitter.GaussianDoublePeak;
@@ -55,9 +56,11 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -177,6 +180,9 @@ public class FeatureFilterTask extends AbstractTask {
     final boolean filterByShapeScore = parameters.getValue(FeatureFilterParameters.minShapeScore);
     final double minShapeScore = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         FeatureFilterParameters.minShapeScore, 0d);
+    final boolean filterByTopToEdge = parameters.getValue(FeatureFilterParameters.topToEdge);
+    final double topToEdgeThreshold = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        FeatureFilterParameters.topToEdge, 1d);
 
     final Range<Double> durationRange = parameters.getParameter(
         FeatureFilterParameters.PEAK_DURATION).getEmbeddedParameter().getValue();
@@ -211,6 +217,7 @@ public class FeatureFilterTask extends AbstractTask {
     int totalRawDataFiles = rawdatafiles.length;
     boolean[] keepPeak = new boolean[totalRawDataFiles];
     totalRows = rows.length;
+
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
       final ModularFeatureListRow row = rows[processedRows];
 
@@ -238,6 +245,12 @@ public class FeatureFilterTask extends AbstractTask {
         Float peakFWHM = peak.getFWHM();
         Float peakTailingFactor = peak.getTailingFactor();
         Float peakAsymmetryFactor = peak.getAsymmetryFactor();
+
+        final Range<Float> intensityRange = peak.getRawDataPointsIntensityRange();
+        final double topToEdge =
+            intensityRange != null ? intensityRange.upperEndpoint() / intensityRange.lowerEndpoint()
+                : 1d;
+
         if (peakFWHM == null) {
           peakFWHM = -1.0f;
         }
@@ -261,13 +274,36 @@ public class FeatureFilterTask extends AbstractTask {
             filterByFWHM && !fwhmRange.contains(peakFWHM)) || (filterByTailingFactor
             && !tailingRange.contains(peakTailingFactor)) || (filterByAsymmetryFactor
             && !asymmetryRange.contains(peakAsymmetryFactor)) || (keepMs2Only && bestMsMs == null)
-            || (filterByShapeScore && removeFeatureBasedOnShapeScore(peak, minShapeScore))) {
+            || (filterByTopToEdge && topToEdge < topToEdgeThreshold)) {
           // Mark peak to be removed
           keepPeak[i] = false;
           rowOfRemovedFeatures.addFeature(rawdatafiles[i],
               new ModularFeature(removedFeaturesList, peak));
+          continue;
+        }
+
+        if (!keepPeak[i]) {
+          continue;
+        }
+
+        // more expensive filters below here
+        final double[] rts = new double[peak.getScanNumbers().size()];
+        final double[] intensities = new double[peak.getScanNumbers().size()];
+        final IonTimeSeries<? extends Scan> featureData = peak.getFeatureData();
+        featureData.getIntensityValues(intensities);
+        for (int j = 0; j < rts.length; j++) {
+          rts[j] = featureData.getRetentionTime(j);
+        }
+
+        if (filterByShapeScore && removeFeatureBasedOnShapeScore(peak, minShapeScore, rts,
+            intensities)) {
+          keepPeak[i] = false;
+          rowOfRemovedFeatures.addFeature(rawdatafiles[i],
+              new ModularFeature(removedFeaturesList, peak));
+          continue;
         }
       }
+
       // empty row?
       boolean isEmpty = Booleans.asList(keepPeak).stream().noneMatch(keep -> keep);
       if (isEmpty) {
@@ -289,26 +325,21 @@ public class FeatureFilterTask extends AbstractTask {
         new SimpleFeatureListAppliedMethod(FeatureFilterModule.class, parameters,
             getModuleCallDate()));
 
-    project.addFeatureList(removedFeaturesList);
+    if(removedFeaturesList.getNumberOfRows() > 0) {
+      project.addFeatureList(removedFeaturesList);
+    }
 
     return newPeakList;
   }
 
-  private boolean removeFeatureBasedOnShapeScore(Feature f, final double minShapeScore) {
+  private boolean removeFeatureBasedOnShapeScore(final Feature f, final double minShapeScore,
+      final double[] rts, final double[] intensities) {
 
     final List<PeakModel> peakModels = List.of(new GaussianPeak(), new AsymmetricGaussianPeak(),
         new GaussianDoublePeak());
 
-    final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
-    final double[] rts = new double[featureData.getNumberOfValues()];
-    final double[] intensities = new double[featureData.getNumberOfValues()];
-    featureData.getIntensityValues(intensities);
-    for (int i = 0; i < rts.length; i++) {
-      rts[i] = featureData.getRetentionTime(i);
-    }
-
     final FitQuality fitted = PeakFitterUtils.fitPeakModels(rts, intensities, peakModels);
-    if(fitted != null) {
+    if (fitted != null) {
       ((ModularFeature) f).set(ShapeScoreType.class, (float) fitted.rSquared());
       ((ModularFeature) f).set(CommentType.class, fitted.peakType().toString());
     }
