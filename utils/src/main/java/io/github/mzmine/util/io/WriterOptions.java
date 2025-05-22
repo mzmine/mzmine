@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,13 +29,13 @@ import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 
 public enum WriterOptions {
-  APPEND,
-  REPLACE;
+  APPEND, REPLACE;
 
   public OpenOption[] toOpenOption() {
     return switch (this) {
-      case APPEND -> new OpenOption[] {StandardOpenOption.CREATE, StandardOpenOption.APPEND};
-      case REPLACE -> new OpenOption[] {StandardOpenOption.CREATE, StandardOpenOption.WRITE};
+      case APPEND -> new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.APPEND};
+      case REPLACE -> new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.WRITE,
+          StandardOpenOption.TRUNCATE_EXISTING};
     };
   }
 }

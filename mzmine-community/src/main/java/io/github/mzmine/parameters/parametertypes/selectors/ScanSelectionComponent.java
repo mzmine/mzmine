@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,33 +32,35 @@ import javafx.scene.text.Text;
 
 public class ScanSelectionComponent extends OptionalModuleComponent {
 
-  private final Text textDescription;
-  private final ScanSelectionFiltersParameters parameters;
+  private final Text textDescription = new Text();
 
   public ScanSelectionComponent(final ScanSelectionFiltersParameters embeddedParameters,
       final EmbeddedComponentOptions viewOption, final String title, final boolean active) {
     super(embeddedParameters, viewOption, title, false, active);
-    this.parameters = embeddedParameters;
 
     var clearbtn = new Button("Clear");
     topPane.getChildren().add(clearbtn);
     clearbtn.setOnAction(event -> setSelection(ScanSelection.ALL_SCANS));
 
     var selection = createSelection();
-    textDescription = new Text(selection.toShortDescription());
+    textDescription.setText(selection.toShortDescription());
     textDescription.setWrappingWidth(350);
     if (active) {
       topPane.getChildren().add(textDescription);
     }
   }
 
+  private ScanSelectionFiltersParameters getSelectionParameters() {
+    return (ScanSelectionFiltersParameters) getEmbeddedParameters();
+  }
+
   private void setSelection(final ScanSelection selection) {
-    parameters.setFilter(selection);
+    getSelectionParameters().setFilter(selection);
     setParameterValuesToComponents();
   }
 
   public ScanSelection createSelection() {
-    return parameters.createFilter();
+    return getSelectionParameters().createFilter();
   }
 
   @Override
@@ -81,6 +83,10 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
 
   @Override
   public void updateParameterSetFromComponents() {
+    // not yet initialized
+    if (textDescription == null) {
+      return;
+    }
     super.updateParameterSetFromComponents();
     var selection = createSelection();
     textDescription.setText(selection.toShortDescription());
@@ -90,7 +96,7 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
   public void setParameterValuesToComponents() {
     super.setParameterValuesToComponents();
     var selection = createSelection();
-    textDescription.setText(selection!=null? selection.toShortDescription() : "");
+    textDescription.setText(selection != null ? selection.toShortDescription() : "");
   }
 
 }

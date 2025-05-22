@@ -100,21 +100,6 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    // Update the parameter choices
-    UserParameter<?, ?> newChoices[] = ProjectService.getProjectManager().getCurrentProject()
-        .getParameters();
-    String[] choices;
-    if (newChoices == null || newChoices.length == 0) {
-      choices = new String[1];
-      choices[0] = "No parameters defined";
-    } else {
-      choices = new String[newChoices.length + 1];
-      choices[0] = "Ignore groups";
-      for (int i = 0; i < newChoices.length; i++) {
-        choices[i + 1] = "Filtering by " + newChoices[i].getName();
-      }
-    }
-
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();

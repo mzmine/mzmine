@@ -79,24 +79,7 @@ class IntensityPlotDataset extends AbstractDataset implements StatisticalCategor
     this.selectedRows = parameters.getParameter(IntensityPlotParameters.selectedRows)
         .getMatchingRows(featureList);
 
-    if (xAxisValueSource instanceof ParameterWrapper) {
-      MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
-      UserParameter xAxisParameter = ((ParameterWrapper) xAxisValueSource).getParameter();
-      LinkedHashSet<Comparable> parameterValues = new LinkedHashSet<>();
-      for (RawDataFile file : selectedFiles) {
-        Object value = project.getParameterValue(xAxisParameter, file);
-        parameterValues.add((Comparable<?>) value);
-      }
-      xValues = parameterValues.toArray(new Comparable[0]);
-
-      // if we have a numerical axis, we don't want the values to be
-      // sorted by the data file order, but rather numerically
-      if (xAxisParameter instanceof DoubleParameter) {
-        Arrays.sort(xValues);
-      }
-    }
-
-    if (xAxisValueSource == IntensityPlotParameters.rawDataFilesOption) {
+    if (xAxisValueSource.equals(IntensityPlotParameters.rawDataFilesOption)) {
       xValues = new String[selectedFiles.length];
       for (int i = 0; i < selectedFiles.length; i++) {
         xValues[i] = selectedFiles[i].getName();
@@ -125,21 +108,6 @@ class IntensityPlotDataset extends AbstractDataset implements StatisticalCategor
     if (xAxisValueSource instanceof String) {
       RawDataFile columnFile = selectedFiles[getColumnIndex(xValue)];
       return new RawDataFile[]{columnFile};
-    }
-    if (xAxisValueSource instanceof ParameterWrapper) {
-      HashSet<RawDataFile> files = new HashSet<>();
-      UserParameter<?, ?> xAxisParameter = ((ParameterWrapper) xAxisValueSource).getParameter();
-      MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
-      for (RawDataFile file : selectedFiles) {
-        Object fileValue = project.getParameterValue(xAxisParameter, file);
-        if (fileValue == null) {
-          continue;
-        }
-        if (fileValue.equals(xValue)) {
-          files.add(file);
-        }
-      }
-      return files.toArray(new RawDataFile[0]);
     }
     return null;
   }

@@ -25,6 +25,9 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
+
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityType;
@@ -36,8 +39,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.MzSeries;
-import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.contentEquals;
-import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
+import io.github.mzmine.datamodel.featuredata.TimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningModule;
@@ -368,11 +370,20 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   @Override
   public void saveValueToXML(XMLStreamWriter writer, List<Frame> allScans)
       throws XMLStreamException {
+    saveValueToXML(writer, allScans, true);
+  }
+
+  @Override
+  public void saveValueToXML(XMLStreamWriter writer, List<Frame> allScans, boolean includeRt)
+      throws XMLStreamException {
     writer.writeStartElement(SimpleIonMobilogramTimeSeries.XML_ELEMENT);
 
     IntensitySeries.saveIntensityValuesToXML(writer, this);
     MzSeries.saveMzValuesToXML(writer, this);
     IonSpectrumSeries.saveSpectraIndicesToXML(writer, this, allScans);
+    if(includeRt) {
+      TimeSeries.saveValuesToXML(writer, this);
+    }
 
     summedMobilogram.saveValueToXML(writer);
 
@@ -383,6 +394,8 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     writer.writeEndElement();
   }
+
+
 
   @Override
   public boolean equals(Object o) {

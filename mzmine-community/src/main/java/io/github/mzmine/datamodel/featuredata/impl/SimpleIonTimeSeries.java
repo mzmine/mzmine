@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
+
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -32,7 +34,7 @@ import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MzSeries;
-import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
+import io.github.mzmine.datamodel.featuredata.TimeSeries;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
@@ -238,11 +240,20 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   @Override
   public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans)
       throws XMLStreamException {
+    saveValueToXML(writer, allScans, true);
+  }
+
+  @Override
+  public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans, boolean includeRt)
+      throws XMLStreamException {
     writer.writeStartElement(SimpleIonTimeSeries.XML_ELEMENT);
 
     IonSpectrumSeries.saveSpectraIndicesToXML(writer, this, allScans); // use all scans
     IntensitySeries.saveIntensityValuesToXML(writer, this);
     MzSeries.saveMzValuesToXML(writer, this);
+    if (includeRt) {
+      TimeSeries.saveValuesToXML(writer, this);
+    }
 
     writer.writeEndElement();
   }

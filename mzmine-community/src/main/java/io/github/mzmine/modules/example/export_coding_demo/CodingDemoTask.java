@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.example.export_coding_demo;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -41,7 +43,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,8 +86,7 @@ class CodingDemoTask extends AbstractFeatureListTask {
     List<RowStats> results = new ArrayList<>();
 
     // process each row
-    var rows = featureList.getRows();
-    for (var row : rows) {
+    for (var row : featureList.getRows()) {
       if (!mzRange.contains(row.getAverageMZ()) && !rtRange.contains(
           row.getAverageRT().doubleValue())) {
         continue;

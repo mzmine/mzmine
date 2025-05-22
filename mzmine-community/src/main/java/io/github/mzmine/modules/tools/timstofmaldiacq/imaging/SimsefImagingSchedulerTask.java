@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -194,7 +194,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
       return;
     }
 
-    List<FeatureListRow> rows = new ArrayList<>(flist.getRows());
+    List<FeatureListRow> rows = flist.getRowsCopy();
     // sort low to high area. First find spots for low intensity features so we definitely fragment
     // those. should be easier to find spots for high area features
     rows.sort(Comparator.comparingDouble(FeatureListRow::getMaxArea));

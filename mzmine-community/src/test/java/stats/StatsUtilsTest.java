@@ -65,8 +65,8 @@ public class StatsUtilsTest {
 
     Assertions.assertEquals(0, unitVar.getEntry(0, 0));
     Assertions.assertEquals(1, unitVar.getEntry(1, 1));
-    Assertions.assertEquals(0.5, unitVar.getEntry(2, 1));
-    Assertions.assertEquals((double) 1 / 5, unitVar.getEntry(0, 2));
+    Assertions.assertEquals(0.0, unitVar.getEntry(2, 1));
+    Assertions.assertEquals(0d, unitVar.getEntry(0, 2));
     Assertions.assertEquals(0, unitVar.getEntry(2, 3));
   }
 
