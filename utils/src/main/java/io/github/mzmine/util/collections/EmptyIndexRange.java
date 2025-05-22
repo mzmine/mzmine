@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,13 @@ public final class EmptyIndexRange implements IndexRange {
 
   @Override
   public int maxInclusive() {
+    // muss be lower than min because a loop from min <= i <= maxInclusive should never apply
+    return -2;
+  }
+
+  @Override
+  public int maxExclusive() {
+    // same like min so that no loop applies
     return -1;
   }
 

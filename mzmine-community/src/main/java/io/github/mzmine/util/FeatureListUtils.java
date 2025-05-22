@@ -67,7 +67,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -308,10 +307,8 @@ public class FeatureListUtils {
     // add the new types to the feature list
     alignedFeatureList.addRowType(DataTypes.get(AlignmentMainType.class));
 
-    SortedList<FeatureListRow> rows = alignedFeatureList.getRows().sorted(MZ_ASCENDING);
-
     // find the number of rows that match RT,MZ,Mobility in each original feature list
-    var changed = rows.stream().parallel().mapToInt(alignedRow -> {
+    var changed = alignedFeatureList.getRows().stream().parallel().mapToInt(alignedRow -> {
       AlignmentScores score = calculator.calcScore(alignedRow);
       if (mergeScores) {
         AlignmentScores oldScore = alignedRow.get(AlignmentMainType.class);
@@ -487,63 +484,8 @@ public class FeatureListUtils {
    * @param featureList target list
    */
   public static void sortByDefault(FeatureList featureList, boolean renumberIDs) {
-    RawDataFile rawDataFile = featureList.getRawDataFiles().get(0);
-    if (rawDataFile != null) {
-      if (!(rawDataFile instanceof ImagingRawDataFile)) {
-        FeatureListUtils.sortByDefaultRT(featureList, renumberIDs);
-      } else {
-        FeatureListUtils.sortByDefaultMZ(featureList, renumberIDs);
-      }
-    }
-  }
+    featureList.applyDefaultRowsSorting();
 
-  /**
-   * Sort feature list by retention time (default)
-   *
-   * @param featureList target list
-   */
-  public static void sortByDefaultRT(FeatureList featureList) {
-    // sort rows by rt
-    featureList.getRows().sort(FeatureListRowSorter.DEFAULT_RT);
-  }
-
-  /**
-   * Sort feature list by mz and reset IDs starting with 1
-   *
-   * @param featureList target list
-   * @param renumberIDs renumber rows
-   */
-  public static void sortByDefaultMZ(FeatureList featureList, boolean renumberIDs) {
-    sortByDefaultMZ(featureList);
-    if (!renumberIDs) {
-      return;
-    }
-    // reset IDs
-    int newRowID = 1;
-    for (var row : featureList.getRows()) {
-      row.set(IDType.class, newRowID);
-      newRowID++;
-    }
-  }
-
-  /**
-   * Sort feature list by mz (default)
-   *
-   * @param featureList target list
-   */
-  public static void sortByDefaultMZ(FeatureList featureList) {
-    // sort rows by mz
-    featureList.getRows().sort(MZ_ASCENDING);
-  }
-
-  /**
-   * Sort feature list by retention time and reset IDs starting with 1
-   *
-   * @param featureList target list
-   * @param renumberIDs renumber rows
-   */
-  public static void sortByDefaultRT(FeatureList featureList, boolean renumberIDs) {
-    sortByDefaultRT(featureList);
     if (!renumberIDs) {
       return;
     }
@@ -615,7 +557,7 @@ public class FeatureListUtils {
    */
   @NotNull
   public static Int2ObjectMap<FeatureListRow> getRowIdMap(final ModularFeatureList featureList) {
-    Int2ObjectMap<FeatureListRow> map = new Int2ObjectArrayMap<>(featureList.getRows().size());
+    Int2ObjectMap<FeatureListRow> map = new Int2ObjectArrayMap<>(featureList.getNumberOfRows());
     for (final FeatureListRow row : featureList.getRows()) {
       map.put(row.getID(), row);
     }
@@ -734,4 +676,19 @@ public class FeatureListUtils {
     return imsRamFactor;
   }
 
+  public static boolean hasImagingData(FeatureList flist) {
+    return flist.getRawDataFiles().stream().anyMatch(ImagingRawDataFile.class::isInstance);
+  }
+
+  /**
+   * Default row sorter is depending on imaging data. If one raw file is imaging all is sorted by
+   * mz. Otherwise sort by RT
+   */
+  public static @NotNull Comparator<FeatureListRow> getDefaultRowSorter(FeatureList flist) {
+    if (hasImagingData(flist)) {
+      return FeatureListRowSorter.MZ_ASCENDING;
+    } else {
+      return FeatureListRowSorter.DEFAULT_RT;
+    }
+  }
 }

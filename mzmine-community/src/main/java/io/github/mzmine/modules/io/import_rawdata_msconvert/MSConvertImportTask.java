@@ -152,6 +152,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       case SCIEX_WIFF -> true;
       case SCIEX_WIFF2 -> true;
       case AGILENT_D -> true;
+      case SHIMADZU_LCD -> true;
       case WATERS_RAW_IMS, AGILENT_D_IMS -> false;
     };
   }
@@ -434,7 +435,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   public static Set<RawDataFileType> getSupportedFileTypes() {
     return Set.of(RawDataFileType.WATERS_RAW, RawDataFileType.WATERS_RAW_IMS,
         RawDataFileType.SCIEX_WIFF, RawDataFileType.SCIEX_WIFF2, RawDataFileType.AGILENT_D,
-        RawDataFileType.AGILENT_D_IMS, RawDataFileType.THERMO_RAW);
+        RawDataFileType.AGILENT_D_IMS, RawDataFileType.THERMO_RAW, RawDataFileType.SHIMADZU_LCD);
   }
 
   @Override

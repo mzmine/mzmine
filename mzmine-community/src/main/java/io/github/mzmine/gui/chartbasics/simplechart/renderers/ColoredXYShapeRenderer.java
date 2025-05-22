@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -270,7 +270,7 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
     final int numCategories = zcat.getNumberOfCategories();
     for (int i = 0; i < numCategories; i++) {
       final String labelText = zcat.getLegendLabel(i);
-      final Paint paint = zds.getPaintScale().getPaint(i);
+      final Paint paint = zcat.getLegendItemColor(i);
       final LegendItem item = new LegendItem(labelText, null, null, null, dataPointsShape,
           !drawOutlinesOnly ? paint : ColorUtils.TRANSPARENT_AWT, outlineStroke,
           drawOutlinesOnly ? paint : ColorUtils.TRANSPARENT_AWT);

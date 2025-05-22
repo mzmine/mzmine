@@ -181,23 +181,6 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler implements
       currentValues.put(currentDataFile, value);
     }
 
-    // <PARAMETER>
-    if (qName.equals(UserParameterElementName_3_0.PARAMETER.getElementName())) {
-      if (currentParameter instanceof ComboParameter) {
-        String newChoices[] = currentOptions.toArray(new String[0]);
-        ((ComboParameter<String>) currentParameter).setChoices(newChoices);
-      }
-      newProject.addParameter(currentParameter);
-
-      for (RawDataFile dataFile : currentValues.keySet()) {
-        Object value = currentValues.get(dataFile);
-        newProject.setParameterValue(currentParameter, dataFile, value);
-      }
-
-      parsedParams++;
-
-    }
-
   }
 
   /**

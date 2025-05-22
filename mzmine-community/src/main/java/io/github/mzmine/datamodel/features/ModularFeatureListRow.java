@@ -203,7 +203,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public Stream<ModularFeature> streamFeatures() {
     return features.values().stream()
-        .filter(f -> f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN);
+        .filter(f -> f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+        .sorted(Comparator.comparing(f -> f.getRawDataFile().getName()));
   }
 
   // Helper methods
@@ -278,7 +279,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void clearFeatures(final boolean updateByRowBindings) {
-    final  boolean changed = !features.isEmpty();
+    final boolean changed = !features.isEmpty();
     this.features.clear();
     if (changed) {
       // reflect changes by updating all row bindings
@@ -339,7 +340,6 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   /**
-   *
    * @return unmodifiable list of all raw data files - even if there is no feature
    */
   @Override

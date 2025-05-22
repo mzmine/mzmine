@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -131,7 +131,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     NumberFormat corrForm = formats.scoreFormat();
     try {
       // copy of list to not sort the original
-      List<FeatureListRow> rows = new ArrayList<>(featureList.getRows());
+      List<FeatureListRow> rows = featureList.getRowsCopy();
       rows.sort(new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
       StringBuilder ann = createHeader();
 
@@ -487,7 +487,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
   private void exportMergedLists() {
     LOG.info("Starting export of adduct and correlation networks (merged) for n(peaklists)="
-             + featureLists.length);
+        + featureLists.length);
     // export edges of annotations
     if (exportAnnotationEdges) {
       exportAnnotationEdgesMerged(featureLists, filename,
@@ -530,7 +530,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       AtomicInteger added = new AtomicInteger(0);
 
       for (FeatureList pkl : featureLists) {
-        List<FeatureListRow> rows = new ArrayList<>(pkl.getRows());
+        List<FeatureListRow> rows = pkl.getRowsCopy();
         rows.sort(new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
 
         // for all rows
