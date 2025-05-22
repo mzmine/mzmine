@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.data_access;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.sliceDoubles;
+
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -33,7 +35,6 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
-import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.sliceDoubles;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -101,7 +102,8 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
    *
    * @param flist                       target feature list. Loops through all features in dataFile
    * @param dataFile                    define the data file in an aligned feature list
-   * @param binningMobilogramDataAccess mobilogram data access
+   * @param binningMobilogramDataAccess access mobilogram data, only present for mobility data, null
+   *                                    otherwise. Checks are done internally
    */
   protected FeatureFullDataAccess(FeatureList flist, @Nullable RawDataFile dataFile,
       @Nullable BinningMobilogramDataAccess binningMobilogramDataAccess) {
@@ -299,7 +301,6 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
             .subList(startIndex, endIndexExclusive);
         mobilogramBinning.setMobilogram(mobilograms);
 
-        // do not use sublist for now as it keeps the original list alive.
         yield new SimpleIonMobilogramTimeSeries(mzs, intensities, storage, mobilograms,
             (List<Frame>) (List) subFromAll, mobilogramBinning.toSummedMobilogram(storage));
       }

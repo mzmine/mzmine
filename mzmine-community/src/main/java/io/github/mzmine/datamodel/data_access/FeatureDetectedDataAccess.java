@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -75,8 +75,10 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
    * by retention time). Uses only data points currently assigned to features. This differs for
    * chromatograms and resolved features
    *
-   * @param flist    target feature list. Loops through all features in dataFile
-   * @param dataFile define the data file in an aligned feature list
+   * @param flist                       target feature list. Loops through all features in dataFile
+   * @param dataFile                    define the data file in an aligned feature list
+   * @param binningMobilogramDataAccess access mobilogram data, only present for mobility data, null
+   *                                    otherwise. Checks are done internally
    */
   protected FeatureDetectedDataAccess(FeatureList flist, @Nullable RawDataFile dataFile,
       @Nullable BinningMobilogramDataAccess binningMobilogramDataAccess) {

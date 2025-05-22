@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -106,7 +106,8 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
    *
    * @param flist             target feature list. Loops through all features in dataFile
    * @param dataFile          define the data file in an aligned feature list
-   * @param mobilogramBinning data access for mobilogram binning
+   * @param mobilogramBinning access mobilogram data, only present for mobility data, null
+   *                          otherwise
    */
   protected FeatureDataAccess(FeatureList flist, @Nullable RawDataFile dataFile,
       @Nullable BinningMobilogramDataAccess mobilogramBinning) {
@@ -278,8 +279,8 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
 
   /**
    * Method to create subseries from this FeatureDataAccess or its underlying original series.
-   * {@link FeatureFullDataAccess} uses this for optimizations. Base implementation just calls the
-   * original series
+   * {@link FeatureFullDataAccess} uses this for optimizations in reusing scan lists that are kept
+   * alive already as sublist. Base implementation just calls the original series.
    *
    * @param startIndex         the start index in {@link FeatureDataAccess}
    * @param endIndexExclusive  the end index in {@link FeatureDataAccess}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -115,10 +115,10 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         if (!distinctMobilities.isEmpty()
             // either not tims and current mobility > highest mobility
             && ((distinctMobilities.get(distinctMobilities.size() - 1) > scan.getMobility()
-                 && mt != MobilityType.TIMS)
-                // or tims and current mobility < lowest mobility
-                || (distinctMobilities.get(distinctMobilities.size() - 1) < scan.getMobility()
-                    && mt == MobilityType.TIMS))) {
+            && mt != MobilityType.TIMS)
+            // or tims and current mobility < lowest mobility
+            || (distinctMobilities.get(distinctMobilities.size() - 1) < scan.getMobility()
+            && mt == MobilityType.TIMS))) {
           continue;
         }
         distinctMobilities.add(scan.getMobility());
@@ -142,7 +142,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       centerBins.add(summedMobility / Math.max(currentBins, 1));
       upperLimits.add(
           distinctMobilities.get(Math.min(i + binWidth - 1, distinctMobilities.size() - 1))
-          + MOBILITY_EPSILON);
+              + MOBILITY_EPSILON);
     }
 
     mobilities = centerBins.stream().mapToDouble(Double::doubleValue).toArray();
@@ -159,7 +159,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     approximateBinSize = deltas / (mobilities.length - 2);
     logger.finest(
         () -> "Bin width set to " + binWidth + " scans. (approximately " + approximateBinSize + " "
-              + rawDataFile.getMobilityType().getUnit() + ")");
+            + rawDataFile.getMobilityType().getUnit() + ")");
   }
 
   /**
@@ -167,9 +167,12 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
    */
   public static BinningMobilogramDataAccess createWithPreviousParameters(
       @NotNull IMSRawDataFile imsFile, @NotNull FeatureList flist) {
+    if (!flist.getRawDataFiles().contains(imsFile)) {
+      throw new IllegalArgumentException("FeatureList flist does not contain data from imsFile");
+    }
     // is never null at this point as we are having at least one imsFile
-    final Integer previousBinningWith = getPreviousBinningWith(flist, imsFile.getMobilityType());
-    return new BinningMobilogramDataAccess(imsFile, previousBinningWith);
+    final Integer previousBinningWidth = getPreviousBinningWidth(flist, imsFile.getMobilityType());
+    return new BinningMobilogramDataAccess(imsFile, previousBinningWidth);
   }
 
   @NotNull
@@ -189,7 +192,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   @Nullable
-  public static Integer getPreviousBinningWith(@NotNull final FeatureList flist, MobilityType mt) {
+  public static Integer getPreviousBinningWidth(@NotNull final FeatureList flist, MobilityType mt) {
     List<FeatureListAppliedMethod> methods = flist.getAppliedMethods();
     final IMSRawDataFile imsFile = flist.getRawDataFiles().stream()
         .filter(IMSRawDataFile.class::isInstance).map(IMSRawDataFile.class::cast).findFirst()
@@ -317,7 +320,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
       // ensure we are below the current upper-binning-limit
       while (rawIndex < numValues
-             && Double.compare(tempMobilities[rawIndex], upperBinLimits[binnedIndex]) == -1) {
+          && Double.compare(tempMobilities[rawIndex], upperBinLimits[binnedIndex]) == -1) {
         intensities[binnedIndex] += tempIntensities[rawIndex];
         rawIndex++;
       }
@@ -361,7 +364,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         final double binEnd = upperBinLimits[i];
         // if we are in the correct bin, add all values that fit
         while (rawIndex >= 0 && rawIndex < numValues && tempMobilities[rawIndex] < binEnd
-               && tempMobilities[rawIndex] > binStart) {
+            && tempMobilities[rawIndex] > binStart) {
 
           intensities[i] += tempIntensities[rawIndex];
           assigned[rawIndex] = true;
