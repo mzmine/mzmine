@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 public class CVFilterParameters extends SimpleParameterSet {
 
   public static final MetadataGroupSelectionParameter grouping = new MetadataGroupSelectionParameter(
-      "Metadata group", "Select the metadata group to calculate the CV for",
+      "Sample grouping", "Select the metadata group to calculate the CV for",
       new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
 
   public static final PercentParameter maxCv = new PercentParameter("Maximum CV",
