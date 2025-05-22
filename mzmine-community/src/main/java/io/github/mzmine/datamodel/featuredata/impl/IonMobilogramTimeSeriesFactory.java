@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -247,10 +247,11 @@ public class IonMobilogramTimeSeriesFactory {
               spectra));
     }
 
-    return switch (ConfigService.getConfiguration().getCachedImsOptimisation()) {
+    return switch (ConfigService.getConfiguration().getCachedImsOptimization()) {
       case SPEED -> new SimpleStoredMobilograms(storedMobilograms, stored[0], stored[1]);
-      case MEMORY_EFFICIENCY -> new MappedStoredMobilograms(storage, trace, stored[0], stored[1], offsets,
-          storedMobilograms);
+      case MEMORY_EFFICIENCY ->
+          new MappedStoredMobilograms(storage, trace, stored[0], stored[1], offsets,
+              storedMobilograms);
     };
   }
 
@@ -298,12 +299,12 @@ public class IonMobilogramTimeSeriesFactory {
 //        == intensityValues.getAtIndex(OfDouble.JAVA_DOUBLE,
 //        StorageUtils.numDoubles(intensityValues) - 1);
 
-
-    return switch (ConfigService.getConfiguration().getCachedImsOptimisation()) {
+    return switch (ConfigService.getConfiguration().getCachedImsOptimization()) {
       case SPEED -> new SimpleStoredMobilograms(storedMobilograms, mzValues, intensityValues);
-      case MEMORY_EFFICIENCY ->  new MappedStoredMobilograms(storage, newTrace, mzValues, intensityValues,
-          storedMobilograms.stream().mapToInt(StorableIonMobilitySeries::getStorageOffset).toArray(),
-          storedMobilograms);
+      case MEMORY_EFFICIENCY ->
+          new MappedStoredMobilograms(storage, newTrace, mzValues, intensityValues,
+              storedMobilograms.stream().mapToInt(StorableIonMobilitySeries::getStorageOffset)
+                  .toArray(), storedMobilograms);
     };
   }
 }
