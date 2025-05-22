@@ -26,11 +26,21 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.SimpleRowBinding;
+import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakShapeClassification;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
@@ -85,5 +95,26 @@ public class PeakShapeClassificationType extends DataType<PeakShapeClassificatio
               + value.toString());
     }
     writer.writeCharacters(shapeType.getUniqueID());
+  }
+
+  @Override
+  public @NotNull List<RowBinding> createDefaultRowBindings() {
+    return List.of(new SimpleRowBinding(DataTypes.get(PeakShapeClassificationType.class),
+        BindingsType.CONSENSUS));
+  }
+
+  @Override
+  public Object evaluateBindings(@NotNull BindingsType bindingType,
+      @NotNull List<? extends ModularDataModel> models) {
+    return switch (bindingType) {
+      case AVERAGE, MIN, MAX, SUM, DIFFERENCE, COUNT, RANGE, LIST ->
+          throw new UndefinedRowBindingException(this, bindingType);
+      case CONSENSUS -> {
+        yield models.stream().map(m -> m.get(this)).filter(Objects::nonNull)
+            .collect(Collectors.groupingBy(model -> model, Collectors.counting())).entrySet()
+            .stream().max(Comparator.comparingLong(Entry::getValue)).map(Entry::getKey)
+            .orElse(null);
+      }
+    };
   }
 }
