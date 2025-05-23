@@ -612,8 +612,9 @@ public class FeatureListUtils {
       estimatedRows = featureList.getNumberOfRows();
       estimatedFeatures = featureList.stream().mapToInt(FeatureListRow::getNumberOfFeatures).sum();
     } else {
-      // start with half as many rows to not over commit to the size of
-      estimatedRows = (int) (featureList.getNumberOfRows() * 0.5);
+      // start with less rows to not over commit to the size.
+      // many modules know the number
+      estimatedRows = (int) (featureList.getNumberOfRows() * 0.75);
       estimatedFeatures = FeatureListUtils.estimateFeatures(estimatedRows, dataFiles.size());
     }
 

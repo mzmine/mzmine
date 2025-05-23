@@ -367,7 +367,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     IntensitySeries.saveIntensityValuesToXML(writer, this);
     MzSeries.saveMzValuesToXML(writer, this);
     IonSpectrumSeries.saveSpectraIndicesToXML(writer, this, allScans);
-    if(includeRt) {
+    if (includeRt) {
       TimeSeries.saveValuesToXML(writer, this);
     }
 
@@ -380,7 +380,6 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     writer.writeEndElement();
   }
-
 
 
   @Override
