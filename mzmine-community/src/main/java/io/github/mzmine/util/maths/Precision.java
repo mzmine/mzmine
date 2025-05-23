@@ -173,6 +173,14 @@ public class Precision {
   }
 
   public static boolean equalSignificance(final double a, final double b, final int sigDigits) {
+    if(Double.isNaN(a) && Double.isNaN(b)) {
+      return true;
+    }
+
+    if(Double.isNaN(a) || Double.isNaN(b)) {
+      return false;
+    }
+
     if (a == b) {
       return true;
     }
@@ -199,6 +207,14 @@ public class Precision {
   }
 
   public static boolean equalSignificance(final float a, final float b, final int sigDigits) {
+    if(Float.isNaN(a) && Float.isNaN(b)) {
+      return true;
+    }
+
+    if(Float.isNaN(a) || Float.isNaN(b)) {
+      return false;
+    }
+
     if (a == b) {
       return true;
     }
