@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,9 +29,9 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
+import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlVisualizerController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
-import io.github.mzmine.modules.visualization.masst.MasstVisualizerController;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkController;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTabOld;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
@@ -84,7 +84,7 @@ public class NetworkOverviewController {
   private @NotNull List<FeatureRowInterfaceFx> featureRowInterfaces;
   private @NotNull List<FeatureRowInterfaceFx> annotationInterfaces;
   private SpectraIdentificationResultsWindowFX spectralMatchesController;
-  private MasstVisualizerController masstController;
+  private ExternalRowHtmlVisualizerController masstController;
 
   public NetworkOverviewController() {
     this.focussedRows = FXCollections.observableArrayList();
@@ -132,7 +132,7 @@ public class NetworkOverviewController {
     tabAllMs2.setContent(allMs2Pane);
 
     // MASST
-    masstController = new MasstVisualizerController();
+    masstController = new ExternalRowHtmlVisualizerController();
     tabMasst.setContent(masstController.buildView());
 
     // all content that listens to selected feature changes

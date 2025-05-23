@@ -164,6 +164,7 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSched
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
+import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlVisualizerModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
@@ -173,7 +174,6 @@ import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.RegionExtractionModule;
 import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule;
-import io.github.mzmine.modules.visualization.masst.MasstVisualizerModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
@@ -470,7 +470,7 @@ public class BatchModeModulesList {
 
           // stats
           StatsDasboardModule.class, //
-          MasstVisualizerModule.class, //
+          ExternalRowHtmlVisualizerModule.class, //
           PCAModule.class, //
           VolcanoPlotModule.class //
 

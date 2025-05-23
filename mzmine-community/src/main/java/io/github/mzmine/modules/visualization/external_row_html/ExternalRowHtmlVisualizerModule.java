@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,27 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.masst;
+package io.github.mzmine.modules.visualization.external_row_html;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDashboardParameters;
-import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDashboardTab;
 import io.github.mzmine.modules.impl.AbstractRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.List;
-import javafx.scene.control.Tab;
 import org.jetbrains.annotations.NotNull;
 
-public class MasstVisualizerModule extends AbstractRunnableModule {
+public class ExternalRowHtmlVisualizerModule extends AbstractRunnableModule {
 
-  public MasstVisualizerModule() {
+  public ExternalRowHtmlVisualizerModule() {
     super("MASST dashboard", StatsDashboardParameters.class, MZmineModuleCategory.DATAANALYSIS,
         "Overview Mass Spectrometry Search Tool (MASST) results.");
   }
@@ -53,7 +49,7 @@ public class MasstVisualizerModule extends AbstractRunnableModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    final var tab = new MasstVisualizerTab();
+    final var tab = new ExternalRowHtmlVisualizerTab();
     MZmineCore.getDesktop().addTab(tab);
     return ExitCode.OK;
   }
