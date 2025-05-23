@@ -30,15 +30,26 @@ import io.github.mzmine.datamodel.features.types.annotations.shapeclassification
 import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.PeakShapeClassificationType;
 import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.ShapeClassificationScoreType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public record PeakQualitySummary(PeakDimension dimension,
-                                 PeakShapeClassification classification,
-                                 Float shapeClassificationScore) implements ModularDataRecord {
+/**
+ * @param dimension                The dimension this peak was detected in.
+ * @param classification           The shape classification of this peak. e.g. tailing, fronting,
+ *                                 double, or normal gaussian peak.
+ * @param shapeClassificationScore An overall quality score between 0 and 1, how good this peak is.
+ *                                 Highe values are better. This does not describe how well the
+ *                                 fitted peak shape fits, but instead is the correlation of the fit
+ *                                 multiplied by a penalty (see
+ *                                 {@link PeakShapeClassification#getPenaltyFactor()}).
+ */
+public record PeakQualitySummary(@NotNull PeakDimension dimension,
+                                 @NotNull PeakShapeClassification classification,
+                                 float shapeClassificationScore) implements ModularDataRecord {
 
   @Override
   public Object getValue(@NotNull DataType<?> sub) {
     return switch (sub) {
-      case PeakShapeClassificationType _-> classification;
+      case PeakShapeClassificationType _ -> classification;
       case ShapeClassificationScoreType _ -> shapeClassificationScore;
       case PeakDimensionType _ -> dimension;
       default -> null;

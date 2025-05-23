@@ -28,12 +28,14 @@ package io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter
  * A record to hold various goodness-of-fit metrics.
  *
  * @param rSquared         Coefficient of Determination.
+ * @param fitScore         Penalized score of the fit.
  * @param numPoints        Number of data points.
  * @param numParameters    Number of fitted parameters.
  * @param degreesOfFreedom Calculated as numPoints - numParameters.
  */
-public record FitQuality(double rSquared, int numPoints, int numParameters, int degreesOfFreedom,
-                         double[] fittedY, PeakShapeClassification peakShapeClassification) {
+public record FitQuality(double rSquared, double fitScore, int numPoints, int numParameters,
+                         int degreesOfFreedom, double[] fittedY,
+                         PeakShapeClassification peakShapeClassification) {
 
   /**
    * Convenience constructor that calculates derived metrics (degreesOfFreedom, chiSquared,
@@ -41,8 +43,7 @@ public record FitQuality(double rSquared, int numPoints, int numParameters, int 
    */
   public FitQuality(double rSquared, int numPoints, int numParameters, double[] fittedY,
       PeakShapeClassification peakShapeClassification) {
-    this(rSquared, numPoints, numParameters, Math.max(1, numPoints - numParameters), fittedY,
-        peakShapeClassification);
+    this(rSquared, rSquared * peakShapeClassification.getPenaltyFactor(), numPoints, numParameters,
+        Math.max(1, numPoints - numParameters), fittedY, peakShapeClassification);
   }
-
 }

@@ -27,6 +27,10 @@ package io.github.mzmine.datamodel.features.types.numbers.scores;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Coefficient of variation (=relative standard deviation) of the feature abundance, evaluated for
+ * an aligned feature list for a specific set of raw data files.
+ */
 public class CvType extends ScoreType {
 
   public CvType() {

@@ -40,6 +40,17 @@ public enum PeakShapeClassification implements UniqueIdSupplier {
     };
   }
 
+  /**
+   * penalize asymmetric/double gaussian fits to not make the model overfit the peaks
+   */
+  public double getPenaltyFactor() {
+    return switch (this) {
+      case GAUSSIAN -> 1.0;
+      case FRONTING_GAUSSIAN, TAILING_GAUSSIAN -> 0.98d;
+      case DOUBLE_GAUSSIAN -> 0.965d;
+    };
+  }
+
 
   @Override
   public String toString() {

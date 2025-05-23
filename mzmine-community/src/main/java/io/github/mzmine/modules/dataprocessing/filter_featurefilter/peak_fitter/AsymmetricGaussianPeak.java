@@ -38,8 +38,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AsymmetricGaussianPeak implements PeakModelFunction {
 
-  public static final double ASYMMETRIC_GAUSSIAN_PENALTY = 0.98;
-
   public AsymmetricGaussianPeak() {
     super();
   }
@@ -74,8 +72,8 @@ public class AsymmetricGaussianPeak implements PeakModelFunction {
   }
 
   /**
-   * Gradient: partial derivatives with respect to A, mu, sigma_left, sigma_right
-   * dF/dA, dF/dmu, dF/dsigma_left, dF/dsigma_right
+   * Gradient: partial derivatives with respect to A, mu, sigma_left, sigma_right dF/dA, dF/dmu,
+   * dF/dsigma_left, dF/dsigma_right
    */
   @Override
   public double[] gradient(double x, double... parameters) {
@@ -169,10 +167,8 @@ public class AsymmetricGaussianPeak implements PeakModelFunction {
         peakShapeClassification = PeakShapeClassification.FRONTING_GAUSSIAN;
       }
 
-      final FitQuality fit = PeakFitterUtils.calculateFitQuality(points, paramsBiGaussian, this,
+      return PeakFitterUtils.calculateFitQuality(points, paramsBiGaussian, this,
           peakShapeClassification);
-      return new FitQuality(fit.rSquared() * ASYMMETRIC_GAUSSIAN_PENALTY, fit.numPoints(),
-          fit.numParameters(), fit.fittedY(), fit.peakShapeClassification());
     } catch (final Exception e) {
       return null;
     }

@@ -47,7 +47,8 @@ public class PeakFitterUtils {
 
   private static final Logger logger = Logger.getLogger(PeakFitterUtils.class.getName());
 
-  public static FitQuality fitPeakModels(double[] xData, double[] yData, List<PeakModelFunction> peakModels) {
+  public static FitQuality fitPeakModels(double[] xData, double[] yData,
+      List<PeakModelFunction> peakModels) {
 
     // This list will be used for everything
     List<WeightedObservedPoint> pointList = new ArrayList<>();
@@ -60,9 +61,9 @@ public class PeakFitterUtils {
     FitQuality bestFit = null;
     for (PeakModelFunction peakModel : peakModels) {
       final FitQuality thisFit = peakModel.performFit(pointList);
-      if(bestFit == null) {
+      if (bestFit == null) {
         bestFit = thisFit;
-      } else if(thisFit != null && bestFit.rSquared() < thisFit.rSquared()) {
+      } else if (thisFit != null && bestFit.rSquared() < thisFit.rSquared()) {
         bestFit = thisFit;
       }
     }
@@ -70,8 +71,8 @@ public class PeakFitterUtils {
     return bestFit;
   }
 
-  static Optimum performFit(List<WeightedObservedPoint> points,
-      ParametricUnivariateFunction func, double[] initialGuess, ParameterValidator validator) {
+  static Optimum performFit(List<WeightedObservedPoint> points, ParametricUnivariateFunction func,
+      double[] initialGuess, ParameterValidator validator) {
 
     int numPoints = points.size();
     if (numPoints == 0) {
@@ -163,6 +164,7 @@ public class PeakFitterUtils {
         observedPoints.stream().mapToDouble(WeightedObservedPoint::getY).toArray(), fittedYValues);
 
     // Instantiate the FitQuality record using the 5-argument convenience constructor
-    return new FitQuality(r2, numPoints, numParameters, fittedYValues, peakShapeClassification);
+    return new FitQuality(r2, numPoints,
+        numParameters, fittedYValues, peakShapeClassification);
   }
 }

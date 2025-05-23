@@ -103,8 +103,8 @@ public class FeatureFilterParameters extends SimpleParameterSet {
           new DecimalFormat("0.###"), 2.0, 0d, Double.MAX_VALUE), false);
 
   public static final ComboParameter<FeatureFilterChoices> keepMatching = new ComboParameter<>(
-      "Keep matching/not matching features",
-      "Specify if features matching all or not matching at least one criteria should be removed.",
+      "Keep/Remove matching",
+      "Keep or remove features that match all criteria.",
       FeatureFilterChoices.values(), FeatureFilterChoices.KEEP_MATCHING);
 
   public static final OriginalFeatureListHandlingParameter AUTO_REMOVE = new OriginalFeatureListHandlingParameter(
@@ -141,16 +141,16 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   }
 
   @Override
-  public @Nullable String getVersionMessage(int version) {
-    return switch (version) {
-      case 3 ->
-          "Added an option to specify if features matching the Feature filter shall be kept or removed.";
-      default -> null;
-    };
-  }
-
-  @Override
   public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
     super.handleLoadedParameters(loadedParams);
+    if(!loadedParams.containsKey(keepMatching.getName())) {
+      setParameter(keepMatching, FeatureFilterChoices.KEEP_MATCHING);
+    }
+    if(!loadedParams.containsKey(minRtShapeScore.getName())) {
+      setParameter(minRtShapeScore, false);
+    }
+    if(!loadedParams.containsKey(minMobilityShapeScore.getName())) {
+      setParameter(minMobilityShapeScore, false);
+    }
   }
 }

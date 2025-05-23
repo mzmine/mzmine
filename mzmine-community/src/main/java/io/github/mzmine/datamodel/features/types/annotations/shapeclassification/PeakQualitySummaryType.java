@@ -100,6 +100,9 @@ public abstract class PeakQualitySummaryType extends SimpleSubColumnsType<PeakQu
             .filter(Objects::nonNull).mapToDouble(PeakQualitySummary::shapeClassificationScore)
             .average().orElse(0d);
 
+        if (dimension == null || consensusClassification == null || averageScore == 0f) {
+          yield null;
+        }
         yield new PeakQualitySummary(dimension, consensusClassification, averageScore);
       }
     };

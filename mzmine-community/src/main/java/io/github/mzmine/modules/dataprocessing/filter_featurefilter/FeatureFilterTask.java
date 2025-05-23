@@ -373,7 +373,7 @@ public class FeatureFilterTask extends AbstractTask {
 
   private boolean getFailedTestValue() {
     return switch (keepOrRemove) {
-      case FeatureFilterChoices.KEEP_NOT_MATCHING -> true;
+      case FeatureFilterChoices.REMOVE_MATCHING -> true;
       case FeatureFilterChoices.KEEP_MATCHING -> false;
     };
   }

@@ -36,12 +36,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class GaussianDoublePeak implements PeakModelFunction {
 
-  /**
-   * penalize double gaussian peaks to not make the model overfit asymmetric or normal gaussians
-   * with a double gaussian
-   */
-  private static final double DOUBLE_GAUSSIAN_PENALTY = 0.965;
-
   public GaussianDoublePeak() {
     super();
   }
@@ -159,16 +153,5 @@ public class GaussianDoublePeak implements PeakModelFunction {
   @Override
   public PeakShapeClassification getPeakType() {
     return PeakShapeClassification.DOUBLE_GAUSSIAN;
-  }
-
-  @Override
-  public FitQuality performFit(List<WeightedObservedPoint> points) {
-    final var fit = PeakModelFunction.super.performFit(points);
-    if (fit == null) {
-      return null;
-    }
-
-    return new FitQuality(fit.rSquared() * DOUBLE_GAUSSIAN_PENALTY, fit.numPoints(),
-        fit.numParameters(), fit.fittedY(), fit.peakShapeClassification());
   }
 }
