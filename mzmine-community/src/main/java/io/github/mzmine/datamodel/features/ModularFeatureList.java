@@ -64,6 +64,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -253,6 +254,9 @@ public class ModularFeatureList implements FeatureList {
    *              For ion mobility data, the Frames are returned
    */
   public void setSelectedScans(@NotNull RawDataFile file, @Nullable List<? extends Scan> scans) {
+    // the selected scans map needs contain a CachedImsFile as key during project load, but the
+    // feature list itself will directly get the regular file during creation.
+    // the CachedImsFiles are replaced later during project load.
     selectedScans.put(file, scans);
   }
 
@@ -864,17 +868,16 @@ public class ModularFeatureList implements FeatureList {
    * further processing.
    */
   public void replaceCachedFilesAndScans() {
-    for (int i = 0; i < getNumberOfRawDataFiles(); i++) {
-      RawDataFile file = getRawDataFile(i);
-      if (file instanceof IMSRawDataFile imsfile) {
-        if (imsfile instanceof CachedIMSRawDataFile cached) {
-          dataFiles.set(i, cached.getOriginalFile());
+    final List<Entry<RawDataFile, List<? extends Scan>>> selectedScansEntries = selectedScans.entrySet()
+        .stream().toList();
 
-          List<? extends Scan> scans = selectedScans.remove(cached);
-          List<Frame> frames = scans.stream()
-              .map(scan -> ((CachedIMSFrame) scan).getOriginalFrame()).toList();
-          selectedScans.put(cached.getOriginalFile(), frames);
-        }
+    for (Entry<RawDataFile, List<? extends Scan>> entry : selectedScansEntries) {
+      final RawDataFile file = entry.getKey();
+      if (file instanceof CachedIMSRawDataFile cached) {
+        final List<? extends Scan> scans = selectedScans.remove(cached);
+        final List<Frame> frames = scans.stream()
+            .map(scan -> ((CachedIMSFrame) scan).getOriginalFrame()).toList();
+        selectedScans.put(cached.getOriginalFile(), frames);
       }
     }
   }

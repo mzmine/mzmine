@@ -37,7 +37,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
-import io.github.mzmine.datamodel.features.columnar_data.ModularDataModelColumnarRow;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -82,7 +82,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class ModularFeature extends ModularDataModelColumnarRow implements Feature {
+public class ModularFeature extends ColumnarModularDataModelRow implements Feature {
 
   private static final Logger logger = Logger.getLogger(ModularFeature.class.getName());
   // buffert col charts and nodes

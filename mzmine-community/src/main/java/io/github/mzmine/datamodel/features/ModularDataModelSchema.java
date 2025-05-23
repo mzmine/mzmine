@@ -25,8 +25,8 @@
 
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelRow;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
-import io.github.mzmine.datamodel.features.columnar_data.ModularDataModelColumnarRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.concurrent.CloseableResourceLock;
@@ -49,7 +49,7 @@ import org.jetbrains.annotations.NotNull;
  * First iteration of new data model that is based on rows with an array of objects.
  * <p>
  * Next try is to use a columnar model so that all values of the same type can be stored more
- * efficiently. {@link ModularDataModelColumnarRow} in {@link ColumnarModularDataModelSchema}
+ * efficiently. {@link ColumnarModularDataModelRow} in {@link ColumnarModularDataModelSchema}
  */
 @Deprecated
 public class ModularDataModelSchema {
