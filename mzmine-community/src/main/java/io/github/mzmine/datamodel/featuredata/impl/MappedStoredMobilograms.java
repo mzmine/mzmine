@@ -41,6 +41,8 @@ public final class MappedStoredMobilograms implements StoredMobilograms {
   private final SimpleIonMobilogramTimeSeries ionTrace;
   private final MemorySegment mzValuesSegment;
   private final MemorySegment intensityValuesSegment;
+  private final MemorySegment mobilogramData;
+  private final MemorySegment mobilogramScanIndices;
 
   /**
    * Describes a custom data structure that stores index information of a single mobilogram in a
@@ -69,9 +71,6 @@ public final class MappedStoredMobilograms implements StoredMobilograms {
    */
   private static final VarHandle scanIndicesStart = mobilogramInfoLayout.varHandle(
       PathElement.groupElement("mobilityScanIndicesStart"));
-
-  private final MemorySegment mobilogramData;
-  private final MemorySegment mobilogramScanIndices;
 
   public MappedStoredMobilograms(MemoryMapStorage storage, SimpleIonMobilogramTimeSeries ionTrace,
       MemorySegment mzValuesSegment, MemorySegment intensityValuesSegment, int[] storageOffsets,
