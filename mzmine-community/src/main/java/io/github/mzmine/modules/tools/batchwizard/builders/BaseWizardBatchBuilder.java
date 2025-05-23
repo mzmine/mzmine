@@ -990,6 +990,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         0.94);
     param.setParameter(FeatureFilterParameters.topToEdge, goodPeaksOnly, 2d);
     param.setParameter(FeatureFilterParameters.keepMatching, FeatureFilterChoices.KEEP_MATCHING);
+    param.setParameter(FeatureFilterParameters.SUFFIX, "feat_filt");
     param.setParameter(FeatureFilterParameters.AUTO_REMOVE, handleOriginalFeatureLists);
     param.setParameter(FeatureFilterParameters.KEEP_MS2_ONLY, false);
 
