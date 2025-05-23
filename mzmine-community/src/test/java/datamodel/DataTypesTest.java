@@ -28,6 +28,8 @@ package datamodel;
 import com.google.common.reflect.ClassPath;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
@@ -66,7 +68,8 @@ public class DataTypesTest {
                           + value.getClass().getName() + "\n" + dt.getClass().getName());
                 }
               }
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                     NoSuchMethodException e) {
               if (!Modifier.isAbstract(classInfo.load().getModifiers()) && !classInfo.load()
                   .isInterface()) {
                 Assertions.fail("Cannot instantiate DataType class " + classInfo.load().getName()
@@ -102,7 +105,8 @@ public class DataTypesTest {
                           + "\n" + value.getClass().getName() + "\n" + dt.getClass().getName());
                 }
               }
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                     NoSuchMethodException e) {
               if (!Modifier.isAbstract(classInfo.load().getModifiers()) && !classInfo.load()
                   .isInterface()) {
                 Assertions.fail("Cannot instantiate DataType class " + classInfo.load().getName()
@@ -125,5 +129,18 @@ public class DataTypesTest {
     Assertions.assertEquals(new MZType(), all.get(0));
     Assertions.assertEquals(new RTType(), all.get(1));
     Assertions.assertEquals(new HeightType(), all.get(2));
+  }
+
+  @Test
+  public void testSubColumns() {
+
+    DataTypes.getInstances().stream().filter(SubColumnsFactory.class::isInstance)
+        .map(SubColumnsFactory.class::cast).forEach(scf -> {
+          for (int i = 0; i < scf.getNumberOfSubColumns(); i++) {
+            final DataType<?> type = scf.getType(i);
+            Assertions.assertFalse(type instanceof NullColumnType,
+                "A null column type may not be listed in a sub columns factory. Consider removing the type from the sub columns list.");
+          }
+        });
   }
 }
