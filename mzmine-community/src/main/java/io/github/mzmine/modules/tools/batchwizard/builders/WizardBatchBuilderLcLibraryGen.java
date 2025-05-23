@@ -98,6 +98,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
     var groupMs2Params = createMs2GrouperParameters();
     makeAndAddRtLocalMinResolver(q, groupMs2Params, minRtDataPoints, cropRtRange, rtFwhm,
         maxIsomersInRt);
+    makeAndAddFeatureFilterStep(q);
 
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);

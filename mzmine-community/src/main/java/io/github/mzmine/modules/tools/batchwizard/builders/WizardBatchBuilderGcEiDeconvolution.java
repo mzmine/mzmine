@@ -155,6 +155,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     // use 100 isomers to decrease the chromatographic threshold
     // GC-EI generates a lot of the same mz fragments and covers the whole RT range
     makeAndAddRtLocalMinResolver(q, null, minRtDataPoints, cropRtRange, rtFwhm, 100);
+    makeAndAddFeatureFilterStep(q);
     makeSpectralDeconvolutionStep(q);
     // RT calibration after deconvolution - otherwise features may be shifted in different directions
     if (recalibrateRetentionTime) {

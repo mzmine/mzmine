@@ -39,4 +39,15 @@ public enum PeakShapeClassification implements UniqueIdSupplier {
       case DOUBLE_GAUSSIAN -> "double_gaussian";
     };
   }
+
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case GAUSSIAN -> "Gaussian";
+      case DOUBLE_GAUSSIAN -> "Double peak";
+      case TAILING_GAUSSIAN -> "Tailing";
+      case FRONTING_GAUSSIAN -> "Fronting";
+    };
+  }
 }

@@ -87,10 +87,15 @@ public class FeatureFilterParameters extends SimpleParameterSet {
           "Permissible range of the asymmetry factor for a peak",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.5, 2.0)));
 
-  public static final OptionalParameter<DoubleParameter> minShapeScore = new OptionalParameter<>(
-      new DoubleParameter("Minimum shape score",
-          "Define how well the shape of a feature must fit to a gaussian or bi-gaussian peak.\nPeaks with less than 5 points will be removed without attempting a fit.",
-          ConfigService.getGuiFormats().scoreFormat(), 0.8, 0d, 1d), false);
+  public static final OptionalParameter<DoubleParameter> minRtShapeScore = new OptionalParameter<>(
+      new DoubleParameter("Minimum RT shape score",
+          "Define how well the chromatographic shape of a feature must fit to a gaussian or bi-gaussian peak.\nPeaks with less than 5 points will be removed without attempting a fit.",
+          ConfigService.getGuiFormats().scoreFormat(), 0.94, 0d, 1d), false);
+
+  public static final OptionalParameter<DoubleParameter> minMobilityShapeScore = new OptionalParameter<>(
+      new DoubleParameter("Minimum mobility shape score",
+          "Define how well the mobilogram shape of a feature must fit to a gaussian or bi-gaussian peak.\nPeaks with less than 5 points will be removed without attempting a fit.",
+          ConfigService.getGuiFormats().scoreFormat(), 0.94, 0d, 1d), false);
 
   public static final OptionalParameter<DoubleParameter> topToEdge = new OptionalParameter<>(
       new DoubleParameter("Top-to-edge ratio",
@@ -112,8 +117,8 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   public FeatureFilterParameters() {
     super(
         new Parameter[]{PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA, PEAK_HEIGHT, PEAK_DATAPOINTS,
-            PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, minShapeScore, topToEdge,
-            KEEP_MS2_ONLY, keepMatching, AUTO_REMOVE},
+            PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, minRtShapeScore,
+            minMobilityShapeScore, topToEdge, KEEP_MS2_ONLY, keepMatching, AUTO_REMOVE},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_filter/feature_filter.html");
   }
 

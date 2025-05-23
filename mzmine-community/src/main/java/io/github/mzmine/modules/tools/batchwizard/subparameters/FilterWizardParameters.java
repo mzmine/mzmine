@@ -40,20 +40,23 @@ public final class FilterWizardParameters extends WizardStepParameters {
   public static final MinimumSamplesParameter minNumberOfSamples = new MinimumSamplesParameter(
       "Min samples per aligned feature",
       "The minimum number of samples in which a feature needs to be detected, e.g., 2-3 for triplicates.\n"
-      + "Used in feature list rows filter and feature grouping.");
+          + "Used in feature list rows filter and feature grouping.");
 
 
   public static final BooleanParameter filter13C = new BooleanParameter(
       "Only keep features with 13C",
       "Filters out all rows that have no feature with a 13C isotope pattern", false);
 
+  public static final BooleanParameter goodPeaksOnly = new BooleanParameter(
+      "Apply strict shape filtering",
+      "If selected, only peaks with a top-to-edge ratio of >= 2 and high similarity to a Gaussian, or fronting/tailing Gaussian will be retained after feature detection.");
+
   public static final OriginalFeatureListHandlingParameter handleOriginalFeatureLists = new OriginalFeatureListHandlingParameter(
       false, OriginalFeatureListOption.REMOVE);
 
-
   public FilterWizardParameters() {
     super(WizardPart.FILTER, FilterWizardParameterFactory.Filters, handleOriginalFeatureLists,
-        minNumberOfSamples, filter13C);
+        minNumberOfSamples, filter13C, goodPeaksOnly);
   }
 
 }
