@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.scores;
+package io.github.mzmine.datamodel.features.types.annotations.shapeclassification;
 
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
@@ -31,15 +31,15 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class ShapeScoreType extends ScoreType {
+public class ShapeClassificationScoreType extends ScoreType {
 
-  public ShapeScoreType() {
+  public ShapeClassificationScoreType() {
     super();
   }
 
   @Override
   public @NotNull String getUniqueID() {
-    return "shape_score";
+    return "shape_class_score";
   }
 
   @Override

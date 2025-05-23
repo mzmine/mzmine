@@ -40,7 +40,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.ShapeScoreType;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.ShapeClassificationScoreType;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.AsymmetricGaussianPeak;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianDoublePeak;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.FitQuality;
@@ -203,8 +203,8 @@ public class FeatureFilterTask extends AbstractTask {
             .getValue());
 
     if (filterByShapeScore) {
-      newPeakList.addFeatureType(DataTypes.get(ShapeScoreType.class));
-      newPeakList.addRowType(DataTypes.get(ShapeScoreType.class));
+      newPeakList.addFeatureType(DataTypes.get(ShapeClassificationScoreType.class));
+      newPeakList.addRowType(DataTypes.get(ShapeClassificationScoreType.class));
     }
 
     // Loop through all rows in feature list
@@ -322,7 +322,7 @@ public class FeatureFilterTask extends AbstractTask {
 
     final FitQuality fitted = PeakFitterUtils.fitPeakModels(rts, intensities, peakModels);
     if (fitted != null) {
-      ((ModularFeature) f).set(ShapeScoreType.class, (float) fitted.rSquared());
+      ((ModularFeature) f).set(ShapeClassificationScoreType.class, (float) fitted.rSquared());
       ((ModularFeature) f).set(CommentType.class, fitted.peakShapeClassification().toString());
     }
 

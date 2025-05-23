@@ -36,7 +36,7 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
-import io.github.mzmine.datamodel.features.types.PeakShapeClassificationType;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.PeakShapeClassificationType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
@@ -44,7 +44,7 @@ import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorPurityType;
 import io.github.mzmine.datamodel.features.types.numbers.SimpleStatistics;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CvType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.ShapeScoreType;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.ShapeClassificationScoreType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -165,7 +165,7 @@ public class GeneralTypeTests {
 
   @Test
   void testShapeScoreType() {
-    ShapeScoreType type = new ShapeScoreType();
+    ShapeClassificationScoreType type = new ShapeClassificationScoreType();
     var value = 0.98927f;
     simpleDataTypeSaveLoadTest(type, value);
   }
