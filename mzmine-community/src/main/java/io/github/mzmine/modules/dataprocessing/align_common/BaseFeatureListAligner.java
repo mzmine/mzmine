@@ -112,7 +112,8 @@ public class BaseFeatureListAligner {
     // 1 raw = max
     // 10 raws = max + average (roughly double)
     // 100 raws = max + 2 * average (roughly triple)
-    int estimatedRows = (int) (stats.getMax() + stats.getAverage() * Math.log10(stats.getCount()));
+    int estimatedRows = (int) (stats.getMax() + stats.getAverage() * 2 * Math.log10(
+        stats.getCount()));
 
     // Create a new aligned feature list based on the baseList and renumber IDs
     var alignedFeatureList = new ModularFeatureList(featureListName, storage, estimatedRows,
