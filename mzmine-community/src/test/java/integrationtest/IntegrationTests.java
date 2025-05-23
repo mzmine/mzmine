@@ -25,11 +25,13 @@
 
 package integrationtest;
 
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -218,5 +220,51 @@ public class IntegrationTests {
             "dia_pasef_local.mzbatch").tempDir(tempDir).build()
         .runBatchGetCheckResults("rawdatafiles/integration_tests/diaPASEF/expected_results.csv")
         .size());
+  }
+
+  @Disabled
+  @Test
+  void repeatTims() {
+    if (!new File("D:\\OneDrive - mzio GmbH").exists()) {
+      logger.info("Skipping tims repeat batch integration test.");
+      return;
+    }
+
+    final File tempDir = new File("E:\\mzmine_temp");
+    FileAndPathUtil.setTempDir(tempDir);
+
+    final int iterations = 20;
+    for (int i = 0; i < iterations; i++) {
+      Assertions.assertEquals(0,
+          IntegrationTest.builder("rawdatafiles/integration_tests/repeating", "tims.mzbatch")
+              .tempDir(tempDir).build().runBatchGetCheckResults(
+                  "rawdatafiles/integration_tests/repeating/tims_results.csv").size());
+
+      logger.info("Finished iteration " + i + "/" + iterations);
+    }
+  }
+
+  @Test
+  @Disabled
+  void repeatLcms() {
+    if (!new File("D:\\OneDrive - mzio GmbH").exists()) {
+      logger.info("Skipping tims repeat batch integration test.");
+      return;
+    }
+
+    final File tempDir = new File("E:\\mzmine_temp");
+    FileAndPathUtil.setTempDir(tempDir);
+    final int iterations = 50;
+    for (int i = 0; i < iterations; i++) {
+      if (new File("D:\\OneDrive - mzio GmbH").exists()) {
+        Assertions.assertEquals(0,
+            IntegrationTest.builder("rawdatafiles/integration_tests/repeating",
+                    "lcms.mzbatch").tempDir(tempDir)
+                .build().runBatchGetCheckResults(
+                    "rawdatafiles/integration_tests/repeating/lcms_expected.csv").size());
+      }
+
+      logger.info("Finished iteration " + i + "/" + iterations);
+    }
   }
 }
