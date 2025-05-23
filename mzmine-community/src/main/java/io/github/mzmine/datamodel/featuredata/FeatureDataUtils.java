@@ -51,6 +51,7 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
+import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -369,11 +370,12 @@ public class FeatureDataUtils {
     double smallestDelta = Double.POSITIVE_INFINITY;
 
     if (series instanceof IonMobilogramTimeSeries ims) {
-      int maxValues = ims.getMobilograms().stream().mapToInt(IonMobilitySeries::getNumberOfValues)
-          .max().orElse(0);
+      final List<IonMobilitySeries> mobilograms = ims.getMobilograms();
+      int maxValues = mobilograms.stream().mapToInt(IonMobilitySeries::getNumberOfValues).max()
+          .orElse(0);
 
       double[] mzBuffer = new double[maxValues];
-      for (IonMobilitySeries mobilogram : ims.getMobilograms()) {
+      for (IonMobilitySeries mobilogram : mobilograms) {
         mobilogram.getMzValues(mzBuffer);
         final double delta = ArrayUtils.smallestDelta(mzBuffer, mobilogram.getNumberOfValues());
         if (delta < smallestDelta) {
