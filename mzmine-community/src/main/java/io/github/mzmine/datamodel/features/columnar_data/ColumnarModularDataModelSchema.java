@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumns;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.concurrent.CloseableResourceLock;
@@ -68,7 +69,7 @@ public class ColumnarModularDataModelSchema {
   protected final MemoryMapStorage storage;
 
   /**
-   * Each data type has its own DataColumns usually created in the factory {@link DataColumns}.
+   * Each data type has its own DataColumn usually created in the factory {@link DataColumns}.
    */
   protected final Map<DataType, DataColumn> columns = new ConcurrentHashMap<>(20);
   private final Map<DataType, DataColumn> readOnlyColumns = Collections.unmodifiableMap(columns);
@@ -79,7 +80,6 @@ public class ColumnarModularDataModelSchema {
    */
   protected volatile int columnLength;
   private final AtomicInteger nextRow = new AtomicInteger(0);
-  private final int sizeIncrement = 5000;
 
   /**
    * A lock that controls specifically the resizing of all {@link DataColumn}s controlled by this
@@ -150,11 +150,21 @@ public class ColumnarModularDataModelSchema {
     return resizeLock.lockRead();
   }
 
+  /**
+   * Fast method to obtain the new index. Only blocks during resizing of columns.
+   *
+   * @return the next row index
+   */
   public int addRowGetIndex() {
     final int index = nextRow.getAndIncrement();
     final int currentColumnLength = columnLength;
     if (index >= currentColumnLength) {
-      resizeColumnsTo(currentColumnLength + sizeIncrement);
+      // double size of columns
+      // apply some minimum and maximum resize
+      final int newSize =
+          currentColumnLength + MathUtils.withinBounds((int) (currentColumnLength * 1d), 10,
+              250000);
+      resizeColumnsTo(newSize);
     }
     return index;
   }
@@ -165,6 +175,7 @@ public class ColumnarModularDataModelSchema {
         return;
       }
       // resize
+      // uses count instead of forEach as forEach in parallel might not block the carrier thread
       long success = columns.values().stream().parallel()
           .filter(column -> column.ensureCapacity(finalSize)).count();
 
