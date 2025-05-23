@@ -46,7 +46,9 @@ public class GaussianDoublePeak implements PeakModelFunction {
     super();
   }
 
-  // Parameters: [0]=A1, [1]=mu1, [2]=sigma1, [3]=A2, [4]=mu2, [5]=sigma2
+  /**
+   * Parameters: [0]=A1, [1]=mu1, [2]=sigma1, [3]=A2, [4]=mu2, [5]=sigma2
+   */
   @Override
   public double value(double x, double... parameters) {
     if (parameters == null) {
@@ -79,7 +81,9 @@ public class GaussianDoublePeak implements PeakModelFunction {
     return term1 + term2;
   }
 
-  // Gradient: partial derivatives with respect to A1, mu1, sigma1, A2, mu2, sigma2
+  /**
+   * Gradient: partial derivatives with respect to A1, mu1, sigma1, A2, mu2, sigma2
+   */
   @Override
   public double[] gradient(double x, double... parameters) {
     if (parameters == null) {

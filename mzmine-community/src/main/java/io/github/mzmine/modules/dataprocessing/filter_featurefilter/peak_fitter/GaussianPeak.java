@@ -41,7 +41,9 @@ public class GaussianPeak implements PeakModelFunction {
     super();
   }
 
-  // Parameters: [0] = Amplitude (A), [1] = Mean (mu), [2] = Sigma (std dev)
+  /**
+   * Parameters: [0] = Amplitude (A), [1] = Mean (mu), [2] = Sigma (std dev)
+   */
   @Override
   public double value(double x, double... parameters) {
     if (parameters == null) {
@@ -59,9 +61,11 @@ public class GaussianPeak implements PeakModelFunction {
     return a * Math.exp(-Math.pow(x - mu, 2) / (2 * sigma * sigma));
   }
 
-  // Gradient: partial derivatives with respect to A, mu, sigma
-  // dF/dA, dF/dmu, dF/dsigma
-  // This is needed by LevenbergMarquardtOptimizer for efficiency.
+  /**
+   * Gradient: partial derivatives with respect to A, mu, sigma
+   * dF/dA, dF/dmu, dF/dsigma
+   * This is needed by LevenbergMarquardtOptimizer for efficiency.
+   */
   @Override
   public double[] gradient(double x, double... parameters) {
     if (parameters == null) {
