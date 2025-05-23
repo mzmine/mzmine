@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
+import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakDimension;
 import javafx.beans.property.Property;
@@ -41,7 +42,8 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PeakDimensionType extends DataType<PeakDimension> implements NoTextColumn {
+public class PeakDimensionType extends DataType<PeakDimension> implements
+    NullColumnType {
 
   @Override
   public @NotNull String getUniqueID() {

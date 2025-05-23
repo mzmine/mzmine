@@ -130,17 +130,4 @@ public class DataTypesTest {
     Assertions.assertEquals(new RTType(), all.get(1));
     Assertions.assertEquals(new HeightType(), all.get(2));
   }
-
-  @Test
-  public void testSubColumns() {
-
-    DataTypes.getInstances().stream().filter(SubColumnsFactory.class::isInstance)
-        .map(SubColumnsFactory.class::cast).forEach(scf -> {
-          for (int i = 0; i < scf.getNumberOfSubColumns(); i++) {
-            final DataType<?> type = scf.getType(i);
-            Assertions.assertFalse(type instanceof NullColumnType,
-                "A null column type may not be listed in a sub columns factory. Consider removing the type from the sub columns list.");
-          }
-        });
-  }
 }

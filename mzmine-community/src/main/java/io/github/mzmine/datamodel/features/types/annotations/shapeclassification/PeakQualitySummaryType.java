@@ -40,15 +40,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.OptionalDouble;
 import java.util.stream.Collectors;
-import java.util.stream.Gatherer;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class PeakShapeClassificationSummaryType extends
-    SimpleSubColumnsType<PeakQualitySummary> {
+public abstract class PeakQualitySummaryType extends SimpleSubColumnsType<PeakQualitySummary> {
 
   @Override
   public @NotNull List<DataType> getSubDataTypes() {
@@ -96,7 +93,8 @@ public abstract class PeakShapeClassificationSummaryType extends
             // group by occurrences of the same classification
             .collect(Collectors.groupingBy(s -> s, Collectors.counting())).entrySet().stream()
             // get the classification that occurs the most
-            .max(Comparator.comparingLong(Entry::getValue)).map(Entry::getKey).orElse(null);
+            .max(Comparator.comparingLong((Entry<PeakShapeClassification, Long> o) -> o.getValue())
+                .thenComparingInt(o -> o.getKey().ordinal())).map(Entry::getKey).orElse(null);
 
         final float averageScore = (float) models.stream().map(model -> model.get(this))
             .filter(Objects::nonNull).mapToDouble(PeakQualitySummary::shapeClassificationScore)

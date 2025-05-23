@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.PeakShapeClassificationType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.RtQualitySummaryType;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorPurityType;
@@ -48,6 +49,8 @@ import io.github.mzmine.datamodel.features.types.annotations.shapeclassification
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakDimension;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakQualitySummary;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakShapeClassification;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -175,5 +178,14 @@ public class GeneralTypeTests {
     CvType type = new CvType();
     var value = 0.18f;
     simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void testShapeQuality() {
+    final RtQualitySummaryType type = new RtQualitySummaryType();
+    final PeakQualitySummary value = new PeakQualitySummary(PeakDimension.RT,
+        PeakShapeClassification.FRONTING_GAUSSIAN, 0.97f);
+
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 }

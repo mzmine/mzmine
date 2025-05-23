@@ -26,15 +26,15 @@ package io.github.mzmine.datamodel.features.types.annotations.shapeclassificatio
 
 import org.jetbrains.annotations.NotNull;
 
-public class RtShapeClassificationSummaryType extends PeakShapeClassificationSummaryType{
+public class MobilityQualitySummaryType extends PeakQualitySummaryType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "rt_shape_classification_summary";
+    return "mobility_shape_classification_summary";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "RT shape summary";
+    return "Mobility shape summary";
   }
 }

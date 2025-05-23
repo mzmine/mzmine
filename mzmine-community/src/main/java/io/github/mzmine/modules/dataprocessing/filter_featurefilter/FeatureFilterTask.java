@@ -41,14 +41,17 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.MobilityQualitySummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.RtQualitySummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.ShapeClassificationScoreType;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.AsymmetricGaussianPeak;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianDoublePeak;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.FitQuality;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianPeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakDimension;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakFitterUtils;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakModelFunction;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakQualitySummary;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -211,8 +214,12 @@ public class FeatureFilterTask extends AbstractTask {
             .getValue());
 
     if (filterByShapeScore) {
-      newPeakList.addFeatureType(DataTypes.get(ShapeClassificationScoreType.class));
-      newPeakList.addRowType(DataTypes.get(ShapeClassificationScoreType.class));
+      newPeakList.addFeatureType(new RtQualitySummaryType());
+      newPeakList.addRowType(new RtQualitySummaryType());
+    }
+    if(filterByMobilogramShape) {
+      newPeakList.addFeatureType(new MobilityQualitySummaryType());
+      newPeakList.addRowType(new MobilityQualitySummaryType());
     }
 
     // Loop through all rows in feature list
@@ -295,7 +302,7 @@ public class FeatureFilterTask extends AbstractTask {
             rts[j] = featureData.getRetentionTime(j);
           }
 
-          if (removeFeatureBasedOnShapeScore(peak, minRtShapeScore, rts, intensities)) {
+          if (!matchesRtShapeFilter(peak, minRtShapeScore, rts, intensities)) {
             keepPeak[i] = getFailedTestValue();
             continue;
           }
@@ -308,9 +315,8 @@ public class FeatureFilterTask extends AbstractTask {
           mobilogram.getIntensityValues(mobIntensities);
           mobilogram.getMobilityValues(mobilities);
 
-          final FitQuality bestFit = PeakFitterUtils.fitPeakModels(mobilities, mobIntensities,
-              peakModels);
-          if (bestFit == null || bestFit.rSquared() < minMobilogramScore) {
+          if (!matchesMobilogramShapeFilter(mobilities, mobIntensities, minMobilogramScore,
+              (ModularFeature) peak)) {
             keepPeak[i] = getFailedTestValue();
             continue;
           }
@@ -337,16 +343,32 @@ public class FeatureFilterTask extends AbstractTask {
     return newPeakList;
   }
 
-  private boolean removeFeatureBasedOnShapeScore(final Feature f, final double minShapeScore,
+  private boolean matchesMobilogramShapeFilter(double[] mobilities, double[] mobIntensities,
+      final double minMobilogramScore, ModularFeature peak) {
+    final FitQuality fit = PeakFitterUtils.fitPeakModels(mobilities, mobIntensities, peakModels);
+    if (fit == null) {
+      return false;
+    }
+    peak.set(MobilityQualitySummaryType.class,
+        new PeakQualitySummary(PeakDimension.MOBILITY, fit.peakShapeClassification(),
+            (float) fit.rSquared()));
+
+    return fit.rSquared() >= minMobilogramScore;
+  }
+
+  private boolean matchesRtShapeFilter(final Feature f, final double minShapeScore,
       final double[] rts, final double[] intensities) {
 
     final FitQuality fitted = PeakFitterUtils.fitPeakModels(rts, intensities, peakModels);
-    if (fitted != null) {
-      ((ModularFeature) f).set(ShapeScoreType.class, (float) fitted.rSquared());
-      ((ModularFeature) f).set(PeakShapeClassificationType.class, fitted.peakShapeClassification());
+    if (fitted == null) {
+      return false;
     }
 
-    return fitted == null || fitted.rSquared() < minShapeScore;
+    ((ModularFeature) f).set(RtQualitySummaryType.class,
+        new PeakQualitySummary(PeakDimension.RT, fitted.peakShapeClassification(),
+            (float) fitted.rSquared()));
+
+    return fitted.rSquared() >= minShapeScore;
   }
 
   private boolean getFailedTestValue() {
