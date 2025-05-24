@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.featuredata;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.impl.ModifiableSpectra;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
@@ -44,7 +45,8 @@ import org.jetbrains.annotations.Nullable;
  * @param <T>
  * @author https://github.com/SteffenHeu
  */
-public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, IntensityTimeSeries {
+public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, IntensityTimeSeries,
+    ModifiableSpectra<T> {
 
   SimpleIonTimeSeries EMPTY = new SimpleIonTimeSeries(null, new double[0], new double[0],
       List.of());

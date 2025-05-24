@@ -267,7 +267,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       return false;
     }
     return Objects.equals(scans, that.scans) && IntensitySeries.seriesSubsetEqual(this, that)
-        && MzSeries.seriesSubsetEqual(this, that);
+           && MzSeries.seriesSubsetEqual(this, that);
   }
 
   @Override
@@ -278,5 +278,10 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   @Override
   public IonTimeSeries<Scan> emptySeries() {
     return IonTimeSeries.EMPTY;
+  }
+
+  @Override
+  public List<Scan> getSpectraModifiable() {
+    return (List<Scan>) scans;
   }
 }
