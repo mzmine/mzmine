@@ -28,6 +28,8 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
@@ -39,12 +41,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Resolves a {@link IntensitySeries}-and-{@link TimeSeries} in time dimension and/or a {@link
- * IntensitySeries}-and-{@link MobilitySeries} in mobility dimension.
+ * Resolves a {@link IntensitySeries}-and-{@link TimeSeries} in time dimension and/or a
+ * {@link IntensitySeries}-and-{@link MobilitySeries} in mobility dimension.
  *
  * @author SteffenHeu https://github.com/SteffenHeu
  */
 public interface Resolver {
+
+  /**
+   * Set the mobilogram access. This should be done in the initalization phase before starting to
+   * resolve data. If there is no mobilogram access set the resolver might create its own for IMS
+   * data. This method allows using the same access in {@link FeatureDataAccess} and the resolver
+   */
+  void setMobilogramDataAccess(@Nullable BinningMobilogramDataAccess mobilogramDataAccess);
 
   /**
    * Resolves a series in time dimension.
@@ -64,7 +73,7 @@ public interface Resolver {
   @NotNull <T extends IntensitySeries & MobilitySeries> List<Range<Double>> resolveMobility(
       @NotNull final T series);
 
-   @NotNull List<Range<Double>> resolve(final double[] x, final double[] y);
+  @NotNull List<Range<Double>> resolve(final double[] x, final double[] y);
 
   /**
    * Resolves a series (EICs) into individual series (features).
