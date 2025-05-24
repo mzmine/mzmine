@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,7 +52,7 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
   public static final DoubleParameter SEARCH_RT_RANGE = new DoubleParameter(
       "Minimum search range RT/Mobility (absolute)",
       "If a local minimum is minimal in this range of retention time or mobility, it will be considered a border between two peaks.\n"
-          + "Start optimising with a value close to the FWHM of a peak.",
+          + "Start optimizing with a value close to the FWHM of a peak.",
       new DecimalFormat("0.000"), 0.05);
 
   public static final PercentParameter MIN_RELATIVE_HEIGHT = new PercentParameter(
@@ -73,21 +73,24 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
       MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
   public MinimumSearchFeatureResolverParameters() {
-    super(createParams(Setup.FULL), "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
+    super(createParams(Setup.FULL),
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
   }
 
   public MinimumSearchFeatureResolverParameters(Setup setup) {
-    super(createParams(setup), "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
+    super(createParams(setup),
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
   }
 
   private static Parameter[] createParams(Setup setup) {
     return switch (setup) {
-      case FULL -> new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters,
-          dimension, CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT,
-          MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS};
-      case INTEGRATED -> new Parameter[]{CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
-          MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION,
-          MIN_NUMBER_OF_DATAPOINTS};
+      case FULL ->
+          new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, dimension,
+              CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT,
+              MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS};
+      case INTEGRATED ->
+          new Parameter[]{CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT,
+              MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS};
     };
   }
 

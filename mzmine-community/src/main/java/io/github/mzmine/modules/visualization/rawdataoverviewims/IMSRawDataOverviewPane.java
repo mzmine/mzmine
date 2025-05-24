@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -198,7 +198,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     massDetectionPane.add(massDetectionFrameLabel, 0, 2);
     final Label binWidthDesc = new Label("Default mobility bin width:");
     Tooltip.install(binWidthDesc, new Tooltip(
-        "The automatically determined bin width for this dataset. Optimising this manually and setting it in the\n"
+        "The automatically determined bin width for this dataset. Optimizing this manually and setting it in the\n"
             + "IMS expander step may improve processing results."));
     massDetectionPane.add(binWidthDesc, 0, 3);
     massDetectionPane.add(this.binWidthLabel, 1, 3);

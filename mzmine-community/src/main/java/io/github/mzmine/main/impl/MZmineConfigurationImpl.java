@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.preferences.ImageNormalization;
+import io.github.mzmine.gui.preferences.ImsOptimization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.Themes;
@@ -96,6 +97,9 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   private final EStandardChartTheme standardChartTheme;
 
+  @NotNull
+  private ImsOptimization cachedImsOptimization = ImsOptimization.MEMORY_EFFICIENCY;
+
   public MZmineConfigurationImpl() {
     moduleParameters = new Hashtable<>();
     preferences = new MZminePreferences();
@@ -143,13 +147,13 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
         } catch (Exception e) {
           logger.log(Level.SEVERE,
               "Could not create an instance of parameter set class " + parameterSetClass + " "
-              + e.getMessage(), e);
+                  + e.getMessage(), e);
           return null;
         }
       } catch (NoClassDefFoundError | Exception e) {
         logger.log(Level.WARNING,
             "Could not find the module or parameter class " + moduleClass.toString() + " "
-            + e.getMessage(), e);
+                + e.getMessage(), e);
         return null;
       }
 
@@ -174,7 +178,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!parametersClass.isInstance(parameters)) {
       throw new IllegalArgumentException(
           "Given parameter set is an instance of " + parameters.getClass() + " instead of "
-          + parametersClass);
+              + parametersClass);
     }
     moduleParameters.put(moduleClass.getName(), parameters);
 
@@ -440,7 +444,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!p.isValid()) {
       logger.warning(
           "Current default color palette set in preferences is invalid. Returning standard "
-          + "colors.");
+              + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
     }
@@ -453,7 +457,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!p.isValid()) {
       logger.warning(
           "Current default paint scale set in preferences is invalid. Returning standard "
-          + "colors.");
+              + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
     }
@@ -528,5 +532,15 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     logger.finest("No log file found. Using default log file.");
     logFile = new File(FileUtils.getUserDirectory(), "mzmine_0_0.log");
     return logFile;
+  }
+
+  @Override
+  public @NotNull ImsOptimization getCachedImsOptimization() {
+    return cachedImsOptimization;
+  }
+
+  @Override
+  public void setCachedImsOptimization(@NotNull ImsOptimization optimization) {
+    this.cachedImsOptimization = optimization;
   }
 }
