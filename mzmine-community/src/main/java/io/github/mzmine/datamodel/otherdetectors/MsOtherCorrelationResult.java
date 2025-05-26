@@ -139,7 +139,7 @@ public record MsOtherCorrelationResult(@NotNull OtherFeature otherFeature,
     final ChromatogramType chromType = otherFeature.getChromatogramType();
     final NumberFormat score = ConfigService.getGuiFormats().scoreFormat();
 
-    return "%s, %s (%s)".formatted(chromType.getDescription(), type.toString(),
+    return "%s, %s (%s)".formatted(chromType.toString(), type.toString(),
         correlation != null ? score.format(correlation) : "?");
   }
 }
