@@ -309,6 +309,10 @@ public class MathUtils {
     }
     avg = sum / count;
 
+    if (Double.compare(avg, 0) == 0) {
+      return 0; // special case for relative standard deviation
+    }
+
     sum = 0;
     for (int i = start; i < endExclusive; i++) {
       double d = values[i];
@@ -319,27 +323,11 @@ public class MathUtils {
     return stdev / avg;
   }
 
-  public static double calcCV(double[] values) {
-
-    double avg, stdev;
-    double sum = 0;
-    for (double d : values) {
-      sum += d;
-    }
-    avg = sum / values.length;
-
-    if (avg == 0) {
-      return Double.NaN;
-    }
-
-    sum = 0;
-    for (double d : values) {
-      sum += (d - avg) * (d - avg);
-    }
-
-    stdev = Math.sqrt(sum / (values.length - 1));
-
-    return stdev / avg;
+  /**
+   * @return relative Sample standard deviation (n-1) as RSD/mean
+   */
+  public static double calcRelativeStd(double[] values) {
+    return calcRelativeStd(values, 0, values.length);
   }
 
   public static double calcAvg(double[] values) {
