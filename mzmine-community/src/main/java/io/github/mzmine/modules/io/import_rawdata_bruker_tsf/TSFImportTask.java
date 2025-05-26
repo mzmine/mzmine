@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
@@ -38,6 +39,7 @@ import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
@@ -66,7 +68,7 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TSFImportTask extends AbstractTask {
+public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
   private static Logger logger = Logger.getLogger(TSFImportTask.class.getName());
 
@@ -87,6 +89,7 @@ public class TSFImportTask extends AbstractTask {
   private File tsf_bin;
   private int totalScans = 1;
   private int processedScans = 0;
+  private RawDataFile newMZmineFile = null;
 
   public TSFImportTask(MZmineProject project, File fileName, @Nullable MemoryMapStorage storage,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -107,6 +110,7 @@ public class TSFImportTask extends AbstractTask {
     frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
 
     setDescription("Importing " + rawDataFileName + ": Waiting.");
+    assert parameters instanceof AllSpectralDataImportParameters;
   }
 
   @Override
@@ -139,9 +143,7 @@ public class TSFImportTask extends AbstractTask {
     try {
       tsfUtils = new TSFUtils();
     } catch (IOException e) {
-      e.printStackTrace();
-      setErrorMessage(e.getMessage());
-      setStatus(TaskStatus.ERROR);
+      error("Could not initialise tsf reader.", e);
       return;
     }
 
@@ -156,7 +158,6 @@ public class TSFImportTask extends AbstractTask {
     setDescription("Importing " + rawDataFileName + ": Reading metadata");
     readMetadata();
 
-    final RawDataFile newMZmineFile;
     try {
       if (isMaldi) {
         newMZmineFile = MZmineCore.createNewImagingFile(rawDataFileName, dirPath.getAbsolutePath(),
@@ -181,7 +182,8 @@ public class TSFImportTask extends AbstractTask {
 
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
-    final boolean tryProfile = ConfigService.isTsfProfile();
+    final boolean tryProfile = !parameters.getValue(
+        AllSpectralDataImportParameters.applyVendorCentroiding);
     final MassSpectrumType importSpectrumType =
         tryProfile && metaDataTable.hasProfileSpectra() ? MassSpectrumType.PROFILE
             : MassSpectrumType.CENTROIDED;
@@ -375,7 +377,12 @@ public class TSFImportTask extends AbstractTask {
       final float ce = frameMsMsInfoTable.getCe().get(frameMsMsTableIndex).floatValue();
       final DIAMsMsInfoImpl diaMsMsInfo = new DIAMsMsInfoImpl(ce, scan, scan.getMSLevel(),
           ActivationMethod.CID, mzRange);
-      ((SimpleScan)scan).setMsMsInfo(diaMsMsInfo);
+      ((SimpleScan) scan).setMsMsInfo(diaMsMsInfo);
     }
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
   }
 }

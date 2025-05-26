@@ -65,13 +65,13 @@
     </dependency>
     <dependency>
       <groupId>io.mzio</groupId>
-      <artifactId>user-management</artifactId>
+      <artifactId>global-events</artifactId>
       <version>1.0.0</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>io.mzio</groupId>
-      <artifactId>global-events</artifactId>
+      <artifactId>user-management</artifactId>
       <version>1.0.0</version>
       <scope>runtime</scope>
     </dependency>
@@ -94,37 +94,37 @@
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-base</artifactId>
-      <version>21</version>
+      <version>23.0.2</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-graphics</artifactId>
-      <version>21</version>
+      <version>23.0.2</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
-      <version>21</version>
+      <version>23.0.2</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-fxml</artifactId>
-      <version>21</version>
+      <version>23.0.2</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-swing</artifactId>
-      <version>21</version>
+      <version>23.0.2</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-web</artifactId>
-      <version>21</version>
+      <version>23.0.2</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

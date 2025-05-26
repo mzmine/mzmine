@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import static io.github.mzmine.gui.preferences.MZminePreferences.runGCafterBatchStep;
 import static io.github.mzmine.main.ConfigService.getPreference;
 import static java.util.Objects.requireNonNullElse;
 
@@ -33,6 +32,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -91,6 +91,7 @@ public class BatchTask extends AbstractTask {
   private final boolean useAdvanced;
   private final int datasets;
   private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
+  private final boolean runGCafterBatchStep;
   private int processedSteps;
   private List<File> subDirectories;
   private List<RawDataFile> createdDataFiles;
@@ -111,6 +112,9 @@ public class BatchTask extends AbstractTask {
   public BatchTask(final MZmineProject project, final ParameterSet parameters,
       final Instant moduleCallDate, final List<File> subDirectories) {
     super(null, moduleCallDate);
+    this.runGCafterBatchStep = requireNonNullElse(
+        getPreference(MZminePreferences.runGCafterBatchStep), false);
+
     setName("Batch task");
     this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
@@ -152,7 +156,7 @@ public class BatchTask extends AbstractTask {
   private TaskStatus runInTaskPool(final MZmineProcessingModule method,
       final List<Task> tasksToRun) {
     TaskController taskController = MZmineCore.getTaskController();
-    var description = STR."\{method.getName()} on \{tasksToRun.size()} items";
+    var description = "%s on %d items".formatted(method.getName(), tasksToRun.size());
     var threadPoolTask = ThreadPoolTask.createDefaultTaskManagerPool(description, tasksToRun);
     // clear tasks to not leak the long running tasks by keeping them alive
     tasksToRun.clear();
@@ -212,7 +216,10 @@ public class BatchTask extends AbstractTask {
     logger.info("Finished a batch of " + totalSteps + " steps");
     setStatus(TaskStatus.FINISHED);
     Duration duration = Duration.between(batchStart, Instant.now());
-    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration));
+    if (runGCafterBatchStep) {
+      System.gc();
+    }
+    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration, runGCafterBatchStep));
     printBatchTimes();
   }
 
@@ -238,7 +245,7 @@ public class BatchTask extends AbstractTask {
         File datasetDir = subDirectories.get(currentDataset);
         datasetName = datasetDir.getName();
         File[] allFiles = FileAndPathUtil.findFilesInDirFlat(datasetDir,
-            ExtensionFilters.ALL_MS_DATA_FILTER, searchSubdirs);
+            ExtensionFilters.ALL_MS_DATA_FILTER, true, searchSubdirs);
 
         logger.info(
             String.format("Processing batch dataset %s (%d/%d)", datasetName, currentDataset + 1,
@@ -254,7 +261,7 @@ public class BatchTask extends AbstractTask {
               setStatus(TaskStatus.ERROR);
               setErrorMessage(
                   "Could not set data files in advanced batch mode. Will cancel all jobs. "
-                  + datasetName);
+                      + datasetName);
               return;
             }
           }
@@ -277,18 +284,27 @@ public class BatchTask extends AbstractTask {
       }
 
       // run step
-      processQueueStep(i % stepsPerDataset);
+      final int stepNumber = i % stepsPerDataset;
+      Instant start = Instant.now();
+
+      // the heavy lifting
+      processQueueStep(stepNumber);
       processedSteps++;
-      if (requireNonNullElse(getPreference(runGCafterBatchStep), false)) {
+
+      Duration duration = Duration.between(start, Instant.now());
+      if (runGCafterBatchStep) {
         System.gc();
       }
+      stepTimes.add(
+          new StepTimeMeasurement(stepNumber + 1, queue.get(stepNumber).getModule().getName(),
+              duration, runGCafterBatchStep));
 
       // If we are canceled or ran into error, stop here
       if (getStatus() == TaskStatus.ERROR) {
         errorDataset++;
         DialogLoggerUtil.showDialog(AlertType.ERROR, "Batch processing error",
-            "An error occurred while processing batch step %d.\n%s".formatted(
-                i % stepsPerDataset + 1, getErrorMessage()), false);
+            "An error occurred while processing batch step %d.\n%s".formatted(stepNumber + 1,
+                getErrorMessage()), false);
         if (skipOnError && datasets - currentDataset > 0) {
           // skip to next dataset
           logger.info("Error in dataset: " + datasetName + " total error datasets:" + errorDataset);
@@ -349,8 +365,6 @@ public class BatchTask extends AbstractTask {
   }
 
   private void processQueueStep(int stepNumber) {
-
-    Instant start = Instant.now();
     logger.info("Starting step # " + (stepNumber + 1));
 
     // Run next step of the batch
@@ -379,7 +393,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFiles == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-                          + "Missing parameter value for " + p.getName());
+              + "Missing parameter value for " + p.getName());
           return;
         }
         selectedFiles.setBatchLastFiles(createdFiles);
@@ -403,9 +417,12 @@ public class BatchTask extends AbstractTask {
 
     List<Task> currentStepTasks = new ArrayList<>();
     Instant moduleCallDate = Instant.now();
-    logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString());
+    logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString()
+        + " with parameters " + batchStepParameters.cloneParameterSet().toString());
     ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks,
         moduleCallDate);
+    logger.finest(
+        () -> "Module " + method.getName() + " created " + currentStepTasks.size() + " tasks");
 
     if (exitCode != ExitCode.OK) {
       setStatus(TaskStatus.ERROR);
@@ -459,9 +476,6 @@ public class BatchTask extends AbstractTask {
     if (!createdFeatureLists.isEmpty()) {
       previousCreatedFeatureLists = createdFeatureLists;
     }
-
-    Duration duration = Duration.between(start, Instant.now());
-    stepTimes.add(new StepTimeMeasurement(stepNumber + 1, method.getName(), duration));
   }
 
   /**
@@ -513,7 +527,7 @@ public class BatchTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
             "Wanted to set the last batch files from raw data import but failed because less data files were imported than expected.\n"
-            + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
+                + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
                 createdDataFiles.size()));
       }
     }
@@ -536,7 +550,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFeatureLists == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-                          + "Missing parameter value for " + p.getName());
+              + "Missing parameter value for " + p.getName());
           return false;
         }
         selectedFeatureLists.setBatchLastFeatureLists(createdFlists);
@@ -579,4 +593,7 @@ public class BatchTask extends AbstractTask {
     }
   }
 
+  public BatchQueue getQueueCopy() {
+    return queue.clone();
+  }
 }

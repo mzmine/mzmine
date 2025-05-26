@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
@@ -165,7 +167,7 @@ public class TimsTOFAcquisitionUtils {
   public static boolean acquire(final File acqControl, final File commandFile, boolean exportOnly) {
 
     List<String> cmdLine = List.of(acqControl.getAbsolutePath(), "--commandfile",
-        "\"" + commandFile.getAbsolutePath() + "\"");
+        inQuotes(commandFile.getAbsolutePath()));
 
     if (!exportOnly) {
       final ProcessBuilder builder = new ProcessBuilder(cmdLine).inheritIO();
@@ -198,7 +200,7 @@ public class TimsTOFAcquisitionUtils {
     cmdLine.add(String.valueOf(yOffset != null ? yOffset : 0));
 
     cmdLine.add("--path");
-    cmdLine.add(savePathDir.toString().replace(File.separatorChar, '/'));
+    cmdLine.add(inQuotes(savePathDir.toString().replace(File.separatorChar, '/')));
 
     cmdLine.add("--name");
     cmdLine.add(name);
@@ -209,7 +211,6 @@ public class TimsTOFAcquisitionUtils {
     if (laserOffsetX != null) {
       cmdLine.add("--laseroffsetx");
       cmdLine.add(String.valueOf(laserOffsetX));
-
     }
     if (laserOffsetY != null) {
       cmdLine.add("--laseroffsety");
@@ -218,11 +219,11 @@ public class TimsTOFAcquisitionUtils {
 
     if (enableCeStepping && currentCeFile != null && currentCeFile.exists()) {
       cmdLine.add("--cetable");
-      cmdLine.add(currentCeFile.toPath().toString().replace(File.separatorChar, '/'));
+      cmdLine.add(inQuotes(currentCeFile.toPath().toString().replace(File.separatorChar, '/')));
     }
 
     cmdLine.add("--precursorlist");
-    cmdLine.add(precursorList.getAbsolutePath().replace(File.separatorChar, '/'));
+    cmdLine.add(inQuotes(precursorList.getAbsolutePath().replace(File.separatorChar, '/')));
 
     if (isolationWidth != null) {
       cmdLine.add("--isolationwidth");

@@ -25,14 +25,26 @@
 
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
+import java.util.Comparator;
 import java.util.List;
+import org.graphstream.graph.Element;
 import org.graphstream.graph.Node;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represents a network cluster from molecular networking, i.e. a sub network
+ *
  * @param nodes all nodes of this cluster
- * @param id the cluster id
+ * @param id    the cluster id
  */
 public record NetworkCluster(List<Node> nodes, int id) {
 
+  public int size() {
+    return nodes.size();
+  }
+
+
+  public @Nullable String findLowestNodeID() {
+    return nodes.stream().map(Element::getId).min(Comparator.naturalOrder()).orElse(null);
+  }
 }

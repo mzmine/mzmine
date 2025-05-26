@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.util.scans.ScanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -181,13 +182,24 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
     return this.filter() != Options.ALL;
   }
 
-  public enum Options {
+  public enum Options implements UniqueIdSupplier {
     ALL, MS1, MSn, MS2, SPECIFIC_LEVEL;
 
     public static final Options[] EXCEPT_MS1 = new Options[]{MSn, MS2, SPECIFIC_LEVEL};
 
     @Override
     public String toString() {
+      return switch (this) {
+        case MS1 -> "MS1, level = 1";
+        case MS2 -> "MS2, level = 2";
+        case MSn -> "MSn, level ≥ 2";
+        case ALL -> "All MS levels";
+        case SPECIFIC_LEVEL -> "Specific MS level";
+      };
+    }
+
+    @Override
+    public @NotNull String getUniqueID() {
       return switch (this) {
         case MS1 -> "MS1, level = 1";
         case MS2 -> "MS2, level = 2";

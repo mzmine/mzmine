@@ -78,7 +78,7 @@ public class FileNameSuffixExportParameter extends FileNameParameter {
   public FileNameSuffixExportParameter(String name, String description,
       List<ExtensionFilter> filters, @Nullable String suffix, boolean allowEmptyString) {
     super(name,
-        description + (StringUtils.hasValue(suffix) ? STR."\n(default suffix=\{suffix})" : ""),
+        description + (StringUtils.hasValue(suffix) ? "\n(default suffix=" + suffix + ")" : ""),
         filters, FileSelectionType.SAVE, allowEmptyString);
     this.suffix = suffix;
   }

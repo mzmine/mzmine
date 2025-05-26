@@ -197,10 +197,10 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
     }
 
     if (parameter instanceof OptionalParameter<?> optional) {
-      if (!optional.getValue()) {
+      if (!getEmbeddedParameters().getParameter(optional).getValue()) {
         return defaultValue;
       } else {
-        return (V) optional.getEmbeddedParameter().getValue();
+        return (V) getEmbeddedParameters().getParameter(optional).getEmbeddedParameter().getValue();
       }
     } else {
       return (V) getEmbeddedParameters().getParameter(parameter).getValue();

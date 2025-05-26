@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,11 @@ package io.github.mzmine.modules.io.import_rawdata_all;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
@@ -34,15 +39,19 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComponentWrapperParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -50,9 +59,24 @@ import org.jetbrains.annotations.Nullable;
 
 public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
+  private static final Logger logger = Logger.getLogger(
+      AllSpectralDataImportParameters.class.getName());
 
+  public static final ComponentWrapperParameter<Boolean, BooleanParameter> applyVendorCentroiding = new ComponentWrapperParameter<>(
+      new BooleanParameter("Try vendor centroiding",
+          "Vendor centroiding will be applied to the imported raw data if this option is selected and cetroiding is supported.",
+          true), () -> FxButtons.createButton(null, FxIcons.GEAR_PREFERENCES,
+      "Open the preference dialog, which controls this parameter for the drag & drop import and the mzwizard.",
+      () -> ConfigService.getPreferences()
+          .showSetupDialog(true, MZminePreferences.applyVendorCentroiding.getName())));
+
+  /**
+   * This parameter adds a different validation step to files that may map files selected in the All
+   * .d or similar buttons to a validated list of distinct files
+   */
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
-      ExtensionFilters.MS_RAW_DATA);
+      ExtensionFilters.MS_RAW_DATA, "Drag & drop your MS data files here.",
+      AllSpectralDataImportParameters::validateDistinctPaths);
 
   public static final OptionalModuleParameter<AdvancedSpectraImportParameters> advancedImport = new OptionalModuleParameter<>(
       "Advanced import",
@@ -69,24 +93,29 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
   public AllSpectralDataImportParameters() {
     super(new Parameter[]{fileNames, //
-        advancedImport, // directly process masslists
-        metadataFile, // metadata import
-        sortAndRecolor, // sort and recolor
-        // allow import of spectral libraries
+            applyVendorCentroiding, //
+            advancedImport, // directly process masslists
+            metadataFile, // metadata import
+            sortAndRecolor, // sort and recolor
+            // allow import of spectral libraries
             SpectralLibraryImportParameters.dataBaseFiles},
         "https://mzmine.github.io/mzmine_documentation/module_docs/io/data-import.html");
   }
 
 
-  public static ParameterSet create(@NotNull final File[] allDataFiles,
-      @Nullable final File metadata, @Nullable final File[] allLibraryFiles) {
-    return create(allDataFiles, metadata, allLibraryFiles, null);
+  public static ParameterSet create(final boolean applyVendorCentroiding,
+      @NotNull final File[] allDataFiles, @Nullable final File metadata,
+      @Nullable final File[] allLibraryFiles) {
+    return create(applyVendorCentroiding, allDataFiles, metadata, allLibraryFiles, null);
   }
 
-  public static ParameterSet create(@NotNull final File[] allDataFiles,
-      @Nullable final File metadata, @Nullable final File[] allLibraryFiles,
+  public static ParameterSet create(final boolean applyVendorCentroiding,
+      @NotNull final File[] allDataFiles, @Nullable final File metadata,
+      @Nullable final File[] allLibraryFiles,
       @Nullable final AdvancedSpectraImportParameters advanced) {
     var params = new AllSpectralDataImportParameters().cloneParameterSet();
+    params.setParameter(AllSpectralDataImportParameters.applyVendorCentroiding,
+        applyVendorCentroiding);
     params.setParameter(fileNames, allDataFiles);
     params.setParameter(metadataFile, metadata != null, metadata);
     params.setParameter(SpectralLibraryImportParameters.dataBaseFiles, allLibraryFiles);
@@ -115,7 +144,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       final ParameterSet parameters) {
     // all files that should be loaded
     // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
-    Set<File> loadFileSet = streamValidatedFiles(parameters).map(File::getAbsoluteFile)
+    Set<File> loadFileSet = streamValidatedFiles(parameters).map(ImportFile::importedFile)
         .collect(Collectors.toSet());
 
     // the actual files in the list
@@ -128,29 +157,48 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
    *
    * @return array of files - files that are already loaded
    */
-  public static File[] skipAlreadyLoadedFiles(MZmineProject project,
+  public static ImportFile[] skipAlreadyLoadedFiles(MZmineProject project,
       final ParameterSet parameters) {
-    var loadedFiles = getLoadedRawDataFiles(project, parameters);
-    var loadedAbsFiles = loadedFiles.stream().map(RawDataFile::getAbsoluteFilePath)
-        .collect(Collectors.toSet());
+
+    Set<File> currentlyLoadedFiles = project.getCurrentRawDataFiles().stream()
+        .map(RawDataFile::getAbsoluteFilePath).collect(Collectors.toSet());
 
     // compare based on absolute files
-    // skip all files in import that directly match the abs path of another file
+    // skip all files in import that directly match the abs path of another file.
+    // need to validate bruker paths and use absolute file paths as they are used in RawDataFile
     return streamValidatedFiles(parameters).filter(
-        file -> !loadedAbsFiles.contains(file.getAbsoluteFile())).toArray(File[]::new);
+            file -> !currentlyLoadedFiles.contains(file.importedFile().getAbsoluteFile()))
+        .toArray(ImportFile[]::new);
+  }
+
+  /**
+   * Applies {@link AllSpectralDataImportModule#validateBrukerPath(File)} to get the actual file
+   * paths and applies name changes due to the MSconvert import. This is done always before import.
+   *
+   * @return stream of {@link ImportFile}s
+   */
+  @NotNull
+  public static Stream<ImportFile> streamValidatedFiles(final ParameterSet parameters) {
+    final boolean keepConverted = ConfigService.getPreferences()
+        .getValue(MZminePreferences.keepConvertedFile);
+    return Arrays.stream(parameters.getValue(fileNames))
+        .map(AllSpectralDataImportModule::validateBrukerPath).map(
+            file -> new ImportFile(file, RawDataFileTypeDetector.detectDataFileType(file),
+                MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted)));
   }
 
 
   /**
-   * Applies {@link AllSpectralDataImportModule#validateBrukerPath(File)} to get the actual file
-   * paths. This is done always before import.
+   * Validating paths may jump from nested .d folders or similar to the main file this creates
+   * duplicates which are filtered
    *
-   * @return stream of files
+   * @return distinct files after validating paths
    */
-  @NotNull
-  public static Stream<File> streamValidatedFiles(final ParameterSet parameters) {
-    return Arrays.stream(parameters.getValue(fileNames))
-        .map(AllSpectralDataImportModule::validateBrukerPath);
+  public static @NotNull File[] validateDistinctPaths(@NotNull File[] files) {
+    return Arrays.stream(files).map(AllSpectralDataImportModule::validateBrukerPath)
+        .filter(Objects::nonNull)
+        // needs distinct as bruker files may be duplicated with .d files in multiple layers
+        .distinct().toArray(File[]::new);
   }
 
 }

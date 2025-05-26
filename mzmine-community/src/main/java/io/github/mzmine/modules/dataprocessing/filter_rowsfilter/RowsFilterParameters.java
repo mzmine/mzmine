@@ -69,8 +69,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<Isotope13CFilterParameters> ISOTOPE_FILTER_13C = new OptionalModuleParameter<>(
       "Validate 13C isotope pattern",
       "Searches for an +1 13C signal (considering possible charge states) \n"
-      + "within estimated range of carbon atoms. Optionally: Detect and filter rows \n"
-      + "that are 13C isotopes by searching for preceding -1 signal.",
+          + "within estimated range of carbon atoms. Optionally: Detect and filter rows \n"
+          + "that are 13C isotopes by searching for preceding -1 signal.",
       new Isotope13CFilterParameters(), false);
 
   public static final BooleanParameter removeRedundantRows = new BooleanParameter(
@@ -100,9 +100,6 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<KendrickMassDefectFilterParameters> KENDRICK_MASS_DEFECT = new OptionalModuleParameter<>(
       "Kendrick mass defect", "Permissible range of a Kendrick mass defect per row",
       new KendrickMassDefectFilterParameters(), false);
-  public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
-      "Parameter", "Paremeter defining the group of each sample.", new Object[]{defaultGrouping},
-      defaultGrouping);
 
   public static final BooleanParameter HAS_IDENTITIES = new BooleanParameter("Only identified?",
       "Select to filter only identified compounds", false);
@@ -149,34 +146,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public RowsFilterParameters() {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
             ISOTOPE_FILTER_13C, removeRedundantRows, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
-            KENDRICK_MASS_DEFECT, GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
-            REMOVE_ROW, MS2_Filter, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID, massDefect,
-            handleOriginal},
+            KENDRICK_MASS_DEFECT, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter,
+            KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID, massDefect, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
-  }
-
-  @Override
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-
-    // Update the parameter choices
-    UserParameter<?, ?>[] newChoices = ProjectService.getProjectManager().getCurrentProject()
-        .getParameters();
-    String[] choices;
-    if (newChoices == null || newChoices.length == 0) {
-      choices = new String[1];
-      choices[0] = defaultGrouping;
-    } else {
-      choices = new String[newChoices.length + 1];
-      choices[0] = "Ignore groups";
-      for (int i = 0; i < newChoices.length; i++) {
-        choices[i + 1] = "Filtering by " + newChoices[i].getName();
-      }
-    }
-
-    getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(choices);
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
-    dialog.showAndWait();
-    return dialog.getExitCode();
   }
 
   @Override

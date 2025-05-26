@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '22.0.1'
+          java-version: '23.0.2'
 #          cache: 'gradle'  # now done with gradle
 
       - name: Setup Gradle
@@ -181,7 +181,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '22.0.1'
+          java-version: '23.0.2'
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v3

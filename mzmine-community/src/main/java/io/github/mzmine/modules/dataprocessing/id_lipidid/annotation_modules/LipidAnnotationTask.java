@@ -128,9 +128,9 @@ public class LipidAnnotationTask extends AbstractTask {
           getMemoryMapStorage()); // all input scans was and is the default
     }
     this.selectedCustomLipidClasses = null;
-    if (parameters.getParameter(LipidAnnotationParameters.customLipidClasses).getValue()) {
-      this.selectedCustomLipidClasses = LipidAnnotationParameters.customLipidClasses.getEmbeddedParameters()
-          .getParameter(CustomLipidClassParameters.customLipidClassChoices).getChoices();
+    if (parameters.getValue(LipidAnnotationParameters.customLipidClasses)) {
+      this.selectedCustomLipidClasses = parameters.getEmbeddedParameterValue(LipidAnnotationParameters.customLipidClasses)
+          .getParameter(CustomLipidClassParameters.customLipidClassChoices).getValue();
     }
 
     // Convert Objects to LipidClasses
@@ -234,7 +234,7 @@ public class LipidAnnotationTask extends AbstractTask {
   @NotNull
   private Set<PolarityType> getPolarityTypes() {
     Set<PolarityType> polarityTypes = new HashSet<>();
-    ObservableList<RawDataFile> rawDataFiles = featureList.getRawDataFiles();
+    List<RawDataFile> rawDataFiles = featureList.getRawDataFiles();
     for (RawDataFile raw : rawDataFiles) {
       List<PolarityType> dataPolarity = raw.getDataPolarity();
       polarityTypes.addAll(dataPolarity);

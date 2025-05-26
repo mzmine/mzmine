@@ -133,12 +133,14 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddIinStep(q);
 
     // annotation
+    makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
     makeAndAddLipidAnnotationStep(q);
     // export
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
         exportAnnotationGraphics, mzTolScans);
+    makeAndAddBatchExportStep(q, isExportActive, exportPath);
     return q;
   }
 

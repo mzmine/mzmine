@@ -50,9 +50,9 @@ public class LoessBaselineCorrector extends UnivariateBaselineCorrector {
         "baseline", null);
   }
 
-  public LoessBaselineCorrector(MemoryMapStorage storage, int baselineSamples, double bandwidth,
+  public LoessBaselineCorrector(MemoryMapStorage storage, double samplePercentage, double bandwidth,
       int iterations, String suffix, MinimumSearchFeatureResolver resolver) {
-    super(storage, baselineSamples, suffix, resolver);
+    super(storage, samplePercentage, suffix, resolver);
     this.bandwidth = bandwidth;
     this.storage = storage;
     this.iterations = iterations;
@@ -80,7 +80,7 @@ public class LoessBaselineCorrector extends UnivariateBaselineCorrector {
             ? initializeLocalMinResolver((ModularFeatureList) flist) : null;
 
     return new LoessBaselineCorrector(storage,
-        embedded.getValue(LoessBaselineCorrectorParameters.numSamples),
+        embedded.getValue(LoessBaselineCorrectorParameters.samplePercentage),
         embedded.getValue(LoessBaselineCorrectorParameters.bandwidth),
         embedded.getValue(LoessBaselineCorrectorParameters.iterations),
         parameters.getValue(BaselineCorrectionParameters.suffix), resolver);

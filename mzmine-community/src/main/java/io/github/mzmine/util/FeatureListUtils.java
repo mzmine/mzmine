@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -67,7 +67,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -308,17 +307,16 @@ public class FeatureListUtils {
     // add the new types to the feature list
     alignedFeatureList.addRowType(DataTypes.get(AlignmentMainType.class));
 
-    SortedList<FeatureListRow> rows = alignedFeatureList.getRows().sorted(MZ_ASCENDING);
-
     // find the number of rows that match RT,MZ,Mobility in each original feature list
-    rows.stream().parallel().forEach(alignedRow -> {
+    var changed = alignedFeatureList.getRows().stream().parallel().mapToInt(alignedRow -> {
       AlignmentScores score = calculator.calcScore(alignedRow);
       if (mergeScores) {
         AlignmentScores oldScore = alignedRow.get(AlignmentMainType.class);
         score = score.merge(oldScore);
       }
       alignedRow.set(AlignmentMainType.class, score);
-    });
+      return 1;
+    }).sum();
   }
 
   /**
@@ -486,63 +484,8 @@ public class FeatureListUtils {
    * @param featureList target list
    */
   public static void sortByDefault(FeatureList featureList, boolean renumberIDs) {
-    RawDataFile rawDataFile = featureList.getRawDataFiles().get(0);
-    if (rawDataFile != null) {
-      if (!(rawDataFile instanceof ImagingRawDataFile)) {
-        FeatureListUtils.sortByDefaultRT(featureList, renumberIDs);
-      } else {
-        FeatureListUtils.sortByDefaultMZ(featureList, renumberIDs);
-      }
-    }
-  }
+    featureList.applyDefaultRowsSorting();
 
-  /**
-   * Sort feature list by retention time (default)
-   *
-   * @param featureList target list
-   */
-  public static void sortByDefaultRT(FeatureList featureList) {
-    // sort rows by rt
-    featureList.getRows().sort(FeatureListRowSorter.DEFAULT_RT);
-  }
-
-  /**
-   * Sort feature list by mz and reset IDs starting with 1
-   *
-   * @param featureList target list
-   * @param renumberIDs renumber rows
-   */
-  public static void sortByDefaultMZ(FeatureList featureList, boolean renumberIDs) {
-    sortByDefaultMZ(featureList);
-    if (!renumberIDs) {
-      return;
-    }
-    // reset IDs
-    int newRowID = 1;
-    for (var row : featureList.getRows()) {
-      row.set(IDType.class, newRowID);
-      newRowID++;
-    }
-  }
-
-  /**
-   * Sort feature list by mz (default)
-   *
-   * @param featureList target list
-   */
-  public static void sortByDefaultMZ(FeatureList featureList) {
-    // sort rows by mz
-    featureList.getRows().sort(MZ_ASCENDING);
-  }
-
-  /**
-   * Sort feature list by retention time and reset IDs starting with 1
-   *
-   * @param featureList target list
-   * @param renumberIDs renumber rows
-   */
-  public static void sortByDefaultRT(FeatureList featureList, boolean renumberIDs) {
-    sortByDefaultRT(featureList);
     if (!renumberIDs) {
       return;
     }
@@ -557,11 +500,18 @@ public class FeatureListUtils {
   /**
    * Transfers all row types present in the source feature list to the target feature list.
    */
-  public static void transferRowTypes(FeatureList targetFlist,
-      Collection<FeatureList> sourceFlists) {
+  public static void transferRowTypes(FeatureList targetFlist, Collection<FeatureList> sourceFlists,
+      final boolean transferFeatureTypes) {
+
     for (FeatureList sourceFlist : sourceFlists) {
       // uses a set so okay to use addAll
       targetFlist.addRowType(sourceFlist.getRowTypes());
+    }
+    if (transferFeatureTypes) {
+      for (FeatureList sourceFlist : sourceFlists) {
+        // uses a set so okay to use addAll
+        targetFlist.addFeatureType(sourceFlist.getFeatureTypes());
+      }
     }
   }
 
@@ -607,7 +557,7 @@ public class FeatureListUtils {
    */
   @NotNull
   public static Int2ObjectMap<FeatureListRow> getRowIdMap(final ModularFeatureList featureList) {
-    Int2ObjectMap<FeatureListRow> map = new Int2ObjectArrayMap<>(featureList.getRows().size());
+    Int2ObjectMap<FeatureListRow> map = new Int2ObjectArrayMap<>(featureList.getNumberOfRows());
     for (final FeatureListRow row : featureList.getRows()) {
       map.put(row.getID(), row);
     }
@@ -624,25 +574,41 @@ public class FeatureListUtils {
 
   public static ModularFeatureList createCopy(final FeatureList featureList, final String suffix,
       final MemoryMapStorage storage, boolean copyRows) {
-    ModularFeatureList newFlist = new ModularFeatureList(featureList.getName() + " " + suffix,
-        storage, featureList.getRawDataFiles());
+    return createCopy(featureList, null, suffix, storage, copyRows, featureList.getRawDataFiles(),
+        false);
+  }
+
+  public static ModularFeatureList createCopy(final FeatureList featureList,
+      @Nullable String fullTitle, final @Nullable String suffix, final MemoryMapStorage storage,
+      boolean copyRows, List<RawDataFile> dataFiles, boolean renumberIDs) {
+    if (StringUtils.isBlank(fullTitle) && StringUtils.isBlank(suffix)) {
+      throw new IllegalArgumentException("Either suffix or fullTitle need a value");
+    }
+    if (fullTitle == null) {
+      fullTitle = featureList.getName() + " " + suffix;
+    }
+
+    ModularFeatureList newFlist = new ModularFeatureList(fullTitle, storage, dataFiles);
 
     FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
-    FeatureListUtils.transferRowTypes(newFlist, List.of(featureList));
+    FeatureListUtils.transferRowTypes(newFlist, List.of(featureList), true);
     FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
+
     if (copyRows) {
-      copyRows(featureList, newFlist);
+      copyRows(featureList, newFlist, renumberIDs);
     }
 
     return newFlist;
   }
 
   public static void copyRows(final FeatureList featureList,
-      final ModularFeatureList newFeatureList) {
+      final ModularFeatureList newFeatureList, final boolean renumberIDs) {
+    int id = 1;
     for (final FeatureListRow row : featureList.getRows()) {
-      FeatureListRow copy = new ModularFeatureListRow(newFeatureList, row.getID(),
-          (ModularFeatureListRow) row, true);
+      FeatureListRow copy = new ModularFeatureListRow(newFeatureList,
+          renumberIDs ? id : row.getID(), (ModularFeatureListRow) row, true);
       newFeatureList.addRow(copy);
+      id++;
     }
   }
 
@@ -708,5 +674,21 @@ public class FeatureListUtils {
     // ims features generally consume 10 times the ram of non ims features. not all files may be ims though
     final double imsRamFactor = isIms ? (double) (numImsFiles * 10) / numRaws : 1;
     return imsRamFactor;
+  }
+
+  public static boolean hasImagingData(FeatureList flist) {
+    return flist.getRawDataFiles().stream().anyMatch(ImagingRawDataFile.class::isInstance);
+  }
+
+  /**
+   * Default row sorter is depending on imaging data. If one raw file is imaging all is sorted by
+   * mz. Otherwise sort by RT
+   */
+  public static @NotNull Comparator<FeatureListRow> getDefaultRowSorter(FeatureList flist) {
+    if (hasImagingData(flist)) {
+      return FeatureListRowSorter.MZ_ASCENDING;
+    } else {
+      return FeatureListRowSorter.DEFAULT_RT;
+    }
   }
 }

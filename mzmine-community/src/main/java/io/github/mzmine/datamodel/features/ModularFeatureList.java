@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
@@ -54,6 +55,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
@@ -98,7 +100,8 @@ public class ModularFeatureList implements FeatureList {
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
   // unmodifiable list
-  private final ObservableList<RawDataFile> dataFiles;
+  private final List<RawDataFile> dataFiles;
+  private final List<RawDataFile> readOnlyRawDataFiles; // keep one copy in case it is used somewhere
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
 
   private NodeGenerationThread nodeThread;
@@ -112,7 +115,16 @@ public class ModularFeatureList implements FeatureList {
   // TODO do we need two sets? We could have observableSet of LinkedHashSet
   private final ObservableSet<DataType> featureTypes = FXCollections.observableSet(
       new LinkedHashSet<>());
-  private final ObservableList<FeatureListRow> featureListRows;
+  /**
+   * This instance is internal and is never made public. Modifications are all done from within the
+   * feature list
+   */
+  private final ObservableList<FeatureListRow> featureListRows = FXCollections.observableArrayList();
+  /**
+   * This is an unmodifiable view of the rows
+   */
+  private final ObservableList<FeatureListRow> featureListRowsUnmodifiableView = FXCollections.unmodifiableObservableList(
+      featureListRows);
   private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
 
   private final R2RNetworkingMaps r2rNetworkingMaps = new R2RNetworkingMaps();
@@ -146,8 +158,8 @@ public class ModularFeatureList implements FeatureList {
     dataFiles = new ArrayList<>(dataFiles);
     dataFiles.sort(Comparator.comparing(RawDataFile::getName));
     ((ArrayList) dataFiles).trimToSize();
-    this.dataFiles = FXCollections.observableList(dataFiles);
-    featureListRows = FXCollections.observableArrayList();
+    this.dataFiles = dataFiles;
+    this.readOnlyRawDataFiles = Collections.unmodifiableList(dataFiles);
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
     selectedScans = FXCollections.observableMap(new HashMap<>());
@@ -422,11 +434,11 @@ public class ModularFeatureList implements FeatureList {
   /**
    * Returns all raw data files participating in the alignment
    *
-   * @return the raw data files for this list
+   * @return an unmodifiable list raw data files for this list
    */
   @Override
-  public ObservableList<RawDataFile> getRawDataFiles() {
-    return dataFiles;
+  public List<RawDataFile> getRawDataFiles() {
+    return readOnlyRawDataFiles;
   }
 
   @Override
@@ -482,11 +494,11 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public ObservableList<FeatureListRow> getRows() {
-    return featureListRows;
+    return featureListRowsUnmodifiableView;
   }
 
   @Override
-  public void setRows(FeatureListRow... rows) {
+  public void setRowsApplySort(FeatureListRow... rows) {
     Set<RawDataFile> fileSet = new HashSet<>();
     for (FeatureListRow row : rows) {
       if (!(row instanceof ModularFeatureListRow)) {
@@ -504,9 +516,11 @@ public class ModularFeatureList implements FeatureList {
       }
     }
 //    logger.log(Level.FINEST, "SET ALL ROWS");
-    featureListRows.clear();
-    featureListRows.addAll(rows);
+    featureListRows.setAll(rows);
     applyRowBindings();
+
+    // sorting
+    applyDefaultRowsSorting();
   }
 
   @Override
@@ -543,7 +557,7 @@ public class ModularFeatureList implements FeatureList {
           "Can not add non-modular feature list row to modular feature list");
     }
 
-    ObservableList<RawDataFile> myFiles = this.getRawDataFiles();
+    List<RawDataFile> myFiles = this.getRawDataFiles();
     for (RawDataFile testFile : modularRow.getRawDataFiles()) {
       if (!myFiles.contains(testFile)) {
         throw (new IllegalArgumentException(
@@ -553,10 +567,6 @@ public class ModularFeatureList implements FeatureList {
     //    logger.finest("ADD ROW");
     featureListRows.add(modularRow);
     applyRowBindings(modularRow);
-
-    // TODO solve with bindings
-    // max intensity
-    // ranges
   }
 
   /**
@@ -612,6 +622,17 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void removeRows(final Set<FeatureListRow> rowsToRemove) {
     featureListRows.removeIf(rowsToRemove::contains);
+  }
+
+  @Override
+  public void applyDefaultRowsSorting() {
+    final Comparator<FeatureListRow> comparator = FeatureListUtils.getDefaultRowSorter(this);
+    featureListRows.sort(comparator);
+  }
+
+  @Override
+  public void clearRows() {
+    featureListRows.clear();
   }
 
   @Override
@@ -796,31 +817,7 @@ public class ModularFeatureList implements FeatureList {
    */
   public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage,
       List<RawDataFile> dataFiles, boolean renumberIDs) {
-    ModularFeatureList flist = new ModularFeatureList(title, storage, dataFiles);
-
-    // key is original row and value is copied row
-    Map<FeatureListRow, ModularFeatureListRow> mapCopied = new HashMap<>();
-    // copy all rows and features
-    int id = 0;
-    for (FeatureListRow row : this.getRows()) {
-      id = renumberIDs ? id + 1 : row.getID();
-      ModularFeatureListRow copyRow = new ModularFeatureListRow(flist, id,
-          (ModularFeatureListRow) row, true);
-      flist.addRow(copyRow);
-      mapCopied.put(row, copyRow);
-    }
-
-    // todo copy all row to row relationships and exchange row references in datatypes
-
-    // change references in IIN
-
-    // Load previous applied methods
-    for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
-      flist.addDescriptionOfAppliedTask(proc);
-    }
-
-    selectedScans.forEach(flist::setSelectedScans);
-    return flist;
+    return FeatureListUtils.createCopy(this, title, null, storage, true, dataFiles, renumberIDs);
   }
 
   @Nullable
@@ -888,7 +885,7 @@ public class ModularFeatureList implements FeatureList {
 
     nodeThreadLock.writeLock().lock();
     try {
-      if (nodeThread == null || nodeThread.isFinished()) {
+      if (nodeThread == null || nodeThread.isFinished() || nodeThread.isCanceled()) {
         nodeThread = new NodeGenerationThread(null, Instant.now(), this);
         logger.finest("Starting new node thread.");
         MZmineCore.getTaskController().addTask(nodeThread);

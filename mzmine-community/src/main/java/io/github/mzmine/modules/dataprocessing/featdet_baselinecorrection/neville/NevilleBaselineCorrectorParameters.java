@@ -30,6 +30,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Abstra
 public class NevilleBaselineCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
   public NevilleBaselineCorrectorParameters() {
-    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter());
+    super(applyPeakRemoval.cloneParameter(), samplePercentage.cloneParameter());
   }
 }

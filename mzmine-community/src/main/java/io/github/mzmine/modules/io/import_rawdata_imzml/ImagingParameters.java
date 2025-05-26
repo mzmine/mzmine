@@ -181,6 +181,9 @@ public class ImagingParameters {
         lateralWidth = maxNumberOfPixelX * pixelWidth;
       }
     }
+    if(pattern == null) {
+      pattern = Pattern.UNKNOWN;
+    }
   }
 
   public double getMinMZ() {
@@ -410,7 +413,7 @@ public class ImagingParameters {
 
 
   public enum Pattern {
-    MEANDER("Meander"), FLY_BACK("Fly Back"), RANDOM("Random");
+    MEANDER("Meander"), FLY_BACK("Fly Back"), RANDOM("Random"), UNKNOWN("Unknown");
 
     final String name;
 

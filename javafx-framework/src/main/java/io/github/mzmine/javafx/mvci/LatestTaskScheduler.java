@@ -154,12 +154,12 @@ public class LatestTaskScheduler {
       PauseTransition updateAccumulator = delayedTasks.computeIfAbsent(uniqueTaskName,
           _ -> new PauseTransition(delay));
       updateAccumulator.setOnFinished(_ -> {
-        logger.fine(STR."Running task \{uniqueTaskName}");
+        logger.fine("Running task %s".formatted(uniqueTaskName));
         onTaskThread(task, priority);
       });
       updateAccumulator.setDuration(delay);
       updateAccumulator.playFromStart();
-      logger.fine(STR."Delaying task \{uniqueTaskName} because of new update trigger");
+      logger.fine("Delaying task %s because of new update trigger".formatted(uniqueTaskName));
     }
   }
 
@@ -173,7 +173,7 @@ public class LatestTaskScheduler {
     var oldTask = removeOldTask(uniqueTaskName);
     if (oldTask != null && !oldTask.isFinished()) {
       oldTask.cancel();
-      logger.finest(STR."Cancelled old task \{uniqueTaskName} because of new task trigger");
+      logger.finest("Cancelled old task %s because of new task trigger".formatted(uniqueTaskName));
     }
   }
 

@@ -170,16 +170,14 @@ public class ConversionUtils {
     final Map<String, DetectorCVs> accessions = Arrays.stream(DetectorCVs.values())
         .collect(Collectors.toMap(DetectorCVs::getAccession, v -> v));
 
-    scans.stream().filter(Objects::nonNull);
     final Map<DetectorCVs, List<BuildingMzMLMsScan>> accessionToScansMap = accessions.keySet()
-        .stream().collect(Collectors.toMap(accession -> accessions.get(accession), accession -> {
-          return scans.stream().<BuildingMzMLMsScan>mapMulti((scan, c) -> {
-            if (scan.getCVParams().getCVParamsList().stream()
-                .anyMatch(cvParam -> cvParam.getAccession().equals(accession))) {
-              c.accept(scan);
-            }
-          }).toList();
-        }));
+        .stream().collect(Collectors.toMap(accession -> accessions.get(accession),
+            accession -> scans.stream().<BuildingMzMLMsScan>mapMulti((scan, c) -> {
+              if (scan.getCVParams().getCVParamsList().stream()
+                  .anyMatch(cvParam -> cvParam.getAccession().equals(accession))) {
+                c.accept(scan);
+              }
+            }).toList()));
 
     if (accessionToScansMap.isEmpty()) {
       logger.finest(() -> "No other detectors found in file %s".formatted(file.getName()));
@@ -188,6 +186,9 @@ public class ConversionUtils {
 
     List<OtherDataFile> otherDataFiles = new ArrayList<>();
     for (Entry<DetectorCVs, List<BuildingMzMLMsScan>> accessionScansEntry : accessionToScansMap.entrySet()) {
+      if (accessionScansEntry.getValue() == null || accessionScansEntry.getValue().isEmpty()) {
+        continue;
+      }
       switch (accessionScansEntry.getKey()) { // add more detectors here
         case UV_SPECTRUM -> {
           final OtherDataFile uvFile = createUvFile(file, accessionScansEntry.getValue());
@@ -308,7 +309,7 @@ public class ConversionUtils {
     Double isolationMz = null;
     Double precursorMz = null;
     Integer charge = null;
-    Float colissionEnergy = null;
+    Float collissionEnergy = null;
     for (MzMLPrecursorElement precursorElement : precursorList.getPrecursorElements()) {
       Optional<MzMLPrecursorSelectedIonList> selectedIonList = precursorElement.getSelectedIonList();
       if (selectedIonList.isPresent()) {
@@ -345,24 +346,23 @@ public class ConversionUtils {
       if (activation != null) {
         for (MzMLCVParam param : activation.getCVParamsList()) {
           if (param.getAccession().equals(MzMLCV.cvActivationEnergy)) {
-            colissionEnergy = Float.parseFloat(param.getValue().get());
+            collissionEnergy = Float.parseFloat(param.getValue().get());
           }
         }
       }
-      if (lowerWindow != null && upperWindow != null && isolationMz != null
-          && colissionEnergy != null) {
+      if (lowerWindow != null && upperWindow != null && isolationMz != null) {
         boolean infoFound = false;
         for (BuildingImsMsMsInfo buildingInfo : buildingInfos) {
           if (Double.compare(Objects.requireNonNullElse(precursorMz, isolationMz),
-              buildingInfo.getPrecursorMz()) == 0
-              && Float.compare(colissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
+              buildingInfo.getPrecursorMz()) == 0 && collisionEnergyCheck(buildingInfo,
+              collissionEnergy)) {
             buildingInfo.setLastSpectrumNumber(currentScanNumber);
             infoFound = true;
           }
         }
         if (!infoFound) {
           BuildingImsMsMsInfo info = new BuildingImsMsMsInfo(
-              Objects.requireNonNullElse(precursorMz, isolationMz), colissionEnergy,
+              Objects.requireNonNullElse(precursorMz, isolationMz), collissionEnergy,
               Objects.requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
               currentScanNumber);
           info.setLowerIsolationMz(isolationMz - lowerWindow);
@@ -371,6 +371,20 @@ public class ConversionUtils {
         }
       }
     }
+  }
+
+  private static boolean collisionEnergyCheck(BuildingImsMsMsInfo buildingInfo,
+      Float collissionEnergy) {
+    if (collissionEnergy == null && buildingInfo.getCollisionEnergy() == null) {
+      return true;
+    }
+    if (collissionEnergy == null || buildingInfo.getCollisionEnergy() == null) {
+      return false;
+    }
+    if (Float.compare(collissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
+      return true;
+    }
+    return false;
   }
 
   /**

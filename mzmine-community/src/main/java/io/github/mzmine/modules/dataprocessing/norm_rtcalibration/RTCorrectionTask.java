@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -103,8 +103,7 @@ class RTCorrectionTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running retention time normalizer");
-    Arrays.sort(originalFeatureLists,
-        Comparator.comparingInt(featureList -> featureList.getRows().size()));
+    Arrays.sort(originalFeatureLists, Comparator.comparingInt(ModularFeatureList::getNumberOfRows));
     totalRows = originalFeatureLists[0].getNumberOfRows();
     normalizedFeatureLists = new ModularFeatureList[originalFeatureLists.length];
 
@@ -212,8 +211,7 @@ class RTCorrectionTask extends AbstractTask {
       }
 
       ModularFeatureListRow normalizedRow = normalizeRow(normalizedFeatureList,
-          (ModularFeatureListRow) originalRow,
-          standards, normalizedStdRTs);
+          (ModularFeatureListRow) originalRow, standards, normalizedStdRTs);
       normalizedFeatureList.addRow(normalizedRow);
       processedRows++;
     }
@@ -282,7 +280,7 @@ class RTCorrectionTask extends AbstractTask {
 
     if (standards.length == 1) {
       return originalRT + (normalizedStdRTs[0] - standards[0].getAverageRT());
-    } else if (prevStdIndex == nextStdIndex) {
+    } else if (prevStdIndex == nextStdIndex && prevStdIndex != -1) {
       return normalizedStdRTs[prevStdIndex];
     } else if (prevStdIndex != -1 && nextStdIndex != -1) {
       double weight = (originalRT - standards[prevStdIndex].getAverageRT()) / (

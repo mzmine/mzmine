@@ -116,6 +116,7 @@ public class CompoundAnnotationViewBuilder extends FxViewBuilder<CompoundAnnotat
         .sorted(Comparator.comparing(DataType::getUniqueID)).toList();
 
     final BorderPane main = new BorderPane();
+    main.getStyleClass().add("region-match-chart-bg");
     final GridPane fields = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
     fields.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
 

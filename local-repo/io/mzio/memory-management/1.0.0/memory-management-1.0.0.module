@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "memory-management-1.0.0.jar",
           "url": "memory-management-1.0.0.jar",
-          "size": 4799,
-          "sha512": "02227496ebc91d66e9b0744a6cd30323a805be09fa99e1a5f60209247f0f6f4f448c98aee4603fd611ce2aacc8fd28cf9dd0624adf16532bf3157c10b8d9de12",
-          "sha256": "7a15b7e6e77bfe07f09bfbda92bf87ff7cfda5db840345b3c6fd801704498762",
-          "sha1": "6c375e6b7e40ceb60ec77b887f8fb642b1663c79",
-          "md5": "a4b4c7bdca3fc3abcba966313ae7499c"
+          "size": 4690,
+          "sha512": "dfebbcbe19608cf91654933f87b7185db987dd370624040097a25a34e0a5c0665278a1ba7745fd05f2c4248a09b900659ab8e01873fd265310a34b49698c88c2",
+          "sha256": "29e9e26f8c38c8e6f6925d2214df2befe35382581cc213547aee7367f35ea0b3",
+          "sha1": "8c522068351e67556057901a61f50f185ff77b77",
+          "md5": "3a9b4326d6fed70357effea372da2424"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -61,11 +61,11 @@
         {
           "name": "memory-management-1.0.0.jar",
           "url": "memory-management-1.0.0.jar",
-          "size": 4799,
-          "sha512": "02227496ebc91d66e9b0744a6cd30323a805be09fa99e1a5f60209247f0f6f4f448c98aee4603fd611ce2aacc8fd28cf9dd0624adf16532bf3157c10b8d9de12",
-          "sha256": "7a15b7e6e77bfe07f09bfbda92bf87ff7cfda5db840345b3c6fd801704498762",
-          "sha1": "6c375e6b7e40ceb60ec77b887f8fb642b1663c79",
-          "md5": "a4b4c7bdca3fc3abcba966313ae7499c"
+          "size": 4690,
+          "sha512": "dfebbcbe19608cf91654933f87b7185db987dd370624040097a25a34e0a5c0665278a1ba7745fd05f2c4248a09b900659ab8e01873fd265310a34b49698c88c2",
+          "sha256": "29e9e26f8c38c8e6f6925d2214df2befe35382581cc213547aee7367f35ea0b3",
+          "sha1": "8c522068351e67556057901a61f50f185ff77b77",
+          "md5": "3a9b4326d6fed70357effea372da2424"
         }
       ]
     }
