@@ -36,14 +36,14 @@ import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelectio
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelectionParameter;
 import org.jetbrains.annotations.NotNull;
 
-public class CVFilterParameters extends SimpleParameterSet {
+public class RsdFilterParameters extends SimpleParameterSet {
 
   public static final MetadataGroupSelectionParameter grouping = new MetadataGroupSelectionParameter(
       "Sample grouping", "Select the metadata group to calculate the CV for",
       new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
 
-  public static final PercentParameter maxCv = new PercentParameter("Maximum CV",
-      "Maximum allowed coefficient of variation (relative standard deviation) of a feature inside the the selected group.",
+  public static final PercentParameter maxCv = new PercentParameter("Maximum RSD",
+      "Maximum allowed relative standard deviation (coefficient of variation) of a feature inside the the selected group.",
       0.2, 0d, 10d);
 
   public static final AbundanceMeasureParameter abundanceMeasure = new AbundanceMeasureParameter(
@@ -54,7 +54,7 @@ public class CVFilterParameters extends SimpleParameterSet {
   public static final BooleanParameter keepUndetected = new BooleanParameter("Keep undetected",
       "Keep features that were not detected in the specified group in the feature list.", false);
 
-  public CVFilterParameters() {
+  public RsdFilterParameters() {
     super(grouping, maxCv, abundanceMeasure, keepUndetected);
   }
 

@@ -75,7 +75,7 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinde
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.CVFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RsdFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
@@ -939,13 +939,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     filterIsoParam.setParameter(Isotope13CFilterParameters.removeIfMainIs13CIsotope, true);
     filterIsoParam.setParameter(Isotope13CFilterParameters.elements, List.of(new Element("O")));
 
-    final CVFilterParameters cvFilter = param.getParameter(RowsFilterParameters.cvFilter)
+    final RsdFilterParameters cvFilter = param.getParameter(RowsFilterParameters.cvFilter)
         .getEmbeddedParameters();
-    cvFilter.setParameter(CVFilterParameters.abundanceMeasure, AbundanceMeasure.Area);
-    cvFilter.setParameter(CVFilterParameters.grouping,
+    cvFilter.setParameter(RsdFilterParameters.abundanceMeasure, AbundanceMeasure.Area);
+    cvFilter.setParameter(RsdFilterParameters.grouping,
         new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
-    cvFilter.setParameter(CVFilterParameters.keepUndetected, false);
-    cvFilter.setParameter(CVFilterParameters.maxCv, 0.2);
+    cvFilter.setParameter(RsdFilterParameters.keepUndetected, false);
+    cvFilter.setParameter(RsdFilterParameters.maxCv, 0.2);
     param.setParameter(RowsFilterParameters.cvFilter, false);
 
     //

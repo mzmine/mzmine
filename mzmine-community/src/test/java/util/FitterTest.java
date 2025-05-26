@@ -60,7 +60,7 @@ public class FitterTest {
         List.of(new GaussianPeak(), new GaussianDoublePeak(), new AsymmetricGaussianPeak()));
     Assertions.assertNotNull(fit);
     Assertions.assertEquals(PeakShapeClassification.DOUBLE_GAUSSIAN, fit.peakShapeClassification());
-    Assertions.assertEquals(0.9643966172323696, fit.rSquared());
+    Assertions.assertEquals(0.9643966172323696, fit.fitScore());
   }
 
   @Test
@@ -75,7 +75,7 @@ public class FitterTest {
 
     final FitQuality fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new GaussianPeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.6896750547021087, fit.rSquared(), 0.0000001);
+    Assertions.assertEquals(0.6896750547021087, fit.fitScore(), 0.0000001);
   }
 
   @Test
@@ -106,14 +106,14 @@ public class FitterTest {
 
     FitQuality fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new GaussianPeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.7930620129683198, fit.rSquared(), 0.0000001);
+    Assertions.assertEquals(0.7930620129683198, fit.fitScore(), 0.0000001);
 
     fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new AsymmetricGaussianPeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.9283789295872468, fit.rSquared(), 0.0000001);
+    Assertions.assertEquals(0.9283789295872468, fit.fitScore(), 0.0000001);
 
     fit = PeakFitterUtils.fitPeakModels(x, y, List.of(new GaussianDoublePeak()));
     Assertions.assertNotNull(fit);
-    Assertions.assertEquals(0.9332001170402136, fit.rSquared(), 0.0000001);
+    Assertions.assertEquals(0.9332001170402136, fit.fitScore(), 0.0000001);
   }
 }

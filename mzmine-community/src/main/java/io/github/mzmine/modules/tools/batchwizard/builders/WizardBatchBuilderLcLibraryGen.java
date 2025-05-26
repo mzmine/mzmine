@@ -98,7 +98,6 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
     var groupMs2Params = createMs2GrouperParameters();
     makeAndAddRtLocalMinResolver(q, groupMs2Params, minRtDataPoints, cropRtRange, rtFwhm,
         maxIsomersInRt);
-    makeAndAddFeatureFilterStep(q);
 
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
@@ -106,6 +105,8 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
       makeAndAddMobilityResolvingStep(q, groupMs2Params);
       makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
     }
+
+    makeAndAddFeatureFilterStep(q);
     // NO FILTERING FOR ISOTOPES
     makeAndAddIsotopeFinderStep(q);
 

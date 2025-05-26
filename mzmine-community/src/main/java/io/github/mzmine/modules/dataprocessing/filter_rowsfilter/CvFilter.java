@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CvType;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction;
-import io.github.mzmine.modules.dataanalysis.utils.imputation.OneFifthOfMinimumImputer;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ZeroImputer;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
 import io.github.mzmine.util.MathUtils;
 import java.util.List;
@@ -48,11 +48,11 @@ record CvFilter(double maxCvPercent, AbundanceMeasure abundanceMeasure, List<Raw
         .filter(file -> flist.getRawDataFiles().contains(file)).toList(), keepUndetected);
   }
 
-  public static CvFilter of(CVFilterParameters parameters, FeatureList flist) {
-    return new CvFilter(parameters.getValue(CVFilterParameters.grouping),
-        parameters.getValue(CVFilterParameters.maxCv),
-        parameters.getValue(CVFilterParameters.abundanceMeasure), flist,
-        parameters.getValue(CVFilterParameters.keepUndetected));
+  public static CvFilter of(RsdFilterParameters parameters, FeatureList flist) {
+    return new CvFilter(parameters.getValue(RsdFilterParameters.grouping),
+        parameters.getValue(RsdFilterParameters.maxCv),
+        parameters.getValue(RsdFilterParameters.abundanceMeasure), flist,
+        parameters.getValue(RsdFilterParameters.keepUndetected));
   }
 
   /**
@@ -60,7 +60,7 @@ record CvFilter(double maxCvPercent, AbundanceMeasure abundanceMeasure, List<Raw
    */
   public boolean matches(final FeatureListRow row) {
     final RealVector abundances = new ArrayRealVector(cvFiles.size());
-    final ImputationFunction imputer = new OneFifthOfMinimumImputer();
+    final ImputationFunction imputer = new ZeroImputer();
 
     for (int i = 0; i < cvFiles.size(); i++) {
       final RawDataFile qcFile = cvFiles.get(i);
@@ -70,7 +70,7 @@ record CvFilter(double maxCvPercent, AbundanceMeasure abundanceMeasure, List<Raw
     final boolean allNaN = IntStream.range(0, abundances.getDimension())
         .allMatch(i -> Double.isNaN(abundances.getEntry(i)));
     if (allNaN && !keepUndetected) {
-      // feature not detected in QCs, will not filter it out
+      // feature not detected in QCs, will filter it out
       return false;
     }
 

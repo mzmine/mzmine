@@ -28,8 +28,6 @@ package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -46,8 +44,6 @@ import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.util.ExitCode;
 import org.jetbrains.annotations.NotNull;
 
 public class RowsFilterParameters extends SimpleParameterSet {
@@ -117,9 +113,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "Keep or remove rows", "If selected, rows will be removed based on criteria instead of kept",
       RowsFilterChoices.values(), RowsFilterChoices.KEEP_MATCHING);
 
-  public static final OptionalModuleParameter<CVFilterParameters> cvFilter = new OptionalModuleParameter<>(
-      "CV filter", "Filter rows based on coefficient of variation in a specific sample group.",
-      (CVFilterParameters) new CVFilterParameters().cloneParameterSet(), false);
+  public static final OptionalModuleParameter<RsdFilterParameters> cvFilter = new OptionalModuleParameter<>(
+      "RSD filter",
+      "Filter rows based on relative standard deviation (coefficient of variation, CV) in a specific sample group.",
+      (RsdFilterParameters) new RsdFilterParameters().cloneParameterSet(), false);
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       true);

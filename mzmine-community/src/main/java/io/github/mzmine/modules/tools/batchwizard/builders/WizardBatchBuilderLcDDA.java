@@ -97,9 +97,9 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
       makeAndAddMobilityResolvingStep(q, groupMs2Params);
       makeAndAddSmoothingStep(q, rtSmoothing, minImsDataPoints, imsSmoothing);
     }
-    makeAndAddFeatureFilterStep(q);
 
     makeAndAddDeisotopingStep(q, intraSampleRtTol);
+    makeAndAddFeatureFilterStep(q);
     makeAndAddIsotopeFinderStep(q);
     makeAndAddJoinAlignmentStep(q, interSampleRtTol);
     makeAndAddRowFilterStep(q);
