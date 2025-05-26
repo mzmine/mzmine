@@ -290,6 +290,35 @@ public class MathUtils {
     return stdev;
   }
 
+  /**
+   * Only uses values in range
+   *
+   * @return relative Sample standard deviation (n-1) as RSD/mean
+   */
+  public static double calcRelativeStd(double[] values, int start, int endExclusive) {
+    final int count = endExclusive - start;
+    if (values.length == 0 || count <= 0) {
+      return 0;
+    }
+
+    double avg, stdev;
+    double sum = 0;
+    for (int i = start; i < endExclusive; i++) {
+      double d = values[i];
+      sum += d;
+    }
+    avg = sum / count;
+
+    sum = 0;
+    for (int i = start; i < endExclusive; i++) {
+      double d = values[i];
+      sum += Math.pow(d - avg, 2);
+    }
+
+    stdev = Math.sqrt(sum / (count - 1));
+    return stdev / avg;
+  }
+
   public static double calcCV(double[] values) {
 
     double avg, stdev;
