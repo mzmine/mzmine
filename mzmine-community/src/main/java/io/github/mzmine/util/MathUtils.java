@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -254,26 +254,39 @@ public class MathUtils {
     return retVals;
   }
 
+  /**
+   * @return Sample standard deviation (n-1)
+   */
   public static double calcStd(double[] values) {
     return calcStd(values, 0, values.length);
   }
 
-  public static double calcStd(double[] values, int start, int end) {
+  /**
+   * Only uses values in range
+   *
+   * @return Sample standard deviation (n-1)
+   */
+  public static double calcStd(double[] values, int start, int endExclusive) {
+    final int count = endExclusive - start;
+    if (values.length == 0 || count <= 0) {
+      return 0;
+    }
+
     double avg, stdev;
     double sum = 0;
-    for (int i = start; i < end; i++) {
+    for (int i = start; i < endExclusive; i++) {
       double d = values[i];
       sum += d;
     }
-    avg = sum / values.length;
+    avg = sum / count;
 
     sum = 0;
-    for (int i = start; i < end; i++) {
+    for (int i = start; i < endExclusive; i++) {
       double d = values[i];
-      sum += (d - avg) * (d - avg);
+      sum += Math.pow(d - avg, 2);
     }
 
-    stdev = Math.sqrt(sum / (values.length - 1));
+    stdev = Math.sqrt(sum / (count - 1));
     return stdev;
   }
 
