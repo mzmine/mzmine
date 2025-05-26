@@ -1077,8 +1077,10 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
       showCompactChromatographyColumns();
     }
 
-    // add rows
-    for (FeatureListRow row : newFeatureList.getRows()) {
+    // add rows sorted by descending height
+    final List<FeatureListRow> sortedRows = newFeatureList.getRows().stream()
+        .sorted(Comparator.comparingDouble(FeatureListRow::getMaxHeight).reversed()).toList();
+    for (FeatureListRow row : sortedRows) {
       final ModularFeatureListRow mrow = (ModularFeatureListRow) row;
       rowItems.add(new TreeItem<>(mrow));
     }
