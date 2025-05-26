@@ -27,6 +27,7 @@ package io.github.mzmine.util.javafx;
 
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
+import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.util.OtherFeatureSorter;
@@ -167,6 +168,12 @@ public class SortableOtherFeatureComboBox extends FlowPane {
       // check if we contain the feature in the filtered list. otherwise it will not keep the
       // filtering properly when changing the feature list/setting new items.
       otherFeatureBox.setValue(f);
+    } else if (filtered.contains(f.getOtherDataFile().getOtherTimeSeriesData()
+        .getPreProcessedFeaturesForTrace(f.get(RawTraceType.class)))) {
+      otherFeatureBox.setValue(f.getOtherDataFile().getOtherTimeSeriesData()
+          .getPreProcessedFeaturesForTrace(f.get(RawTraceType.class)));
+    } else if(filtered.contains(f.get(RawTraceType.class))) {
+      otherFeatureBox.setValue(f.get(RawTraceType.class));
     }
   }
 

@@ -187,6 +187,26 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
     }
   }
 
+  @Nullable
+  public OtherFeature getPreProcessedFeaturesForTrace(@Nullable OtherFeature rawTrace) {
+    if(rawTrace == null) {
+      return null;
+    }
+    final OtherFeature original = rawTrace.get(RawTraceType.class);
+    // in case a baseline corrected raw trace was given, get the raw trace of the baseline corrected one.
+    if (original != null) {
+      try (var _ = writeLock.lockRead()) {
+        return preprocessedTraces.stream()
+            .filter(f -> Objects.equals(f.get(RawTraceType.class), original)).findFirst().orElse(null);
+      }
+    }
+
+    try (var _ = writeLock.lockRead()) {
+      return preprocessedTraces.stream()
+          .filter(f -> Objects.equals(f.get(RawTraceType.class), rawTrace)).findFirst().orElse(null);
+    }
+  }
+
   @Override
   public void replaceProcessedFeaturesForTrace(OtherFeature rawTrace,
       @NotNull List<OtherFeature> newFeatures) {

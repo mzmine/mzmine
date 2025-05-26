@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,28 +22,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.otherdetectors;
+package io.github.mzmine.datamodel.features.types.numbers.scores;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import org.jetbrains.annotations.NotNull;
 
-public enum MsOtherCorrelationType implements UniqueIdSupplier {
-  MANUAL, CALCULATED;
-
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case MANUAL -> "Manual";
-      case CALCULATED -> "Calculated";
-    };
-  }
+public class CorrelationCoefficientType extends ScoreType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return switch (this) {
-      case MANUAL -> "MANUAL";
-      case CALCULATED -> "CALCULATED";
-    };
+    return "correlation_coefficient";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "R²";
   }
 }
