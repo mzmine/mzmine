@@ -156,6 +156,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     // GC-EI generates a lot of the same mz fragments and covers the whole RT range
     makeAndAddRtLocalMinResolver(q, null, minRtDataPoints, cropRtRange, rtFwhm, 100);
     makeSpectralDeconvolutionStep(q);
+    makeAndAddFeatureFilterStep(q);
+
     // RT calibration after deconvolution - otherwise features may be shifted in different directions
     if (recalibrateRetentionTime) {
       makeAndAddRetentionTimeCalibration(q, mzTolInterSample, interSampleRtTol,

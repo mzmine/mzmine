@@ -63,6 +63,9 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.S
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterChoices;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
@@ -72,6 +75,7 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinde
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RsdFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
@@ -151,9 +155,11 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizar
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -168,6 +174,7 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -217,6 +224,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final File[] libraries;
   //filter
   protected final boolean filter13C;
+  protected final boolean goodPeaksOnly;
   protected final AbsoluteAndRelativeInt minAlignedSamples;
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
   // IMS parameter currently all the same
@@ -278,6 +286,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     minAlignedSamples = getValue(params, FilterWizardParameters.minNumberOfSamples);
     handleOriginalFeatureLists = getValue(params,
         FilterWizardParameters.handleOriginalFeatureLists);
+    goodPeaksOnly = getValue(params, FilterWizardParameters.goodPeaksOnly);
 
     // ion mobility IMS
     params = steps.get(WizardPart.IMS);
@@ -930,6 +939,15 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     filterIsoParam.setParameter(Isotope13CFilterParameters.removeIfMainIs13CIsotope, true);
     filterIsoParam.setParameter(Isotope13CFilterParameters.elements, List.of(new Element("O")));
 
+    final RsdFilterParameters cvFilter = param.getParameter(RowsFilterParameters.cvFilter)
+        .getEmbeddedParameters();
+    cvFilter.setParameter(RsdFilterParameters.abundanceMeasure, AbundanceMeasure.Area);
+    cvFilter.setParameter(RsdFilterParameters.grouping,
+        new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
+    cvFilter.setParameter(RsdFilterParameters.keepUndetected, false);
+    cvFilter.setParameter(RsdFilterParameters.maxCv, 0.2);
+    param.setParameter(RowsFilterParameters.cvFilter, false);
+
     //
     param.setParameter(RowsFilterParameters.MZ_RANGE, false);
     param.setParameter(RowsFilterParameters.RT_RANGE, false);
@@ -949,6 +967,34 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(RowsFilterParameters.handleOriginal, handleOriginalFeatureLists);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(RowsFilterModule.class),
+        param));
+  }
+
+  protected void makeAndAddFeatureFilterStep(final BatchQueue q) {
+    if (!goodPeaksOnly) {
+      return;
+    }
+    final FeatureFilterParameters param = (FeatureFilterParameters) new FeatureFilterParameters().cloneParameterSet();
+
+    param.setParameter(FeatureFilterParameters.PEAK_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(FeatureFilterParameters.PEAK_DURATION, false);
+    param.setParameter(FeatureFilterParameters.PEAK_AREA, false);
+    param.setParameter(FeatureFilterParameters.PEAK_HEIGHT, false);
+    param.setParameter(FeatureFilterParameters.PEAK_DATAPOINTS, false);
+    param.setParameter(FeatureFilterParameters.PEAK_FWHM, false);
+    param.setParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR, false);
+    param.setParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR, false);
+    param.setParameter(FeatureFilterParameters.minRtShapeScore, goodPeaksOnly, 0.94);
+    param.setParameter(FeatureFilterParameters.minMobilityShapeScore, goodPeaksOnly && isImsActive,
+        0.94);
+    param.setParameter(FeatureFilterParameters.topToEdge, goodPeaksOnly, 2d);
+    param.setParameter(FeatureFilterParameters.keepMatching, FeatureFilterChoices.KEEP_MATCHING);
+    param.setParameter(FeatureFilterParameters.SUFFIX, "feat_filt");
+    param.setParameter(FeatureFilterParameters.AUTO_REMOVE, handleOriginalFeatureLists);
+    param.setParameter(FeatureFilterParameters.KEEP_MS2_ONLY, false);
+
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(FeatureFilterModule.class),
         param));
   }
 
