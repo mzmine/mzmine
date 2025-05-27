@@ -106,7 +106,7 @@ public class RowsFilterTask extends AbstractTask {
   private final Range<Float> fwhmRange;
   private final Isotope13CFilter isotope13CFilter;
   @Nullable
-  private final CvFilter cvFilter;
+  private final RsdFilter cvFilter;
   private AbsoluteAndRelativeInt minSamples;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
@@ -193,7 +193,7 @@ public class RowsFilterTask extends AbstractTask {
     fwhmRange = filterByFWHM ? RangeUtils.toFloatRange(
         parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue())
         : null;
-    cvFilter = filterByCv ? CvFilter.of(
+    cvFilter = filterByCv ? RsdFilter.of(
         (RsdFilterParameters) parameters.getEmbeddedParameterValue(RowsFilterParameters.cvFilter),
         origFeatureList) : null;
 

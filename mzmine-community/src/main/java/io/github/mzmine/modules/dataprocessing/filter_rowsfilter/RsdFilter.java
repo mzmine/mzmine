@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -39,17 +40,17 @@ import java.util.stream.IntStream;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
 
-record CvFilter(double maxCvPercent, AbundanceMeasure abundanceMeasure, List<RawDataFile> cvFiles,
-                boolean keepUndetected) {
+record RsdFilter(double maxCvPercent, AbundanceMeasure abundanceMeasure, List<RawDataFile> cvFiles,
+                 boolean keepUndetected) {
 
-  public CvFilter(MetadataGroupSelection metadataGrouping, double maxCv,
+  public RsdFilter(MetadataGroupSelection metadataGrouping, double maxCv,
       AbundanceMeasure abundanceMeasure, FeatureList flist, boolean keepUndetected) {
     this(maxCv, abundanceMeasure, metadataGrouping.getMatchingFiles().stream()
         .filter(file -> flist.getRawDataFiles().contains(file)).toList(), keepUndetected);
   }
 
-  public static CvFilter of(RsdFilterParameters parameters, FeatureList flist) {
-    return new CvFilter(parameters.getValue(RsdFilterParameters.grouping),
+  public static RsdFilter of(RsdFilterParameters parameters, FeatureList flist) {
+    return new RsdFilter(parameters.getValue(RsdFilterParameters.grouping),
         parameters.getValue(RsdFilterParameters.maxCv),
         parameters.getValue(RsdFilterParameters.abundanceMeasure), flist,
         parameters.getValue(RsdFilterParameters.keepUndetected));
@@ -80,7 +81,8 @@ record CvFilter(double maxCvPercent, AbundanceMeasure abundanceMeasure, List<Raw
     final double[] abundancesArray = abundances.toArray();
     final double avg = MathUtils.calcAvg(abundancesArray);
     final double sd = MathUtils.calcStd(abundancesArray);
-    final double rsd = sd / avg;
+    // RSD=0 for avg 0
+    final double rsd = Double.compare(avg, 0d) == 0 ? 0 : sd / avg;
 
     row.set(CvType.class, (float) rsd);
 
