@@ -1112,7 +1112,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(ImsExpanderParameters.useRawData, isNativeIms);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
     param.setParameter(ImsExpanderParameters.mzTolerance, mzTolScans);
-    param.setParameter(ImsExpanderParameters.mobilogramBinWidth, false);
+    // need to set SLIM specifically here, as it looks like TWIMS in the raw data.
+    param.setParameter(ImsExpanderParameters.mobilogramBinWidth, imsInstrumentType == MobilityType.SLIM, 10);
     param.setParameter(ImsExpanderParameters.maxNumTraces, false);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ImsExpanderModule.class),
