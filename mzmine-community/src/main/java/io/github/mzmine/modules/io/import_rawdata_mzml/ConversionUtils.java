@@ -526,7 +526,7 @@ public class ConversionUtils {
           }
           case MRM_SRM, SIM, SIC, BPC, EMISSION, ION_CURRENT, PRESSURE, FLOW_RATE, UNKNOWN -> chromatogramType;
           case ELECTROMAGNETIC_RADIATION -> ChromatogramType.ELECTROMAGNETIC_RADIATION;
-        }).get();
+        }).orElse(ChromatogramType.UNKNOWN);
   }
 
   /*
