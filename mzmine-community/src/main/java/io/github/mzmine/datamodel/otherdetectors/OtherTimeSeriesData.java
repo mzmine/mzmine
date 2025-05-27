@@ -95,7 +95,7 @@ public interface OtherTimeSeriesData {
   /**
    * @return The preprocessed traces for the given series, may be empty. The list is modifiable.
    */
-  @Nullable OtherFeature getPreProcessedFeaturesForTrace(@Nullable OtherFeature rawTrace);
+  @Nullable OtherFeature getPreProcessedFeatureForTrace(@Nullable OtherFeature rawTrace);
 
   void replaceProcessedFeaturesForTrace(OtherFeature rawTrace,
       @NotNull List<OtherFeature> newFeatures);

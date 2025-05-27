@@ -168,12 +168,19 @@ public class SortableOtherFeatureComboBox extends FlowPane {
       // check if we contain the feature in the filtered list. otherwise it will not keep the
       // filtering properly when changing the feature list/setting new items.
       otherFeatureBox.setValue(f);
-    } else if (filtered.contains(f.getOtherDataFile().getOtherTimeSeriesData()
-        .getPreProcessedFeaturesForTrace(f.get(RawTraceType.class)))) {
-      otherFeatureBox.setValue(f.getOtherDataFile().getOtherTimeSeriesData()
-          .getPreProcessedFeaturesForTrace(f.get(RawTraceType.class)));
-    } else if(filtered.contains(f.get(RawTraceType.class))) {
-      otherFeatureBox.setValue(f.get(RawTraceType.class));
+      return;
+    }
+
+    final OtherFeature rawTrace = f.get(RawTraceType.class);
+    if(filtered.contains(rawTrace)) {
+      otherFeatureBox.setValue(rawTrace);
+      return;
+    }
+
+    final OtherFeature preProcessedFeatureForTrace = f.getOtherDataFile().getOtherTimeSeriesData()
+        .getPreProcessedFeatureForTrace(rawTrace);
+    if (filtered.contains(preProcessedFeatureForTrace)) {
+      otherFeatureBox.setValue(preProcessedFeatureForTrace);
     }
   }
 

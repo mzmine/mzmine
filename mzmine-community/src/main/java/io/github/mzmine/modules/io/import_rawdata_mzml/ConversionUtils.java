@@ -518,28 +518,14 @@ public class ConversionUtils {
         .filter(cv -> ChromatogramType.ofAccession(cv.getAccession()) != ChromatogramType.UNKNOWN)
         .map(cv -> ChromatogramType.ofAccession(cv.getAccession())).findFirst()
         .map(chromatogramType -> switch (chromatogramType) {
-          case TIC -> {
+          case TIC, ABSORPTION -> {
             if(c.getId().contains("CAD")) {
               yield ChromatogramType.ION_CURRENT;
             }
-            yield ChromatogramType.TIC;
+            yield chromatogramType;
           }
-          case MRM_SRM -> ChromatogramType.MRM_SRM;
-          case SIM -> ChromatogramType.SIM;
-          case SIC -> ChromatogramType.SIC;
-          case BPC -> ChromatogramType.BPC;
+          case MRM_SRM, SIM, SIC, BPC, EMISSION, ION_CURRENT, PRESSURE, FLOW_RATE, UNKNOWN -> chromatogramType;
           case ELECTROMAGNETIC_RADIATION -> ChromatogramType.ELECTROMAGNETIC_RADIATION;
-          case ABSORPTION -> {
-            if(c.getId().contains("CAD")) {
-              yield ChromatogramType.ION_CURRENT;
-            }
-            yield ChromatogramType.ABSORPTION;
-          }
-          case EMISSION -> ChromatogramType.EMISSION;
-          case ION_CURRENT -> ChromatogramType.ION_CURRENT;
-          case PRESSURE -> ChromatogramType.PRESSURE;
-          case FLOW_RATE -> ChromatogramType.FLOW_RATE;
-          case UNKNOWN -> ChromatogramType.UNKNOWN;
         }).get();
   }
 

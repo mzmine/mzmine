@@ -37,22 +37,25 @@ import org.jfree.chart.renderer.xy.SamplingXYLineRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.data.xy.XYDataset;
 
+/**
+ * A line renderer that does not draw every point, but checks first if it would make a difference to
+ * draw that point.
+ */
 public class ColoredXYSamplingLineRenderer extends SamplingXYLineRenderer {
 
   XYDataset currentDataset;
   private final double dpi = 150;
 
   @Override
-  public XYItemRendererState initialise(Graphics2D g2,
-      Rectangle2D dataArea, XYPlot plot, XYDataset data,
-      PlotRenderingInfo info) {
+  public XYItemRendererState initialise(Graphics2D g2, Rectangle2D dataArea, XYPlot plot,
+      XYDataset data, PlotRenderingInfo info) {
 
     State state = (State) super.initialise(g2, dataArea, plot, data, info);
 
     try {
       final Field dX = state.getClass().getDeclaredField("dX");
       dX.setAccessible(true);
-      dX.setDouble(state, 72d/dpi);
+      dX.setDouble(state, 72d / dpi);
     } catch (NoSuchFieldException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
