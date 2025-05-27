@@ -136,17 +136,17 @@ public class OtherTraceSelectionComponent extends VBox implements
   }
 
   public void setValue(final OtherTraceSelection value) {
-    chromType.set(ChromatogramTypeChoices.fromChromatogramType(value.getChromatogramType()));
+    chromType.set(ChromatogramTypeChoices.fromChromatogramType(value.chromatogramType()));
     // replace the wildcard filter with the gui representation
     rangeUnitFilter.set(
-        value.getRangeUnitFilter() != null ? value.getRangeUnitFilter().replaceAll("\\*\\.", "*")
+        value.rangeUnitFilter() != null ? value.rangeUnitFilter().replaceAll("\\*\\.", "*")
             : "");
     rangeLabelFilter.set(
-        value.getRangeLabelFilter() != null ? value.getRangeLabelFilter().replaceAll("\\*\\.", "*")
+        value.rangeLabelFilter() != null ? value.rangeLabelFilter().replaceAll("\\*\\.", "*")
             : "");
-    descriptionFilter.set(value.getDescriptionFilter() != null ? value.getDescriptionFilter()
+    descriptionFilter.set(value.descriptionFilter() != null ? value.descriptionFilter()
         .replaceAll("\\*\\.", "*") : "");
-    rawOrProcessed.set(value.getRawOrProcessed());
+    rawOrProcessed.set(value.rawOrProcessed());
   }
 
   /**
