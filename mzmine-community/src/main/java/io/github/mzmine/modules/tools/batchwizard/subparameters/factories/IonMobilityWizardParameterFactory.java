@@ -40,7 +40,7 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
    * TIMS actually is a different workflow than the rest. slight changes because of MS2 acquisition
    * in PASEF
    */
-  TIMS, IMS, DTIMS, TWIMS;
+  TIMS, IMS, DTIMS, TWIMS, SLIM;
 
   @Override
   public String toString() {
@@ -49,6 +49,7 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
       case TIMS, IMS -> super.toString();
       case DTIMS -> "DTIMS";
       case TWIMS -> "TWIMS";
+      case SLIM -> "SLIM";
     };
   }
 
@@ -65,6 +66,7 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
           new IonMobilityWizardParameters(this, 4, 0.7, true, true, MobilityType.DRIFT_TUBE);
       case TWIMS ->
           new IonMobilityWizardParameters(this, 4, 0.4, true, true, MobilityType.TRAVELING_WAVE);
+      case SLIM -> new IonMobilityWizardParameters(this, 5, 4, true, true, MobilityType.SLIM);
     };
   }
 
@@ -81,7 +83,7 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
    */
   public MassSpectrometerWizardParameterFactory[] getMatchingMassSpectrometerPresets() {
     return switch (this) {
-      case TWIMS, DTIMS ->
+      case TWIMS, DTIMS, SLIM ->
           new MassSpectrometerWizardParameterFactory[]{MassSpectrometerWizardParameterFactory.QTOF};
       case TIMS ->
           new MassSpectrometerWizardParameterFactory[]{MassSpectrometerWizardParameterFactory.QTOF,

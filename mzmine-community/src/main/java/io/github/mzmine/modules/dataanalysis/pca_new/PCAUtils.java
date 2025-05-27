@@ -52,7 +52,7 @@ public class PCAUtils {
   public static PCAResult quickPCA(RealMatrix data, ScalingFunction scalingFunction) {
 
     logger.finest(() -> "Performing scaling and centering");
-    final RealMatrix centeredMatrix = StatisticUtils.centerAndScale(data, scalingFunction, false);
+    final RealMatrix centeredMatrix = StatisticUtils.scaleAndCenter(data, scalingFunction, false);
 
     logger.finest(() -> "Performing singular value decomposition. This may take a while");
     SingularValueDecomposition svd = new SingularValueDecomposition(centeredMatrix);

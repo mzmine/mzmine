@@ -25,6 +25,26 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
-public enum MsOtherCorrelationType {
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
+
+public enum MsOtherCorrelationType implements UniqueIdSupplier {
   MANUAL, CALCULATED;
+
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case MANUAL -> "Manual";
+      case CALCULATED -> "Calculated";
+    };
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case MANUAL -> "MANUAL";
+      case CALCULATED -> "CALCULATED";
+    };
+  }
 }

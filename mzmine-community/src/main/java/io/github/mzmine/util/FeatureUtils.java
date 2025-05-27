@@ -176,6 +176,7 @@ public class FeatureUtils {
    *
    * @return True if identities match between rows
    */
+  @Deprecated
   public static boolean compareIdentities(FeatureListRow row1, FeatureListRow row2) {
 
     if ((row1 == null) || (row2 == null)) {
@@ -781,7 +782,7 @@ public class FeatureUtils {
               yield featureAnnotations.stream().map(FeatureAnnotation::getAdductType);
             }
           };
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
 
     if(row.getBestIonIdentity() != null) {
       final IonType ionType = row.getBestIonIdentity().getIonType();
