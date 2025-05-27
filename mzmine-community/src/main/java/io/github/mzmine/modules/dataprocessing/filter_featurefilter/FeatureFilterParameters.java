@@ -93,7 +93,7 @@ public class FeatureFilterParameters extends SimpleParameterSet {
           ConfigService.getGuiFormats().scoreFormat(), 0.94, 0d, 1d), false);
 
   public static final OptionalParameter<DoubleParameter> minMobilityShapeScore = new OptionalParameter<>(
-      new DoubleParameter("Minimum mobility shape score",
+      new DoubleParameter("Minimum mobilogram shape score",
           "Define how well the mobilogram shape of a feature must fit to a gaussian or bi-gaussian peak.\nPeaks with less than 5 points will be removed without attempting a fit.",
           ConfigService.getGuiFormats().scoreFormat(), 0.94, 0d, 1d), false);
 
