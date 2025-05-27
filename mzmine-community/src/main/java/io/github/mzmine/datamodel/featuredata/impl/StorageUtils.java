@@ -239,6 +239,10 @@ public class StorageUtils {
   public static MemorySegment allocateSegment(@Nullable final MemoryMapStorage storage,
       @NotNull final MemoryLayout layout, int numValues) {
 
+    if(numValues == 0) {
+      return EMPTY_DOUBLE_SEGMENT;
+    }
+
     MemorySegment buffer;
     if (storage != null) {
       buffer = storage.allocateMemorySegment(layout, numValues);
