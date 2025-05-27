@@ -40,8 +40,8 @@ import org.jetbrains.annotations.NotNull;
 public class ExternalRowHtmlVisualizerModule extends AbstractRunnableModule {
 
   public ExternalRowHtmlVisualizerModule() {
-    super("MASST dashboard", StatsDashboardParameters.class, MZmineModuleCategory.DATAANALYSIS,
-        "Overview Mass Spectrometry Search Tool (MASST) results.");
+    super("External feature HTML visualizer", StatsDashboardParameters.class,
+        MZmineModuleCategory.VISUALIZATIONFEATURELIST, "External Feature HTML visualizer.");
   }
 
   @Override

@@ -26,16 +26,42 @@
 package io.github.mzmine.modules.visualization.external_row_html;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.StringUtils;
+import java.io.File;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class ExternalRowHtmlVisualizerModel {
 
-  private final StringProperty masstFile = new SimpleStringProperty(
-      "D:/git/mzmine3/mzmine-community/src/test/resources/modules/id_masst_meta/combined.html");
+  private final StringProperty externalFolder = new SimpleStringProperty(
+      "D:/git/mzmine3/mzmine-community/src/test/resources/modules/id_masst_meta/");
+
   private final ObjectProperty<FeatureListRow> selectedRow = new SimpleObjectProperty<>();
+  private final ObservableValue<String> selectedRowFullId;
+
+  /**
+   * Choices of external html files matching the selected row
+   */
+  private final ObservableList<String> htmlChoices = FXCollections.observableArrayList();
+  /**
+   * Defines the simple html without the rowID
+   */
+  private final StringProperty selectedHtml = new SimpleStringProperty();
+  /**
+   * Defines the full external html file: folder/selectedRowFullID selectedHTML
+   */
+  private final Property<File> selectedFullHtml = new SimpleObjectProperty<>();
+
+  public ExternalRowHtmlVisualizerModel() {
+    selectedRowFullId = selectedRow.map(FeatureUtils::rowToFullId).orElse("");
+  }
 
   public FeatureListRow getSelectedRow() {
     return selectedRow.get();
@@ -49,15 +75,47 @@ public class ExternalRowHtmlVisualizerModel {
     this.selectedRow.set(selectedRow);
   }
 
-  public String getMasstFile() {
-    return masstFile.get();
+  public String getExternalFolder() {
+    return externalFolder.get();
   }
 
-  public void setMasstFile(final String masstFile) {
-    this.masstFile.set(masstFile);
+  public void setExternalFolder(final String externalFolder) {
+    this.externalFolder.set(externalFolder);
   }
 
-  public StringProperty masstFileProperty() {
-    return masstFile;
+  public StringProperty externalFolderProperty() {
+    return externalFolder;
+  }
+
+  public String getSelectedRowFullId() {
+    return selectedRowFullId.getValue();
+  }
+
+  public ObservableValue<String> selectedRowFullIdProperty() {
+    return selectedRowFullId;
+  }
+
+  public ObservableList<String> getHtmlChoices() {
+    return htmlChoices;
+  }
+
+  public File getExternalFolderAsFile() {
+    return StringUtils.isBlank(externalFolder.get()) ? null : new File(externalFolder.get());
+  }
+
+  public String getSelectedHtml() {
+    return selectedHtml.get();
+  }
+
+  public StringProperty selectedHtmlProperty() {
+    return selectedHtml;
+  }
+
+  public File getSelectedFullHtml() {
+    return selectedFullHtml.getValue();
+  }
+
+  public Property<File> selectedFullHtmlProperty() {
+    return selectedFullHtml;
   }
 }

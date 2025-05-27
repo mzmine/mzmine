@@ -29,17 +29,75 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.util.StringUtils;
+import java.io.File;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class ExternalRowHtmlVisualizerController extends
     FxController<ExternalRowHtmlVisualizerModel> implements FeatureRowInterfaceFx {
 
+  private static final Logger logger = Logger.getLogger(
+      ExternalRowHtmlVisualizerController.class.getName());
   private final ExternalRowHtmlVisualizerViewBuilder viewBuilder;
 
   public ExternalRowHtmlVisualizerController() {
     super(new ExternalRowHtmlVisualizerModel());
     viewBuilder = new ExternalRowHtmlVisualizerViewBuilder(model);
+
+    PropertyUtils.onChange(this::updateSelection, model.selectedRowFullIdProperty(),
+        model.externalFolderProperty());
+    PropertyUtils.onChange(this::bindFullHtmlPath, model.selectedRowFullIdProperty(),
+        model.externalFolderProperty(), model.selectedHtmlProperty());
+  }
+
+  private void bindFullHtmlPath() {
+    final String folder = model.getExternalFolder();
+    final String rowid = model.selectedRowFullIdProperty().getValue();
+    final String selected = model.getSelectedHtml();
+    if (StringUtils.hasValues(folder, rowid, selected)) {
+      File full = Path.of(folder, rowid + selected).toFile();
+      model.selectedFullHtmlProperty().setValue(full);
+    } else {
+      model.selectedFullHtmlProperty().setValue(null);
+    }
+  }
+
+  private void updateSelection() {
+    final String folder = model.getExternalFolder();
+    final String rowid = model.selectedRowFullIdProperty().getValue();
+    String selected = model.getSelectedHtml();
+
+    List<String> choices = new ArrayList<>();
+    if (StringUtils.hasValue(folder) && StringUtils.hasValue(rowid)) {
+      try (Stream<Path> paths = Files.walk(Path.of(folder), 1, FileVisitOption.FOLLOW_LINKS)) {
+        final List<String> externalResourcesSimple = paths.filter(Files::isRegularFile)
+            .map(p -> p.getFileName().toString()).filter(name -> {
+              final String lowerName = name.toLowerCase();
+              return lowerName.startsWith(rowid) && lowerName.matches(".*\\.(html|htm)");
+            })
+            // remove row ID prefix for choices box
+            .map(name -> name.substring(rowid.length())).toList();
+        choices.addAll(externalResourcesSimple);
+      } catch (Exception e) {
+        logger.log(Level.WARNING, e.getMessage(), e);
+      }
+    }
+
+    model.getHtmlChoices().setAll(choices);
+    // set different selected if not in choices
+    if (StringUtils.isBlank(selected) || !choices.contains(selected)) {
+      selected = choices.isEmpty() ? null : choices.getFirst();
+      model.selectedHtmlProperty().set(selected);
+    }
   }
 
   @Override

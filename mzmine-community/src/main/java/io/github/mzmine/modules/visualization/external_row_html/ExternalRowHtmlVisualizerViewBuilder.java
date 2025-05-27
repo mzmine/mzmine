@@ -26,18 +26,26 @@
 package io.github.mzmine.modules.visualization.external_row_html;
 
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.util.FeatureUtils;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.logging.Logger;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
-import javafx.stage.FileChooser;
+import javafx.stage.DirectoryChooser;
 import org.jetbrains.annotations.NotNull;
 
 public class ExternalRowHtmlVisualizerViewBuilder extends
     FxViewBuilder<ExternalRowHtmlVisualizerModel> {
+
+  private static final Logger logger = Logger.getLogger(
+      ExternalRowHtmlVisualizerViewBuilder.class.getName());
 
   public ExternalRowHtmlVisualizerViewBuilder(final @NotNull ExternalRowHtmlVisualizerModel model) {
     super(model);
@@ -46,24 +54,48 @@ public class ExternalRowHtmlVisualizerViewBuilder extends
   @Override
   public Region build() {
     var web = new WebView();
-    model.masstFileProperty().subscribe(file -> {
+    model.selectedFullHtmlProperty().subscribe(file -> {
       try {
         if (file != null) {
-          web.getEngine().load(new File(file).toURI().toURL().toExternalForm());
+          logger.finest("Trying to open external file: " + file.getAbsolutePath());
+          web.getEngine().load(file.toURI().toURL().toExternalForm());
+          web.setVisible(true);
+        } else {
+          web.setVisible(false);
         }
       } catch (MalformedURLException e) {
         throw new RuntimeException(e);
       }
     });
     var main = FxLayout.newBorderPane(web);
-    main.setTop(FxLayout.newHBox(
-        FxTextFields.newTextField(30, model.masstFileProperty(), "Local MASST file"),
-        FxButtons.createButton("Select", "", () -> {
-          var file = new FileChooser().showOpenDialog(main.getScene().getWindow());
-          if (file != null) {
-            model.setMasstFile(file.getAbsolutePath());
-          }
-        })));
+    main.setTop(createTopMenu(main));
+
+    // there may be multiple
     return main;
+  }
+
+  private @NotNull FlowPane createTopMenu(BorderPane main) {
+    final String tooltip = """
+        Select a directory that contains external HTML files with the following naming pattern which points to a specific feature row ID and resource:
+        %s""".formatted(FeatureUtils.rowToFullIdDescription());
+
+    return FxLayout.newFlowPane(
+        FxTextFields.newTextField(30, model.externalFolderProperty(), tooltip),
+        FxButtons.createButton("Select directory", tooltip, () -> {
+          final DirectoryChooser chooser = new DirectoryChooser();
+          chooser.setTitle("Select external directory with HTML resources");
+          final File externalFolder = model.getExternalFolderAsFile();
+          if (externalFolder != null) {
+            chooser.setInitialDirectory(externalFolder);
+          }
+          var file = chooser.showDialog(main.getScene().getWindow());
+          if (file != null) {
+            model.setExternalFolder(file.getAbsolutePath());
+          }
+        }),
+        // might have multiple html resources for each feature
+        FxComboBox.newSearchableComboBox(
+            "Select the external HTML resource for the selected feature. Depends on the correct folder.",
+            model.getHtmlChoices(), model.selectedHtmlProperty()));
   }
 }

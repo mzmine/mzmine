@@ -30,7 +30,7 @@ import io.github.mzmine.gui.mainwindow.SimpleTab;
 public class ExternalRowHtmlVisualizerTab extends SimpleTab {
 
   public ExternalRowHtmlVisualizerTab() {
-    super("MASST");
+    super("External feature HTML");
 
     ExternalRowHtmlVisualizerController controller = new ExternalRowHtmlVisualizerController();
     setContent(controller.getViewBuilder().build());
