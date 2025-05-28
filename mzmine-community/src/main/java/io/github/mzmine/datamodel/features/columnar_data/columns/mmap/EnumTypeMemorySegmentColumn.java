@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -38,21 +39,22 @@ import org.jetbrains.annotations.Nullable;
  */
 public class EnumTypeMemorySegmentColumn<T extends Enum<T>> extends AbstractMemorySegmentColumn<T> {
 
+  @NotNull
   private final Class<T> clazz;
 
   /**
    * @param enumType any enum data type
    */
-  public EnumTypeMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity,
-      EnumDataType<T> enumType) {
+  public EnumTypeMemorySegmentColumn(@NotNull final MemoryMapStorage storage, int initialCapacity,
+      @NotNull EnumDataType<T> enumType) {
     this(storage, initialCapacity, enumType.getValueClass());
   }
 
   /**
    * @param clazz the value class for example of {@link EnumDataType}
    */
-  public EnumTypeMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity,
-      Class<T> clazz) {
+  public EnumTypeMemorySegmentColumn(@NotNull final MemoryMapStorage storage, int initialCapacity,
+      @NotNull Class<T> clazz) {
     super(storage, initialCapacity);
     this.clazz = clazz;
   }
@@ -62,7 +64,7 @@ public class EnumTypeMemorySegmentColumn<T extends Enum<T>> extends AbstractMemo
   }
 
   @Override
-  protected ValueLayout getValueLayout() {
+  protected @NotNull ValueLayout getValueLayout() {
     return ValueLayout.JAVA_INT;
   }
 
@@ -76,7 +78,7 @@ public class EnumTypeMemorySegmentColumn<T extends Enum<T>> extends AbstractMemo
   }
 
   @Override
-  public void set(final MemorySegment data, final int index, final T value) {
+  public void set(final @NotNull MemorySegment data, final int index, final T value) {
     data.setAtIndex(ValueLayout.JAVA_INT, index, value == null ? -1 : value.ordinal());
   }
 

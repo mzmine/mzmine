@@ -90,8 +90,8 @@ public class ColumnarModularDataModelSchema {
 
   protected final String modelName;
 
-  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> dataTypeValueChangedListeners = new ConcurrentHashMap<>();
-  private final List<DataTypesChangedListener> dataTypesChangeListeners = new CopyOnWriteArrayList<>();
+  private final @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> dataTypeValueChangedListeners = new ConcurrentHashMap<>();
+  private final @NotNull List<DataTypesChangedListener> dataTypesChangeListeners = new CopyOnWriteArrayList<>();
 
   public ColumnarModularDataModelSchema(final MemoryMapStorage storage, String modelName,
       int initialSize) {
@@ -100,7 +100,7 @@ public class ColumnarModularDataModelSchema {
     columnLength = initialSize;
   }
 
-  public boolean containsDataType(final DataType type) {
+  public boolean containsDataType(@NotNull final DataType type) {
     return columns.containsKey(type);
   }
 
@@ -139,7 +139,7 @@ public class ColumnarModularDataModelSchema {
     }
   }
 
-  protected DataColumn getColumn(final DataType type) {
+  protected <T> DataColumn<T> getColumn(@NotNull final DataType<T> type) {
     return columns.get(type);
   }
 
@@ -187,16 +187,39 @@ public class ColumnarModularDataModelSchema {
     }
   }
 
+  /**
+   * @return A map of listeners for values of specific data types.
+   */
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
     return dataTypeValueChangedListeners;
   }
 
-  public void addDataTypesChangeListener(DataTypesChangedListener listener) {
+  /**
+   * @param listener The listener to add. null will be ignored. Will react to added or removed data
+   *                 types, not edited values.
+   */
+  public void addDataTypesChangeListener(@Nullable DataTypesChangedListener listener) {
+    if (listener == null) {
+      return;
+    }
     dataTypesChangeListeners.add(listener);
   }
 
-  public List<DataTypesChangedListener> getDataTypesChangeListeners() {
+  /**
+   * @return All current data types listeners.
+   */
+  public @NotNull List<DataTypesChangedListener> getDataTypesChangeListeners() {
     return dataTypesChangeListeners;
+  }
+
+  /**
+   * @param listener The listener to remove. Null will be ignored.
+   */
+  public void removeDataTypesChangeListener(@Nullable DataTypesChangedListener listener) {
+    if (listener == null) {
+      return;
+    }
+    dataTypesChangeListeners.remove(listener);
   }
 
   public boolean isEmpty() {
@@ -215,7 +238,7 @@ public class ColumnarModularDataModelSchema {
    * @param type     the type for the column
    * @param value    the value to set
    * @param <T>      value type
-   * @return the old value mapping
+   * @return true if the value was updated, false otherwise.
    */
   public <T> boolean set(final ModularDataModel model, final int rowIndex, DataType<T> type,
       T value) {
@@ -246,14 +269,12 @@ public class ColumnarModularDataModelSchema {
 
     if (!Objects.equals(old, value)) {
       List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(type);
-      if (!Objects.equals(old, value)) {
-        if (listeners != null) {
-          for (DataTypeValueChangeListener listener : listeners) {
-            listener.valueChanged(model, type, old, value);
-          }
+      if (listeners != null) {
+        for (DataTypeValueChangeListener listener : listeners) {
+          listener.valueChanged(model, type, old, value);
         }
-        return true;
       }
+      return true;
     }
     return false;
   }

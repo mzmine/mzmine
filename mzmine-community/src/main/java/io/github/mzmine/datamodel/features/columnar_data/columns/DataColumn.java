@@ -38,6 +38,11 @@ public sealed interface DataColumn<T> permits AbstractDataColumn, NullableDouble
 
   @Nullable T get(final int index);
 
+  /**
+   *
+   * @param value the new value to set
+   * @return The old value or null.
+   */
   @Nullable T set(final int index, final @Nullable T value);
 
   /**

@@ -36,6 +36,7 @@ import java.lang.foreign.MemoryLayout.PathElement;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.StructLayout;
 import java.lang.invoke.VarHandle;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AlignmentScoreMemorySegmentColumn extends
@@ -72,12 +73,12 @@ public class AlignmentScoreMemorySegmentColumn extends
   private static final VarHandle maxMobilityDeltaHandle = LAYOUT.arrayElementVarHandle(
       PathElement.groupElement("maxMobilityDelta"));
 
-  public AlignmentScoreMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+  public AlignmentScoreMemorySegmentColumn(final @NotNull MemoryMapStorage storage, int initialCapacity) {
     super(storage, initialCapacity);
   }
 
   @Override
-  protected MemoryLayout getValueLayout() {
+  protected @NotNull MemoryLayout getValueLayout() {
     return LAYOUT;
   }
 
@@ -101,7 +102,7 @@ public class AlignmentScoreMemorySegmentColumn extends
   }
 
   @Override
-  public void set(final MemorySegment data, final int index, final AlignmentScores value) {
+  public void set(@NotNull final MemorySegment data, final int index, final AlignmentScores value) {
     if (value == null) {
       rateHandle.set(data, 0L, index, Float.NaN);
       return;

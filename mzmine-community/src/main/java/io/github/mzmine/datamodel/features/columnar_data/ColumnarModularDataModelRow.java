@@ -42,10 +42,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ColumnarModularDataModelRow implements ModularDataModel {
 
+  @NotNull
   protected final ColumnarModularDataModelSchema schema;
   protected final int modelRowIndex;
 
-  public ColumnarModularDataModelRow(final ColumnarModularDataModelSchema schema) {
+  public ColumnarModularDataModelRow(@NotNull final ColumnarModularDataModelSchema schema) {
     this.schema = schema;
     modelRowIndex = schema.addRowGetIndex();
   }
@@ -76,7 +77,7 @@ public class ColumnarModularDataModelRow implements ModularDataModel {
   }
 
   @Override
-  public <T> void remove(DataType<T> type) {
+  public <T> void remove(@NotNull DataType<T> type) {
     // cannot completely remove the type from the schema - this should be called directly on the schema
     // so on a row we can only set null
     set(type, null);

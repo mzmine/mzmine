@@ -25,19 +25,23 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.features.columnar_data.columns.AbstractDataColumn;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<T> {
 
   protected static final int SIZE_MULTIPLIER = 4;
+
+  @NotNull
   protected final MemoryMapStorage storage;
   protected volatile MemorySegment data;
 
-  public AbstractMemorySegmentColumn(final MemoryMapStorage storage, final int initialCapacity) {
+  public AbstractMemorySegmentColumn(@NotNull final MemoryMapStorage storage, final int initialCapacity) {
     this.storage = storage;
     ensureCapacity(initialCapacity);
   }
@@ -55,8 +59,9 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
    *
    * @param data a memory segment
    */
-  protected abstract void set(final MemorySegment data, final int index, final T value);
+  protected abstract void set(final @NotNull MemorySegment data, final int index, final T value);
 
+  @NotNull
   protected abstract MemoryLayout getValueLayout();
 
   /**
@@ -66,7 +71,7 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
    * @param startInclusive the start index
    * @param endExclusive   the end index excluded to be set
    */
-  protected void clearRange(final MemorySegment data, final int startInclusive,
+  protected void clearRange(final @NotNull MemorySegment data, final int startInclusive,
       final int endExclusive) {
     for (int i = startInclusive; i < endExclusive; i++) {
       clear(data, i);
@@ -77,7 +82,7 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
    * @param data  backing data to clear
    * @param index element to clear
    */
-  protected void clear(final MemorySegment data, final int index) {
+  protected void clear(final @NotNull MemorySegment data, final int index) {
     set(data, index, null);
   }
 
@@ -98,6 +103,7 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
     if (capacity >= finalSize) {
       return false;
     }
+
     MemorySegment newData = storage.allocateMemorySegment(getValueLayout(), finalSize);
     clearRange(newData, capacity, finalSize);
     if (data != null) {
