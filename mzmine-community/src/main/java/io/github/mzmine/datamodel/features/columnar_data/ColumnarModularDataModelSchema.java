@@ -161,14 +161,23 @@ public class ColumnarModularDataModelSchema {
    */
   public int addRowGetIndex() {
     final int index = nextRow.getAndIncrement();
+    if (index < 0) {
+      // overflow detected
+      // trap forever in negative
+      nextRow.set(Integer.MIN_VALUE);
+      throw new IndexOutOfBoundsException(
+          "Index out of bounds. Data model has reached its maximum number of rows. This may point to too much noise being detected. Revise parameters.");
+    }
+
     final int currentColumnLength = columnLength;
     if (index >= currentColumnLength) {
       // double size of columns
       // apply some minimum and maximum resize
 
-      final int newSize =
-          currentColumnLength + MathUtils.withinBounds((int) (currentColumnLength * 1d), 10,
-              250000);
+      // avoid int overflow
+      final int newSize = MathUtils.capMaxInt(
+          (long) currentColumnLength + MathUtils.withinBounds((int) (currentColumnLength * 1d), 10,
+              250000));
       resizeColumnsTo(newSize);
     }
     return index;

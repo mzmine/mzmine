@@ -25,8 +25,8 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
-import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.features.columnar_data.columns.AbstractDataColumn;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
@@ -41,7 +41,8 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
   protected final MemoryMapStorage storage;
   protected volatile MemorySegment data;
 
-  public AbstractMemorySegmentColumn(@NotNull final MemoryMapStorage storage, final int initialCapacity) {
+  public AbstractMemorySegmentColumn(@NotNull final MemoryMapStorage storage,
+      final int initialCapacity) {
     this.storage = storage;
     ensureCapacity(initialCapacity);
   }
@@ -89,7 +90,8 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
   @Override
   public boolean ensureCapacity(final int requiredCapacity) {
     if (requiredCapacity > capacity()) {
-      return resizeTo(requiredCapacity * SIZE_MULTIPLIER);
+      // avoid int overflow
+      return resizeTo(MathUtils.capMaxInt((long) requiredCapacity * SIZE_MULTIPLIER));
     }
     return false;
   }
@@ -120,6 +122,7 @@ public abstract class AbstractMemorySegmentColumn<T> extends AbstractDataColumn<
     if (data == null) {
       return 0;
     }
-    return (int) (data.byteSize() / getValueLayout().byteSize());
+    // should always be the same as a direct cast but the maximum capacity is always an int
+    return MathUtils.capMaxInt(data.byteSize() / getValueLayout().byteSize());
   }
 }
