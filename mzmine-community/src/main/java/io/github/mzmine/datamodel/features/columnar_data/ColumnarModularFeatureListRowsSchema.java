@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A specific implementation of a columnar data model for {@link FeatureListRow}s. This also links
@@ -55,7 +56,7 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
    */
   private final Map<RawDataFile, DataColumn<ModularFeature>> filesToFeaturesColumn;
 
-  public ColumnarModularFeatureListRowsSchema(@NotNull final MemoryMapStorage storage,
+  public ColumnarModularFeatureListRowsSchema(@Nullable final MemoryMapStorage storage,
       final String modelName, final int initialSize, @NotNull List<RawDataFile> dataFiles) {
     super(storage, modelName, initialSize);
 
@@ -63,12 +64,13 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
 
     filesToFeaturesColumn = LinkedHashMap.newLinkedHashMap(dataFiles.size());
     for (final RawDataFile raw : dataFiles) {
-      filesToFeaturesColumn.put(raw, DataColumns.ofSynchronized(new ObjectArrayColumn<>(initialSize)));
+      filesToFeaturesColumn.put(raw,
+          DataColumns.ofSynchronized(new ObjectArrayColumn<>(initialSize)));
     }
   }
 
   @Override
-  public void resizeColumnsTo(final int finalSize) {
+  void resizeColumnsTo(final int finalSize) {
     try (var _ = resizeLock.lockWrite()) {
       if (columnLength >= finalSize) {
         return;
@@ -115,7 +117,8 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
    * @return non-null stream of features of one row
    */
   public Stream<ModularFeature> streamFeatures(final int rowIndex) {
-    return filesToFeaturesColumn.values().stream().map(column -> column.get(rowIndex)).filter(Objects::nonNull);
+    return filesToFeaturesColumn.values().stream().map(column -> column.get(rowIndex))
+        .filter(Objects::nonNull);
   }
 
   /**

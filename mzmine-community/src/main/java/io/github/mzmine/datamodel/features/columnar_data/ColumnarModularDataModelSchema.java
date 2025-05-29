@@ -66,6 +66,10 @@ public class ColumnarModularDataModelSchema {
   private static final Logger logger = Logger.getLogger(
       ColumnarModularDataModelSchema.class.getName());
 
+  /**
+   * Only present if memory mapping active
+   */
+  @Nullable
   protected final MemoryMapStorage storage;
 
   /**
@@ -93,7 +97,7 @@ public class ColumnarModularDataModelSchema {
   private final @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> dataTypeValueChangedListeners = new ConcurrentHashMap<>();
   private final @NotNull List<DataTypesChangedListener> dataTypesChangeListeners = new CopyOnWriteArrayList<>();
 
-  public ColumnarModularDataModelSchema(final MemoryMapStorage storage, String modelName,
+  public ColumnarModularDataModelSchema(final @Nullable MemoryMapStorage storage, String modelName,
       int initialSize) {
     this.storage = storage;
     this.modelName = modelName;
@@ -161,6 +165,7 @@ public class ColumnarModularDataModelSchema {
     if (index >= currentColumnLength) {
       // double size of columns
       // apply some minimum and maximum resize
+
       final int newSize =
           currentColumnLength + MathUtils.withinBounds((int) (currentColumnLength * 1d), 10,
               250000);
@@ -169,7 +174,7 @@ public class ColumnarModularDataModelSchema {
     return index;
   }
 
-  public void resizeColumnsTo(final int finalSize) {
+  void resizeColumnsTo(final int finalSize) {
     try (var _ = resizeLock.lockWrite()) {
       if (columnLength >= finalSize) {
         return;
