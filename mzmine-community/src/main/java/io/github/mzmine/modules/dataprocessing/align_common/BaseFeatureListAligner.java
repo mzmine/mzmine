@@ -108,18 +108,28 @@ public class BaseFeatureListAligner {
       return null;
     }
     // estimated rows after alignment
-    var stats = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).summaryStatistics();
+    final var stats = featureLists.stream().mapToInt(FeatureList::getNumberOfRows)
+        .summaryStatistics();
     // hard to estimate but rather stay too low than over commit
     // 1 raw = max
     // 10 raws = max + average (roughly double)
     // 100 raws = max + 2 * average (roughly triple)
     // avoid int overflow
-    int estimatedRows = MathUtils.capMaxInt(
+    final int estimatedRows = MathUtils.capMaxInt(
         (long) (stats.getMax() + stats.getAverage() * 2 * Math.log10(stats.getCount())));
+
+    if (stats.getSum() > Integer.MAX_VALUE) {
+      throw new IllegalArgumentException(
+          "Too many features in aligned feature list. Please revisit the feature detection parameters like feature shape constraints, minimum height, etc. Total: %d; Max: %d".formatted(
+              stats.getSum(), Integer.MAX_VALUE));
+    }
+
+    // input rows equal the number of total features after alignment
+    final int exactFeatures = (int) (stats.getSum());
 
     // Create a new aligned feature list based on the baseList and renumber IDs
     var alignedFeatureList = new ModularFeatureList(featureListName, storage, estimatedRows,
-        FeatureListUtils.estimateFeatures(estimatedRows, allDataFiles.size()), allDataFiles);
+        exactFeatures, allDataFiles);
     FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists, true);
     FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
     FeatureListUtils.copyPeakListAppliedMethods(featureLists.getFirst(), alignedFeatureList);
