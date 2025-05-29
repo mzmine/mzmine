@@ -80,6 +80,7 @@ public class RawDataFileTypeDetector {
   public static final String SCIEX_WIFF_SUFFIX = ".wiff";
   public static final String SCIEX_WIFF2_SUFFIX = ".wiff2";
   public static final String AGILENT_ACQDATATA_FOLDER = "AcqData";
+  private static final String MBI_SUFFIX = ".mbi";
 
   private static final Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
   private static final String LCD_SUFFIX = ".lcd";
@@ -159,6 +160,9 @@ public class RawDataFileTypeDetector {
         }
         if(lowerName.endsWith(LCD_SUFFIX)) {
           return RawDataFileType.SHIMADZU_LCD;
+        }
+        if(fileName.getName().endsWith(MBI_SUFFIX)) {
+          return RawDataFileType.MBI;
         }
 
         // Read the first 1kB of the file into a String

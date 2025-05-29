@@ -160,6 +160,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   private final ObjectProperty<ModularFeatureList> featureListProperty = new SimpleObjectProperty<>();
   private final NotificationPane dataChangedNotification;
+  private final FeatureTableContextMenu contextMenu;
 
   public FeatureTableFX() {
     dataChangedNotification = new NotificationPane(table);
@@ -188,7 +189,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     filteredRowItems = new FilteredList<>(rowItems);
     newColumnMap = new HashMap<>();
     initHandleDoubleClicks();
-    table.setContextMenu(new FeatureTableContextMenu(this));
+    contextMenu = new FeatureTableContextMenu(this);
+    table.setContextMenu(contextMenu);
 
     // create custom button context menu to select columns
     FeatureTableColumnMenuHelper contextMenuHelper = new FeatureTableColumnMenuHelper(this);
@@ -1067,6 +1069,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     if (newFeatureList == null) {
       return;
     }
+    contextMenu.onFeatureListChanged(newFeatureList);
     addColumns(newFeatureList);
     // first check if feature list is too large
     applyDefaultColumnVisibilities();
@@ -1074,8 +1077,10 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
       showCompactChromatographyColumns();
     }
 
-    // add rows
-    for (FeatureListRow row : newFeatureList.getRows()) {
+    // add rows sorted by descending height
+    final List<FeatureListRow> sortedRows = newFeatureList.getRows().stream()
+        .sorted(Comparator.comparingDouble(FeatureListRow::getMaxHeight).reversed()).toList();
+    for (FeatureListRow row : sortedRows) {
       final ModularFeatureListRow mrow = (ModularFeatureListRow) row;
       rowItems.add(new TreeItem<>(mrow));
     }
