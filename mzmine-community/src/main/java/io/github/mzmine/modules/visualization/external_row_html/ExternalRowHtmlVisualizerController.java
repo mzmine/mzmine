@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.external_row_html;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
+import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
@@ -40,10 +41,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
 public class ExternalRowHtmlVisualizerController extends
-    FxController<ExternalRowHtmlVisualizerModel> implements FeatureRowInterfaceFx {
+    FxController<ExternalRowHtmlVisualizerModel> implements FeatureRowInterfaceFx,
+    SelectedRowsBinding {
 
   private static final Logger logger = Logger.getLogger(
       ExternalRowHtmlVisualizerController.class.getName());
@@ -112,6 +115,11 @@ public class ExternalRowHtmlVisualizerController extends
 
   @Override
   public void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows) {
-    model.setSelectedRow(selectedRows.isEmpty() ? null : selectedRows.getFirst());
+    model.setSelectedRows(selectedRows);
+  }
+
+  @Override
+  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
+    return model.selectedRowsProperty();
   }
 }

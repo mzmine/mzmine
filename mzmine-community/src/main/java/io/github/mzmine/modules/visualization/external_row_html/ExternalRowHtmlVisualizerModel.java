@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.StringUtils;
 import java.io.File;
+import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
@@ -40,10 +41,10 @@ import javafx.collections.ObservableList;
 
 public class ExternalRowHtmlVisualizerModel {
 
-  private final StringProperty externalFolder = new SimpleStringProperty(
-      "D:/git/mzmine3/mzmine-community/src/test/resources/modules/id_masst_meta/");
+  private final StringProperty externalFolder = new SimpleStringProperty("");
 
-  private final ObjectProperty<FeatureListRow> selectedRow = new SimpleObjectProperty<>();
+  private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
+  private final ObservableValue<FeatureListRow> selectedRow;
   private final ObservableValue<String> selectedRowFullId;
 
   /**
@@ -60,19 +61,24 @@ public class ExternalRowHtmlVisualizerModel {
   private final Property<File> selectedFullHtml = new SimpleObjectProperty<>();
 
   public ExternalRowHtmlVisualizerModel() {
+    selectedRow = selectedRows.map(rows -> rows == null || rows.isEmpty() ? null : rows.getFirst());
     selectedRowFullId = selectedRow.map(FeatureUtils::rowToFullId).orElse("");
   }
 
   public FeatureListRow getSelectedRow() {
-    return selectedRow.get();
+    return selectedRow.getValue();
   }
 
-  public ObjectProperty<FeatureListRow> selectedRowProperty() {
+  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
+    return selectedRows;
+  }
+
+  public List<FeatureListRow> getSelectedRows() {
+    return selectedRows.get();
+  }
+
+  public ObservableValue<FeatureListRow> selectedRowProperty() {
     return selectedRow;
-  }
-
-  public void setSelectedRow(final FeatureListRow selectedRow) {
-    this.selectedRow.set(selectedRow);
   }
 
   public String getExternalFolder() {
@@ -117,5 +123,9 @@ public class ExternalRowHtmlVisualizerModel {
 
   public Property<File> selectedFullHtmlProperty() {
     return selectedFullHtml;
+  }
+
+  public void setSelectedRows(List<? extends FeatureListRow> selectedRows) {
+    this.selectedRows.set(List.copyOf(selectedRows));
   }
 }
