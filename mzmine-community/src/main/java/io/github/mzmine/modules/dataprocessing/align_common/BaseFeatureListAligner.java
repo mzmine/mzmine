@@ -257,30 +257,30 @@ public class BaseFeatureListAligner {
    * Check the estimated memory requirements for this run
    */
   private void checkTotalWorkloadAndMemory(final long totalRows) {
-    // after alignment:  25000 rows x 250 samples = 7 GB
-    // before alignment: 250 feature lists: 4,011,743 features to be aligned 9 GB
-    // during end of alignment (both aligned and non aligned lists present): 15 GB
+    // 586478 rows across 250 samples
+    // result aligned list 76108 rows
+    // Join aligner - data import = 1.4 GB
     final int rowsPerList = (int) (totalRows / featureLists.size());
     final double imsCorrectionFactor = featureLists.stream()
         .mapToDouble(FeatureListUtils::getImsRamFactor).average().orElse(1d);
-    final double gbMemoryPerMillionFeatures =
-        3.74 * imsCorrectionFactor; // this is from 15 GB per 4M features
+    final double gbMemoryPerMillionFeatures = 1.5 * imsCorrectionFactor;
     final double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
     final double expectedRamUsage = gbMemoryPerMillionFeatures / 1_000_000 * totalRows;
 
     logger.info("""
         Alignment started on a total of %d rows across %d samples (mean %d rows). \
-        Max memory available: %.1f GB. Expecting to use %.1f GB.""".formatted(totalRows,
-        featureLists.size(), rowsPerList, maxMemoryGB, expectedRamUsage));
+        Max memory available: %.1f GB. Expecting to use %.1f GB just for alignment.""".formatted(
+        totalRows, featureLists.size(), rowsPerList, maxMemoryGB, expectedRamUsage));
 
     // estimate if there might be an issue with this size and memory
     if (expectedRamUsage > maxMemoryGB * 0.85) {
       DialogLoggerUtil.showMessageDialog("Large dataset feature alignment", false,
           FxTextFlows.newTextFlow(FxTexts.text("""
-                  mzmine feature alignment started on %d total features across %d samples.
+                  mzmine feature alignment started on %d total features across %d samples. \
                   This may result in a large aligned feature list and memory constraints.
-                  Consider applying higher thresholds during chromatogram builder and feature resolving, /
-                  such as increased minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver.
+                  When possible run modules with PROCESS_IN_PLACE where available or with REMOVE option to clear previous results. \
+                  Consider applying higher thresholds during chromatogram builder and feature resolving, \
+                  such as increased minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver. \
                   When working on large datasets, consult the performance documentation for tuning options:
                   """.formatted(totalRows, featureLists.size())),
               FxTexts.hyperlinkText(MzioMZmineLinks.PERFORMANCE_DOCU.getUrl())));
