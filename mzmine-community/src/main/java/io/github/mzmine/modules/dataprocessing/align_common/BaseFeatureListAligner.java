@@ -42,6 +42,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureListUtils;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.mzio.links.MzioMZmineLinks;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
@@ -112,8 +113,9 @@ public class BaseFeatureListAligner {
     // 1 raw = max
     // 10 raws = max + average (roughly double)
     // 100 raws = max + 2 * average (roughly triple)
-    int estimatedRows = (int) (stats.getMax() + stats.getAverage() * 2 * Math.log10(
-        stats.getCount()));
+    // avoid int overflow
+    int estimatedRows = MathUtils.capMaxInt(
+        (long) (stats.getMax() + stats.getAverage() * 2 * Math.log10(stats.getCount())));
 
     // Create a new aligned feature list based on the baseList and renumber IDs
     var alignedFeatureList = new ModularFeatureList(featureListName, storage, estimatedRows,
