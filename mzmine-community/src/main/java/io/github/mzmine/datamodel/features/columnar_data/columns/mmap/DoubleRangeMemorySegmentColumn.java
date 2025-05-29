@@ -31,6 +31,7 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.StructLayout;
 import java.lang.foreign.ValueLayout;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DoubleRangeMemorySegmentColumn extends AbstractMemorySegmentColumn<Range<Double>> {
@@ -38,12 +39,13 @@ public class DoubleRangeMemorySegmentColumn extends AbstractMemorySegmentColumn<
   private static final StructLayout LAYOUT = MemoryLayout.structLayout(
       ValueLayout.JAVA_DOUBLE.withoutName(), ValueLayout.JAVA_DOUBLE.withoutName());
 
-  public DoubleRangeMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+  public DoubleRangeMemorySegmentColumn(@NotNull final MemoryMapStorage storage,
+      int initialCapacity) {
     super(storage, initialCapacity);
   }
 
   @Override
-  protected MemoryLayout getValueLayout() {
+  protected @NotNull MemoryLayout getValueLayout() {
     return LAYOUT;
   }
 
@@ -73,14 +75,14 @@ public class DoubleRangeMemorySegmentColumn extends AbstractMemorySegmentColumn<
     return Range.closed(lower, upper);
   }
 
-  public void set(final MemorySegment data, final int index, @Nullable final Double lower,
+  public void set(@NotNull final MemorySegment data, final int index, @Nullable final Double lower,
       @Nullable final Double upper) {
     data.setAtIndex(ValueLayout.JAVA_DOUBLE, index * 2L, lower == null ? Double.NaN : lower);
     data.setAtIndex(ValueLayout.JAVA_DOUBLE, index * 2L + 1L, upper == null ? Double.NaN : upper);
   }
 
   @Override
-  public void set(final MemorySegment data, final int index, final Range<Double> value) {
+  public void set(@NotNull final MemorySegment data, final int index, final Range<Double> value) {
     if (value == null) {
       set(data, index, null, null);
       return;

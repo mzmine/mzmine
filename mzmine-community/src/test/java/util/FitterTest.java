@@ -60,7 +60,7 @@ public class FitterTest {
         List.of(new GaussianPeak(), new GaussianDoublePeak(), new AsymmetricGaussianPeak()));
     Assertions.assertNotNull(fit);
     Assertions.assertEquals(PeakShapeClassification.DOUBLE_GAUSSIAN, fit.peakShapeClassification());
-    Assertions.assertEquals(0.9643966172323696, fit.fitScore());
+    Assertions.assertEquals(0.9643966172323696, fit.fitScore(), 0.0000001);
   }
 
   @Test

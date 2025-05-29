@@ -1094,10 +1094,12 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
         updateFeatureList(oldValue, newValue);
       });
       if (newValue != null) {
-        newValue.getRowsSchema().addDataTypesChangeListener(listener);
+        newValue.addRowDataTypesChangedListener(listener);
+        newValue.addFeaturesDataTypesChangedListener(listener);
       }
       if (oldValue != null) {
-        oldValue.getRowsSchema().getDataTypesChangeListeners().remove(listener);
+        oldValue.removeRowDataTypesChangedListener(listener);
+        oldValue.addFeaturesDataTypesChangedListener(listener);
       }
     });
   }

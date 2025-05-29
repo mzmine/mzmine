@@ -53,17 +53,17 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
   /**
    * Sorted by name LinkedHashMap
    */
-  private final Map<RawDataFile, DataColumn<ModularFeature>> features;
+  private final Map<RawDataFile, DataColumn<ModularFeature>> filesToFeaturesColumn;
 
-  public ColumnarModularFeatureListRowsSchema(final MemoryMapStorage storage,
+  public ColumnarModularFeatureListRowsSchema(@NotNull final MemoryMapStorage storage,
       final String modelName, final int initialSize, @NotNull List<RawDataFile> dataFiles) {
     super(storage, modelName, initialSize);
 
     dataFiles = dataFiles.stream().sorted(Comparator.comparing(RawDataFile::getFileName)).toList();
 
-    features = LinkedHashMap.newLinkedHashMap(dataFiles.size());
+    filesToFeaturesColumn = LinkedHashMap.newLinkedHashMap(dataFiles.size());
     for (final RawDataFile raw : dataFiles) {
-      features.put(raw, DataColumns.ofSynchronized(new ObjectArrayColumn<>(initialSize)));
+      filesToFeaturesColumn.put(raw, DataColumns.ofSynchronized(new ObjectArrayColumn<>(initialSize)));
     }
   }
 
@@ -76,7 +76,7 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
       super.resizeColumnsTo(finalSize);
 
       // resize raw file columns
-      long success = features.values().stream().parallel()
+      long success = filesToFeaturesColumn.values().stream().parallel()
           .filter(column -> column.ensureCapacity(finalSize)).count();
       logger.finest("Resized %d feature columns".formatted(success));
       columnLength = finalSize;
@@ -91,10 +91,10 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
    */
   public ModularFeature setFeature(final int rowIndex, final RawDataFile raw,
       final ModularFeature feature) {
-    final DataColumn<ModularFeature> featuresCol = features.get(raw);
+    final DataColumn<ModularFeature> featuresCol = filesToFeaturesColumn.get(raw);
     if (featuresCol == null) {
       // raw data files in feature list cannot be changed - so no method should attempt to
-      // add a feature to a missing raw data file
+      // add a feature of a missing raw data file
       throw new IllegalStateException(
           "This feature list does not contain raw data file '" + raw.getFileName()
               + "'. This points to an issue in the implementation.");
@@ -103,7 +103,7 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
   }
 
   public ModularFeature getFeature(final int rowIndex, final RawDataFile raw) {
-    final DataColumn<ModularFeature> featuresCol = features.get(raw);
+    final DataColumn<ModularFeature> featuresCol = filesToFeaturesColumn.get(raw);
     if (featuresCol == null) {
       return null; // previous behaviour was to return null
     }
@@ -115,7 +115,7 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
    * @return non-null stream of features of one row
    */
   public Stream<ModularFeature> streamFeatures(final int rowIndex) {
-    return features.values().stream().map(column -> column.get(rowIndex)).filter(Objects::nonNull);
+    return filesToFeaturesColumn.values().stream().map(column -> column.get(rowIndex)).filter(Objects::nonNull);
   }
 
   /**
@@ -126,7 +126,7 @@ public class ColumnarModularFeatureListRowsSchema extends ColumnarModularDataMod
    */
   public boolean clearFeatures(final int modelRowIndex) {
     boolean changed = false;
-    for (final DataColumn<ModularFeature> col : features.values()) {
+    for (final DataColumn<ModularFeature> col : filesToFeaturesColumn.values()) {
       final ModularFeature old = col.set(modelRowIndex, null);
       if (!changed && old != null) {
         changed = true;

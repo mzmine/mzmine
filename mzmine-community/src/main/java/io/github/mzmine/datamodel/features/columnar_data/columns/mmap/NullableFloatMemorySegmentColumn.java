@@ -29,21 +29,22 @@ import io.github.mzmine.datamodel.features.columnar_data.columns.NullableFloatDa
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import org.jetbrains.annotations.NotNull;
 
 public class NullableFloatMemorySegmentColumn extends AbstractMemorySegmentColumn<Float> implements
     NullableFloatDataColumn {
 
-  public NullableFloatMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+  public NullableFloatMemorySegmentColumn(final @NotNull MemoryMapStorage storage, int initialCapacity) {
     super(storage, initialCapacity);
   }
 
   @Override
-  protected ValueLayout getValueLayout() {
+  protected @NotNull ValueLayout getValueLayout() {
     return ValueLayout.JAVA_FLOAT;
   }
 
   @Override
-  protected void set(final MemorySegment data, final int index, final Float value) {
+  protected void set(final @NotNull MemorySegment data, final int index, final Float value) {
     data.setAtIndex(ValueLayout.JAVA_FLOAT, index, value != null ? value : Float.NaN);
   }
 

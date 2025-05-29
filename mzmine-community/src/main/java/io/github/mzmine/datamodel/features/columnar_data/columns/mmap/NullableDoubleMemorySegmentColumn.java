@@ -29,21 +29,22 @@ import io.github.mzmine.datamodel.features.columnar_data.columns.NullableDoubleD
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import org.jetbrains.annotations.NotNull;
 
 public class NullableDoubleMemorySegmentColumn extends
     AbstractMemorySegmentColumn<Double> implements NullableDoubleDataColumn {
 
-  public NullableDoubleMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+  public NullableDoubleMemorySegmentColumn(final @NotNull MemoryMapStorage storage, int initialCapacity) {
     super(storage, initialCapacity);
   }
 
   @Override
-  protected ValueLayout getValueLayout() {
+  protected @NotNull ValueLayout getValueLayout() {
     return ValueLayout.JAVA_DOUBLE;
   }
 
   @Override
-  protected void set(final MemorySegment data, final int index, final Double value) {
+  protected void set(final @NotNull MemorySegment data, final int index, final Double value) {
     data.setAtIndex(ValueLayout.JAVA_DOUBLE, index, value != null ? value : Double.NaN);
   }
 
