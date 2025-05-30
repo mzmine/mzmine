@@ -34,6 +34,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Coollects traces from a single detector. these traces may be read from the raw data or created
@@ -90,6 +91,11 @@ public interface OtherTimeSeriesData {
    * @return The processed features for the given series, may be empty. The list is modifiable.
    */
   @NotNull List<OtherFeature> getProcessedFeaturesForTrace(OtherFeature rawTrace);
+
+  /**
+   * @return The preprocessed traces for the given series, may be empty. The list is modifiable.
+   */
+  @Nullable OtherFeature getPreProcessedFeatureForTrace(@Nullable OtherFeature rawTrace);
 
   void replaceProcessedFeaturesForTrace(OtherFeature rawTrace,
       @NotNull List<OtherFeature> newFeatures);

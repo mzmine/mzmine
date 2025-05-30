@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -67,7 +67,22 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
    * @param dataFile define the data file in an aligned feature list
    */
   protected FeatureDetectedDataAccess(FeatureList flist, @Nullable RawDataFile dataFile) {
-    super(flist, dataFile);
+    this(flist, dataFile, null);
+  }
+
+  /**
+   * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
+   * by retention time). Uses only data points currently assigned to features. This differs for
+   * chromatograms and resolved features
+   *
+   * @param flist                       target feature list. Loops through all features in dataFile
+   * @param dataFile                    define the data file in an aligned feature list
+   * @param binningMobilogramDataAccess access mobilogram data, only present for mobility data, null
+   *                                    otherwise. Checks are done internally
+   */
+  protected FeatureDetectedDataAccess(FeatureList flist, @Nullable RawDataFile dataFile,
+      @Nullable BinningMobilogramDataAccess binningMobilogramDataAccess) {
+    super(flist, dataFile, binningMobilogramDataAccess);
 
     // detected data points currently on feature/chromatogram
     int detected = getMaxNumOfDetectedDataPoints();
@@ -79,6 +94,11 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
   public List<Scan> getSpectra() {
     assert featureData != null;
     return featureData.getSpectra();
+  }
+
+  @Override
+  public List<Scan> getSpectraModifiable() {
+    return (List<Scan>) getOriginalSeries().getSpectraModifiable();
   }
 
 
@@ -151,4 +171,5 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
   public IonTimeSeries<Scan> emptySeries() {
     return featureData.emptySeries();
   }
+
 }

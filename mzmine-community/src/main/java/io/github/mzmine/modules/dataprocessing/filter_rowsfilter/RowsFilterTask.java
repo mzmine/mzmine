@@ -27,9 +27,7 @@ package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureAnnotationIterator;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -37,12 +35,9 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectFilter;
@@ -56,11 +51,8 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -92,6 +84,7 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean filterByCharge;
   private final boolean filterByKMD;
   private final boolean filterByMS2;
+  private final boolean filterByCv;
   private final RowsFilterChoices filterOption;
   private final boolean renumber;
   private final boolean filterByMassDefect;
@@ -112,6 +105,8 @@ public class RowsFilterTask extends AbstractTask {
   private final Range<Float> rtRange;
   private final Range<Float> fwhmRange;
   private final Isotope13CFilter isotope13CFilter;
+  @Nullable
+  private final RsdFilter cvFilter;
   private AbsoluteAndRelativeInt minSamples;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
@@ -157,6 +152,7 @@ public class RowsFilterTask extends AbstractTask {
     filterByKMD = parameters.getValue(RowsFilterParameters.KENDRICK_MASS_DEFECT);
     filterByMS2 = parameters.getValue(RowsFilterParameters.MS2_Filter);
     filterOption = parameters.getValue(RowsFilterParameters.REMOVE_ROW);
+    filterByCv = parameters.getValue(RowsFilterParameters.cvFilter);
     minSamples = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         RowsFilterParameters.MIN_FEATURE_COUNT, null);
     renumber = parameters.getValue(RowsFilterParameters.Reset_ID);
@@ -197,6 +193,9 @@ public class RowsFilterTask extends AbstractTask {
     fwhmRange = filterByFWHM ? RangeUtils.toFloatRange(
         parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue())
         : null;
+    cvFilter = filterByCv ? RsdFilter.of(
+        (RsdFilterParameters) parameters.getEmbeddedParameterValue(RowsFilterParameters.cvFilter),
+        origFeatureList) : null;
 
     // isotope filter
     filter13CIsotopes = parameters.getParameter(RowsFilterParameters.ISOTOPE_FILTER_13C).getValue();
@@ -263,24 +262,6 @@ public class RowsFilterTask extends AbstractTask {
    */
   private FeatureList filterFeatureListRows(final FeatureList featureList,
       boolean processInCurrentList) {
-
-    // Create new feature list.
-
-    final ModularFeatureList newFeatureList;
-    if (processInCurrentList) {
-      newFeatureList = (ModularFeatureList) featureList;
-    } else {
-      final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
-      newFeatureList = FeatureListUtils.createCopy(featureList, suffix, getMemoryMapStorage(),
-          false);
-    }
-
-    // Add task description to featureList.
-    newFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class, parameters,
-            getModuleCallDate()));
-
-    int rowsCount = 0;
     // if keep is selected we remove rows on failed criteria
     // otherwise we remove those that match all criteria
     boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
@@ -309,8 +290,7 @@ public class RowsFilterTask extends AbstractTask {
     processedRows = 0;
     // requires copy of rows as there is no efficient way to remove rows from the list
     // the use setAll
-    final List<FeatureListRow> rowsToAdd = new ArrayList<>();
-    final List<FeatureListRow> rowsCopy = featureList.getRowsCopy();
+    final ArrayList<FeatureListRow> rowsToAdd = new ArrayList<>((int) (totalRows * 0.75));
     for (final FeatureListRow row : featureList.getRows()) {
       if (isCanceled()) {
         return null;
@@ -325,23 +305,43 @@ public class RowsFilterTask extends AbstractTask {
       boolean keepRow = (keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
           || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
       if (keepRow) {
-        rowsCount++;
-        if (processInCurrentList) {
-          rowsToAdd.add(row);
-          if (renumber) {
-            row.set(IDType.class, rowsCount);
-          }
-        } else {
-          rowsToAdd.add(
-              new ModularFeatureListRow(newFeatureList, renumber ? rowsCount : row.getID(),
-                  (ModularFeatureListRow) row, true));
-        }
+        rowsToAdd.add(row);
       }
 
       processedRows++;
     }
 
-    newFeatureList.setRowsApplySort(rowsToAdd);
+    final ModularFeatureList newFeatureList;
+    if (processInCurrentList) {
+      newFeatureList = (ModularFeatureList) featureList;
+      rowsToAdd.trimToSize();
+      newFeatureList.setRowsApplySort(rowsToAdd);
+      if (renumber) {
+        for (int i = 0; i < rowsToAdd.size(); i++) {
+          rowsToAdd.get(i).set(IDType.class, i + 1);
+        }
+      }
+    } else {
+      final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
+      // exact number of needed features and rows
+      int totalRows = rowsToAdd.size();
+      int totalFeatures = rowsToAdd.stream().mapToInt(FeatureListRow::getNumberOfFeatures).sum();
+
+      newFeatureList = FeatureListUtils.createCopyWithoutRows(featureList, suffix,
+          getMemoryMapStorage(), totalRows, totalFeatures);
+      // add rows to new list
+      for (int i = 0; i < rowsToAdd.size(); i++) {
+        var row = rowsToAdd.get(i);
+        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
+            renumber ? i + 1 : row.getID(), (ModularFeatureListRow) row, true);
+        newFeatureList.addRow(resetRow);
+      }
+    }
+
+    // Add task description to featureList.
+    newFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class, parameters,
+            getModuleCallDate()));
 
     return newFeatureList;
   }
@@ -517,6 +517,10 @@ public class RowsFilterTask extends AbstractTask {
     }
 
     if (filterByMassDefect && !massDefectFilter.contains(row.getAverageMZ())) {
+      return true;
+    }
+
+    if (filterByCv && cvFilter != null && !cvFilter.matches(row)) {
       return true;
     }
 

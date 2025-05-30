@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.features.ModularDataRecord;
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
+import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.AlignmentScoreMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityAbsoluteDifferenceType;
@@ -42,7 +43,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Saves scores on the alignment
+ * Saves scores on the alignment.
+ * <p>
+ * Important: Check record creation in {@link AlignmentScoreMemorySegmentColumn} when changing the
+ * order of fields. Use proper refactoring tool instead of just changing the order manually.
  *
  * @param rate             the aligned/total samples
  * @param extraFeatures    features that fall within the alignment range but were not aligned with
@@ -55,6 +59,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
                               Float weightedDistanceScore, Float mzPpmDelta, Double maxMzDelta,
                               Float maxRtDelta, Float maxMobilityDelta) implements
     ModularDataRecord {
+
 
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
@@ -194,6 +199,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
     }
     return Math.max(a, b);
   }
+
   public static Double min(final Double a, final Double b) {
     if (a == null && b == null) {
       return null;

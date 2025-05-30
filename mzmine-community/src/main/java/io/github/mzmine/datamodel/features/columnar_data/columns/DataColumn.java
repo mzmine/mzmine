@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,18 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.featuredata.impl;
+package io.github.mzmine.datamodel.features.columnar_data.columns;
 
-import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.EMPTY_DOUBLE_SEGMENT;
+import org.jetbrains.annotations.Nullable;
 
-import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
-import java.lang.foreign.MemorySegment;
-import java.util.List;
+/**
+ * All classes should extend {@link AbstractDataColumn} because
+ * {@link OptimisticallySynchronizedDataColumn} requires some methods
+ *
+ * @param <T>
+ */
+public sealed interface DataColumn<T> permits AbstractDataColumn, NullableDoubleDataColumn,
+    NullableFloatDataColumn, NullableIntDataColumn {
 
-public record MobilogramStorageResult(List<IonMobilitySeries> storedMobilograms,
-                                      MemorySegment storedMzValues,
-                                      MemorySegment storedIntensityValues) {
+  @Nullable T get(final int index);
 
-  public static final MobilogramStorageResult EMPTY = new MobilogramStorageResult(List.of(),
-      EMPTY_DOUBLE_SEGMENT, EMPTY_DOUBLE_SEGMENT);
+  /**
+   *
+   * @param value the new value to set
+   * @return The old value or null.
+   */
+  @Nullable T set(final int index, final @Nullable T value);
+
+  /**
+   * @return true if resized
+   */
+  boolean ensureCapacity(int requiredCapacity);
+
+  int capacity();
 }

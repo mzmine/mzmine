@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.fx.MetadataHeaderColumn;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.AbundanceBoxPlotCell;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
+import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
@@ -50,7 +51,8 @@ import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractBoxPlotType extends LinkedGraphicalType {
+public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
+    MinSamplesRequirement {
 
   private final AbundanceMeasure abundanceMeasure;
 
