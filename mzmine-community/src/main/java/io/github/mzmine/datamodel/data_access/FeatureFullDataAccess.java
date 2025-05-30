@@ -265,8 +265,8 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
       double[] mzs = new double[subFromAll.size()];
       double[] intensities = new double[subFromAll.size()];
       for (int i = startIndex; i < endIndexExclusive; i++) {
-        mzs[i] = getMZ(i);
-        intensities[i] = getIntensity(i);
+        mzs[i - startIndex] = getMZ(i);
+        intensities[i - startIndex] = getIntensity(i);
       }
       return new SimpleIonTimeSeries(storage, mzs, intensities, subFromAll);
     }
