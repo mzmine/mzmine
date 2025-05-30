@@ -3,6 +3,7 @@ package io.github.mzmine.modules.io.export_features_xml;
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -10,6 +11,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.Arrays;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class ExportFeaturesDataParameters extends SimpleParameterSet {
 
@@ -44,5 +46,10 @@ public class ExportFeaturesDataParameters extends SimpleParameterSet {
     }
 
     return superCheck && errorMessages.isEmpty();
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }
