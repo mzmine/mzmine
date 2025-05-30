@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -62,11 +63,18 @@ public class BatchModeParameters extends SimpleParameterSet {
    */
   public static void showSetupDialogLoadFile(File batchFile) {
     FxThread.runLater(() -> {
-      final ParameterSet params = MZmineCore.getConfiguration()
+      final ParameterSet params = ConfigService.getConfiguration()
           .getModuleParameters(BatchModeModule.class).cloneParameterSet();
       final BatchModeParameterSetupDialog dialog = new BatchModeParameterSetupDialog(params);
-      dialog.show();
       dialog.loadFile(batchFile);
+      params.getParameter(lastFiles).addFile(batchFile);
+      dialog.showAndWait();
+      if (dialog.getExitCode() != ExitCode.OK) {
+        return;
+      }
+      final ParameterSet finalParams = params.cloneParameterSet();
+      ConfigService.getConfiguration().setModuleParameters(BatchModeModule.class, params);
+      MZmineCore.runMZmineModule(BatchModeModule.class, finalParams);
     });
   }
 }
