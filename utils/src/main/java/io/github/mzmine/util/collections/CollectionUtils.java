@@ -37,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -47,6 +48,8 @@ import org.jetbrains.annotations.NotNull;
  * Collection API related utilities
  */
 public class CollectionUtils {
+
+  private static final Logger logger = Logger.getLogger(CollectionUtils.class.getName());
 
   /**
    * Map of the object to its index to avoid indexOf. This method will take any collection as input
@@ -364,5 +367,54 @@ public class CollectionUtils {
       }
     }
     return false;
+  }
+
+  /**
+   * Both lists need the same sorting. Compares elements by identity (==)
+   *
+   * @param subRegion needs contained in master without holes or missing parts
+   * @param master    the main list that contains subRegion
+   * @return sublist of master if subRegion is a continuous region in master. Or subRegion itself if
+   * not
+   */
+  public static <T> List<T> asContinuousRegionSubListByIdentity(final List<T> subRegion,
+      final List<T> master) {
+    if (subRegion.isEmpty()) {
+      return List.of();
+    }
+
+    int startIndex = -1;
+    int subIndex = 0;
+    Object sub = subRegion.getFirst();
+
+    for (int masterIndex = 0; masterIndex < master.size(); masterIndex++) {
+      final T o = master.get(masterIndex);
+      // once the objects are the same we start the region that should contain all of subRegion
+      // scans need to be the exact same instance
+      if (sub == o) {
+        if (startIndex == -1) {
+          startIndex = masterIndex;
+        }
+        subIndex++;
+
+        if (subIndex == subRegion.size()) {
+          masterIndex++;
+          assert (masterIndex - startIndex == subRegion.size());
+//          logger.fine("REUSING OLD MASTER LIST FOR IMS DATA");
+          if (master.size() == masterIndex - startIndex) {
+            return master;
+          }
+          return master.subList(startIndex, masterIndex);
+        }
+        // check next
+        sub = subRegion.get(subIndex);
+      } else if (startIndex != -1) {
+        // mismatch between objects after start was found
+        break;
+      }
+    }
+
+//    logger.fine("NEED TO USE NEW ARRAYLIST FOR FRAMES");
+    return subRegion;
   }
 }

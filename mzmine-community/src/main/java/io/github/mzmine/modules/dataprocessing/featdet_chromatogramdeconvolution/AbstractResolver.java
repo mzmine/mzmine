@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -49,6 +50,7 @@ import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -115,8 +117,11 @@ public abstract class AbstractResolver implements Resolver {
       setSeriesToMobilogramDataAccess(series);
       final List<Range<Double>> resolvedRanges = resolveMobility(mobilogramDataAccess);
 
+      List<Frame> oldFrames = originalTrace.getSpectraModifiable();
+
       // make a new sub series for each resolved range.
       for (Range<Double> resolvedRange : resolvedRanges) {
+        final List<Frame> actualFrames = new ArrayList<>();
         final List<IonMobilitySeries> resolvedMobilograms = new ArrayList<>();
         for (IonMobilitySeries mobilogram : originalTrace.getMobilograms()) {
           // split every mobilogram
@@ -128,13 +133,21 @@ public abstract class AbstractResolver implements Resolver {
           }
           // IonMobilitySeries are stored in ram until they are added to an IonMobilogramTimeSeries
           resolvedMobilograms.add((SimpleIonMobilitySeries) mobilogram.subSeries(null, subset));
+          actualFrames.add(mobilogram.getSpectra().getFirst().getFrame());
         }
         if (resolvedMobilograms.isEmpty()) {
           continue;
         }
 
+        // try reusing the old frames or a sublist of oldframes to save memory
+        // reusing the list might offer memory improvements by using the same sublist pointing to
+        // the scan in list in feature list
+        // not all frames may have data - use actualFrames if there are holes. Or use oldFrames.sublist if it is a continuous region
+        final List<Frame> unifiedFrames = CollectionUtils.asContinuousRegionSubListByIdentity(
+            actualFrames, oldFrames);
+
         resolved.add((T) IonMobilogramTimeSeriesFactory.of(storage, resolvedMobilograms,
-            getMobilogramDataAccess()));
+            getMobilogramDataAccess(), unifiedFrames));
       }
     } else {
       throw new IllegalStateException(

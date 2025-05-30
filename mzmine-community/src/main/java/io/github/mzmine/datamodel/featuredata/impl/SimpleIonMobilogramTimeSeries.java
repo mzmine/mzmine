@@ -104,6 +104,11 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       throw new IllegalArgumentException(
           "Length of mz, intensity, frames and/or mobilograms does not match.");
     }
+    if (mzs.length != frames.size()) {
+      throw new IllegalArgumentException(
+          "Length of data arrays and number of frames mismatch: %d to %d".formatted(mzs.length,
+              frames.size()));
+    }
     if (!checkRawFileIntegrity(mobilograms)) {
       throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
     }
@@ -142,10 +147,15 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       MemorySegment intensityValues, @Nullable MemoryMapStorage storage,
       @NotNull List<IonMobilitySeries> mobilograms, @NotNull List<Frame> frames,
       @NotNull final SummedIntensityMobilitySeries summedMobilogram) {
-    if (mzValues.byteSize() != intensityValues.byteSize() || mobilograms.size() != numDoubles(
-        intensityValues)) {
+    final long numDataPoints = numDoubles(intensityValues);
+    if (mzValues.byteSize() != intensityValues.byteSize() || mobilograms.size() != numDataPoints) {
       throw new IllegalArgumentException(
           "Length of mz, intensity, frames and/or mobilograms does not match.");
+    }
+    if (numDataPoints != frames.size()) {
+      throw new IllegalArgumentException(
+          "Length of data arrays and number of frames mismatch: %d to %d".formatted(numDataPoints,
+              frames.size()));
     }
     if (!checkRawFileIntegrity(mobilograms)) {
       throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
