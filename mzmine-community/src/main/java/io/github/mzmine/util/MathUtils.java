@@ -483,6 +483,20 @@ public class MathUtils {
     return Math.min(Math.max(value, minInclusive), maxExclusive - 1);
   }
 
+  public static Double requireNonNanElse(@Nullable Double possiblyNaN, @Nullable Double instead) {
+    if(possiblyNaN == null) {
+      return null;
+    }
+    return Double.isNaN(possiblyNaN) ? instead : possiblyNaN;
+  }
+
+  public static Float requireNonNanElse(@Nullable Float possiblyNaN, @Nullable Float instead) {
+    if(possiblyNaN == null) {
+      return null;
+    }
+    return Float.isNaN(possiblyNaN) ? instead : possiblyNaN;
+  }
+
   /**
    * Avoids integer overflow
    *
