@@ -274,6 +274,9 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
 
 
   /**
+   * This is only applied if subFromAll scans is a continuous sub region in the previously set
+   * spectra list
+   *
    * @param startIndex        in original data
    * @param endIndexExclusive in original data
    * @param original          original series to subseries of
