@@ -158,6 +158,7 @@ import javafx.scene.input.KeyCombination;
 public abstract class AbstractWorkspace implements Workspace {
 
   private final WorkspaceMenuHelper helper = new WorkspaceMenuHelperImpl();
+  protected static final String recentProjectsMenu = "Recent projects";
 
   @Override
   public WorkspaceMenuHelper getWorkspaceMenuHelper() {
@@ -203,7 +204,7 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultProjectMenu() {
     final Menu menu = new Menu("Project");
-    final Menu recentProjects = new Menu("Recent projects");
+    final Menu recentProjects = new Menu(recentProjectsMenu);
 
     menu.setOnShowing(_ -> getWorkspaceMenuHelper().fillRecentProjects(recentProjects));
 
