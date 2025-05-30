@@ -116,4 +116,14 @@ public class FitterTest {
     Assertions.assertNotNull(fit);
     Assertions.assertEquals(0.9332001170402136, fit.fitScore(), 0.0000001);
   }
+
+  @Test
+  void testThreeDataPoints() {
+    double[] x = new double[] {1, 2, 3};
+    double[] y = new double[] {1, 3, 2};
+
+    final FitQuality fitQuality = PeakFitterUtils.fitPeakModels(x, y,
+        List.of(new AsymmetricGaussianPeak()));
+    Assertions.assertNull(fitQuality);
+  }
 }

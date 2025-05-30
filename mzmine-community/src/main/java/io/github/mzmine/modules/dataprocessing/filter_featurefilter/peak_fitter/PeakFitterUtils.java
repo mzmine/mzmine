@@ -50,6 +50,11 @@ public class PeakFitterUtils {
   public static FitQuality fitPeakModels(double[] xData, double[] yData,
       List<PeakModelFunction> peakModels) {
 
+    if(xData.length < 5) {
+      // will not attempt to fit a peak with less than 5 points
+      return null;
+    }
+
     // This list will be used for everything
     List<WeightedObservedPoint> pointList = new ArrayList<>();
     for (int i = 0; i < xData.length; i++) {
