@@ -93,7 +93,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   /**
    * may reuse memory segments
    */
-  private SimpleIonTimeSeries(@NotNull MemorySegment mzValues,
+  public SimpleIonTimeSeries(@NotNull MemorySegment mzValues,
       @NotNull MemorySegment intensityValues, @NotNull List<? extends Scan> scans) {
     long values = numDoubles(mzValues);
     if (values != numDoubles(intensityValues) || values != scans.size()) {
@@ -282,5 +282,10 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   @Override
   public IonTimeSeries<Scan> emptySeries() {
     return IonTimeSeries.EMPTY;
+  }
+
+  @Override
+  public List<Scan> getSpectraModifiable() {
+    return (List<Scan>) scans;
   }
 }

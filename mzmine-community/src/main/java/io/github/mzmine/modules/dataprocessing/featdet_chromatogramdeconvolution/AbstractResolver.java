@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -41,7 +42,6 @@ import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.TimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
@@ -104,31 +104,11 @@ public abstract class AbstractResolver implements Resolver {
 
       // make a new subseries for each resolved range.
       for (final Range<Double> range : resolvedRanges) {
-        // use the series here to refer to the same list of scans.
-        // using a sublist of the FullFeatureDataAccess.scans leads to a single list that will be wrapped by all features of this sample
-        final IndexRange indexRange = BinarySearch.indexRange(range, series.getSpectra(),
-            Scan::getRetentionTime);
-        if (indexRange.isEmpty()) {
-          continue;
-        }
-        if (originalSeries instanceof IonMobilogramTimeSeries trace) {
-          resolved.add((T) trace.subSeries(storage, range.lowerEndpoint().floatValue(),
-              range.upperEndpoint().floatValue(), getMobilogramDataAccess()));
-        } else if (originalSeries instanceof SimpleIonTimeSeries chrom) {
-          // optimization so that all features of the same sample refer to a single list of raw data files
-          if (series instanceof FeatureFullDataAccess fullAccess) {
-            // same sublist for all features
-            resolved.add(
-                (T) chrom.subSeries(storage, indexRange.sublist(fullAccess.getSpectra(), false)));
-          } else {
-            // creates a copy of the scans list internally to release the original list of scans
-            resolved.add((T) chrom.subSeries(storage, range.lowerEndpoint().floatValue(),
-                range.upperEndpoint().floatValue()));
-          }
-        } else {
-          throw new IllegalStateException(
-              "Resolving behaviour of " + originalSeries.getClass().getName() + " not specified.");
-        }
+
+        final T subSeries = FeatureDataUtils.subSeries(storage, series,
+            range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue(),
+            mobilogramDataAccess);
+        resolved.add(subSeries);
       }
     } else if (dimension == ResolvingDimension.MOBILITY
                && originalSeries instanceof IonMobilogramTimeSeries originalTrace) {
@@ -186,18 +166,25 @@ public abstract class AbstractResolver implements Resolver {
     }
   }
 
-  @NotNull
-  protected BinningMobilogramDataAccess getMobilogramDataAccess() {
+  /**
+   * @throws RuntimeException if called for a non {@link IMSRawDataFile}
+   */
+  @NotNull BinningMobilogramDataAccess getMobilogramDataAccess() {
     if (mobilogramDataAccess != null) {
       return mobilogramDataAccess;
     }
 
     if (file instanceof IMSRawDataFile imsFile) {
-      mobilogramDataAccess = new BinningMobilogramDataAccess(imsFile,
-          BinningMobilogramDataAccess.getPreviousBinningWith(flist, imsFile.getMobilityType()));
+      mobilogramDataAccess = BinningMobilogramDataAccess.createWithPreviousParameters(imsFile,
+          flist);
       return mobilogramDataAccess;
     }
     throw new RuntimeException("Could not initialize BinningMobilogramDataAccess.");
+  }
+
+  @Override
+  public void setMobilogramDataAccess(final BinningMobilogramDataAccess mobilogramDataAccess) {
+    this.mobilogramDataAccess = mobilogramDataAccess;
   }
 
   @Override
