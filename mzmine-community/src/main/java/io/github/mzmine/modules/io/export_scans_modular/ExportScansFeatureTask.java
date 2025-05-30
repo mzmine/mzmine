@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -260,7 +260,7 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
               e.getMessage()), e);
     } catch (Throwable e) {
       error("Could not export scans file to " + outFile + " because of internal exception:"
-            + e.getMessage());
+          + e.getMessage());
       logger.log(Level.WARNING,
           String.format("Error writing scans file: %s. Message: %s", outFile.getAbsolutePath(),
               e.getMessage()), e);
@@ -405,7 +405,7 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
       return List.of();
     }
 
-    // handle chimerics
+    // handle chimerics - automatically skips GC-EI scans
     final var chimericMap = handleChimericsAndFilterScansIfSelected(row, scans);
 
     scans = selectMergeAndFilterScans(scans);
@@ -417,7 +417,7 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
         continue;
       }
 
-      var chimeric = chimericMap.getOrDefault(scan, ChimericPrecursorResults.PASSED);
+      var chimeric = chimericMap.get(scan);
 
       SpectralLibraryEntry entry = entryFactory.createUnknown(getMemoryMapStorage(), row, null,
           scan, dps, chimeric, metadataMap);

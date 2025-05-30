@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -94,6 +94,10 @@ public class ChimericPrecursorChecker {
     // all data files from fragment scans to score if is chimeric
     Map<Scan, ChimericPrecursorResults> chimericMap = new HashMap<>();
     for (Scan scan : fragmentScans) {
+      if (ScanUtils.isGcEiScan(scan)) {
+        // does not work on GC-EI scans. No precursor isolation
+        continue;
+      }
       chimericMap.computeIfAbsent(scan,
           key -> scoreChimericIsolation(precursorMz, scan, mainSignalMzTol, isolationMzTol,
               minimumPurity));
@@ -118,6 +122,10 @@ public class ChimericPrecursorChecker {
   public static ChimericPrecursorResults scoreChimericIsolation(final double precursorMz,
       final Scan fragmentScan, final MZTolerance mainSignalMzTol, final MZTolerance isolationMzTol,
       final double minimumPurity) {
+    if (ScanUtils.isGcEiScan(fragmentScan)) {
+      return ChimericPrecursorResults.NOT_APPLICABLE;
+    }
+
     // retrieve preceding ms1 scan
     final Scan ms1;
     if (fragmentScan instanceof MergedMsMsSpectrum msms) {
