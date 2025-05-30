@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -94,7 +95,7 @@ public class ChimericPrecursorChecker {
     // all data files from fragment scans to score if is chimeric
     Map<Scan, ChimericPrecursorResults> chimericMap = new HashMap<>();
     for (Scan scan : fragmentScans) {
-      if (ScanUtils.isGcEiScan(scan)) {
+      if (scan instanceof PseudoSpectrum) {
         // does not work on GC-EI scans. No precursor isolation
         continue;
       }
@@ -122,7 +123,8 @@ public class ChimericPrecursorChecker {
   public static ChimericPrecursorResults scoreChimericIsolation(final double precursorMz,
       final Scan fragmentScan, final MZTolerance mainSignalMzTol, final MZTolerance isolationMzTol,
       final double minimumPurity) {
-    if (ScanUtils.isGcEiScan(fragmentScan)) {
+    // GC-EI, DIA etc
+    if (fragmentScan instanceof PseudoSpectrum) {
       return ChimericPrecursorResults.NOT_APPLICABLE;
     }
 

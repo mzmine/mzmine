@@ -31,7 +31,7 @@ public enum ChimericPrecursorFlag {
   PASSED("Clean precursor isolation"), MISSING_MAIN_SIGNAL(
       "Missing main precursor signal"), CHIMERIC("Chimeric precursor isolation"), MISSING_MS1_SCAN(
       "Could not find MS1 data"), NOT_APPLICABLE(
-      "Not applicable, e.g., for GC-EI-MS scans or other scans without precursor mz.");
+      "Not applicable, e.g., for GC-EI-MS or DIA scans or other scans without precursor mz.");
 
   private final String description;
 
