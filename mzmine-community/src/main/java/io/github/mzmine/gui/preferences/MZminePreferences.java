@@ -27,6 +27,7 @@ package io.github.mzmine.gui.preferences;
 
 import static io.github.mzmine.util.files.ExtensionFilters.MSCONVERT;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
@@ -55,6 +56,7 @@ import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePalettePa
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -228,6 +230,16 @@ public class MZminePreferences extends SimpleParameterSet {
       new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
       new DecimalFormat("0.###"), UnitFormat.DIVIDE);
+
+  /**
+   * Set of formats that will never be changed. For example to generate stable row IDs with a fixed
+   * precision for mz etc. See {@link FeatureUtils#rowToFullId(FeatureListRow)}
+   */
+  private static final NumberFormats stableFormat = new NumberFormats(new DecimalFormat("0.000000"),
+      new DecimalFormat("0.0000"), new DecimalFormat("0.0000"), new DecimalFormat("0.000"),
+      new DecimalFormat("0.0000E0"), new DecimalFormat("0.00"), new DecimalFormat("0.0000"),
+      new DecimalFormat("0.0000"), UnitFormat.DIVIDE);
+
   private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
   private NumberFormats guiFormat = exportFormat; // default value
 
@@ -548,6 +560,14 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public NumberFormats getExportFormats() {
     return exportFormat;
+  }
+
+  /**
+   * Set of formats that will never be changed. For example to generate stable row IDs with a fixed
+   * precision for mz etc. See {@link FeatureUtils#rowToFullId(FeatureListRow)}
+   */
+  public NumberFormats getStableFormats() {
+    return stableFormat;
   }
 
   public NumberFormats getGuiFormats() {
