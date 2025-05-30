@@ -172,8 +172,4 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
     return featureData.emptySeries();
   }
 
-  @Override
-  public List<Scan> getSpectraModifiable() {
-    return featureData.getSpectraModifiable();
-  }
 }
