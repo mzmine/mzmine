@@ -120,6 +120,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     }
 
     makeAndAddDeisotopingStep(q, intraSampleRtTol);
+    makeAndAddFeatureFilterStep(q);
     makeAndAddDiaMs2GroupingStep(q);
 
     makeAndAddIsotopeFinderStep(q);

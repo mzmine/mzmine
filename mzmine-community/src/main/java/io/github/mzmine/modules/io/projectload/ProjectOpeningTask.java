@@ -182,8 +182,6 @@ public class ProjectOpeningTask extends AbstractTask {
           versionInformationLoaded = true;
         } else if (entryName.equals(ProjectSavingTask.CONFIG_FILENAME)) {
           loadConfiguration(cis);
-        } else if (entryName.equals(ProjectSavingTask.PARAMETERS_FILENAME)) {
-          loadUserParameters(cis);
         } else if (entryName.equals(RawDataFileSaveHandler.RAW_DATA_IMPORT_BATCH_FILENAME)) {
           loadRawDataFiles(cis, zipFile);
         } else if (entryName.equals(ProjectSavingTask.STANDALONE_FILENAME)) {
@@ -367,22 +365,6 @@ public class ProjectOpeningTask extends AbstractTask {
         e.printStackTrace();
       }
     }
-  }
-
-  private void loadUserParameters(InputStream is)
-      throws IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException {
-
-    // Older versions of MZmine had no parameter saving
-    if (userParameterOpenHandler == null) {
-      return;
-    }
-
-    logger.info("Loading user parameters");
-
-    currentLoadedObjectName = "User parameters";
-
-    userParameterOpenHandler.readUserParameters(is);
-
   }
 
   private boolean loadRawDataFiles(InputStream is, ZipFile zipFile) {

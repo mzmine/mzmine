@@ -210,20 +210,28 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
    * Check the estimated memory requirements for this run
    */
   private void checkTotalWorkloadAndMemory() {
-    // 2556327 total features after gap filling 5.9 GB memory
-    // after finishing peak finder and GC drops to 3.7 GB memory
+    // 5405 x 250 (rows x samples) = 1351250 total possible features
+    // Initial RAM 2.0 GB: 288440 detected with 1062810 gaps to search
+    // After RAM 2.1 GB: 939281 total features
+    //
+    // step	secondsToFinish	name	usedHeapGB
+    //6	2.656	"Feature list rows filter"	2.00
+    //7	6.33	"Feature finder (multithreaded)"	2.13
+    // considering difference between rows filter and feature finder memory:
+    // 0.13 GB for 650,841 new Features = 0.199741565/ M features
     final int totalRows = peakList.getNumberOfRows();
     final int numRaws = peakList.getNumberOfRawDataFiles();
     final double imsRamFactor = FeatureListUtils.getImsRamFactor(peakList);
-    final double gbMemoryPerMillionFeatures =
-        2.5 * imsRamFactor; // this is from 6 GB per 2.5M features
+    final double optionFactor =
+        originalFeatureListOption == OriginalFeatureListOption.PROCESS_IN_PLACE ? 1d : 2d;
+    final double gbMemoryPerMillionFeatures = 0.5 * imsRamFactor * optionFactor;
     final double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
     final long totalFeatures = totalRows * (long) numRaws;
     final double expectedMemoryUsage = gbMemoryPerMillionFeatures / 1_000_000 * totalFeatures;
 
     logger.info("""
         Gap-filling started on a total of %d feature list rows across %d samples (%d potential features). \
-        Max memory available: %.1f GB. Expecting to use %.1f GB during gap filling""".formatted(
+        Max memory available: %.1f GB. Expecting to use %.1f GB just for gap filling""".formatted(
         totalRows, numRaws, totalFeatures, maxMemoryGB, expectedMemoryUsage));
 
     // check if memory constrains may arise
@@ -232,6 +240,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
           FxTextFlows.newTextFlow(FxTexts.text("""
                   mzmine gap-filling started on a total of %d feature list rows across %d samples. \
                   This results in a total of %d possible features (rows x samples), that may cause memory constraints.
+                  When possible run modules with PROCESS_IN_PLACE where available or with REMOVE option to clear previous results. \
                   Consider applying the feature list rows filter to remove features below X%% detections. \
                   Other great filters to reduce the number of noisy features are also found in the chromatogram builder and feature resolvers, \
                   such as increased minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver.

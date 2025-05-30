@@ -32,11 +32,13 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 
 
@@ -53,8 +55,8 @@ public class MinimumFeatureFilter {
   // do not accept that feature in one raw file is out of rtRange or minIPercOverlap
   private final boolean strictRules = false;
   // sample group size
-  private UserParameter<?, ?> sgroupPara;
-  private HashMap<String, Integer> sgroupSize;
+  private @Nullable MetadataColumn<?> sgroupPara;
+  private HashMap<Object, Integer> sgroupSize;
   private boolean filterGroups = false;
   private MZmineProject project;
   private boolean excludeEstimatedFeatures = false;
@@ -80,7 +82,7 @@ public class MinimumFeatureFilter {
    * @param minFInGroups
    * @param minFeatureHeight
    */
-  public MinimumFeatureFilter(MZmineProject project, List<RawDataFile> raw, String groupParam,
+  public MinimumFeatureFilter(MZmineProject project, List<RawDataFile> raw, @Nullable MetadataColumn<?> groupParam,
       AbsoluteAndRelativeInt minFInSamples, AbsoluteAndRelativeInt minFInGroups,
       double minFeatureHeight, double minIPercOverlap, boolean excludeEstimatedFeatures) {
     this(minFInSamples, minFInGroups, minFeatureHeight, minIPercOverlap, excludeEstimatedFeatures);
@@ -131,11 +133,11 @@ public class MinimumFeatureFilter {
 
     // is present in X % samples of a sample set?
     // count sample in groups (no feature in a sample group->no occurrence in map)
-    HashMap<String, MutableInt> counter = new HashMap<>();
+    HashMap<Object, MutableInt> counter = new HashMap<>();
     for (RawDataFile file : raw) {
       Feature f = row.getFeature(file);
       if (checkFeatureQuality(f)) {
-        String sgroup = sgroupOf(file);
+        Object sgroup = sgroupOf(file);
 
         MutableInt count = counter.get(sgroup);
         if (count == null) {
@@ -220,7 +222,7 @@ public class MinimumFeatureFilter {
 
     // is present in X % samples of a sample set?
     // count sample in groups (no feature in a sample group->no occurrence in map)
-    HashMap<String, MutableInt> counter = new HashMap<>();
+    HashMap<Object, MutableInt> counter = new HashMap<>();
     for (RawDataFile file : raw) {
       Feature a = row.getFeature(file);
       Feature b = row2.getFeature(file);
@@ -228,7 +230,7 @@ public class MinimumFeatureFilter {
         if (checkRTTol(rtTolerance, a, b)) {
           if (!calculateShapeOverlap || checkIntensityOverlap(data, a, b, minIPercOverlap,
               minFeatureHeight)) {
-            String sgroup = sgroupOf(file);
+            Object sgroup = sgroupOf(file);
 
             MutableInt count = counter.get(sgroup);
             if (count == null) {
@@ -362,9 +364,9 @@ public class MinimumFeatureFilter {
 
     // is present in X % samples of a sample set?
     // count sample in groups (no feature in a sample group->no occurrence in map)
-    HashMap<String, MutableInt> counter = new HashMap<>();
+    HashMap<Object, MutableInt> counter = new HashMap<>();
     for (RawDataFile file : detected) {
-      String sgroup = sgroupOf(file);
+      Object sgroup = sgroupOf(file);
 
       MutableInt count = counter.get(sgroup);
       if (count == null) {
@@ -390,25 +392,20 @@ public class MinimumFeatureFilter {
    * gets called to initialise group variables
    */
   public void setSampleGroups(MZmineProject project, List<RawDataFile> raw,
-      String groupingParameter) {
+      @Nullable MetadataColumn<?> groupingParameter) {
     this.project = project;
-    if (groupingParameter == null || groupingParameter.length() == 0) {
+    final Map<?, List<RawDataFile>> groups = project.getProjectMetadata()
+        .groupFilesByColumn(groupingParameter);
+
+    if (groupingParameter == null || groups.isEmpty()) {
       this.sgroupSize = null;
       setGroupFilterEnabled(false);
     } else {
       sgroupSize = new HashMap<>();
-      UserParameter<?, ?>[] params = project.getParameters();
-      for (UserParameter<?, ?> p : params) {
-        if (groupingParameter.equals(p.getName())) {
-          // save parameter for sample groups
-          sgroupPara = p;
-          break;
-        }
-      }
       int max = 0;
       // calc size of sample groups
       for (RawDataFile file : raw) {
-        String parameterValue = sgroupOf(file);
+        Object parameterValue = sgroupOf(file);
 
         Integer v = sgroupSize.get(parameterValue);
         int val = v == null ? 0 : v;
@@ -426,8 +423,8 @@ public class MinimumFeatureFilter {
    * @param file
    * @return sample group value of raw file
    */
-  public String sgroupOf(RawDataFile file) {
-    return String.valueOf(project.getParameterValue(sgroupPara, file));
+  public Object sgroupOf(RawDataFile file) {
+    return project.getProjectMetadata().getValue(sgroupPara, file);
   }
 
   /**
@@ -435,7 +432,7 @@ public class MinimumFeatureFilter {
    *
    * @return
    */
-  public HashMap<String, Integer> getGroupSizeMap() {
+  public HashMap<Object, Integer> getGroupSizeMap() {
     return sgroupSize;
   }
 
@@ -444,7 +441,7 @@ public class MinimumFeatureFilter {
    *
    * @return
    */
-  public UserParameter<?, ?> getGroupParam() {
+  public MetadataColumn<?> getGroupParam() {
     return sgroupPara;
   }
 
@@ -472,6 +469,4 @@ public class MinimumFeatureFilter {
       return value;
     }
   }
-
-
 }

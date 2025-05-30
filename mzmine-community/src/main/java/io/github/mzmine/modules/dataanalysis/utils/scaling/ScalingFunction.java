@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
 import java.util.function.Function;
+import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.linear.RealVector;
 
 /**
@@ -34,5 +35,12 @@ import org.apache.commons.math3.linear.RealVector;
  * intensities to the standard deviation of the row.
  */
 public interface ScalingFunction extends Function<RealVector, RealVector> {
+
+  UnivariateFunction scalingResultChecker = x -> {
+    if(Double.isNaN(x) || Double.isInfinite(x)) {
+      return 0;
+    }
+    return x;
+  };
 
 }

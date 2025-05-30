@@ -82,7 +82,7 @@ public class CCSUtils {
       case TIMS ->
           file.getCCSCalibration() != null ? file.getCCSCalibration().getCCS(mz, charge, mobility)
               : calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
-      case NONE, FAIMS, MIXED, OTHER -> logUnsupportedMobilityUnit();
+      case NONE, FAIMS, MIXED, OTHER, SLIM -> logUnsupportedMobilityUnit();
     };
   }
 

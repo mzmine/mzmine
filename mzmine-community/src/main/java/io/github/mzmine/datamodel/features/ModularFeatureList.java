@@ -953,11 +953,43 @@ public class ModularFeatureList implements FeatureList {
     bufferedCharts.clear();
   }
 
-  public @NotNull ColumnarModularDataModelSchema getFeaturesSchema() {
+  /**
+   *
+   * @see ColumnarModularDataModelSchema#addDataTypesChangeListener(DataTypesChangedListener)
+   */
+  public void addRowDataTypesChangedListener(@Nullable DataTypesChangedListener listener) {
+    rowsSchema.addDataTypesChangeListener(listener);
+  }
+
+  /**
+   *
+   * @see ColumnarModularDataModelSchema#addDataTypesChangeListener(DataTypesChangedListener)
+   */
+  public void addFeaturesDataTypesChangedListener(@Nullable DataTypesChangedListener listener) {
+    featuresSchema.addDataTypesChangeListener(listener);
+  }
+
+  /**
+   *
+   * @see ColumnarModularDataModelSchema#removeDataTypesChangeListener(DataTypesChangedListener)
+   */
+  public void removeRowDataTypesChangedListener(@Nullable DataTypesChangedListener listener) {
+    rowsSchema.removeDataTypesChangeListener(listener);
+  }
+
+  /**
+   *
+   * @see ColumnarModularDataModelSchema#removeDataTypesChangeListener(DataTypesChangedListener)
+   */
+  public void removeFeaturesDataTypesChangedListener(@Nullable DataTypesChangedListener listener) {
+    featuresSchema.removeDataTypesChangeListener(listener);
+  }
+
+  @NotNull ColumnarModularDataModelSchema getFeaturesSchema() {
     return featuresSchema;
   }
 
-  public @NotNull ColumnarModularFeatureListRowsSchema getRowsSchema() {
+  @NotNull ColumnarModularFeatureListRowsSchema getRowsSchema() {
     return rowsSchema;
   }
 }

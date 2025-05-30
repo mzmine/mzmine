@@ -29,6 +29,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
@@ -46,12 +47,18 @@ import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BatchUtils {
+
+  private static final Set<String> modulesToExculdeInRawFileChecks = Set.of(
+      FeatureListBlankSubtractionModule.class.getName());
+
+  private static final Set<String> modulesToExculdeInFlistChecks = Set.of();
 
   /**
    * While all parameters may be valid, some choices might not make sense.
@@ -161,9 +168,10 @@ public class BatchUtils {
       } else if (previousRawFileSelection != null && rawSelection != null) {
         // if the next step is not applied on last files, but the previous was, something is fishy
         if (previousRawFileSelection == RawDataFilesSelectionType.BATCH_LAST_FILES
-            && rawSelection != previousRawFileSelection) {
+            && rawSelection != previousRawFileSelection
+            && !isModuleExcludedFromRawFileCheck(step, batch.get(i - 1))) {
           errorMessages.add(
-              "Warning: Batch step %d (%s) is applied on a different set of files (%s) than step %d (%s, %s).".formatted(
+              "Warning: Batch step %d (%s) is applied to a different set of files (%s) than step %d (%s, %s).".formatted(
                   i, batch.get(i - 1).getModule().getName(), previousRawFileSelection.toString(),
                   i + 1, step.getModule().getName(), rawSelection.toString()));
         }
@@ -178,7 +186,8 @@ public class BatchUtils {
       } else if (previousFlistSelection != null && flistSelection != null) {
         // if the next step is not applied on last files, but the previous was, something is fishy
         if (previousFlistSelection == FeatureListsSelectionType.BATCH_LAST_FEATURELISTS
-            && flistSelection != previousFlistSelection) {
+            && flistSelection != previousFlistSelection
+            && !isModuleExcludedFromFlistCheck(step, batch.get(i - 1))) {
           errorMessages.add(
               "Warning: Batch step %d (%s) is applied on a different set of feature lists (%s) than step %d (%s, %s).".formatted(
                   i, batch.get(i - 1).getModule().getName(), previousFlistSelection.toString(),
@@ -202,5 +211,17 @@ public class BatchUtils {
     }
     final ParameterSet clonedParams = step.getParameterSet().cloneParameterSet();
     return new MZmineProcessingStepImpl<>(step.getModule(), clonedParams);
+  }
+
+  private static boolean isModuleExcludedFromFlistCheck(MZmineProcessingStep<?> stepA,
+      MZmineProcessingStep<?> stepB) {
+    return modulesToExculdeInFlistChecks.contains(stepA.getModule().getClass().getName())
+        || modulesToExculdeInFlistChecks.contains(stepB.getModule().getClass().getName());
+  }
+
+  private static boolean isModuleExcludedFromRawFileCheck(MZmineProcessingStep<?> stepA,
+      MZmineProcessingStep<?> stepB) {
+    return modulesToExculdeInRawFileChecks.contains(stepA.getModule().getClass().getName())
+        || modulesToExculdeInRawFileChecks.contains(stepB.getModule().getClass().getName());
   }
 }

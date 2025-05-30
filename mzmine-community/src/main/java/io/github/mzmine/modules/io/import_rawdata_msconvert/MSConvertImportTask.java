@@ -113,7 +113,8 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       cmdLine.add("--numpressLinear");
     }
 
-    if (fileType == RawDataFileType.AGILENT_D_IMS || fileType == RawDataFileType.WATERS_RAW_IMS) {
+    if (fileType == RawDataFileType.AGILENT_D_IMS || fileType == RawDataFileType.WATERS_RAW_IMS
+        || fileType == RawDataFileType.MBI) {
       cmdLine.addAll(List.of("--combineIonMobilitySpectra"));
     }
 
@@ -152,6 +153,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       case SCIEX_WIFF -> true;
       case SCIEX_WIFF2 -> true;
       case AGILENT_D -> true;
+      case MBI -> false;
       case SHIMADZU_LCD -> true;
       case WATERS_RAW_IMS, AGILENT_D_IMS -> false;
     };
@@ -207,6 +209,9 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   /**
    * Some versions of msconvert output information into stdout before the mzml is parsed. Therefore,
    * we need to find the mzml header and skip to it's start.
+   *
+   * @return true if the start of the mzml has been found, no matter if something was skipped. false
+   * if the file cannot be parsed by msconvert.
    */
   private static void skipToMzmlStart(InputStream mzMLStream) throws IOException {
     if (mzMLStream.markSupported()) {
@@ -388,8 +393,10 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
         msdkTask = new MSDKmzMLImportTask(project, rawFilePath, mzMLStream, config, module,
             parameters, moduleCallDate, storage);
 
+        final Process finalProcess = process;
         this.addTaskStatusListener((_, _, _) -> {
           if (isCanceled()) {
+            finalProcess.destroy();
             msdkTask.cancel();
           }
         });
@@ -397,6 +404,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       }
 
       if (dataFile == null || isCanceled()) {
+        process.destroy();
         return;
       }
 

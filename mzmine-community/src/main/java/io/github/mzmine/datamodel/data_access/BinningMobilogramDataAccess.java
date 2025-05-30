@@ -168,6 +168,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     final Frame frame = file.getFrame(file.getNumberOfFrames() / 2);
     return switch (frame.getMobilityType()) {
       case NONE, DRIFT_TUBE, TRAVELING_WAVE, FAIMS, MIXED, OTHER -> 1;
+      case SLIM -> 10;
       case TIMS -> {
         final int index = frame.getNumberOfMobilityScans() / 2;
         final double mob1 = frame.getMobilityScan(index).getMobility();
@@ -203,7 +204,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
                   .getValue() ? advancedParam.getParameter(
                       AdvancedImsTraceBuilderParameters.dtimsBinningWidth).getEmbeddedParameter()
                   .getValue() : getRecommendedBinWidth(file);
-          case TRAVELING_WAVE ->
+          case TRAVELING_WAVE, SLIM ->
               advancedParam.getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
                       AdvancedImsTraceBuilderParameters.twimsBinningWidth).getEmbeddedParameter()
@@ -229,7 +230,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
                   .getValue() ? advancedParam.getParameter(
                       RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth).getEmbeddedParameter()
                   .getValue() : getRecommendedBinWidth(file);
-          case TRAVELING_WAVE ->
+          case TRAVELING_WAVE, SLIM ->
               advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
                       RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth).getEmbeddedParameter()
@@ -246,7 +247,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
               parameterSet.getParameter(MobilogramBinningParameters.timsBinningWidth).getValue();
           case DRIFT_TUBE ->
               parameterSet.getParameter(MobilogramBinningParameters.dtimsBinningWidth).getValue();
-          case TRAVELING_WAVE ->
+          case TRAVELING_WAVE, SLIM ->
               parameterSet.getParameter(MobilogramBinningParameters.twimsBinningWidth).getValue();
         };
         break;

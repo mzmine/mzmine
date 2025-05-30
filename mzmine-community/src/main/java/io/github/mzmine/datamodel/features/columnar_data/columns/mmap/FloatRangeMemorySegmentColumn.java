@@ -31,6 +31,7 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.StructLayout;
 import java.lang.foreign.ValueLayout;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FloatRangeMemorySegmentColumn extends AbstractMemorySegmentColumn<Range<Float>> {
@@ -38,12 +39,12 @@ public class FloatRangeMemorySegmentColumn extends AbstractMemorySegmentColumn<R
   private static final StructLayout LAYOUT = MemoryLayout.structLayout(
       ValueLayout.JAVA_FLOAT.withoutName(), ValueLayout.JAVA_FLOAT.withoutName());
 
-  public FloatRangeMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+  public FloatRangeMemorySegmentColumn(@NotNull final MemoryMapStorage storage, int initialCapacity) {
     super(storage, initialCapacity);
   }
 
   @Override
-  protected MemoryLayout getValueLayout() {
+  protected @NotNull MemoryLayout getValueLayout() {
     return LAYOUT;
   }
 
@@ -73,14 +74,14 @@ public class FloatRangeMemorySegmentColumn extends AbstractMemorySegmentColumn<R
     return Range.closed(lower, upper);
   }
 
-  public void set(final MemorySegment data, final int index, @Nullable final Float lower,
+  public void set(final @NotNull MemorySegment data, final int index, @Nullable final Float lower,
       @Nullable final Float upper) {
     data.setAtIndex(ValueLayout.JAVA_FLOAT, index * 2L, lower == null ? Float.NaN : lower);
     data.setAtIndex(ValueLayout.JAVA_FLOAT, index * 2L + 1L, upper == null ? Float.NaN : upper);
   }
 
   @Override
-  public void set(final MemorySegment data, final int index, final Range<Float> value) {
+  public void set(final @NotNull MemorySegment data, final int index, final Range<Float> value) {
     if (value == null) {
       set(data, index, null, null);
       return;

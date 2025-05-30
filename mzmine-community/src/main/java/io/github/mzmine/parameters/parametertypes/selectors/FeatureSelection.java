@@ -139,7 +139,7 @@ public class FeatureSelection {
           row.getPreferredFeatureIdentity().getName() == null)) {
         return false;
       }
-      if (!row.getPreferredFeatureIdentity().getName().toLowerCase().contains(name.toLowerCase())) {
+      if (!row.getPreferredAnnotationName().toLowerCase().contains(name.toLowerCase())) {
         return false;
       }
     }

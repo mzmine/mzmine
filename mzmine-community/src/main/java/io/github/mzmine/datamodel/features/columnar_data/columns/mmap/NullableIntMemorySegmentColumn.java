@@ -29,21 +29,22 @@ import io.github.mzmine.datamodel.features.columnar_data.columns.NullableIntData
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import org.jetbrains.annotations.NotNull;
 
 public class NullableIntMemorySegmentColumn extends AbstractMemorySegmentColumn<Integer> implements
     NullableIntDataColumn {
 
-  public NullableIntMemorySegmentColumn(final MemoryMapStorage storage, int initialCapacity) {
+  public NullableIntMemorySegmentColumn(final @NotNull MemoryMapStorage storage, int initialCapacity) {
     super(storage, initialCapacity);
   }
 
   @Override
-  protected ValueLayout getValueLayout() {
+  protected @NotNull ValueLayout getValueLayout() {
     return ValueLayout.JAVA_INT;
   }
 
   @Override
-  protected void set(final MemorySegment data, final int index, final Integer value) {
+  protected void set(final @NotNull MemorySegment data, final int index, final Integer value) {
     data.setAtIndex(ValueLayout.JAVA_INT, index, value != null ? value : NULL_VALUE);
   }
 

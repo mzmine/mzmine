@@ -105,6 +105,8 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
       makeAndAddMobilityResolvingStep(q, groupMs2Params);
       makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
     }
+
+    makeAndAddFeatureFilterStep(q);
     // NO FILTERING FOR ISOTOPES
     makeAndAddIsotopeFinderStep(q);
 

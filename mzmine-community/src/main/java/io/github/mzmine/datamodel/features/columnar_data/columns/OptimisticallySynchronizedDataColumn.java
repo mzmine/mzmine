@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.columnar_data.columns;
 
 import java.util.concurrent.locks.StampedLock;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -41,9 +42,10 @@ public final class OptimisticallySynchronizedDataColumn<T> extends AbstractDataC
    * changed optimistic read will fail here only if backing data array was changed for a new one
    */
   private final StampedLock resizeLock = new StampedLock();
+  @NotNull
   private final AbstractDataColumn<T> delegate;
 
-  public OptimisticallySynchronizedDataColumn(final AbstractDataColumn<T> delegate) {
+  public OptimisticallySynchronizedDataColumn(@NotNull final AbstractDataColumn<T> delegate) {
     this.delegate = delegate;
   }
 

@@ -66,6 +66,10 @@ public class ColumnarModularDataModelSchema {
   private static final Logger logger = Logger.getLogger(
       ColumnarModularDataModelSchema.class.getName());
 
+  /**
+   * Only present if memory mapping active
+   */
+  @Nullable
   protected final MemoryMapStorage storage;
 
   /**
@@ -90,17 +94,17 @@ public class ColumnarModularDataModelSchema {
 
   protected final String modelName;
 
-  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> dataTypeValueChangedListeners = new ConcurrentHashMap<>();
-  private final List<DataTypesChangedListener> dataTypesChangeListeners = new CopyOnWriteArrayList<>();
+  private final @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> dataTypeValueChangedListeners = new ConcurrentHashMap<>();
+  private final @NotNull List<DataTypesChangedListener> dataTypesChangeListeners = new CopyOnWriteArrayList<>();
 
-  public ColumnarModularDataModelSchema(final MemoryMapStorage storage, String modelName,
+  public ColumnarModularDataModelSchema(final @Nullable MemoryMapStorage storage, String modelName,
       int initialSize) {
     this.storage = storage;
     this.modelName = modelName;
     columnLength = initialSize;
   }
 
-  public boolean containsDataType(final DataType type) {
+  public boolean containsDataType(@NotNull final DataType type) {
     return columns.containsKey(type);
   }
 
@@ -139,7 +143,7 @@ public class ColumnarModularDataModelSchema {
     }
   }
 
-  protected DataColumn getColumn(final DataType type) {
+  protected <T> DataColumn<T> getColumn(@NotNull final DataType<T> type) {
     return columns.get(type);
   }
 
@@ -157,19 +161,29 @@ public class ColumnarModularDataModelSchema {
    */
   public int addRowGetIndex() {
     final int index = nextRow.getAndIncrement();
+    if (index < 0) {
+      // overflow detected
+      // trap forever in negative
+      nextRow.set(Integer.MIN_VALUE);
+      throw new IndexOutOfBoundsException(
+          "Index out of bounds. Data model has reached its maximum number of rows. This may point to too much noise being detected. Revise parameters.");
+    }
+
     final int currentColumnLength = columnLength;
     if (index >= currentColumnLength) {
       // double size of columns
       // apply some minimum and maximum resize
-      final int newSize =
-          currentColumnLength + MathUtils.withinBounds((int) (currentColumnLength * 1d), 10,
-              250000);
+
+      // avoid int overflow
+      final int newSize = MathUtils.capMaxInt(
+          (long) currentColumnLength + MathUtils.withinBounds((int) (currentColumnLength * 1d), 10,
+              250000));
       resizeColumnsTo(newSize);
     }
     return index;
   }
 
-  public void resizeColumnsTo(final int finalSize) {
+  void resizeColumnsTo(final int finalSize) {
     try (var _ = resizeLock.lockWrite()) {
       if (columnLength >= finalSize) {
         return;
@@ -187,16 +201,39 @@ public class ColumnarModularDataModelSchema {
     }
   }
 
+  /**
+   * @return A map of listeners for values of specific data types.
+   */
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
     return dataTypeValueChangedListeners;
   }
 
-  public void addDataTypesChangeListener(DataTypesChangedListener listener) {
+  /**
+   * @param listener The listener to add. null will be ignored. Will react to added or removed data
+   *                 types, not edited values.
+   */
+  public void addDataTypesChangeListener(@Nullable DataTypesChangedListener listener) {
+    if (listener == null) {
+      return;
+    }
     dataTypesChangeListeners.add(listener);
   }
 
-  public List<DataTypesChangedListener> getDataTypesChangeListeners() {
+  /**
+   * @return All current data types listeners.
+   */
+  public @NotNull List<DataTypesChangedListener> getDataTypesChangeListeners() {
     return dataTypesChangeListeners;
+  }
+
+  /**
+   * @param listener The listener to remove. Null will be ignored.
+   */
+  public void removeDataTypesChangeListener(@Nullable DataTypesChangedListener listener) {
+    if (listener == null) {
+      return;
+    }
+    dataTypesChangeListeners.remove(listener);
   }
 
   public boolean isEmpty() {
@@ -215,7 +252,7 @@ public class ColumnarModularDataModelSchema {
    * @param type     the type for the column
    * @param value    the value to set
    * @param <T>      value type
-   * @return the old value mapping
+   * @return true if the value was updated, false otherwise.
    */
   public <T> boolean set(final ModularDataModel model, final int rowIndex, DataType<T> type,
       T value) {
@@ -246,14 +283,12 @@ public class ColumnarModularDataModelSchema {
 
     if (!Objects.equals(old, value)) {
       List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(type);
-      if (!Objects.equals(old, value)) {
-        if (listeners != null) {
-          for (DataTypeValueChangeListener listener : listeners) {
-            listener.valueChanged(model, type, old, value);
-          }
+      if (listeners != null) {
+        for (DataTypeValueChangeListener listener : listeners) {
+          listener.valueChanged(model, type, old, value);
         }
-        return true;
       }
+      return true;
     }
     return false;
   }

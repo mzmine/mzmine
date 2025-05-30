@@ -28,6 +28,13 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A listener that can be added to a
+ * {@link io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema}
+ * {@link
+ * io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema#addDataTypesChangeListener(DataTypesChangedListener)}.
+ * The listener is triggered when a new {@link DataType} is added to the feature list or removed from it.
+ */
 public interface DataTypesChangedListener {
 
   void onChange(@NotNull List<@NotNull DataType> added, @NotNull List<@NotNull DataType> removed);

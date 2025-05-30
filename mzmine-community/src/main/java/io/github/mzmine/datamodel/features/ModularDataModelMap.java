@@ -42,7 +42,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * TODO try to replace this with {@link ColumnarModularDataModelSchema} where possible and then {@link ColumnarModularDataModelRow}
+ * Simple implementation of the {@link ModularDataModel} interface. Based on a map internally, works
+ * independently of q {@link ColumnarModularDataModelSchema}.
  */
 public abstract class ModularDataModelMap implements ModularDataModel {
 

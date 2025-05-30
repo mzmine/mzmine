@@ -566,7 +566,7 @@ public class FeatureFindingTest {
     assertEquals(2, processed1.getRawDataFiles().size());
 
     // methods +1
-    assertEquals(6, processed1.getAppliedMethods().size());
+    assertEquals(lastFlistA.getAppliedMethods().size() + 1, processed1.getAppliedMethods().size());
     // less feature list rows
     assertEquals(155, processed1.getNumberOfRows());
 

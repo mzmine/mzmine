@@ -48,6 +48,12 @@ import io.github.mzmine.util.MemoryMapStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Utility class to create {@link DataColumn}s for a
+ * {@link io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema}. It is
+ * strongly recommended to use synchronized columns if the data model is written
+ * into/modified/resized after its creation.
+ */
 public class DataColumns {
 
   public static @NotNull NullableDoubleDataColumn ofDouble(@Nullable MemoryMapStorage storage,

@@ -34,6 +34,7 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,7 +86,11 @@ public class RangeUtils {
    * @param range Input range
    * @return Converted Float range
    */
-  public static <N extends Number & Comparable<N>> Range<Float> toFloatRange(Range<N> range) {
+  @Contract("null -> null")
+  public static <N extends Number & Comparable<N>> Range<Float> toFloatRange(@Nullable Range<N> range) {
+    if(range == null) {
+      return null;
+    }
     if (!(range.hasLowerBound() && range.hasUpperBound())) {
       return Range.all();
     }
@@ -98,7 +103,11 @@ public class RangeUtils {
    * @param range Input range
    * @return Converted Double range
    */
+  @Contract("null -> null")
   public static <N extends Number & Comparable<N>> Range<Double> toDoubleRange(Range<N> range) {
+    if(range == null) {
+      return null;
+    }
     return Range.closed(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue());
   }
 

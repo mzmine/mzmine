@@ -610,7 +610,15 @@ public class FeatureListUtils {
     if (copyRows) {
       // need space for all rows and features
       estimatedRows = featureList.getNumberOfRows();
-      estimatedFeatures = featureList.stream().mapToInt(FeatureListRow::getNumberOfFeatures).sum();
+      final long allFeatures = featureList.stream().mapToLong(FeatureListRow::getNumberOfFeatures)
+          .sum();
+      // avoid overflow
+      if (allFeatures > Integer.MAX_VALUE) {
+        throw new IllegalStateException(
+            "Total features is too large. Total: %d; to max: %d".formatted(allFeatures,
+                Integer.MAX_VALUE));
+      }
+      estimatedFeatures = (int) allFeatures;
     } else {
       // start with less rows to not over commit to the size.
       // many modules know the number
@@ -724,10 +732,27 @@ public class FeatureListUtils {
     }
   }
 
+  /**
+   * We are using smaller filling for larger datasets to avoid over commiting. If possible, modules
+   * should find out the required number and then commit this number directly when copying feature
+   * lists
+   *
+   * @return estimated number of features across all samples uses different filling estimates for
+   * different sizes
+   */
   public static int estimateFeatures(final int rows, final int samples) {
-    if (samples == 1) {
-      return rows;
+    // different filling for size of dataset
+    final long features = (long) switch (samples) {
+      case 1 -> rows; // same
+      case int s when s < 64 -> rows * samples * 0.85; // small dataset - full
+      case int s when s < 500 -> rows * samples * 0.65; // medium dataset - full
+      case int s when s <= 1000 -> rows * samples * 0.45; // medium dataset - medium full
+      case int _ -> rows * samples * 0.35; // large dataset - medium full
+    };
+
+    if (features > Integer.MAX_VALUE) {
+      return Integer.MAX_VALUE;
     }
-    return (int) (rows * samples * 0.85); // do not over commit to number of features
+    return (int) features;
   }
 }

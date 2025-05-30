@@ -35,6 +35,6 @@ public class ParetoScalingFunction implements ScalingFunction {
   @Override
   public RealVector apply(RealVector realVector) {
     final double sd = dev.evaluate(realVector.toArray());
-    return realVector.mapDivide(Math.sqrt(sd));
+    return realVector.mapDivide(Math.sqrt(sd)).mapToSelf(scalingResultChecker);
   }
 }

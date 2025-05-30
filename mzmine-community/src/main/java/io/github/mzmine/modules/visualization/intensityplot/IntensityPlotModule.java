@@ -85,13 +85,7 @@ public class IntensityPlotModule implements MZmineRunnableModule {
 
     parameters.getParameter(IntensityPlotParameters.selectedRows).setValue(rows);
 
-    UserParameter<?, ?> projectParams[] = project.getParameters();
-    Object xAxisSources[] = new Object[projectParams.length + 1];
-    xAxisSources[0] = IntensityPlotParameters.rawDataFilesOption;
-
-    for (int i = 0; i < projectParams.length; i++) {
-      xAxisSources[i + 1] = new ParameterWrapper(projectParams[i]);
-    }
+    Object[] xAxisSources = {IntensityPlotParameters.rawDataFilesOption};
 
     parameters.getParameter(IntensityPlotParameters.xAxisValueSource).setChoices(xAxisSources);
 

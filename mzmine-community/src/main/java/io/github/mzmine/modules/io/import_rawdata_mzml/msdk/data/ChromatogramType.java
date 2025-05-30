@@ -25,12 +25,13 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public enum ChromatogramType {
+public enum ChromatogramType implements UniqueIdSupplier {
   TIC(MzMLCV.cvChromatogramTIC, "Total ion chromatogram"), //
   MRM_SRM(MzMLCV.cvChromatogramMRM_SRM, "Mixed reaction monitoring"),//
   SIM(MzMLCV.cvChromatogramSIM, "Selected ion monitoring"),//
@@ -79,5 +80,42 @@ public enum ChromatogramType {
 
   public String getDescription() {
     return description;
+  }
+
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case TIC -> "TIC";
+      case MRM_SRM -> "MRM/SRM";
+      case SIM -> "SIM";
+      case SIC -> "EIC";
+      case BPC -> "BPC";
+      case ELECTROMAGNETIC_RADIATION -> "Electromagnetic radiation";
+      case ABSORPTION -> "Absorption";
+      case EMISSION -> "Emission";
+      case ION_CURRENT -> "Ion current";
+      case PRESSURE -> "Pressure";
+      case FLOW_RATE -> "Flow rate";
+      case UNKNOWN -> "Unknown";
+    };
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case TIC -> "tic";
+      case MRM_SRM -> "mrm_srm";
+      case SIM -> "sim";
+      case SIC -> "sic";
+      case BPC -> "bpc";
+      case ELECTROMAGNETIC_RADIATION -> "electromagnetic_radiation";
+      case ABSORPTION -> "absorption";
+      case EMISSION -> "emission";
+      case ION_CURRENT -> "ion_current";
+      case PRESSURE -> "pressure";
+      case FLOW_RATE -> "flow_rate";
+      case UNKNOWN -> "unknown";
+    };
   }
 }

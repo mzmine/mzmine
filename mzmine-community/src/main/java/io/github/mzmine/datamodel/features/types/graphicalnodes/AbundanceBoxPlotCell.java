@@ -70,7 +70,6 @@ public class AbundanceBoxPlotCell extends
       }
     }, itemProperty(), emptyProperty());
 
-    setGraphic(view);
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
   }
 }

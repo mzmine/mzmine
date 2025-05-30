@@ -45,8 +45,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Saves scores on the alignment.
  * <p>
- * Improtant: do not change order of record fields - {@link AlignmentScoreMemorySegmentColumn}
- * depends on it
+ * Important: Check record creation in {@link AlignmentScoreMemorySegmentColumn} when changing the
+ * order of fields. Use proper refactoring tool instead of just changing the order manually.
  *
  * @param rate             the aligned/total samples
  * @param extraFeatures    features that fall within the alignment range but were not aligned with
