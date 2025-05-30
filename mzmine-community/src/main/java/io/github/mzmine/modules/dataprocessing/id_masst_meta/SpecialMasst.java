@@ -28,8 +28,8 @@ package io.github.mzmine.modules.dataprocessing.id_masst_meta;
 /**
  * Not used yet but maybe later for direct inclusion of MASST resources
  */
-public record SpecialMasst(String prefix, String root, String treeFile, String metadataFile,
-                           String treeNodeKey, String metadataKey) {
+record SpecialMasst(String prefix, String root, String treeFile, String metadataFile,
+                    String treeNodeKey, String metadataKey) {
 
   public static SpecialMasst MICROBE_MASST = new SpecialMasst("microbe", "microbes",
       "../data/microbe_masst_tree.json", "../data/microbe_masst_table.csv", "NCBI", "Taxa_NCBI");

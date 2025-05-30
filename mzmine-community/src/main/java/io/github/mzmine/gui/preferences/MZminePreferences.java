@@ -232,9 +232,8 @@ public class MZminePreferences extends SimpleParameterSet {
       new DecimalFormat("0.###"), UnitFormat.DIVIDE);
 
   /**
-   * Set of formats that will never be changed once they are used once. For example to generate
-   * stable row IDs with a fixed precision for mz etc. See
-   * {@link FeatureUtils#rowToFullId(FeatureListRow)}
+   * Set of formats that will never be changed. For example to generate stable row IDs with a fixed
+   * precision for mz etc. See {@link FeatureUtils#rowToFullId(FeatureListRow)}
    */
   private static final NumberFormats stableFormat = new NumberFormats(new DecimalFormat("0.000000"),
       new DecimalFormat("0.0000"), new DecimalFormat("0.0000"), new DecimalFormat("0.000"),
@@ -284,8 +283,8 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(// start with performance
-        new Parameter[]{numOfThreads, memoryOption, imsOptimization, tempDirectory, runGCafterBatchStep,
-            deleteTempFiles, proxySettings,
+        new Parameter[]{numOfThreads, memoryOption, imsOptimization, tempDirectory,
+            runGCafterBatchStep, deleteTempFiles, proxySettings,
             /*applyTimsPressureCompensation,*/
             // visuals
             // number formats
@@ -564,9 +563,8 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   /**
-   * Set of formats that will never be changed once they are used once. For example to generate
-   * stable row IDs with a fixed precision for mz etc. See
-   * {@link FeatureUtils#rowToFullId(FeatureListRow)}
+   * Set of formats that will never be changed. For example to generate stable row IDs with a fixed
+   * precision for mz etc. See {@link FeatureUtils#rowToFullId(FeatureListRow)}
    */
   public NumberFormats getStableFormats() {
     return stableFormat;

@@ -28,9 +28,9 @@ package io.github.mzmine.modules.dataprocessing.id_masst_meta;
 /**
  * Not used yet but maybe later for direct inclusion of MASST resources
  */
-public record FastMasstRequestConfig(double mzTol, double minSimilarity, int minMatchedSignals,
-                                     boolean analogSearch, double analogMassBelow,
-                                     double analogMassAbove, String dataIndexName) {
+record FastMasstRequestConfig(double mzTol, double minSimilarity, int minMatchedSignals,
+                              boolean analogSearch, double analogMassBelow, double analogMassAbove,
+                              String dataIndexName) {
 
   public FastMasstRequestConfig createDefault() {
     return new FastMasstRequestConfig(0.02, 0.7, 4, false, 130, 200,

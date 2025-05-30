@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_masst_meta;
 /**
  * Not used yet but maybe later for direct inclusion of MASST resources
  */
-public enum FastMasstDatabase {
+enum FastMasstDatabase {
   // value names equal the GNPS values
   METABOLOMICS_PAN_REPO_LATEST("metabolomicspanrepo_index_latest"), //
   GNPS_DATA("gnpsdata_index"), //
