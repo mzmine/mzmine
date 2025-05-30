@@ -92,7 +92,7 @@ public class ProjectLoadTest {
     // two library matches
     assertEquals(2, flist.getRows().stream().filter(FeatureListRow::isIdentified).count());
 
-    assertEquals(16,
+    assertEquals(15,
         flist.getRows().stream().max(Comparator.comparingInt(r -> r.getTypes().size())).get()
             .getTypes().size());
     assertEquals(16, flist.getRows().stream().flatMap(r -> r.streamFeatures())

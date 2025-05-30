@@ -549,7 +549,7 @@ public class FeatureUtils {
    * Loops over all {@link DataType}s in a {@link FeatureListRow}. Extracts all annotations derived
    * from a {@link CompoundDBAnnotation} in all {@link AnnotationType}s derived from the
    * {@link ListWithSubsType} within the {@link FeatureListRow}'s
-   * {@link io.github.mzmine.datamodel.features.ModularDataModel}.
+   * {@link ModularDataModel}.
    *
    * @param selectedRow The row
    * @return List of all annotations.

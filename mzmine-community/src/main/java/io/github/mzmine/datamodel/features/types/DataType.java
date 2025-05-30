@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -307,18 +307,18 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
     } else {
       throw new UnsupportedOperationException(
           "Programming error: No edit CellFactory for " + "data type: " + this.getHeaderString()
-          + " class " + this.getClass().toString());
+              + " class " + this.getClass().toString());
     }
   }
 
   // TODO dirty hack to make this a "singleton"
   @Override
-  public boolean equals(Object obj) {
+  public final boolean equals(Object obj) {
     return obj instanceof DataType dt && dt.getUniqueID().equals(this.getUniqueID());
   }
 
   @Override
-  public int hashCode() {
+  public final int hashCode() {
     return getUniqueID().hashCode();
   }
 
@@ -328,7 +328,8 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
   }
 
   /**
-   * Creating a property which is used in a {@link ModularDataModel}
+   * Creating a property which is used for representing a value of a {@link ModularDataModel} in the
+   * gui.
    *
    * @return
    */
@@ -444,4 +445,5 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
         return null;
     }
   }
+
 }

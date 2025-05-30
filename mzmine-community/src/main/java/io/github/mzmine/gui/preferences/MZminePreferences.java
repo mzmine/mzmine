@@ -193,6 +193,14 @@ public class MZminePreferences extends SimpleParameterSet {
       KeepInMemory.ALL, KeepInMemory.MASSES_AND_FEATURES), KeepInMemory.values(),
       KeepInMemory.NONE);
 
+  public static final ComboParameter<ImsOptimization> imsOptimization = new ComboParameter<>(
+      "Optimize IMS processing", """
+      Optimizes processing of IMS files for speed or memory efficiency. Changes to this parameter will affect
+      feature lists created after the parameter was changed.
+      Speed: References to the individual mobilograms of IMS features will be stored in RAM.
+      Memory efficiency: References to the individual mobilograms of IMS features will be stored in a temporary file.""",
+      ImsOptimization.values(), ImsOptimization.MEMORY_EFFICIENCY);
+
   /*public static final BooleanParameter applyTimsPressureCompensation = new BooleanParameter(
       "Use MALDI-TIMS pressure compensation", """
       Specifies if mobility values from Bruker timsTOF fleX MALDI raw data shall be recalibrated using a Bruker algorithm.
@@ -276,7 +284,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(// start with performance
-        new Parameter[]{numOfThreads, memoryOption, tempDirectory, runGCafterBatchStep,
+        new Parameter[]{numOfThreads, memoryOption, imsOptimization, tempDirectory, runGCafterBatchStep,
             deleteTempFiles, proxySettings,
             /*applyTimsPressureCompensation,*/
             // visuals
@@ -318,7 +326,7 @@ public class MZminePreferences extends SimpleParameterSet {
     GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
 
     // add groups
-    dialog.addParameterGroup("General", numOfThreads, memoryOption, tempDirectory,
+    dialog.addParameterGroup("General", numOfThreads, memoryOption, imsOptimization, tempDirectory,
         runGCafterBatchStep, deleteTempFiles, proxySettings
         /*, applyTimsPressureCompensation*/);
     dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
@@ -388,6 +396,9 @@ public class MZminePreferences extends SimpleParameterSet {
     }
     // delete temp files as soon as possible
     FileAndPathUtil.setEarlyTempFileCleanup(getValue(MZminePreferences.deleteTempFiles));
+
+    ConfigService.getConfiguration()
+        .setCachedImsOptimization(getValue(MZminePreferences.imsOptimization));
   }
 
   private void showDialogToAdjustColorsToTheme(Themes previousTheme, Themes theme) {
