@@ -45,10 +45,6 @@ public interface PeakModelFunction extends ParametricUnivariateFunction {
   double @Nullable [] guessStartParameters(List<WeightedObservedPoint> points);
 
   default FitQuality performFit(List<WeightedObservedPoint> points) {
-    if(points.size() < 5) {
-      // will not attempt to fit a peak with less than 5 points
-      return null;
-    }
     final double[] initialParametersGuess = this.guessStartParameters(points);
     if (initialParametersGuess == null) {
       return null;
