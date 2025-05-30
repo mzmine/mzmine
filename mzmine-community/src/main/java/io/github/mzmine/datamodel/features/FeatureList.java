@@ -51,7 +51,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -73,7 +72,8 @@ public interface FeatureList {
   /**
    * @return Short descriptive name for the feature list
    */
-  @NotNull String getName();
+  @NotNull
+  String getName();
 
   /**
    * Change the name of this feature list
@@ -104,7 +104,7 @@ public interface FeatureList {
    */
   void applyRowBindings(FeatureListRow row);
 
-  ObservableSet<DataType> getFeatureTypes();
+  Set<DataType> getFeatureTypes();
 
   void addFeatureType(Collection<DataType> types);
 
@@ -114,7 +114,7 @@ public interface FeatureList {
 
   void addRowType(@NotNull DataType<?>... types);
 
-  ObservableSet<DataType> getRowTypes();
+  Set<DataType> getRowTypes();
 
 
   /**
@@ -304,7 +304,8 @@ public interface FeatureList {
    * @return The scans used to build this feature list. For ion mobility data, the frames are
    * returned.
    */
-  @Nullable List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
+  @Nullable
+  List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
 
   /**
    * Returns all rows with average retention time within given range
@@ -480,7 +481,8 @@ public interface FeatureList {
    *
    * @return a map that stores different relationship maps
    */
-  @NotNull R2RNetworkingMaps getRowMaps();
+  @NotNull
+  R2RNetworkingMaps getRowMaps();
 
   /**
    * Maps {@link Feature} DataType listeners, e.g., for calculating the mean values for a DataType
@@ -488,14 +490,16 @@ public interface FeatureList {
    *
    * @return map of feature DataType listeners
    */
-  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
+  @NotNull
+  Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
 
   /**
    * Maps {@link FeatureListRow} DataType listeners, e.g., for graphical representations
    *
    * @return map of feature DataType listeners
    */
-  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
+  @NotNull
+  Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
 
   /**
    * @param row
@@ -540,7 +544,7 @@ public interface FeatureList {
     master.addAll(maps);
   }
 
-  void removeRows(Set<FeatureListRow> rowsToRemove);
+  void removeRows(Collection<FeatureListRow> rowsToRemove);
 
   /**
    * Sorts the internal rows

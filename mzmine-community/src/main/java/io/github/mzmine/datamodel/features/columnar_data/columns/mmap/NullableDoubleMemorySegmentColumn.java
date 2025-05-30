@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,51 +23,41 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import java.util.Map;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
+import io.github.mzmine.datamodel.features.columnar_data.columns.NullableDoubleDataColumn;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * This FeaturesType contains features for each RawDataFile. Sub columns for samples and charts are
- * created.
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
- */
-public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
-    implements NoTextColumn {
+public class NullableDoubleMemorySegmentColumn extends
+    AbstractMemorySegmentColumn<Double> implements NullableDoubleDataColumn {
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "features_map";
-  }
-
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "Features";
+  public NullableDoubleMemorySegmentColumn(final @NotNull MemoryMapStorage storage, int initialCapacity) {
+    super(storage, initialCapacity);
   }
 
   @Override
-  public Property<Map<RawDataFile, ModularFeature>> createProperty() {
-    return new SimpleObjectProperty<>();
+  protected @NotNull ValueLayout getValueLayout() {
+    return ValueLayout.JAVA_DOUBLE;
   }
 
   @Override
-  public Class<Map<RawDataFile, ModularFeature>> getValueClass() {
-    return (Class) Map.class;
+  protected void set(final @NotNull MemorySegment data, final int index, final Double value) {
+    data.setAtIndex(ValueLayout.JAVA_DOUBLE, index, value != null ? value : Double.NaN);
   }
 
   @Override
-  public boolean getDefaultVisibility() {
-    return true;
+  public double getDouble(final int index) {
+    return data.getAtIndex(ValueLayout.JAVA_DOUBLE, index);
   }
+
+  @Override
+  public double setDouble(final int index, final double value) {
+    double old = getDouble(index);
+    data.setAtIndex(ValueLayout.JAVA_DOUBLE, index, value);
+    return old;
+  }
+
 }

@@ -42,6 +42,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureListUtils;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.mzio.links.MzioMZmineLinks;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
@@ -106,9 +107,29 @@ public class BaseFeatureListAligner {
     if (allDataFiles.isEmpty()) {
       return null;
     }
+    // estimated rows after alignment
+    final var stats = featureLists.stream().mapToInt(FeatureList::getNumberOfRows)
+        .summaryStatistics();
+    // hard to estimate but rather stay too low than over commit
+    // 1 raw = max
+    // 10 raws = max + average (roughly double)
+    // 100 raws = max + 2 * average (roughly triple)
+    // avoid int overflow
+    final int estimatedRows = MathUtils.capMaxInt(
+        (long) (stats.getMax() + stats.getAverage() * 2 * Math.log10(stats.getCount())));
+
+    if (stats.getSum() > Integer.MAX_VALUE) {
+      throw new IllegalArgumentException(
+          "Too many features in aligned feature list. Please revisit the feature detection parameters like feature shape constraints, minimum height, etc. Total: %d; Max: %d".formatted(
+              stats.getSum(), Integer.MAX_VALUE));
+    }
+
+    // input rows equal the number of total features after alignment
+    final int exactFeatures = (int) (stats.getSum());
 
     // Create a new aligned feature list based on the baseList and renumber IDs
-    var alignedFeatureList = new ModularFeatureList(featureListName, storage, allDataFiles);
+    var alignedFeatureList = new ModularFeatureList(featureListName, storage, estimatedRows,
+        exactFeatures, allDataFiles);
     FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists, true);
     FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
     FeatureListUtils.copyPeakListAppliedMethods(featureLists.getFirst(), alignedFeatureList);
@@ -246,30 +267,30 @@ public class BaseFeatureListAligner {
    * Check the estimated memory requirements for this run
    */
   private void checkTotalWorkloadAndMemory(final long totalRows) {
-    // after alignment:  25000 rows x 250 samples = 7 GB
-    // before alignment: 250 feature lists: 4,011,743 features to be aligned 9 GB
-    // during end of alignment (both aligned and non aligned lists present): 15 GB
+    // 586478 rows across 250 samples
+    // result aligned list 76108 rows
+    // Join aligner - data import = 1.4 GB
     final int rowsPerList = (int) (totalRows / featureLists.size());
     final double imsCorrectionFactor = featureLists.stream()
         .mapToDouble(FeatureListUtils::getImsRamFactor).average().orElse(1d);
-    final double gbMemoryPerMillionFeatures =
-        3.74 * imsCorrectionFactor; // this is from 15 GB per 4M features
+    final double gbMemoryPerMillionFeatures = 1.5 * imsCorrectionFactor;
     final double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
     final double expectedRamUsage = gbMemoryPerMillionFeatures / 1_000_000 * totalRows;
 
     logger.info("""
         Alignment started on a total of %d rows across %d samples (mean %d rows). \
-        Max memory available: %.1f GB. Expecting to use %.1f GB.""".formatted(totalRows,
-        featureLists.size(), rowsPerList, maxMemoryGB, expectedRamUsage));
+        Max memory available: %.1f GB. Expecting to use %.1f GB just for alignment.""".formatted(
+        totalRows, featureLists.size(), rowsPerList, maxMemoryGB, expectedRamUsage));
 
     // estimate if there might be an issue with this size and memory
     if (expectedRamUsage > maxMemoryGB * 0.85) {
       DialogLoggerUtil.showMessageDialog("Large dataset feature alignment", false,
           FxTextFlows.newTextFlow(FxTexts.text("""
-                  mzmine feature alignment started on %d total features across %d samples.
+                  mzmine feature alignment started on %d total features across %d samples. \
                   This may result in a large aligned feature list and memory constraints.
-                  Consider applying higher thresholds during chromatogram builder and feature resolving, /
-                  such as increased minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver.
+                  When possible run modules with PROCESS_IN_PLACE where available or with REMOVE option to clear previous results. \
+                  Consider applying higher thresholds during chromatogram builder and feature resolving, \
+                  such as increased minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver. \
                   When working on large datasets, consult the performance documentation for tuning options:
                   """.formatted(totalRows, featureLists.size())),
               FxTexts.hyperlinkText(MzioMZmineLinks.PERFORMANCE_DOCU.getUrl())));

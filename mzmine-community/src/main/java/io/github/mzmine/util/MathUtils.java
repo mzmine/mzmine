@@ -482,4 +482,13 @@ public class MathUtils {
   public static int withinBounds(int value, int minInclusive, int maxExclusive) {
     return Math.min(Math.max(value, minInclusive), maxExclusive - 1);
   }
+
+  /**
+   * Avoids integer overflow
+   *
+   * @return {@link Integer#MAX_VALUE} for if value is larger. Otherwise, value itself
+   */
+  public static int capMaxInt(long value) {
+    return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) value;
+  }
 }
