@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,13 +58,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
-import org.xml.sax.SAXException;
 
 public class ProjectOpeningTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ProjectOpeningTask.class.getName());
 
   private File openFile;
   private MZmineProjectImpl newProject;
@@ -310,11 +308,10 @@ public class ProjectOpeningTask extends AbstractTask {
     // Check if project was saved with a newer version
     if (mzmineMajorVersion > 0) {
       if ((projectMajorVersion > mzmineMajorVersion) || ((projectMajorVersion == mzmineMajorVersion)
-                                                         && (projectMinorVersion
-                                                             > mzmineMinorVersion))) {
+          && (projectMinorVersion > mzmineMinorVersion))) {
         String warning = "Warning: this project was saved with a newer version of MZmine ("
-                         + projectVersionString + "). Opening this project in MZmine "
-                         + mzmineVersionString + " may result in errors or loss of information.";
+            + projectVersionString + "). Opening this project in MZmine " + mzmineVersionString
+            + " may result in errors or loss of information.";
         MZmineCore.getDesktop().displayMessage(warning);
       }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,9 +35,6 @@ import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
-import java.lang.foreign.ValueLayout.OfDouble;
-import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class AbstractMassSpectrum implements MassSpectrum {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(AbstractMassSpectrum.class.getName());
 
   protected @Nullable Range<Double> mzRange;
   protected @Nullable Integer basePeakIndex = null;

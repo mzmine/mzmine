@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,8 +34,6 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.AbstractTaskXYZDataset;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
@@ -57,11 +55,12 @@ import org.jfree.chart.axis.NumberAxis;
  */
 public class TICDataSet extends AbstractTaskXYZDataset {
 
+  private static final Logger logger = Logger.getLogger(TICDataSet.class.getName());
+
   private static final long serialVersionUID = 1L;
   // For comparing small differences.
   private static final double EPSILON = 0.0000001;
   // Logger.
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
 
   private final List<Scan> scans;
@@ -389,7 +388,8 @@ public class TICDataSet extends AbstractTaskXYZDataset {
 
         // Total ion count.
         if (scan.getDataPointMZRange() != null) {
-          intensity = mzRange.encloses(scan.getDataPointMZRange()) ? scan.getTIC() : ScanUtils.calculateTIC(scan, mzRange);
+          intensity = mzRange.encloses(scan.getDataPointMZRange()) ? scan.getTIC()
+              : ScanUtils.calculateTIC(scan, mzRange);
         }
 
       } else if (plotType == TICPlotType.BASEPEAK && basePeakIntensity != null) {

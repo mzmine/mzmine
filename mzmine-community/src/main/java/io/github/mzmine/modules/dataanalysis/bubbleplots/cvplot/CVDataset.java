@@ -45,7 +45,7 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
    */
   private static final long serialVersionUID = 1L;
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(CVDataset.class.getName());
 
   private double[] xCoords = new double[0];
   private double[] yCoords = new double[0];
