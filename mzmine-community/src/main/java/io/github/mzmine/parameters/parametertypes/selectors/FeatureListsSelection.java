@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,6 +45,7 @@ public class FeatureListsSelection implements Cloneable {
 
   /**
    * Uses specific feature lists
+   *
    * @param flists specific feature lists
    */
   public FeatureListsSelection(ModularFeatureList... flists) {
@@ -52,10 +53,12 @@ public class FeatureListsSelection implements Cloneable {
     specificFeatureLists = flists;
     selectionType = FeatureListsSelectionType.SPECIFIC_FEATURELISTS;
   }
+
   public FeatureListsSelection(FeatureListsSelectionType selectionType) {
     this();
     this.selectionType = selectionType;
   }
+
   public FeatureListsSelection() {
   }
 
@@ -80,8 +83,8 @@ public class FeatureListsSelection implements Cloneable {
           return new ModularFeatureList[0];
         }
         ArrayList<ModularFeatureList> matchingFeatureLists = new ArrayList<>();
-        ModularFeatureList allFeatureLists[] = ProjectService.getProjectManager().getCurrentProject()
-            .getCurrentFeatureLists().toArray(ModularFeatureList[]::new);
+        ModularFeatureList allFeatureLists[] = ProjectService.getProjectManager()
+            .getCurrentProject().getCurrentFeatureLists().toArray(ModularFeatureList[]::new);
 
         plCheck:
         for (ModularFeatureList pl : allFeatureLists) {
@@ -143,11 +146,18 @@ public class FeatureListsSelection implements Cloneable {
   }
 
   public FeatureListsSelection clone() {
+    return clone(false);
+  }
+
+  public @NotNull FeatureListsSelection clone(boolean keepSelection) {
     FeatureListsSelection newSelection = new FeatureListsSelection();
     newSelection.selectionType = selectionType;
-    newSelection.specificFeatureLists = specificFeatureLists;
     newSelection.namePattern = namePattern;
-    newSelection.batchLastFeatureLists = batchLastFeatureLists;
+    // avoid memory leak
+    if (keepSelection) {
+      newSelection.specificFeatureLists = specificFeatureLists;
+      newSelection.batchLastFeatureLists = batchLastFeatureLists;
+    }
     return newSelection;
   }
 
@@ -163,4 +173,5 @@ public class FeatureListsSelection implements Cloneable {
     }
     return str.toString();
   }
+
 }

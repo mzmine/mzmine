@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,7 +59,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
    */
   public SimpleFeatureListAppliedMethod(MZmineModule module, ParameterSet parameters,
       final @NotNull Instant moduleCallDate) {
-    this.parameters = parameters.cloneParameterSet(true);
+    this.parameters = parameters.cloneParameterSet(false);
     this.module = module;
     this.description = module.getName();
     this.moduleCallDate = moduleCallDate;
@@ -73,7 +73,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
   public SimpleFeatureListAppliedMethod(String description, MZmineModule module,
       ParameterSet parameters, final @NotNull Instant moduleCallDate) {
     this.description = description;
-    this.parameters = parameters.cloneParameterSet(true);
+    this.parameters = parameters.cloneParameterSet(false);
     this.module = module;
     this.moduleCallDate = moduleCallDate;
   }
@@ -82,7 +82,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
       Class<? extends MZmineModule> moduleClass, ParameterSet parameters,
       final @NotNull Instant moduleCallDate) {
     this.description = description;
-    this.parameters = parameters.cloneParameterSet(true);
+    this.parameters = parameters.cloneParameterSet(false);
     this.module = MZmineCore.getModuleInstance(moduleClass);
     this.moduleCallDate = moduleCallDate;
   }
@@ -97,7 +97,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
 
   public @NotNull ParameterSet getParameters() {
     // don't return the saved parameters, return a clone so parameters cannot be altered by accident.
-    return parameters.cloneParameterSet(true);
+    return parameters.cloneParameterSet(false);
   }
 
   /**
@@ -149,7 +149,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     try {
       moduleClass = (Class<? extends MZmineModule>) Class.forName(moduleClassName);
       moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass)
-          .cloneParameterSet();
+          .cloneParameterSet(false);
       moduleParameters.loadValuesFromXML(parametersElement);
     } catch (Exception | NoClassDefFoundError e) {
       logger.info("Cannot parse module parameters for class %s".formatted(moduleClassName));
