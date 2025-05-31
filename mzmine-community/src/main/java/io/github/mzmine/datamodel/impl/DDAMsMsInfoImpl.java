@@ -59,8 +59,10 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   private final int msLevel;
   @NotNull
   private final ActivationMethod method;
-  @Nullable
-  private final Range<Double> isolationWindow;
+
+  // if null then use -1
+  private final double isolationWindowMinMz;
+  private final double isolationWindowMaxMz;
   @Nullable
   private final Scan parentScan;
   @Nullable
@@ -76,7 +78,13 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     this.parentScan = parentScan;
     this.msLevel = msLevel;
     this.method = method;
-    this.isolationWindow = isolationWindow;
+    if (isolationWindow == null) {
+      isolationWindowMinMz = -1;
+      isolationWindowMaxMz = -1;
+    } else {
+      isolationWindowMinMz = isolationWindow.lowerEndpoint();
+      isolationWindowMaxMz = isolationWindow.upperEndpoint();
+    }
   }
 
   public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge, final int msLevel) {
@@ -248,7 +256,8 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
   @Override
   public @Nullable Range<Double> getIsolationWindow() {
-    return isolationWindow;
+    return isolationWindowMinMz < 0 ? null
+        : Range.closed(isolationWindowMinMz, isolationWindowMaxMz);
   }
 
   public boolean setMsMsScan(Scan scan) {
@@ -344,7 +353,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   public String toString() {
     return "DDAMsMsInfoImpl{" + "isolationMz=" + isolationMz + ", charge=" + charge
         + ", activationEnergy=" + activationEnergy + ", msLevel=" + msLevel + ", method=" + method
-        + ", isolationWindow=" + isolationWindow + ", parentScan=" + parentScan + ", msMsScan="
+        + ", isolationWindow=" + getIsolationWindow() + ", parentScan=" + parentScan + ", msMsScan="
         + msMsScan + '}';
   }
 
