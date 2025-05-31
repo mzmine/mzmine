@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -34,7 +36,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
 public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   public static final String XML_SCAN_TYPE = "simplescan";
-  protected final Float injectionTime;
+  protected final float injectionTime;
   @NotNull
   private final RawDataFile dataFile;
   private int scanNumber;
@@ -52,9 +53,13 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private float retentionTime;
   private PolarityType polarity;
   private String scanDefinition;
-  private Range<Double> scanMZRange;
   private MassList massList = null;
   private MsMsInfo msMsInfo;
+
+  // scanning mz range if present in file
+  // -1 if not present
+  private final double scanningMzMin;
+  private final double scanningMzMax;
 
   /**
    * clone scan with new data
@@ -104,10 +109,16 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.retentionTime = retentionTime;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
-    this.scanMZRange = scanMZRange;
+    if (scanMZRange != null) {
+      scanningMzMin = scanMZRange.lowerEndpoint();
+      scanningMzMax = scanMZRange.upperEndpoint();
+    } else {
+      scanningMzMin = -1;
+      scanningMzMax = -1;
+    }
     setSpectrumType(spectrumType);
     setMsMsInfo(msMsInfo);
-    this.injectionTime = injectionTime;
+    this.injectionTime = requireNonNullElse(injectionTime, -1f);
   }
 
   public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
@@ -123,10 +134,16 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.retentionTime = retentionTime;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
-    this.scanMZRange = scanMZRange;
+    if (scanMZRange != null) {
+      scanningMzMin = scanMZRange.lowerEndpoint();
+      scanningMzMax = scanMZRange.upperEndpoint();
+    } else {
+      scanningMzMin = -1;
+      scanningMzMax = -1;
+    }
     setSpectrumType(spectrumType);
     setMsMsInfo(msMsInfo);
-    this.injectionTime = injectionTime;
+    this.injectionTime = requireNonNullElse(injectionTime, -1f);
   }
 
 
@@ -239,17 +256,17 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   @Override
-  @Nullable
-  public Range<Double> getScanningMZRange() {
-    if (scanMZRange == null) {
-      scanMZRange = getDataPointMZRange();
+  public @Nullable Range<Double> getScanningMZRange() {
+    if (scanningMzMin < 0) {
+      return getDataPointMZRange();
     }
-    return scanMZRange;
+    return Range.closed(scanningMzMin, scanningMzMax);
   }
 
   @Override
   public @Nullable Float getInjectionTime() {
-    return injectionTime;
+    // stored as primitive but behavior used to be null
+    return injectionTime < 0 ? null : injectionTime;
   }
 }
 
