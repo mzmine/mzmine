@@ -162,7 +162,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   /**
    * @return The actual scanning range of the instrument
    */
-  @NotNull Range<Double> getScanningMZRange();
+  @Nullable Range<Double> getScanningMZRange();
 
   /**
    * @return The {@link MsMsInfo}. If null, this is not an MSn scan.
