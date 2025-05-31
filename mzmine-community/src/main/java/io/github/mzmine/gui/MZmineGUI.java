@@ -57,6 +57,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
@@ -67,6 +68,8 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
+import io.github.mzmine.util.javafx.metadatatreeview.MetadataTreeView;
+import io.github.mzmine.util.javafx.metadatatreeview.MetadataWrapper;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
 import io.mzio.mzmine.gui.workspace.Workspace;
@@ -93,6 +96,7 @@ import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -210,11 +214,19 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
       ProjectService.getProjectManager().setCurrentProject(project);
       if (mainWindowController != null) {
-        GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
-        rawDataList.setValues(project.getCurrentRawDataFiles());
+        MetadataTreeView<RawDataFile, MetadataColumn<?>> rawDataList = mainWindowController.getRawDataList();
+        project.getCurrentRawDataFiles().stream().map(
+            file -> new MetadataWrapper<RawDataFile, MetadataColumn<?>>(file,
+                new SimpleStringProperty(file.getName()),
+                col -> Objects.requireNonNullElse(ProjectService.getMetadata().getValue(col, file),
+                    "").toString())).forEach(rawDataList::addItem);
 
-        GroupableListView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
-        featureListsList.setValues(project.getCurrentFeatureLists());
+        MetadataTreeView<FeatureList, List<RawDataFile>> featureListsList = mainWindowController.getFeatureListsList();
+        project.getCurrentFeatureLists().stream().map(
+                flist -> new MetadataWrapper<FeatureList, List<RawDataFile>>(flist,
+                    new SimpleStringProperty(flist.getName()),
+                    l -> l.size() > 1 ? "Aligned feature lists" : l.getFirst().getName()))
+            .forEach(featureListsList::addItem);
 
         var libraryList = mainWindowController.getSpectralLibraryList();
         final var fxLibs = FXCollections.observableArrayList(project.getCurrentSpectralLibraries());
@@ -225,18 +237,20 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
           @Override
           public void dataFilesChanged(ProjectChangeEvent<RawDataFile> event) {
             switch (event.change()) {
-              case ADDED -> rawDataList.addItems(event.changedLists());
-              case REMOVED -> rawDataList.removeItems(event.changedLists());
-              case UPDATED, RENAMED -> rawDataList.updateItems();
+              case ADDED -> rawDataList.addItems(
+                  event.changedLists().stream().map(MetadataWrapper::of).toList());
+              case REMOVED -> rawDataList.removeItemsByValues(event.changedLists());
+//              case UPDATED, RENAMED -> rawDataList.updateItems();
             }
           }
 
           @Override
           public void featureListsChanged(ProjectChangeEvent<FeatureList> event) {
             switch (event.change()) {
-              case ADDED -> featureListsList.addItems(event.changedLists());
-              case REMOVED -> featureListsList.removeItems(event.changedLists());
-              case UPDATED, RENAMED -> featureListsList.updateItems();
+              case ADDED -> featureListsList.addItems(
+                  event.changedLists().stream().map(MetadataWrapper::of).toList());
+              case REMOVED -> featureListsList.removeItemsByValues(event.changedLists());
+//              case UPDATED, RENAMED -> featureListsList.updateItems();
             }
           }
 
@@ -257,19 +271,18 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     if (mainWindowController == null) {
       return;
     }
-    FxThread.runLater(() -> mainWindowController.getRawDataList().sortItemObjects(raws));
+//    FxThread.runLater(() -> mainWindowController.getRawDataList().sortItemObjects(raws));
   }
 
   @NotNull
   public static List<RawDataFile> getSelectedRawDataFiles() {
-    final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
-    return ImmutableList.copyOf(rawDataListView.getSelectedValues());
+//    final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
+    return mainWindowController.getRawDataList().getSelectedItems();
   }
 
   @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
-    final GroupableListView<FeatureList> featureListView = mainWindowController.getFeatureListsList();
-    return ImmutableList.copyOf(featureListView.getSelectedValues());
+    return mainWindowController.getFeatureListsList().getSelectedItems();
   }
 
   @NotNull
