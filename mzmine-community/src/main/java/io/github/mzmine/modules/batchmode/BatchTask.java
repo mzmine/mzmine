@@ -418,7 +418,7 @@ public class BatchTask extends AbstractTask {
     List<Task> currentStepTasks = new ArrayList<>();
     Instant moduleCallDate = Instant.now();
     logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString()
-        + " with parameters " + batchStepParameters.cloneParameterSet().toString());
+        + " with parameters " + batchStepParameters.cloneParameterSet(true).toString());
     ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks,
         moduleCallDate);
     logger.finest(
