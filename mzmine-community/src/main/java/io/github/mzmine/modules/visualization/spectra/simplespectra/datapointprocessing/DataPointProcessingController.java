@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -38,17 +34,21 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * This class will control the tasks to process the DataPoints in a SpectraWindow. Every SpectraPlot
  * is meant to have an instance of this class associated with it.
  *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- *
  */
 public class DataPointProcessingController {
 
-  private Logger logger = Logger.getLogger(DataPointProcessingController.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      DataPointProcessingController.class.getName());
 
   private MassSpectrum spectrum;
   private ProcessedDataPoint[] results;
@@ -60,7 +60,9 @@ public class DataPointProcessingController {
 
   public enum ControllerStatus {
     WAITING, PROCESSING, ERROR, CANCELED, FINISHED
-  };
+  }
+
+  ;
 
   /**
    * This is used to cancel the execution of this controller. It is set to NORMAL in the
@@ -68,7 +70,9 @@ public class DataPointProcessingController {
    */
   public enum ForcedControllerStatus {
     NORMAL, CANCEL
-  };
+  }
+
+  ;
 
   ControllerStatus status;
   ForcedControllerStatus forcedStatus;
@@ -100,7 +104,6 @@ public class DataPointProcessingController {
   }
 
   /**
-   *
    * @return The original data points this controller started execution with.
    */
   public MassSpectrum getDataPoints() {
@@ -112,7 +115,6 @@ public class DataPointProcessingController {
   }
 
   /**
-   *
    * @return Results of this task. Might be null, make sure to check the status first!
    */
   public ProcessedDataPoint[] getResults() {
@@ -154,8 +156,9 @@ public class DataPointProcessingController {
    */
   public void cancelTasks() {
     setForcedStatus(ForcedControllerStatus.CANCEL);
-    if (getCurrentTask() != null)
+    if (getCurrentTask() != null) {
       getCurrentTask().setStatus(TaskStatus.CANCELED);
+    }
   }
 
   /**
@@ -179,8 +182,8 @@ public class DataPointProcessingController {
     if (getForcedStatus() == ForcedControllerStatus.CANCEL
         || getStatus() == ControllerStatus.CANCELED) {
       setResults(ProcessedDataPoint.convert(null)); // dp ));
-      logger
-          .finest("Canceled controller, not starting new tasks. Results are set to latest array.");
+      logger.finest(
+          "Canceled controller, not starting new tasks. Results are set to latest array.");
       setStatus(ControllerStatus.CANCELED);
       return;
     }
@@ -189,8 +192,8 @@ public class DataPointProcessingController {
     if (!step.getParameterSet().checkParameterValues(err)) {
       setResults(ProcessedDataPoint.convert(null)); // dp));
       setStatus(ControllerStatus.CANCELED);
-      logger.warning(step.getModule().getName() + " - Not all parameters set."
-          + Arrays.toString(err.toArray(new String[0])));
+      logger.warning(step.getModule().getName() + " - Not all parameters set." + Arrays.toString(
+          err.toArray(new String[0])));
       return;
     }
 
@@ -254,7 +257,7 @@ public class DataPointProcessingController {
       logger.finest("Start processing of " + t.getClass().getName());
       MZmineCore.getTaskController().addTask(t);
       setCurrentTask((DataPointProcessingTask) t); // maybe we need this
-                                                   // some time
+      // some time
       setCurrentStep(step);
     }
   }
@@ -283,34 +286,36 @@ public class DataPointProcessingController {
   }
 
   public boolean addControllerStatusListener(DPPControllerStatusListener list) {
-    if (listener == null)
+    if (listener == null) {
       listener = new ArrayList<DPPControllerStatusListener>();
+    }
     return listener.add(list);
   }
 
   public boolean removeControllerStatusListener(DPPControllerStatusListener list) {
-    if (listener != null)
+    if (listener != null) {
       return listener.remove(list);
+    }
     return false;
   }
 
   public void clearControllerStatusListeners() {
-    if (listener != null)
+    if (listener != null) {
       listener.clear();
+    }
   }
 
   /**
-   *
    * @return True if the current task is the last one, false otherwise.
    */
   public boolean isLastTaskRunning() {
-    if (getQueue().indexOf(getCurrentStep()) == getQueue().size() - 1)
+    if (getQueue().indexOf(getCurrentStep()) == getQueue().size() - 1) {
       return true;
+    }
     return false;
   }
 
   /**
-   *
    * @return The current ControllerStatus.
    */
   public ControllerStatus getStatus() {
@@ -326,8 +331,10 @@ public class DataPointProcessingController {
     ControllerStatus old = this.status;
     this.status = status;
 
-    if (listener != null)
-      for (DPPControllerStatusListener l : listener)
+    if (listener != null) {
+      for (DPPControllerStatusListener l : listener) {
         l.statusChanged(this, this.status, old);
+      }
+    }
   }
 }

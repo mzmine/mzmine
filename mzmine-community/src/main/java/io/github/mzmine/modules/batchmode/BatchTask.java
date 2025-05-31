@@ -82,10 +82,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class BatchTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(BatchTask.class.getName());
   private final BatchQueue queue;
   // advanced parameters
   private final int stepsPerDataset;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final int totalSteps;
   private final MZmineProject project;
   private final boolean useAdvanced;

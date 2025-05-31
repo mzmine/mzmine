@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import org.w3c.dom.Element;
 
 public class EncryptionKeyParameter implements Parameter<StringCrypter> {
 
+  private static final Logger logger = Logger.getLogger(EncryptionKeyParameter.class.getName());
   private StringCrypter value;
 
   @Override
@@ -64,8 +65,8 @@ public class EncryptionKeyParameter implements Parameter<StringCrypter> {
       }
       value = new StringCrypter(nuVal);
     } catch (IOException e) {
-      Logger.getLogger(this.getClass().getName()).warning("Could not load Encryption key! "
-                                                          + "Encrypted parameters in the config file might not be decryptable.");
+      logger.warning("Could not load Encryption key! "
+          + "Encrypted parameters in the config file might not be decryptable.");
     }
   }
 

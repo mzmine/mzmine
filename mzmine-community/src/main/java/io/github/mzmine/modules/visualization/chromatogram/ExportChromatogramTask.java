@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,8 +44,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ExportChromatogramTask extends AbstractTask {
 
-  // Logger.
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ExportChromatogramTask.class.getName());
 
   private final File exportFile;
   private final TICDataSet dataSet;

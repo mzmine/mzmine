@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,8 +55,8 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPane {
 
-  // Logger.
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(
+      CustomLipidClassFragmentationRulesChoiceComponent.class.getName());
 
   private final ListView<LipidFragmentationRule> listView = new ListView<>();
   private final FlowPane buttonsPane = new FlowPane(Orientation.HORIZONTAL);

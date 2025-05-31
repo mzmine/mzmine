@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,8 +42,8 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.Comparators;
-import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.MirrorChartFactory;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -68,7 +68,8 @@ import javafx.stage.FileChooser;
 
 public class ResultWindowController {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ResultWindowController.class.getName());
+
   private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
   private final DecimalFormat percentFormat = new DecimalFormat("##.##%");
   private final NumberFormat ppmFormat = new DecimalFormat("0.0");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,7 @@ import javafx.stage.Window;
  */
 public class WindowsMenu extends Menu {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(WindowsMenu.class.getName());
 
   private final MenuItem closeAllMenuItem;
   private final SimpleListProperty<MenuItem> itemsProperty;

@@ -166,7 +166,7 @@ public class MainWindowController {
   private static final Image featureListAlignedIcon = FxIconUtil.loadImageFromResources(
       "icons/peaklisticon_aligned.png");
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MainWindowController.class.getName());
 
   @FXML
   public ContextMenu rawDataContextMenu;

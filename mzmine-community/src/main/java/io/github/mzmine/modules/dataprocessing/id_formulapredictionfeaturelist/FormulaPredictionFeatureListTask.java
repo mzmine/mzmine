@@ -66,7 +66,9 @@ import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 public class FormulaPredictionFeatureListTask extends AbstractTask {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(
+      FormulaPredictionFeatureListTask.class.getName());
+
   private final MolecularFormulaRange elementCounts;
   private final Double minIsotopeScore;
   private final Double isotopeNoiseLevel;

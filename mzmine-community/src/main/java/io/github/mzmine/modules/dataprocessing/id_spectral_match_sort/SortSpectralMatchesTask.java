@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class SortSpectralMatchesTask extends AbstractTask {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(SortSpectralMatchesTask.class.getName());
 
   private final FeatureList featureList;
   private final Boolean filterByMinScore;
@@ -55,8 +55,7 @@ public class SortSpectralMatchesTask extends AbstractTask {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureList = featureList;
     this.parameters = parameters;
-    filterByMinScore =
-        parameters.getParameter(SortSpectralMatchesParameters.minScore).getValue();
+    filterByMinScore = parameters.getParameter(SortSpectralMatchesParameters.minScore).getValue();
     minScore = parameters.getParameter(SortSpectralMatchesParameters.minScore)
         .getEmbeddedParameter().getValue();
     if (minScore == null) {
@@ -130,9 +129,9 @@ public class SortSpectralMatchesTask extends AbstractTask {
     }
 
     // Add task description to peakList
-    featureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        "Sorted spectral library matches search ",
-        SortSpectralMatchesModule.class, parameters, getModuleCallDate()));
+    featureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Sorted spectral library matches search ",
+            SortSpectralMatchesModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
   }

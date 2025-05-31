@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,7 +38,7 @@ import javafx.util.converter.NumberStringConverter;
 
 public class DoubleRangeComponent extends HBox {
 
-  protected final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(DoubleRangeComponent.class.getName());
 
   protected final TextField minTxtField, maxTxtField;
   protected final Label minusLabel;

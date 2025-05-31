@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -77,12 +77,13 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
   protected static final Range<Float> floatInfiniteRange = Range.closed(Float.NEGATIVE_INFINITY,
       Float.POSITIVE_INFINITY);
 
+  private static final Logger logger = Logger.getLogger(
+      TargetedFeatureDetectionModuleTask.class.getName());
+
   private final BinningMobilogramDataAccess mobilogramBinning;
   private final ScanSelection scanSelection;
   private final List<Scan> matchingScans;
   private final IonNetworkLibrary ionLibrary;
-
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
   private final RawDataFile dataFile;

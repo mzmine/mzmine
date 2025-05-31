@@ -74,8 +74,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItemsCounter {
 
-  // Logger.
-  private final Logger logger = Logger.getLogger(getClass().getName());
+  private static final Logger logger = Logger.getLogger(GnpsFbmnMgfExportTask.class.getName());
 
   //
   private final FeatureList[] featureLists;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -91,6 +91,8 @@ public class SpectralMatchPanel extends JPanel {
   // colors
   public static final double MIN_COS_COLOR_VALUE = 0.5;
   public static final double MAX_COS_COLOR_VALUE = 1.0;
+  private static final Logger logger = Logger.getLogger(SpectralMatchPanel.class.getName());
+
   static final Image iconAll = FxIconUtil.loadImageFromResources("icons/exp_graph_all.png");
   static final Image iconPdf = FxIconUtil.loadImageFromResources("icons/exp_graph_pdf.png");
   static final Image iconEps = FxIconUtil.loadImageFromResources("icons/exp_graph_eps.png");
@@ -103,7 +105,6 @@ public class SpectralMatchPanel extends JPanel {
   // max color is a darker green
   public static Color MAX_COS_COLOR = new Color(0x388E3C);
   public static Color MIN_COS_COLOR = new Color(0xE30B0B);
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final Font headerFont = new Font("Dialog", Font.BOLD, 16);
   private final Font titleFont = new Font("Dialog", Font.BOLD, 18);
   private final Font scoreFont = new Font("Dialog", Font.BOLD, 30);

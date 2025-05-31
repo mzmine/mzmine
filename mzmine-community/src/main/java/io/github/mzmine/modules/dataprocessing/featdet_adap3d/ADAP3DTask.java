@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ADAP3DTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ADAP3DTask.class.getName());
 
   private final MZmineProject project;
   private final RawDataFile dataFile;
@@ -70,8 +70,8 @@ public class ADAP3DTask extends AbstractTask {
    * @param dataFile
    * @param parameters
    */
-  public ADAP3DTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+  public ADAP3DTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;
@@ -94,11 +94,13 @@ public class ADAP3DTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (msdkADAP3DMethod == null)
+    if (msdkADAP3DMethod == null) {
       return 0.0;
+    }
     Float msdkProgress = msdkADAP3DMethod.getFinishedPercentage();
-    if (msdkProgress == null)
+    if (msdkProgress == null) {
       return 0.0;
+    }
     return msdkProgress.doubleValue();
   }
 
@@ -141,25 +143,28 @@ public class ADAP3DTask extends AbstractTask {
 
     // Run MSDK module
     MZmineToMSDKRawDataFile msdkRawDataFile = new MZmineToMSDKRawDataFile(dataFile);
-    Predicate<MsScan> scanSelectionPredicate =
-        scan -> selectedScans.contains(((MZmineToMSDKMsScan) scan).getMzmineScan());
+    Predicate<MsScan> scanSelectionPredicate = scan -> selectedScans.contains(
+        ((MZmineToMSDKMsScan) scan).getMzmineScan());
     msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(msdkRawDataFile, scanSelectionPredicate,
         new ADAP3DFeatureDetectionParameters());
     List<Feature> features = null;
     try {
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
       features = msdkADAP3DMethod.execute();
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
     } catch (Exception e) {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Error in ADAP3D: " + e.getMessage());
     }
 
-    if (features == null)
+    if (features == null) {
       features = new ArrayList<>(0);
+    }
 
     logger.info("ADAP3D detected " + features.size() + " features in " + dataFile
         + ", converting to MZmine peaklist");
@@ -170,19 +175,20 @@ public class ADAP3DTask extends AbstractTask {
 
     int rowId = 1;
     for (Feature msdkFeature : features) {
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
       // TODO: implement FeatureConvertors.MSDKFeatureToModularFeature(...)
-      ModularFeature mzmineFeature =
-          FeatureConvertors.MSDKFeatureToModularFeature(msdkFeature, dataFile, FeatureStatus.DETECTED);
+      ModularFeature mzmineFeature = FeatureConvertors.MSDKFeatureToModularFeature(msdkFeature,
+          dataFile, FeatureStatus.DETECTED);
       FeatureListRow row = new ModularFeatureListRow(newPeakList, rowId);
       row.addFeature(dataFile, mzmineFeature);
       newPeakList.addRow(row);
       rowId++;
     }
 
-    newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ADAP3DModule.class, parameters, getModuleCallDate()));
+    newPeakList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(ADAP3DModule.class, parameters, getModuleCallDate()));
     // Add new peaklist to the project
     project.addFeatureList(newPeakList);
 
@@ -198,8 +204,9 @@ public class ADAP3DTask extends AbstractTask {
   @Override
   public void cancel() {
     super.cancel();
-    if (msdkADAP3DMethod != null)
+    if (msdkADAP3DMethod != null) {
       msdkADAP3DMethod.cancel();
+    }
   }
 
 }

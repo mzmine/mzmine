@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,7 +52,7 @@ import org.jfree.chart.plot.XYPlot;
 
 public class AxesSetupDialog extends Stage {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(AxesSetupDialog.class.getName());
 
   private final ValueAxis xAxis;
   private final ValueAxis yAxis;
@@ -98,10 +98,12 @@ public class AxesSetupDialog extends Stage {
     NumberStringConverter xConverter = new NumberStringConverter(Locale.US);
     NumberStringConverter yConverter = new NumberStringConverter(Locale.US);
 
-    if (xAxis instanceof NumberAxis)
+    if (xAxis instanceof NumberAxis) {
       xConverter = new NumberStringConverter(((NumberAxis) xAxis).getNumberFormatOverride());
-    if (yAxis instanceof NumberAxis)
+    }
+    if (yAxis instanceof NumberAxis) {
       yConverter = new NumberStringConverter(((NumberAxis) yAxis).getNumberFormatOverride());
+    }
 
     // Create labels and fields
     Label lblXTitle = new Label(xAxis.getLabel());
@@ -121,7 +123,6 @@ public class AxesSetupDialog extends Stage {
     Label lblYAutoTick = new Label("Auto tick size");
     Label lblYTick = new Label("Tick size");
 
-
     checkXAutoRange = new CheckBox();
     checkXAutoTick = new CheckBox();
     fieldXMin = new TextField();
@@ -134,7 +135,6 @@ public class AxesSetupDialog extends Stage {
     fieldXMin.disableProperty().bind(checkXAutoRange.selectedProperty());
     fieldXMax.disableProperty().bind(checkXAutoRange.selectedProperty());
     fieldXTick.disableProperty().bind(checkXAutoTick.selectedProperty());
-
 
     checkYAutoRange = new CheckBox();
     checkYAutoTick = new CheckBox();
@@ -211,8 +211,9 @@ public class AxesSetupDialog extends Stage {
 
     btnOK = (Button) mainPane.lookupButton(ButtonType.OK);
     btnOK.setOnAction(e -> {
-      if (setValuesToPlot())
+      if (setValuesToPlot()) {
         hide();
+      }
     });
     btnApply = (Button) mainPane.lookupButton(ButtonType.APPLY);
     btnApply.setOnAction(e -> {
@@ -234,7 +235,6 @@ public class AxesSetupDialog extends Stage {
   }
 
 
-
   private void loadValuesToControls() {
 
     checkXAutoRange.setSelected(xAxis.isAutoRange());
@@ -254,7 +254,6 @@ public class AxesSetupDialog extends Stage {
     }
 
   }
-
 
 
   private boolean setValuesToPlot() {
@@ -337,7 +336,6 @@ public class AxesSetupDialog extends Stage {
 
   /**
    * Method for reading exit code
-   *
    */
   public ExitCode getExitCode() {
     return exitCode;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 
 public class LargeArrayDouble {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(LargeArrayDouble.class.getName());
   private boolean VERBOSE = false;
 
   private final long CHUNK_SIZE = 1024 * 1024 * 1024; // 1GiB
@@ -46,13 +46,14 @@ public class LargeArrayDouble {
       int chunks = (int) (size / CHUNK_SIZE);
       int remainder = (int) (size - ((long) chunks) * CHUNK_SIZE);
 
-      if (VERBOSE)
-        logger
-            .info(this.getClass().getSimpleName() + " > Created with " + chunks + " chunks (size: "
+      if (VERBOSE) {
+        logger.info(
+            this.getClass().getSimpleName() + " > Created with " + chunks + " chunks (size: "
                 + CHUNK_SIZE + " each) + a remainder of " + remainder + " => TOTAL: " + size);
+      }
 
       data = new double[chunks + (remainder == 0 ? 0 : 1)][];
-      for (int idx = chunks; --idx >= 0;) {
+      for (int idx = chunks; --idx >= 0; ) {
         data[idx] = new double[(int) CHUNK_SIZE];
       }
       if (remainder != 0) {
@@ -69,8 +70,9 @@ public class LargeArrayDouble {
   public double get(long index) {
 
     if (index < 0 || index >= size) {
-      throw new IndexOutOfBoundsException("Error attempting to access data element " + index
-          + ".  Array is " + size + " elements long.");
+      throw new IndexOutOfBoundsException(
+          "Error attempting to access data element " + index + ".  Array is " + size
+              + " elements long.");
     }
     int chunk = (int) (index / CHUNK_SIZE);
     int offset = (int) (index - (((long) chunk) * CHUNK_SIZE));
@@ -80,8 +82,9 @@ public class LargeArrayDouble {
   public void set(long index, double f) {
 
     if (index < 0 || index >= size) {
-      throw new IndexOutOfBoundsException("Error attempting to access data element " + index
-          + ".  Array is " + size + " elements long.");
+      throw new IndexOutOfBoundsException(
+          "Error attempting to access data element " + index + ".  Array is " + size
+              + " elements long.");
     }
     int chunk = (int) (index / CHUNK_SIZE);
     int offset = (int) (index - (((long) chunk) * CHUNK_SIZE));

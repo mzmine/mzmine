@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,13 +35,13 @@ import javax.swing.event.DocumentListener;
 
 /**
  * Use a consumer or override documentCHanged method
- *
  */
-public class DelayedDocumentListener
-    implements DocumentListener, Runnable, EventListener, Serializable {
+public class DelayedDocumentListener implements DocumentListener, Runnable, EventListener,
+    Serializable {
+
   private static final long serialVersionUID = 1L;
 
-  private final Logger logger = Logger.getLogger(getClass().getName());
+  private static final Logger logger = Logger.getLogger(DelayedDocumentListener.class.getName());
 
   private long lastAutoUpdateTime = -1;
   private boolean isAutoUpdateStarted = false;
@@ -82,8 +82,9 @@ public class DelayedDocumentListener
       isAutoUpdateStarted = true;
       Thread t = new Thread(this);
       t.start();
-    } else
+    } else {
       logger.finest("no auto update this time");
+    }
   }
 
   @Override
@@ -111,26 +112,30 @@ public class DelayedDocumentListener
    * @param e last document event (only)
    */
   public void documentChanged(DocumentEvent e) {
-    if (consumer != null)
+    if (consumer != null) {
       consumer.accept(e);
+    }
   }
 
   @Override
   public void removeUpdate(DocumentEvent arg0) {
-    if (isActive)
+    if (isActive) {
       startAutoUpdater(arg0);
+    }
   }
 
   @Override
   public void insertUpdate(DocumentEvent arg0) {
-    if (isActive)
+    if (isActive) {
       startAutoUpdater(arg0);
+    }
   }
 
   @Override
   public void changedUpdate(DocumentEvent arg0) {
-    if (isActive)
+    if (isActive) {
       startAutoUpdater(arg0);
+    }
   }
 
   public long getDalay() {
@@ -147,8 +152,9 @@ public class DelayedDocumentListener
 
   public void setActive(boolean isActive) {
     this.isActive = isActive;
-    if (!isActive)
+    if (!isActive) {
       stop();
+    }
   }
 
   public void stop() {
