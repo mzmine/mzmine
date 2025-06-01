@@ -72,9 +72,9 @@ public class BatchModeParameters extends SimpleParameterSet {
       if (dialog.getExitCode() != ExitCode.OK) {
         return;
       }
-      final ParameterSet finalParams = params.cloneParameterSet();
-      ConfigService.getConfiguration().setModuleParameters(BatchModeModule.class, params);
-      MZmineCore.runMZmineModule(BatchModeModule.class, finalParams);
+      ConfigService.getConfiguration()
+          .setModuleParameters(BatchModeModule.class, params.cloneParameterSet(false));
+      MZmineCore.runMZmineModule(BatchModeModule.class, params);
     });
   }
 }

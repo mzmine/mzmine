@@ -59,7 +59,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
    */
   public SimpleFeatureListAppliedMethod(MZmineModule module, ParameterSet parameters,
       final @NotNull Instant moduleCallDate) {
-    this.parameters = parameters.cloneParameterSet(false);
+    this.parameters = parameters.cloneParameterSet(true);
     this.module = module;
     this.description = module.getName();
     this.moduleCallDate = moduleCallDate;
@@ -73,7 +73,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
   public SimpleFeatureListAppliedMethod(String description, MZmineModule module,
       ParameterSet parameters, final @NotNull Instant moduleCallDate) {
     this.description = description;
-    this.parameters = parameters.cloneParameterSet(false);
+    this.parameters = parameters.cloneParameterSet(true);
     this.module = module;
     this.moduleCallDate = moduleCallDate;
   }
@@ -82,7 +82,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
       Class<? extends MZmineModule> moduleClass, ParameterSet parameters,
       final @NotNull Instant moduleCallDate) {
     this.description = description;
-    this.parameters = parameters.cloneParameterSet(false);
+    this.parameters = parameters.cloneParameterSet(true);
     this.module = MZmineCore.getModuleInstance(moduleClass);
     this.moduleCallDate = moduleCallDate;
   }
@@ -97,7 +97,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
 
   public @NotNull ParameterSet getParameters() {
     // don't return the saved parameters, return a clone so parameters cannot be altered by accident.
-    return parameters.cloneParameterSet(false);
+    return parameters.cloneParameterSet(true);
   }
 
   /**
@@ -149,7 +149,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     try {
       moduleClass = (Class<? extends MZmineModule>) Class.forName(moduleClassName);
       moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass)
-          .cloneParameterSet(false);
+          .cloneParameterSet(true);
       moduleParameters.loadValuesFromXML(parametersElement);
     } catch (Exception | NoClassDefFoundError e) {
       logger.info("Cannot parse module parameters for class %s".formatted(moduleClassName));

@@ -31,11 +31,11 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.TextUtils;
+import io.github.mzmine.util.io.JsonUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -198,7 +198,7 @@ public class FeatureListsSelection implements Cloneable {
     FeatureListsSelection newSelection = new FeatureListsSelection();
     newSelection.selectionType = selectionType;
     newSelection.namePattern = namePattern;
-    // avoid memory leak
+    // avoid memory leak use placeholder with weak references
     if (keepSelection) {
       newSelection.specificFeatureLists = specificFeatureLists;
       newSelection.batchLastFeatureLists = batchLastFeatureLists;
@@ -209,10 +209,11 @@ public class FeatureListsSelection implements Cloneable {
 
   public String toString() {
     if (evaluatedSelection != null) {
-      return Arrays.stream(evaluatedSelection).map(FeatureListPlaceholder::getName)
-          .collect(Collectors.joining("\n"));
+      // write as json list for easier parsing
+      return selectionType + ", " + JsonUtils.writeStringOrElse(
+          Arrays.stream(evaluatedSelection).map(FeatureListPlaceholder::getName).toList(), "[]");
     }
-    return "Evaluation not executed.";
+    return selectionType + ", Evaluation not executed.";
   }
 
   @Override
