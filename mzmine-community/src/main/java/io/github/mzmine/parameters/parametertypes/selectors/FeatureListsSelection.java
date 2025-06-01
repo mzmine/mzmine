@@ -38,9 +38,9 @@ import org.jetbrains.annotations.NotNull;
 public class FeatureListsSelection implements Cloneable {
 
   private FeatureListsSelectionType selectionType = FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS;
-  private ModularFeatureList[] specificFeatureLists;
+  private FeatureListPlaceholder[] specificFeatureLists;
   private String namePattern;
-  private ModularFeatureList[] batchLastFeatureLists;
+  private FeatureListPlaceholder[] batchLastFeatureLists;
 
 
   /**
@@ -50,7 +50,7 @@ public class FeatureListsSelection implements Cloneable {
    */
   public FeatureListsSelection(ModularFeatureList... flists) {
     this();
-    specificFeatureLists = flists;
+    specificFeatureLists = FeatureListPlaceholder.of(flists);
     selectionType = FeatureListsSelectionType.SPECIFIC_FEATURELISTS;
   }
 
@@ -77,7 +77,7 @@ public class FeatureListsSelection implements Cloneable {
         if (specificFeatureLists == null) {
           return new ModularFeatureList[0];
         }
-        return specificFeatureLists;
+        return FeatureListPlaceholder.getMatchingFeatureListFilterNull(specificFeatureLists);
       case NAME_PATTERN:
         if (Strings.isNullOrEmpty(namePattern)) {
           return new ModularFeatureList[0];
@@ -106,7 +106,7 @@ public class FeatureListsSelection implements Cloneable {
         if (batchLastFeatureLists == null) {
           return new ModularFeatureList[0];
         }
-        return batchLastFeatureLists;
+        return FeatureListPlaceholder.getMatchingFeatureListFilterNull(batchLastFeatureLists);
     }
 
     throw new IllegalStateException("This code should be unreachable");
@@ -122,11 +122,11 @@ public class FeatureListsSelection implements Cloneable {
   }
 
   public FeatureList[] getSpecificFeatureLists() {
-    return specificFeatureLists;
+    return FeatureListPlaceholder.getMatchingFeatureListFilterNull(specificFeatureLists);
   }
 
   public void setSpecificFeatureLists(FeatureList[] specificFeatureLists) {
-    this.specificFeatureLists = toModular(specificFeatureLists);
+    this.specificFeatureLists = FeatureListPlaceholder.of(toModular(specificFeatureLists));
   }
 
   public String getNamePattern() {
@@ -138,7 +138,7 @@ public class FeatureListsSelection implements Cloneable {
   }
 
   public void setBatchLastFeatureLists(FeatureList[] batchLastFeatureLists) {
-    this.batchLastFeatureLists = toModular(batchLastFeatureLists);
+    this.batchLastFeatureLists = FeatureListPlaceholder.of(toModular(batchLastFeatureLists));
   }
 
   public ModularFeatureList[] toModular(FeatureList[] flist) {
