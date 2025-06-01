@@ -51,13 +51,20 @@ public class FeatureListPlaceholder {
     featureList = new WeakReference<>(flist);
   }
 
-  public static FeatureListPlaceholder[] of(@Nullable final ModularFeatureList[] flists) {
+  public static FeatureListPlaceholder[] of(
+      @Nullable final ModularFeatureList @Nullable [] flists) {
+    if (flists == null) {
+      return new FeatureListPlaceholder[0];
+    }
     return Arrays.stream(flists).map(FeatureListPlaceholder::new)
         .toArray(FeatureListPlaceholder[]::new);
   }
 
   public static List<FeatureListPlaceholder> of(
       @Nullable final List<? extends ModularFeatureList> flists) {
+    if (flists == null) {
+      return List.of();
+    }
     return flists.stream().map(FeatureListPlaceholder::new).toList();
   }
 
@@ -68,7 +75,10 @@ public class FeatureListPlaceholder {
    * already garbage collected this list may contain null values
    */
   public static @Nullable ModularFeatureList @NotNull [] getMatchingFeatureListOrNull(
-      FeatureListPlaceholder[] flists) {
+      @NotNull FeatureListPlaceholder @Nullable [] flists) {
+    if (flists == null) {
+      return new ModularFeatureList[0];
+    }
     return Arrays.stream(flists).map(FeatureListPlaceholder::getMatchingFeatureList)
         .toArray(ModularFeatureList[]::new);
   }
@@ -80,7 +90,10 @@ public class FeatureListPlaceholder {
    * already garbage collected this list may contain null values
    */
   public static @NotNull List<@Nullable ModularFeatureList> getMatchingFeatureListOrNull(
-      List<FeatureListPlaceholder> flists) {
+      @Nullable List<@NotNull FeatureListPlaceholder> flists) {
+    if (flists == null) {
+      return List.of();
+    }
     // need to allow null values
     return flists.stream().map(FeatureListPlaceholder::getMatchingFeatureList)
         .collect(CollectionUtils.toArrayList());
@@ -92,7 +105,10 @@ public class FeatureListPlaceholder {
    * @return array of matching feature lists. null filtered
    */
   public static @NotNull ModularFeatureList @NotNull [] getMatchingFeatureListFilterNull(
-      FeatureListPlaceholder[] flists) {
+      @NotNull FeatureListPlaceholder @Nullable [] flists) {
+    if (flists == null) {
+      return new ModularFeatureList[0];
+    }
     return Arrays.stream(flists).map(FeatureListPlaceholder::getMatchingFeatureList)
         .filter(Objects::nonNull).toArray(ModularFeatureList[]::new);
   }

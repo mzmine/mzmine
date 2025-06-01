@@ -193,7 +193,7 @@ public class SimpleParameterSet implements ParameterSet {
 
   @Override
   public ParameterSet cloneParameterSet() {
-    return cloneParameterSet(true);
+    return cloneParameterSet(false);
   }
 
   /**
