@@ -108,7 +108,7 @@ public class FeatureListsParameter implements
 
   @Override
   public FeatureListsParameter cloneParameter() {
-    return cloneParameter(false);
+    return cloneParameter(true);
   }
 
   public FeatureListsParameter cloneParameter(boolean keepSelection) {
