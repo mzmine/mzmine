@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -149,7 +149,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     try {
       moduleClass = (Class<? extends MZmineModule>) Class.forName(moduleClassName);
       moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass)
-          .cloneParameterSet();
+          .cloneParameterSet(true);
       moduleParameters.loadValuesFromXML(parametersElement);
     } catch (Exception | NoClassDefFoundError e) {
       logger.info("Cannot parse module parameters for class %s".formatted(moduleClassName));

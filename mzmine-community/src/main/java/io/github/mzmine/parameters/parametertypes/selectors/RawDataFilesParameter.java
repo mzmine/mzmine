@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -102,11 +102,7 @@ public class RawDataFilesParameter implements
 
   @Override
   public RawDataFilesParameter cloneParameter() {
-    RawDataFilesParameter copy = new RawDataFilesParameter(name, minCount, maxCount);
-    if (value != null) {
-      copy.value = value.clone();
-    }
-    return copy;
+    return cloneParameter(true);
   }
 
   public RawDataFilesParameter cloneParameter(boolean keepSelection) {
