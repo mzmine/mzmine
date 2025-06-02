@@ -56,5 +56,17 @@ public class RangeUtilTest {
         SimpleRange.ofDouble(Range.all()));
     Assertions.assertEquals(SimpleRange.ofInteger(Integer.MIN_VALUE, Integer.MAX_VALUE),
         SimpleRange.ofInteger(Range.all()));
+
+    Assertions.assertTrue(SimpleRange.ofDouble(Range.all()).contains(-Double.MAX_VALUE));
+    Assertions.assertTrue(SimpleRange.ofDouble(Range.all()).contains(Double.MAX_VALUE));
+
+    // todo: make these work
+//    Assertions.assertEquals(Double.MAX_VALUE,
+//        RangeUtils.rangeLength(SimpleRange.ofDouble(Range.all()).guava()));
+
+    /*Assertions.assertEquals(Integer.MAX_VALUE, RangeUtils.rangeLength(Range.all()).intValue());
+    Assertions.assertEquals(Long.MAX_VALUE, RangeUtils.rangeLength(Range.all()).longValue());
+    Assertions.assertEquals(Float.MAX_VALUE, RangeUtils.rangeLength(Range.all()).floatValue());
+    Assertions.assertEquals(Double.MAX_VALUE, RangeUtils.rangeLength(Range.all()).doubleValue());*/
   }
 }

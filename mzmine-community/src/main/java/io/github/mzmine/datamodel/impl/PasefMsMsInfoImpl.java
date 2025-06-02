@@ -165,7 +165,7 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
 
   @Override
   public Range<Integer> getSpectrumNumberRange() {
-    return spectrumNumberRange != null ? spectrumNumberRange.guava() : null;
+    return SimpleRange.guavaOrNull(spectrumNumberRange);
   }
 
   @Override
@@ -185,7 +185,7 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
 
   @Override
   public @Nullable Range<Double> getIsolationWindow() {
-    return isolationWindow != null ? isolationWindow.guava() : null;
+    return SimpleRange.guavaOrNull(isolationWindow);
   }
 
   @Override
@@ -280,7 +280,7 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
   @Override
   public MsMsInfo createCopy() {
     return new PasefMsMsInfoImpl(precursorMz,
-        spectrumNumberRange != null ? spectrumNumberRange.guava() : null, collisionEnergy,
+        SimpleRange.guavaOrNull(spectrumNumberRange), collisionEnergy,
         precursorCharge, parentFrame, fragmentFrame,
         isolationWindow != null ? isolationWindow.guava() : null);
   }

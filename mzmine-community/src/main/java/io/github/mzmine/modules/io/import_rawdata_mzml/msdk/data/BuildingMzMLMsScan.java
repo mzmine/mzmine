@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,7 +30,6 @@ import static java.util.Objects.requireNonNullElse;
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKException;
 import io.github.msdk.MSDKRuntimeException;
-import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
@@ -42,7 +42,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
-import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -264,7 +263,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   }
 
   @Override
-  public @NotNull Range<Double> getScanningMZRange() {
+  public @Nullable Range<Double> getScanningMZRange() {
     if (mzScanWindowRange == null) {
       if (!getScanList().getScans().isEmpty()) {
         Optional<MzMLScanWindowList> scanWindowList = getScanList().getScans().get(0)
