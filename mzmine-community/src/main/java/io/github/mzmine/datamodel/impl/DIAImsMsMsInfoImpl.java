@@ -30,6 +30,9 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleIntegerRange;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -38,6 +41,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.Null;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -47,22 +51,25 @@ public class DIAImsMsMsInfoImpl implements IonMobilityMsMsInfo {
 
   public static final String XML_TYPE_NAME = "imsdiaimsmsinfo";
 
-  private final Range<Integer> spectrumNumberRange;
+  @Nullable
+  private final SimpleIntegerRange spectrumNumberRange;
   private final Float collisionEnergy;
-  private final Range<Double> isolationWindow;
+  @Nullable
+  private final SimpleDoubleRange isolationWindow;
   private Frame fragmentFrame;
 
-  public DIAImsMsMsInfoImpl(Range<Integer> spectrumNumberRange, @Nullable Float collisionEnergy,
-      @Nullable Frame fragmentFrameNumber, @Nullable Range<Double> isolationWindow) {
+  public DIAImsMsMsInfoImpl(@Nullable Range<Integer> spectrumNumberRange,
+      @Nullable Float collisionEnergy, @Nullable Frame fragmentFrameNumber,
+      @Nullable Range<Double> isolationWindow) {
 
     if (fragmentFrameNumber != null && fragmentFrameNumber.getMSLevel() < 2) {
       throw new IllegalArgumentException("Fragment frame is not of ms level >= 2");
     }
 
-    this.spectrumNumberRange = spectrumNumberRange;
+    this.spectrumNumberRange = SimpleRange.ofInteger(spectrumNumberRange);
     this.collisionEnergy = collisionEnergy;
     this.fragmentFrame = fragmentFrameNumber;
-    this.isolationWindow = isolationWindow;
+    this.isolationWindow = SimpleRange.ofDouble(isolationWindow);
   }
 
   /**
@@ -120,7 +127,7 @@ public class DIAImsMsMsInfoImpl implements IonMobilityMsMsInfo {
 
   @Override
   public Range<Integer> getSpectrumNumberRange() {
-    return spectrumNumberRange;
+    return spectrumNumberRange != null ? spectrumNumberRange.guava() : null;
   }
 
   @Override
@@ -140,7 +147,7 @@ public class DIAImsMsMsInfoImpl implements IonMobilityMsMsInfo {
 
   @Override
   public @Nullable Range<Double> getIsolationWindow() {
-    return isolationWindow;
+    return isolationWindow != null ? isolationWindow.guava() : null;
   }
 
   @Override
@@ -217,7 +224,7 @@ public class DIAImsMsMsInfoImpl implements IonMobilityMsMsInfo {
 
   @Override
   public IonMobilityMsMsInfo createCopy() {
-    return new DIAImsMsMsInfoImpl(spectrumNumberRange, collisionEnergy, fragmentFrame,
-        isolationWindow);
+    return new DIAImsMsMsInfoImpl(spectrumNumberRange != null ? spectrumNumberRange.guava() : null,
+        collisionEnergy, fragmentFrame, isolationWindow != null ? isolationWindow.guava() : null);
   }
 }

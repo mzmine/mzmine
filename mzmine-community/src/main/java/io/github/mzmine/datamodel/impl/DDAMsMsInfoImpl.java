@@ -27,6 +27,8 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -59,8 +61,10 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   private final int msLevel;
   @NotNull
   private final ActivationMethod method;
+
   @Nullable
-  private final Range<Double> isolationWindow;
+  private final SimpleDoubleRange mzIsolationWindow;
+
   @Nullable
   private final Scan parentScan;
   @Nullable
@@ -76,7 +80,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     this.parentScan = parentScan;
     this.msLevel = msLevel;
     this.method = method;
-    this.isolationWindow = isolationWindow;
+    mzIsolationWindow = SimpleRange.ofDouble(isolationWindow);
   }
 
   public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge, final int msLevel) {
@@ -248,7 +252,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
   @Override
   public @Nullable Range<Double> getIsolationWindow() {
-    return isolationWindow;
+    return mzIsolationWindow != null ? mzIsolationWindow.guava() : null;
   }
 
   public boolean setMsMsScan(Scan scan) {
@@ -344,7 +348,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   public String toString() {
     return "DDAMsMsInfoImpl{" + "isolationMz=" + isolationMz + ", charge=" + charge
         + ", activationEnergy=" + activationEnergy + ", msLevel=" + msLevel + ", method=" + method
-        + ", isolationWindow=" + isolationWindow + ", parentScan=" + parentScan + ", msMsScan="
+        + ", isolationWindow=" + getIsolationWindow() + ", parentScan=" + parentScan + ", msMsScan="
         + msMsScan + '}';
   }
 

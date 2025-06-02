@@ -26,6 +26,8 @@
 package util;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.util.RangeUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -34,11 +36,25 @@ public class RangeUtilTest {
 
   @Test
   public void testDecimalRange() {
-    Assertions
-        .assertEquals(Range.closedOpen(5.255, 5.256), RangeUtils.getRangeToCeilDecimal("5.255"));
+    Assertions.assertEquals(Range.closedOpen(5.255, 5.256),
+        RangeUtils.getRangeToCeilDecimal("5.255"));
     Assertions.assertEquals(Range.closedOpen(5.25, 5.26), RangeUtils.getRangeToCeilDecimal("5.25"));
     Assertions.assertEquals(Range.closedOpen(5.5, 5.6), RangeUtils.getRangeToCeilDecimal("5.5"));
     Assertions.assertEquals(Range.closedOpen(5d, 6d), RangeUtils.getRangeToCeilDecimal("5."));
     Assertions.assertEquals(Range.closedOpen(5d, 6d), RangeUtils.getRangeToCeilDecimal("5"));
+  }
+
+  @Test
+  public void testSimpleRange() {
+    Assertions.assertNull(SimpleRange.ofInteger(null));
+    Assertions.assertNull(SimpleRange.ofDouble(null));
+
+    Assertions.assertEquals(new SimpleDoubleRange(0.123, 123.23),
+        SimpleRange.ofDouble(0.123, 123.23));
+
+    Assertions.assertEquals(SimpleRange.ofDouble(-Double.MAX_VALUE, Double.MAX_VALUE),
+        SimpleRange.ofDouble(Range.all()));
+    Assertions.assertEquals(SimpleRange.ofInteger(Integer.MIN_VALUE, Integer.MAX_VALUE),
+        SimpleRange.ofInteger(Range.all()));
   }
 }

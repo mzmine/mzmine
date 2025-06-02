@@ -215,11 +215,12 @@ public class ParsingUtils {
     return sublist;
   }
 
-
-  public static String rangeToString(Range<Comparable<?>> range) {
+  @NotNull
+  public static String rangeToString(@NotNull Range<Comparable<?>> range) {
     return "[" + range.lowerEndpoint() + SEPARATOR + range.upperEndpoint() + "]";
   }
 
+  @Nullable
   public static Range<Double> stringToDoubleRange(String str) {
     if (str.isEmpty()) {
       return null;
@@ -231,6 +232,7 @@ public class ParsingUtils {
     return Range.closed(Double.parseDouble(vals[0]), Double.parseDouble(vals[1]));
   }
 
+  @Nullable
   public static Range<Float> stringToFloatRange(String str) {
     if (str.isEmpty()) {
       return null;
@@ -242,6 +244,7 @@ public class ParsingUtils {
     return Range.closed(Float.parseFloat(vals[0]), Float.parseFloat(vals[1]));
   }
 
+  @Nullable
   public static Range<Integer> parseIntegerRange(String str) {
     Pattern regex = Pattern.compile("\\[([0-9]+)" + SEPARATOR + "([0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
