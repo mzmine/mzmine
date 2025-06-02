@@ -56,9 +56,10 @@ import org.jetbrains.annotations.Nullable;
 
 class RTCorrectionTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(RTCorrectionTask.class.getName());
+
   private final OriginalFeatureListOption handleOriginal;
   private final MZmineProject project;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final ModularFeatureList[] originalFeatureLists;
   private ModularFeatureList[] normalizedFeatureLists;
 

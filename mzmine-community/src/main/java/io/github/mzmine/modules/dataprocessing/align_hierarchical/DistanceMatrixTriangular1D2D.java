@@ -31,7 +31,6 @@
 //
 //public class DistanceMatrixTriangular1D2D implements DistanceMatrix {
 //
-//  private Logger logger = Logger.getLogger(this.getClass().getName());
 //
 //  private int dimension;
 //

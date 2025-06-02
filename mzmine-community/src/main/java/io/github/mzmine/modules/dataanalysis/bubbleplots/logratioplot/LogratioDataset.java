@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,7 +45,7 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
    */
   private static final long serialVersionUID = 1L;
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(LogratioDataset.class.getName());
 
   private double[] xCoords = new double[0];
   private double[] yCoords = new double[0];

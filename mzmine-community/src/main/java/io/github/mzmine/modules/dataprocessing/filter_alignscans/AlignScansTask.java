@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AlignScansTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(AlignScansTask.class.getName());
 
   private final MZmineProject project;
   private final RawDataFile dataFile;
@@ -99,10 +99,11 @@ public class AlignScansTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalScans == 0)
+    if (totalScans == 0) {
       return 0;
-    else
+    } else {
       return (double) processedScans / totalScans;
+    }
   }
 
   public RawDataFile getDataFile() {
@@ -124,15 +125,17 @@ public class AlignScansTask extends AbstractTask {
 
     RawDataFile newRDFW = null;
     try {
-      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, null, getMemoryMapStorage());
+      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, null,
+          getMemoryMapStorage());
 
       DataPoint[][] mzValues = null; // [relative scan][j value]
       int i, j, si, sj, ii, k, shift, ks;
       int shiftedScans[] = new int[mzSpan * 2 + 1];
       for (i = 0; i < totalScans; i++) {
 
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         Scan scan = scanNumbers[i];
         si = Math.max(0, i - scanSpan);
@@ -143,8 +146,9 @@ public class AlignScansTask extends AbstractTask {
         }
         if (scan != null) {
           // Allocate
-          if (mzValues == null || mzValues.length < sj - si + 1)
+          if (mzValues == null || mzValues.length < sj - si + 1) {
             mzValues = new DataPoint[sj - si + 1][];
+          }
           // Load Data Points
           for (j = si; j <= sj; j++) {
             Scan xscan = scanNumbers[j];
@@ -205,8 +209,8 @@ public class AlignScansTask extends AbstractTask {
           for (k = 0; k < ndp; k++) {
             ks = k + shift;
             if (ks >= 0 && ks < ndp) {
-              newDP[k] =
-                  new SimpleDataPoint(mzValues[ii][k].getMZ(), mzValues[ii][ks].getIntensity());
+              newDP[k] = new SimpleDataPoint(mzValues[ii][k].getMZ(),
+                  mzValues[ii][ks].getIntensity());
             } else {
               newDP[k] = new SimpleDataPoint(mzValues[ii][k].getMZ(), 0);
             }
@@ -226,8 +230,9 @@ public class AlignScansTask extends AbstractTask {
           newRDFW.getAppliedMethods().add(appliedMethod);
         }
 
-        newRDFW.getAppliedMethods()
-            .add(new SimpleFeatureListAppliedMethod(AlignScansModule.class, parameters, getModuleCallDate()));
+        newRDFW.getAppliedMethods().add(
+            new SimpleFeatureListAppliedMethod(AlignScansModule.class, parameters,
+                getModuleCallDate()));
         project.addFile(newRDFW);
 
         // Remove the original data file if requested

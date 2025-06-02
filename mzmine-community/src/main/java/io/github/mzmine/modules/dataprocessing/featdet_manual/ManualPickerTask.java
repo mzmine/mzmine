@@ -50,7 +50,7 @@ import java.util.logging.Logger;
 
 class ManualPickerTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ManualPickerTask.class.getName());
 
   private int processedFiles, totalFiles;
 

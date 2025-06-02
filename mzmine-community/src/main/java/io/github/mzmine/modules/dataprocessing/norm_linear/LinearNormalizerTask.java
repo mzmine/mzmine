@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,8 +52,9 @@ import org.jetbrains.annotations.Nullable;
 
 class LinearNormalizerTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(LinearNormalizerTask.class.getName());
+
   private final OriginalFeatureListOption handleOriginal;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   static final float maximumOverallFeatureHeightAfterNormalization = 100000.0f;
 
