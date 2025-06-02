@@ -67,7 +67,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, @Nullable double[] mzValues, @Nullable double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
-      @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
+      @Nullable Range<Double> scanMZRange, MobilityType mobilityType,
       @Nullable Set<IonMobilityMsMsInfo> precursorInfos, Float accumulationTime) {
     super(dataFile, scanNumber, msLevel, retentionTime, null, /*
          * fragmentScans,

@@ -33,6 +33,8 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.lang.foreign.MemorySegment;
@@ -56,10 +58,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private MassList massList = null;
   private MsMsInfo msMsInfo;
 
-  // scanning mz range if present in file
-  // -1 if not present
-  private final double scanningMzMin;
-  private final double scanningMzMax;
+  private final @Nullable SimpleDoubleRange scanningMzRange;
 
   /**
    * clone scan with new data
@@ -109,13 +108,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.retentionTime = retentionTime;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
-    if (scanMZRange != null) {
-      scanningMzMin = scanMZRange.lowerEndpoint();
-      scanningMzMax = scanMZRange.upperEndpoint();
-    } else {
-      scanningMzMin = -1;
-      scanningMzMax = -1;
-    }
+    this.scanningMzRange = SimpleRange.ofDouble(scanMZRange);
     setSpectrumType(spectrumType);
     setMsMsInfo(msMsInfo);
     this.injectionTime = requireNonNullElse(injectionTime, -1f);
@@ -134,13 +127,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.retentionTime = retentionTime;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
-    if (scanMZRange != null) {
-      scanningMzMin = scanMZRange.lowerEndpoint();
-      scanningMzMax = scanMZRange.upperEndpoint();
-    } else {
-      scanningMzMin = -1;
-      scanningMzMax = -1;
-    }
+    this.scanningMzRange = SimpleRange.ofDouble(scanMZRange);
     setSpectrumType(spectrumType);
     setMsMsInfo(msMsInfo);
     this.injectionTime = requireNonNullElse(injectionTime, -1f);
@@ -257,10 +244,9 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   @Override
   public @Nullable Range<Double> getScanningMZRange() {
-    if (scanningMzMin < 0) {
-      return getDataPointMZRange();
-    }
-    return Range.closed(scanningMzMin, scanningMzMax);
+//    final Range<Double> scanning = SimpleRange.guavaOrNull(scanningMzRange);
+//    return scanning != null ? scanning : getDataPointMZRange();
+    return SimpleRange.guavaOrNull(scanningMzRange);
   }
 
   @Override

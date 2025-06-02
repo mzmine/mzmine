@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Lightweight alternative to {@link Range} without cut values. Always a closed range.
+ *
  * @param <T>
  */
 public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleIntegerRange,
@@ -48,10 +49,18 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
   @NotNull T upperBound();
 
   /**
+   * Convenience method to convert a simple range to a guava range. Equivalent to
+   * {@code simpleRange != null ? simpleRange.guava() : null}
    *
-   * @param range
-   * @return
+   * @param range The range to convert.
+   * @param <T>   The type of the range (e.g. {@link Double} or {@link Integer}
+   * @param <V>   The type of the {@link SimpleRange}.
+   * @return The closed {@link Range} equivalent of the given range or null if the range is null.
    */
+  static <T extends Comparable<?>, V extends SimpleRange<T>> Range<T> guavaOrNull(V range) {
+    return range != null ? range.guava() : null;
+  }
+
   @Nullable
   @Contract("null -> null")
   public static SimpleDoubleRange ofDouble(@Nullable Range<Double> range) {
