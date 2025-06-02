@@ -477,7 +477,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
 
         PasefMsMsInfo info = new PasefMsMsInfoImpl(building.getLargestPeakMz(),
             // -1 bc we work with 0 based indices later on instead of 1 based
-            Range.closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1,
+            Range.closed(building.getSpectrumNumberRange().lowerEndpoint() - 1,
                 // -2 the upper bound is exclusive and we work with 0 based instead of 1 based
                 building.getSpectrumNumberRange().upperEndpoint() - 2),
             building.getCollisionEnergy(), building.getPrecursorCharge(), parentFrame, frame,

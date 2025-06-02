@@ -113,7 +113,7 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
     @Override
     public @NotNull Range<Integer> guava() {
-      return Range.closedOpen(lower, upper);
+      return Range.closed(lower, upper);
     }
 
     @Override
