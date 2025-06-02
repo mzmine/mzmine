@@ -244,9 +244,8 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   @Override
   public @Nullable Range<Double> getScanningMZRange() {
-//    final Range<Double> scanning = SimpleRange.guavaOrNull(scanningMzRange);
-//    return scanning != null ? scanning : getDataPointMZRange();
-    return SimpleRange.guavaOrNull(scanningMzRange);
+    final Range<Double> scanning = SimpleRange.guavaOrNull(scanningMzRange);
+    return scanning != null ? scanning : getDataPointMZRange();
   }
 
   @Override
