@@ -27,6 +27,8 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -60,9 +62,9 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   @NotNull
   private final ActivationMethod method;
 
-  // if null then use -1
-  private final double isolationWindowMinMz;
-  private final double isolationWindowMaxMz;
+  @Nullable
+  private final SimpleDoubleRange mzIsolationWindow;
+
   @Nullable
   private final Scan parentScan;
   @Nullable
@@ -78,13 +80,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     this.parentScan = parentScan;
     this.msLevel = msLevel;
     this.method = method;
-    if (isolationWindow == null) {
-      isolationWindowMinMz = -1;
-      isolationWindowMaxMz = -1;
-    } else {
-      isolationWindowMinMz = isolationWindow.lowerEndpoint();
-      isolationWindowMaxMz = isolationWindow.upperEndpoint();
-    }
+    mzIsolationWindow = SimpleRange.ofDouble(isolationWindow);
   }
 
   public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge, final int msLevel) {
@@ -256,8 +252,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
   @Override
   public @Nullable Range<Double> getIsolationWindow() {
-    return isolationWindowMinMz < 0 ? null
-        : Range.closed(isolationWindowMinMz, isolationWindowMaxMz);
+    return mzIsolationWindow != null ? mzIsolationWindow.guava() : null;
   }
 
   public boolean setMsMsScan(Scan scan) {
