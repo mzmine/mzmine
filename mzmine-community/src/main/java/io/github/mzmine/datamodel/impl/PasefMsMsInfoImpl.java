@@ -280,7 +280,7 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
   @Override
   public MsMsInfo createCopy() {
     return new PasefMsMsInfoImpl(precursorMz,
-        spectrumNumberRange != null ? spectrumNumberRange.guava() : null, collisionEnergy,
+        spectrumNumberRange.guava(), collisionEnergy,
         precursorCharge, parentFrame, fragmentFrame,
         isolationWindow != null ? isolationWindow.guava() : null);
   }
