@@ -200,8 +200,18 @@ public class FxLayout {
     return scroll;
   }
 
+  /**
+   * A non animated pane
+   */
   public static TitledPane newTitledPane(String title, Node node) {
-    return new TitledPane(title, node);
+    return newTitledPane(title, node, false);
+  }
+
+  public static TitledPane newTitledPane(String title, Node node, boolean animated) {
+    final TitledPane pane = new TitledPane(title, node);
+    // default disable animation - slows down when plots are shown with many data points
+    pane.setAnimated(animated);
+    return pane;
   }
 
   public static Accordion newAccordion(TitledPane... panes) {

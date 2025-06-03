@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,45 +25,26 @@
 
 package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import java.util.Map;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * This FeaturesType contains features for each RawDataFile. Sub columns for samples and charts are
- * created.
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
- */
-public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
-    implements NoTextColumn {
+public class HeightBoxPlotType extends AbstractBoxPlotType {
+
+  public HeightBoxPlotType() {
+    super(AbundanceMeasure.Height);
+  }
 
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "features_map";
+    return "height_box_plot";
   }
 
   @NotNull
   @Override
   public String getHeaderString() {
-    return "Features";
-  }
-
-  @Override
-  public Property<Map<RawDataFile, ModularFeature>> createProperty() {
-    return new SimpleObjectProperty<>();
-  }
-
-  @Override
-  public Class<Map<RawDataFile, ModularFeature>> getValueClass() {
-    return (Class) Map.class;
+    return "Height box plot";
   }
 
   @Override

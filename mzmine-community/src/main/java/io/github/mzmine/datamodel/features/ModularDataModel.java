@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,56 +26,22 @@ package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
-import static java.util.Objects.requireNonNullElse;
 import java.util.Set;
-import java.util.logging.Logger;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import javafx.beans.property.Property;
-import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ModularDataModel {
 
-  Logger logger = Logger.getLogger(ModularDataModel.class.getName());
+  Set<DataType> getTypes();
 
-  /**
-   * A read only view of all types (columns) of this DataModel.
-   *
-   * @return types that are covered by the model
-   */
-  default Set<DataType> getTypes() {
-    return getMap().keySet();
-  }
-
-  /**
-   * The map containing all mappings to the types defined in getTypes
-   *
-   * @param
-   * @return
-   */
-  ObservableMap<DataType, Object> getMap();
-
-  default boolean isEmpty() {
-    return getMap().isEmpty();
-  }
-
-  /**
-   * has DataType column of this DataModel
-   *
-   * @param <T>
-   * @param tclass
-   * @return
-   */
-  default <T> boolean hasTypeColumn(Class<? extends DataType<T>> tclass) {
-    return getTypes().contains(DataTypes.get(tclass));
-  }
+  boolean isEmpty();
 
   /**
    * Optional.ofNullable(value)
@@ -101,7 +66,6 @@ public interface ModularDataModel {
     return getEntry(type);
   }
 
-
   /**
    * Value for this datatype
    *
@@ -113,19 +77,7 @@ public interface ModularDataModel {
     return get(type);
   }
 
-
-  /**
-   * Value for this datatype
-   *
-   * @param <T>
-   * @param type
-   * @return
-   */
-  @Nullable
-  default <T extends Object> T get(DataType<T> type) {
-    return (T) getMap().get(type);
-  }
-
+  @Nullable <T extends Object> T get(DataType<T> type);
 
   /**
    * Value for this datatype or default value if no value was mapped. So only returns default if
@@ -139,16 +91,7 @@ public interface ModularDataModel {
     return getOrDefault(type, defaultValue);
   }
 
-  /**
-   * Value for this datatype or default value if no value was mapped. So only returns default if
-   * there was no mapping
-   *
-   * @return
-   */
-  @Nullable
-  default <T> T getOrDefault(DataType<T> type, T defaultValue) {
-    return (T) getMap().getOrDefault(type, defaultValue);
-  }
+  @Nullable <T> T getOrDefault(DataType<T> type, @Nullable T defaultValue);
 
   /**
    * Value for this datatype or default value if no value was mapped or the mapped value was null
@@ -161,34 +104,7 @@ public interface ModularDataModel {
     return getNonNullElse(type, defaultValue);
   }
 
-  /**
-   * Value for this datatype or default value if no value was mapped or the mapped value was null
-   *
-   * @return
-   */
-  @NotNull
-  default <T> T getNonNullElse(DataType<T> type, @NotNull T defaultValue) {
-    return (T) requireNonNullElse(getMap().getOrDefault(type, null), defaultValue);
-  }
-
-
-  /**
-   * @param type
-   * @return true if value is not null
-   */
-  @Nullable
-  default <T extends Object> boolean hasValueFor(DataType<T> type) {
-    return getMap().get(type) != null;
-  }
-
-  /**
-   * @param typeClass the type class
-   * @return true if value is not null
-   */
-  @Nullable
-  default <T> boolean hasValueFor(Class<? extends DataType<T>> typeClass) {
-    return get(typeClass) != null;
-  }
+  @NotNull <T> T getNonNullElse(DataType<T> type, @NotNull T defaultValue);
 
   /**
    * type.getFormattedString(value)
@@ -214,32 +130,9 @@ public interface ModularDataModel {
   }
 
   /**
-   * Set the value
-   *
-   * @param <T>
-   * @param type
-   * @param value
-   * @return true if the new value is different than the old
+   * must trigger all {@link ModularDataModel#getValueChangeListeners()}
    */
-  default <T> boolean set(DataType<T> type, T value) {
-    if (type instanceof MissingValueType) {
-      throw new UnsupportedOperationException(
-          "Type %s is not meant to be added to a feature.".formatted(type.getClass()));
-    }
-
-    Object old = getMap().put(type, value);
-    // send changes to all listeners for this data type
-    List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(type);
-    if (!Objects.equals(old, value)) {
-      if (listeners != null) {
-        for (DataTypeValueChangeListener listener : listeners) {
-          listener.valueChanged(this, type, old, value);
-        }
-      }
-      return true;
-    }
-    return false;
-  }
+  <T> boolean set(DataType<T> type, T value);
 
   /**
    * Set the value
@@ -265,37 +158,13 @@ public interface ModularDataModel {
     remove(type);
   }
 
-  /**
-   * Should only be called whenever a DataType column is removed from this model.
-   *
-   * @param type the data type to be removed
-   */
-  default <T> void remove(DataType<T> type) {
-    if (type != null) {
-      Object old = getMap().remove(type);
-      if (old != null) {
-        List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(type);
-        if (listeners != null) {
-          for (DataTypeValueChangeListener listener : listeners) {
-            listener.valueChanged(this, type, old, null);
-          }
-        }
-      }
-    }
-  }
+  <T> void remove(DataType<T> type);
 
-  /**
-   * Maps listeners to their {@link DataType}s. Default returns an empty list.
-   */
-  default @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
-    return Map.of();
-  }
+  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners();
 
-  /**
-   * Stream all map.entries
-   */
-  default Stream<Entry<DataType, Object>> stream() {
-    return getMap().entrySet().stream();
-  }
+  Stream<Entry<DataType, Object>> stream();
 
+  default void forEach(BiConsumer<DataType, Object> action) {
+    stream().forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
+  }
 }

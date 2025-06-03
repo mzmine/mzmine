@@ -50,6 +50,7 @@ class ArgsToConfigUtils {
 
     checkAndHandleArgsUserLoginOptions(argsParser);
 
+    ConfigService.setIgnoreParameterWarningsInBatch(argsParser.isIgnoreParameterWarnings());
   }
 
   static void checkAndOverrideArgsTempDir(MZmineCoreArgumentParser argsParser) {

@@ -53,7 +53,8 @@ import org.apache.commons.lang3.mutable.MutableDouble;
  */
 public class ComputeCliqueModule {
 
-  private final Logger logger = Logger.getLogger(getClass().getName());
+  private static final Logger logger = Logger.getLogger(ComputeCliqueModule.class.getName());
+
 
   private final AnClique anClique;
   private final FeatureList peakList;

@@ -40,7 +40,16 @@ public final class ConfigService {
 
   private static final Logger logger = Logger.getLogger(ConfigService.class.getName());
   private static final MZmineConfiguration config = new MZmineConfigurationImpl();
-  private static boolean tdfPseudoProfile = false;
+
+  /**
+   * only set from cli
+   */
+  private static volatile boolean tdfPseudoProfile = false;
+
+  /**
+   * only set from cli
+   */
+  private static volatile boolean ignoreParameterWarningsInBatch = false;
 
   public static MZmineConfiguration getConfiguration() {
     return config;
@@ -104,5 +113,13 @@ public final class ConfigService {
   public static void openTempPreferences() {
     MZminePreferences pref = MZmineCore.getConfiguration().getPreferences();
     FxThread.runLater(() -> pref.showSetupDialog(true, "temp"));
+  }
+
+  public static boolean isIgnoreParameterWarningsInBatch() {
+    return ignoreParameterWarningsInBatch;
+  }
+
+  public static void setIgnoreParameterWarningsInBatch(boolean ignoreParameterWarningsInBatch) {
+    ConfigService.ignoreParameterWarningsInBatch = ignoreParameterWarningsInBatch;
   }
 }

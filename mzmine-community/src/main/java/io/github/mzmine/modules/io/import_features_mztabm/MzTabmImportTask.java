@@ -299,7 +299,7 @@ public class MzTabmImportTask extends AbstractTask {
     }
     UserParameter<?, ?> newUserParameter = new StringParameter(
         inputFile.getName() + " study variable", "");
-    project.addParameter(newUserParameter);
+//    project.addParameter(newUserParameter);
     for (StudyVariable studyVariable : variableMap) {
       // Stop the process if cancel() was called
       if (isCanceled()) {
@@ -311,8 +311,8 @@ public class MzTabmImportTask extends AbstractTask {
         Assay dataFileAssay = assayList.get(i);
         if (dataFileAssay != null) {
           int indexOfAssay = mzTabmFile.getMetadata().getAssay().indexOf(dataFileAssay);
-          project.setParameterValue(newUserParameter, rawDataFiles.get(indexOfAssay),
-              studyVariable.getDescription());
+//          project.setParameterValue(newUserParameter, rawDataFiles.get(indexOfAssay),
+//              studyVariable.getDescription());
         }
       }
     }

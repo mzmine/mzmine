@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -79,12 +79,13 @@ import org.jfree.chart.plot.XYPlot;
 public class MultiSpectraVisualizerPane extends BorderPane {
 
   private static final long serialVersionUID = 1L;
+  private static final Logger logger = Logger.getLogger(MultiSpectraVisualizerPane.class.getName());
+
   private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private final NumberFormat mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
   private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
   private final UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final GridPane pnGrid;
   private final Label lbRaw;
   private List<RawDataFile> rawFiles;
@@ -184,7 +185,7 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     rawFiles = row.getRawDataFiles();
     this.row = row;
 
-    if(row.getFeature(raw) != null) {
+    if (row.getFeature(raw) != null) {
       setRawFileAndShow(raw);
     } else {
       setRawFileAndShow(row.getBestFeature().getRawDataFile());
@@ -199,7 +200,7 @@ public class MultiSpectraVisualizerPane extends BorderPane {
    */
   public boolean setRawFileAndShow(RawDataFile raw) {
     Feature peak = row.getFeature(raw);
-    if(peak == null && row.getRawDataFiles().size() == 1 && row.getBestFeature() != null) {
+    if (peak == null && row.getRawDataFiles().size() == 1 && row.getBestFeature() != null) {
       peak = row.getBestFeature();
     }
     // no peak / no ms2 - return false

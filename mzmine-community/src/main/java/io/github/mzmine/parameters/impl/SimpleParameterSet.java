@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -205,8 +205,10 @@ public class SimpleParameterSet implements ParameterSet {
     // Make a deep copy of the parameters
     Parameter<?>[] newParameters = new Parameter[parameters.length];
     for (int i = 0; i < parameters.length; i++) {
-      if (keepSelection && parameters[i] instanceof RawDataFilesParameter rfp) {
+      if (parameters[i] instanceof RawDataFilesParameter rfp) {
         newParameters[i] = rfp.cloneParameter(keepSelection);
+      } else if (parameters[i] instanceof FeatureListsParameter flp) {
+        newParameters[i] = flp.cloneParameter(keepSelection);
       } else {
         newParameters[i] = parameters[i].cloneParameter();
       }
@@ -250,7 +252,8 @@ public class SimpleParameterSet implements ParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, null);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this,
+        this.getMessage());
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -262,7 +265,7 @@ public class SimpleParameterSet implements ParameterSet {
     for (Parameter<?> p : parameters) {
       // this is done in batch mode where no data is loaded when the parameters are checked
       if (skipRawDataAndFeatureListParameters && (p instanceof RawDataFilesParameter
-                                                  || p instanceof FeatureListsParameter)) {
+          || p instanceof FeatureListsParameter)) {
         continue;
       }
 
@@ -317,24 +320,21 @@ public class SimpleParameterSet implements ParameterSet {
           "This module has not been tested with ion mobility data files. This could lead to unexpected results.");
       if (showMsg) {
         return MZmineCore.getDesktop()
-                   .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
-                       "This module has not been tested with ion mobility data files. This could lead "
-                       + "to unexpected results. Do you want to continue anyway?",
-                       "Do not show again",
-                       optOut -> showMsgMap.put(this.getClass().getName(), !optOut))
-               == ButtonType.YES;
+            .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
+                "This module has not been tested with ion mobility data files. This could lead "
+                    + "to unexpected results. Do you want to continue anyway?", "Do not show again",
+                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
       }
       return true;
     } else if (containsImsFile && getIonMobilitySupport() == IonMobilitySupport.RESTRICTED) {
       logger.warning(
           "This module has certain restrictions when processing ion mobility data files. This"
-          + " could lead to unexpected results");
+              + " could lead to unexpected results");
       if (showMsg) {
         return MZmineCore.getDesktop()
-                   .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
-                       getRestrictedIonMobilitySupportMessage(), "Do not show again",
-                       optOut -> showMsgMap.put(this.getClass().getName(), !optOut))
-               == ButtonType.YES;
+            .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
+                getRestrictedIonMobilitySupportMessage(), "Do not show again",
+                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
       }
     } else if (!onlyImsFiles && getIonMobilitySupport() == IonMobilitySupport.ONLY) {
       logger.warning(
@@ -349,7 +349,7 @@ public class SimpleParameterSet implements ParameterSet {
 
       boolean returnVal = DialogLoggerUtil.showDialogYesNo("Untested IMS support",
           "This module does not support ion mobility data. This will lead to unexpected "
-          + "results. Do you want to continue anyway?");
+              + "results. Do you want to continue anyway?");
       if (!returnVal) {
         errorMessages.addAll(nonImsFilesList);
       }
@@ -368,7 +368,7 @@ public class SimpleParameterSet implements ParameterSet {
    */
   public String getRestrictedIonMobilitySupportMessage() {
     return "This module has certain restrictions when processing ion mobility data files. This "
-           + "could lead to unexpected results. Do you want to continue anyway?";
+        + "could lead to unexpected results. Do you want to continue anyway?";
   }
 
   /**

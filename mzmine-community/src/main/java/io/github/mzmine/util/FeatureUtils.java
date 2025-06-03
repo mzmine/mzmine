@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.util;
+
+import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.getTypeValue;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -60,9 +62,10 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
-import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.getTypeValue;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
@@ -168,6 +171,57 @@ public class FeatureUtils {
     return buf.toString();
   }
 
+
+  /**
+   * @return a description and example for a stable feature ID
+   */
+  public static @NotNull String rowToFullIdDescription() {
+    return """
+        full row ID is defined by row ID, mz, retention time, ion mobility (if applicable), like:
+        %s""".formatted(rowToFullId(1, 195.0085, 5.45f, 1.5f));
+  }
+
+  /**
+   * A stable ID for a row that incorporates the id, mz, rt, mobility if available and applies a
+   * stable fixed format to each.
+   *
+   * @return a full row ID
+   */
+  public static @NotNull String rowToFullId(FeatureListRow row) {
+    final Integer id = row.getID();
+    final Float rt = row.getAverageRT();
+    final Float mob = row.getAverageMobility();
+    final Double mz = row.getAverageMZ();
+    return rowToFullId(id, mz, rt, mob);
+  }
+
+  /**
+   * A stable ID for a row that incorporates the id, mz, rt, mobility if available and applies a
+   * stable fixed format to each.
+   *
+   * @return a full row ID
+   */
+  private static @NotNull String rowToFullId(int id, @Nullable Double mz, @Nullable Float rt,
+      @Nullable Float mob) {
+    // use stable formats so that ID is stable across versions
+    final NumberFormats formats = ConfigService.getConfiguration().getPreferences()
+        .getStableFormats();
+    final StringBuilder b = new StringBuilder();
+    b.append("row").append(id);
+    if (mz != null) {
+      b.append("_mz").append(formats.mz(mz));
+    }
+    if (rt != null) {
+      b.append("_rt").append(formats.rt(rt));
+    }
+    if (mob != null) {
+      b.append("_mob").append(formats.mobility(mob));
+    }
+    // bad to end with number because row1 also matches row11 by substring but row1_id is unique
+    b.append("_id");
+    return b.toString();
+  }
+
   /**
    * Compares identities of two feature list rows. 1) if preferred identities are available, they
    * must be same 2) if no identities are available on both rows, return true 3) otherwise all
@@ -175,6 +229,7 @@ public class FeatureUtils {
    *
    * @return True if identities match between rows
    */
+  @Deprecated
   public static boolean compareIdentities(FeatureListRow row1, FeatureListRow row2) {
 
     if ((row1 == null) || (row2 == null)) {
@@ -494,7 +549,7 @@ public class FeatureUtils {
    * Loops over all {@link DataType}s in a {@link FeatureListRow}. Extracts all annotations derived
    * from a {@link CompoundDBAnnotation} in all {@link AnnotationType}s derived from the
    * {@link ListWithSubsType} within the {@link FeatureListRow}'s
-   * {@link io.github.mzmine.datamodel.features.ModularDataModel}.
+   * {@link ModularDataModel}.
    *
    * @param selectedRow The row
    * @return List of all annotations.
@@ -767,7 +822,6 @@ public class FeatureUtils {
   }
 
   public static List<IonType> extractAllIonTypes(FeatureListRow row) {
-
     final List<IonType> allIonTypes = Arrays.stream(FeatureAnnotationPriority.values())
         .flatMap(type -> {
           final Object o = row.get(type.getAnnotationType());
@@ -775,13 +829,20 @@ public class FeatureUtils {
             return Stream.empty();
           }
           return switch (type) {
-            case MANUAL, FORMULA, LIPID -> Stream.empty();
+            case MANUAL, LIPID, FORMULA -> Stream.empty();
             case SPECTRAL_LIBRARY, EXACT_COMPOUND -> {
               List<FeatureAnnotation> featureAnnotations = (List<FeatureAnnotation>) annotations;
               yield featureAnnotations.stream().map(FeatureAnnotation::getAdductType);
             }
           };
-        }).toList();
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+    if (row.getBestIonIdentity() != null) {
+      final IonType ionType = row.getBestIonIdentity().getIonType();
+      final List<IonType> combined = new ArrayList<>(allIonTypes);
+      combined.add(ionType);
+      return combined;
+    }
 
     return allIonTypes;
   }
@@ -853,4 +914,5 @@ public class FeatureUtils {
   public static boolean isMrm(@Nullable Feature f) {
     return f instanceof ModularFeature mf && mf.isMrm();
   }
+
 }

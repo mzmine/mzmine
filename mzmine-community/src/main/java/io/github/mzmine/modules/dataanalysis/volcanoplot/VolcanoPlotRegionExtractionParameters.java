@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -37,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationParameter;
 import java.awt.geom.Point2D;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
 
@@ -78,5 +80,10 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
     model.setTest(getValue(config).toValidConfig());
     model.setAbundanceMeasure(getValue(abundance));
     return model;
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

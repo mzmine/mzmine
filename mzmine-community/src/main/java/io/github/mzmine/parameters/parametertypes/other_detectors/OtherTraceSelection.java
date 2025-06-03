@@ -44,7 +44,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-public class OtherTraceSelection {
+public record OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
+                                  @Nullable String rangeUnitFilter,
+                                  @Nullable String rangeLabelFilter,
+                                  @Nullable String descriptionFilter,
+                                  @NotNull OtherRawOrProcessed rawOrProcessed) {
 
   private static final Logger logger = Logger.getLogger(OtherTraceSelection.class.getName());
 
@@ -53,17 +57,6 @@ public class OtherTraceSelection {
   private static final String XML_RANGE_LABEL_FILTER_ATTR = "rangeLabelFilter";
   private static final String XML_DESCRIPTION_FILTER_ATTR = "descriptionFilter";
   private static final String XML_RAW_OR_PROCESSED_ATTR = "rawOrProcessed";
-
-  @Nullable
-  private final ChromatogramType chromatogramType;
-  @Nullable
-  private final String rangeUnitFilter;
-  @Nullable
-  private final String rangeLabelFilter;
-  @Nullable
-  private final String descriptionFilter;
-  @NotNull
-  private final OtherRawOrProcessed rawOrProcessed;
 
   public OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
       @Nullable String rangeUnitFilter, @Nullable String rangeLabelFilter,
@@ -197,26 +190,6 @@ public class OtherTraceSelection {
     }
 
     return b.toString();
-  }
-
-  public @Nullable ChromatogramType getChromatogramType() {
-    return chromatogramType;
-  }
-
-  public @Nullable String getRangeUnitFilter() {
-    return rangeUnitFilter;
-  }
-
-  public @Nullable String getRangeLabelFilter() {
-    return rangeLabelFilter;
-  }
-
-  public @Nullable String getDescriptionFilter() {
-    return descriptionFilter;
-  }
-
-  public @NotNull OtherRawOrProcessed getRawOrProcessed() {
-    return rawOrProcessed;
   }
 
   public OtherTraceSelection copy() {
