@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -205,8 +205,10 @@ public class SimpleParameterSet implements ParameterSet {
     // Make a deep copy of the parameters
     Parameter<?>[] newParameters = new Parameter[parameters.length];
     for (int i = 0; i < parameters.length; i++) {
-      if (keepSelection && parameters[i] instanceof RawDataFilesParameter rfp) {
+      if (parameters[i] instanceof RawDataFilesParameter rfp) {
         newParameters[i] = rfp.cloneParameter(keepSelection);
+      } else if (parameters[i] instanceof FeatureListsParameter flp) {
+        newParameters[i] = flp.cloneParameter(keepSelection);
       } else {
         newParameters[i] = parameters[i].cloneParameter();
       }
@@ -250,7 +252,8 @@ public class SimpleParameterSet implements ParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, null);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this,
+        this.getMessage());
     dialog.showAndWait();
     return dialog.getExitCode();
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -95,6 +95,7 @@ class FeatureListUtilsTest {
     f.set(MobilityType.class, values);
     f.set(DetectionType.class, FeatureStatus.DETECTED);
     ModularFeatureListRow row = new ModularFeatureListRow(flist, 1, f);
+    flist.addRow(row);
     return row;
   }
 
@@ -124,8 +125,8 @@ class FeatureListUtilsTest {
     Assertions.assertTrue(score >= 0);
     Assertions.assertTrue(score <= 0.5);
 
-    score = FeatureListUtils.getAlignmentScore(200.5, 5.25f, null, null,
-        Range.closed(200d, 201d), Range.closed(5f, 5.5f), null, null, 3, 1, 0, 0);
+    score = FeatureListUtils.getAlignmentScore(200.5, 5.25f, null, null, Range.closed(200d, 201d),
+        Range.closed(5f, 5.5f), null, null, 3, 1, 0, 0);
     assertEquals(1, score);
   }
 }

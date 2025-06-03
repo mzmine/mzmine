@@ -40,11 +40,18 @@ public class MetadataGroupSelectionParameter implements
   private final String descr;
   private final String XML_COLUMN_ATTR = "column";
   private final String XML_GROUP_ATTR = "group";
-  private MetadataGroupSelection value = new MetadataGroupSelection("", "");
+  @Nullable
+  private MetadataGroupSelection value;
 
   public MetadataGroupSelectionParameter(String name, String descr) {
+    this(name, descr, new MetadataGroupSelection("", ""));
+  }
+
+  public MetadataGroupSelectionParameter(String name, String descr,
+      @Nullable MetadataGroupSelection defaultValue) {
     this.name = name;
     this.descr = descr;
+    value = defaultValue;
   }
 
   @Override

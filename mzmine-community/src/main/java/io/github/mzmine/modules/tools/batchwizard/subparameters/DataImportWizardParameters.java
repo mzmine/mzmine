@@ -48,7 +48,7 @@ public final class DataImportWizardParameters extends WizardStepParameters {
           ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN));
 
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
-      ExtensionFilters.MS_RAW_DATA);
+      ExtensionFilters.MS_RAW_DATA, "Drag & drop your MS data files here");
 
   public DataImportWizardParameters() {
     super(WizardPart.DATA_IMPORT, DataImportWizardParameterFactory.Data,

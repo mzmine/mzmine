@@ -35,7 +35,10 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+
 import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
+
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
@@ -58,6 +61,7 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
@@ -144,8 +148,12 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     final VBox pAndAbundance = new VBox(space, pValueBox, abundanceBox);
     final Region testConfigPane = createTestParametersPane();
 
-    final TitledPane controls = new TitledPane("Settings",
-        createControlsPane(pAndAbundance, testConfigPane));
+    final Button helpButton = FxButtons.createHelpButton(
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#volcano-plot");
+
+    final TitledPane controls = new TitledPane("Controls",
+        createControlsPane(pAndAbundance, testConfigPane, helpButton
+        ));
     final Accordion accordion = new Accordion(
         newTitledPane("Region of interest (ROI) selection", regionWrapper.getControlPane()),
         controls);

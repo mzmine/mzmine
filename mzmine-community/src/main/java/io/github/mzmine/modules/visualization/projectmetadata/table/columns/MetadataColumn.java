@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,8 +36,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <T> datatype of the project parameter
  */
-public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, DoubleMetadataColumn,
-    DateMetadataColumn {
+public abstract sealed class MetadataColumn<T> implements Comparable<MetadataColumn<T>> permits
+    StringMetadataColumn, DoubleMetadataColumn, DateMetadataColumn {
 
   public static final String FILENAME_HEADER = "filename";
   public static final String DATE_HEADER = "run_date";
@@ -164,16 +164,62 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
     if (!(o instanceof MetadataColumn<?> that)) {
       return false;
     }
-    return title.equals(that.title) && description.equals(that.description);
+    return Objects.equals(title, that.title);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(title, description);
+    return Objects.hash(title);
   }
 
   @Override
   public String toString() {
     return getTitle();
+  }
+
+  @Override
+  public int compareTo(@NotNull MetadataColumn<T> o) {
+    if (o == this) {
+      return 0;
+    }
+
+    // filename first
+    if (this.getTitle().equals(FILENAME_HEADER)) {
+      return -1;
+    }
+    if (o.getTitle().equals(FILENAME_HEADER)) {
+      return 1;
+    }
+
+    // then run data
+    if (this.getTitle().equalsIgnoreCase(DATE_HEADER)) {
+      return -1;
+    }
+    if (o.getTitle().equalsIgnoreCase(DATE_HEADER)) {
+      return 1;
+    }
+
+    // then sample type
+    if (this.getTitle().equalsIgnoreCase(SAMPLE_TYPE_HEADER)) {
+      return -1;
+    }
+    if (o.getTitle().equalsIgnoreCase(SAMPLE_TYPE_HEADER)) {
+      return 1;
+    }
+
+    // then alphabetical order
+    return this.getTitle().toLowerCase().compareTo(o.getTitle().toLowerCase());
+  }
+
+  /**
+   * Date and number column have a natural order like the acquisition or concentration
+   *
+   * @return true if date or number
+   */
+  public boolean hasNaturalOrder() {
+    return switch (this) {
+      case DoubleMetadataColumn _, DateMetadataColumn _ -> true;
+      default -> false;
+    };
   }
 }

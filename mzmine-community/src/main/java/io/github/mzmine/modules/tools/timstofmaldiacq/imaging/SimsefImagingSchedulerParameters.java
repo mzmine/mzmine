@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,11 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -46,6 +51,7 @@ import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 import javafx.application.Platform;
+import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
@@ -108,7 +114,10 @@ public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new TimsTOFImageMsMsDialog(valueCheckRequired, this, null);
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        text("When using the SIMSEF workflow please cite:"), linebreak(),
+        ArticleReferences.SIMSEF.hyperlinkText());
+    ParameterSetupDialog dialog = new TimsTOFImageMsMsDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

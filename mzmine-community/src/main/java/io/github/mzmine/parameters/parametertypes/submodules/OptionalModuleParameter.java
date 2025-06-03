@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,6 +48,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   private final EmbeddedComponentOptions componentViewOption;
   private T embeddedParameters;
   private boolean value;
+  private final boolean openHidden;
 
   public OptionalModuleParameter(String name, String description, T embeddedParameters) {
     this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters);
@@ -60,17 +61,30 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   public OptionalModuleParameter(String name, String description, T embeddedParameters,
       boolean defaultVal) {
-    this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters, defaultVal);
+    this(name, description, embeddedParameters, defaultVal, true);
+  }
+
+  public OptionalModuleParameter(String name, String description, T embeddedParameters,
+      boolean defaultVal, boolean openHidden) {
+    this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters, defaultVal,
+        openHidden);
   }
 
   public OptionalModuleParameter(String name, String description,
       EmbeddedComponentOptions componentViewOption, T embeddedParameters, boolean defaultVal) {
+    this(name, description, componentViewOption, embeddedParameters, defaultVal, true);
+  }
+
+  public OptionalModuleParameter(String name, String description,
+      EmbeddedComponentOptions componentViewOption, T embeddedParameters, boolean defaultVal,
+      boolean openHidden) {
     this.name = name;
     this.description = description;
     this.componentViewOption = componentViewOption;
     // requires cloning to avoid usage of static parameters
     this.embeddedParameters = (T) embeddedParameters.cloneParameterSet();
     value = defaultVal;
+    this.openHidden = openHidden;
   }
 
   public T getEmbeddedParameters() {
@@ -98,7 +112,8 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   @Override
   public OptionalModuleComponent createEditingComponent() {
-    return new OptionalModuleComponent(embeddedParameters, componentViewOption, "", false, value);
+    return new OptionalModuleComponent(embeddedParameters, componentViewOption, "", false, value,
+        openHidden);
   }
 
   @Override
@@ -115,7 +130,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   public OptionalModuleParameter<T> cloneParameter() {
     final T embeddedParametersClone = (T) embeddedParameters.cloneParameterSet();
     return new OptionalModuleParameter<>(name, description, componentViewOption,
-        embeddedParametersClone, getValue());
+        embeddedParametersClone, getValue(), openHidden);
   }
 
   @Override

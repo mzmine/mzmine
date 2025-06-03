@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,22 @@
 
 package io.github.mzmine.datamodel.data_access;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.sliceDoubles;
+
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.CollectionUtils;
+import io.github.mzmine.util.collections.IndexRange;
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
@@ -79,7 +90,24 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
    * @param dataFile define the data file in an aligned feature list
    */
   protected FeatureFullDataAccess(FeatureList flist, @Nullable RawDataFile dataFile) {
-    super(flist, dataFile);
+    this(flist, dataFile, null);
+  }
+
+  /**
+   * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
+   * by retention time). Full data access uses all scans of the whole chromatogram and adds zeros
+   * for missing data points. This is important for a few chromatogram deconvolution algorithms,
+   * smoothing, etc. However, if applied to already resolved features, zero intensities do not mean
+   * no signal.
+   *
+   * @param flist                       target feature list. Loops through all features in dataFile
+   * @param dataFile                    define the data file in an aligned feature list
+   * @param binningMobilogramDataAccess access mobilogram data, only present for mobility data, null
+   *                                    otherwise. Checks are done internally
+   */
+  protected FeatureFullDataAccess(FeatureList flist, @Nullable RawDataFile dataFile,
+      @Nullable BinningMobilogramDataAccess binningMobilogramDataAccess) {
+    super(flist, dataFile, binningMobilogramDataAccess);
 
     // return all scans that were used to create the chromatograms in the first place
     int max = 0;
@@ -107,6 +135,11 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
   @Override
   public List<Scan> getSpectra() {
     assert allScans != null;
+    return allScans;
+  }
+
+  @Override
+  public List<Scan> getSpectraModifiable() {
     return allScans;
   }
 
@@ -185,6 +218,100 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
     return feature;
   }
 
+
+  @Override
+  public IonTimeSeries<Scan> subSeries(final MemoryMapStorage storage, final int startIndex,
+      final int endIndexExclusive, final IndexRange originalIndexRange) {
+
+    if (endIndexExclusive - startIndex <= 0) {
+      return emptySeries();
+    }
+
+    // sublist:
+    // PRO: the original list is kept alive either way (e.g. the Scan list in FeatureList) - saves memory
+    // CONTRA: the original list is not referenced and and will be kept alive by sublist
+
+    // in case of resolving and smoothing etc it makes sense to keep the original list or a sublist
+    // in this case the feature list keeps the MS1 scans list alive
+
+    // it is ok to create sublists here and reuse the original list of scans
+    // this is because the list is already kept in memory by the feature list
+    // so sublist saves memory - other implementations that may run on variable scan lists rather create copies
+
+    // from all scans
+    List<Scan> subFromAll = getSpectraModifiable().subList(startIndex, endIndexExclusive);
+
+    // from original series - different indices - use RT
+    final IonTimeSeries<? extends Scan> original = getOriginalSeries();
+    List<? extends Scan> subFromOriginal = originalIndexRange.sublist(
+        original.getSpectraModifiable(), false);
+
+    // subAll needs to be a continuous section in subFromOriginal to use the optimization of sublist
+    if (CollectionUtils.isContinuousRegionByIdentity(subFromAll, subFromOriginal)) {
+      // reuse data
+      return subSeriesReuseBuffers(storage, originalIndexRange.min(),
+          originalIndexRange.maxExclusive(), original, subFromAll);
+    } else {
+      if (original instanceof IonMobilogramTimeSeries imsSeries) {
+        // special solution for IMS data - subFromAll scans list did not match - maybe there was a missing scan
+        // the missing scans do not have mobilograms - hard to reextract - TODO revisit
+        // therefore just call the original method to subseries, creating a clone of the scan list
+        return (IonTimeSeries<Scan>) (IonTimeSeries) imsSeries.subSeries(storage,
+            originalIndexRange.min(), originalIndexRange.maxExclusive(), mobilogramBinning);
+      }
+
+      // for other series we create new ion time series with the data and scans list
+      // use the global indices for this for all scans list and data
+      double[] mzs = new double[subFromAll.size()];
+      double[] intensities = new double[subFromAll.size()];
+      for (int i = startIndex; i < endIndexExclusive; i++) {
+        mzs[i - startIndex] = getMZ(i);
+        intensities[i - startIndex] = getIntensity(i);
+      }
+      return new SimpleIonTimeSeries(storage, mzs, intensities, subFromAll);
+    }
+  }
+
+
+  /**
+   * This is only applied if subFromAll scans is a continuous sub region in the previously set
+   * spectra list
+   *
+   * @param startIndex        in original data
+   * @param endIndexExclusive in original data
+   * @param original          original series to subseries of
+   * @param subFromAll        sub list from all scans
+   * @return a subseries reusing data
+   */
+  private IonTimeSeries<Scan> subSeriesReuseBuffers(final MemoryMapStorage storage,
+      final int startIndex, final int endIndexExclusive,
+      final IonTimeSeries<? extends Scan> original, final List<Scan> subFromAll) {
+    // can reuse the original data buffers and sublists of scans
+    final MemorySegment mzs = sliceDoubles(original.getMZValueBuffer(), startIndex,
+        endIndexExclusive);
+    final MemorySegment intensities = sliceDoubles(original.getIntensityValueBuffer(), startIndex,
+        endIndexExclusive);
+
+    //noinspection unchecked
+    return (IonTimeSeries<Scan>) switch (original) {
+      case IonMobilogramTimeSeries imsSeries -> {
+        if (mobilogramBinning == null) {
+          throw new IllegalStateException(
+              "mobilogramBinning is null during subseries of IMS series in data access");
+        }
+
+        final List<IonMobilitySeries> mobilograms = imsSeries.getMobilograms()
+            .subList(startIndex, endIndexExclusive);
+        mobilogramBinning.setMobilogram(mobilograms);
+
+        yield new SimpleIonMobilogramTimeSeries(mzs, intensities, storage, mobilograms,
+            (List<Frame>) (List) subFromAll, mobilogramBinning.toSummedMobilogram(storage));
+      }
+      // use subFromAll to save memory by pointing all to the original list of scans
+      default -> new SimpleIonTimeSeries(mzs, intensities, subFromAll);
+    };
+  }
+
   @Override
   public int getMaxNumberOfValues() {
     return mzs.length;
@@ -204,4 +331,5 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
   public IonTimeSeries<Scan> emptySeries() {
     return featureData.emptySeries();
   }
+
 }

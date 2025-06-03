@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_nist;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -37,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.io.File;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Holds NIST MS Search parameters.
@@ -149,4 +151,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     return 2;
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

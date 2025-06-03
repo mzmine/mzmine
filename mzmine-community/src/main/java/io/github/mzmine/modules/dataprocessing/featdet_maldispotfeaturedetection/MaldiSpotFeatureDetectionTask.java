@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,6 +55,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderMo
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderSubTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -227,7 +228,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
 
     final List<ExpandedTrace> expandedTraces = task.getExpandedTraces();
 
-    flist.getRows().clear();
+    flist.clearRows();
     for (ExpandedTrace expandedTrace : expandedTraces) {
       final ModularFeatureListRow row = new ModularFeatureListRow(flist, expandedTrace.oldRow(),
           false);
@@ -244,9 +245,12 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
     final ParameterSet expanderParameters = ConfigService.getConfiguration()
         .getModuleParameters(ImsExpanderModule.class).cloneParameterSet();
     expanderParameters.setParameter(ImsExpanderParameters.useRawData, false);
-    expanderParameters.getParameter(ImsExpanderParameters.mzTolerance).setValue(true);
-    expanderParameters.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
-        .setValue(mzTolerance);
+    expanderParameters.setParameter(ImsExpanderParameters.mzTolerance, mzTolerance);
+    expanderParameters.setParameter(ImsExpanderParameters.mobilogramBinWidth, false);
+    expanderParameters.setParameter(ImsExpanderParameters.maxNumTraces, false);
+    expanderParameters.setParameter(ImsExpanderParameters.handleOriginal,
+        OriginalFeatureListOption.KEEP);
+
     return expanderParameters;
   }
 

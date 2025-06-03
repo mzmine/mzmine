@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,14 +44,13 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
 class ManualPickerTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ManualPickerTask.class.getName());
 
   private int processedFiles, totalFiles;
 
@@ -106,7 +105,7 @@ class ManualPickerTask extends AbstractTask {
           mzRange, rtRange, featureList.getMemoryMapStorage());
 
       final Feature feature = featureListRow.getFeature(file);
-      ModularFeature f = (ModularFeature)feature;
+      ModularFeature f = (ModularFeature) feature;
       f.set(FeatureDataType.class, series);
       FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
       processedFiles++;
@@ -117,7 +116,7 @@ class ManualPickerTask extends AbstractTask {
       // Check if the feature list row has been added to the feature list,
       // and
       // if it has not, add it
-      List<FeatureListRow> rows = new ArrayList<>(featureList.getRows());
+      List<FeatureListRow> rows = featureList.getRowsCopy();
       if (!rows.contains(featureListRow)) {
         featureList.addRow(featureListRow);
       }

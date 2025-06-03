@@ -58,7 +58,6 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
-
   public static final AdvancedParametersParameter<AdvancedSpectralLibrarySearchParameters> advanced = new AdvancedParametersParameter<>(
       new AdvancedSpectralLibrarySearchParameters());
 

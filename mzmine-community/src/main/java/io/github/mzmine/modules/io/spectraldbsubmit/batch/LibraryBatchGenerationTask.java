@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorResults;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters.ChimericMsOption;
@@ -74,9 +75,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -194,9 +197,16 @@ public class LibraryBatchGenerationTask extends AbstractTask {
             new SimpleFeatureListAppliedMethod(LibraryBatchGenerationModule.class, parameters,
                 getModuleCallDate()));
       }
-      //
-      logger.info(String.format("Exported %d new library entries to file %s", exported.get(),
-          outFile.getAbsolutePath()));
+
+      // error?
+      if (exported.get() == 0) {
+        // maybe ms level filter mismatch?
+        checkAndLogEmptyResult();
+      } else {
+        //
+        logger.info(String.format("Exported %d new library entries to file %s", exported.get(),
+            outFile.getAbsolutePath()));
+      }
     } catch (IOException e) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not open file " + outFile + " for writing.");
@@ -207,7 +217,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     } catch (Exception e) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not export library to " + outFile + " because of internal exception:"
-                      + e.getMessage());
+          + e.getMessage());
       logger.log(Level.WARNING,
           String.format("Error writing library file: %s. Message: %s", outFile.getAbsolutePath(),
               e.getMessage()), e);
@@ -215,6 +225,38 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void checkAndLogEmptyResult() {
+    final boolean hasFragmentation = Arrays.stream(flists).flatMap(ModularFeatureList::stream)
+        .anyMatch(FeatureListRow::hasMs2Fragmentation);
+
+    if (!hasFragmentation) {
+      DialogLoggerUtil.showWarningDialog("Spectral library export empty", """
+          The exported spectral library is empty because there were no fragment scans in any feature list.""");
+      return;
+    }
+
+    final List<Scan> randomScans = Arrays.stream(flists).flatMap(ModularFeatureList::stream)
+        .map(FeatureListRow::getAllFragmentScans).filter(Predicate.not(List::isEmpty)).limit(10)
+        .flatMap(Collection::stream).toList();
+    if (randomScans.isEmpty()) {
+      return;
+    }
+    for (Scan scan : randomScans) {
+      if (postMergingMsLevelFilter.notMatch(scan)) {
+
+        DialogLoggerUtil.showWarningDialog("Spectral library export empty", """
+            It seems the MS level filter mismatches with the actual MS level of the fragment scans.
+            MS level filter: %s; compared to the experimental scans MS level: %d""".formatted(
+            postMergingMsLevelFilter.toString(), scan.getMSLevel()));
+        return;
+      }
+    }
+    // no obvious mismatch detected but still empty result
+    DialogLoggerUtil.showWarningDialog("Spectral library export empty", """
+        The library export produced an empty file despite the feature lists containing fragmentation scans.
+        The MS level filter was checked and seems to match. Maybe there is a different parameter mismatch.""");
   }
 
   private void processRow(final BufferedWriter writer, final FeatureListRow row)
@@ -235,7 +277,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     // if multiple compounds match, they are sorted by score descending
     matches = CompoundAnnotationUtils.getBestMatchesPerCompoundName(matches);
 
-    // handle chimerics
+    // handle chimerics / automatically skips gc-ei scans with empty result for them as not applicable
     final var chimericMap = handleChimericsAndFilterScansIfSelected(row, scans);
 
     scans = selectMergeAndFilterScans(scans);

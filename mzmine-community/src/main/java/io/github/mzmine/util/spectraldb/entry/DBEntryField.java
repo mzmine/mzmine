@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,12 +26,14 @@
 package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.DatasetIdType;
+import io.github.mzmine.datamodel.features.types.annotations.EntryIdType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.PeptideSequenceType;
@@ -64,8 +66,10 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.RIRecord;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.io.JsonUtils;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
@@ -101,12 +105,20 @@ public enum DBEntryField {
   FEATURE_ID,
 
   /**
+   * a full ID that uses ID, mz, rt, mobility as in {@link FeatureUtils#rowToFullId(FeatureListRow)}
+   * This id can be used to differentiate features by more than just the ID. This way differences in
+   * processing leading to different id, mz, rt .. feautures are easier spotted than just by ID
+   */
+  FEATURE_FULL_ID,
+
+  /**
    * feature list name:row ID
    */
   FEATURELIST_NAME_FEATURE_ID,
 
   // spectrum specific
-  MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
+  MS_LEVEL, RT(Float.class), RETENTION_INDEX(RIRecord.class), CCS(
+      Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
       Integer.class), // height of feature
   FEATURE_MS1_HEIGHT(Float.class), FEATURE_MS1_REL_HEIGHT(Float.class),
 
@@ -155,8 +167,8 @@ public enum DBEntryField {
   public static final DBEntryField[] DATABASE_FIELDS = new DBEntryField[]{USI, PUBMED, PUBCHEM,
       MONA_ID, CHEMSPIDER, CAS};
   public static final DBEntryField[] COMPOUND_FIELDS = new DBEntryField[]{NAME, SYNONYMS, FORMULA,
-      MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, CCS, POLARITY, INCHI, INCHIKEY,
-      SMILES, NUM_PEAKS, FEATURE_ID};
+      MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, RETENTION_INDEX, CCS, POLARITY,
+      INCHI, INCHIKEY, SMILES, NUM_PEAKS, FEATURE_ID, FEATURE_FULL_ID};
   public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[]{INSTRUMENT_TYPE,
       INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, MERGED_SPEC_TYPE, ACQUISITION,
       SOFTWARE};
@@ -299,12 +311,14 @@ public enum DBEntryField {
       case UNSPECIFIED, ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR,
            INSTRUMENT, //
            INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM,  //
-           CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
+           CHEMSPIDER, MONA_ID, GNPS_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
            QUALITY, QUALITY_CHIMERIC, FILENAME, //
            SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N,
            OTHER_MATCHED_COMPOUNDS_NAMES, //
            MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
-           MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURELIST_NAME_FEATURE_ID -> StringType.class;
+           MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURE_FULL_ID, FEATURELIST_NAME_FEATURE_ID,
+           RETENTION_INDEX -> StringType.class;
+      case ENTRY_ID -> EntryIdType.class;
       case MERGED_N_SAMPLES -> TotalSamplesType.class;
       case CLASSYFIRE_SUPERCLASS -> ClassyFireSuperclassType.class;
       case CLASSYFIRE_CLASS -> ClassyFireClassType.class;
@@ -380,6 +394,7 @@ public enum DBEntryField {
       case PRINCIPAL_INVESTIGATOR -> "investigator";
       case PUBMED -> "pubmed";
       case RT -> "rt";
+      case RETENTION_INDEX -> "ri";
       case SMILES -> "smiles";
       case MS_LEVEL -> "ms_level";
       case PUBCHEM -> "pubchem";
@@ -409,6 +424,7 @@ public enum DBEntryField {
       case OTHER_MATCHED_COMPOUNDS_N -> "other_matched_compounds";
       case OTHER_MATCHED_COMPOUNDS_NAMES -> "other_matched_compounds_names";
       case FEATURE_ID -> "feature_id";
+      case FEATURE_FULL_ID -> "feature_full_id";
       case FEATURELIST_NAME_FEATURE_ID -> "featurelist_feature_id";
       case FILENAME -> "raw_file_name";
       case SIRIUS_MERGED_SCANS -> "merged_scans";
@@ -449,6 +465,7 @@ public enum DBEntryField {
       case NAME -> "Name";
       case SPLASH -> "Splash";
       case RT -> "RT";
+      case RETENTION_INDEX -> "Retention_index";
       case MS_LEVEL -> "Spectrum_type";
       case NUM_PEAKS -> "Num Peaks";
       case CCS -> "CCS";
@@ -470,6 +487,7 @@ public enum DBEntryField {
       case OTHER_MATCHED_COMPOUNDS_N -> "other_matched_compounds";
       case OTHER_MATCHED_COMPOUNDS_NAMES -> "other_matched_compounds_names";
       case FEATURE_ID -> "feature_id";
+      case FEATURE_FULL_ID -> "feature_full_id";
       case FEATURELIST_NAME_FEATURE_ID -> "featurelist_feature_id";
       case FILENAME -> "file_name";
       case ONLINE_REACTIVITY -> "online_reactivity";
@@ -492,6 +510,7 @@ public enum DBEntryField {
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, SOURCE_SCAN_USI ->
           name();
       case RT -> "RTINSECONDS";
+      case RETENTION_INDEX -> "";
       case SCAN_NUMBER -> "SCANS";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
       case MERGED_N_SAMPLES -> "MERGED_ACROSS_N_SAMPLES";
@@ -536,6 +555,7 @@ public enum DBEntryField {
       case OTHER_MATCHED_COMPOUNDS_N -> "OTHER_MATCHED_COMPOUNDS";
       case OTHER_MATCHED_COMPOUNDS_NAMES -> "OTHER_MATCHED_COMPOUNDS_NAMES";
       case FEATURE_ID -> "FEATURE_ID";
+      case FEATURE_FULL_ID -> "FEATURE_FULL_ID";
       case FEATURELIST_NAME_FEATURE_ID -> "FEATURELIST_FEATURE_ID";
       case FILENAME -> "FILENAME";
       case SIRIUS_MERGED_SCANS -> "MERGED_SCANS";
@@ -577,6 +597,7 @@ public enum DBEntryField {
       //not covered
       case INSTRUMENT -> "INSTRUMENT_NAME";
       case RT -> "RTINSECONDS";
+      case RETENTION_INDEX -> "";
       case ENTRY_ID -> "SPECTRUMID";
       case COMMENT -> "COMMENT";
       case DESCRIPTION -> "DESCRIPTION";
@@ -603,6 +624,7 @@ public enum DBEntryField {
       case OTHER_MATCHED_COMPOUNDS_N -> "OTHER_MATCHED_COMPOUNDS";
       case OTHER_MATCHED_COMPOUNDS_NAMES -> "OTHER_MATCHED_COMPOUNDS_NAMES";
       case FEATURE_ID -> "FEATURE_ID";
+      case FEATURE_FULL_ID -> "FEATURE_FULL_ID";
       case FEATURELIST_NAME_FEATURE_ID -> "FEATURELIST_FEATURE_ID";
       case SIRIUS_MERGED_SCANS -> "MERGED_SCANS";
       case SIRIUS_MERGED_STATS -> "MERGED_STATS";
@@ -647,6 +669,7 @@ public enum DBEntryField {
       case PRINCIPAL_INVESTIGATOR -> "";
       case PUBMED -> "";
       case RT -> "RT";
+      case RETENTION_INDEX -> "";
       case SMILES -> "";
       case MS_LEVEL -> "";
       case PUBCHEM -> "";
@@ -671,7 +694,7 @@ public enum DBEntryField {
       case QUALITY_CHIMERIC -> "";
       case QUALITY_EXPLAINED_INTENSITY -> "";
       case QUALITY_EXPLAINED_SIGNALS -> "";
-      case FEATURE_ID, FEATURELIST_NAME_FEATURE_ID -> "";
+      case FEATURE_ID, FEATURE_FULL_ID, FEATURELIST_NAME_FEATURE_ID -> "";
       case SIRIUS_MERGED_SCANS -> "";
       case UNSPECIFIED -> "";
     };
@@ -718,9 +741,13 @@ public enum DBEntryField {
       return Long.parseLong(content);
     }
     if (getObjectClass().equals(FloatArrayList.class)) {
-      final String replaced = content.replaceAll("[\\[\\]]", "");
+      final String replaced = content.replaceAll("[^0-9.,-]", "");
       final float[] floats = ParsingUtils.stringToFloatArray(replaced, ",");
       return new FloatArrayList(floats);
+    }
+
+    if (getObjectClass().equals(RIRecord.class)) {
+      return new RIRecord(content);
     }
     // TODO currently we can only parse this as list of strings - should be either json list or java object list
     // FloatArrayList IntArrayList and other specialized classes help to load numbers
@@ -734,7 +761,8 @@ public enum DBEntryField {
   public String formatForMgf(@NotNull final Object value) {
     return switch (this) {
       case UNSPECIFIED, QUALITY, QUALITY_EXPLAINED_INTENSITY, QUALITY_EXPLAINED_SIGNALS, GNPS_ID, //
-           PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, PUBMED, SYNONYMS, NAME, ENTRY_ID, NUM_PEAKS, //
+           PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, FEATURE_FULL_ID, PUBMED, SYNONYMS, NAME,
+           ENTRY_ID, NUM_PEAKS, //
            MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, //
            COMMENT, DESCRIPTION, MOLWEIGHT, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS, //
            ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
@@ -771,6 +799,9 @@ public enum DBEntryField {
         case Double d -> "%.2f".formatted(d * 60.0);
         default -> throw new IllegalArgumentException("RT has to be a number");
       };
+      case RETENTION_INDEX -> {
+        throw new IllegalArgumentException("Retention index is not supported for MGF format");
+      }
       case PRECURSOR_MZ, EXACT_MASS -> switch (value) {
         case Number d -> MZmineCore.getConfiguration().getExportFormats().mz(d);
         default -> throw new IllegalArgumentException("MZ has to be a number");

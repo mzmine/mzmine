@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,20 +44,22 @@ public enum RawDataFileType {
   MZXML(ExtensionFilters.MZXML, false), //
   MZDATA(ExtensionFilters.MZDATA, false), //
   NETCDF(ExtensionFilters.NETCDF, false), //
-  THERMO_RAW(ExtensionFilters.THERMO_RAW, false), //
-  WATERS_RAW(ExtensionFilters.WATERS_RAW, true), //
-  WATERS_RAW_IMS(ExtensionFilters.WATERS_RAW, true), //
+  THERMO_RAW(ExtensionFilters.THERMO_OR_WATERS_RAW, false), //
+  WATERS_RAW(ExtensionFilters.THERMO_OR_WATERS_RAW, true), //
+  WATERS_RAW_IMS(ExtensionFilters.THERMO_OR_WATERS_RAW, true), //
   MZML_ZIP(ExtensionFilters.MZML_ZIP_GZIP, false), //
   MZML_GZIP(ExtensionFilters.MZML_ZIP_GZIP, false), //
   ICPMSMS_CSV(ExtensionFilters.CSV, false), //
-  BRUKER_TDF(ExtensionFilters.BRUKER_D, true), //
-  BRUKER_TSF(ExtensionFilters.BRUKER_D, true), //
-  BRUKER_BAF(ExtensionFilters.BRUKER_D, true), //
+  BRUKER_TDF(ExtensionFilters.BRUKER_OR_AGILENT_D, true), //
+  BRUKER_TSF(ExtensionFilters.BRUKER_OR_AGILENT_D, true), //
+  BRUKER_BAF(ExtensionFilters.BRUKER_OR_AGILENT_D, true), //
   //  AIRD, //
   SCIEX_WIFF(ExtensionFilters.WIFF, false), //
   SCIEX_WIFF2(ExtensionFilters.WIFF2, false), //
-  AGILENT_D(ExtensionFilters.AGILENT_D, true), //
-  AGILENT_D_IMS(ExtensionFilters.AGILENT_D, true);
+  AGILENT_D(ExtensionFilters.BRUKER_OR_AGILENT_D, true), //
+  AGILENT_D_IMS(ExtensionFilters.BRUKER_OR_AGILENT_D, true), //
+  SHIMADZU_LCD(ExtensionFilters.SHIMADZU, false), //
+  MBI(ExtensionFilters.MBI, false);
 
 
   private final ExtensionFilter extensionFilter;
@@ -82,8 +84,8 @@ public enum RawDataFileType {
 
     return switch (type) {
       case MZML, MZXML, MZML_IMS, MZDATA, NETCDF, THERMO_RAW, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV,
-           BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, AGILENT_D, AGILENT_D_IMS, WATERS_RAW,
-           WATERS_RAW_IMS -> List.of();
+           BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, AGILENT_D, AGILENT_D_IMS, WATERS_RAW, WATERS_RAW_IMS,
+           SHIMADZU_LCD, MBI -> List.of();
       case IMZML -> {
         final String extension = FileAndPathUtil.getExtension(file.getName());
         yield List.of(new File(file.getParent(), file.getName().replace(extension, "ibd")));

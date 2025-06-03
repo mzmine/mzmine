@@ -34,12 +34,15 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransfo
 import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.beans.property.Property;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
@@ -53,19 +56,23 @@ import org.jfree.chart.renderer.PaintScale;
 public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotXYZDataProvider,
     PaintScaleProvider, MassSpectrumProvider<MobilityScan> {
 
-  private final IonMobilogramTimeSeries data;
+  @NotNull
+  private IonMobilogramTimeSeries data;
   private final String seriesKey;
   private final javafx.scene.paint.Color color;
   private final boolean isUseSingleColorPaintScale;
   int numValues = 0;
   private final double progress;
   private PaintScale paintScale = null;
+  private final List<IonMobilitySeries> mobilograms;
 
   public IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(final ModularFeature f) {
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries)) {
       throw new IllegalArgumentException("Cannot create IMS heatmap for non-IMS feature");
     }
     data = (IonMobilogramTimeSeries) f.getFeatureData();
+    mobilograms = new ArrayList<>();
+
     seriesKey = FeatureUtils.featureToString(f);
     color = f.getRawDataFile().getColor();
     isUseSingleColorPaintScale = false;
@@ -88,6 +95,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
     this.color = color;
     this.isUseSingleColorPaintScale = useSingleColorPaintScale;
     progress = 1d;
+    mobilograms = new ArrayList<>();
   }
 
   @Override
@@ -123,30 +131,33 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
 
   @Override
   public void computeValues(Property<TaskStatus> status) {
+
+    mobilograms.addAll(data.getMobilograms());
+
     numValues = 0;
     double max = Double.NEGATIVE_INFINITY;
-    for (int i = 0; i < data.getMobilograms().size(); i++) {
-      numValues += data.getMobilogram(i).getNumberOfValues();
-      for (int j = 0; j < data.getMobilogram(i).getNumberOfValues(); j++) {
-        max = Math.max(data.getMobilogram(i).getIntensity(j), max);
+    for (int i = 0; i < mobilograms.size(); i++) {
+      numValues += mobilograms.get(i).getNumberOfValues();
+      for (int j = 0; j < mobilograms.get(i).getNumberOfValues(); j++) {
+        max = Math.max(mobilograms.get(i).getIntensity(j), max);
       }
     }
     if (isUseSingleColorPaintScale) {
       javafx.scene.paint.Color base = javafx.scene.paint.Color.BLACK;
 //          MZmineCore.getConfiguration().isDarkMode() ? javafx.scene.paint.Color.BLACK
 //              : javafx.scene.paint.Color.WHITE;
-      paintScale = new SimpleColorPalette(new javafx.scene.paint.Color[]{base, color}).toPaintScale(
-          PaintScaleTransform.LINEAR, Range.closed(0d, max));
+      paintScale = new SimpleColorPalette(base, color).toPaintScale(PaintScaleTransform.LINEAR,
+          Range.closed(0d, max));
     }
   }
 
   @Override
   public double getDomainValue(int index) {
-    for (IonMobilitySeries mobilitySeries : data.getMobilograms()) {
+    for (IonMobilitySeries mobilitySeries : mobilograms) {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {
-        return mobilitySeries.getSpectra().get(index).getRetentionTime();
+        return mobilitySeries.getSpectrum(index).getRetentionTime();
       }
     }
     return 0;
@@ -154,7 +165,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
 
   @Override
   public double getRangeValue(int index) {
-    for (IonMobilitySeries mobilitySeries : data.getMobilograms()) {
+    for (IonMobilitySeries mobilitySeries : mobilograms) {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {
@@ -176,7 +187,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
 
   @Override
   public double getZValue(int index) {
-    for (IonMobilitySeries mobilitySeries : data.getMobilograms()) {
+    for (IonMobilitySeries mobilitySeries : mobilograms) {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {
@@ -201,7 +212,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
   @Nullable
   @Override
   public MobilityScan getSpectrum(int index) {
-    for (IonMobilitySeries mobilitySeries : data.getMobilograms()) {
+    for (IonMobilitySeries mobilitySeries : mobilograms) {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {
@@ -210,6 +221,4 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
     }
     return null;
   }
-
-
 }

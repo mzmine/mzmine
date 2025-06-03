@@ -80,10 +80,13 @@ public class MultiChoiceParameter<ValueType> implements
     this.minNumber = minNumber;
   }
 
-  public MultiChoiceParameter(final String name, final String description,
+  public MultiChoiceParameter(final String name, final String description, final int minNumber,
       final ValueType[] choices, @NotNull final Comparator<ValueType> comparator) {
-    this(name, description, choices);
+    this.name = name;
+    this.description = description;
+    this.choices = choices;
     this.comparator = comparator;
+    this.minNumber = minNumber;
   }
 
   public void setComparator(@NotNull final Comparator<ValueType> comparator) {
@@ -149,8 +152,8 @@ public class MultiChoiceParameter<ValueType> implements
 
   @Override
   public MultiChoiceParameter<ValueType> cloneParameter() {
-    MultiChoiceParameter<ValueType> copy = new MultiChoiceParameter<ValueType>(name, description,
-        choices, values);
+    MultiChoiceParameter<ValueType> copy = new MultiChoiceParameter<ValueType>(name, description, minNumber,
+        choices, comparator);
     copy.setValue(this.getValue());
     return copy;
   }
