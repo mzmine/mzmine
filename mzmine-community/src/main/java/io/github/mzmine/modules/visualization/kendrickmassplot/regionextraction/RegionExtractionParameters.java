@@ -26,11 +26,13 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction;
 
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotParameters;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class RegionExtractionParameters extends SimpleParameterSet {
 
@@ -61,5 +63,10 @@ public class RegionExtractionParameters extends SimpleParameterSet {
 
   public RegionExtractionParameters() {
     super(kendrickParam, xAxisCharge, yAxisCharge, xAxisDivisor, yAxisDivisor, regions, suffix);
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

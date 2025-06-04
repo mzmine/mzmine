@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,8 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
+import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
@@ -423,8 +425,9 @@ public class ScanUtils {
    * @return the total ion count of the scan within the mass range.
    */
   public static double calculateTIC(Scan scan, Range<Double> mzRange) {
-    final IndexRange indexRange = BinarySearch.indexRange(mzRange, scan.getNumberOfDataPoints(), scan::getMzValue);
-    if(indexRange.isEmpty()) {
+    final IndexRange indexRange = BinarySearch.indexRange(mzRange, scan.getNumberOfDataPoints(),
+        scan::getMzValue);
+    if (indexRange.isEmpty()) {
       return 0.0d;
     }
 
@@ -630,7 +633,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-                                                                       - leftNeighbourBinIndex);
+              - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -2561,6 +2564,17 @@ public class ScanUtils {
         }
       }
     });
+  }
+
+  /**
+   * @return true if scan is a pseudo scan from GC-EI
+   */
+  public static boolean isGcEiScan(@Nullable Scan scan) {
+    if (scan == null) {
+      return false;
+    }
+    return scan instanceof PseudoSpectrum pseudo
+        && pseudo.getPseudoSpectrumType() == PseudoSpectrumType.GC_EI;
   }
 
   /**

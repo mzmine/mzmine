@@ -90,6 +90,7 @@ import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sql.SQLExportModule;
 import io.github.mzmine.modules.io.export_features_venn.VennExportModule;
+import io.github.mzmine.modules.io.export_features_xml.ExportFeaturesDataModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
 import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
@@ -157,6 +158,7 @@ import javafx.scene.input.KeyCombination;
 public abstract class AbstractWorkspace implements Workspace {
 
   private final WorkspaceMenuHelper helper = new WorkspaceMenuHelperImpl();
+  protected static final String recentProjectsMenu = "Recent projects";
 
   @Override
   public WorkspaceMenuHelper getWorkspaceMenuHelper() {
@@ -202,7 +204,7 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultProjectMenu() {
     final Menu menu = new Menu("Project");
-    final Menu recentProjects = new Menu("Recent projects");
+    final Menu recentProjects = new Menu(recentProjectsMenu);
 
     menu.setOnShowing(_ -> getWorkspaceMenuHelper().fillRecentProjects(recentProjects));
 
@@ -273,7 +275,7 @@ public abstract class AbstractWorkspace implements Workspace {
         //
         ImportFeatureNetworksSimpleModule.class, ExportCorrAnnotationModule.class,
         NetworkGraphMlExportModule.class, FeatureMLExportModularModule.class,
-        CcsBaseExportModule.class);
+        CcsBaseExportModule.class, ExportFeaturesDataModule.class);
     addModuleMenuItems(menu, "Statistics", VennExportModule.class, MetaboAnalystExportModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryBatchGenerationModule.class,
         GNPSLibraryBatchExportModule.class, ExportScansFeatureModule.class);

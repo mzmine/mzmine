@@ -506,6 +506,12 @@ public class SpectraMerging {
           frame.getScanningMZRange())) {
         scanMzRange = scanMzRange.span(frame.getScanningMZRange());
       }
+//      if (scanMzRange == null) {
+//        scanMzRange = frame.getScanningMZRange();
+//      } else if (frame.getScanningMZRange() != null && !scanMzRange.equals(
+//          frame.getScanningMZRange()) && !scanMzRange.encloses(frame.getScanningMZRange())) {
+//        scanMzRange = scanMzRange.span(frame.getScanningMZRange());
+//      }
 
       if (msLevel != frame.getMSLevel()) {
         throw new AssertionError("Cannot merge frames of different MS levels");

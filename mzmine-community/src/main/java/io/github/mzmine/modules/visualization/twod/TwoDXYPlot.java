@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,27 +25,28 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Date;
-
+import java.util.logging.Logger;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
-
-import com.google.common.collect.Range;
 
 /**
  * This class is responsible for drawing the actual data points. Modified by Owen Myers 2017
  */
 class TwoDXYPlot extends BaseXYPlot {
+
+  private static final Logger logger = Logger.getLogger(TwoDXYPlot.class.getName());
   boolean datasetChanged = false;
 
-  TwoDXYPlot(TwoDDataSet dataset, Range<Float> rtRange, Range<Double> mzRange,
-      ValueAxis domainAxis, ValueAxis rangeAxis) {
+  TwoDXYPlot(TwoDDataSet dataset, Range<Float> rtRange, Range<Double> mzRange, ValueAxis domainAxis,
+      ValueAxis rangeAxis) {
 
     super(dataset, rtRange, mzRange, domainAxis, rangeAxis);
 
@@ -60,8 +61,9 @@ class TwoDXYPlot extends BaseXYPlot {
       PlotRenderingInfo info, CrosshairState crosshairState) {
 
     // if this is not TwoDDataSet
-    if (index != 0)
+    if (index != 0) {
       return super.render(g2, dataArea, index, info, crosshairState);
+    }
 
     // prepare some necessary constants
     final int x = (int) dataArea.getX();
@@ -76,12 +78,10 @@ class TwoDXYPlot extends BaseXYPlot {
     final double imageMZMax = (double) getRangeAxis().getRange().getUpperBound();
     final double imageMZStep = (imageMZMax - imageMZMin) / height;
 
-    if ((zoomOutBitmap != null) && (imageRTMin == totalRTRange.lowerEndpoint())
-        && (imageRTMax == totalRTRange.upperEndpoint())
-        && (imageMZMin == totalMZRange.lowerEndpoint())
-        && (imageMZMax == totalMZRange.upperEndpoint()) && (zoomOutBitmap.getWidth() == width)
-        && (zoomOutBitmap.getHeight() == height)
-        && (!datasetChanged)) {
+    if ((zoomOutBitmap != null) && (imageRTMin == totalRTRange.lowerEndpoint()) && (imageRTMax
+        == totalRTRange.upperEndpoint()) && (imageMZMin == totalMZRange.lowerEndpoint()) && (
+        imageMZMax == totalMZRange.upperEndpoint()) && (zoomOutBitmap.getWidth() == width) && (
+        zoomOutBitmap.getHeight() == height) && (!datasetChanged)) {
       g2.drawImage(zoomOutBitmap, x, y, null);
       return true;
     }
@@ -93,7 +93,7 @@ class TwoDXYPlot extends BaseXYPlot {
     double values[][] = new double[width][height];
     maxValue = 0; // now this is an instance variable
 
-    for (int i = 0; i < width; i++)
+    for (int i = 0; i < width; i++) {
       for (int j = 0; j < height; j++) {
 
         double pointRTMin = imageRTMin + (i * imageRTStep);
@@ -101,48 +101,55 @@ class TwoDXYPlot extends BaseXYPlot {
         double pointMZMin = imageMZMin + (j * imageMZStep);
         double pointMZMax = pointMZMin + imageMZStep;
 
-        double lv = dataset.upperEndpointIntensity(RangeUtils.toFloatRange(Range.closed(pointRTMin, pointRTMax)),
+        double lv = dataset.upperEndpointIntensity(
+            RangeUtils.toFloatRange(Range.closed(pointRTMin, pointRTMax)),
             Range.closed(pointMZMin, pointMZMax), plotMode);
 
         if (logScale) {
           lv = Math.log10(lv);
-          if (lv < 0 || Double.isInfinite(lv))
+          if (lv < 0 || Double.isInfinite(lv)) {
             lv = 0;
+          }
           values[i][j] = lv;
           // values[r.nextInt(width)][r.nextInt(height)] = lv;
         } else {
           values[i][j] = lv;
         }
 
-        if (lv > maxValue)
+        if (lv > maxValue) {
           maxValue = lv;
+        }
 
       }
+    }
 
     // This should never happen, but just for correctness
-    if (maxValue == 0)
+    if (maxValue == 0) {
       return false;
+    }
 
     // Normalize all values
-    for (int i = 0; i < width; i++)
+    for (int i = 0; i < width; i++) {
       for (int j = 0; j < height; j++) {
         values[i][j] /= maxValue;
       }
+    }
 
     // prepare a bitmap of required size
     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
     // draw image points
-    for (int i = 0; i < width; i++)
+    for (int i = 0; i < width; i++) {
       for (int j = 0; j < height; j++) {
         Color pointColor = paletteType.getColor(values[i][j]);
         image.setRGB(i, height - j - 1, pointColor.getRGB());
       }
+    }
 
     // if we are zoomed out, save the values
     if ((imageRTMin == totalRTRange.lowerEndpoint()) && (imageRTMax == totalRTRange.upperEndpoint())
-        && (imageMZMin == totalMZRange.lowerEndpoint())
-        && (imageMZMax == totalMZRange.upperEndpoint())) {
+        && (imageMZMin == totalMZRange.lowerEndpoint()) && (imageMZMax
+        == totalMZRange.upperEndpoint())) {
       zoomOutBitmap = image;
     }
 
@@ -154,8 +161,8 @@ class TwoDXYPlot extends BaseXYPlot {
 
     Date renderFinishTime = new Date();
 
-    logger.finest("Finished rendering 2D visualizer, "
-        + (renderFinishTime.getTime() - renderStartTime.getTime()) + " ms");
+    logger.finest("Finished rendering 2D visualizer, " + (renderFinishTime.getTime()
+        - renderStartTime.getTime()) + " ms");
 
     return true;
 

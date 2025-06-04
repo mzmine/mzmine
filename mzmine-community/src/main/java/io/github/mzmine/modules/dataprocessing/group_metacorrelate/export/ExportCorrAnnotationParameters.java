@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -37,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExport
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class ExportCorrAnnotationParameters extends SimpleParameterSet {
 
@@ -67,7 +69,12 @@ public class ExportCorrAnnotationParameters extends SimpleParameterSet {
 
   // Constructor
   public ExportCorrAnnotationParameters() {
-    super(new Parameter[]{featureLists, filename, exportTypes, allInOneFile, exportIIN,
-        exportIINRelationship, filter});
+    super(featureLists, filename, exportTypes, allInOneFile, exportIIN, exportIINRelationship,
+        filter);
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

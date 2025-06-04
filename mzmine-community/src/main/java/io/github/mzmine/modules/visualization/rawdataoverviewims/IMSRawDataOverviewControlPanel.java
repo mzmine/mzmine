@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -57,6 +58,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IMSRawDataOverviewControlPanel extends GridPane {
+
+  private static final Logger logger = Logger.getLogger(
+      IMSRawDataOverviewControlPanel.class.getName());
 
   public static final String TOOLTIP_MOBILITYSCAN_NL = "Noise level for mobility scan processing.\n"
       + "Greatly impacts performance of this overview.\n Influences mobilogram, ion trace building "

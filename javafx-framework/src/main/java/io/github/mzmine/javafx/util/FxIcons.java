@@ -43,7 +43,7 @@ public enum FxIcons implements IconCodeSupplier {
   ROCKET, LIGHTBULB, METADATA_TABLE, TABLE, SPREADSHEET,
 
   // ACTIONS
-  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD;
+  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD, SEARCH;
 
 
   @Override
@@ -92,6 +92,7 @@ public enum FxIcons implements IconCodeSupplier {
       case QUESTIONMARK -> "bi-question-circle";
       case ARROW_IN_RIGHT -> "bi-box-arrow-in-right";
       case FILE -> "bi-file-earmark-text";
+      case SEARCH -> "bi-search";
     };
   }
 }

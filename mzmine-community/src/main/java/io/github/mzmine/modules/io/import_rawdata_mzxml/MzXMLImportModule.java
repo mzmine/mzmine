@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,7 +49,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MzXMLImportModule implements MZmineProcessingModule {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MzXMLImportModule.class.getName());
 
   private static final String MODULE_NAME = "mzXML file import";
   private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";

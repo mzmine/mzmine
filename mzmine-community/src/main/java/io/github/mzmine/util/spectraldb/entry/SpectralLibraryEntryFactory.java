@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -170,6 +170,9 @@ public class SpectralLibraryEntryFactory {
     if (row != null) {
       // FEATURE_ID is used by GNPS and SIRIUS as simple number
       entry.putIfNotNull(DBEntryField.FEATURE_ID, row.getID());
+      // more complex feature ID is used by some tools to make the id more meaningful
+      // contains id, mz, rt, mobility
+      entry.putIfNotNull(DBEntryField.FEATURE_FULL_ID, FeatureUtils.rowToFullId(row));
 
       // write feature ID as feature list and row ID to identify MSn trees or MS2 spectra of the same row
       var flist = row.getFeatureList();

@@ -763,7 +763,7 @@ TextFlow > .tooltip-text-monospaced {
     -fx-fill: derive(-jr-search-text, 70%);
 }
 
-.combo-box-base {
+.combo-box-base, .choice-box {
     -fx-background-color: -fx-outer-border, -fx-control-inner-background;
     -fx-background-insets: 0, 1;
     -fx-background-radius: 0, 0;
@@ -872,7 +872,7 @@ TextFlow > .tooltip-text-monospaced {
     -fx-background-color: -fx-background;
 }
 
-.combo-box-base:editable > .text-field,
+.combo-box-base:editable > .text-field, .choice-box,
 .date-picker > .text-field {
     -fx-background-color: -fx-outer-border, -fx-control-inner-background;
     -fx-background-insets: 0, 1;

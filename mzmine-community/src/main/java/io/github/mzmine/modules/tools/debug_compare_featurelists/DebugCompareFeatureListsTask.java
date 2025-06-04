@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
@@ -81,8 +80,8 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
 
   private void compareRowFeatures(final FeatureList list1, final FeatureList list2) {
     Set<DataType> ignoredTypes = Set.copyOf(
-        DataTypes.getAll(FeaturesType.class, ManualAnnotationType.class,
-            SpectralLibraryMatchesType.class, CompoundDatabaseMatchesType.class,
+        DataTypes.getAll(ManualAnnotationType.class, SpectralLibraryMatchesType.class,
+            CompoundDatabaseMatchesType.class,
             // different community ID is not stable
             NetworkStatsType.class,
             // check separately

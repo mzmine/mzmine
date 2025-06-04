@@ -28,6 +28,8 @@ package io.github.mzmine.datamodel.msms;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
@@ -47,7 +49,7 @@ public class DIAMsMsInfoImpl implements MsMsInfo {
   @NotNull
   private final ActivationMethod method;
   @Nullable
-  private final Range<Double> isolationWindow;
+  private final SimpleDoubleRange isolationWindow;
   @Nullable
   private Scan msMsScan;
 
@@ -57,14 +59,14 @@ public class DIAMsMsInfoImpl implements MsMsInfo {
     this.msMsScan = msMsScan;
     this.msLevel = msLevel;
     this.method = method;
-    this.isolationWindow = isolationWindow;
+    this.isolationWindow = SimpleRange.ofDouble(isolationWindow);
   }
 
   public DIAMsMsInfoImpl(DDAMsMsInfo msMsInfo) {
     this.activationEnergy = msMsInfo.getActivationEnergy();
     this.msLevel = msMsInfo.getMsLevel();
     this.method = msMsInfo.getActivationMethod();
-    this.isolationWindow = msMsInfo.getIsolationWindow();
+    this.isolationWindow = SimpleRange.ofDouble(msMsInfo.getIsolationWindow());
     this.msMsScan = msMsInfo.getMsMsScan();
   }
 
@@ -116,7 +118,7 @@ public class DIAMsMsInfoImpl implements MsMsInfo {
 
   @Override
   public @Nullable Range<Double> getIsolationWindow() {
-    return isolationWindow;
+    return isolationWindow != null ? isolationWindow.guava() : null;
   }
 
   public boolean setMsMsScan(Scan scan) {

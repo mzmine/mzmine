@@ -517,9 +517,17 @@ public class ConversionUtils {
     return c.getCVParams().getCVParamsList().stream()
         .filter(cv -> ChromatogramType.ofAccession(cv.getAccession()) != ChromatogramType.UNKNOWN)
         .map(cv -> ChromatogramType.ofAccession(cv.getAccession())).findFirst()
-        .orElse(ChromatogramType.UNKNOWN);
+        .map(chromatogramType -> switch (chromatogramType) {
+          case TIC, ABSORPTION -> {
+            if(c.getId().contains("CAD")) {
+              yield ChromatogramType.ION_CURRENT;
+            }
+            yield chromatogramType;
+          }
+          case MRM_SRM, SIM, SIC, BPC, EMISSION, ION_CURRENT, PRESSURE, FLOW_RATE, UNKNOWN -> chromatogramType;
+          case ELECTROMAGNETIC_RADIATION -> ChromatogramType.ELECTROMAGNETIC_RADIATION;
+        }).orElse(ChromatogramType.UNKNOWN);
   }
-
 
   /*
    * @Nullable public MzMLMobility getMobility(MsScan scan) { if

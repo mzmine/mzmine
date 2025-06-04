@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -42,6 +43,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.RangeUtils;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -129,12 +131,14 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
     typeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> filterRows());
     featureTable.featureListProperty().addListener(((observable, oldValue, newValue) -> {
-      if(newValue == null) {
+      if (newValue == null) {
         return;
       }
-      typeComboBox.setItems(FXCollections.observableArrayList(newValue.getRowTypes()));
+      typeComboBox.setItems(FXCollections.observableArrayList(
+          newValue.getRowTypes().stream().filter(type -> !(type instanceof NoTextColumn))
+              .sorted(Comparator.comparing(DataType::getHeaderString)).toList()));
       if (!typeComboBox.getItems().isEmpty()) {
-        typeComboBox.setValue(typeComboBox.getItems().get(0));
+        typeComboBox.setValue(typeComboBox.getItems().getFirst());
       }
     }));
     anySearchField = new TextField();

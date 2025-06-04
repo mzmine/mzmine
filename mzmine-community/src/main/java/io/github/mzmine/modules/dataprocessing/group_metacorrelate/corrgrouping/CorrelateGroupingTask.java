@@ -130,7 +130,7 @@ public class CorrelateGroupingTask extends AbstractTask {
     // by min percentage of samples in a sample set that contain this feature MIN_SAMPLES
     MinimumFeaturesFilterParameters minS = parameterSet.getParameter(
         CorrelateGroupingParameters.MIN_SAMPLES_FILTER).getEmbeddedParameters();
-    minFFilter = minS.createFilterWithGroups(project, featureList.getRawDataFiles(), "", minHeight);
+    minFFilter = minS.createFilterWithGroups(project, featureList.getRawDataFiles(), null, minHeight);
 
     // tolerances
     rtTolerance = parameterSet.getParameter(CorrelateGroupingParameters.RT_TOLERANCE).getValue();
