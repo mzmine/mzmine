@@ -740,7 +740,8 @@ public class DiaMs2CorrTask extends AbstractTask {
     final long numberOfCEs = ScanUtils.streamMsMsInfos(file.getScans(), null)
         .filter(Objects::nonNull).map(MsMsInfo::getActivationEnergy).filter(Objects::nonNull)
         .distinct().count();
-    if (numberOfCEs < 5 && !(file instanceof IMSRawDataFile)) {
+    if (numberOfCEs < 5 && !(file instanceof IMSRawDataFile) && !ms2ScanSelection.getMsLevelFilter()
+        .isMs1Only()) {
       // if we can find multiple collision energies in a non ims file, the likelyhood is that there
       // were multiple CEs acquired and we must discriminate by CEs.
       discriminateByCE = true;
