@@ -441,6 +441,9 @@
       <MenuItem text="Standard compound normalizer"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule"/>
+      <MenuItem text="Retention index calculation"
+                onAction="#runModule"
+                userData="io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule"/>
     </Menu>
 
     <Menu text="Annotation">

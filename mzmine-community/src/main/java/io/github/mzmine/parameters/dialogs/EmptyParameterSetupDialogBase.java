@@ -57,6 +57,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represents an empty base parameter setup dialog. Implementations of this dialog should
@@ -91,12 +92,12 @@ public class EmptyParameterSetupDialogBase extends Stage {
    * @param message: html-formatted text
    */
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters,
-      Region message) {
+      @Nullable Region message) {
     this(valueCheckRequired, parameters, true, true, message);
   }
 
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, Region message) {
+      boolean addOkButton, boolean addCancelButton, @Nullable Region message) {
     super();
     Image mzmineIcon = FxIconUtil.loadImageFromResources("mzmineIcon.png");
     this.getIcons().add(mzmineIcon);

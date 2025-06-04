@@ -129,67 +129,6 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public void addParameter(UserParameter<?, ?> parameter) {
-    if (projectParametersAndValues.containsKey(parameter)) {
-      return;
-    }
-
-    Hashtable<RawDataFile, Object> parameterValues = new Hashtable<>();
-    projectParametersAndValues.put(parameter, parameterValues);
-
-  }
-
-  @Override
-  public void removeParameter(UserParameter<?, ?> parameter) {
-    projectParametersAndValues.remove(parameter);
-  }
-
-  @Override
-  public UserParameter<?, ?> getParameterByName(String name) {
-    for (UserParameter<?, ?> parameter : getParameters()) {
-      if (parameter.getName().equals(name)) {
-        return parameter;
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public boolean hasParameter(UserParameter<?, ?> parameter) {
-    // matching by name
-    UserParameter<?, ?> param = getParameterByName(parameter.getName());
-    return param != null;
-  }
-
-  @Override
-  public UserParameter<?, ?>[] getParameters() {
-    return projectParametersAndValues.keySet().toArray(new UserParameter[0]);
-  }
-
-  @Override
-  public void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile,
-      Object value) {
-    if (!(hasParameter(parameter))) {
-      addParameter(parameter);
-    }
-    Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues.get(parameter);
-    if (value == null) {
-      parameterValues.remove(rawDataFile);
-    } else {
-      parameterValues.put(rawDataFile, value);
-    }
-  }
-
-  @Override
-  public Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile) {
-    if (!(hasParameter(parameter))) {
-      return null;
-    }
-
-    return projectParametersAndValues.get(parameter).get(rawDataFile);
-  }
-
-  @Override
   public void addFile(@NotNull final RawDataFile newFile) {
     try {
       rawLock.writeLock().lock();
@@ -203,12 +142,12 @@ public class MZmineProjectImpl implements MZmineProject {
       if (names.contains(name)) {
         if (!MZmineCore.isHeadLessMode()) {
           MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
-                                                      + " because a file with the same name already exists in the project. Please copy "
-                                                      + "the file and rename it, if you want to import it twice.");
+              + " because a file with the same name already exists in the project. Please copy "
+              + "the file and rename it, if you want to import it twice.");
         }
         logger.warning(
             "Cannot add file with an original name that already exists in project. (filename="
-            + newFile.getName() + ")");
+                + newFile.getName() + ")");
         return;
       }
 
@@ -319,7 +258,7 @@ public class MZmineProjectImpl implements MZmineProject {
     }
     try {
       rawLock.readLock().lock();
-      name = name.trim();
+      name = FileAndPathUtil.eraseFormat(name).trim();
       for (final RawDataFile raw : rawDataFiles) {
         if (name.equalsIgnoreCase(raw.getName()) || name.equalsIgnoreCase(
             FileAndPathUtil.eraseFormat(raw.getName()))) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,17 +56,17 @@ public class ImsExpanderParameters extends SimpleParameterSet {
   public static final OptionalParameter<DoubleParameter> useRawData = new OptionalParameter<>(
       new DoubleParameter("Raw data instead of thresholded",
           "If checked, the raw data can be used to expand the chromatograms into mobility dimension.\n"
-              + "This can increase sensitivity but will also increase RAM demands and computation time.\n"
-              + "A new noise level can be given or every data point can be used (0E0)",
+          + "This can increase sensitivity but will also increase RAM demands and computation time.\n"
+          + "A new noise level can be given or every data point can be used (0E0)",
           MZmineCore.getConfiguration().getIntensityFormat(), 1E1, 0d, Double.POSITIVE_INFINITY),
       true);
 
   public static final OptionalParameter<IntegerParameter> mobilogramBinWidth = new OptionalParameter<>(
       new IntegerParameter("Override default mobility bin width (scans)",
           "If checked, the default recommended bin width for the raw data file will be overridden with the given value.\n"
-              + "The mobility binning width in scans. (high mobility resolutions "
-              + "in TIMS might require a higher bin width to achieve a constant ion current for a "
-              + "mobilogram.", 1, true), false);
+          + "The mobility binning width in scans. (high mobility resolutions "
+          + "in TIMS might require a higher bin width to achieve a constant ion current for a "
+          + "mobilogram.", 1, true), false);
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = //
       new OriginalFeatureListHandlingParameter(false);
@@ -97,16 +97,16 @@ public class ImsExpanderParameters extends SimpleParameterSet {
     for (ModularFeatureList flist : matchingFeatureLists) {
       if (flist.getNumberOfRawDataFiles() > 1) {
         errorMessages.add("Feature list " + flist.getName()
-            + " is an aligned feature list. Please expand before alignment.");
+                          + " is an aligned feature list. Please expand before alignment.");
       }
 
       if (((IMSRawDataFile) flist.getRawDataFile(0)).getFrame(0).getMobilityScan(0)
-          .getSpectrumType() != MassSpectrumType.CENTROIDED
+              .getSpectrumType() != MassSpectrumType.CENTROIDED
           && getParameter(useRawData).getValue() == true) {
         errorMessages.add(
             "Feature list " + flist.getName() + " contains raw data file " + flist.getRawDataFile(0)
-                + " which has profile raw data.\nCannot use profile raw data to expand in mobility dimension. Please disable the \""
-                + useRawData.getName() + "\" parameter.");
+            + " which has profile raw data.\nCannot use profile raw data to expand in mobility dimension. Please disable the \""
+            + useRawData.getName() + "\" parameter.");
       }
     }
 
@@ -135,7 +135,8 @@ public class ImsExpanderParameters extends SimpleParameterSet {
   @Override
   public @Nullable String getVersionMessage(int version) {
     return switch (version) {
-      case 2 -> "The previously optional m/z range parameter in the IMS expander is not optional anymore and must be specified now.";
+      case 2 ->
+          "The previously optional m/z tolerance parameter in the IMS expander is not optional anymore and must be specified now.";
       default -> null;
     };
   }

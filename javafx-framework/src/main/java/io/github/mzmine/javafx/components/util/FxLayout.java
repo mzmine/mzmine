@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -138,7 +138,11 @@ public class FxLayout {
   }
 
   public static HBox newHBox(Pos alignment, Insets padding, Node... children) {
-    var pane = new HBox(DEFAULT_SPACE, children);
+    return newHBox(alignment, padding, DEFAULT_SPACE, children);
+  }
+
+  public static HBox newHBox(Pos alignment, Insets padding, int spacing, Node... children) {
+    var pane = new HBox(spacing, children);
     pane.setAlignment(alignment);
     pane.setPadding(padding);
     return pane;
@@ -196,8 +200,18 @@ public class FxLayout {
     return scroll;
   }
 
+  /**
+   * A non animated pane
+   */
   public static TitledPane newTitledPane(String title, Node node) {
-    return new TitledPane(title, node);
+    return newTitledPane(title, node, false);
+  }
+
+  public static TitledPane newTitledPane(String title, Node node, boolean animated) {
+    final TitledPane pane = new TitledPane(title, node);
+    // default disable animation - slows down when plots are shown with many data points
+    pane.setAnimated(animated);
+    return pane;
   }
 
   public static Accordion newAccordion(TitledPane... panes) {

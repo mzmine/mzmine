@@ -39,6 +39,6 @@ public class AutoScalingFunction implements ScalingFunction {
   @Override
   public RealVector apply(RealVector input) {
     final double sd = dev.evaluate(input.toArray());
-    return input.mapDivide(sd);
+    return input.mapDivide(sd).mapToSelf(scalingResultChecker);
   }
 }

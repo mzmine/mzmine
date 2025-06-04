@@ -82,10 +82,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class BatchTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(BatchTask.class.getName());
   private final BatchQueue queue;
   // advanced parameters
   private final int stepsPerDataset;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final int totalSteps;
   private final MZmineProject project;
   private final boolean useAdvanced;
@@ -245,7 +245,7 @@ public class BatchTask extends AbstractTask {
         File datasetDir = subDirectories.get(currentDataset);
         datasetName = datasetDir.getName();
         File[] allFiles = FileAndPathUtil.findFilesInDirFlat(datasetDir,
-            ExtensionFilters.ALL_MS_DATA_FILTER, searchSubdirs);
+            ExtensionFilters.ALL_MS_DATA_FILTER, true, searchSubdirs);
 
         logger.info(
             String.format("Processing batch dataset %s (%d/%d)", datasetName, currentDataset + 1,
@@ -418,7 +418,7 @@ public class BatchTask extends AbstractTask {
     List<Task> currentStepTasks = new ArrayList<>();
     Instant moduleCallDate = Instant.now();
     logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString()
-        + " with parameters " + batchStepParameters.cloneParameterSet().toString());
+        + " with parameters " + batchStepParameters.cloneParameterSet(true).toString());
     ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks,
         moduleCallDate);
     logger.finest(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,7 +47,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class CreateAvgNetworkFormulasTask extends AbstractTask {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(
+      CreateAvgNetworkFormulasTask.class.getName());
+
   private ModularFeatureList featureList;
   private String message;
   private int totalRows;
@@ -64,7 +66,6 @@ public class CreateAvgNetworkFormulasTask extends AbstractTask {
     this.sorter = null;
     message = "Creation of average molecular formulas for MS annotation networks";
   }*/
-
   public CreateAvgNetworkFormulasTask(FormulaSortTask sorter, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     sortResults = sorter != null;
@@ -81,14 +82,15 @@ public class CreateAvgNetworkFormulasTask extends AbstractTask {
     message = "Creation of average molecular formulas for MS annotation networks";
   }*/
 
-  public CreateAvgNetworkFormulasTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public CreateAvgNetworkFormulasTask(ModularFeatureList featureList, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.featureList = featureList;
 
     sortResults = parameters.getParameter(CreateAvgNetworkFormulasParameters.sorting).getValue();
     if (sortResults) {
-      FormulaSortParameters sortingParam = parameters
-          .getParameter(CreateAvgNetworkFormulasParameters.sorting).getEmbeddedParameters();
+      FormulaSortParameters sortingParam = parameters.getParameter(
+          CreateAvgNetworkFormulasParameters.sorting).getEmbeddedParameters();
       sorter = new FormulaSortTask(sortingParam, getModuleCallDate());
     }
     message = "Creation of average molecular formulas for MS annotation networks";
@@ -218,8 +220,7 @@ public class CreateAvgNetworkFormulasTask extends AbstractTask {
    * Searches all matching molecular formulas, adds them to the avgFormula and removes from the
    * lists
    */
-  private void addAllMatchingFormula(List<List<ResultFormula>> allLists,
-      AverageResultFormula avg) {
+  private void addAllMatchingFormula(List<List<ResultFormula>> allLists, AverageResultFormula avg) {
     for (List<ResultFormula> list : allLists) {
       for (int i = 0; i < list.size(); ) {
         ResultFormula f = list.get(i);

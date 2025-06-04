@@ -170,16 +170,14 @@ public class ConversionUtils {
     final Map<String, DetectorCVs> accessions = Arrays.stream(DetectorCVs.values())
         .collect(Collectors.toMap(DetectorCVs::getAccession, v -> v));
 
-    scans.stream().filter(Objects::nonNull);
     final Map<DetectorCVs, List<BuildingMzMLMsScan>> accessionToScansMap = accessions.keySet()
-        .stream().collect(Collectors.toMap(accession -> accessions.get(accession), accession -> {
-          return scans.stream().<BuildingMzMLMsScan>mapMulti((scan, c) -> {
-            if (scan.getCVParams().getCVParamsList().stream()
-                .anyMatch(cvParam -> cvParam.getAccession().equals(accession))) {
-              c.accept(scan);
-            }
-          }).toList();
-        }));
+        .stream().collect(Collectors.toMap(accession -> accessions.get(accession),
+            accession -> scans.stream().<BuildingMzMLMsScan>mapMulti((scan, c) -> {
+              if (scan.getCVParams().getCVParamsList().stream()
+                  .anyMatch(cvParam -> cvParam.getAccession().equals(accession))) {
+                c.accept(scan);
+              }
+            }).toList()));
 
     if (accessionToScansMap.isEmpty()) {
       logger.finest(() -> "No other detectors found in file %s".formatted(file.getName()));
@@ -188,6 +186,9 @@ public class ConversionUtils {
 
     List<OtherDataFile> otherDataFiles = new ArrayList<>();
     for (Entry<DetectorCVs, List<BuildingMzMLMsScan>> accessionScansEntry : accessionToScansMap.entrySet()) {
+      if (accessionScansEntry.getValue() == null || accessionScansEntry.getValue().isEmpty()) {
+        continue;
+      }
       switch (accessionScansEntry.getKey()) { // add more detectors here
         case UV_SPECTRUM -> {
           final OtherDataFile uvFile = createUvFile(file, accessionScansEntry.getValue());
@@ -516,9 +517,17 @@ public class ConversionUtils {
     return c.getCVParams().getCVParamsList().stream()
         .filter(cv -> ChromatogramType.ofAccession(cv.getAccession()) != ChromatogramType.UNKNOWN)
         .map(cv -> ChromatogramType.ofAccession(cv.getAccession())).findFirst()
-        .orElse(ChromatogramType.UNKNOWN);
+        .map(chromatogramType -> switch (chromatogramType) {
+          case TIC, ABSORPTION -> {
+            if(c.getId().contains("CAD")) {
+              yield ChromatogramType.ION_CURRENT;
+            }
+            yield chromatogramType;
+          }
+          case MRM_SRM, SIM, SIC, BPC, EMISSION, ION_CURRENT, PRESSURE, FLOW_RATE, UNKNOWN -> chromatogramType;
+          case ELECTROMAGNETIC_RADIATION -> ChromatogramType.ELECTROMAGNETIC_RADIATION;
+        }).orElse(ChromatogramType.UNKNOWN);
   }
-
 
   /*
    * @Nullable public MzMLMobility getMobility(MsScan scan) { if

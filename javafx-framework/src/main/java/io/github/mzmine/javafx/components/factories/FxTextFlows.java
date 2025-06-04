@@ -26,9 +26,14 @@
 package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.javafx.components.util.FxLayout;
+import java.util.stream.Collectors;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
@@ -79,5 +84,19 @@ public class FxTextFlows {
       accordion.setExpandedPane(accordion.getPanes().getFirst());
     }
     return accordion;
+  }
+
+  public static String getText(Parent text) {
+    return text.getChildrenUnmodifiable().stream().<String>mapMulti((child, c) -> {
+      switch (child) {
+        case Text t -> c.accept(t.getText());
+        case Label t -> c.accept(t.getText());
+        case TextField tf -> c.accept(tf.getText());
+        case TextArea ta -> c.accept(ta.getText());
+        case Parent p -> c.accept(getText(p));
+        default -> {
+        }
+      }
+    }).collect(Collectors.joining());
   }
 }

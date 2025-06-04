@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,8 +52,9 @@ import org.jetbrains.annotations.NotNull;
 
 class PeakFinderTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(PeakFinderTask.class.getName());
+
   private final OriginalFeatureListOption handleOriginal;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
   private ModularFeatureList peakList, processedPeakList;
@@ -69,7 +70,8 @@ class PeakFinderTask extends AbstractTask {
   private int masterSample = 0;
   private boolean useParallelStream = false;
 
-  PeakFinderTask(MZmineProject project, FeatureList peakList, ParameterSet parameters, MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+  PeakFinderTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
+      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;
@@ -114,8 +116,9 @@ class PeakFinderTask extends AbstractTask {
 
       // Process all raw data files
       IntStream rawStream = IntStream.range(0, processedPeakList.getNumberOfRawDataFiles());
-      if (useParallelStream)
+      if (useParallelStream) {
         rawStream = rawStream.parallel();
+      }
 
       rawStream.forEach(i -> {
         // Canceled?
@@ -159,7 +162,7 @@ class PeakFinderTask extends AbstractTask {
 
         // Get all scans of this data file
         dataFile.getScanNumbers(1).forEach(scan -> {
-          if(!isCanceled()) {
+          if (!isCanceled()) {
             // Feed this scan to all gaps
             for (Gap gap : gaps) {
               gap.offerNextScan(scan);
@@ -176,16 +179,17 @@ class PeakFinderTask extends AbstractTask {
       });
     }
     // terminate - stream only skips all elements
-    if (isCanceled())
+    if (isCanceled()) {
       return;
+    }
 
     // Append processed feature list to the project
     handleOriginal.reflectNewFeatureListToProject(suffix, project, processedPeakList, peakList);
 
     // Add task description to peakList
-    processedPeakList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ",
-            PeakFinderModule.class, parameters, getModuleCallDate()));
+    processedPeakList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Gap filling ", PeakFinderModule.class, parameters,
+            getModuleCallDate()));
 
     logger.info("Finished gap-filling on " + peakList);
     setStatus(TaskStatus.FINISHED);
@@ -271,7 +275,7 @@ class PeakFinderTask extends AbstractTask {
 
         // Get all scans of this data file
         datafile1.getScanNumbers(1).forEach(scan -> {
-          if(!isCanceled()) {
+          if (!isCanceled()) {
             // Feed this scan to all gaps
             for (Gap gap : gaps) {
               gap.offerNextScan(scan);

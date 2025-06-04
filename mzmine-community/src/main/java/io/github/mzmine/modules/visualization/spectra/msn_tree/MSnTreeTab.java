@@ -140,7 +140,7 @@ public class MSnTreeTab extends SimpleTab {
   private int lastSelectedItem = -1;
   private PrecursorIonTreeNode currentRoot = null;
 
-  // only one might be selected
+  // only one may be selected
   private RawDataFile raw;
   private FeatureList featureList;
   private final Map<PrecursorIonTreeNode, javafx.scene.paint.Color> colorMap = new HashMap<>();
@@ -780,6 +780,7 @@ public class MSnTreeTab extends SimpleTab {
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
     if (rawDataFiles != null && rawDataFiles.size() > 0) {
       setRawDataFile(rawDataFiles.stream().findFirst().get());
+      setSubTitle(raw.getName());
     }
   }
 

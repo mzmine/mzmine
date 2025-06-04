@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
-import static io.github.mzmine.javafx.components.factories.FxTexts.*;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -33,7 +33,6 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -94,6 +93,8 @@ import org.jfree.data.Range;
 
 public class SpectralMatchPanelFX extends GridPane {
 
+  private static final Logger logger = Logger.getLogger(SpectralMatchPanelFX.class.getName());
+
   public static final int META_WIDTH = 500;
   public static final int ENTRY_HEIGHT = 400;
   public static final int STRUCTURE_HEIGHT = 150;
@@ -114,7 +115,6 @@ public class SpectralMatchPanelFX extends GridPane {
   public static Color MAX_COS_COLOR = Color.web("0x388E3C");
   public static Color MIN_COS_COLOR = Color.web("0xE30B0B");
   private static Font font;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final EChartViewer mirrorChart;
   private final SpectralDBAnnotation hit;
   private final BorderPane mirrorChartWrapper;

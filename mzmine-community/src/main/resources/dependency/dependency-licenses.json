@@ -131,6 +131,19 @@
             ]
         },
         {
+            "moduleName": "com.fasterxml.jackson.datatype:jackson-datatype-jdk8",
+            "moduleVersion": "2.18.0",
+            "moduleUrls": [
+                "https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jdk8"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "com.fasterxml.jackson.datatype:jackson-datatype-joda",
             "moduleVersion": "2.18.0",
             "moduleUrls": [
