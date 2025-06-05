@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -209,7 +209,8 @@ public class Massvoltammogram {
     while (Math.abs(potential) <= Math.abs(endPotential)) {
 
       //Getting the scan for the given potential
-      final float rt = EcmsUtils.getRtAtPotential(delayTime, potentialRampSpeed, potential);
+      final float rt = EcmsUtils.getRtAtPotential(delayTime, potentialRampSpeed, potential,
+          startPotential);
       final Scan scan = scanSelection.getScanAtRt(file, rt);
 
       //Breaking the loop if the calculated rt exceeds the max rt of the data file.
@@ -265,7 +266,8 @@ public class Massvoltammogram {
     while (Math.abs(potential) <= Math.abs(endPotential)) {
 
       //Calculating the rt fot the given applied potential.
-      final float rt = (EcmsUtils.getRtAtPotential(delayTime, potentialRampSpeed, potential));
+      final float rt = (EcmsUtils.getRtAtPotential(delayTime, potentialRampSpeed, potential,
+          startPotential));
 
       //Initializing lists to add the mz-values and the intensity-values to.
       final List<Double> mzs = new ArrayList<>();
