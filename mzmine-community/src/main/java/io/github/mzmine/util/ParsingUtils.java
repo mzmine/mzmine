@@ -41,6 +41,7 @@ import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -55,8 +56,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Utility functions used during project load/save.
@@ -526,5 +531,41 @@ public class ParsingUtils {
     } catch (NumberFormatException e) {
       return null;
     }
+  }
+
+  public static PolynomialSplineFunction loadSplineFunctionFromParentXmlElement(Element parent) {
+    final Element element = (Element) parent.getElementsByTagName("polynomialsplinefunction")
+        .item(0);
+
+    final Element polynomialsElement = (Element) element.getElementsByTagName("polynomials").item(0);
+    final String polynomialsText = polynomialsElement.getTextContent();
+    final PolynomialFunction[] parsedPolynomials = Arrays.stream(
+            polynomialsText.split(SEPARATOR + SEPARATOR)).map(ParsingUtils::stringToDoubleArray)
+        .map(PolynomialFunction::new).toArray(PolynomialFunction[]::new);
+
+    final Element knotsElement = (Element) element.getElementsByTagName("knots").item(0);
+    final double[] knots = stringToDoubleArray(knotsElement.getTextContent());
+
+    return new PolynomialSplineFunction(knots, parsedPolynomials);
+  }
+
+  public static Element createSplineFunctionXmlElement(Document doc,
+      PolynomialSplineFunction function) {
+
+    final Element spline = doc.createElement("polynomialsplinefunction");
+
+    final PolynomialFunction[] polynomials = function.getPolynomials();
+    final String joinedCoefficients = Arrays.stream(polynomials)
+        .map(PolynomialFunction::getCoefficients).map(ParsingUtils::doubleArrayToString)
+        .collect(Collectors.joining(SEPARATOR + SEPARATOR));
+
+    final Element knots = doc.createElement("knots");
+    knots.setTextContent(doubleArrayToString(function.getKnots()));
+    final Element polynomialsElement = doc.createElement("polynomials");
+    polynomialsElement.setTextContent(joinedCoefficients);
+
+    spline.appendChild(polynomialsElement);
+    spline.appendChild(knots);
+    return spline;
   }
 }
