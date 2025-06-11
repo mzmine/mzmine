@@ -38,8 +38,8 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.PresetSi
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
+import io.github.mzmine.util.scans.merging.FragmentScanSelection;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 import java.util.ArrayList;
 import java.util.List;

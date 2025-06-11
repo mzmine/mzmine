@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.merging.FragmentScanSelection;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

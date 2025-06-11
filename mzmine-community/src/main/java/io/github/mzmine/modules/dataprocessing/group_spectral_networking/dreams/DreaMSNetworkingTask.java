@@ -49,7 +49,7 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpe
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.merging.FragmentScanSelection;
 import io.github.mzmine.util.scans.similarity.impl.DreaMS.DreaMSModel;
 import java.io.File;
 import java.io.IOException;

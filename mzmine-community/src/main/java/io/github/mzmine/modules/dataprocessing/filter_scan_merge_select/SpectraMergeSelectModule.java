@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_scan_merge_select;
 
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.util.scans.FragmentScanSelection;
+import io.github.mzmine.util.scans.merging.FragmentScanSelection;
 import io.github.mzmine.util.scans.merging.SpectraMerger;
 
 /**

@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.scans;
+package io.github.mzmine.util.scans.merging;
 
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
@@ -34,10 +34,9 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraM
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.MergedSpectraFinalSelectionTypes;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.CollectionUtils;
-import io.github.mzmine.util.scans.merging.ScanSelectionFilter;
-import io.github.mzmine.util.scans.merging.SpectraMerger;
-import io.github.mzmine.util.scans.merging.SpectraMergingResults;
-import io.github.mzmine.util.scans.merging.SpectraMergingResultsNode;
+import io.github.mzmine.util.scans.FragmentScanSorter;
+import io.github.mzmine.util.scans.ScanPrecursorEnergyGroupId;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;

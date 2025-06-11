@@ -40,9 +40,9 @@ import org.jetbrains.annotations.Nullable;
  * @param msnPseudoMs2  a spectrum merged all MSn to a pseudo MS2 - only for MSn data
  * @param acrossMethods a spectrum merged across all methods and energies
  */
-public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> bySample,
-                                    @NotNull List<SpectraMergingResultsNode> acrossSamples,
-                                    @Nullable Scan msnPseudoMs2, @Nullable Scan acrossMethods) {
+record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> bySample,
+                             @NotNull List<SpectraMergingResultsNode> acrossSamples,
+                             @Nullable Scan msnPseudoMs2, @Nullable Scan acrossMethods) {
 
   /**
    * Merging results for one MS2 precursor or one MSn tree
