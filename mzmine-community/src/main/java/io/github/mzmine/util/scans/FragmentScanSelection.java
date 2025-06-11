@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -158,6 +158,10 @@ public final class FragmentScanSelection {
       // need to combine the various selection types like SAMPLES / ENERGIES
       if (finalScanSelection.contains(MergedSpectraFinalSelectionTypes.MSN_PSEUDO_MS2)) {
         addIfNotNull(result, merged.msnPseudoMs2());
+      }
+
+      if (finalScanSelection.contains(MergedSpectraFinalSelectionTypes.ACROSS_FRAGMENT_METHODS)) {
+        addIfNotNull(result, merged.acrossMethods());
       }
 
       if (finalScanSelection.contains(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES)) {

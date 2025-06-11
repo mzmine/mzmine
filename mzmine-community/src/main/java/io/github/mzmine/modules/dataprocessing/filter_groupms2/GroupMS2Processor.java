@@ -341,7 +341,7 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
       precursorMZ = Objects.requireNonNullElse(scan.getPrecursorMz(), 0d);
     }
     return rtFilter.accept(feature, scan.getRetentionTime()) && precursorMZ != 0
-           && mzTol.checkWithinTolerance(feature.getMZ(), precursorMZ);
+        && mzTol.checkWithinTolerance(feature.getMZ(), precursorMZ);
   }
 
 

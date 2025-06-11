@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -110,6 +110,10 @@ public interface MergedMassSpectrum extends Scan {
      */
     ALL_ENERGIES,
     /**
+     * ALL_METHODS merged scans across all methods
+     */
+    ALL_METHODS,
+    /**
      * ALL_MSN merged all MSn spectra for a precursor into a pseudo MS2 spectrum. The order of
      * merging is usually: 1. merge individual energies 2. merge for each precursor on all MSn
      * levels 3. merge all into one
@@ -134,6 +138,7 @@ public interface MergedMassSpectrum extends Scan {
         case SAME_ENERGY -> "Same energy merged";
         case UNDEFINED_ENERGY -> "Undefined energy merged";
         case ALL_ENERGIES -> "All energies merged";
+        case ALL_METHODS -> "All methods merged";
         case ALL_MSN_TO_PSEUDO_MS2 -> "MSn to pseudo MS2 merged";
         case CORRELATED_MS1 -> "CORRELATED MS"; // required by SIRIUS?
         case PASEF_SINGLE -> "Single PASEF";
@@ -149,6 +154,7 @@ public interface MergedMassSpectrum extends Scan {
         case SAME_ENERGY -> "SAME_ENERGY";
         case UNDEFINED_ENERGY -> "UNDEFINED_ENERGY";
         case ALL_ENERGIES -> "ALL_ENERGIES";
+        case ALL_METHODS -> "ALL_METHODS";
         case ALL_MSN_TO_PSEUDO_MS2 -> "ALL_MSN_TO_PSEUDO_MS2";
         case CORRELATED_MS1 -> "CORRELATED_MS";
         case PASEF_SINGLE -> "PASEF_SINGLE";

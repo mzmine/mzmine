@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -251,7 +251,7 @@ public class SiriusExportTask extends AbstractTask {
       // maybe no MS1 data?
       logger.warning(
           "Cannot export MS1 data for this feature list. This maybe due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
-          + FeatureUtils.rowToString(row));
+              + FeatureUtils.rowToString(row));
       return null;
     }
 
@@ -265,7 +265,7 @@ public class SiriusExportTask extends AbstractTask {
       if (ms1Scan == null) {
         logger.fine(
             "Best feature has no representative scan. This may be due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
-            + FeatureUtils.rowToString(row));
+                + FeatureUtils.rowToString(row));
         return null;
       }
       return spectrumToEntry(ms1Scan, row, bestFeature);

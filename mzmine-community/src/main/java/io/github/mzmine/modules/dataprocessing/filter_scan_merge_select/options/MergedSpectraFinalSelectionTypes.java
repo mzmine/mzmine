@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,13 +46,18 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
   // fragmentation energies
   ACROSS_ENERGIES, EACH_ENERGY,
 
+  // fragmentation method
+  // will always retain also each method because those spectra are most useful.
+  // merging across methods is only useful if annotation tools do not rely on specific fragmentation mechanism
+  ACROSS_FRAGMENT_METHODS,
+
   // MSn
   MSN_TREE, MSN_PSEUDO_MS2;
 
   public static boolean isActive(Collection<MergedSpectraFinalSelectionTypes> types) {
     return !isEmptySelection(types) &&
-           // at least one of the merging types
-           (types.contains(ACROSS_ENERGIES) || types.contains(EACH_ENERGY) //
+        // at least one of the merging types
+        (types.contains(ACROSS_ENERGIES) || types.contains(EACH_ENERGY) //
             || types.contains(MSN_TREE) || types.contains(MSN_PSEUDO_MS2));
   }
 
@@ -75,8 +80,8 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
       boolean allowEmptySelection) {
     // valid is if inactive or if active and one of sample option is selected
     return (allowEmptySelection && isEmptySelection(types))
-           // true selection
-           || (isActive(types) && containsSampleDefinition(types));
+        // true selection
+        || (isActive(types) && containsSampleDefinition(types));
   }
 
   public static String getAdvancedValidDescription() {
@@ -95,6 +100,7 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
       case EACH_SAMPLE -> "Each sample";
       case ACROSS_ENERGIES -> "Across energies";
       case EACH_ENERGY -> "Each energy";
+      case ACROSS_FRAGMENT_METHODS -> "Across methods";
       case MSN_TREE -> "MSn tree";
       case MSN_PSEUDO_MS2 -> "MSn to pseudo MS2";
     };
@@ -107,6 +113,7 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
       case EACH_SAMPLE -> "each_sample";
       case ACROSS_ENERGIES -> "across_energies";
       case EACH_ENERGY -> "each_energy";
+      case ACROSS_FRAGMENT_METHODS -> "across_methods";
       case MSN_TREE -> "msn_trees";
       case MSN_PSEUDO_MS2 -> "msn_pseudo_ms2";
     };
@@ -115,14 +122,15 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
   public boolean isSampleDefinition() {
     return switch (this) {
       case ACROSS_SAMPLES, EACH_SAMPLE -> true;
-      case EACH_ENERGY, ACROSS_ENERGIES, MSN_TREE, MSN_PSEUDO_MS2 -> false;
+      case EACH_ENERGY, ACROSS_ENERGIES, MSN_TREE, MSN_PSEUDO_MS2, ACROSS_FRAGMENT_METHODS -> false;
     };
   }
 
   public boolean isRequireMSn() {
     return switch (this) {
       case MSN_TREE, MSN_PSEUDO_MS2 -> true;
-      case ACROSS_SAMPLES, EACH_SAMPLE, ACROSS_ENERGIES, EACH_ENERGY -> false;
+      case ACROSS_SAMPLES, EACH_SAMPLE, ACROSS_ENERGIES, EACH_ENERGY, ACROSS_FRAGMENT_METHODS ->
+          false;
     };
   }
 }
