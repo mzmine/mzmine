@@ -307,27 +307,27 @@ public class ScanUtils {
    *
    * @param spectrum any mass spectrum like {@link MergedMassSpectrum}
    * @return a list of distinct sorted fragmentation methods. null ==
-   * {@link ActivationMethod#UNKNOWN}
+   * {@link ActivationMethod#UNKNOWN}. Maybe strings or {@link ActivationMethod}
    */
   @NotNull
-  public static List<String> extractFragmentationMethods(MassSpectrum spectrum) {
+  public static List<Object> extractFragmentationMethods(MassSpectrum spectrum) {
     return streamSourceScans(spectrum).map(s -> switch (s) {
       case Scan scan -> {
         final MsMsInfo info = scan.getMsMsInfo();
         if (info != null) {
-          yield info.getActivationMethod().getName();
+          yield info.getActivationMethod();
         } else {
-          yield ActivationMethod.UNKNOWN.getName();
+          yield ActivationMethod.UNKNOWN;
         }
       }
       case SpectralLibraryEntry entry -> {
         final Object m = entry.getOrElse(DBEntryField.FRAGMENTATION_METHOD, null);
         if (m instanceof ActivationMethod a) {
-          yield a.getName();
+          yield a;
         } else if (m != null) {
-          yield m.toString();
+          yield m;
         } else {
-          yield ActivationMethod.UNKNOWN.getName();
+          yield ActivationMethod.UNKNOWN;
         }
       }
       default -> throw new IllegalStateException(
@@ -351,7 +351,8 @@ public class ScanUtils {
     if (methods.size() > 1) {
       return ActivationMethod.MIXED.getName();
     } else if (methods.size() == 1) {
-      return methods.getFirst();
+      final Object first = methods.getFirst();
+      return first instanceof ActivationMethod m ? m.getName() : first.toString();
     } else {
       return ActivationMethod.UNKNOWN.getName();
     }
@@ -373,7 +374,8 @@ public class ScanUtils {
     if (methods.size() > 1) {
       return ActivationMethod.MIXED.getAbbreviation();
     } else if (methods.size() == 1) {
-      return methods.getFirst();
+      final Object first = methods.getFirst();
+      return first instanceof ActivationMethod m ? m.getAbbreviation() : first.toString();
     } else {
       return ActivationMethod.UNKNOWN.getAbbreviation();
     }
