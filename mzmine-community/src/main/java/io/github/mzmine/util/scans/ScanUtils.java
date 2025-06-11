@@ -339,12 +339,13 @@ public class ScanUtils {
    * Includes all source scans of {@link MergedMassSpectrum} in listing all fragmentation methods.
    *
    * @param spectrum any mass spectrum like {@link MergedMassSpectrum}
-   * @return Either a unique {@link ActivationMethod#getName()} or {@link ActivationMethod#MIXED} if
-   * multiple activation methods were merged. null == {@link ActivationMethod#UNKNOWN}. Might use
-   * other string values if loaded for spectral library.
+   * @return Long name. Either a unique {@link ActivationMethod#getName()} or
+   * {@link ActivationMethod#MIXED} if multiple activation methods were merged. null ==
+   * {@link ActivationMethod#UNKNOWN}. Might use other string values if loaded for spectral
+   * library.
    */
   @NotNull
-  public static String extractFragmentationMethod(MassSpectrum spectrum) {
+  public static String extractFragmentationMethodLongName(MassSpectrum spectrum) {
     var methods = extractFragmentationMethods(spectrum);
 
     if (methods.size() > 1) {
@@ -353,6 +354,28 @@ public class ScanUtils {
       return methods.getFirst();
     } else {
       return ActivationMethod.UNKNOWN.getName();
+    }
+  }
+
+  /**
+   * Includes all source scans of {@link MergedMassSpectrum} in listing all fragmentation methods.
+   *
+   * @param spectrum any mass spectrum like {@link MergedMassSpectrum}
+   * @return Short abbreviation. Either a unique {@link ActivationMethod#getName()} or
+   * {@link ActivationMethod#MIXED} if multiple activation methods were merged. null ==
+   * {@link ActivationMethod#UNKNOWN}. Might use other string values if loaded for spectral
+   * library.
+   */
+  @NotNull
+  public static String extractFragmentationMethodShort(MassSpectrum spectrum) {
+    var methods = extractFragmentationMethods(spectrum);
+
+    if (methods.size() > 1) {
+      return ActivationMethod.MIXED.getAbbreviation();
+    } else if (methods.size() == 1) {
+      return methods.getFirst();
+    } else {
+      return ActivationMethod.UNKNOWN.getAbbreviation();
     }
   }
 
@@ -2124,7 +2147,8 @@ public class ScanUtils {
    * other string values if loaded for spectral library.
    */
   public static Map<String, List<Scan>> splitByFragmentationMethod(List<Scan> scans) {
-    return scans.stream().collect(Collectors.groupingBy(ScanUtils::extractFragmentationMethod));
+    return scans.stream()
+        .collect(Collectors.groupingBy(ScanUtils::extractFragmentationMethodShort));
   }
 
   /**
