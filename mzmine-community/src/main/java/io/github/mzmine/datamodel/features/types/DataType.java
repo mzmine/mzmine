@@ -124,8 +124,18 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
                 List list = (List) model.get(type);
                 if (list != null) {
                   list = new ArrayList<>(list);
-                  list.remove(data);
-                  list.add(0, data);
+                  boolean removed = list.remove(data);
+                  // sometimes the edit combo cell seems to return wrapped values (in a list) instead of the actual ones.
+                  // check if that is the case and unwrap here.
+                  // also checked in EditComboCellFactory, but unfortunately the commitEdit method is already called with
+                  // the wrapped value. so seems to be nested deeply.
+                  if(!removed && data instanceof List falselyWrappedData) {
+                    removed = list.removeAll(falselyWrappedData);
+                    assert removed;
+                    list.addAll(0, falselyWrappedData);
+                  } else {
+                    list.add(0, data);
+                  }
                   model.set((DataType) type, list);
                 }
               } catch (Exception ex) {
