@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -137,9 +138,15 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
     // use all feature lists in preview
     final List<FeatureList> currentFeatureLists = ProjectService.getProject()
         .getCurrentFeatureLists();
+    final @NotNull ModularFeatureList[] selectedLists = parameters.getParameter(
+        SpectralDeconvolutionGCParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
+
     featureListCombo = new ComboBox<>();
     featureListCombo.setItems(FXCollections.observableArrayList(currentFeatureLists));
-    if (!currentFeatureLists.isEmpty()) {
+    if (selectedLists != null && selectedLists.length > 0) {
+      // priority on first selected list
+      featureListCombo.getSelectionModel().select(selectedLists[0]);
+    } else if (!currentFeatureLists.isEmpty()) {
       featureListCombo.getSelectionModel().select(0);
     }
 
@@ -217,7 +224,6 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
     Feature closestFeatureGroupNew = findClosestFeatureGroup(rtValue, mzValue);
     if (closestFeatureGroupNew != null && closestFeatureGroup != closestFeatureGroupNew) {
       closestFeatureGroup = closestFeatureGroupNew;
-      deconvolutedFeaturesComboBox.getSelectionModel().select(closestFeatureGroup);
 
       // Find the series index associated with this feature group
       List<ModularFeature> group = groupedFeatures.stream()
@@ -230,8 +236,10 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
           Color groupColor = colorMap.get(group);
           selectedColor = FxColorUtil.awtColorToFX(groupColor);
         }
-        updateSelectedFeature();
       }
+
+      // triggers the update
+      deconvolutedFeaturesComboBox.getSelectionModel().select(closestFeatureGroup);
     }
   }
 
@@ -263,6 +271,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
     ModularFeature selectedFeature = (ModularFeature) deconvolutedFeaturesComboBox.getSelectionModel()
         .getSelectedItem();
     pseudoSpecController.setFeature(selectedFeature);
+    pseudoSpecController.setColor(selectedColor);
     if (selectedFeature != null) {
       scatterPlot.getChart().getXYPlot().clearDomainMarkers();
       scatterPlot.addIntervalMarker(selectedFeature.getRawDataPointsRTRange(), DOMAIN_MARKER_COLOR);
@@ -278,7 +287,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
     deconvolutedFeaturesComboBox.getItems().clear();
     final FeatureList flist = featureListCombo.getSelectionModel().getSelectedItem();
 
-    if (flist == null || !checkParameterValues(true, false)) {
+    if (flist == null || !checkParameterValues(true, false, true)) {
       return;
     }
     initializeParameters();
@@ -301,7 +310,6 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
           FxThread.runLater(() -> {
             populateScatterPlot();
             updateFeatureComboBox();
-            updateSelectedFeature();
             preparingPreviewLabel.setVisible(false);
             scatterPlot.setVisible(true);
           });
@@ -379,7 +387,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
     deconvolutedFeaturesComboBox.setItems(resultFeatures);
     if (!resultFeatures.isEmpty()) {
-      deconvolutedFeaturesComboBox.setValue(resultFeatures.getFirst());
+      deconvolutedFeaturesComboBox.getSelectionModel().select(0);
     }
     if (!clusteringSelectedFeatureSplit.getItems().contains(pseudoSpectrumPaneWrapper)) {
       clusteringSelectedFeatureSplit.getItems().add(pseudoSpectrumPaneWrapper);

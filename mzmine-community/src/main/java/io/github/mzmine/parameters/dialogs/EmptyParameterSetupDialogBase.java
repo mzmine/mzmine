@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -298,6 +298,11 @@ public class EmptyParameterSetupDialogBase extends Stage {
    * @return false if parameters are set incorrectly
    */
   public boolean checkParameterValues(boolean updateParametersFirst, boolean showSuccessDialog) {
+    return checkParameterValues(updateParametersFirst, showSuccessDialog, false);
+  }
+
+  public boolean checkParameterValues(boolean updateParametersFirst, boolean showSuccessDialog,
+      boolean skipRawDataAndFeatureListParameters) {
     // commit the changes to the parameter set
     if (updateParametersFirst) {
       updateParameterSetFromComponents();
@@ -305,7 +310,8 @@ public class EmptyParameterSetupDialogBase extends Stage {
 
     if (isValueCheckRequired()) {
       ArrayList<String> messages = new ArrayList<>();
-      boolean allParametersOK = paramPane.getParameterSet().checkParameterValues(messages);
+      boolean allParametersOK = paramPane.getParameterSet()
+          .checkParameterValues(messages, skipRawDataAndFeatureListParameters);
 
       if (!allParametersOK) {
         StringBuilder message = new StringBuilder("Please check the parameter settings:\n");

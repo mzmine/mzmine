@@ -36,6 +36,7 @@ import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.scene.paint.Color;
 
 public class PseudoSpectrumVisualizerUpdateTask extends
     FxUpdateTask<PseudoSpectrumVisualizerModel> {
@@ -71,8 +72,9 @@ public class PseudoSpectrumVisualizerUpdateTask extends
     final MZTolerance mzTol = requireNonNullElse(model.getMzTolerance(),
         new MZTolerance(0.005, 15));
 
+    final Color color = requireNonNullElse(model.getColor(), rawFile.getColor());
     final PseudoSpectrumFeatureDataSetCalculationTask task = new PseudoSpectrumFeatureDataSetCalculationTask(
-        rawFile, scan, feature, mzTol, rawFile.getColor());
+        rawFile, scan, feature, mzTol, color);
     task.run();
     if (task.isFinished()) {
       datasets.addAll(task.getDatasets());

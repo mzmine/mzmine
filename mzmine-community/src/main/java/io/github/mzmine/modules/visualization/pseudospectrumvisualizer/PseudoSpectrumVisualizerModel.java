@@ -37,9 +37,11 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.paint.Color;
 
 public class PseudoSpectrumVisualizerModel {
 
+  private final Property<Color> color = new SimpleObjectProperty<>();
   private final Property<RawDataFile> selectedFile = new SimpleObjectProperty<>();
 
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
@@ -125,5 +127,17 @@ public class PseudoSpectrumVisualizerModel {
 
   public Property<RawDataFile> selectedFileProperty() {
     return selectedFile;
+  }
+
+  public void setColor(Color color) {
+    this.color.setValue(color);
+  }
+
+  public Color getColor() {
+    return color.getValue();
+  }
+
+  public Property<Color> colorProperty() {
+    return color;
   }
 }

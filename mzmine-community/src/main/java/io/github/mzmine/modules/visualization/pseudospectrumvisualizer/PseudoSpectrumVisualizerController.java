@@ -44,6 +44,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
+import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -129,4 +130,7 @@ public class PseudoSpectrumVisualizerController extends
     return new MZTolerance(0.005, 15);
   }
 
+  public void setColor(Color color) {
+    model.setColor(color);
+  }
 }
