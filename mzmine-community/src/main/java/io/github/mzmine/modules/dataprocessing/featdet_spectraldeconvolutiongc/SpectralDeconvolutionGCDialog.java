@@ -284,6 +284,10 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
   }
 
   private void updatePreview() {
+    if (!cbShowPreview.isSelected()) {
+      return;
+    }
+
     deconvolutedFeaturesComboBox.getItems().clear();
     final FeatureList flist = featureListCombo.getSelectionModel().getSelectedItem();
 
