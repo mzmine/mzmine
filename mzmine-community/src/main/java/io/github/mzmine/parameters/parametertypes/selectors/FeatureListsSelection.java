@@ -92,22 +92,6 @@ public class FeatureListsSelection implements Cloneable {
   @NotNull
   public ModularFeatureList[] getMatchingFeatureLists() {
 
-    if (evaluatedSelection != null) {
-      var value = FeatureListPlaceholder.getMatchingFeatureListOrNull(evaluatedSelection);
-      for (var flist : value) {
-        if (flist == null) {
-          throw new IllegalStateException("""
-              Evaluated FeatureList selection points to a missing file (maybe it was removed from the project and memory after first evaluation).
-              This is expected in some cases. To get the name, use the method getEvaluatedSelection() and use the placeholder name.""");
-        }
-      }
-      // FeatureList selection are only evaluated once - to keep the parameter value the same
-      // even if feature lists are removed or renamed
-      logger.fine(
-          "Using the already evaluated list of FeatureLists in selection. This might be expected at this point depending on the module.");
-      return value;
-    }
-
     final ModularFeatureList[] matchingFlists = switch (selectionType) {
 
       case GUI_SELECTED_FEATURELISTS -> Stream.of(MZmineCore.getDesktop().getSelectedPeakLists())
