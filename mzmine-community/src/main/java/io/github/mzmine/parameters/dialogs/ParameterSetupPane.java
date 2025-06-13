@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
@@ -152,7 +153,10 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
     mainPane = this;
 
     // Use main CSS
-    getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    if(DesktopService.isGUI()) {
+      // may be called in headless mode for graphics export
+      getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    }
 
     centerPane = new BorderPane();
 
