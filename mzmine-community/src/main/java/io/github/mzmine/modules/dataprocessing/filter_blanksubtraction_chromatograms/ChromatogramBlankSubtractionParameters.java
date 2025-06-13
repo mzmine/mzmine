@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -62,8 +62,7 @@ public class ChromatogramBlankSubtractionParameters extends SimpleParameterSet {
 
   public ChromatogramBlankSubtractionParameters() {
     super(new Parameter[]{featureLists, mzTol, suffix, handleOriginal},
-        // TODO add docs
-        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_blanksubtraction/filter_blanksubtraction.html");
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_blanksubtraction/filter_chrom_blanksubtraction.html");
   }
 
   @Override
