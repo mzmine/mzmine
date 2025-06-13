@@ -32,6 +32,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxColorUtil;
@@ -100,6 +102,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
   private final PseudoSpectrumVisualizerController pseudoSpecController;
   private final @NotNull Region pseudoSpecPane;
   private final ComboBox<FeatureList> featureListCombo;
+  private final Label lblParamsChanged;
 
   private SpectralDeconvolutionAlgorithm spectralDeconvolutionAlgorithm;
   private List<Range<Double>> mzValuesToIgnore;
@@ -168,7 +171,11 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
     updateButton = new Button("Update preview");
     updateButton.setOnAction(_ -> updatePreview());
 
-    buttonBox = FxLayout.newHBox(combos, labelVBox, updateButton);
+    lblParamsChanged = FxLabels.styled("", Styles.BOLD);
+
+    final VBox buttonVbox = FxLayout.newVBox(updateButton, lblParamsChanged);
+
+    buttonBox = FxLayout.newHBox(combos, labelVBox, buttonVbox);
     previewWrapperPane.setBottom(buttonBox);
 
     // init listeners last for everything to be constructed
@@ -314,6 +321,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
           FxThread.runLater(() -> {
             populateScatterPlot();
             updateFeatureComboBox();
+            lblParamsChanged.setText("");
             preparingPreviewLabel.setVisible(false);
             scatterPlot.setVisible(true);
           });
@@ -404,5 +412,6 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
   protected void parametersChanged() {
     updateParameterSetFromComponents();
     super.parametersChanged();
+    lblParamsChanged.setText("Parameters changed since update");
   }
 }

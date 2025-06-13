@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,14 +27,11 @@ package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
 import java.util.List;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.IntervalMarker;
@@ -80,30 +77,34 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
     dataset.addSeries(series);
     plot.setDataset(datasetIndex, dataset);
 
-    renderer.setSeriesPaint(datasetIndex, color);
-    renderer.setSeriesShape(datasetIndex, new Rectangle(0, 0, 1, 1));
+    var renderer = new XYLineAndShapeRenderer(false, true);
+    renderer.setSeriesPaint(0, color);
+    renderer.setSeriesShape(datasetIndex, new Rectangle(0, 0, 2, 2));
     plot.setRenderer(datasetIndex, renderer);
-    for (ModularFeature feature : features) {
 
-      // Calculate the RT range (width of the box) based on the feature's RT
-      double rtStart = feature.getRawDataPointsRTRange().lowerEndpoint();
-      double rtEnd = feature.getRawDataPointsRTRange().upperEndpoint();
-      double mz = feature.getMZ();
-
-      // Calculate box width and height
-      double boxWidth = rtEnd - rtStart;  // Width based on RT range
-      double boxHeight = 0.5;  // Fixed height; adjust as needed
-
-      // Create the rectangle centered at the feature's RT and m/z values
-      Rectangle2D box = new Rectangle2D.Double(rtStart, mz - boxHeight / 2, boxWidth, boxHeight);
-
-      // Create the annotation with the rectangle shape and color
-      XYShapeAnnotation annotation = new XYShapeAnnotation(box, new BasicStroke(1.0f), color,
-          color);
-
-      // Add the annotation to the plot
-      plot.addAnnotation(annotation);
-    }
+    // way to slow to add both the dataset and also the XYAnnotations.
+    // TODO translate this into the renderer and make it a XYZDataset using Z for RT width
+//    for (ModularFeature feature : features) {
+//
+//      // Calculate the RT range (width of the box) based on the feature's RT
+//      double rtStart = feature.getRawDataPointsRTRange().lowerEndpoint();
+//      double rtEnd = feature.getRawDataPointsRTRange().upperEndpoint();
+//      double mz = feature.getMZ();
+//
+//      // Calculate box width and height
+//      double boxWidth = rtEnd - rtStart;  // Width based on RT range
+//      double boxHeight = 0.5;  // Fixed height; adjust as needed
+//
+//      // Create the rectangle centered at the feature's RT and m/z values
+//      Rectangle2D box = new Rectangle2D.Double(rtStart, mz - boxHeight / 2, boxWidth, boxHeight);
+//
+//      // Create the annotation with the rectangle shape and color
+//      XYShapeAnnotation annotation = new XYShapeAnnotation(box, new BasicStroke(1.0f), color,
+//          color);
+//
+//      // Add the annotation to the plot
+//      plot.addAnnotation(annotation);
+//    }
     datasetIndex++;
 
   }
