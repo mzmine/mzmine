@@ -34,7 +34,7 @@ import javafx.scene.layout.Region;
 public class PseudoSpectrumVisualizerTab extends SimpleTab {
 
   private final PseudoSpectrumVisualizerController controller;
-  private WeakAdapter weak;
+  private final WeakAdapter weak;
 
   public PseudoSpectrumVisualizerTab() {
     this(null);
