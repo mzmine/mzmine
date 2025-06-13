@@ -26,17 +26,31 @@
 package io.github.mzmine.modules.visualization.pseudospectrumvisualizer;
 
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.util.FeatureListUtils;
+import io.github.mzmine.util.javafx.WeakAdapter;
 import javafx.scene.layout.Region;
 
 public class PseudoSpectrumVisualizerTab extends SimpleTab {
 
   private final PseudoSpectrumVisualizerController controller;
+  private WeakAdapter weak;
 
   public PseudoSpectrumVisualizerTab() {
+    this(null);
+  }
+
+  public PseudoSpectrumVisualizerTab(FeatureTableFX table) {
     super("Pseudo spectrum");
     controller = new PseudoSpectrumVisualizerController();
     final Region view = controller.buildView();
     super.setContent(view);
+
+    // bind selected rows
+    weak = new WeakAdapter();
+    setOnCloseRequest(_ -> weak.dipose()); // dispose on shutdown
+
+    FeatureListUtils.bindSelectedRows(weak, table, controller.selectedRowsProperty());
   }
 
   public PseudoSpectrumVisualizerController getController() {
