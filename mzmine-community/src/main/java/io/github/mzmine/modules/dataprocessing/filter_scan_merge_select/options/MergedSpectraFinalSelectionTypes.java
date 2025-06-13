@@ -58,7 +58,8 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
     return !isEmptySelection(types) &&
         // at least one of the merging types
         (types.contains(ACROSS_ENERGIES) || types.contains(EACH_ENERGY) //
-            || types.contains(MSN_TREE) || types.contains(MSN_PSEUDO_MS2));
+            || types.contains(ACROSS_FRAGMENT_METHODS) || types.contains(MSN_TREE)
+            || types.contains(MSN_PSEUDO_MS2));
   }
 
   public static boolean containsSampleDefinition(
@@ -100,7 +101,7 @@ public enum MergedSpectraFinalSelectionTypes implements UniqueIdSupplier {
       case EACH_SAMPLE -> "Each sample";
       case ACROSS_ENERGIES -> "Across energies";
       case EACH_ENERGY -> "Each energy";
-      case ACROSS_FRAGMENT_METHODS -> "Across methods";
+      case ACROSS_FRAGMENT_METHODS -> "Across fragmentation methods";
       case MSN_TREE -> "MSn tree";
       case MSN_PSEUDO_MS2 -> "MSn to pseudo MS2";
     };

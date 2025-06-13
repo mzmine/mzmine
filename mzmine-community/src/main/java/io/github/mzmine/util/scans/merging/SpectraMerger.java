@@ -164,8 +164,8 @@ public class SpectraMerger {
         scansToMerge = resultsByMethod.stream().mapMulti((r, consumer) -> r.acrossSamples()
             .forEach(node -> node.streamScanByEnergy().forEach(consumer)));
       }
-      // do the actual merging only on MS2
-      final List<Scan> toMerge = scansToMerge.filter(scan -> scan.getMSLevel() <= 2).toList();
+      // do the actual merging on the whole list of scans
+      final List<Scan> toMerge = scansToMerge.toList();
       scanMergedAcrossMethods = mergeSpectra(toMerge, MergingType.ALL_METHODS);
     }
 
