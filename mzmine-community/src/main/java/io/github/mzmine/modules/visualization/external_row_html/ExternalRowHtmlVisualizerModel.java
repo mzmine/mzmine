@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.external_row_html;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.StringUtils;
 import java.io.File;
@@ -61,7 +62,7 @@ public class ExternalRowHtmlVisualizerModel {
   private final Property<File> selectedFullHtml = new SimpleObjectProperty<>();
 
   public ExternalRowHtmlVisualizerModel() {
-    selectedRow = selectedRows.map(rows -> rows == null || rows.isEmpty() ? null : rows.getFirst());
+    selectedRow = PropertyUtils.firstElementProperty(selectedRows);
     selectedRowFullId = selectedRow.map(FeatureUtils::rowToFullId).orElse("");
   }
 

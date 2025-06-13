@@ -60,7 +60,6 @@ import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
@@ -92,7 +91,7 @@ import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPl
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
-import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerPane;
+import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerTab;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
@@ -832,11 +831,9 @@ public class FeatureTableContextMenu extends ContextMenu {
 
   private void showPseudoSpectrum() {
     if (selectedOrBestFeature != null) {
-      PseudoSpectrumVisualizerPane pseudoSpectrumVisualizerPane = new PseudoSpectrumVisualizerPane(
-          selectedOrBestFeature, null);
-      SimpleTab simpleTab = new SimpleTab("Pseudo Spectrum of " + selectedOrBestFeature.toString(),
-          pseudoSpectrumVisualizerPane);
-      MZmineCore.getDesktop().addTab(simpleTab);
+      final PseudoSpectrumVisualizerTab tab = new PseudoSpectrumVisualizerTab(table);
+      tab.getController().setFeature(selectedOrBestFeature);
+      MZmineCore.getDesktop().addTab(tab);
     }
   }
 
