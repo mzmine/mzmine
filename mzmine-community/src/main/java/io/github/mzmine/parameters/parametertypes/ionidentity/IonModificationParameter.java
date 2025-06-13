@@ -259,6 +259,11 @@ public class IonModificationParameter implements
     }
 
     adducts.checkValue(errorMessages);
+    final List<IonModification> adductsWithNoCharge = Arrays.stream(adducts.getValue())
+        .filter(i -> i.getCharge() == 0).toList();
+    if(!adductsWithNoCharge.isEmpty()) {
+      errorMessages.add("The adduct(s): " + adductsWithNoCharge + " have no charge. Use \"Modifcations\" for neutral modifications.");
+    }
     modification.checkValue(errorMessages);
 
     return errorMessages.isEmpty();
