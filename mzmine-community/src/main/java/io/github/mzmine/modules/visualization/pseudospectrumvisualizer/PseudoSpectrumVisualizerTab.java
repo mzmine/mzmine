@@ -51,6 +51,7 @@ public class PseudoSpectrumVisualizerTab extends SimpleTab {
     setOnCloseRequest(_ -> weak.dipose()); // dispose on shutdown
 
     FeatureListUtils.bindSelectedRows(weak, table, controller.selectedRowsProperty());
+    FeatureListUtils.bindSelectedRawDataFiles(weak, table, controller.selectedRawFilesProperty());
   }
 
   public PseudoSpectrumVisualizerController getController() {

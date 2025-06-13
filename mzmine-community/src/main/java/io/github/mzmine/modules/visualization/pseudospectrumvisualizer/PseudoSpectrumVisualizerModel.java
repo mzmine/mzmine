@@ -42,12 +42,15 @@ import javafx.scene.paint.Color;
 public class PseudoSpectrumVisualizerModel {
 
   private final Property<Color> color = new SimpleObjectProperty<>();
-  private final Property<RawDataFile> selectedFile = new SimpleObjectProperty<>();
 
+  // comes from interfaces
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
+  private final ObjectProperty<List<RawDataFile>> selectedFiles = new SimpleObjectProperty<>();
   // defined by selected rows as the first row
   private final ObservableValue<FeatureListRow> selectedRow;
   private final ObservableValue<FeatureList> featureList;
+  // defined by selected files as first file
+  private final ObservableValue<RawDataFile> selectedFile;
   // defined by feature list
   private final Property<MZTolerance> mzTolerance = new SimpleObjectProperty<>();
 
@@ -58,6 +61,7 @@ public class PseudoSpectrumVisualizerModel {
 
   public PseudoSpectrumVisualizerModel() {
     selectedRow = PropertyUtils.firstElementProperty(selectedRows);
+    selectedFile = PropertyUtils.firstElementProperty(selectedFiles);
     featureList = selectedRow.map(FeatureListRow::getFeatureList);
   }
 
@@ -125,7 +129,7 @@ public class PseudoSpectrumVisualizerModel {
     return selectedFile.getValue();
   }
 
-  public Property<RawDataFile> selectedFileProperty() {
+  public ObservableValue<RawDataFile> selectedFileProperty() {
     return selectedFile;
   }
 
@@ -139,5 +143,13 @@ public class PseudoSpectrumVisualizerModel {
 
   public Property<Color> colorProperty() {
     return color;
+  }
+
+  public List<RawDataFile> getSelectedFiles() {
+    return selectedFiles.get();
+  }
+
+  public ObjectProperty<List<RawDataFile>> selectedFilesProperty() {
+    return selectedFiles;
   }
 }

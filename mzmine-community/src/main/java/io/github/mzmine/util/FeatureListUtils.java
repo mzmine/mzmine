@@ -138,6 +138,18 @@ public class FeatureListUtils {
     });
   }
 
+  public static void bindSelectedRawDataFiles(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<RawDataFile>> selectedFiles) {
+    weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
+      if (weak.isDisposed()) {
+        return;
+      }
+
+      List<RawDataFile> raws = List.copyOf(table.getSelectedRawDataFiles());
+      selectedFiles.setValue(raws);
+    });
+  }
+
   /**
    * Copies the FeatureListAppliedMethods from <b>source</b> to <b>target</b>
    *

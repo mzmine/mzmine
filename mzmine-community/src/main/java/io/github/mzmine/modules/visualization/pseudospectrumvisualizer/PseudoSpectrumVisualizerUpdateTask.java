@@ -83,7 +83,7 @@ public class PseudoSpectrumVisualizerUpdateTask extends
 
   @Override
   protected void updateGuiModel() {
-    model.selectedFileProperty().setValue(rawFile);
+    model.selectedFilesProperty().setValue(rawFile == null ? List.of() : List.of(rawFile));
     model.setTicDatasets(datasets);
     model.setPseudoSpec(scan);
   }

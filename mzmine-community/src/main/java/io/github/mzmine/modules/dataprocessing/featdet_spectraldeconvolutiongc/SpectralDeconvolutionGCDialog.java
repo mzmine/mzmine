@@ -63,6 +63,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
@@ -111,6 +112,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
   private Feature closestFeatureGroup;
   private javafx.scene.paint.Color selectedColor;
   private boolean isPlotPopulated;
+  private CheckBox cbShowRtWidths;
 
   public SpectralDeconvolutionGCDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
@@ -183,6 +185,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
         .subscribe((_, _) -> updateSelectedFeature());
 
     featureListCombo.getSelectionModel().selectedItemProperty().subscribe(_ -> updatePreview());
+    scatterPlot.showRtWidthsProperty().bind(cbShowRtWidths.selectedProperty());
   }
 
 
@@ -201,7 +204,9 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
         FxColorUtil.awtColorToFX(TOLERANCE_MARKER_COLOR));
     HBox rtToleranceLegendItem = FxLayout.newHBox(rtToleranceRect, rtToleranceLbl);
 
-    legendBox.getChildren().addAll(mainFeatureLegendItem, rtToleranceLegendItem);
+    cbShowRtWidths = new CheckBox("Show RT widths");
+
+    legendBox.getChildren().addAll(cbShowRtWidths, mainFeatureLegendItem, rtToleranceLegendItem);
     legendBox.setAlignment(Pos.CENTER);
     legendBox.setPadding(new Insets(10, 0, 10, 0)); // 10 pixels padding at top and bottom
     return legendBox;
