@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.visualization.pseudospectrumvisualizer;
 
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.javafx.components.factories.FxSplitPanes;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
@@ -61,12 +60,13 @@ public class PseudoSpectrumVisualizerViewBuilder extends
 
     model.ticDatasetsProperty().subscribe((_, datasets) -> {
       ticPlot.applyWithNotifyChanges(false, () -> {
-        ticPlot.removeAllDataSets();
         ticPlot.setLegendVisible(false);
         if (datasets != null) {
-          for (DatasetAndRenderer dataset : datasets) {
-            ticPlot.addDataSetAndRenderer(dataset.dataset(), dataset.renderer());
-          }
+          // single update
+          ticPlot.removeAllDataSets(false);
+          ticPlot.addDataSetAndRenderers(datasets);
+        } else {
+          ticPlot.removeAllDataSets(true); // update
         }
       });
     });
