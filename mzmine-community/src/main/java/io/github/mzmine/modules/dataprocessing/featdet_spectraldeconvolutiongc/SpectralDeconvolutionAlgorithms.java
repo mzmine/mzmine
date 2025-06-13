@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
-import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.hierarchicalclustering.HierarchicalClusteringAlgorithm;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationAlgorithm;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
@@ -33,8 +32,8 @@ import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters
 public enum SpectralDeconvolutionAlgorithms implements
     ModuleOptionsEnum<SpectralDeconvolutionAlgorithm> {
 
-  RT_GROUPING_AND_SHAPE_CORRELATION,//
-  HIERARCHICAL_CLUSTERING; //
+  RT_GROUPING_AND_SHAPE_CORRELATION//
+  ; //
 
 
   public static SpectralDeconvolutionAlgorithm createOption(
@@ -42,7 +41,6 @@ public enum SpectralDeconvolutionAlgorithms implements
     return switch (deconParams.value()) {
       case RT_GROUPING_AND_SHAPE_CORRELATION ->
           new RtGroupingAndShapeCorrelationAlgorithm(deconParams.parameters());
-      case HIERARCHICAL_CLUSTERING -> new HierarchicalClusteringAlgorithm(deconParams.parameters());
     };
   }
 
@@ -50,7 +48,6 @@ public enum SpectralDeconvolutionAlgorithms implements
   public Class<? extends SpectralDeconvolutionAlgorithm> getModuleClass() {
     return switch (this) {
       case RT_GROUPING_AND_SHAPE_CORRELATION -> RtGroupingAndShapeCorrelationAlgorithm.class;
-      case HIERARCHICAL_CLUSTERING -> HierarchicalClusteringAlgorithm.class;
     };
   }
 
@@ -58,7 +55,6 @@ public enum SpectralDeconvolutionAlgorithms implements
   public String getStableId() {
     return switch (this) {
       case RT_GROUPING_AND_SHAPE_CORRELATION -> "rt grouping and shape correlation";
-      case HIERARCHICAL_CLUSTERING -> "hierarchical clustering";
     };
   }
 
