@@ -133,7 +133,6 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmit
 import io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
-import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_xml.ExportFeaturesDataModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
@@ -398,7 +397,6 @@ public class BatchModeModulesList {
           AdapMgfExportModule.class, //
           GNPSResultsImportModule.class, //
           AdapMspExportModule.class, //
-          MZTabmExportModule.class, //
           NetCDFExportModule.class, //
           SiriusExportModule.class, //
           MZTabmImportModule.class, //

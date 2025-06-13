@@ -27,7 +27,6 @@ package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -95,9 +94,6 @@ public class ModularFeatureList implements FeatureList {
    */
   @Nullable
   private final MemoryMapStorage memoryMapStorage;
-  // bindings for values
-  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
-  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
   private final @NotNull ColumnarModularFeatureListRowsSchema rowsSchema;
   private final @NotNull ColumnarModularDataModelSchema featuresSchema;
@@ -188,7 +184,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   private void addDefaultListeners() {
-    addFeatureTypeListener(new FeatureDataType(), (dataModel, type, oldValue, newValue) -> {
+    addFeatureTypeValueListener(new FeatureDataType(), (dataModel, type, oldValue, newValue) -> {
       // check feature data for graphical columns
       DataTypeUtils.applyFeatureSpecificGraphicalTypes((ModularFeature) dataModel);
     });
@@ -278,7 +274,7 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void addRowBinding(@NotNull List<RowBinding> bindings) {
     for (RowBinding b : bindings) {
-      addFeatureTypeListener(b.getFeatureType(), b);
+      addFeatureTypeValueListener(b.getFeatureType(), b);
       // add missing row types, that are based on RowBindings
       addRowType(b.getRowType());
       // apply to all rows
@@ -295,14 +291,8 @@ public class ModularFeatureList implements FeatureList {
    * @param listener    the listener for value changes
    */
   @Override
-  public void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener) {
-    featureTypeListeners.compute(featureType, (key, list) -> {
-      if (list == null) {
-        list = new ArrayList<>();
-      }
-      list.add(listener);
-      return list;
-    });
+  public void addFeatureTypeValueListener(DataType featureType, DataTypeValueChangeListener listener) {
+    featuresSchema.addDataTypeValueChangeListener(featureType, listener);
   }
 
   /**
@@ -312,14 +302,8 @@ public class ModularFeatureList implements FeatureList {
    * @param listener the listener for value changes
    */
   @Override
-  public void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener) {
-    rowTypeListeners.compute(rowType, (key, list) -> {
-      if (list == null) {
-        list = new ArrayList<>();
-      }
-      list.add(listener);
-      return list;
-    });
+  public void addRowTypeValueListener(DataType rowType, DataTypeValueChangeListener listener) {
+    rowsSchema.addDataTypeValueChangeListener(rowType, listener);
   }
 
   /**
@@ -329,14 +313,8 @@ public class ModularFeatureList implements FeatureList {
    * @param listener the listener for value changes
    */
   @Override
-  public void removeRowTypeListener(DataType rowType, DataTypeValueChangeListener listener) {
-    rowTypeListeners.compute(rowType, (key, list) -> {
-      if (list == null || list.isEmpty()) {
-        return null;
-      }
-      list.remove(listener);
-      return list.isEmpty() ? null : list;
-    });
+  public void removeRowTypeValueListener(DataType rowType, DataTypeValueChangeListener listener) {
+    rowsSchema.removeDataTypeValueChangeListener(rowType, listener);
   }
 
   /**
@@ -348,13 +326,7 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void removeFeatureTypeListener(DataType featureType,
       DataTypeValueChangeListener listener) {
-    featureTypeListeners.compute(featureType, (key, list) -> {
-      if (list == null || list.isEmpty()) {
-        return null;
-      }
-      list.remove(listener);
-      return list.isEmpty() ? null : list;
-    });
+    featuresSchema.removeDataTypeValueChangeListener(featureType, listener);
   }
 
   @Override
@@ -366,7 +338,7 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void applyRowBindings(FeatureListRow row) {
-    for (var listeners : featureTypeListeners.values()) {
+    for (var listeners : List.copyOf(featuresSchema.getValueChangeListeners().values())) {
       for (var listener : listeners) {
         if (listener instanceof RowBinding bind) {
           bind.apply(row);
@@ -814,12 +786,12 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners() {
-    return featureTypeListeners;
+    return featuresSchema.getValueChangeListeners();
   }
 
   @Override
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners() {
-    return rowTypeListeners;
+    return rowsSchema.getValueChangeListeners();
   }
 
 
