@@ -108,7 +108,7 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
         getMemoryMapStorage());
 
     try (BafDataAccess baf = new BafDataAccess(
-        parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding))) {
+        !parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding))) {
 
       final boolean b = baf.openBafFile(folderPath);
       if (!b) {
