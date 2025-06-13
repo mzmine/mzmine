@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.framework.fx.SelectedFilesBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -49,7 +50,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class PseudoSpectrumVisualizerController extends
-    FxController<PseudoSpectrumVisualizerModel> implements SelectedRowsBinding {
+    FxController<PseudoSpectrumVisualizerModel> implements SelectedRowsBinding,
+    SelectedFilesBinding {
 
   private static final Logger logger = Logger.getLogger(
       PseudoSpectrumVisualizerController.class.getName());
@@ -80,6 +82,11 @@ public class PseudoSpectrumVisualizerController extends
   }
 
   @Override
+  public ObjectProperty<List<RawDataFile>> selectedRawFilesProperty() {
+    return model.selectedFilesProperty();
+  }
+
+  @Override
   protected @NotNull FxViewBuilder<PseudoSpectrumVisualizerModel> getViewBuilder() {
     return new PseudoSpectrumVisualizerViewBuilder(model);
   }
@@ -90,7 +97,7 @@ public class PseudoSpectrumVisualizerController extends
   }
 
   public void setRawFile(@Nullable RawDataFile raw) {
-    model.selectedFileProperty().setValue(raw);
+    model.selectedFilesProperty().setValue(raw == null ? List.of() : List.of(raw));
   }
 
   public void setRow(@Nullable FeatureListRow row) {
@@ -133,4 +140,5 @@ public class PseudoSpectrumVisualizerController extends
   public void setColor(Color color) {
     model.setColor(color);
   }
+
 }

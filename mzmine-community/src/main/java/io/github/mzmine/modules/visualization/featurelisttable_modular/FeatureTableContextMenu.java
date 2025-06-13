@@ -831,7 +831,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
   private void showPseudoSpectrum() {
     if (selectedOrBestFeature != null) {
-      final PseudoSpectrumVisualizerTab tab = new PseudoSpectrumVisualizerTab();
+      final PseudoSpectrumVisualizerTab tab = new PseudoSpectrumVisualizerTab(table);
       tab.getController().setFeature(selectedOrBestFeature);
       MZmineCore.getDesktop().addTab(tab);
     }

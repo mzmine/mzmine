@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -146,8 +147,11 @@ public class EmptyParameterSetupDialogBase extends Stage {
     });
 
     // Use main CSS
-    scene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    if(DesktopService.isGUI()) {
+      // may be called in headless mode for graphics export
+      scene.getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    }
     setScene(scene);
 
     setTitle(parameterSet.getModuleNameAttribute());

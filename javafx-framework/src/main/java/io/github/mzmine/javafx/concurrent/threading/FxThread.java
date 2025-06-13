@@ -72,14 +72,24 @@ public class FxThread {
 
   /**
    * Simulates Swing's invokeAndWait(). Based on
-   * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
+   * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/. By default this method
+   * does not enforce execution on the java fx thread in headless mode. If that is required use the
+   * overloaded {@link #runOnFxThreadAndWait(Runnable, boolean)} instead.
    */
   public static void runOnFxThreadAndWait(@NotNull Runnable action) {
+    runOnFxThreadAndWait(action, false);
+  }
+
+  /**
+   * @param forceFxThread If true, the action is forced to run on the fx thread, even if in headless
+   *                      mode.
+   */
+  public static void runOnFxThreadAndWait(@NotNull Runnable action, boolean forceFxThread) {
     if (!isFxInitialized) {
       initJavaFxInHeadlessMode();
     }
     // is headless mode or already runs synchronously on JavaFX thread
-    if (DesktopService.isHeadLess() || Platform.isFxApplicationThread()) {
+    if ((DesktopService.isHeadLess() && !forceFxThread) || Platform.isFxApplicationThread()) {
       action.run();
       return;
     }
@@ -99,7 +109,6 @@ public class FxThread {
     } catch (InterruptedException e) {
       logger.log(Level.WARNING, e.getMessage(), e);
     }
-
   }
 
   /**

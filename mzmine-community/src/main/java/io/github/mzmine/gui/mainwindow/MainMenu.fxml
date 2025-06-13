@@ -268,8 +268,6 @@
         userData="io.github.mzmine.modules.io.export_features_venn.VennExportModule"/>
       <MenuItem text="Statistics export (MetaboAnalyst)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule"/>
-      <MenuItem text="mzTab-m" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule"/>
       <MenuItem text="SQL Database" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_sql.SQLExportModule"/>
       <MenuItem text="MSP file (ADAP)" onAction="#runModule"

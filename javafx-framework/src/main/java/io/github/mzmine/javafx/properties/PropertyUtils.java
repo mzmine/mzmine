@@ -102,8 +102,10 @@ public class PropertyUtils {
   }
 
   /**
+   * Unidirectional binding by derived mapped property.
+   *
    * @param <T> elements of list and binding
-   * @return create a new property for the first element in a list
+   * @return create a new ObservableValue for the first element in a list
    */
   public static <T> ObservableValue<T> firstElementProperty(ObjectProperty<List<T>> listProp) {
     return listProp.map(list -> list == null || list.isEmpty() ? null : list.getFirst());
