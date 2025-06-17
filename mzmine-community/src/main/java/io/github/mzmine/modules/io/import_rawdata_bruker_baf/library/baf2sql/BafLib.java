@@ -55,7 +55,6 @@ import org.slf4j.LoggerFactory;
 public class BafLib {
 
   private static final Logger logger = Logger.getLogger(BafLib.class.getName());
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(BafLib.class);
 
   BafLib() {
     // Should not be called directly
